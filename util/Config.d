@@ -84,6 +84,8 @@ private        import         Float = tango.text.convert.Float: toFloat;
 
 private        import         tango.text.Util: locate, trim;
 
+private        import         tango.core.Exception;
+
 
 /*******************************************************************************
 
@@ -329,14 +331,25 @@ class Config
     {
         this.properties[category][key] = value;
     }
+    
+    
+    
+    /**
+     * Does "key" of "category" exist?
+     */
+    public static bool exists(char[] category, char[] key)
+    {
+        return (category in this.properties) && (key in this.properties[category]);
+    }
+    
 
-
-
+    
     /**
      * Returns the value of a configuration key
      *
-     * Function needs to be called statically. Template can be called with three different
-     * types: int, long or char[].
+     * Function needs to be called statically. Template can be instantiated with
+     * integer, float or string (char[]) type.
+     * If the requested key cannot be found, an exception is thrown.
      *
      * ---
      *
@@ -358,48 +371,78 @@ class Config
      */
     public static T get(T) (char[] category, char[] key)
     {
-        if (category in this.properties && key in this.properties[category])
+        try
         {
-
-	    	static if ( is(T == int) )
-			{
-    			int i = Integer.toInt(this.properties[category][key]);
-
-	    		if ( i < i.max && i > int.min)
-	    			return i;
-	    		else
-	    			ConfigException("Critial Error: Configuration key '" ~ category ~ ":" ~ key ~ "' is not of type int!");
-	    	}
-
-	    	static if ( is(T == long) )
-			{
-    			long l = Integer.toLong(this.properties[category][key]);
-
-	    		if ( l < long.max && l > long.min)
-	    			return l;
-	    		else
-                    ConfigException("Critial Error: Configuration key '" ~ category ~ ":" ~ key ~ "' is not of type long!");
-	    	}
+            assert(exists(category, key), "Critial Error: No configuration key '" ~ category ~ ":" ~ key ~ "' found");
             
-            static if ( is(T == float) )
+            char[] property = this.properties[category][key];
+            
+            static if ( is(T : long) )
             {
-                float l = Float.toFloat(this.properties[category][key]);
-
-                if ( l < float.max && l > float.min)
-                    return l;
-                else
-                    ConfigException("Critial Error: Configuration key '" ~ category ~ ":" ~ key ~ "' is not of type long!");
+                return Integer.toLong(property);
             }
-
-	    	static if ( is(T == char[]) )
-	    		return this.properties[category][key];
+            else static if ( is(T : real) )
+            {
+                return Float.toFloat(property);
+            }
+            else static if ( is(T : char[]) )
+            {
+                return cast (T) property;
+            }
+            else static assert(false, __FILE__ ~ " : get: type '" ~ T.stringof ~ "' is not supported");
         }
-        else
-            ConfigException("Critial Error: No configuration key '" ~ category ~ ":" ~ key ~ "' found");
+        catch (AssertException e)
+        {
+            ConfigException(e.msg);
+        }
+        catch (IllegalArgumentException)
+        {
+            ConfigException("Critial Error: Configuration key '" ~ category ~ ":" ~ key ~ "' appears not to be of type '" ~ T.stringof ~ "'");
+        }
     }
-
-
-
+    
+    
+    
+    /**
+     * Returns the value of a configuration key
+     *
+     * Function needs to be called statically. Template can be instantiated with
+     * integer, float or string (char[]) type. If the configuration key cannot
+     * be found, "value" remains unchanged.
+     *
+     * ---
+     *
+     * Usage Example:
+     *
+     * Config.init("etc/config.ini");
+     *
+     * Config.get!(char[])("my_config_key");                //retrieve the string value of a key
+     * Config.get!(int)("number_of_threads");               //retrieve an int value of a key
+     *
+     * ---
+     *
+     * Params:
+     *   value    = key value
+     *   category = category to get key from
+     *   key      = name of the property to get
+     *
+     * Returns:
+     *   true on success or false if the key could not be found
+     */
+    public static bool get(T) (ref T value, char[] category, char[] key)
+    {
+        bool found = exists(category, key);
+        
+        if (found)
+        {
+            value = this.get!(T)(category, key);
+        }
+        
+        return found;
+    }
+    
+    
+    
     /**
      * Reads all configuration parameter from INI file
      *
