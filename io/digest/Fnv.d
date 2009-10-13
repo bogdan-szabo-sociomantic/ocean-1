@@ -228,6 +228,13 @@ struct Fnv
      * }
      * 
      * ---
+     * 
+     * Params:
+     *      data = data to digest
+     *      hash = initial digest
+     *      
+     * Returns:
+     *      resulting digest
      */
     public static T fnv1 ( T ) ( void[] data, T hash = FNV_INIT!(T) )
     {
@@ -243,6 +250,13 @@ struct Fnv
     
     /**
      * FNV1 core; digests one octet "d" to "hash"
+     * 
+     * Params:
+     *      d    = data to digest
+     *      hash = initial digest
+     *  
+     * Returns:
+     *      resulting digest
      */
     public static T fnv1_core ( T ) ( ubyte d, T hash )
     {
