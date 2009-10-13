@@ -143,9 +143,10 @@ class Uncompress
      * Returns: 
      *      uncompressed content
      */
-    public char[] decode ( char[] compressed, char[] encoding = "gzip" )
+    public T[] decodeUni ( T ) ( char[] compressed, char[] encoding = "gzip" )
     {   
         int size = 0;        
+        uint total = 0;
         
         // Check if input is ok
         if (compressed.length > 0)
@@ -165,10 +166,11 @@ class Uncompress
                 
                 while ((size = this.decomp.read(this.read_chunk)) > 0)
                 {   
-                    this.output_buffer.append(this.read_chunk);                   
+                    this.output_buffer.append(this.read_chunk);
+                    total += size;
                 }
                 
-                return cast(char[]) this.output_buffer.slice();
+                return cast(T[]) this.output_buffer.slice(total);
             }
             catch (Exception e)
             {
@@ -179,6 +181,23 @@ class Uncompress
         return null; 
     }
     
+    
+    
+    /**
+     * Returns uncompressed content
+     * 
+     * Params:
+     *      compressed  = compressed string
+     *      encoding    = encoding [zlib, gzip, deflate]
+     *      
+     * Returns: 
+     *      uncompressed content
+     */
+    public char[] decode ( char[] compressed, char[] encoding = "gzip" )
+    {
+        return this.decodeUni!(char)(compressed, encoding);
+    }
+
     
     
     /**
@@ -229,9 +248,10 @@ class Uncompress
      * Returns:
      *     uncompressed string or null on error
      */    
-    public char[] decode ( InputStream stream_in, char[] encoding = "gzip" )
+    public T[] decodeUni ( T ) ( InputStream stream_in, char[] encoding = "gzip" )
     {   
         int size = 0;
+        uint total = 0;
         
         try 
         {       
@@ -245,16 +265,33 @@ class Uncompress
             while ((size = this.decomp.read(this.read_chunk)) > 0)
             {
                 this.output_buffer.append(this.read_chunk);
+                total += size;
             }           
             
-            return cast(char[]) this.output_buffer.slice();
+            return cast(T[]) this.output_buffer.slice(total);
         }
         catch (Exception e)
         {
             UncompressException("Uncompress Error: " ~ e.msg);
-        }        
+        }
     }
- 
+    
+    
+    
+    /**
+     * Returns uncompressed content
+     * 
+     * Params:
+     *      compressed  = compressed string
+     *      encoding    = encoding [zlib, gzip, deflate]
+     *      
+     * Returns: 
+     *      uncompressed content
+     */
+    public char[] decode ( InputStream stream_in, char[] encoding = "gzip" )
+    {
+        return this.decodeUni!(char)(stream_in, encoding);
+    }
     
     
     /**
