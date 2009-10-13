@@ -266,13 +266,15 @@ class Daemon
     }
         
     
-    
     /**
      * Starts the daemon
      * 
      * Forks a new process and kills the parent process to detach
      * from the console. The new process starts the spawning of the 
-     * childs. The number of childs is set by number_process variable     
+     * childs. The number of childs is set by number_process variable
+     * 
+     * Params:
+     *     restart_on_termination = restart on termination
      */
     public void daemonize ( bool restart_on_termination = true )
     {
@@ -349,6 +351,9 @@ class Daemon
      * Start children process
      * Forks child, assigns function to run and sets 
      * the signal handler.
+     * 
+     * Params:
+     *     restart_on_termination = restart on termination
      */
     public void startChildren ( bool restart_on_termination = true ) 
     {    	
