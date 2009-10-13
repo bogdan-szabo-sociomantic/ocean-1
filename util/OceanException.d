@@ -301,8 +301,16 @@ class OceanException: Exception
         OceanException.logger_name = name;
     }
 
-
-
+    
+    /**
+     * Returns the logger
+     */
+    public static Logger getLogger ( )
+    {
+        return logger;
+    }
+    
+    
     /**
      * Write exception to attached appender
      *
