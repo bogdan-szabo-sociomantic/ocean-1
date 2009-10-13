@@ -274,7 +274,7 @@ class Daemon
      * from the console. The new process starts the spawning of the 
      * childs. The number of childs is set by number_process variable     
      */
-    public void daemonize ()
+    public void daemonize ( bool restart_on_termination = true )
     {
     	pid_t pid, sid;
 		
@@ -321,13 +321,16 @@ class Daemon
      		
     	for (int no_childs=0; no_childs < this.number_process; no_childs++) 
         {					
-    		this.startChildren();
+    		this.startChildren(restart_on_termination);
     	}	
-    				
-    	// set signal handler for parent process
-    	signal(SIGTERM, &sighandler);
-    	signal(SIGCHLD, &sighandler);
     	
+        if (restart_on_termination)
+        {
+        	// set signal handler for parent process
+        	signal(SIGTERM, &sighandler);
+        	signal(SIGCHLD, &sighandler);
+        }
+        
     	for (int i=1; i<= this.number_process; i++) 
         {
     		int status = wait();
@@ -347,7 +350,7 @@ class Daemon
      * Forks child, assigns function to run and sets 
      * the signal handler.
      */
-    public void startChildren () 
+    public void startChildren ( bool restart_on_termination = true ) 
     {    	
     	// get process group ID
     	pid_t process_group = getpgrp();
@@ -362,7 +365,10 @@ class Daemon
             setpgid(child_pid, process_group);
             pid_t pgid = getpgrp();
             
-            signal(SIGTERM, &sighandler);
+            if (restart_on_termination)
+            {
+                signal(SIGTERM, &sighandler);
+            }
             
     		// run children code
     		this.func();    		
