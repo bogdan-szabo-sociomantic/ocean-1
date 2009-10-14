@@ -157,8 +157,51 @@ class OceanException: Exception
 
         return true;
     }
+    
+    
+    
+    /**
+     * Runs and catches exceptions from static method executed
+     *
+     * This function should be called to invoke a static module, method or class that
+     * will be monitored and exception be written to a stdout or the defined appenders.
+     *
+     * ---
+     *
+     *   Usage:
+     *
+     *   class Module
+     *   {
+     *      public static bool run() { return true; }
+     *   }
+     *
+     *   OceanException.run(&Module.run);
+     *
+     * ---
+     *
+     * Params:
+     *     func = static function to be called by OceanException
+     *
+     * Returns:
+     *     true, if function was executed successfully
+     */
+    public static bool run( bool function ( ) func )
+    {
+        try
+        {
+            return func();
+        }
+        catch (Exception e)
+        {
+            if ( OceanException.isAppender() )
+                OceanException.write(Logger.Level.Error, e.msg);
 
+            Stdout.formatln(e.msg).flush;
+        }
 
+        return true;
+    }
+    
 
     /**
      * Runs and catches exceptions from non-static method executed
