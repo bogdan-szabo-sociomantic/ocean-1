@@ -335,7 +335,14 @@ class Config
     
     
     /**
-     * Does "key" of "category" exist?
+     * Tells if a configuration key or category exists
+     * 
+     * Params:
+     *   key      = key name to check
+     *   category = name of the category of the key
+     *   
+     *  Returns:
+     *   true if the configuration key exists in this category
      */
     public static bool exists(char[] category, char[] key)
     {

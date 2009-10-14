@@ -287,7 +287,7 @@ class OceanException: Exception
 
         return false;
     }
-
+    
 
 
     /**
@@ -302,13 +302,18 @@ class OceanException: Exception
     }
 
     
+    
     /**
      * Returns the logger
+     * 
+     * Returns:
+     *  the logger
      */
     public static Logger getLogger ( )
     {
         return logger;
     }
+    
     
     
     /**
