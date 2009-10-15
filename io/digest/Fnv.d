@@ -12,7 +12,9 @@
 
 module  ocean.io.digest.Fnv;
 
-import tango.text.convert.Format;
+private import tango.io.digest.Digest;
+
+private import tango.text.convert.Format;
 
 /*******************************************************************************
 
@@ -24,19 +26,43 @@ import tango.text.convert.Format;
         32bit ~ 3704333.44 hash/sec
         64bit ~ 1728119.76 hash/sec
         
-        ---
+        --
         
-        import ocean.io.digest.Fnv;
+        Usage
         
-        char[] string = "tohash";
-        
-        auto fnv = new Fnv;
-        
-        fnv.update(string);
-        
-        char[] hash = fnv.hexDigest;
+        Example 1: Using a Fnv32 object
         
         ---
+        
+            import ocean.io.digest.Fnv;
+            
+            auto fnv32 = new Fnv32;
+            auto fnv64 = new Fnv64;
+            
+            char[] string = "tohash";
+            
+            fnv32.update(string);
+            fnv64.update(string);
+            
+            char[] hash32 = fnv32.hexDigest;
+            char[] hash64 = fnv64.hexDigest;
+        
+        ---
+        
+        Example 2: Using the static fnv1() hash method
+        
+        ---
+        
+            import ocean.io.digest.Fnv;
+        
+            char[] string = "tohash";
+            
+            uint  hash32 = Fnv32.fnv1(string);
+            ulong hash64 = Fnv64.fnv1(string);
+        
+        ---
+        
+        --
         
         We should use this hash algorithm in combination with this consistent 
         hash algorithm in order to build a distributed hash table (DTH)
@@ -45,7 +71,7 @@ import tango.text.convert.Format;
         svn://svn.audioscrobbler.net/misc/ketama/
         http://pdos.csail.mit.edu/chord/
         
-        ---
+        --
         
         References
         
@@ -58,185 +84,280 @@ import tango.text.convert.Format;
         http://www.team5150.com/~andrew/blog/2007/03/when_bad_hashing_means_good_caching.html
         http://www.azillionmonkeys.com/qed/hash.html
         
+        --
+        
+        NOTE: Fnv32 and Fnv64 are defined as aliases. Since The D language does
+              not allow forward referencing, these are defined AFTER the class
+              definition near the end of this document:
+        
+        ---
+        
+        alias Fnv!(uint ) Fnv32;
+        alias Fnv!(ulong) Fnv64;
+        
+        ---
+        
 *******************************************************************************/
 
-struct Fnv
+
+class Fnv ( T ) : Digest
 {
     /**************************************************************************
     
-        FNV constants templates
+        FNV magic constants
  
      **************************************************************************/
     
-    public static const uint  FNV_32_PRIME  = 0x0100_0193;
-    public static const uint  FNV_32_INIT   = 0x811C_9DC5;
     
-    public static const ulong FNV_64_PRIME  = 0x0000_0100_0000_01B3;
-    public static const ulong FNV_64_INIT   = 0xCBF2_9CE4_8422_2325;
-    
+    static if (is (T == uint))
+    {
+        static const T FNV_PRIME = 0x0100_0193; // 32 bit prime
+        static const T FNV_INIT  = 0x811C_9DC5; // 32 bit inital digest
+    }
+    else static if (is (T == ulong))
+    {
+        static const T FNV_PRIME = 0x0000_0100_0000_01B3; // 64 bit prime
+        static const T FNV_INIT  = 0xCBF2_9CE4_8422_2325; // 64 bit inital digest
+    }
     /*
     // be prepared for the day when Walter introduces cent...
-    public static const ucent FNV_128_INIT  = 0x0000_0000_0100_0000_0000_0000_0000_013B;
-    public static const ucent FNV_128_PRIME = 0x6C62_272E_07BB_0142_62B8_2175_6295_C58D;
+    else static if (is (T == ucent))
+    {
+        static const T FNV_PRIME = 0x0000_0000_0100_0000_0000_0000_0000_013B; // 128 bit prime
+        static const T FNV_PRIME = 0x6C62_272E_07BB_0142_62B8_2175_6295_C58D; // 128 bit inital digest
+    }
     */
+    else static assert (false, "type '" ~ T.stringof ~
+                               "' is not supported, only uint and ulong");
     
     
-    /**
-     *  Reflects the length of the hexadecimal string representing a number of
-     *  type T.
-     */
-    public static template HEXLEN ( T )
-    {
-        const int HEXLEN = T.sizeof * 2;
-    }
-
     /**************************************************************************
     
-         FNV magic constants templates
+        class properties
+
+     **************************************************************************/
+    
+    
+    private T digest = this.FNV_INIT;
+    
+    
+    /**************************************************************************
+    
+        Tango Digest class methods
+
+     **************************************************************************/
+    
+    
+    /*********************************************************************
+    
+        Processes data
+        
+        Remarks:
+              Updates the hash algorithm state with new data
       
-     **************************************************************************/
+     *********************************************************************/
     
     
-    /**
-     *  FNV prime number template. T may either be uint (32 bit) or ulong (64
-     *  bit).
-     *  Usage: uint p = FNV_PRIME!(uint);
-     */
-    public static template FNV_PRIME ( T )
+    public Digest update ( void[] data )
     {
-        static if (is (T == uint))
-        {
-            static const T FNV_PRIME = FNV_32_PRIME;
-        }
-        else static if (is (T == ulong))
-        {
-            static const T FNV_PRIME = FNV_64_PRIME;
-        }
-        else static assert (false, TypeErr!(T));
+        this.digest = this.fnv1(data, this.digest);
+        
+        return this;
     }
     
     
+    /********************************************************************
     
-    /**
-     *  FNV initial digest template. T may either be uint (32 bit) or ulong (64
-     *  bit).
-     *  Usage: ulong i = FNV_INIT!(ulong);
-     */
-    public static template FNV_INIT ( T )
-    {
-        static if (is (T == uint))
-        {
-            static const T FNV_INIT = FNV_32_INIT;
-        }
-        else static if (is (T == ulong))
-        {
-            static const T FNV_INIT = FNV_64_INIT;
-        }
-        else static assert (false, TypeErr!(T));
-    }
+        Computes the digest and resets the state
     
+        Params:
+            buffer = a buffer can be supplied for the digest to be
+                     written to
     
-    /**************************************************************************
-     
-         helper templates
-     
-     **************************************************************************/
-    
-    
-    /**
-     * Compile error for unsupported types
-     */
-    private static template TypeErr ( T )
-    {
-        const TypeErr =  __FILE__ ~ " : fnv_uni: type " ~ T.stringof ~
-                         " is not supported, only uint and ulong";
-    }
-    
-    
-    /**
-     * Compile-time hexadecimal format string generator
-     */
-    private static template HexFormatter ( T )
-    {
-        const char[] HexFormatter = "{:X" ~ HEXLEN!(T).stringof ~ '}';
-    }
-    
-    
+        Remarks:
+            If the buffer is not large enough to hold the
+            digest, a new buffer is allocated and returned.
+            The algorithm state is always reset after a call to
+            binaryDigest. Use the digestSize method to find out how
+            large the buffer has to be.
+            
+    *********************************************************************/
 
     
+    public ubyte[] binaryDigest( ubyte[] buffer = null )
+    {
+        scope(exit) this.reset();
+        
+        buffer.length = this.digestSize();
+        
+        * cast (typeof(this.digest) *) & buffer = this.digest;
+        
+        return buffer;
+    }
+    
+    
+    /********************************************************************
+    
+        Returns the size in bytes of the digest
+        
+        Returns:
+          the size of the digest in bytes
+    
+        Remarks:
+          Returns the size of the digest.
+          
+    *********************************************************************/
+
+    
+    public uint digestSize ( )
+    {
+        return T.sizeof;
+    }
+    
+    
+    /*********************************************************************
+        
+        Computes the digest as a hex string and resets the state
+        
+        Params:
+            S      = buffer element data type
+            
+            upcase = true: use upper case digits 'A' -- 'F'; false: use lower
+                     case (default: false)
+            
+            buffer = a buffer can be supplied in which the digest
+                     will be written. It needs to be able to hold
+                     2 * digestSize chars
+     
+        Remarks:
+             If the buffer is not large enough to hold the hex digest,
+             a new buffer is allocated and returned. The algorithm
+             state is always reset after a call to hexDigestUni.
+             
+    *********************************************************************/
+    
+    
+    public S[] hexDigestUni ( S, bool upcase = false ) ( S[] buffer = null )
+    {
+        scope(exit) this.reset();
+        
+        buffer = Format!(S)(this.HexFormatter!(upcase).xfm, this.digest);
+        
+        return buffer;
+    }
+    
+    
+    /*********************************************************************
+    
+        Computes the digest as a hex string and resets the state
+        
+        Params:
+            buffer = a buffer can be supplied in which the digest
+                     will be written. It needs to be able to hold
+                     2 * digestSize chars
+     
+        Remarks:
+             The letter digits 'a' -- 'f' are lower case.
+             If the buffer is not large enough to hold the hex digest,
+             a new buffer is allocated and returned. The algorithm
+             state is always reset after a call to hexDigest.
+             
+     *********************************************************************/
+    
+    
+    public alias hexDigestUni!(char) hexDigest;
+    
+    
+    /*********************************************************************
+    
+        Computes the digest as a hex string and resets the state
+        
+        Params:
+            buffer = a buffer can be supplied in which the digest
+                     will be written. It needs to be able to hold
+                     2 * digestSize chars
+     
+        Remarks:
+             The letter digits 'A' -- 'F' are upper case.
+             If the buffer is not large enough to hold the hex digest,
+             a new buffer is allocated and returned. The algorithm
+             state is always reset after a call to hexDigest.
+         
+     *********************************************************************/
+    
+    
+    public alias hexDigestUni!(char, true) hexDigestUp;
+    
+    
+    
     /**************************************************************************
     
-        digest functions
+        utility class methods (in addition to the Tango Digest standard methods)
+
+     **************************************************************************/
+
+    
+    /**
+     * resets the state
+     * 
+     * Returns:
+     *      this instance
+     */
+    public Digest reset ( )
+    {
+        this.digest = this.FNV_INIT;
+        
+        return this;
+    }
+    
+    
+    
+    /**
+     * simply returns the digest
+     * 
+     * Returns:
+     *      digest
+     */
+    public T getDigest ( )
+    {
+        return this.digest;
+    }
+    
+    
+    /**************************************************************************
+    
+        core methods
     
      **************************************************************************/
     
     
     
     /**
-     * Hexadecimal FNV1 digest string generator
+     * Computes a FNV1 digest from data.
      * 
-     * Params:
-     *      S    = output string element type (usually char)
-     *      T    = hash data type (uint for 32 or ulong for 64 bits width)
-     *      data = data to digest
+     * Usage:
+     * 
+     * ---
      *      
-     * Returns:
-     *      string reflecting hexadecimal representation of FNV1 digest
+     *      import ocean.io.digest.Fnv;
      *      
-     * Usage example:
-     * ---
-     *      // compute an uint (32 bit) FNV digest from data and return its
-     *      // hexadecimal representation as a char[] string
-     *      
-     *      ubyte[] data;
-     *      // fill data
-     *      char[] hash = Fnv.fnv1Hex!(char, uint)(data);
-     * --- 
-     */
-    public static char[] fnv1Hex ( S, T ) ( void[] data, T hash = FNV_INIT!(T) )
-    {
-        return Format!(S)(HexFormatter!(T), fnv1!(T)(data, hash));
-    }
-    
-    /**
-     * FNV1 digest template for supported types (currently uint for 32 and ulong
-     * for 64 bits width); digests a sequence of octets "data" using the initial
-     * value "hash" which is set to the magic initializer by default but is also
-     * suitable to use for chaining or iterating:
+     *      char[] data;
      * 
-     * Example 1 -- chaining digests ("!(T)" template instantiation parameters
-     * omitted for better readability):
-     * ---
-     * 
-     * fnv1(str_b, fnv1(str_a));
-     * 
-     * // is equivalent to
-     * 
-     * fnv1(str_a ~ str_b);
+     *      uint  digest32 = Fnv32.fnv1(data);
+     *      ulong digest64 = Fnv64.fnv1(data);
      * 
      * ---
-     * Example 2 -- generate one digest over an array of strings:
-     * ---
-     * 
-     * char[][] strings;
-     * 
-     * uint hash = FNV_INIT!(uint);
-     * 
-     * foreach (string; strings)
-     * {
-     *      hash = fnv1!(uint)(string);
-     * }
-     * 
-     * ---
+     *
      * 
      * Params:
      *      data = data to digest
-     *      hash = initial digest
+     *      hash = initial digest; defaults to the magic 32 bit or 64 bit
+     *             initial value, according to T
      *      
      * Returns:
      *      resulting digest
      */
-    public static T fnv1 ( T ) ( void[] data, T hash = FNV_INIT!(T) )
+    public static T fnv1 ( void[] data, T hash = FNV_INIT )
     {
         foreach (d; cast (ubyte[]) data)
         {
@@ -258,24 +379,73 @@ struct Fnv
      * Returns:
      *      resulting digest
      */
-    public static T fnv1_core ( T ) ( ubyte d, T hash )
+    public static T fnv1_core ( ubyte d, T hash )
     {
-        return (hash * FNV_PRIME!(T)) ^ d;
+        return (hash * FNV_PRIME) ^ d;
     }
     
     
     /**************************************************************************
     
-        unit test
+        helper templates
 
-    **************************************************************************/
+     **************************************************************************/
     
-    unittest
+    
+    /**
+    * Compile-time hexadecimal format string generator
+    */
+    private template HexFormatter ( bool upcase = false )
     {
-        const char[] TEST_STR = "Die Katze tritt die Treppe krumm.";
-                   
-        assert(fnv1!(uint)(TEST_STR) == 0xAF7C5F4B, __FILE__ ~ " : fnv1: unit test failed");
+        static if (upcase)
+        {
+            const x = 'X';
+        }
+        else
+        {
+            const x = 'x';
+        }
         
-        assert(fnv1Hex!(char, uint)(TEST_STR) == "AF7C5F4B", __FILE__ ~ " : fnv1Hex: unit test failed");
+        const HexLen = T.sizeof * 2;
+        
+        const char[] xfm = "{:" ~ x ~ HexLen.stringof ~ "}";
     }
+} // Fnv
+
+
+/**************************************************************************
+
+    aliases
+
+**************************************************************************/
+
+
+/**
+ * Convenience aliases for 32-bit and 64-bit Fnv class template instances. The D
+ * language requires these aliases to occur _after_ the definition of the class
+ * they refer to.
+ * Usage as explained on the top of this module.
+ */
+
+alias Fnv!(uint ) Fnv32;
+alias Fnv!(ulong) Fnv64;
+
+
+/**************************************************************************
+
+    unit test
+    
+    TODO: 64 bit testing
+
+**************************************************************************/
+
+unittest
+{
+    const char[] TEST_STR = "Die Katze tritt die Treppe krumm.";
+    
+    const uint digest32 = 0xAF7C5F4B;
+    
+    assert(Fnv!(uint).fnv1(TEST_STR) == digest32, __FILE__ ~ " : fnv1: unit test failed");
+    assert(Fnv32.fnv1(TEST_STR)      == digest32, __FILE__ ~ " : fnv1: unit test failed");
 }
+
