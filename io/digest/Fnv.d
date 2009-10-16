@@ -14,7 +14,7 @@ module  ocean.io.digest.Fnv;
 
 private import tango.io.digest.Digest;
 
-private import tango.text.convert.Format;
+private import tango.core.ByteSwap;
 
 /*******************************************************************************
 
@@ -104,7 +104,7 @@ class Fnv ( T ) : Digest
 {
     /**************************************************************************
     
-        FNV magic constants
+        FNV magic constants and endianness
  
      **************************************************************************/
     
@@ -113,11 +113,15 @@ class Fnv ( T ) : Digest
     {
         static const T FNV_PRIME = 0x0100_0193; // 32 bit prime
         static const T FNV_INIT  = 0x811C_9DC5; // 32 bit inital digest
+        
+        private alias ByteSwap.swap32 toBigEnd;
     }
     else static if (is (T == ulong))
     {
         static const T FNV_PRIME = 0x0000_0100_0000_01B3; // 64 bit prime
         static const T FNV_INIT  = 0xCBF2_9CE4_8422_2325; // 64 bit inital digest
+        
+        private alias ByteSwap.swap64 toBigEnd;
     }
     /*
     // be prepared for the day when Walter introduces cent...
@@ -129,6 +133,50 @@ class Fnv ( T ) : Digest
     */
     else static assert (false, "type '" ~ T.stringof ~
                                "' is not supported, only uint and ulong");
+    
+    
+    /**************************************************************************
+    
+        unions
+
+     **************************************************************************/
+
+    
+    /**
+     * Endianness aware integer to byte array converter
+     * 
+     * Usage:
+     * 
+     * ---
+     * 
+     *      Fnv32.BinConvert bc;
+     *      
+     *      ubyte[] binstr = (bc = 0xAFFE4711);
+     *      
+     *      // binstr now is [0xAF, 0xFE, 0x47, 0x11]
+     *      
+     * ---
+     * 
+     */
+     union BinConvert
+     {
+         typedef ubyte[T.sizeof] BinString;
+         
+         BinString array;
+         
+         T value;
+         
+         ubyte[] opAssign ( T val )
+         {
+             T old_val = value;
+             
+             value = val;
+             
+             version (LittleEndian) toBigEnd(array);
+             
+             return array.dup;
+         }
+     };
     
     
     /**************************************************************************
@@ -188,11 +236,18 @@ class Fnv ( T ) : Digest
     {
         scope(exit) this.reset();
         
-        buffer.length = this.digestSize();
+        BinConvert bc;
         
-        * cast (typeof(this.digest) *) & buffer = this.digest;
+        bc = this.digest;
         
-        return buffer;
+        if ( buffer )
+        {
+            buffer.length = this.digestSize();
+            
+            foreach (i, d; bc.array) { buffer[i] = d; }
+        }
+        
+        return buffer? buffer: bc.array.dup;
     }
     
     
@@ -215,87 +270,12 @@ class Fnv ( T ) : Digest
     }
     
     
-    /*********************************************************************
-        
-        Computes the digest as a hex string and resets the state
-        
-        Params:
-            S      = buffer element data type
-            
-            upcase = true: use upper case digits 'A' -- 'F'; false: use lower
-                     case (default: false)
-            
-            buffer = a buffer can be supplied in which the digest
-                     will be written. It needs to be able to hold
-                     2 * digestSize chars
-     
-        Remarks:
-             If the buffer is not large enough to hold the hex digest,
-             a new buffer is allocated and returned. The algorithm
-             state is always reset after a call to hexDigestUni.
-             
-    *********************************************************************/
-    
-    
-    public S[] hexDigestUni ( S, bool upcase = false ) ( S[] buffer = null )
-    {
-        scope(exit) this.reset();
-        
-        buffer = Format!(S)(this.HexFormatter!(upcase).xfm, this.digest);
-        
-        return buffer;
-    }
-    
-    
-    /*********************************************************************
-    
-        Computes the digest as a hex string and resets the state
-        
-        Params:
-            buffer = a buffer can be supplied in which the digest
-                     will be written. It needs to be able to hold
-                     2 * digestSize chars
-     
-        Remarks:
-             The letter digits 'a' -- 'f' are lower case.
-             If the buffer is not large enough to hold the hex digest,
-             a new buffer is allocated and returned. The algorithm
-             state is always reset after a call to hexDigest.
-             
-     *********************************************************************/
-    
-    
-    public alias hexDigestUni!(char) hexDigest;
-    
-    
-    /*********************************************************************
-    
-        Computes the digest as a hex string and resets the state
-        
-        Params:
-            buffer = a buffer can be supplied in which the digest
-                     will be written. It needs to be able to hold
-                     2 * digestSize chars
-     
-        Remarks:
-             The letter digits 'A' -- 'F' are upper case.
-             If the buffer is not large enough to hold the hex digest,
-             a new buffer is allocated and returned. The algorithm
-             state is always reset after a call to hexDigest.
-         
-     *********************************************************************/
-    
-    
-    public alias hexDigestUni!(char, true) hexDigestUp;
-    
-    
-    
     /**************************************************************************
     
-        utility class methods (in addition to the Tango Digest standard methods)
+        extenstion class methods (in addition to the Digest standard methods)
 
      **************************************************************************/
-
+    
     
     /**
      * resets the state
@@ -434,18 +414,62 @@ alias Fnv!(ulong) Fnv64;
 /**************************************************************************
 
     unit test
-    
-    TODO: 64 bit testing
 
 **************************************************************************/
 
-unittest
+private template errmsg ( char[] func )
 {
-    const char[] TEST_STR = "Die Katze tritt die Treppe krumm.";
-    
-    const uint digest32 = 0xAF7C5F4B;
-    
-    assert(Fnv!(uint).fnv1(TEST_STR) == digest32, __FILE__ ~ " : fnv1: unit test failed");
-    assert(Fnv32.fnv1(TEST_STR)      == digest32, __FILE__ ~ " : fnv1: unit test failed");
+    const errmsg = "unit test failed for " ~ func;
 }
 
+unittest
+{
+    const char[]  test_str     = "Die Katze tritt die Treppe krumm.";
+    
+    const uint    digest32_val = 0xAF7C5F4B;
+    const ubyte[] digest32_arr = [0xAF, 0x7C, 0x5F, 0x4B];
+    const char[]  digest32_str = "af7c5f4b";
+    
+    const ulong   digest64_val = 0xE1C5437FEEA6C16B;
+    const ubyte[] digest64_arr = [0xE1, 0xC5, 0x43, 0x7F, 0xEE, 0xA6, 0xC1, 0x6B];
+    const char[]  digest64_str = "e1c5437feea6c16b";
+    
+    /**************************************************************************
+     
+        Fnv32/Fnv64 class methods test
+      
+     **************************************************************************/
+    
+    Fnv32 fnv32 = new Fnv32;
+    
+    assert(fnv32.update(test_str).binaryDigest() == digest32_arr, errmsg!("Fnv32.binaryDigest()"));
+    assert(fnv32.update(test_str).hexDigest()    == digest32_str, errmsg!("Fnv32.hexDigest()"));
+    
+    
+    Fnv64 fnv64 = new Fnv64;
+    
+    assert(fnv64.update(test_str).binaryDigest() == digest64_arr, errmsg!("Fnv64.binaryDigest()"));
+    assert(fnv64.update(test_str).hexDigest()    == digest64_str, errmsg!("Fnv64.hexDigest()"));
+    
+    
+    /**************************************************************************
+    
+        Fnv32/Fnv64 core methods test
+  
+     **************************************************************************/
+    
+    assert(Fnv32.fnv1(test_str) == digest32_val, errmsg!("Fnv32.fnv1()"));
+    assert(Fnv64.fnv1(test_str) == digest64_val, errmsg!("Fnv64.fnv1()"));
+    
+    uint  digest32 = Fnv32.FNV_INIT;
+    ulong digest64 = Fnv64.FNV_INIT;
+    
+    foreach ( d; cast (ubyte[]) test_str )
+    {
+        digest32 = Fnv32.fnv1_core(d, digest32);
+        digest64 = Fnv64.fnv1_core(d, digest64);
+    }
+    
+    assert(Fnv32.fnv1(test_str) == digest32_val, errmsg!("fnv1_core()"));
+    assert(Fnv64.fnv1(test_str) == digest64_val, errmsg!("fnv1_core()"));
+}
