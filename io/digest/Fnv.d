@@ -223,6 +223,9 @@ class Fnv ( T ) : Digest
                      written to
     
         Remarks:
+            This method is endianness-aware: The returned array has always the
+            least-order byte at byte [0] (big endian).
+            
             If the buffer is not large enough to hold the
             digest, a new buffer is allocated and returned.
             The algorithm state is always reset after a call to
@@ -426,11 +429,11 @@ unittest
 {
     const char[]  test_str     = "Die Katze tritt die Treppe krumm.";
     
-    const uint    digest32_val = 0xAF7C5F4B;
+    const uint    digest32_val = 0xAF_7C_5F_4B;
     const ubyte[] digest32_arr = [0xAF, 0x7C, 0x5F, 0x4B];
     const char[]  digest32_str = "af7c5f4b";
     
-    const ulong   digest64_val = 0xE1C5437FEEA6C16B;
+    const ulong   digest64_val = 0xE1_C5_43_7F_EE_A6_C1_6B;
     const ubyte[] digest64_arr = [0xE1, 0xC5, 0x43, 0x7F, 0xEE, 0xA6, 0xC1, 0x6B];
     const char[]  digest64_str = "e1c5437feea6c16b";
     
