@@ -344,7 +344,7 @@ class Fnv ( T ) : Digest
     {
         foreach (d; cast (ubyte[]) data)
         {
-            hash = fnv1_core!(T)(d, hash);
+            hash = fnv1_core(d, hash);
         }
         
         return hash;
