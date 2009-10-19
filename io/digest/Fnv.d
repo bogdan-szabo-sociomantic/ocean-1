@@ -247,10 +247,13 @@ class Fnv ( T ) : Digest
         {
             buffer.length = this.digestSize();
             
-            foreach (i, d; bc.array) { buffer[i] = d; }
+            foreach (i, d; bc.array) 
+            { 
+            	buffer[i] = d; 
+            }
         }
         
-        return buffer? buffer: bc.array.dup;
+        return buffer ? buffer : bc.array.dup;
     }
     
     
@@ -367,32 +370,6 @@ class Fnv ( T ) : Digest
         return (hash * FNV_PRIME) ^ d;
     }
     
-    
-    /**************************************************************************
-    
-        helper templates
-
-     **************************************************************************/
-    
-    
-    /**
-    * Compile-time hexadecimal format string generator
-    */
-    private template HexFormatter ( bool upcase = false )
-    {
-        static if (upcase)
-        {
-            const x = 'X';
-        }
-        else
-        {
-            const x = 'x';
-        }
-        
-        const HexLen = T.sizeof * 2;
-        
-        const char[] xfm = "{:" ~ x ~ HexLen.stringof ~ "}";
-    }
 } // Fnv
 
 
