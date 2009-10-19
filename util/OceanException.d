@@ -9,9 +9,6 @@
     authors:        Lars Kirchhoff
                     Thomas Nicolai
 
-
-    TODO: More to add in the documentation section
-
     Basic Exception handling template for use in modules and projects. The
     Exception template can be used as extension for custom routines to redirect
     error messages to files or command line via a Logger Interface.
@@ -78,9 +75,12 @@
 
 module      ocean.util.OceanException;
 
+private     import      tango.util.Arguments;
+
 private     import      tango.util.log.Log, tango.util.log.LayoutDate;
 
 private     import      tango.io.Stdout;
+
 
 /*******************************************************************************
 
@@ -158,6 +158,49 @@ class OceanException: Exception
         return true;
     }
     
+    
+    /**
+     * Runs and catches exceptions from static method executed
+     *
+     * This function should be called to invoke a static module, method or class that
+     * will be monitored and exception be written to a stdout or the defined appenders.
+     *
+     * ---
+     *
+     *   Usage:
+     *
+     *   class Module
+     *   {
+     *      public static bool run(Arguments argument) { return true; }
+     *   }
+     *
+     *   OceanException.run(&Module.run, arguments);
+     *
+     * ---
+     *
+     * Params:
+     *     func = static function to be called by OceanException
+     *     ...  = any number of arguments to pass to the static function called
+     *
+     * Returns:
+     *     true, if function was executed successfully
+     */
+    public static bool run( bool function(Arguments arguments) func, Arguments arguments )
+    {
+        try
+        {
+            return func(arguments);
+        }
+        catch (Exception e)
+        {
+            if ( OceanException.isAppender() )
+                OceanException.write(Logger.Level.Error, e.msg);
+
+            Stdout.formatln(e.msg).flush;
+        }
+
+        return true;
+    }
     
     
     /**
