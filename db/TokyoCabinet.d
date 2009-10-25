@@ -423,8 +423,8 @@ class TokyoCabinet
     {
         if (tchdbiterinit(this.db) != true) 
         {
-            TokyoCabinetException("TokyoCabinet failed to init Iterator: '{}'", 
-                toDString(tchdberrmsg(tchdbecode(this.db))));
+            TokyoCabinetException("TokyoCabinet failed to init Iterator: '" ~ 
+                toDString(tchdberrmsg(tchdbecode(this.db))) ~ "'");
             
 //            return false;
         }
@@ -459,8 +459,8 @@ class TokyoCabinet
         
         if ((key = tchdbiternext2(this.db)) is null)
         {
-            TokyoCabinetException("TokyoCabinet Iterator Error: '{}'", 
-                toDString(tchdberrmsg(tchdbecode(this.db))));
+            TokyoCabinetException("TokyoCabinet Iterator Error: '" ~ 
+                toDString(tchdberrmsg(tchdbecode(this.db))) ~ "'");
             
 //            return false;
         }        
