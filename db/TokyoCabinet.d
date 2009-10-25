@@ -55,6 +55,11 @@ private     import  tango.util.log.Trace;
         svn://svn.audioscrobbler.net/misc/ketama/
         http://pdos.csail.mit.edu/chord/
         
+        TODO Iteration
+        
+        http://torum.net/2009/10/iterating-tokyo-cabinet-in-parallel/
+        http://torum.net/2009/05/tokyo-cabinet-protected-database-iteration/
+        
         ---
 
 *******************************************************************************/
