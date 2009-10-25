@@ -12,15 +12,20 @@
 
 module db.TokyoCabinet;
 
+
+/*******************************************************************************
+
+    Imports
+
+********************************************************************************/
+
 //private import ocean.db.c.tokyocabinet;
 private     import  ocean.db.c.tokyocabinet_hash;
 
 private     import  tango.stdc.stringz : toDString = fromStringz, toCString = toStringz;
 private     import  tango.stdc.stdlib;
 
-private     import  tango.util.log.Trace;
-
-
+//private     import  tango.util.log.Trace;
 
 
 /*******************************************************************************
@@ -71,7 +76,7 @@ class TokyoCabinet
         
         Definitions
     
-     **************************************************************************/ 
+    ***************************************************************************/ 
     
     private         char[]          dbfile;                         // database name
     private         TCHDB*          db;                             // tokyocabinet instance
@@ -79,13 +84,24 @@ class TokyoCabinet
     //private         int             counter;                      // counter for flushing async
     
     
-    // tuning parameter for hash database tchdbtune    
+    /**************************************************************************
+        
+        tuning parameter for hash database tchdbtune
+    
+    ***************************************************************************/ 
+    
     private         long            tune_bnum   = 30_000_000;       
     private         byte            tune_apow   = 2;
     private         byte            tune_fpow   = 3;
     private         ubyte           tune_opts;         
     
-    // constants for tchdbtune options    
+
+    /**************************************************************************
+        
+        constants for tchdbtune options
+    
+    ***************************************************************************/
+    
     const           enum            TUNEOPTS : ubyte
                                     {
                                         HDBTLARGE, 
@@ -93,6 +109,13 @@ class TokyoCabinet
                                         HDBTBZIP,
                                         HDBTTCBS,        
                                     }
+    
+    
+    /**************************************************************************
+        
+        Buffer
+    
+    ***************************************************************************/
     
     private         char[]          tmp_buffer;
     
@@ -102,50 +125,45 @@ class TokyoCabinet
         
         Constructor    
         
-        dbfile  = path to database file (e.g. /tmp/store.tch)
-        bnum    = specifies the number of elements of the bucket array. Suggested 
-                  size of the bucket array is about from 0.5 to 4 times of the 
-                  number of all records to be stored.
+        Params:
+            dbfile = path to database file (e.g. /tmp/store.tch)
                              
-     **************************************************************************/
-    
+    ***************************************************************************/
     
     public this ( char[] dbfile ) 
     {
         this.dbfile = dbfile;
         this.db = tchdbnew();
         
-        // set memory used in bytes
-        tchdbsetxmsiz(db, 500_000_000);
+        tchdbsetxmsiz(db, 500_000_000); // set memory used in bytes
         
         // set elements * 0,5 to 4 times
         //tchdbtune(db, 20_000_000, 4, 10, HDBTLARGE);
-        
-        
     }
     
     
     /**************************************************************************
     
-            Open Database
+        Open Database
 
-            apow = specifies the size of record alignment by power of 2.
-            fpow = specifies the maximum number of elements of the free block 
-                   pool by power of 2.
-            opts = specifies options by bitwise-or
+        apow = specifies the size of record alignment by power of 2.
+        fpow = specifies the maximum number of elements of the free block 
+               pool by power of 2.
+        opts = specifies options by bitwise-or
   
-     **************************************************************************/    
-    
+    ***************************************************************************/    
     
     public void open ()
     {   
         // Tune database before opening database
-        tchdbtune(this.db, this.tune_bnum, this.tune_apow, this.tune_fpow, this.tune_opts);
+        tchdbtune(this.db, this.tune_bnum, 
+            this.tune_apow, this.tune_fpow, this.tune_opts);
         
-        if (!tchdbopen(this.db, toCString(this.dbfile), HDBOWRITER | HDBOCREAT | HDBOLCKNB))
-        {
-            TokyoCabinetException("open error");
-        }
+        if (!tchdbopen(this.db, toCString(this.dbfile), 
+            HDBOWRITER | HDBOCREAT | HDBOLCKNB))
+            {
+                TokyoCabinetException("open error");
+            }
     }
     
     
@@ -153,15 +171,12 @@ class TokyoCabinet
         
             Close Database
     
-     **************************************************************************/
-    
+    ***************************************************************************/
     
     public void close ()
     {
         if (!tchdbclose(this.db))
-        {
             TokyoCabinetException("close error");
-        }
     }
     
     
@@ -169,8 +184,7 @@ class TokyoCabinet
         
         Enable asynchronous write
     
-     **************************************************************************/
-    
+    ***************************************************************************/ 
     
     public void enableAsync ()
     {
@@ -182,8 +196,7 @@ class TokyoCabinet
         
         Set Mutex for Threading (call before opening)
     
-     **************************************************************************/
-    
+    ***************************************************************************/
     
     public void enableThreadSupport ()
     {
@@ -194,8 +207,11 @@ class TokyoCabinet
     /**************************************************************************
     
         Set number of elements in bucket array 
-
-     **************************************************************************/
+        
+        Params:
+            bnum = number or initial records (init size)
+            
+    ***************************************************************************/
     
     public void setTuneBnum ( uint bnum )
     {
@@ -205,17 +221,20 @@ class TokyoCabinet
     
     /**************************************************************************
     
-        Set specific options for database opening
-        HDBTLARGE:      specifies that the size of the database can be larger than 2GB 
-        HDBTDEFLATE:    specifies that each recordis compressed with Deflate encoding
-        HDBTBZIP:       specifies that each record is compressed with BZIP2 encoding
-        HDBTTCBS:       specifies that each record is compressed with TCBS encoding
+        Set Database Options
+        
+        HDBTLARGE:      size of the database can be larger than 2GB 
+        HDBTDEFLATE:    each recordis compressed with deflate encoding
+        HDBTBZIP:       each record is compressed with BZIP2 encoding
+        HDBTTCBS:       each record is compressed with TCBS encoding
         
         setTuneOpts(HDBTLARGE);
-        setTuneOpts(HDBTLARGE|HDBTDEFLATE);               
-    
-     **************************************************************************/
-    
+        setTuneOpts(HDBTLARGE|HDBTDEFLATE);       
+                
+        Params:
+            opts = tune options
+            
+    ***************************************************************************/
     
     public void setTuneOpts ( ubyte opts )
     {
@@ -225,9 +244,12 @@ class TokyoCabinet
     
     /**************************************************************************
         
-        Set number of elements in bucket array 
-    
-     **************************************************************************/
+        Set number of elements in bucket array
+        
+        Params:
+            size = cache size in bytes
+            
+    ***************************************************************************/
     
     
     public void setCacheSize( uint size )
@@ -238,10 +260,16 @@ class TokyoCabinet
     
     /**************************************************************************
      
-           Push Key/Value Pair to Database
+        Push Key/Value Pair to Database
        
-     **************************************************************************/
-    
+        Params:
+            key = hash key
+            value = key value
+            
+        Returns:
+            true if successful concenated, false on error
+            
+    ***************************************************************************/
     
     public bool add ( char[] key, char[] value )
     in
@@ -261,7 +289,7 @@ class TokyoCabinet
             if (!tchdbputasync2(this.db, toCString(key), toCString(value)))
                 //TokyoCabinetException("async write error");
             {
-                Trace.formatln("TokyoCabinet Write Error {}", toDString(tchdberrmsg(tchdbecode(this.db))));
+//                Trace.formatln("TokyoCabinet Write Error {}", toDString(tchdberrmsg(tchdbecode(this.db))));
                 
                 return false;
             }           
@@ -277,13 +305,18 @@ class TokyoCabinet
     }
     
     
-    
     /**************************************************************************
         
         Attach/Concenate Value to Key
-    
-     **************************************************************************/
-    
+        
+        Params:
+            key = hash key
+            value = value to concenate to key
+            
+        Returns:
+            true if successful concenated, false on error
+            
+    ***************************************************************************/
     
     public bool addconcat ( char[] key, char[] value )
     in
@@ -295,21 +328,24 @@ class TokyoCabinet
     {   
         if (!tchdbputcat2(this.db, toCString(key), toCString(value)))
         {
-           //  Trace.formatln("out ").flush();
             return false;
         }
 
-        // Trace.formatln("in  ").flush();
         return true;    
     }
     
     
     /**************************************************************************
         
-            Get Value of Key
+        Get Value
     
-     **************************************************************************/
+        Params:
+            key = lookup hash key
     
+        Returns
+            value of key
+            
+    ***************************************************************************/
     
     public char[] get ( char[] key )
     in
@@ -322,7 +358,7 @@ class TokyoCabinet
         
         if ((cvalue = tchdbget2(this.db, toCString(key))) is null) 
         {
-            Trace.formatln("TokyoCabinet Get Error: '{}'", toDString(tchdberrmsg(tchdbecode(this.db))));
+//            Trace.formatln("TokyoCabinet Get Error: '{}'", toDString(tchdberrmsg(tchdbecode(this.db))));
             return null;
         }
         
@@ -337,8 +373,14 @@ class TokyoCabinet
     
         Get Value of Key without heap activity using free
     
-     **************************************************************************/
+        Params:
+            key = hash key
+            value = return buffer for value
     
+        Returns
+            true on success, false on error
+            
+    ***************************************************************************/
     
     public bool get ( char[] key, inout char[] value )
     in
@@ -351,7 +393,7 @@ class TokyoCabinet
         
         if ((cvalue = tchdbget2(this.db, toCString(key))) is null)
         {
-            Trace.formatln("TokyoCabinet Get Error: '{} {}'", key, toDString(tchdberrmsg(tchdbecode(this.db))));
+//            Trace.formatln("TokyoCabinet Get Error: '{} {}'", key, toDString(tchdberrmsg(tchdbecode(this.db))));
             return false;
         }
         
@@ -368,17 +410,23 @@ class TokyoCabinet
         
         Iterator needs to be initialized before it can be used!
         
-        @see http://torum.net/2009/05/tokyo-cabinet-protected-database-iteration/
+        @see reference
         
-     **************************************************************************/
-
+        http://torum.net/2009/05/tokyo-cabinet-protected-database-iteration/
+        
+        Returns:
+            true, if iterator could be initialized, false on error 
+       
+    ***************************************************************************/
     
     public bool initIterator ()
     {
         if (tchdbiterinit(this.db) != true) 
         {
-            Trace.formatln("TokyoCabinet failed to init Iterator: '{}'", toDString(tchdberrmsg(tchdbecode(this.db))));
-            return false;
+            TokyoCabinetException("TokyoCabinet failed to init Iterator: '{}'", 
+                toDString(tchdberrmsg(tchdbecode(this.db))));
+            
+//            return false;
         }
         
         return true;
@@ -393,21 +441,28 @@ class TokyoCabinet
         deleted, because on every iteration a new malloc is made by the tokyo 
         cabinet library.
         
-        @see http://torum.net/2009/05/tokyo-cabinet-protected-database-iteration/
+        @see refererence
+         
+        http://torum.net/2009/05/tokyo-cabinet-protected-database-iteration/
         
-        Returns: true, if next item is available false, otherwise
+        Params:
+            dst = return buffer for next element
         
-     **************************************************************************/
-
+        Returns: 
+            true, if next item is available false, otherwise
+        
+    ***************************************************************************/
     
-    public bool iterNext ( inout char[] dst )
+    public bool iterNext ( ref char[] dst )
     {
         char* key;        
         
         if ((key = tchdbiternext2(this.db)) is null)
         {
-            Trace.formatln("TokyoCabinet Iterator Error: '{}'", toDString(tchdberrmsg(tchdbecode(this.db))));
-            return false;
+            TokyoCabinetException("TokyoCabinet Iterator Error: '{}'", 
+                toDString(tchdberrmsg(tchdbecode(this.db))));
+            
+//            return false;
         }        
         
         dst = toDString(key).dup;
@@ -415,7 +470,6 @@ class TokyoCabinet
         
         return true;
     }
-    
     
 }
 
