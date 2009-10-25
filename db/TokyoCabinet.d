@@ -247,7 +247,6 @@ class TokyoCabinet
     in
     {
         assert(key);
-        assert(value);
     }
     body
     {
