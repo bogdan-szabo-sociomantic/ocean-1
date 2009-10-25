@@ -463,7 +463,7 @@ class TokyoCabinet
                 toDString(tchdberrmsg(tchdbecode(this.db))) ~ "'");
             
 //            return false;
-        }        
+        }
         
         dst = toDString(key).dup;
         free(key);
