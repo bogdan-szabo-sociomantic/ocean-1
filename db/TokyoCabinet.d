@@ -81,7 +81,6 @@ class TokyoCabinet
     private         char[]          dbfile;                         // database name
     private         TCHDB*          db;                             // tokyocabinet instance
     private         bool            async = false;                  // disable by default
-    //private         int             counter;                      // counter for flushing async
     
     
     /**************************************************************************
@@ -135,10 +134,9 @@ class TokyoCabinet
         this.dbfile = dbfile;
         this.db = tchdbnew();
         
-        tchdbsetxmsiz(db, 500_000_000); // set memory used in bytes
-        
+        // tchdbsetxmsiz(db, 500_000_000); // set memory used in bytes
         // set elements * 0,5 to 4 times
-        //tchdbtune(db, 20_000_000, 4, 10, HDBTLARGE);
+        // tchdbtune(db, 20_000_000, 4, 10, HDBTLARGE);
     }
     
     
@@ -246,6 +244,8 @@ class TokyoCabinet
         
         Set number of elements in bucket array
         
+        Set cache size of database before opening.
+        
         Params:
             size = cache size in bytes
             
@@ -255,6 +255,24 @@ class TokyoCabinet
     public void setCacheSize( uint size )
     {
         tchdbsetcache(this.db, size);
+    }
+    
+    
+    /**************************************************************************
+        
+        Set memory size
+        
+        Set size of memory used by database before opening.
+        
+        Params:
+            size = mem size in bytes
+            
+    ***************************************************************************/
+    
+    
+    public void setMemSize( uint size )
+    {
+        tchdbsetxmsiz(this.db, size);
     }
     
     
@@ -278,17 +296,13 @@ class TokyoCabinet
     }
     body
     {
-        
         // I should try it with malloc() to get arround the GC
         //tchdbmemsync(this.db, true);
         if ( this.async )
-        {
-            //counter++;
-            
-            //if ( !tchdbputasync2(this.this.db, toCString("00000000000000"), toCString("1111111111111111")) )
+        {   
             if (!tchdbputasync2(this.db, toCString(key), toCString(value)))
-                //TokyoCabinetException("async write error");
             {
+//                TokyoCabinetException("async write error");
 //                Trace.formatln("TokyoCabinet Write Error {}", toDString(tchdberrmsg(tchdbecode(this.db))));
                 
                 return false;
