@@ -130,7 +130,6 @@ class Uncompress
      * 
      */
     public this () {}
-    
    
     
     /**
@@ -138,30 +137,26 @@ class Uncompress
      * 
      * Params:
      *      compressed  = compressed string
+     *      output      = return buffer
      *      encoding    = encoding [zlib, gzip, deflate]
-     *      
-     * Returns: 
-     *      uncompressed content
      */
-    public T[] decodeUni ( T ) ( char[] compressed, char[] encoding = "gzip" )
+    public void decodeUni ( T ) ( char[] compressed, out T[] output, char[] encoding = "gzip" )
     {   
         int size = 0;        
         uint total = 0;
         
-        // Check if input is ok
+        output.length = 0;
+        
         if (compressed.length > 0)
-        {   
-            // Initialize input & output buffer
-            this.initInputBuffer();
-            this.initOutputBuffer();
+        {
+            this.initInputBuffer;
+            this.initOutputBuffer;
             
-            // Append data to input buffer
             this.input_buffer.append(compressed);
                         
             try 
-            {   
-                // Initialize ZlibStream encoding and stream object
-                this.setEncoding(encoding);
+            {
+                this.setEncoding(encoding);                 
                 this.initZlibStreamInput(this.input_buffer);
                 
                 while ((size = this.decomp.read(this.read_chunk)) > 0)
@@ -170,15 +165,13 @@ class Uncompress
                     total += size;
                 }
                 
-                return cast(T[]) this.output_buffer.slice(total);
+                output = cast(T[]) this.output_buffer.slice(total);
             }
             catch (Exception e)
             {
                 UncompressException("Uncompress Error: " ~ e.msg);
             }
         }
-        
-        return null; 
     }
     
     
@@ -188,14 +181,12 @@ class Uncompress
      * 
      * Params:
      *      compressed  = compressed string
+     *      output      = return buffer
      *      encoding    = encoding [zlib, gzip, deflate]
-     *      
-     * Returns: 
-     *      uncompressed content
      */
-    public char[] decode ( char[] compressed, char[] encoding = "gzip" )
+    public void decode ( char[] compressed, out char[] output, char[] encoding = "gzip" )
     {
-        return this.decodeUni!(char)(compressed, encoding);
+        this.decodeUni!(char)(compressed, output, encoding);
     }
 
     
@@ -218,7 +209,6 @@ class Uncompress
 
         try 
         {
-            // Initialize ZlibStream encoding and stream object
             this.setEncoding(encoding);
             this.initZlibStreamInput(stream_in);
             
@@ -243,22 +233,20 @@ class Uncompress
      * 
      * Params:
      *     stream_in    = compressed input buffer stream
+     *     output       = return buffer
      *     encoding     = encoding [zlib, gzip, deflate]
-     *     
-     * Returns:
-     *     uncompressed string or null on error
      */    
-    public T[] decodeUni ( T ) ( InputStream stream_in, char[] encoding = "gzip" )
+    public void decodeUni ( T ) ( InputStream stream_in, T[] output, char[] encoding = "gzip" )
     {   
         int size = 0;
         uint total = 0;
         
+        output.length = 0;
+        
         try 
-        {       
-            // Initialize input buffer
+        {
             this.initOutputBuffer();
             
-            // Initialize ZlibStream encoding and stream object
             this.setEncoding(encoding);
             this.initZlibStreamInput(stream_in);
             
@@ -268,7 +256,7 @@ class Uncompress
                 total += size;
             }           
             
-            return cast(T[]) this.output_buffer.slice(total);
+            output = cast(T[]) this.output_buffer.slice(total);
         }
         catch (Exception e)
         {
@@ -283,14 +271,12 @@ class Uncompress
      * 
      * Params:
      *      compressed  = compressed string
+     *      output      = return buffer
      *      encoding    = encoding [zlib, gzip, deflate]
-     *      
-     * Returns: 
-     *      uncompressed content
      */
-    public char[] decode ( InputStream stream_in, char[] encoding = "gzip" )
+    public void decode ( InputStream stream_in, char[] output, char[] encoding = "gzip" )
     {
-        return this.decodeUni!(char)(stream_in, encoding);
+        this.decodeUni!(char)(stream_in, output, encoding);
     }
     
     
@@ -319,8 +305,7 @@ class Uncompress
         }
         else 
         {
-            // Clear input buffer
-            this.input_buffer.clear();            
+            this.input_buffer.clear(); // Clear input buffer       
         }
     }
     
@@ -339,8 +324,7 @@ class Uncompress
         }
         else 
         {
-            // Clear input buffer
-            this.output_buffer.clear();
+            this.output_buffer.clear(); // Clear input buffer
         }
     }
     
@@ -380,7 +364,6 @@ class Uncompress
      * 
      * Params:
      *     stream_in    = compressed input buffer stream
-     *
      */    
     private void initZlibStreamInput ( InputStream stream_in )
     {
