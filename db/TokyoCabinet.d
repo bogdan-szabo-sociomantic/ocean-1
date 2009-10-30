@@ -129,7 +129,7 @@ class TokyoCabinet
                              
     ***************************************************************************/
     
-    public this ( char[] dbfile ) 
+    public synchronized this ( char[] dbfile ) 
     {
         this.dbfile = dbfile;
         this.db = tchdbnew();
@@ -151,7 +151,7 @@ class TokyoCabinet
   
     ***************************************************************************/    
     
-    public void open ()
+    public synchronized void open ()
     {   
         // Tune database before opening database
         tchdbtune(this.db, this.tune_bnum, 
@@ -171,10 +171,11 @@ class TokyoCabinet
     
     ***************************************************************************/
     
-    public void close ()
+    public synchronized void close ()
     {
-        if (!tchdbclose(this.db))
-            TokyoCabinetException("close error");
+        if (this.db !is null)
+            if (!tchdbclose(this.db))
+                TokyoCabinetException("close error");
     }
     
     
@@ -198,7 +199,8 @@ class TokyoCabinet
     
     public void enableThreadSupport ()
     {
-        tchdbsetmutex(this.db);
+        if (this.db !is null)
+            tchdbsetmutex(this.db);
     }
 
     
@@ -254,7 +256,8 @@ class TokyoCabinet
     
     public void setCacheSize( uint size )
     {
-        tchdbsetcache(this.db, size);
+        if (this.db !is null)
+            tchdbsetcache(this.db, size);
     }
     
     
@@ -272,7 +275,8 @@ class TokyoCabinet
     
     public void setMemSize( uint size )
     {
-        tchdbsetxmsiz(this.db, size);
+        if (this.db !is null)
+            tchdbsetxmsiz(this.db, size);
     }
     
     
