@@ -29,6 +29,13 @@
 
 module ocean.util.TraceLog;
 
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
 private     import      tango.util.log.Log, tango.util.log.LayoutDate, tango.util.log.AppendFile;
 
 private     import      tango.text.convert.Layout;
