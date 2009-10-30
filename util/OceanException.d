@@ -75,11 +75,20 @@
 
 module      ocean.util.OceanException;
 
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
 private     import      tango.util.Arguments;
 
 private     import      tango.util.log.Log, tango.util.log.LayoutDate;
 
-private     import      tango.io.Stdout;
+private     import      tango.util.log.Trace;
+
+private     import      tango.text.convert.Layout;
 
 
 /*******************************************************************************
@@ -152,7 +161,7 @@ class OceanException: Exception
             if ( OceanException.isAppender() )
                 OceanException.write(Logger.Level.Error, e.msg);
 
-            Stdout.formatln(e.msg).flush;
+            Trace.formatln(e.msg).flush;
         }
 
         return true;
@@ -196,7 +205,7 @@ class OceanException: Exception
             if ( OceanException.isAppender() )
                 OceanException.write(Logger.Level.Error, e.msg);
 
-            Stdout.formatln(e.msg).flush;
+            Trace.formatln(e.msg).flush;
         }
 
         return true;
@@ -239,7 +248,7 @@ class OceanException: Exception
             if ( OceanException.isAppender() )
                 OceanException.write(Logger.Level.Error, e.msg);
 
-            Stdout.formatln(e.msg).flush;
+            Trace.formatln(e.msg).flush;
         }
 
         return true;
@@ -282,7 +291,7 @@ class OceanException: Exception
             if ( OceanException.isAppender() )
                 OceanException.write(Logger.Level.Error, e.msg);
 
-            Stdout.formatln(e.msg).flush;
+            Trace.formatln(e.msg).flush;
         }
 
         return true;
@@ -336,16 +345,42 @@ class OceanException: Exception
      * Params:
      *     msg = error message
      */
+    /*
     public static void Warn( char[] msg )
     {
         if ( OceanException.isAppender() )
             OceanException.write(Logger.Level.Warn, msg);
         else
-            Stdout.formatln("{}", msg).flush;
+            Trace.formatln("{}", msg).flush;
     }
+    */
 
-
-
+    
+    /**
+     * Throws exception without stoping code execution
+     *
+     * Params:
+     *     msg = error message
+     *    _arg = arguments passed to include into formating
+     */
+    public static void Warn( char[] msg, ... )
+    {
+        assert(msg.length);
+        
+        if ( OceanException.isAppender() )
+        {
+            OceanException.write(Logger.Level.Warn, 
+                (new Layout!(char)).convert(_arguments, _argptr, msg));
+        }
+        else
+        {
+            Trace.formatln("{}", 
+                (new Layout!(char)).convert(_arguments, _argptr, msg)).flush;
+        }
+    }
+    
+    
+    
     /**
      * Set Log appender (output target)
      *
