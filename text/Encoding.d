@@ -48,11 +48,16 @@
 
 module  ocean.text.Encoding;
 
+private import ocean.text.StringReplace;
+
 private import Util = tango.text.Util;
 
+private import Math = tango.math.Math;
+
 private import tango.io.Stdout;
+private import tango.io.Console;
 
-
+private import Integer = tango.text.convert.Integer;
 
 /*******************************************************************************
 
@@ -60,21 +65,26 @@ private import tango.io.Stdout;
 
 ********************************************************************************/
 
-class Encode
+class Encode ( T )
 {
+    /**************************************************************************
+
+        Properties
+
+     **************************************************************************/
+    
+    
     struct entity 
     {
-        char[] replacement;
-        char[] entity;
+        T[] replacement;
+        T[] entity;
     }
-                                        
-    private     char[]                  buffer;  
+    
+    public static const T UTF8_MAGIC_CHAR = 0xC3; // 'Ã'
+    
     private     entity[]                basic_entities  = 
                                         [
                                              { "\"" , "&quot;"  },
-                                             { "'"  , "&#039;"  },
-                                             { "'"  , "&#39;"   },
-                                             { "'"  , "&#8217;" },
                                              { "<"  , "&lt;"    },
                                              { ">"  , "&gt;"    },
                                              { "&"  , "&amp;"   },
@@ -82,36 +92,270 @@ class Encode
                                              { " "  , "&nbsp;"  }
                                          ];
     
+    public StringReplace!(T) stringReplace;
+    
+    /**************************************************************************
+    
+        Constructor
+
+     **************************************************************************/
     
     
-    /**
-     * Constructor
-     *
-     */
-    public this () 
+    this ( )
     {
-        this.buffer = new char[2*1024*1024];
+        this.stringReplace = new StringReplace!(T);
     }
-    
     
     
     /*******************************************************************************
     
         Public methods
-    
+
     ********************************************************************************/
     
-    public char[] html_entity_decode ( char[] string )
+    
+    /**
+     * Replace HTML entities in-place
+     * 
+     * Params:
+     *     string = input string
+     *     
+     * Returns:
+     *     string after replacement
+     */
+    public Encode html_entity_decode ( ref T[] content )
     {
         foreach (basic_entity; basic_entities)
         {
-            replace(string, basic_entity.entity, basic_entity.replacement);
-            // string = Util.substitute(string, basic_entity.entity, basic_entity.replacement);
-        }        
-        return string;
+            this.stringReplace.replacePattern(content, basic_entity.entity, basic_entity.replacement);
+        }
+        
+        return this;
     }
     
     
+
+    
+    /**
+     * Scans "input" for malcoded Unicode characters and replaces them by the
+     * correct ones.
+     * 
+     * Notes:
+     * - The character replacement is done in-place and changes the length of
+     *   "input": The length is decreased by the number of malcoded characters
+     *   found (two malcoded characters form one correct character).
+     *   
+     * - The search/replace rule is as follows: "input" is scanned for
+     *   characters with the value 0xC3 ('Ãƒ'). If that character is followed by
+     *   a character with a value of 0x80 or above, the character and its
+     *   follower are considered two erroneously Unicode coded raw bytes and the
+     *   UTF-8 character that consists of these two bytes is composed.
+     * 
+     * Example:
+     * 
+     *   String with malcoded characters:
+     *     "AbrahÃ£o, JosÃ© Jorge dos Santos; Instituto AgronÃ´mico do ParanÃ¡"
+     * 
+     *   Resulting string:
+     *      "Abrahão, José Jorge dos Santos; Instituto Agronômico do Paraná"
+     * 
+     * Params:
+     *     content = UTF-8 encoded text content to process
+     *     
+     * Returns:
+     *     the content after processing
+     */
+    public Encode repairUtf8 ( ref T[] content )
+    {
+        if (is (T == wchar_t)) // do not do anything on non-wide characters
+        {
+            this.stringReplace.replaceDecodeChar(content, this.UTF8_MAGIC_CHAR, &this.decodeUtf8);
+        }
+        
+        return this;
+    }
+    
+    
+    
+    /**************************************************************************
+    
+        Private methods: Decoder delegates and their subroutines
+    
+    ***************************************************************************/
+    
+    
+    /**
+     * Composes an UTF-8 character from input[source .. source + 1] and puts it
+     * to input[destin], if input[source + 1] has a value above 128.  
+     * 
+     * Params:
+     *     content = content string to get the characters from and put the
+     *               result to
+     *     source  = start index of characters to process
+     *     destin  = index to put the resulting character
+     *     
+     * Returns:
+     *     1 if the composition was done or 0 otherwise
+     * 
+     */
+    private uint decodeUtf8 ( ref T[] content, uint source, uint destin )
+    {
+        if (content[source + 1] & 0x80)
+        {
+            content[destin] = this.composeUtf8Char(content[source], content[source + 1]);
+            
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    
+    
+    /**
+     * Scans "input" for HTML entities representing Unicode characters and
+     * replaces them by the actual characters.
+     * 
+     * Example:
+     *
+     * String with a HTML Unicode entity:
+     *     "Doroth&#xE9;e Boccanfuso"
+     *     
+     * Resulting string:
+     *      "DorothÃ©e Boccanfuso"
+     * 
+     * Params:
+     *     content = text content to process
+     *     
+     * Returns:
+     *     the content after processing
+     */
+    public Encode cleanHtmlUnicode ( ref T[] content )
+    {
+        this.stringReplace.replaceDecodePattern(content, "&#", &this.decodeHtmlUnicode);
+        
+        return this;
+    }
+
+    
+    
+    /**
+     * Checks if "content[source .. $]" starts with a valid HTML Unicode entity.
+     * The trailing "&#" is not checked, only the entity content and terminating
+     * ';'. If such an entity is found, the corresponding character is put to
+     * "input[destin]".
+     * 
+     * Params:
+     *     content = string which may start with a HTML Unicode entity at
+     *               "input[source]"
+     *     source  = start index
+     *     destin  = index to put the resulting character
+     *     
+     * Returns:
+     *     the number of characters to remove from "content"
+     */
+    private uint decodeHtmlUnicode ( ref T[] content, uint src_pos, uint dst_pos )
+    {
+        try
+        {
+            T[] entity = this.parseHtmlEntity(content[src_pos .. $]);
+            
+            assert (entity.length);
+            
+            if (entity[0] == 'x' || entity[0] == 'X')
+            {
+                assert (entity.length >= 2);
+                
+                content[dst_pos] = cast (T) Integer.toInt(entity[1 .. $], 0x10);
+            }
+            else
+            {
+                content[dst_pos] = cast (T) Integer.toInt(entity, 10);
+            }
+            
+            return entity.length + 2;
+        }
+        catch
+        {
+           return 0;
+        }
+    }
+    
+    
+    
+    /**
+     * Parses "entity" which is (hopefully) a HTML entity string. If a ';' is
+     * found between character 2 and 16, and there is no white space character
+     * before the ';', the slice between character 2 and the ';' is returned,
+     * otherwise null is returned.
+     * Note: The trailing "&#" is not checked by this method; it is assumed that
+     * the caller already checked it.
+     * 
+     * Params:
+     *      entity = HTML entity string to parse
+     *     
+     * Returns:
+     *      The content of the entity if parsing was successfull or null on
+     *      failure.
+     */
+    private T[] parseHtmlEntity ( T[] entity )
+    {
+        uint semicolon = 0;
+        
+        if (entity.length <= 2)
+        {
+            return null;
+        }
+        
+        foreach (i, c; entity[2 .. Math.min($, 0x10)])
+        {
+            bool ko = false;
+            
+            if (c == ';')
+            {
+                semicolon = i + 1;
+                
+                break;
+            }
+            
+            ko |= Util.isSpace(c);
+            ko |= (c == '&');
+            
+            if (ko) break;
+        }
+        
+        if (semicolon <= 2)
+        {
+            return null;
+        }
+        
+        return entity[2 .. semicolon + 1];
+    }
+    
+    
+    
+    /**
+     * Composes an Unicode character from two Unicode malcoded bytes; taken from
+     * tango.text.convert.Utf.toString()
+     * 
+     * Params:
+     *     lb = lower byte
+     *     ub = upper byte
+     *     
+     * Returns:
+     *     composed Unicode character
+     */
+    public static T composeUtf8Char ( T lb, T ub )
+    {
+        return (((lb & 0x1F) << 6) | (ub & 0x3F));
+    }
+    
+    /+
+    
+    // Lars' implementation; caused "overlapping array copy" exception
+    
+    private     T[]                     buffer;  
     
     /**
      * Replace string without heap activity
@@ -121,7 +365,7 @@ class Encode
      *     search = search string  
      *     replacement = replace string
      */    
-    public void replace ( inout char[] input, char[] search, char[] replacement )
+    public void replace ( inout T[] input, T[] search, T[] replacement )
     {   
         int     in_idx = 0, out_idx = 0, pattern_idx = 0, add_len = 0; 
         int     input_len = input.length,    
@@ -142,7 +386,7 @@ class Encode
             grow = true;        
         }
         
-        if ((pattern_idx = Util.locatePattern(input, search, pattern_idx)) < input_len)
+        if ((pattern_idx = Util.locatePattern!(T)(input, search, pattern_idx)) < input_len)
         {                  
             do
             {
@@ -170,7 +414,7 @@ class Encode
                     this.buffer.length = this.buffer.length + add_len;
                 }
             }
-            while ((pattern_idx = Util.locatePattern(input, search, pattern_idx + search_len)) < input_len);
+            while ((pattern_idx = Util.locatePattern!(T)(input, search, pattern_idx + search_len)) < input_len);
             
             // copy the rest
             this.buffer[out_idx..out_idx+input[in_idx..$].length] = input[in_idx..$];
@@ -180,4 +424,5 @@ class Encode
             input[] = this.buffer[0..out_idx];            
         }
     }
+    +/
 }
