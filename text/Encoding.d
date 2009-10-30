@@ -80,7 +80,7 @@ class Encode ( T )
         T[] entity;
     }
     
-    public static const T UTF8_MAGIC_CHAR = 0xC3; // 'Ã'
+    public static const T UTF8_MAGIC_CHAR = 0xC3; // 'Ãƒ'
     
     private     entity[]                basic_entities  = 
                                         [
@@ -157,7 +157,7 @@ class Encode ( T )
      *     "AbrahÃ£o, JosÃ© Jorge dos Santos; Instituto AgronÃ´mico do ParanÃ¡"
      * 
      *   Resulting string:
-     *      "Abrahão, José Jorge dos Santos; Instituto Agronômico do Paraná"
+     *      "Abrahï¿½o, Josï¿½ Jorge dos Santos; Instituto Agronï¿½mico do Paranï¿½"
      * 
      * Params:
      *     content = UTF-8 encoded text content to process
