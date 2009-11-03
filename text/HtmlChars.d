@@ -253,7 +253,7 @@ private abstract class HtmlChars ( T )
         
         bool match = false;
         
-        foreach (i, item; this.html_char) // seek to first html8859_1 item of same length as "name"
+        foreach (i, item; this.html_char) // seek to first html_char element of same length as "name"
         {
             match = (item.name.length == name.length);
             
@@ -269,7 +269,7 @@ private abstract class HtmlChars ( T )
             
             match = false;
             
-            foreach (i, item; this.html_char[start .. $]) // iterate over html8859_1 items
+            foreach (i, item; this.html_char[start .. $]) // iterate over elements of html_char
             {
                 bool ok = true;
                 
