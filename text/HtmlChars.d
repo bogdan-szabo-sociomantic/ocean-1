@@ -18,6 +18,24 @@
 
     Database for Unicode characters of named HTML characters.
     
+    --
+    
+    Usage:
+    
+    ---
+    
+        import ocean.text.HtmlChars;
+    
+        Html8859_1_15 html_entity_char = new Html8859_1_15!(dchar);
+        
+        dchar c = html_entity_char("&gt;");
+        
+        dchar d = html_entity_char("&euro;");
+        
+        // "c" now contains '>' and "d" contains '€'
+        
+    ---
+    
 *******************************************************************************/
 
 module ocean.text.HtmlChars;
@@ -25,10 +43,9 @@ module ocean.text.HtmlChars;
 
 /******************************************************************************
 
-    Public classes
+    HTML entity character lookup classes
 
 *******************************************************************************/
-
 
 
 public class Html8859_1_15 ( T ) : HtmlChars!(T)
@@ -193,7 +210,7 @@ public static const HtmlChar!(T)[] iso8859_1 =
 
 /**
  * Abstract base class for HTML named character lookup classes. Implements a
- * fast lookup method which requires the character table being sorted ascendent
+ * fast lookup method which requires the character table being sorted ascending
  * by names.
  */
 private abstract class HtmlChars ( T )
@@ -219,6 +236,7 @@ private abstract class HtmlChars ( T )
     /**
      * Returns the Unicode value of the named HTML character "name" or 0 if the
      * character is unknown.
+     * NOTE: "this.html_char" MUST be sorted ascending by name
      * 
      * Params:
      *      name = HTML character name
@@ -377,8 +395,8 @@ private struct HtmlChar ( T )
      *      item = item with "item.name" to compare to "this.name"
      *     
      * Returns:
-     *      0 if "item.name" equals "this.name", a value > 0
-     *      if "item.name" is greater or or < 0 if less than "this.item".
+     *      0 if "item.name" equals "this.name", a value > 0 if "item.name" is
+     *      greater or or < 0 if less than "this.item".
      */
     int opCmp ( HtmlChar item )
     {
