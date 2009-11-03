@@ -6,31 +6,31 @@
 
         authors:        Thomas Nicolai, Lars Kirchhoff
 
-        D Module for Html/Xml Encoding methods
+        D Module for UTF-8/HTML entitiy decoding
 
         --
 
         Usage example:
 
-            char[] encoded = html_entity_decode("Ronnie O&#039;Sullivan");
-           
         ---
-        
-        TODO:
-        
-            1. Implementation of Numeric Replacements (see end of module for example)
-            2. Size of interim buffer needs to be smaller
-        
-        
-        ---
-        
-        Important:
-        
-        tango.text.Util: substitute (0.99.8) 
-        cannot be used because its a memory leak:
-        
-        foreach (s; patterns (source, match, replacement))
-                    output ~= s; --> this produces lots of memory re-allocations
+            
+            import ocean.text.Encoding;
+            
+            dchar[] content;
+            
+            Encode!(dchar) encode = new Encode!(dchar);
+            
+            // fill "content" with text
+            
+            Encode.repairUtf8(content);
+            
+            // "content" now is cleaned of "Ã£"-like malcoded UTF-8 characters
+            
+            Encode.decodeHtmlEntities(content);
+            
+            // all Unicode and ISO8859-1/15 (Latin 1/9) named character entities
+            // in "content" are now replaced by their corresponding Unicode
+            // characters
         
         ---
         
@@ -49,15 +49,14 @@
 module  ocean.text.Encoding;
 
 private import ocean.text.StringReplace;
+private import ocean.text.HtmlChars;
 
-private import Util = tango.text.Util;
+private import TextUtil = tango.text.Util;
 
 private import Math = tango.math.Math;
 
-private import tango.io.Stdout;
-private import tango.io.Console;
-
 private import Integer = tango.text.convert.Integer;
+
 
 /*******************************************************************************
 
@@ -67,6 +66,14 @@ private import Integer = tango.text.convert.Integer;
 
 class Encode ( T )
 {
+    /**
+     * Make shure that T is a wide character type.
+     */
+    static assert (is (T: char) && T.sizeof > 1, "Encode: type '" ~ T.stringof
+                                                  ~ "' not supported, please "
+                                                  "use a wide character type");
+
+    
     /**************************************************************************
 
         Properties
@@ -82,17 +89,10 @@ class Encode ( T )
     
     public static const T UTF8_MAGIC_CHAR = 0xC3; // 'Ã'
     
-    private     entity[]                basic_entities  = 
-                                        [
-                                             { "\"" , "&quot;"  },
-                                             { "<"  , "&lt;"    },
-                                             { ">"  , "&gt;"    },
-                                             { "&"  , "&amp;"   },
-                                             { " "  , "&;nbsp;" },
-                                             { " "  , "&nbsp;"  }
-                                         ];
+    private StringReplace!(T) stringReplace;
     
-    public StringReplace!(T) stringReplace;
+    private Html8859_1_15!(T) html8859_1_15;
+    
     
     /**************************************************************************
     
@@ -104,6 +104,8 @@ class Encode ( T )
     this ( )
     {
         this.stringReplace = new StringReplace!(T);
+        
+        this.html8859_1_15 = new Html8859_1_15!(T);
     }
     
     
@@ -115,7 +117,25 @@ class Encode ( T )
     
     
     /**
-     * Replace HTML entities in-place
+     * Scans "input" for HTML entities representing Unicode characters or named
+     * ISO8859-1/-15 (Latin 1/9) characters and replaces them by the
+     * corresponding Unicode letters.
+     * Note: Since the character entity escape literal '&' itself may be
+     * represented as the "&amp;" entity, first all occurrences of "&amp;" are
+     * replaced by '&'.
+     * 
+     * Examples:
+     *      Result for all of the example input strings: 
+     *          Diego Mauricio Riaño-Pachón
+     * 
+     *      Input example 1 -- named ISO8859-1 entities:
+     *          Diego Mauricio Ria&ntilde;o-Pach&oacute;n
+     *          
+     *      Input example 2 -- Unicode entities:
+     *          Diego Mauricio Ria&#xf1;o-Pach&#xf3;n
+     *      
+     *      Input example 3 -- both with "&amp;" instead of '&':
+     *          Diego Mauricio Ria&amp;#xf1;o-Pach&amp;oacute;n
      * 
      * Params:
      *     string = input string
@@ -123,18 +143,16 @@ class Encode ( T )
      * Returns:
      *     string after replacement
      */
-    public Encode html_entity_decode ( ref T[] content )
+    public Encode decodeHtmlEntities ( ref T[] content )
     {
-        foreach (basic_entity; basic_entities)
-        {
-            this.stringReplace.replacePattern(content, basic_entity.entity, basic_entity.replacement);
-        }
+        this.stringReplace.replacePattern(content, "&amp;", "&");
+        
+        this.stringReplace.replaceDecodeChar(content, '&', &this.decodeHtmlCharEntity);
         
         return this;
     }
     
     
-
     
     /**
      * Scans "input" for malcoded Unicode characters and replaces them by the
@@ -154,10 +172,10 @@ class Encode ( T )
      * Example:
      * 
      *   String with malcoded characters:
-     *     "Abrahão, José Jorge dos Santos; Instituto Agronômico do Paraná"
+     *     "AbrahÃ£o, JosÃ© Jorge dos Santos; Instituto AgronÃ´mico do ParanÃ¡"
      * 
      *   Resulting string:
-     *      "Abrah�o, Jos� Jorge dos Santos; Instituto Agron�mico do Paran�"
+     *      "Abrahão, José Jorge dos Santos; Instituto Agronômico do Paraná"
      * 
      * Params:
      *     content = UTF-8 encoded text content to process
@@ -167,14 +185,10 @@ class Encode ( T )
      */
     public Encode repairUtf8 ( ref T[] content )
     {
-        if (is (T == wchar_t)) // do not do anything on non-wide characters
-        {
-            this.stringReplace.replaceDecodeChar(content, this.UTF8_MAGIC_CHAR, &this.decodeUtf8);
-        }
+        this.stringReplace.replaceDecodeChar(content, this.UTF8_MAGIC_CHAR, &this.decodeUtf8);
         
         return this;
     }
-    
     
     
     /**************************************************************************
@@ -198,11 +212,11 @@ class Encode ( T )
      *     1 if the composition was done or 0 otherwise
      * 
      */
-    private uint decodeUtf8 ( ref T[] content, uint source, uint destin )
+    private uint decodeUtf8 ( ref T[] content, uint src_pos, uint dst_pos )
     {
-        if (content[source + 1] & 0x80)
+        if (content[src_pos + 1] & 0x80)
         {
-            content[destin] = this.composeUtf8Char(content[source], content[source + 1]);
+            content[dst_pos] = this.composeUtf8Char(content[src_pos], content[src_pos + 1]);
             
             return 1;
         }
@@ -214,67 +228,120 @@ class Encode ( T )
     
     
     /**
-     * Scans "input" for HTML entities representing Unicode characters and
-     * replaces them by the actual characters.
-     * 
-     * Example:
-     *
-     * String with a HTML Unicode entity:
-     *     "Doroth&#xE9;e Boccanfuso"
-     *     
-     * Resulting string:
-     *      "Dorothée Boccanfuso"
+     * Checks if "content" contains a Unicode or named ISO8859-1/15 HTML
+     * character entity string starting at "src_pos". If so, the corresponding
+     * Unicode character is put to "content[dst_pos]".
      * 
      * Params:
-     *     content = text content to process
+     *     content = content to process
+     *     src_pos = start position (index) of the HTML character entity string
+     *     dst_pos = position (index) to put the resulting character
      *     
      * Returns:
-     *     the content after processing
+     *     the number of characters to remove from "content" which is the entity
+     *     length - 1 on success or 0 otherwise 
      */
-    public Encode cleanHtmlUnicode ( ref T[] content )
+    private uint decodeHtmlCharEntity ( ref T[] content, uint src_pos, uint dst_pos )
     {
-        this.stringReplace.replaceDecodePattern(content, "&#", &this.decodeHtmlUnicode);
+        T[] entity = this.parseHtmlEntity(content[src_pos .. $]);
         
-        return this;
-    }
-
-    
-    
-    /**
-     * Checks if "content[source .. $]" starts with a valid HTML Unicode entity.
-     * The trailing "&#" is not checked, only the entity content and terminating
-     * ';'. If such an entity is found, the corresponding character is put to
-     * "input[destin]".
-     * 
-     * Params:
-     *     content = string which may start with a HTML Unicode entity at
-     *               "input[source]"
-     *     source  = start index
-     *     destin  = index to put the resulting character
-     *     
-     * Returns:
-     *     the number of characters to remove from "content"
-     */
-    private uint decodeHtmlUnicode ( ref T[] content, uint src_pos, uint dst_pos )
-    {
-        try
+        if (entity) if (entity.length >= 3)
         {
-            T[] entity = this.parseHtmlEntity(content[src_pos .. $]);
+            T chr = 0;
             
-            assert (entity.length);
-            
-            if (entity[0] == 'x' || entity[0] == 'X')
+            if (entity[1] == '#')
             {
-                assert (entity.length >= 2);
-                
-                content[dst_pos] = cast (T) Integer.toInt(entity[1 .. $], 0x10);
+                chr = this.decodeHtmlUnicodeEntity(entity);
             }
             else
             {
-                content[dst_pos] = cast (T) Integer.toInt(entity, 10);
+                chr = this.decodeHtml8859_1_15Entity(entity);
             }
             
-            return entity.length + 2;
+            if (chr)
+            {
+                content[dst_pos] = chr;
+                
+                return entity.length - 1;
+            }
+        }
+        
+        return 0;
+    }
+    
+    
+    
+    /**
+     * Converts a named ISO8859-1/15 (Latin 1/9) HTML character entity string to
+     * the corresponding Unicode character.
+     * 
+     * Params:
+     *     entity = entity content to convert; trailing '&' and terminating ';'
+     *              is not checked
+     *     
+     * Returns:
+     *     the Unicode character or 0 on failure
+     * 
+     */
+    private T decodeHtml8859_1_15Entity ( T[] entity )
+    {
+        T chr = 0;
+        
+        if (entity) if (entity.length >= 3)
+        {
+            T first = entity[1];
+            
+            if ((first >= 'a' && first <= 'z') ||
+                (first >= 'A' && first <= 'Z') ||
+                (first >= '0' && first <= '9'))
+            {
+                return this.html8859_1_15.lookup(entity[1 .. $ - 1]);
+            }
+        }
+        
+        return 0;
+    }
+    
+    
+    
+    /**
+     * Converts the content of a HTML Unicode entity to the corresponding
+     * Unicode character. A HTML Unicode entity follows one of the schemes
+     * 
+     *      &#<decimal Unicode>; 
+     * or
+     *      &#x<hexadecimal Unicode>;
+     *      
+     * in a case insensitive way.
+     * 
+     * Examples:
+     * 
+     *      Entity      Character       Unicode hex (dec)
+     *      "&#65;"     'A'             0x41 (65)
+     *      "&#xE1;"    'á'             0xE1 (225)
+     *      "&#Xf1;"    'ñ'             0xF1 (241)
+     * 
+     * Params:
+     *     entity = entity content to convert; trailing "&#" and terminating ';'
+     *              is not checked
+     *     
+     * Returns:
+     *     the Unicode character or 0 on failure
+     */
+    private T decodeHtmlUnicodeEntity ( T[] entity )
+    {
+        try
+        {
+            assert (entity.length >= 4);
+            
+            if (entity[2] == 'x' || entity[2] == 'X')
+            {
+                return cast (T) Integer.toInt(entity[3 .. $ - 1], 0x10);
+            }
+            else
+            {
+                return cast (T) Integer.toInt(entity[2 .. $ - 1], 10);
+            }
         }
         catch
         {
@@ -285,19 +352,22 @@ class Encode ( T )
     
     
     /**
-     * Parses "entity" which is (hopefully) a HTML entity string. If a ';' is
-     * found between character 2 and 16, and there is no white space character
-     * before the ';', the slice between character 2 and the ';' is returned,
+     * Parses "entity" which is (hopefully) a HTML entity string. The criteria
+     * are:
+     * 
+     *  - character 0 is '&',
+     *  - the length of "entity" is at least 3,
+     *  - between characters 1 and 16 one ';' can be found,
+     *  - no white space character or '&' before the first ';'.
+     *  
+     * If "entity" comlies with all of these, slice until the ';' is returned,
      * otherwise null is returned.
-     * Note: The trailing "&#" is not checked by this method; it is assumed that
-     * the caller already checked it.
      * 
      * Params:
      *      entity = HTML entity string to parse
      *     
      * Returns:
-     *      The content of the entity if parsing was successfull or null on
-     *      failure.
+     *      The entity if parsing was successfull or null on failure.
      */
     private T[] parseHtmlEntity ( T[] entity )
     {
@@ -308,7 +378,12 @@ class Encode ( T )
             return null;
         }
         
-        foreach (i, c; entity[2 .. Math.min($, 0x10)])
+        if (entity[0] != '&')
+        {
+            return null;
+        }
+        
+        foreach (i, c; entity[1 .. Math.min($, 0x10)]) // 
         {
             bool ko = false;
             
@@ -319,7 +394,7 @@ class Encode ( T )
                 break;
             }
             
-            ko |= Util.isSpace(c);
+            ko |= TextUtil.isSpace(c);
             ko |= (c == '&');
             
             if (ko) break;
@@ -330,7 +405,7 @@ class Encode ( T )
             return null;
         }
         
-        return entity[2 .. semicolon + 1];
+        return entity[0 .. semicolon + 1];
     }
     
     

@@ -1,11 +1,53 @@
-module text.StringReplace;
+/*******************************************************************************
+    
+    String search and replace methods
+    
+    --
+    
+    StringReplace.d is
+
+    copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
+
+    version:        October 2009: Initial release
+
+    author:         David Eckardt
+
+    --
+    
+    Description:
+
+    String search and replace functions with the following special features:
+    
+        - Replacement is completely done in-place without any temporary buffer.
+        - The replacement may be shorter or longer than the search pattern;
+          if so, the string length is automatically increased or decreased. 
+    
+    --
+    
+    Usage:
+    
+    ---
+        
+        dchar[] content;
+        
+        StringReplace!(dchar) replace = new replace!(dchar);
+        
+        // fill "content" with text
+        
+        stringReplace.replacePattern(content, "Max", "Moritz");
+        
+        // all occurrences of "Max" in "content" are now replaced by "Moritz"
+        
+    ---
+    
+*******************************************************************************/
+
+module ocean.text.StringReplace;
 
 private import tango.stdc.stddef: wchar_t;
 private import tango.stdc.string: memmove, wmemmove,
                                   strstr,  wcsstr,
                                   strcspn, wcscspn;
-
-private import tango.io.Stdout;
 
 class StringReplace ( T )
 {
@@ -30,7 +72,7 @@ class StringReplace ( T )
     }
     else
     {
-        static assert (is (T == wchar_t), "ExtUtil: type '" ~ T.stringof ~
+        static assert (is (T == wchar_t), "StringReplace: type '" ~ T.stringof ~
                                           "' not supported; please use '" ~
                                           wchar_t.stringof ~ "'");
         private alias wmemmove Wmemmove;
@@ -263,11 +305,11 @@ class StringReplace ( T )
      */
     public static void copyString ( ref T[] destin, T[] source, uint dst_pos )
     {
-        assert (dst_pos + source.length <= content.length, "Encode.copyString: "
-                                                           "destination string "
-                                                           "too short");
+        assert (dst_pos + source.length <= destin.length, "Encode.copyString: "
+                                                          "destination string "
+                                                          "too short");
         
-        string[dst_pos .. dst_pos + source.length] = source.dup;
+        destin[dst_pos .. dst_pos + source.length] = source.dup;
     }
 
     
@@ -280,8 +322,8 @@ class StringReplace ( T )
     
     /**
      * If "charset" is set to false, replaces each occurrence of "pattern" in
-     * "content" by "replacement". If "charset" is set to true, each
-     * occurrence of any character of "pattern" is replaced.
+     * "content" by "replacement". If "charset" is set to true, each occurrence
+     * of any character of "pattern" is replaced.
      * The content length is decreased or increased where appropriate.
      * 
      * Params:
@@ -342,7 +384,7 @@ class StringReplace ( T )
         uint end = content.length;
         
         uint function ( T[], T[], uint ) locateZ = charset?
-                                                   &locateCharsZ  :
+                                                   &locateCharsZ :
                                                    &locatePatternZ;
         
         this.addNullTerm(content);
