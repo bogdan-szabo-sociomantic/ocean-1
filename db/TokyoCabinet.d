@@ -129,7 +129,7 @@ class TokyoCabinet
                              
     ***************************************************************************/
     
-    public synchronized this ( char[] dbfile ) 
+    public this ( char[] dbfile ) 
     {
         this.dbfile = dbfile;
         this.db = tchdbnew();
@@ -151,7 +151,7 @@ class TokyoCabinet
   
     ***************************************************************************/    
     
-    public synchronized void open ()
+    public void open ()
     {   
         // Tune database before opening database
         tchdbtune(this.db, this.tune_bnum, 
@@ -171,7 +171,7 @@ class TokyoCabinet
     
     ***************************************************************************/
     
-    public synchronized void close ()
+    public void close ()
     {
         if (this.db !is null)
             if (!tchdbclose(this.db))
@@ -489,6 +489,21 @@ class TokyoCabinet
         return true;
     }
     
+    
+    /**************************************************************************
+        
+        Returns number of records
+        
+        Returns: 
+            number of records, or zero if none
+        
+    ***************************************************************************/
+    
+    public ulong numRecords ()
+    {
+        return tchdbrnum(this.db);
+    }
+
 }
 
 
