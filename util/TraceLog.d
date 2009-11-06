@@ -120,7 +120,7 @@ class TraceLog
      *   fmt  = message to format with given arguments
      *   _arg = arguments passed to include into formating
      */
-    synchronized public static void write( char[] fmt, ... )
+    public static void write( char[] fmt, ... )
     {
         if ( TraceLog.enabled && fmt.length )
             TraceLog.logger.append(Logger.Level.Trace, (new Layout!(char)).convert(_arguments, _argptr, fmt));
