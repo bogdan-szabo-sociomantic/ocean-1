@@ -36,20 +36,6 @@
                 Stdout(aws.getResponse());
 
         --
-        
-        TODO
-        
-            Read API response into a buffer instead of char[] in 
-            readResponse() method
-            
-            Check for specific HTTP error and just do retries on
-            certain errors. Currently on every HTTP error regardless
-            the meaning we do retries. Be aware that not only specific
-            HTTP errors need a retry. A EOF might also need to force
-            a retry.
-            
-        --
-        
 
         Related
 
@@ -60,13 +46,30 @@
 
 module ocean.net.services.AmazonAssociates;
 
-private import  tango.net.http.HttpClient, tango.net.http.HttpGet, tango.net.http.HttpHeaders;
 
-private import  tango.text.Util : containsPattern;
+/*******************************************************************************
 
-private import  Integer = tango.text.convert.Integer: toString;
+    Imports
 
-private import  tango.sys.Common : sleep;
+*******************************************************************************/
+
+private     import      ocean.crypt.crypto.hashes.SHA256,
+                        ocean.crypt.crypto.macs.HMAC;
+
+private     import      tango.net.http.HttpClient, tango.net.http.HttpGet, 
+                        tango.net.http.HttpHeaders;
+
+private     import      tango.text.Util : containsPattern;
+
+private     import      Integer = tango.text.convert.Integer: toString;
+
+private     import      tango.sys.Common : sleep;
+
+private     import      tango.time.Clock;
+
+private     import      tango.text.locale.Locale, tango.text.convert.Layout;
+
+private     import      Base64 = tango.io.encode.Base64;
 
 
 /*******************************************************************************
@@ -89,7 +92,7 @@ class AmazonAssociates
     /**
      * Default API Version
      */
-    private     char[]              api_version = "2009-01-06";
+    private     char[]              api_version = "2009-10-01";
     
     
     /**
@@ -103,6 +106,13 @@ class AmazonAssociates
      * (You need to set up an Associate ID for every locale)
      */
     private     char[]              access_key_id;
+    
+    
+    /**
+     * Amazon Secret Key IDs used when quering Amazon servers
+     * (You need to set up an Associate ID for every locale)
+     */
+    private     char[]              secret_key_id;
     
     
     /*******************************************************************************
@@ -176,18 +186,19 @@ class AmazonAssociates
      * US, UK, DE, JP, FR, and CA are supported as sales regions.
      * 
      * Params:
-     *     access_key_id = amazon access key id
+     *     access_key = amazon access key id
      */
-    public this ( char[] access_key_id ) 
+    public this ( char[] access_key, char[] secret_key ) 
     {
-        this.setAccessKeyID(access_key_id);
+        this.setAccessKey(access_key);
+        this.setSecretKey(secret_key);
         
-        this.request_uri["ca"] = "http://ecs.amazonaws.ca/onca/xml";
-        this.request_uri["de"] = "http://ecs.amazonaws.de/onca/xml";
-        this.request_uri["fr"] = "http://ecs.amazonaws.fr/onca/xml";
-        this.request_uri["jp"] = "http://ecs.amazonaws.jp/onca/xml";
-        this.request_uri["uk"] = "http://ecs.amazonaws.co.uk/onca/xml";
-        this.request_uri["us"] = "http://ecs.amazonaws.com/onca/xml";
+        this.request_uri["ca"] = "ecs.amazonaws.ca";
+        this.request_uri["de"] = "ecs.amazonaws.de";
+        this.request_uri["fr"] = "ecs.amazonaws.fr";
+        this.request_uri["jp"] = "ecs.amazonaws.jp";
+        this.request_uri["uk"] = "ecs.amazonaws.co.uk";
+        this.request_uri["us"] = "ecs.amazonaws.com";
     }
     
     
@@ -200,11 +211,24 @@ class AmazonAssociates
      * Params:
      *     access_key_id = amazon access key id
      */
-    public void setAccessKeyID( char[] access_key_id ) 
+    public void setAccessKey( char[] access_key_id ) 
     {
         this.access_key_id = access_key_id;
     }
     
+    
+    /**
+     * Sets Amazon Web Services Secret Key Identifier for current locale
+     * 
+     * The key is used to authenticate the Amazon Web Services client requests.
+     * 
+     * Params:
+     *     secret_key_id = amazon secret key id
+     */
+    public void setSecretKey( char[] secret_key_id ) 
+    {
+        this.secret_key_id = secret_key_id;
+    }
     
     
     /**
@@ -261,16 +285,27 @@ class AmazonAssociates
     
     
     /**
-     * Returns Amazon Access Key Identifier for the given 
+     * Returns Amazon Access Key Identifier
      * 
      * Returns:
      *     Access Key Identifier
      */
-    public char[] getAccessKeyID() 
+    public char[] getAccessKey() 
     { 
         return this.access_key_id;
     }
     
+    
+    /**
+     * Returns Amazon Secret Key Identifier 
+     * 
+     * Returns:
+     *     Secret Key Identifier
+     */
+    public char[] getSecretKey() 
+    { 
+        return this.secret_key_id;
+    }
     
     
     /**
@@ -544,12 +579,14 @@ class AmazonAssociates
     {
         char[] request_url;
         
+        scope layout = new Locale;
+        
         this.flushRequestParams();
 
         this.addRequestParam("Service", "AWSECommerceService");
-        
+        this.addRequestParam("AWSAccessKeyId", this.getAccessKey);
         this.addRequestParam("Version", this.getApiVersion);
-        this.addRequestParam("AWSAccessKeyId", this.getAccessKeyID);
+        this.addRequestParam("Timestamp", layout("{:yyyy-MM-ddTHH%3Amm%3AssZ}", Time(Clock.now.ticks)));
         this.addRequestParam("Operation", operation);
         
         if ( this.getAssociateID !is null )
@@ -557,8 +594,18 @@ class AmazonAssociates
 
         foreach(param, value; params)
             this.addRequestParam(param, value);
+        
+        char[] signature = "GET\n" ~ getRequestUri ~ "\n" ~ "/onca/xml" ~ "\n" ~ getRequestParams;
+        
+//        Trace.formatln("string2sign = {}\n", signature);
+        
+        HMAC h = new HMAC(new SHA256(), getSecretKey);
+        h.update(signature);
+        
+        request_url = http_build_uri("http://" ~ this.getRequestUri ~ "/onca/xml", 
+            this.getRequestParams ~ "&Signature=" ~ Base64.encode(h.digest));
 
-        request_url = http_build_uri(this.getRequestUri, this.getRequestParams);
+        Trace.formatln("\n-----\n{}\n", request_url);
         
         try 
         {
@@ -566,7 +613,7 @@ class AmazonAssociates
             
             client.setTimeout(5.0);
             client.open();
-        
+            
             scope (exit) client.close;
             
             if ( client.isResponseOK )
@@ -664,8 +711,10 @@ class AmazonAssociates
     {
         char[] uri;
         
-        foreach (param, value; params)
-            uri = uri.dup ~ param ~ "=" ~ value ~ "&";
+        foreach( key; params.keys.sort)
+        {
+            uri = uri.dup ~ key ~ "=" ~ params[key] ~ "&";
+        }
             
         return uri[0..$-1];
     }
