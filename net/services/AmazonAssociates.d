@@ -1,39 +1,29 @@
 /*******************************************************************************
 
+        D API Client for the Amazon Web Services.
+        
         copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
         version:        Feb 2009: Initial release
 
         authors:        Thomas Nicolai, Lars Kirchhoff
 
-        D API Client for the Amazon Web Services.
-
-        This module provides an D interface to the Amazon Associates Web Services. 
-        
-        ---
-        The Amazon Associates Web Service allows you to advertise millions of new 
-        and used products more efficiently on your web site, while earning 
-        referral fees. The Service exposes Amazons product data through an 
-        easy-to-use web services interface that is a powerful tool to help Amazon 
-        Associate website owners and developers to make money. 
-        
         ---
 
-        Usage example:
+        Usage:
 
-            auto aws = new AmazonAssociates("__access_key_id__");
-            
-            aws.setRequestLocale("us");
-            aws.setAssociateID("__associate_id__");
-            
             char[][char[]] options;
+            char[] buffer;
             
             options["ResponseGroup"] = "Large";
-
-            aws.getItem("3503112464", options);
             
-            if ( !aws.isError )
-                Stdout(aws.getResponse());
+            scope w = new AmazonAssociates("__access_key__", "__public_key__");
+            
+            w.setResponseBuffer(buffer);
+            w.getItem("3503112464", options);
+            
+            if ( !w.isError )
+                Stdout(buffer);
 
         --
 
@@ -42,7 +32,7 @@
         http://aws.amazon.com/associates/
         http://docs.amazonwebservices.com/AWSECommerceService/2009-01-06/DG/
 
-*******************************************************************************/
+********************************************************************************/
 
 module ocean.net.services.AmazonAssociates;
 
@@ -51,13 +41,14 @@ module ocean.net.services.AmazonAssociates;
 
     Imports
 
-*******************************************************************************/
+********************************************************************************/
 
 private     import      ocean.crypt.crypto.hashes.SHA256,
                         ocean.crypt.crypto.macs.HMAC;
 
-private     import      tango.net.http.HttpClient, tango.net.http.HttpGet, 
-                        tango.net.http.HttpHeaders;
+//private     import      tango.net.http.HttpClient, tango.net.http.HttpGet, 
+//                        tango.net.http.HttpHeaders;
+private     import      ocean.net.util.LibCurl;
 
 private     import      tango.text.Util : containsPattern;
 
@@ -71,700 +62,503 @@ private     import      tango.text.locale.Locale, tango.text.convert.Layout;
 
 private     import      Base64 = tango.io.encode.Base64;
 
-
+private import tango.util.log.Trace;
 /*******************************************************************************
 
     AmazonAssociates
 
-*******************************************************************************/
+********************************************************************************/
 
 class AmazonAssociates
 {
 
-    
     /*******************************************************************************
 
-         Amazon Configuration
+         Api Version
 
-    ******************************************************************************/    
+     *******************************************************************************/    
+    
+    private             char[]                           apiVersion = "2009-10-01";
+    private             char[][char[]]                   apiEndpoint;
     
     
-    /**
-     * Default API Version
-     */
-    private     char[]              api_version = "2009-10-01";
+    /*******************************************************************************
     
+        Security Credentials
     
-    /**
-     * Amazon Associate IDs used in the URL's so a commision may be payed 
-     */
-    private     char[][char[]]      associate_id;
-    
-    
-    /**
-     * Amazon Access Key IDs used when quering Amazon servers
-     * (You need to set up an Associate ID for every locale)
-     */
-    private     char[]              access_key_id;
-    
-    
-    /**
-     * Amazon Secret Key IDs used when quering Amazon servers
-     * (You need to set up an Associate ID for every locale)
-     */
-    private     char[]              secret_key_id;
+     *******************************************************************************/ 
+
+    private             char[][char[]]                   associateId;
+    private             char[]                           publicKey;
+    private             char[]                           secretKey;
+    private             char[]                           signature;
     
     
     /*******************************************************************************
 
-         Request Variables
+         Default Settings
 
-    ******************************************************************************/ 
+     *******************************************************************************/ 
+    
+    private             const ubyte                      maxRetries = 4;    
+    private             char[]                           locale = "us";
     
     
-    /**
-     * Default API Request Locale
-     */
-    private     char[]              request_locale = "us";
+    /*******************************************************************************
     
+         Url & Query
     
-    /**
-     * API Endpoints
-     */
-    private     char[][char[]]      request_uri;
+     *******************************************************************************/ 
     
-    
-    /**
-     * Request Params
-     */
-    private     char[][char[]]      request_params;
+    private             char[]                           requestUrl;
+    private             char[][char[]]                   queryParameter;
+    private             char[]                           queryString;
 
-    
-    /**
-     * Maximum Retries on Connection Errors (HTTP or Socket)
-     */
-    private     ubyte               request_max_retries = 4;    
-    
     
     /******************************************************************************
 
-         Response Variables
+         Curl
  
      ******************************************************************************/ 
     
-    
-    /**
-     * Content returned from API request
-     */
-    private     char[]              response_content;
+    private             LibCurl                          curl;
+    private             char[]*                          responseBuffer;
     
     
-    /**
-     * Error on last request
-     */
-    private     bool                response_error;
+    /******************************************************************************
     
+         Error
     
-    /**
-     * HTTP error code of last request
-     */    
-    private     int                 response_error_code;
+    ******************************************************************************/ 
     
+    private             bool                             error;
     
     
     /******************************************************************************
 
-         Public Methods
+         Constructor
+         
+         Sets the AccessKeyID and default locales for the various Amazon sales 
+         regions. Currently US, UK, DE, JP, FR, and CA are supported as sales 
+         regions.
+         
+         Params:
+             public_key = amazon public key
+             secret_key = amazon secret key
 
      ******************************************************************************/
     
-    
-    /**
-     * Return instance of Amazon Associate Web Services API Client
-     * 
-     * Sets the AccessKeyID and default locales for the various Amazon sales regions. Currently 
-     * US, UK, DE, JP, FR, and CA are supported as sales regions.
-     * 
-     * Params:
-     *     access_key = amazon access key id
-     */
-    public this ( char[] access_key, char[] secret_key ) 
+    public this ( char[] publicKey, char[] secretKey ) 
     {
-        this.setAccessKey(access_key);
-        this.setSecretKey(secret_key);
+        this.publicKey = publicKey;
+        this.secretKey = secretKey;
         
-        this.request_uri["ca"] = "ecs.amazonaws.ca";
-        this.request_uri["de"] = "ecs.amazonaws.de";
-        this.request_uri["fr"] = "ecs.amazonaws.fr";
-        this.request_uri["jp"] = "ecs.amazonaws.jp";
-        this.request_uri["uk"] = "ecs.amazonaws.co.uk";
-        this.request_uri["us"] = "ecs.amazonaws.com";
+        setApiEndpoints();
+        
+        curl = new LibCurl();
     }
     
     
-    
-    /**
-     * Sets Amazon Web Services Access Key Identifier for current locale
-     * 
-     * The key is used to authenticate the Amazon Web Services client requests.
-     * 
-     * Params:
-     *     access_key_id = amazon access key id
-     */
-    public void setAccessKey( char[] access_key_id ) 
+    /******************************************************************************
+        
+         Set Associate Id
+         
+         Params:
+             associateId = amazon associate id
+             locale = amazon sales region
+             
+     ******************************************************************************/
+
+    public void setAssociateId ( char[] associateId, char[] locale ) 
     {
-        this.access_key_id = access_key_id;
+        assert(locale in apiEndpoint, "no api endpoint for given locale " ~ locale);
+        
+        this.associateId[locale] = associateId;
     }
     
     
-    /**
-     * Sets Amazon Web Services Secret Key Identifier for current locale
-     * 
-     * The key is used to authenticate the Amazon Web Services client requests.
-     * 
-     * Params:
-     *     secret_key_id = amazon secret key id
-     */
-    public void setSecretKey( char[] secret_key_id ) 
+    /******************************************************************************
+        
+         Set Api Version
+         
+         Params:
+             apiVersion = amazon api version
+            
+     ******************************************************************************/
+    
+    public void setVersion( char[] apiVersion ) 
     {
-        this.secret_key_id = secret_key_id;
+        this.apiVersion = apiVersion;
     }
     
     
-    /**
-     * ShortCut: Sets Amazon Web Services Associate ID for current locale
-     * 
-     * The key is used to pay the commission to a certain account.
-     * 
-     * Params:
-     *     associate_id = amazon associate id
-     */
-    public void setAssociateID( char[] associate_id ) 
-    {
-        this.setAssociateID(this.request_locale, associate_id);
-    }
-    
-    
-    
-    /**
-     * Sets Amazon Web Services Associate Identifier
-     * 
-     * The key is used to pay the commission to a certain account.
-     * 
-     * Params:
-     *     locale = amazon sales region
-     *     associate_id = amazon associate id
-     */
-    public void setAssociateID( char[] locale, char[] associate_id ) 
-    {
-        this.associate_id[locale] = associate_id;
-    }
-    
-    
-    
-    /**
-     * Returns Amazon Access Key Identifier for the given 
-     * 
-     * Params:
-     *     locale = amazon sales region
-     *     
-     * Returns:
-     *     Associate ID or null if not set
-     */
-    public char[] getAssociateID( char[] locale = null ) 
+    /******************************************************************************
+        
+         Set Api Locale
+        
+         Params:
+             locale = api locale
+           
+     ******************************************************************************/
+
+    public void setLocale( char[] locale ) 
     { 
-        if ( locale !is null && locale in this.associate_id )
-            return this.associate_id[this.request_locale];
-        else 
-            if ( this.request_locale in this.associate_id )
-                return this.associate_id[this.request_locale];
+        assert(locale in apiEndpoint, "no api endpoint for given locale " ~ locale);
         
-        return null;
+        this.locale = locale;
     }
     
     
+    /******************************************************************************
+        
+         Set Response Buffer
+       
+         Params:
+             buffer = output buffer
+          
+     ******************************************************************************/
     
-    /**
-     * Returns Amazon Access Key Identifier
-     * 
-     * Returns:
-     *     Access Key Identifier
-     */
-    public char[] getAccessKey() 
-    { 
-        return this.access_key_id;
-    }
-    
-    
-    /**
-     * Returns Amazon Secret Key Identifier 
-     * 
-     * Returns:
-     *     Secret Key Identifier
-     */
-    public char[] getSecretKey() 
-    { 
-        return this.secret_key_id;
-    }
-    
-    
-    /**
-     * Sets Amazon Web Services API Version to use for requests
-     * 
-     * Params:
-     *     apiVersion = API version to use
-     */
-    public void setApiVersion( char[] api_version ) 
+    public void setResponseBuffer( char[]* buffer ) 
     {
-        this.api_version = api_version;
+        responseBuffer = buffer;
+        curl.setResponseBuffer(responseBuffer);
     }
+
     
+    /******************************************************************************
+        
+         Get Item
+        
+         --
+         
+         Usage:
+         
+         char[][char[]] options;
+         
+         options["ResponseGroup"] = "Large";
+         
+         scope client = new AmazonAssociates(..., ...);
+         client.getItem("9780747591", options);
+         
+         --
+         
+         Params:
+             itemId = asin or product id
+             options = optional parameters  
+         
+     ******************************************************************************/
     
-    
-    /**
-     * Returns API version used
-     * 
-     * Returns:
-     *     API Version
-     */
-    public char[] getApiVersion() 
+    public void getItem ( char[] itemId, char[][char[]] options = null ) 
     {
-        return this.api_version; 
+        options["ItemId"] = itemId;
+        tryRequest("ItemLookup", options);
     }
     
     
-    
-    /**
-     * Set API request locale
-     * 
-     * Params:
-     *     locale = Amazon locale
-     */
-    public void setRequestLocale( char[] locale ) 
-    { 
-        this.request_locale = locale;
-    }
-    
-    
-    
-    /**
-     * Return API request locale
-     * 
-     * Returns:
-     *     Amazon locale
-     */
-    public char[] getRequestLocale() 
-    { 
-        return this.request_locale;
-    }
-    
-    
-    
-    /**
-     * Return API request locale
-     * 
-     * Returns:
-     *     Amazon locale
-     */
-    public char[] getRequestUri() 
-    { 
-        if ( this.request_locale in this.request_uri )
-            return this.request_uri[this.request_locale];
+    /******************************************************************************
         
-        AmazonException("Amazon Client Error: No Amazon Uri for locale!");
-    }
+         Search Product
+         
+         --
+         
+         Usage:
+         
+         char[][char[]] options;
+         
+         options["BrowseNode"] = "1000";
+         options["Sort"] = "salesrank";
+         options["ResponseGroup"] = "ItemIds,ItemAttributes,Images";
+         
+         scope client = new AmazonAssociates(..., ...);
+         client.searchItem("Books", "Harry Potter", options);
+         
+         --
+         
+         Params:
+             index   = an amazon search index
+             string  = search string
+             options = optional parameters
+         
+     ******************************************************************************/
     
-    
-    
-    /**
-     * Retrieves information for a product
-     * 
-     * ---
-     * 
-     * Example:
-     * 
-     *       char[][char[]] options;
-     *      
-     *       auto aws = new AmazonAssociates("1NB1TBJHNCPS1MEG9Y02");
-     *
-     *       options["ResponseGroup"] = "Large";
-     *       
-     *       aws.getItem("9780747591", options);
-     * 
-     * ---
-     * 
-     * Params:
-     *     item_id = Product IDs / ASIN
-     *     options = optional parameters  
-     */
-    public void getItem ( char[] itemid, char[][char[]] options = null ) 
+    public void searchItem ( char[] index, char[] string = null, 
+        char[][char[]] options = null ) 
     {
-        char[][char[]] params = options;
+        options["SearchIndex"] = index;
         
-        params["ItemId"] = itemid;
+        if ( string !is null )
+            options["Keywords"] = string;
         
-        this.tryRequest("ItemLookup", params);
+        tryRequest("ItemSearch", options);
     }
     
     
-    
-    /**
-     * Searches for products
-     * 
-     * ---
-     * 
-     * Example:
-     * 
-     *       char[][char[]] options;
-     *      
-     *       auto aws = new AmazonAssociates("1NB1TBJHNCPS1MEG9Y02");
-     *
-     *       options["BrowseNode"] = "1000";
-     *       options["Sort"] = "salesrank";
-     *       options["ResponseGroup"] = "ItemIds,ItemAttributes,Images";
-     *       
-     *       aws.searchItem("Books", "Harry Potter", options);
-     *      
-     * ---
-     *
-     * Params:
-     *     search_index = an amazon search index
-     *     options = optional parameters     
-     */
-    public void searchItem ( char[] search_index, char[] search_string = null, char[][char[]] options = null ) 
-    {
-        char[][char[]] params = options;
+    /******************************************************************************
         
-        params["SearchIndex"] = search_index;
-        
-        if ( search_string !is null )
-            params["Keywords"] = search_string;
-        
-        this.tryRequest("ItemSearch", params);
-    }
+         Return Browse Nodes
+         
+         Returns the specified browse nodes name, children, and ancestors of a 
+         browse node. Documentation for browsing specific Amazon Nodes can be 
+         found at:
+         
+         http://docs.amazonwebservices.com/AWSECommerceService/2008-06-26/DG/
+         BrowseNodeIDs.html
+         
+         --
+         
+         Usage:
+         
+         char[][char[]] options;
+         
+         options["ResponseGroup"] = "Large";
+         
+         scope client = new AmazonAssociates(..., ...);
+         client.browseNode("1000", options);
+         
+         --
+         
+         Params:
+             nodeId = browse node id
+             options = request options
+             
+     ******************************************************************************/
     
-    
-    
-    /**
-     * Retrieves information about a browse node 
-     * 
-     * Returns the specified browse nodes name, children, and ancestors of a browse node. Documentation 
-     * for browsing specific Amazon Nodes can be found here:
-     * 
-     *      http://docs.amazonwebservices.com/AWSECommerceService/2008-06-26/DG/BrowseNodeIDs.html
-     * 
-     * ---
-     * 
-     * Example
-     *  
-     *       char[][char[]] options;
-     *      
-     *       auto aws = new AmazonAssociates("1NB1TBJHNCPS1MEG9Y02");
-     *       
-     *       options["ResponseGroup"] = "Large";
-     *       
-     *       aws.browseNode("1000", options);
-     * 
-     * ---
-     * 
-     * Params:
-     *     node_id =  
-     *     options = optional parameters 
-     */
-    public void browseNode ( char[] node_id, char[][char[]] options = null )
+    public void getBrowseNodes ( char[] node_id, char[][char[]] options = null )
     {
         char[][char[]] params = options;
         
         params["BrowseNodeId"] = node_id;
         
-        this.tryRequest("BrowseNodeLookup", params);
+        tryRequest("BrowseNodeLookup", params);
     }
     
     
+    /******************************************************************************
+        
+         Is Request Error?
+         
+     ******************************************************************************/
     
-    /**
-     * Enable/Disable error flag
-     * 
-     * Params:
-     *     flag = set to true if error occured
-     */
-    public bool isError()
+    public bool isError ()
     {
-        return this.response_error;
-    }    
-    
-    
-    
-    /**
-     * Returns HTTP Error Code from last request
-     * 
-     * Returns:
-     *     HTTP error code
-     */    
-    public int getHTTPErrorCode()
-    {
-        return this.response_error_code;
+        if ( containsPattern(*responseBuffer, "<Error>") )
+            error = true;
+
+        return error;
     }
-    
-    
-    
-    /**
-     * Returns reponse
-     * 
-     * Returns:
-     *      XML response
-     */
-    public char[] getResponse()
-    {
-        return this.response_content;
-    }    
-    
     
     
     /******************************************************************************
 
-         Private Methods
+         Try Amazon REST Request
+         
+         Method checks for socket connection errors or HTTP errors. If connection 
+         fails due to a socket or EOF problem we re-request the resource. If the 
+         connection fails due to a 503 HTTP Error Code the method waits for some 
+         time and requests the ressource another time. The number of maximum 
+         retries is by default 4 times. 
 
+         Params:
+             operation = amazon web services operation
+             params = rest request parameter
+             retries = number of retries before giving up
+             
      ******************************************************************************/
     
-    
-    /**
-     * Try Amazon REST Request and check for errors
-     * 
-     * Method checks for socket connection errors or HTTP errors. If connection fails
-     * due to a socket or EOF problem we re-request the resource. If the connection
-     * fails due to a 503 HTTP Error Code the method waits for some time and requests 
-     * the ressource another time. The number of maximum retries is by default 4 times. 
-     * 
-     * Params:
-     *     operation = AWS operation
-     *     params = REST query parameter
-     *     retries = number of retries on a ressource
-     */
-    private void tryRequest( char[] operation, char[][char[]] params, int retries = 0 )
+    private void tryRequest( char[] operation, char[][char[]] params )
     {
-        try 
-        {
-            this.doRequest(operation, params);     
-        } 
-        catch ( Exception e )
-        {
-            if ( retries <= this.request_max_retries )
-            {
-                if ( this.getHTTPErrorCode == 503 )
-                    sleep(1);
-                
-                this.tryRequest(operation, params, ++retries);
-            }
-            else
-            {
-                AmazonException("Max Retries reached (" ~ Integer.toString(retries) ~ ") - " ~ e.msg);
-            }
-        }       
+        reset();
+        
+        setQueryParameter(operation, params);
+
+        buildQueryString();
+        buildSignature();
+        
+        requestUrl = "http://" ~ getApiEndpoint ~ "/onca/xml" ~ "?" ~ queryString ~ "&Signature=" ~ signature;
+        
+        doRequest();
     }
     
     
+    /******************************************************************************
     
-    /**
-     * Performs Amazon Web Services REST request
-     *
-     * Params:
-     *     operation = AWS operation
-     *     params = REST query parameter
-     *     
-     * Returns:
-     *    true, if request was successful
-     */
-    private bool doRequest( char[] operation, char[][char[]] params )
+         Performs Request
+    
+         Params:
+             operation = amazon web services operation
+             params = rest request query parameter
+            
+     ******************************************************************************/
+    
+    private void doRequest ( uint wait = 0, ubyte retry = 0 )
     {
-        char[] request_url;
+        if ( wait )
+            sleep(wait);
         
-        scope layout = new Locale;
+        curl.read(requestUrl);
         
-        this.flushRequestParams();
-
-        this.addRequestParam("Service", "AWSECommerceService");
-        this.addRequestParam("AWSAccessKeyId", this.getAccessKey);
-        this.addRequestParam("Version", this.getApiVersion);
-        this.addRequestParam("Timestamp", layout("{:yyyy-MM-ddTHH%3Amm%3AssZ}", Time(Clock.now.ticks)));
-        this.addRequestParam("Operation", operation);
-        
-        if ( this.getAssociateID !is null )
-            this.addRequestParam("AssociateTag", this.getAssociateID);
-
-        foreach(param, value; params)
-            this.addRequestParam(param, value);
-        
-        char[] signature = "GET\n" ~ getRequestUri ~ "\n" ~ "/onca/xml" ~ "\n" ~ getRequestParams;
-        
-//        Trace.formatln("string2sign = {}\n", signature);
-        
-        HMAC h = new HMAC(new SHA256(), getSecretKey);
-        h.update(signature);
-        
-        request_url = http_build_uri("http://" ~ this.getRequestUri ~ "/onca/xml", 
-            this.getRequestParams ~ "&Signature=" ~ Base64.encode(h.digest));
-
-        Trace.formatln("\n-----\n{}\n", request_url);
-        
-        try 
+        if (curl.error)
         {
-            auto client = new HttpClient (HttpClient.Get, request_url);
-            
-            client.setTimeout(5.0);
-            client.open();
-            
-            scope (exit) client.close;
-            
-            if ( client.isResponseOK )
+            if (curl.getReturnCode == 503)
             {
-                this.setError(false);
-                client.read (&this.readResponse, uint.max);
-
-                return true;
+                if ( retry < maxRetries )
+                {
+                    doRequest(1, retry++); // recursive call
+                }
+                else
+                {
+                    error = true;
+                }
             }
             else
             {
-                this.setHTTPErrorCode(client.getStatus);
-                
-                AmazonException("HTTP error " ~ Integer.toString(client.getStatus) ~ " on URL " ~ request_url); 
+                error = true;
             }
         }
-        catch( Exception e )
-            AmazonException("Amazon Client Error: " ~ e.msg);
-        
-        this.setError(true);
-        
-        return false;
-    }
-    
-
-    
-    /**
-     * Reads HTTP Response
-     * 
-     * TODO: Read in BufferInput not char[]
-     * 
-     * Params:
-     *     content = buffer with HTTP response
-     */
-    private void readResponse( void[] content )
-    {
-        this.response_content ~= cast(char[]) content;
-        
-        if ( containsPattern(this.response_content, "<Error>") )
-            this.setError(true);
-    }
-    
-    
-    
-    /**
-     * Returns URL request parameter
-     * 
-     * Returns:
-     *      request paramter as string
-     */
-    private char[] getRequestParams()
-    {
-        return this.http_build_str(this.request_params);
     }
 
     
-    
-    /**
-     * Adds query parameter to request
-     * 
-     * Params:
-     *     name = name of URI query paramter
-     *     value = value of query parameter
-     */
-    private void addRequestParam( char[] name, char[] value )
+    /******************************************************************************
+        
+         Set Default Query Parameter
+         
+         Params:
+              operation = aws operation to perform
+              params = rest request query parameter
+              
+     ******************************************************************************/
+
+    private void setQueryParameter ( char[] operation, char[][char[]] params  )
     {
-        this.request_params[name] = value;
+        scope layout = new Locale;
+        
+        queryParameter["Service"] = "AWSECommerceService";
+        queryParameter["Version"] = apiVersion;
+        queryParameter["AWSAccessKeyId"] = publicKey;
+        queryParameter["Timestamp"] = layout("{:yyyy-MM-ddTHH%3Amm%3AssZ}", Time(Clock.now.ticks));
+        queryParameter["Operation"] = operation;
+        
+        if (getAssociateId)
+            queryParameter["AssociateTag"] = getAssociateId;
+        
+        foreach(param, value; params)
+        {
+            curl.encode(value);
+            queryParameter[param] = value;
+        }
     }
     
     
-    
-    /**
-     * Flushes REST request parameter
-     *
-     */
-    private void flushRequestParams()
+    /******************************************************************************
+        
+         Reset Parameter
+          
+     ******************************************************************************/
+
+    private void reset()
     {
-        this.response_content = null;
-        this.request_params = null;
-        this.response_error_code = 0;
+        *responseBuffer = null;
+        
+        requestUrl.length = 0;
+        queryString.length = 0;
+        
+        queryParameter = null;
+        error = false;
     }
     
     
+    /******************************************************************************
+        
+         Build query string
+             
+     ******************************************************************************/
     
-    /**
-     * Build query string
-     * 
-     * Params:
-     *     params = params of API request
-     *     
-     * Returns:
-     *     URI of API request
-     */
-    private char[] http_build_str ( char[][char[]] params )
+    private void buildQueryString ()
     {
         char[] uri;
         
-        foreach( key; params.keys.sort)
+        foreach( key; queryParameter.keys.sort)
         {
-            uri = uri.dup ~ key ~ "=" ~ params[key] ~ "&";
+            uri = uri.dup ~ key ~ "=" ~ queryParameter[key] ~ "&";
         }
             
-        return uri[0..$-1];
+        queryString = uri[0..$-1].dup;
     }
+    
+    
+    /******************************************************************************
+        
+         Build Request Signature
+            
+     ******************************************************************************/
+    
+    private void buildSignature ()
+    {
+        scope h = new HMAC(new SHA256(), secretKey);
+        
+        h.update("GET\n" ~ getApiEndpoint ~ "\n" ~ "/onca/xml" ~ "\n" ~ queryString);
+      
+        signature = Base64.encode(h.digest);
+        curl.encode(signature);
+    }
+    
 
+    /******************************************************************************
     
+         Set Api Endpoints
     
-    /**
-     * Build an REST request URL
-     * 
-     * Params:
-     *     url = request url
-     *     query = request query parameter
-     *     
-     * Returns:
-     *     REST request uri
-     */
-    private char[] http_build_uri( char[] url, char[] params )
+     ******************************************************************************/
+    
+    private void setApiEndpoints ()
     {
-        return url ~ "?" ~ params;
+        apiEndpoint["ca"] = "ecs.amazonaws.ca";
+        apiEndpoint["de"] = "ecs.amazonaws.de";
+        apiEndpoint["fr"] = "ecs.amazonaws.fr";
+        apiEndpoint["jp"] = "ecs.amazonaws.jp";
+        apiEndpoint["uk"] = "ecs.amazonaws.co.uk";
+        apiEndpoint["us"] = "ecs.amazonaws.com";
     }
     
     
+    /******************************************************************************
+        
+         Return Api Endpoint
+          
+     ******************************************************************************/
     
-    /**
-     * Enable/Disable error flag
-     * 
-     * Params:
-     *     flag = set to true if error occured
-     */
-    private void setError( bool error )
+    private char[] getApiEndpoint() 
     {
-        this.response_error = error;
+        return apiEndpoint[locale];
     }
     
     
+    /******************************************************************************
+        
+         Return Associate Id
+        
+         Params:
+             locale = amazon sales region
+         
+         Returns:
+             associate id for given locale, or null if none
+             
+     ******************************************************************************/
     
-    /**
-     * Sets HTTP error code
-     * 
-     * Params:
-     *     flag = set to true if error occured
-     */
-    private void setHTTPErrorCode( int code )
+    private char[] getAssociateId( char[] locale = null ) 
     {
-        this.response_error_code = code;
+        if ( locale !is null && locale in associateId )
+        {
+            return associateId[locale];
+        }
+        else if ( this.locale in associateId )
+        {
+            return associateId[this.locale];
+        }
+        
+        return null;
     }
     
-    
-    
-} // AmazonAssociates
+}
 
 
 
@@ -774,10 +568,6 @@ class AmazonAssociates
 
 ******************************************************************************/
 
-/**
- * This is the base class from which all exceptions generated by this module
- * derive from.
- */
 class AmazonException : Exception
 {
     this(char[] msg)
@@ -788,4 +578,4 @@ class AmazonException : Exception
     private:
         static void opCall(char[] msg) { throw new AmazonException(msg); }
 
-} // class AmazonException
+}
