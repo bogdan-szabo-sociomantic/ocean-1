@@ -46,8 +46,6 @@ module ocean.net.services.AmazonAssociates;
 private     import      ocean.crypt.crypto.hashes.SHA256,
                         ocean.crypt.crypto.macs.HMAC;
 
-//private     import      tango.net.http.HttpClient, tango.net.http.HttpGet, 
-//                        tango.net.http.HttpHeaders;
 private     import      ocean.net.util.LibCurl;
 
 private     import      tango.text.Util : containsPattern;
@@ -62,7 +60,7 @@ private     import      tango.text.locale.Locale, tango.text.convert.Layout;
 
 private     import      Base64 = tango.io.encode.Base64;
 
-private import tango.util.log.Trace;
+
 /*******************************************************************************
 
     AmazonAssociates
@@ -100,7 +98,8 @@ class AmazonAssociates
 
      *******************************************************************************/ 
     
-    private             const ubyte                      maxRetries = 4;    
+    private             const ulong                      maxFileSize = 2_048_000;    
+    private             const ubyte                      maxRetries  = 4; 
     private             char[]                           locale = "us";
     
     
@@ -156,6 +155,7 @@ class AmazonAssociates
         setApiEndpoints();
         
         curl = new LibCurl();
+        curl.setMaxFileSize(maxFileSize);
     }
     
     
