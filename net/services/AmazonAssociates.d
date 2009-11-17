@@ -125,6 +125,15 @@ class AmazonAssociates
     
     
     /******************************************************************************
+	
+	    Hash
+	
+	******************************************************************************/ 
+	
+	private             HMAC							 hmac;
+
+	
+    /******************************************************************************
     
          Error
     
@@ -156,6 +165,8 @@ class AmazonAssociates
         
         curl = new LibCurl();
         curl.setMaxFileSize(maxFileSize);
+        
+        hmac = new HMAC(new SHA256(), secretKey);
     }
     
     
@@ -325,11 +336,10 @@ class AmazonAssociates
     
     public void getBrowseNodes ( char[] node_id, char[][char[]] options = null )
     {
-        char[][char[]] params = options;
+    	options["ResponseGroup"] = "BrowseNodeInfo";
+        options["BrowseNodeId"]  = node_id;
         
-        params["BrowseNodeId"] = node_id;
-        
-        tryRequest("BrowseNodeLookup", params);
+        tryRequest("BrowseNodeLookup", options);
     }
     
     
@@ -375,7 +385,7 @@ class AmazonAssociates
         buildSignature();
         
         requestUrl = "http://" ~ getApiEndpoint ~ "/onca/xml" ~ "?" ~ queryString ~ "&Signature=" ~ signature;
-        
+
         doRequest();
     }
     
@@ -385,8 +395,8 @@ class AmazonAssociates
          Performs Request
     
          Params:
-             operation = amazon web services operation
-             params = rest request query parameter
+             wait = seconds to wait before request
+             params = number of retries
             
      ******************************************************************************/
     
@@ -396,7 +406,7 @@ class AmazonAssociates
             sleep(wait);
         
         curl.read(requestUrl);
-        
+
         if (curl.error)
         {
             if (curl.getReturnCode == 503)
@@ -443,7 +453,7 @@ class AmazonAssociates
         
         foreach(param, value; params)
         {
-            curl.encode(value);
+        	curl.encode(value);
             queryParameter[param] = value;
         }
     }
@@ -475,14 +485,13 @@ class AmazonAssociates
     
     private void buildQueryString ()
     {
-        char[] uri;
-        
         foreach( key; queryParameter.keys.sort)
         {
-            uri = uri.dup ~ key ~ "=" ~ queryParameter[key] ~ "&";
+        	queryString ~= key ~ "=" ~ queryParameter[key] ~ "&";
         }
-            
-        queryString = uri[0..$-1].dup;
+
+        if (queryString.length)
+        	queryString = queryString[0..$-1].dup;
     }
     
     
@@ -494,11 +503,9 @@ class AmazonAssociates
     
     private void buildSignature ()
     {
-        scope h = new HMAC(new SHA256(), secretKey);
-        
-        h.update("GET\n" ~ getApiEndpoint ~ "\n" ~ "/onca/xml" ~ "\n" ~ queryString);
+    	hmac.update("GET\n" ~ getApiEndpoint ~ "\n" ~ "/onca/xml" ~ "\n" ~ queryString);
       
-        signature = Base64.encode(h.digest);
+        signature = Base64.encode(hmac.digest);
         curl.encode(signature);
     }
     
