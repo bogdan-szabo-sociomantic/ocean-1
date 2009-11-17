@@ -6,7 +6,7 @@
  * Authors:   Thomas Dixon
  */
 
-moduleocean.crypt.crypto.params.ParametersWithIV;
+module ocean.crypt.crypto.params.ParametersWithIV;
 
 public import ocean.crypt.crypto.params.CipherParameters;
 
