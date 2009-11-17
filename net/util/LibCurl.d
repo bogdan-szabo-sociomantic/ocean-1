@@ -22,6 +22,8 @@ module  ocean.net.util.LibCurl;
 
 private     import      ocean.net.util.c.curlh;
 
+private     import  	tango.stdc.stdlib : free;
+
 private     import      tango.stdc.string : strlen;
 
 private     import      tango.stdc.stringz : toDString = fromStringz, 
@@ -268,7 +270,12 @@ class LibCurl
     
     public void encode ( ref char[] string )
     {
-        string = toDString(curl_easy_escape(curl, toCString(string), string.length));
+    	char* cvalue;
+    	
+    	cvalue = curl_easy_escape(curl, toCString(string), string.length);
+        
+    	string = toDString(cvalue).dup;
+        free(cvalue);
     }
     
     
