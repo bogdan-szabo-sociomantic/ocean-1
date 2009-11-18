@@ -292,7 +292,7 @@ class AmazonAssociates
          
      ******************************************************************************/
     
-    public void searchItem ( char[] index, char[] string = null, 
+    public void searchItems ( char[] index, char[] string = null, 
         char[][char[]] options = null ) 
     {
         options["SearchIndex"] = index;
