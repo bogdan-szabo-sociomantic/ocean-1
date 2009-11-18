@@ -32,6 +32,7 @@
         http://aws.amazon.com/associates/
         http://docs.amazonwebservices.com/AWSECommerceService/2009-01-06/DG/
 
+
 ********************************************************************************/
 
 module ocean.net.services.AmazonAssociates;
@@ -263,6 +264,55 @@ class AmazonAssociates
     {
         options["ItemId"] = itemId;
         tryRequest("ItemLookup", options);
+    }
+    
+    
+    /******************************************************************************
+        
+        Returns Product Deep Link
+        
+        Params:
+            asin = asin to build deeplink from
+        
+        Returns;
+            product deep link
+            
+    ******************************************************************************/
+    
+    public char[] getDeepLink ( char[] asin )
+    {
+        assert(locale in apiEndpoint);
+        
+        char[] domain;
+        
+        switch (locale)
+        {
+            case "ca": 
+                    domain = "www.amazon.ca";
+                    break;
+                
+            case "de": 
+                    domain = "www.amazon.de";
+                    break;
+            
+            case "fr": 
+                    domain = "www.amazon.fr";
+                    break;
+                
+            case "jp": 
+                    domain = "www.amazon.co.jp";
+                    break;
+                
+            case "uk": 
+                    domain = "www.amazon.co.uk";
+                    break;
+                
+            case "us": 
+                    domain = "www.amazon.com";
+                    break;
+        }
+        
+        return "http://" ~ domain.dup ~ "/dp/" ~ asin;
     }
     
     
