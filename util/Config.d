@@ -76,7 +76,7 @@ private        import         tango.io.device.File;
 
 private        import         tango.io.stream.Lines;
 
-private        import         tango.io.FilePath;
+//private        import         tango.io.FilePath;
 
 private        import         Integer = tango.text.convert.Integer: toInt;
 
@@ -471,41 +471,55 @@ class Config
      */
     public static bool read()
     {
-        char[] text, category;
+        char[] text, category, key = "";
+        
         int pos;
 
         this.properties = null;
 
-        if ((new FilePath)(this.configuration_file).exists)
+        try
         {
             foreach (line; new Lines!(char) (new File(this.configuration_file)))
         	{
 				text = trim (line);
-
-				if ( text.length && text != "//" && text[0] != ';' )           // ignore empty lines and comments
-				{
-					pos = locate(text, '[');								   // category present in line?
-
-					if ( pos == 0 )
-					{
-						category = text[pos+1..locate (text, ']')];
-					}
-					else
-					{
-						pos = locate (text, '=');								// key value pair present in line?
-
-						if (pos < text.length)
-							this.properties[category][trim (text[0 .. pos])] = trim (text[pos+1 .. $]);
-					}
-				}
+			    
+                if (text.length >= 2)
+                {
+    				if ( text.length && text != "//" && text[0] != ';' )        // ignore empty lines and comments
+    				{
+    					pos = locate(text, '[');								// category present in line?
+    
+    					if ( pos == 0 )
+    					{
+    						category = text[pos+1..locate (text, ']')];
+                            
+                            key = "";
+    					}
+    					else
+    					{
+    						pos = locate (text, '=');							// key value pair present in line?
+    
+    						if (pos < text.length)
+                            {
+                                key = trim (text[0 .. pos]);
+                                
+    							this.properties[category][key] = trim(text[pos+1 .. $]);
+                            }
+                            else
+                            {
+                                this.properties[category][key] ~= trim(text) ~ '\n';
+                            }
+    					}
+    				}
+                }
         	}
-
-            return true;
         }
-        else
-            ConfigException("Critial Error: " ~ CONF_FILE_NOT_FOUND ~ this.configuration_file);
-
-        return false;
+        catch (Exception e)
+        {
+            ConfigException(e.msg);
+        }
+        
+        return true;
     }
 
 
