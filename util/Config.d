@@ -76,13 +76,11 @@ private        import         tango.io.device.File;
 
 private        import         tango.io.stream.Lines;
 
-//private        import         tango.io.FilePath;
-
 private        import         Integer = tango.text.convert.Integer: toInt;
 
 private        import         Float = tango.text.convert.Float: toFloat;
 
-private        import         tango.text.Util: locate, trim;
+private        import         tango.text.Util: locate, trim, delimit;
 
 private        import         tango.core.Exception;
 
@@ -380,7 +378,9 @@ class Config
     {
         try
         {
-            assert(exists(category, key), "Critial Error: No configuration key '" ~ category ~ ":" ~ key ~ "' found");
+            assert(exists(category, key), "Critial Error: No configuration key "
+                                          "'" ~ category ~ ":" ~ key ~
+                                          "' found");
             
             char[] property = this.properties[category][key];
             
@@ -396,7 +396,8 @@ class Config
             {
                 return cast (T) property;
             }
-            else static assert(false, __FILE__ ~ " : get: type '" ~ T.stringof ~ "' is not supported");
+            else static assert(false, __FILE__ ~ " : get(): type '" ~
+                                     T.stringof ~ "' is not supported");
         }
         catch (AssertException e)
         {
@@ -404,7 +405,8 @@ class Config
         }
         catch (IllegalArgumentException)
         {
-            ConfigException("Critial Error: Configuration key '" ~ category ~ ":" ~ key ~ "' appears not to be of type '" ~ T.stringof ~ "'");
+            ConfigException("Critial Error: Configuration key '" ~ category ~
+            ":" ~ key ~ "' appears not to be of type '" ~ T.stringof ~ "'");
         }
     }
     
@@ -451,6 +453,32 @@ class Config
     
     
     /**
+     * Retrieves the value list of a configuration key with a multi-line value.
+     * If the value is a single line, the list has one element.
+     * 
+     * Params:
+     *      value    = output list of values, changed only if the key was found
+     *      category = key category name
+     *      key      = key name
+     *      
+     * Returns:
+     *      true on success or false if the key could not be found
+     */
+    public static bool getList (ref char[][] value, char[] category, char[] key)
+    {
+        bool found = exists(category, key);
+        
+        if (found)
+        {
+            value = delimit(this.get!(typeof(*value))(category, key), "\n");
+        }
+        
+        return found;
+    }
+    
+    
+    
+    /**
      * Reads all configuration parameter from INI file
      *
      * Each property in the ini file belongs to a category. A property has always
@@ -474,7 +502,9 @@ class Config
         char[] text, category, key = "";
         
         int pos;
-
+        
+        bool multiline_first = true;
+        
         this.properties = null;
 
         try
@@ -503,11 +533,27 @@ class Config
                             {
                                 key = trim (text[0 .. pos]);
                                 
-    							this.properties[category][key] = trim(text[pos+1 .. $]);
+                                text = trim(text[pos+1 .. $]);
+                                
+    							this.properties[category][key] = text;
+                                
+                                multiline_first = !text.length;
                             }
                             else
                             {
-                                this.properties[category][key] ~= trim(text) ~ '\n';
+                                text = trim(text);
+                                
+                                if (text.length)
+                                {
+                                    if (!multiline_first)
+                                    {
+                                        this.properties[category][key] ~= '\n';
+                                    }
+                                    
+                                    this.properties[category][key] ~= text;
+                                    
+                                    multiline_first = false;
+                                }
                             }
     					}
     				}
