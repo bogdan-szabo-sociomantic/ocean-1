@@ -355,9 +355,9 @@ class Config
      * Returns:
      *   key value as char[]
      */
-    public static char[] getChar(char[] category, char[] key)
+    public static T[] getChar ( T = char ) (char[] category, char[] key)
     {
-        return get!(char[])(category, key);
+        return get!(T[])(category, key);
     }
 
 
