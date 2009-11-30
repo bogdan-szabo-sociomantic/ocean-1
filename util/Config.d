@@ -82,6 +82,8 @@ private        import         Float = tango.text.convert.Float: toFloat;
 
 private        import         tango.text.Util: locate, trim, delimit;
 
+private        import         tango.text.convert.Utf;
+
 private        import         tango.core.Exception;
 
 
@@ -179,6 +181,163 @@ class Config
     /**
      * Returns the value of a configuration key
      *
+     * Function needs to be called statically. Template can be instantiated with
+     * integer, float or string (char[]) type.
+     * If the requested key cannot be found, an exception is thrown.
+     *
+     * ---
+     *
+     * Usage Example:
+     *
+     * const char[] my_config_cat = "options";
+     * 
+     * char[] my_config_par;
+     * int    num_threads;
+     * 
+     * Config.init("etc/config.ini");
+     *
+     * my_config_par = Config.get!(char[])(my_config_cat, "my_config_key");     //retrieve the string value of a key
+     * num_threads   = Config.get!(int   )(my_config_cat, "number_of_threads"); //retrieve an int value of a key
+     *
+     * ---
+     *
+     * Params:
+     *   category = category to get key from
+     *   key      = name of the property to get
+     *
+     * Returns:
+     *   The value of a configuration key
+     */
+    public static T get (T) (char[] category, char[] key)
+    {
+        try
+        {
+            assert(exists(category, key), "Critial Error: No configuration key "
+                                          "'" ~ category ~ ":" ~ key ~
+                                          "' found");
+            
+            char[] property = this.properties[category][key];
+            
+            static if ( is(T : long) )
+            {
+                return Integer.toLong(property);
+            }
+            else static if ( is(T : real) )
+            {
+                return Float.toFloat(property);
+            }
+            else static if ( is(T : bool) )
+            {
+                return getBool(category, key);
+            }
+            else static if ( is(char[] T : T[]) || is(wchar[] T : T[]) || is(dchar[] T : T[]) )
+            {
+                return fromString8!(T)(property, null);
+            }
+            else static assert(false, __FILE__ ~ " : get(): type '" ~
+                                     T.stringof ~ "' is not supported");
+        }
+        catch (AssertException e)
+        {
+            ConfigException(e.msg);
+        }
+        catch (IllegalArgumentException)
+        {
+            ConfigException("Critial Error: Configuration key '" ~ category ~
+            ":" ~ key ~ "' appears not to be of type '" ~ T.stringof ~ "'");
+        }
+    }
+    
+    
+    
+    /**
+     * Returns the value of a configuration key
+     *
+     * Function needs to be called statically. Instantitate template with
+     * T = int, long, float, bool or string (char[]) type or a type compatible
+     * to these. If the configuration key cannot be found, "value" remains
+     * unchanged.
+     *
+     * ---
+     *
+     * Usage Example:
+     * 
+     * const char[] my_config_cat = "options";
+     * 
+     * char[] my_config_par = "my_default_value";
+     * int    num_threads   = 4711;
+     * 
+     * Config.init("etc/config.ini");
+     * 
+     * Config.get!(char[])(my_config_cat, my_config_par, "my_config_key");     //retrieve the string value of a key
+     * Config.get!(int   )(my_config_cat, num_threads,   "number_of_threads"); //retrieve an int value of a key
+     *
+     * ---
+     *
+     * Params:
+     *   value    = key value
+     *   category = category to get key from
+     *   key      = name of the property to get
+     *
+     * Returns:
+     *   true on success or false if the key could not be found
+     */
+    public static bool get (T) (ref T value, char[] category, char[] key)
+    {
+        bool found = exists(category, key);
+        
+        if (found)
+        {
+            value = get!(T)(category, key);
+        }
+        
+        return found;
+    }
+    
+    
+    
+    /**
+     * Returns the value of a configuration key
+     *
+     * Function needs to be called statically. Instantitate template with a
+     * value parameter which is of int, long, float, bool or string (char[])
+     * type or a type compatible to these. If the configuration key cannot be
+     * found, "value" remains unchanged.
+     *
+     * ---
+     *
+     * Usage Example:
+     * 
+     * const char[] my_config_cat = "options";
+     * 
+     * char[] my_config_par     = "my_default_value";
+     * int    number_of_threads = 4711;
+     * 
+     * Config.init("etc/config.ini");
+     * 
+     * my_config_par     = Config.get!(my_config_par)(my_config_cat, "my_config_key"); //retrieve the string value of a key
+     * number_of_threads = Config.get!(number_of_threads)(my_config_cat);              //retrieve an int value of a key
+     *
+     * ---
+     *
+     * Params:
+     *   value    = key value
+     *   category = category to get key from
+     *   key      = name of the property to get; omit or set to null to use the
+     *              name of the variable behind "value"
+     *
+     * Returns:
+     *   true on success or false if the key could not be found
+     */
+    public static bool get (alias value) (char[] category, char[] key = null)
+    {
+        return get!(typeof (value))(value, category, key? key : value.stringof);
+    }
+    
+    
+    /**
+     * Returns the value of a configuration key
+     *
      * ---
      *
      * Usage Example:
@@ -198,7 +357,7 @@ class Config
      */
     public static char[] getChar(char[] category, char[] key)
     {
-        return Config.get!(char[])(category, key);
+        return get!(char[])(category, key);
     }
 
 
@@ -227,8 +386,6 @@ class Config
     {
         return Config.get!(int)(category, key);
     }
-
-
     
     /**
      * Returns the value of a configuration key
@@ -254,7 +411,7 @@ class Config
     {
         char[] value;
         
-        value = Config.get!(char[])(category, key);
+        value = get!(char[])(category, key);
         
         if ( value == "1" || value == "true" )
             return true;
@@ -286,7 +443,7 @@ class Config
      */
     public static float getFloat(char[] category, char[] key)
     {
-        return Config.get!(float)(category, key);
+        return get!(float)(category, key);
     }
     
     
@@ -350,109 +507,6 @@ class Config
 
     
     /**
-     * Returns the value of a configuration key
-     *
-     * Function needs to be called statically. Template can be instantiated with
-     * integer, float or string (char[]) type.
-     * If the requested key cannot be found, an exception is thrown.
-     *
-     * ---
-     *
-     * Usage Example:
-     *
-     * Config.init("etc/config.ini");
-     *
-     * Config.get!(char[])("my_config_key"); 				//retrieve the string value of a key
-     * Config.get!(int)("number_of_threads");				//retrieve an int value of a key
-     *
-     * ---
-     *
-     * Params:
-     *   category = category to get key from
-     *   key      = name of the property to get
-     *
-     * Returns:
-     *   The value of a configuration key
-     */
-    public static T get(T) (char[] category, char[] key)
-    {
-        try
-        {
-            assert(exists(category, key), "Critial Error: No configuration key "
-                                          "'" ~ category ~ ":" ~ key ~
-                                          "' found");
-            
-            char[] property = this.properties[category][key];
-            
-            static if ( is(T : long) )
-            {
-                return Integer.toLong(property);
-            }
-            else static if ( is(T : real) )
-            {
-                return Float.toFloat(property);
-            }
-            else static if ( is(T : char[]) )
-            {
-                return cast (T) property;
-            }
-            else static assert(false, __FILE__ ~ " : get(): type '" ~
-                                     T.stringof ~ "' is not supported");
-        }
-        catch (AssertException e)
-        {
-            ConfigException(e.msg);
-        }
-        catch (IllegalArgumentException)
-        {
-            ConfigException("Critial Error: Configuration key '" ~ category ~
-            ":" ~ key ~ "' appears not to be of type '" ~ T.stringof ~ "'");
-        }
-    }
-    
-    
-    
-    /**
-     * Returns the value of a configuration key
-     *
-     * Function needs to be called statically. Template can be instantiated with
-     * integer, float or string (char[]) type. If the configuration key cannot
-     * be found, "value" remains unchanged.
-     *
-     * ---
-     *
-     * Usage Example:
-     *
-     * Config.init("etc/config.ini");
-     *
-     * Config.get!(char[])("my_config_key");                //retrieve the string value of a key
-     * Config.get!(int)("number_of_threads");               //retrieve an int value of a key
-     *
-     * ---
-     *
-     * Params:
-     *   value    = key value
-     *   category = category to get key from
-     *   key      = name of the property to get
-     *
-     * Returns:
-     *   true on success or false if the key could not be found
-     */
-    public static bool get(T) (ref T value, char[] category, char[] key)
-    {
-        bool found = exists(category, key);
-        
-        if (found)
-        {
-            value = this.get!(T)(category, key);
-        }
-        
-        return found;
-    }
-    
-    
-    
-    /**
      * Retrieves the value list of a configuration key with a multi-line value.
      * If the value is a single line, the list has one element.
      * 
@@ -464,16 +518,34 @@ class Config
      * Returns:
      *      true on success or false if the key could not be found
      */
-    public static bool getList (ref char[][] value, char[] category, char[] key)
+    public static bool getList ( T = char ) ( ref T[][] value, char[] category, char[] key )
     {
         bool found = exists(category, key);
         
         if (found)
         {
-            value = delimit(this.get!(typeof(*value))(category, key), "\n");
+            value = getList!(T)(category, key);
         }
         
         return found;
+    }
+    
+    
+    
+    /**
+     * Returns the value list of a configuration key with a multi-line value.
+     * If the value is a single line, the list has one element.
+     * 
+     * Params:
+     *      category = key category name
+     *      key      = key name
+     *      
+     * Returns:
+     *      the value list
+     */
+    public static T[][] getList ( T = char ) ( char[] category, char[] key )
+    {
+        return delimit!(T)(fromString8!(T)(get!(char[])(category, key), null), "\n");
     }
     
     
