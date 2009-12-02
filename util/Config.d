@@ -218,17 +218,17 @@ class Config
             
             char[] property = this.properties[category][key];
             
-            static if ( is(T : long) )
+            static if ( is(T : bool) )
+            {
+                return getBool(category, key);
+            }
+            else static if ( is(T : long) )
             {
                 return Integer.toLong(property);
             }
             else static if ( is(T : real) )
             {
                 return Float.toFloat(property);
-            }
-            else static if ( is(T : bool) )
-            {
-                return getBool(category, key);
             }
             else static if ( is(char[] T : T[]) || is(wchar[] T : T[]) || is(dchar[] T : T[]) )
             {
