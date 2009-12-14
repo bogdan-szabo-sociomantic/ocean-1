@@ -92,27 +92,29 @@ class TraceLog
      * Params:
      *   trace_file = string that contains the path to the trace log file
      */
-    public static void init( char[] trace_file )
+    public static void init( char[] trace_file, char[] id = "TraceLog" )
     {
         this.trace_log_file = trace_file;
 
         auto appender = new AppendFile(trace_file);
         appender.layout(new LayoutDate);
 
-        TraceLog.logger = Log.getLogger("TraceLog");
+        TraceLog.logger = Log.getLogger(id);
         TraceLog.logger.add(appender);
     }
 
 
 
     /**
-     * Writes information to the trace log file
+     * Formats a message string and writes it to the trace log file.
+     * String formatting is done in Stdout.formatln(...) fashion.
      *
      * ---
      *
      * Usage Example:
      *
-     * TraceLog.write("Counted 16767 times...");
+     * int i = 16767;
+     * TraceLog.write("Counted {} times...", i);
      *
      * ---
      *
@@ -123,10 +125,30 @@ class TraceLog
     public static void write( char[] fmt, ... )
     {
         if ( TraceLog.enabled && fmt.length )
-            TraceLog.logger.append(Logger.Level.Trace, (new Layout!(char)).convert(_arguments, _argptr, fmt));
+            TraceLog.writeString((new Layout!(char)).convert(_arguments, _argptr, fmt));
     }
 
-
+    
+    
+    /**
+     * Writes a message string to the trace log file.
+     *
+     * ---
+     *
+     * Usage Example:
+     *
+     * TraceLog.write("Counted 16767 times...");
+     *
+     * ---
+     *
+     * Params:
+     *   message = message string
+     */
+    public static void writeString ( char[] message )
+    {
+        TraceLog.logger.append(Logger.Level.Trace, message);
+    }
+    
     
     /**
      * Return Logger instance
