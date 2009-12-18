@@ -140,7 +140,7 @@ class Uncompress
      *      output      = return buffer
      *      encoding    = encoding [zlib, gzip, deflate]
      */
-    public void decodeUni ( T ) ( char[] compressed, out T[] output, char[] encoding = "gzip" )
+    public void decodeUni ( T = char ) ( char[] compressed, out T[] output, char[] encoding = "gzip" )
     {   
         int size = 0;        
         uint total = 0;
@@ -186,7 +186,7 @@ class Uncompress
      */
     public void decode ( char[] compressed, out char[] output, char[] encoding = "gzip" )
     {
-        this.decodeUni!(char)(compressed, output, encoding);
+        this.decodeUni(compressed, output, encoding);
     }
 
     
@@ -377,7 +377,6 @@ class Uncompress
         }
     }
 }
-
 
 
 /******************************************************************************
