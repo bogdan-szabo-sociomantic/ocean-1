@@ -164,7 +164,7 @@ class Gzip: Uncompress
     {
         ubyte[] sign = (cast (ubyte[]) content)[0 .. min(2, content.length)];
         
-        return (sign == GZIP_SIGNATURE);
+        return (sign == this.GZIP_SIGNATURE);
     }
     
     
