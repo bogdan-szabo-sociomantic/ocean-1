@@ -94,8 +94,6 @@ private     import      tango.io.stream.Buffered;
 private     import      tango.util.log.Trace;
 
 
-
-
 /*******************************************************************************
 
     Uncompress
@@ -109,6 +107,8 @@ class Uncompress
     const       uint                CHUNK_SIZE          = 4*1024;       // Chunk size for reading from ZlibStream  
     const       uint                INPUT_BUF_SIZE      = 64 * 1024;    // Initial input buffer size    
     const       uint                GROW_IB_SIZE        = 1024;         // Size of which the input buffer will grow 
+    
+    const       char[]              DEFAULT_ENCODING    = "auto";
     
     private     char[CHUNK_SIZE]    read_chunk;                         // Chunk that is used to read the uncompressed data from ZlibStream
     private     Array               input_buffer;                       // Input stream buffer used in case of a char[] input
@@ -133,14 +133,14 @@ class Uncompress
    
     
     /**
-     * Returns uncompressed content
+     * Returns uncompressed content. Output data is duplicated (copy on write).
      * 
      * Params:
      *      compressed  = compressed string
      *      output      = return buffer
      *      encoding    = encoding [zlib, gzip, deflate]
      */
-    public void decodeUni ( T = char ) ( char[] compressed, out T[] output, char[] encoding = "gzip" )
+    public void decodeUni ( T = char ) ( char[] compressed, out T[] output, char[] encoding = DEFAULT_ENCODING )
     {   
         int size = 0;        
         uint total = 0;
@@ -165,7 +165,7 @@ class Uncompress
                     total += size;
                 }
                 
-                output = cast(T[]) this.output_buffer.slice(total);
+                output = cast(T[]) this.output_buffer.slice(total).dup;
             }
             catch (Exception e)
             {
@@ -177,18 +177,18 @@ class Uncompress
     
     
     /**
-     * Returns uncompressed content
+     * Uncompresses content. Output data is duplicated (copy on write).
      * 
      * Params:
      *      compressed  = compressed string
      *      output      = return buffer
      *      encoding    = encoding [zlib, gzip, deflate]
      */
-    public void decode ( char[] compressed, out char[] output, char[] encoding = "gzip" )
+    public void decode ( char[] compressed, out char[] output, char[] encoding = DEFAULT_ENCODING )
     {
         this.decodeUni(compressed, output, encoding);
     }
-
+    
     
     
     /**
@@ -202,7 +202,7 @@ class Uncompress
      * Returns:
      *     number of uncompressed bytes, or 0 if none
      */
-    public long decode ( InputStream stream_in, OutputStream stream_out, char[] encoding = "gzip" )
+    public long decode ( InputStream stream_in, OutputStream stream_out, char[] encoding = DEFAULT_ENCODING )
     { 
         int size = 0;
         long written = 0;
@@ -229,14 +229,15 @@ class Uncompress
     
     
     /**
-     * Uncompresses Buffered Input Stream
+     * Uncompresses Buffered Input Stream. Uncompresses content. Output data is
+     * duplicated (copy on write).
      * 
      * Params:
      *     stream_in    = compressed input buffer stream
      *     output       = return buffer
      *     encoding     = encoding [zlib, gzip, deflate]
      */    
-    public void decodeUni ( T ) ( InputStream stream_in, T[] output, char[] encoding = "gzip" )
+    public void decodeUni ( T ) ( InputStream stream_in, out T[] output, char[] encoding = DEFAULT_ENCODING )
     {   
         int size = 0;
         uint total = 0;
@@ -250,13 +251,18 @@ class Uncompress
             this.setEncoding(encoding);
             this.initZlibStreamInput(stream_in);
             
+            uint i = 0;
+            
             while ((size = this.decomp.read(this.read_chunk)) > 0)
             {
                 this.output_buffer.append(this.read_chunk);
+                
                 total += size;
             }           
             
-            output = cast(T[]) this.output_buffer.slice(total);
+            output.length = total;
+            
+            output = cast(T[]) this.output_buffer.slice(total).dup;
         }
         catch (Exception e)
         {
@@ -274,9 +280,9 @@ class Uncompress
      *      output      = return buffer
      *      encoding    = encoding [zlib, gzip, deflate]
      */
-    public void decode ( InputStream stream_in, char[] output, char[] encoding = "gzip" )
+    public void decode ( InputStream stream_in, out char[] output, char[] encoding = DEFAULT_ENCODING )
     {
-        this.decodeUni!(char)(stream_in, output, encoding);
+        this.decodeUni(stream_in, output, encoding);
     }
     
     
@@ -352,8 +358,8 @@ class Uncompress
                 this.encoding = ZlibInput.Encoding.None;
                 break;
                 
-            default:                
-                this.encoding = ZlibInput.Encoding.Guess;            
+            case this.DEFAULT_ENCODING: default:                 
+                this.encoding = ZlibInput.Encoding.Guess;
         }
     }
     
