@@ -126,8 +126,10 @@ private import tango.core.ByteSwap;
 *******************************************************************************/
 
 
-class Fnv1 ( T, bool FNV1A ) : Digest
+class Fnv1 ( T, bool FNV1A = false ) : Digest
 {
+    public static const DIGEST_LENGTH = T.sizeof;
+    
     /**************************************************************************
     
         FNV magic constants and endianness
@@ -137,15 +139,15 @@ class Fnv1 ( T, bool FNV1A ) : Digest
     
     static if (is (T == uint))
     {
-        static const T FNV_PRIME = 0x0100_0193; // 32 bit prime
-        static const T FNV_INIT  = 0x811C_9DC5; // 32 bit inital digest
+        public static const T FNV_PRIME = 0x0100_0193; // 32 bit prime
+        public static const T FNV_INIT  = 0x811C_9DC5; // 32 bit inital digest
         
         private alias ByteSwap.swap32 toBigEnd;
     }
     else static if (is (T == ulong))
     {
-        static const T FNV_PRIME = 0x0000_0100_0000_01B3; // 64 bit prime
-        static const T FNV_INIT  = 0xCBF2_9CE4_8422_2325; // 64 bit inital digest
+        public static const T FNV_PRIME = 0x0000_0100_0000_01B3; // 64 bit prime
+        public static const T FNV_INIT  = 0xCBF2_9CE4_8422_2325; // 64 bit inital digest
         
         private alias ByteSwap.swap64 toBigEnd;
     }
@@ -186,7 +188,7 @@ class Fnv1 ( T, bool FNV1A ) : Digest
      */
      union BinConvert
      {
-         typedef ubyte[T.sizeof] BinString;
+         typedef ubyte[DIGEST_LENGTH] BinString;
          
          /* members */
          
@@ -301,7 +303,7 @@ class Fnv1 ( T, bool FNV1A ) : Digest
     
     public uint digestSize ( )
     {
-        return T.sizeof;
+        return this.DIGEST_LENGTH;
     }
     
     
