@@ -587,7 +587,7 @@ class Config
 			    
                 if (text.length >= 2)
                 {
-    				if ( text.length && text != "//" && text[0] != ';' )        // ignore empty lines and comments
+    				if ( text[0 .. 2] != "//" && text[0] != ';' )        // ignore empty lines and comments
     				{
     					pos = locate(text, '[');								// category present in line?
     
