@@ -146,7 +146,8 @@ class TraceLog
      */
     public static void writeString ( char[] message )
     {
-        TraceLog.logger.append(Logger.Level.Trace, message);
+        if ( TraceLog.logger )
+            TraceLog.logger.append(Logger.Level.Trace, message);
     }
     
     
