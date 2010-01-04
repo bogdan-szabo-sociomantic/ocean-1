@@ -473,7 +473,7 @@ class TokyoCabinet
     
     public bool iterNext ( ref char[] dst )
     {
-        char* key;        
+        char* key;
         
         if ((key = tchdbiternext2(this.db)) is null)
         {
@@ -489,6 +489,69 @@ class TokyoCabinet
         return true;
     }
     
+    
+    /**************************************************************************
+    
+        "foreach" iterator over items in database. The "key" and "val"
+        parameters of the delegate correspond to the iteration variables.
+        
+        Usage:
+        
+        ---
+        
+            import ocean.db.TokyoCabinet;
+        
+            auto db = new TokyoCabinet("db.tch");
+            db.open();
+            
+            foreach (key, val; db)
+            {
+                // "key" and "val" contain the key and value of the current item
+            }
+            
+            db.close();
+
+            
+        ---
+    
+     ***************************************************************************/
+    
+    
+    public int opApply ( int delegate ( ref char[] key, ref char[] val ) dg )
+    {
+        this.initIterator();
+        
+        int len;
+        
+        int result = 0;
+        
+        char* _key = cast (char*) tchdbiternext(this.db, &len);
+        
+        try while (_key && !result)
+        {
+            char[] key = _key[0 .. len].dup;
+            
+            char* _val = tchdbget2(this.db, _key);
+            
+            char[] val = toDString(_val).dup;
+            
+            assert (val);
+
+            result = dg(key, val);
+            
+            free(_key);
+            free(_val);
+            
+            _key = cast (char*) tchdbiternext(this.db, &len);
+        }
+        catch
+        {
+            TokyoCabinetException("TokyoCabinet Iterator Error: '" ~ 
+                    toDString(tchdberrmsg(tchdbecode(this.db))) ~ "'");
+        }
+
+        return result;
+    }
     
     /**************************************************************************
         
