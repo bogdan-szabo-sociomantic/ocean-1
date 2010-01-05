@@ -60,7 +60,7 @@ private     import  tango.stdc.stdlib;
         svn://svn.audioscrobbler.net/misc/ketama/
         http://pdos.csail.mit.edu/chord/
         
-        TODO Iteration
+        Iteration
         
         http://torum.net/2009/10/iterating-tokyo-cabinet-in-parallel/
         http://torum.net/2009/05/tokyo-cabinet-protected-database-iteration/
@@ -492,6 +492,49 @@ class TokyoCabinet
     
     /**************************************************************************
     
+        Returns the next key/value pair from the iterator
+        
+        The iterator needs to be initialized with initIterator key needs to be 
+        deleted, because on every iteration a new malloc is made by the tokyo 
+        cabinet library.
+        
+        @see refererence
+         
+        http://torum.net/2009/05/tokyo-cabinet-protected-database-iteration/
+        
+        Params:
+            key   = return buffer for next key
+            value = return buffer for next value
+        
+        Returns: 
+            true, if next item is available false, otherwise
+    
+     ***************************************************************************/
+
+    public bool iterNext ( ref char[] key, ref char[] value )
+    {
+        char* _value = null;
+        
+        char* _key = tchdbiternext2(this.db);
+        
+        if (_key)
+        {
+            _value = tchdbget2(this.db, _key);
+            
+            key = toDString(_key).dup;
+            
+            if (_value)
+            {
+                value = toDString(_value).dup;
+            }
+        }
+            
+        return !!_value;
+    }
+    
+    
+    /**************************************************************************
+    
         "foreach" iterator over items in database. The "key" and "val"
         parameters of the delegate correspond to the iteration variables.
         
@@ -516,42 +559,22 @@ class TokyoCabinet
     
      ***************************************************************************/
     
-    
-    public int opApply ( int delegate ( ref char[] key, ref char[] val ) dg )
+    public int opApply ( int delegate ( ref char[] key, ref char[] value ) dg )
     {
-        this.initIterator();
-        
-        int len;
-        
         int result = 0;
         
-        char* _key = cast (char*) tchdbiternext(this.db, &len);
+        char[] key, value;
         
-        try while (_key && !result)
+        this.initIterator();
+        
+        while (this.iterNext(key, value) && !result)
         {
-            char[] key = _key[0 .. len].dup;
-            
-            char* _val = tchdbget2(this.db, _key);
-            
-            char[] val = toDString(_val).dup;
-            
-            assert (val);
-
-            result = dg(key, val);
-            
-            free(_key);
-            free(_val);
-            
-            _key = cast (char*) tchdbiternext(this.db, &len);
+            result = dg(key, value);
         }
-        catch
-        {
-            TokyoCabinetException("TokyoCabinet Iterator Error: '" ~ 
-                    toDString(tchdberrmsg(tchdbecode(this.db))) ~ "'");
-        }
-
+        
         return result;
     }
+    
     
     /**************************************************************************
         
