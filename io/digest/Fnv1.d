@@ -47,10 +47,14 @@ private import tango.core.ByteSwap;
         Usage
         
         It is recommended to use these Fnv1 class convenience aliases:
-        
+         
+         - Fnv1 for FNV1 digests of the machine's native width
+         - Fnv1a for FNV1a digests of the machine's native width
+         
          - Fnv132 for 32-bit FNV1 digests
-         - Fnv164 for 64-bit FNV1 digests
          - Fnv1a32 for 32-bit FNV1a digests
+         
+         - Fnv164 for 64-bit FNV1 digests
          - Fnv1a64 for 64-bit FNV1a digests
         
         Example 1: Generating FNV1 digests using class instances
@@ -59,16 +63,19 @@ private import tango.core.ByteSwap;
         
             import ocean.io.digest.Fnv1;
             
+            auto fnv1   = new Fnv1;
             auto fnv132 = new Fnv132;
             auto fnv164 = new Fnv164;
             
-            char[] string = "tohash";
+            char[] hello = "Hello World!";
             
-            fnv132.update(string);
-            fnv164.update(string);
+            fnv1.update(hello);
+            fnv132.update(hello);
+            fnv164.update(hello);
             
-            char[] hash32 = fnv132.hexDigest;
-            char[] hash64 = fnv164.hexDigest;
+            char[] hash   = fnv1.hexDigest();
+            char[] hash32 = fnv132.hexDigest();
+            char[] hash64 = fnv164.hexDigest();
         
         ---
         
@@ -78,10 +85,11 @@ private import tango.core.ByteSwap;
         
             import ocean.io.digest.Fnv;
         
-            char[] string = "tohash";
+            char[] hello = "Hello World!";
             
-            uint  hash32 = Fnv1a32.fnv1(string);
-            ulong hash64 = Fnv1a64.fnv1(string);
+            size_t hash   = Fnv1a(hello);
+            uint   hash32 = Fnv1a32(hello);
+            ulong  hash64 = Fnv1a64(hello);
         
         ---
         
@@ -126,7 +134,7 @@ private import tango.core.ByteSwap;
 *******************************************************************************/
 
 
-class Fnv1 ( T, bool FNV1A = false ) : Digest
+class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
 {
     public static const DIGEST_LENGTH = T.sizeof;
     
@@ -374,16 +382,34 @@ class Fnv1 ( T, bool FNV1A = false ) : Digest
      * Returns:
      *      resulting digest
      */
-    public static T fnv1 ( void[] data, T hash = FNV_INIT )
+    //public static T fnv1 ( U ) ( ubyte[] data, T hash = FNV_INIT )
+    public static T fnv1 ( U ) ( U data, T hash = FNV_INIT )
     {
-        foreach (d; cast (ubyte[]) data)
+        ubyte[] data_;
+        
+        static if (is (U: void[]))
+        {
+            data_ = cast (ubyte[]) data;
+        }
+        else
+        {
+            data_ = cast (ubyte[]) [data];
+        }
+        
+        foreach (d; data_)
         {
             hash = fnv1_core(d, hash);
         }
         
         return hash;
     }
-    
+    /*
+    public static T fnv1 ( ubyte[] data, T hash = FNV_INIT )
+    {
+        return fnv1(cast (ubyte[]) data, hash);
+    }
+    */
+    public alias fnv1 opCall;
     
     
     /**
@@ -424,10 +450,12 @@ class Fnv1 ( T, bool FNV1A = false ) : Digest
  * Usage as explained on the top of this module.
  */
 
-alias Fnv1!(uint,  false) Fnv132;
-alias Fnv1!(ulong, false) Fnv164;
-alias Fnv1!(uint,  true ) Fnv1a32;
-alias Fnv1!(ulong, true ) Fnv1a64;
+alias Fnv1Generic!(false)         Fnv1;
+alias Fnv1Generic!(false, uint)   Fnv132;
+alias Fnv1Generic!(false, ulong)  Fnv164;
+alias Fnv1Generic!(true)          Fnv1a;
+alias Fnv1Generic!(true,  uint)   Fnv1a32;
+alias Fnv1Generic!(true,  ulong)  Fnv1a64;
 
 
 /**************************************************************************
