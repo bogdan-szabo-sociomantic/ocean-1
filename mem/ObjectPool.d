@@ -39,9 +39,6 @@
 
 module mem.ObjectPool;
 
-import tango.io.Console;
-import tango.io.Stdout;
-
 /******************************************************************************
   
     ObjectPool class template
@@ -61,8 +58,6 @@ class ObjectPool ( T, A ... )
      **************************************************************************/
 
     private alias typeof (this) This;
-    
-    pragma (msg, This.stringof ~ ": " ~ T.stringof);
     
     /**************************************************************************
     
@@ -143,8 +138,6 @@ class ObjectPool ( T, A ... )
     public this ( )
     {
         this.serial = cast (hash_t) &this;
-        
-        Stderr.formatln("{:X8}", this.serial);
     }
     
     /**************************************************************************
@@ -201,14 +194,17 @@ class ObjectPool ( T, A ... )
     
         ditto
         
-    **************************************************************************/
-
-    public PoolItem get ( )
-    {
-        return this.get(this.args);
-    }
+     **************************************************************************/
     
-
+     // "static if" avoids collision of overloaded method in case of empty "A".
+    
+    static if (A.length)
+    {
+        public PoolItem get ( )
+        {
+            return this.get(this.args);
+        }
+    }
     
     /**************************************************************************
     
@@ -289,41 +285,15 @@ class ObjectPool ( T, A ... )
             this instance
         
     **************************************************************************/
-
+    
+    /*
+     * Wrapping of _setNumItems is necessary to avoid compiler errors if "A" is
+     * empty.
+     */
+    
     public This setNumItems ( size_t n, A args )
     {
-        if (this.limited && (n > this.max))
-        {
-            n = this.max;
-        }
-        
-        if (n < this.items.length)
-        {
-            size_t remaining = this.items.length - n;
-            
-            foreach (item, info; this.items)
-            {
-                if (info.idle)
-                {
-                    this.removeItem(item);
-                    
-                    if (!--remaining) break;
-                }
-            }
-            
-            assert (!remaining, This.stringof ~ ": more pool items busy than requested number");
-        }
-        else
-        {
-            for (size_t i = this.items.length; i < n; i++)
-            {
-                this.create(args);
-            }
-        }
-        
-        this.checkLimit("requested number of items exceeds limit");
-        
-        return this;
+        return this._setNumItems(n, args);
     }
     
     /**************************************************************************
@@ -332,11 +302,17 @@ class ObjectPool ( T, A ... )
         
      **************************************************************************/
     
-    public This setNumItems ( size_t n )
+    // "static if" avoids collision of overloaded method in case of empty "A".
+    
+    static if (A.length)
     {
-        return this.setNumItems(n, this.args);
+        public This setNumItems ( size_t n )
+        {
+            return this._setNumItems(n, this.args);
+        }
+        
     }
-
+    
     /**************************************************************************
     
         Returns the number of items in pool.
@@ -401,11 +377,75 @@ class ObjectPool ( T, A ... )
 
     public This setArgs ( A args )
     {
-        this.args = args;
+        static if (A.length) this.args = args;
         
         return this;
     }
     
+    /**************************************************************************
+    
+        Sets the number of items in pool.
+        
+        To achieve this, as many items as required are created or removed.
+        If more items are busy than required to be removed, all idle items are
+        removed and an exception is thrown.
+        If the requested number of items exceeds the limit, the number of items
+        is set to the limit and an exception is thrown.
+        
+        Params:
+            n    = nominate number of values
+            args = arguments to pass to constructor on pool item creation 
+        
+        Returns:
+            this instance
+        
+    **************************************************************************/
+    
+    /*
+     *  "B" is required in order to work if "A" and consequently "args" is
+     *  empty.
+     */    
+    
+    private This _setNumItems ( B ... ) ( size_t n, B args )
+    {
+        static assert (is (B == A), This.stringof ~ "._setNumItems(): "
+                                    "must be called with arguments of types " ~
+                                    typeof (this.args).stringof ~ " not " ~
+                                    typeof (args).stringof);
+        
+        if (this.limited && (n > this.max))
+        {
+            n = this.max;
+        }
+        
+        if (n < this.items.length)
+        {
+            size_t remaining = this.items.length - n;
+            
+            foreach (item, info; this.items)
+            {
+                if (info.idle)
+                {
+                    this.removeItem(item);
+                    
+                    if (!--remaining) break;
+                }
+            }
+            
+            assert (!remaining, This.stringof ~ ": more pool items busy than requested number");
+        }
+        else
+        {
+            for (size_t i = this.items.length; i < n; i++)
+            {
+                this.create(args);
+            }
+        }
+        
+        this.checkLimit("requested number of items exceeds limit");
+        
+        return this;
+    }
     /**************************************************************************
     
         Checks whether the number of items in pool is less or equal
@@ -450,10 +490,8 @@ class ObjectPool ( T, A ... )
     {
         const name = args.stringof;
         
-        //const newItem = "new PoolItem(" ~ arglist!("args", A) ~ ')';
-        
-        const newItem = "new " ~ this.PoolItem.stringof ~
-                        '(' ~ this.serial.stringof ~ ',' ~ arglist!("args", A) ~ ')';
+        const newItem = "new " ~ this.PoolItem.stringof ~   // creates "new PoolItem(serial, args[0], args[1], ...)"
+                        '(' ~ this.serial.stringof ~ this.arglist!("args", A) ~ ')';
         
         pragma (msg, newItem);
         
@@ -477,7 +515,8 @@ class ObjectPool ( T, A ... )
     /**************************************************************************
     
         Generates the argument list for the tuple "name" of arguments with types
-        of tuple "A". "A" is merely used to determine the argument list length.
+        of tuple "A" with a leading ',' if "A" is not empty.
+        "A" is merely used to determine the argument list length.
         
         Example:
         
@@ -500,7 +539,14 @@ class ObjectPool ( T, A ... )
 
     private template arglist ( char[] name, A ... )
     {
-        const arglist = arglist!("", 0, name, A);
+        static if (A.length)
+        {
+            const arglist = arglist!(",", 0, name, A);
+        }
+        else
+        {
+            const arglist = "";
+        }
     }
     
     /**************************************************************************
