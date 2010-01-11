@@ -239,7 +239,7 @@ class ObjectPool ( T, A ... )
         
     **************************************************************************/
 
-    public This back ( PoolItem item )
+    public This recycle ( PoolItem item )
     {
         assert (item in this.items, This.stringof ~ ": item returned not registered");
         
