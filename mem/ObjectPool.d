@@ -25,16 +25,36 @@
             // Create an ObjectPool instance managing objects of "MyClass". The
             // template parameters for ObjectPool!() are therefore "MyClass"
             // followed by the types of the constructor arguments of "MyClass".
+            // The constructor arguments for ObjectPool are those of "MyClass".
             
-            ObjectPool pool = new ObjectPool!(MyClass, int, char[], bool);
+            ObjectPool!(MyClass, int, char[], bool) pool;
             
-            // Call pool.get() to get an item from "pool", passing the "MyClass"
-            // constructor parameters.
+            pool = pool.newPool(42, "Hello world!", true); 
             
-            MyClass item = pool.get(42, "Hello world!", true);
+            // Get an item from pool.
+            
+            MyClass item = pool.get();
             
         ---
-
+        
+        Note that in this example
+        
+        ---
+        
+            pool = pool.newPool(42, "Hello world!", true);
+        
+        ---
+        
+        uses the static method ObjectPool.newPool() and is identical to
+        
+        ---
+        
+            pool = new ObjectPool!(MyClass, int, char[], bool)(42, "Hello world!", true);
+        
+        ---
+        
+        which is considerably longer.
+        
  ******************************************************************************/
 
 module mem.ObjectPool;
@@ -130,36 +150,37 @@ class ObjectPool ( T, A ... )
     private A      args;
     
     /**************************************************************************
-     
-         Constructor
-     
-     **************************************************************************/
     
-    public this ( )
-    {
-        this.serial = cast (hash_t) &this;
-    }
-    
-    /**************************************************************************
-    
-        Constructor; creates n initial pool items.
+        Constructor
         
         Params:
-            n    = number of initial pool items
-            args = arguments to pass to constructor on pool item creation
+            args = default arguments to pass to constructor on pool item creation
     
     **************************************************************************/
 
-    public this ( uint n, A args )
+    public this ( A args )
     {
-        this();
+        this.serial = cast (hash_t) &this;
         
         this.setArgs(args);
+    }
+    
+    
+    /**************************************************************************
+    
+        Factory method; creates a pool instance
         
-        for (uint i = 0; i < n; i++)
-        {
-            this.create(args, true);
-        }
+        Params:
+            args = default arguments to pass to constructor on pool item creation
+    
+        Returns:
+            new pool instance
+    
+    **************************************************************************/
+   
+    public static This newPool ( A args )
+    {
+        return new This(args);
     }
     
     /**************************************************************************
