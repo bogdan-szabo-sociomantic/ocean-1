@@ -541,7 +541,7 @@ class ObjectPool ( T, A ... )
     {
         static if (A.length)
         {
-            const arglist = arglist!(",", 0, name, A);
+            const arglist = ',' ~ arglist!("", 0, name, A);
         }
         else
         {
