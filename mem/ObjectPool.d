@@ -241,11 +241,16 @@ class ObjectPool ( T, A ... )
 
     public This recycle ( PoolItem item )
     {
+        this._recycle(item);
+        
+        return this;
+    }
+    
+    private void _recycle ( PoolItem item )
+    {
         assert (item in this.items, This.stringof ~ ": item returned not registered");
         
         this.items[item].idle = true;
-        
-        return this;
     }
     
     /**************************************************************************
@@ -264,7 +269,7 @@ class ObjectPool ( T, A ... )
     {
         scope (success) this.removeItem(item);
         
-        return this.back(item);
+        return this.recycle(item);
     }
     
     /**************************************************************************
@@ -512,7 +517,8 @@ class ObjectPool ( T, A ... )
         const name = args.stringof;
         
         const newItem = "new " ~ this.PoolItem.stringof ~   // creates "new PoolItem(serial, args[0], args[1], ...)"
-                        '(' ~ this.serial.stringof ~ this.arglist!("args", A) ~ ')';
+                        '(' ~ this.serial.stringof ~ ',' ~ (&this._recycle).stringof ~
+                        this.arglist!("args", A) ~ ')';
         
         pragma (msg, newItem);
         
@@ -663,6 +669,10 @@ class ObjectPool ( T, A ... )
      
     private class PoolItem : T
     {
+        private alias void delegate ( typeof (this) ) Recycler;
+        
+        private Recycler _recycle;
+        
         /**********************************************************************
          
             Hash value, also used for comparison
@@ -681,11 +691,18 @@ class ObjectPool ( T, A ... )
          
          **********************************************************************/
         
-        this ( hash_t hash, A args )
+        this ( hash_t hash, Recycler recycle, A args )
         {
             super(args);
             
             this.hash = hash;
+            
+            this._recycle = recycle;
+        }
+        
+        void recycle ( )
+        {
+            this._recycle(this);
         }
         
         /**********************************************************************
