@@ -196,7 +196,7 @@ class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
      */
      union BinConvert
      {
-         typedef ubyte[DIGEST_LENGTH] BinString;
+         alias ubyte[DIGEST_LENGTH] BinString;
          
          /* members */
          
