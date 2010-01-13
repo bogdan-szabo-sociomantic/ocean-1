@@ -1,63 +1,65 @@
 /******************************************************************************
 
-        Manages a pool of objects
-    
-        copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
-    
-        version:        Jan 2010: Initial release
-    
-        authors:        David Eckardt
+    Manages a pool of objects
 
-        Usage:
+    copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
+
+    version:        Jan 2010: Initial release
+
+    authors:        David Eckardt
+
+    Usage:
+    
+    ---
+    
+        import $(TITLE)
         
-        ---
+        // The items in pool will be of MyClass:
         
-            import $(TITLE)
-            
-            // The items in pool will be of MyClass:
-            
-            class MyClass
-            {
-                this ( int ham, char[] eggs, bool sausage )
-                { ... }
-            }
-            
-            // Create an ObjectPool instance managing objects of "MyClass". The
-            // template parameters for ObjectPool!() are therefore "MyClass"
-            // followed by the types of the constructor arguments of "MyClass".
-            // The constructor arguments for ObjectPool are those of "MyClass".
-            
-            ObjectPool!(MyClass, int, char[], bool) pool;
-            
-            pool = pool.newPool(42, "Hello world!", true); 
-            
-            // Get an item from pool.
-            
-            MyClass item = pool.get();
-            
-        ---
+        class MyClass
+        {
+            this ( int ham, char[] eggs, bool sausage )
+            { ... }
+        }
         
-        Note that in this example
+        // Create an ObjectPool instance managing objects of "MyClass". The
+        // template parameters for ObjectPool!() are therefore "MyClass"
+        // followed by the types of the constructor arguments of "MyClass".
+        // The constructor arguments for ObjectPool are those of "MyClass".
         
-        ---
+        ObjectPool!(MyClass, int, char[], bool) pool;
         
-            pool = pool.newPool(42, "Hello world!", true);
+        pool = pool.newPool(42, "Hello world!", true); 
         
-        ---
+        // Get an item from pool.
         
-        uses the static method ObjectPool.newPool() and is identical to
+        MyClass item = pool.get();
         
-        ---
-        
-            pool = new ObjectPool!(MyClass, int, char[], bool)(42, "Hello world!", true);
-        
-        ---
-        
-        which is considerably longer.
+    ---
+    
+    Note that in this example
+    
+    ---
+    
+        pool = pool.newPool(42, "Hello world!", true);
+    
+    ---
+    
+    uses the static method ObjectPool.newPool() and is identical to
+    
+    ---
+    
+        pool = new ObjectPool!(MyClass, int, char[], bool)(42, "Hello world!", true);
+    
+    ---
+    
+    which is considerably longer.
         
  ******************************************************************************/
 
-module mem.ObjectPool;
+module ocean.mem.ObjectPool;
+
+import tango.util.log.Trace;                                                    /// DEBUG
 
 /******************************************************************************
   
@@ -87,6 +89,8 @@ class ObjectPool ( T, A ... )
 
     static assert (is (T == class), This.stringof ~ ": Object type must be a "
                                     "class, not '" ~ T.stringof ~ "'");
+    
+    private const CLASS_ID_STRING = This.stringof ~ '(' ~ T.stringof ~ ')';
     
     /**************************************************************************
     
@@ -204,6 +208,10 @@ class ObjectPool ( T, A ... )
             {
                 info.idle = false;
                 
+                Trace.formatln(this.CLASS_ID_STRING ~ " > {:X8}", item.toHash());/// DEBUG
+                
+                item.recycling = false;
+                
                 return item;
             }
         }
@@ -241,16 +249,11 @@ class ObjectPool ( T, A ... )
 
     public This recycle ( PoolItem item )
     {
+        //item.recycling = true;
+        
         this._recycle(item);
         
         return this;
-    }
-    
-    private void _recycle ( PoolItem item )
-    {
-        assert (item in this.items, This.stringof ~ ": item returned not registered");
-        
-        this.items[item].idle = true;
     }
     
     /**************************************************************************
@@ -428,8 +431,8 @@ class ObjectPool ( T, A ... )
     **************************************************************************/
     
     /*
-     *  "B" is required in order to work if "A" and consequently "args" is
-     *  empty.
+     *  "B" is required in order to work if "A" is empty and therefore "args"
+     *  is void.
      */    
     
     private This _setNumItems ( B ... ) ( size_t n, B args )
@@ -464,7 +467,7 @@ class ObjectPool ( T, A ... )
         {
             for (size_t i = this.items.length; i < n; i++)
             {
-                this.create(args);
+                this.create(args, true);
             }
         }
         
@@ -501,6 +504,26 @@ class ObjectPool ( T, A ... )
     
     /**************************************************************************
     
+        Puts item back to the pool.
+        
+        Params:
+            item = item to put back
+            
+    **************************************************************************/
+    
+    private void _recycle ( PoolItem item )
+    {
+        //item.recycling = true;
+        
+        assert (item in this.items, this.CLASS_ID_STRING ~ ": recycled item not registered");
+        
+        this.items[item].idle = true;
+        
+        Trace.formatln(this.CLASS_ID_STRING ~ " < {:X8}", item.toHash());       /// DEBUG
+    }
+
+    /**************************************************************************
+    
         Creates a pool item with idle status idle.
         
         Params:
@@ -514,129 +537,17 @@ class ObjectPool ( T, A ... )
 
     private PoolItem create ( A args, bool idle = false )
     {
-        const name = args.stringof;
-        
-        const newItem = "new " ~ this.PoolItem.stringof ~   // creates "new PoolItem(serial, args[0], args[1], ...)"
-                        '(' ~ this.serial.stringof ~ ',' ~ (&this._recycle).stringof ~
-                        this.arglist!("args", A) ~ ')';
-        
-        pragma (msg, newItem);
-        
         this.checkLimit("no more items available", true);
         
         this.serial++;
         
-        PoolItem item = mixin (newItem);
+        PoolItem item = new PoolItem(serial, &this._recycle, args);
         
         this.items[item] = ItemInfo(idle);
         
+        Trace.formatln(this.CLASS_ID_STRING ~ " + {:X8}", item.toHash());       /// DEBUG
+        
         return item;
-    }
-    
-    /**************************************************************************
-    
-        PoolItem instantiation argument list templates
-    
-     **************************************************************************/
-    
-    /**************************************************************************
-    
-        Generates the argument list for the tuple "name" of arguments with types
-        of tuple "A" with a leading ',' if "A" is not empty.
-        "A" is merely used to determine the argument list length.
-        
-        Example:
-        
-        ---
-            
-            const list = arglist!("x", int, char[], bool);
-            
-            // "list" now holds "x[0],x[1],x[2]"
-            
-        ---
-    
-        Params:
-            name = name of the tuple of arguments
-            A    = tuple of argument types
-            
-        Returns:
-            generated argument list string
-        
-     **************************************************************************/
-
-    private template arglist ( char[] name, A ... )
-    {
-        static if (A.length)
-        {
-            const arglist = ',' ~ arglist!("", 0, name, A);
-        }
-        else
-        {
-            const arglist = "";
-        }
-    }
-    
-    /**************************************************************************
-    
-        Generates the argument list for the tuple "name" of arguments with types
-        of tuple "A", starting with index "i", and appends the list to "list".
-        "A" is merely used to determine the number of arguments.
-        
-        Example:
-        
-        ---
-            
-            const list = arglist!("items_before", 3, "x", int, char[], bool);
-            
-            // "list" now holds "items_before,x[3],x[4],x[5]"
-            
-        ---
-    
-        Params:
-            list = list to append generated list
-            i    = start index
-            name = name of the tuple of arguments
-            A    = tuple of argument types
-            
-     **************************************************************************/
-
-    private template arglist ( char[] list, int i, char[] name, A ... )
-    {
-        static if (A.length > 1)
-        {
-            const arglist = appendArg!(list, i, name) ~ ',' ~ arglist!(list, i + 1, name, A[1 .. $]);
-        }
-        else
-        {
-            const arglist =  appendArg!(list, i, name);
-        }
-    }
-    
-    /**************************************************************************
-    
-        Generates an argument list item for the tuple "name" of arguments with
-        index "i" and appends the item to "list".
-        
-        Example:
-        
-        ---
-            
-            const list = appendArg!("item_before", 42, "x");
-            
-            // "list" now holds "item_beforex[42]"
-            
-        ---
-    
-        Params:
-            list = list to append generated item
-            i    = item index
-            name = name of the tuple of items
-        
-    **************************************************************************/
-    
-    private template appendArg ( char[] list, int i, char[] name )
-    {
-        const appendArg = list ~ name ~ '[' ~ i.stringof ~ ']';
     }
     
     /**************************************************************************
@@ -669,13 +580,39 @@ class ObjectPool ( T, A ... )
      
     private class PoolItem : T
     {
+        /**********************************************************************
+        
+            Recycler callback type alias
+        
+        **********************************************************************/
+        
         private alias void delegate ( typeof (this) ) Recycler;
+        
+        /**********************************************************************
+        
+            Recycler callback
+        
+        **********************************************************************/
         
         private Recycler _recycle;
         
         /**********************************************************************
+        
+            recycling/recycled properties and invariant: Throws an exception if
+            any public method of this or super is called after recycle().
+        
+         **********************************************************************/
+        
+        private bool recycling = false;
+        
+        invariant
+        {
+            assert (!this.recycling, T.stringof ~ ": attempted to use idle item");
+        }
+        
+        /**********************************************************************
          
-            Hash value, also used for comparison
+            Hash value, also used for comparison (opCmp())
           
          **********************************************************************/
         
@@ -686,8 +623,9 @@ class ObjectPool ( T, A ... )
              Constructor
              
              Params:
-                 hash = hash value
-                 args = super class constructor arguments
+                 hash    = hash value
+                 recycle = method to call to put this instance back into pool
+                 args    = super class constructor arguments
          
          **********************************************************************/
         
@@ -699,6 +637,13 @@ class ObjectPool ( T, A ... )
             
             this._recycle = recycle;
         }
+        
+        
+        /**********************************************************************
+        
+            Puts this instance back into the pool it was taken from.
+        
+        **********************************************************************/
         
         void recycle ( )
         {
