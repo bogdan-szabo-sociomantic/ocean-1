@@ -77,8 +77,6 @@
 
 module ocean.core.ObjectPool;
 
-import tango.util.log.Trace;                                                    // DEBUG
-
 /******************************************************************************
   
     ObjectPool class template
@@ -225,8 +223,6 @@ class ObjectPool ( T, A ... )
             if (info.idle)
             {
                 info.idle = false;
-                
-                Trace.formatln(this.CLASS_ID_STRING ~ " > {:X8}", item.toHash());// DEBUG
                 
                 item.recycling = false;
                 
@@ -531,13 +527,9 @@ class ObjectPool ( T, A ... )
     
     private void _recycle ( PoolItem item )
     {
-        //item.recycling = true;
-        
         assert (item in this.items, this.CLASS_ID_STRING ~ ": recycled item not registered");
         
         this.items[item].idle = true;
-        
-        Trace.formatln(this.CLASS_ID_STRING ~ " < {:X8}", item.toHash());       // DEBUG
     }
 
     /**************************************************************************
@@ -562,8 +554,6 @@ class ObjectPool ( T, A ... )
         PoolItem item = new PoolItem(serial, &this._recycle, args);
         
         this.items[item] = ItemInfo(idle);
-        
-        Trace.formatln(this.CLASS_ID_STRING ~ " + {:X8}", item.toHash());       // DEBUG
         
         return item;
     }

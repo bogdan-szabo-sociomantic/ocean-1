@@ -141,16 +141,6 @@ private import ocean.core.ObjectPool;
 
 private import tango.core.ThreadPool;
 
-// DEBUG ...
-
-private import tango.core.Thread;
-
-private import tango.util.log.Trace;
-
-private import tango.stdc.posix.unistd: usleep;
-
-// ... DEBUG
-
 /******************************************************************************
 
     ObjectThreadPool class template
@@ -213,8 +203,6 @@ class ObjectThreadPool ( T, Ctypes ... ) : ThreadPool!(RunArgTypes!(T))
         this.pool = new OPool(args);
         
         this.pool.setNumItems(workers);
-        
-        (new Thread(&this.monitor)).start;                                      // DEBUG
     }
     
     /**************************************************************************
@@ -293,26 +281,6 @@ class ObjectThreadPool ( T, Ctypes ... ) : ThreadPool!(RunArgTypes!(T))
         
         this.pool.recycle(item);
     }
-    
-    // DEBUG ...
-
-    /**************************************************************************
-    
-        Object pool monitor
-    
-     **************************************************************************/
-
-    private void monitor ( )
-    {
-        while (true)
-        {
-            usleep(250_000);
-            
-            Trace.formatln("{,3} {,3}", this.pool.getNumIdleItems(), this.pool.getNumBusyItems());
-        }
-    }
-    
-    // ... DEBUG
     
     /**************************************************************************
     
