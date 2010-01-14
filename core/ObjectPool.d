@@ -7,59 +7,77 @@
     version:        Jan 2010: Initial release
 
     authors:        David Eckardt
-
+    
+    The ObjectPool manages a pool of class instance objects.
+    
     Usage:
     
+    To manage instances of a class MyClass using ObjectPool, MyClass and its
+    constructor argument types, if any, must be passed as ObjectPool class
+    template instantiation parameters. Given that C is defined as
+    
     ---
     
-        import $(TITLE)
-        
-        // The items in pool will be of MyClass:
-        
         class MyClass
         {
-            this ( int ham, char[] eggs, bool sausage )
+            this ( int ham, char[] eggs )
+            { ... }
+            
+            void run ( float spam, bool sausage )
             { ... }
         }
-        
-        // Create an ObjectPool instance managing objects of "MyClass". The
-        // template parameters for ObjectPool!() are therefore "MyClass"
-        // followed by the types of the constructor arguments of "MyClass".
-        // The constructor arguments for ObjectPool are those of "MyClass".
-        
-        ObjectPool!(MyClass, int, char[], bool) pool;
-        
-        pool = pool.newPool(42, "Hello world!", true); 
-        
-        // Get an item from pool.
-        
-        MyClass item = pool.get();
-        
-    ---
-    
-    Note that in this example
     
     ---
     
-        pool = pool.newPool(42, "Hello world!", true);
+    , the ObjectPool class template instantiation would be
     
     ---
     
-    uses the static method ObjectPool.newPool() and is identical to
+        ObjectPool!(MyClass, int, char[])
     
     ---
     
-        pool = new ObjectPool!(MyClass, int, char[], bool)(42, "Hello world!", true);
+    because the constructor of MyClass takes the int argument 'ham' and the
+    char[] argument 'eggs'.
+    
+    The constructor of ObjectPool the arguments for the constructor of
+    MyClass. Hence, an ObjectPool instance for MyClass as defined above is
+    created by
     
     ---
-    
-    which is considerably longer.
         
+        import $(TITLE)
+        
+        int    x = 42;
+        char[] y = "Hello World!";
+        
+        ObjectPool!(MyClass, int, char[]) pool;
+        
+        pool = new ObjectPool!(MyClass, int, char[])(x, y);
+    
+    ---
+    
+    Since the "new ObjectPool ..." part is quite long, the ObjectPool class
+    provides the newPool() factory method for convenience:
+    
+    ---
+        
+        import $(TITLE)
+        
+        int    x = 42;
+        char[] y = "Hello World!";
+        
+        ObjectPool!(MyClass, int, char[]) pool;
+        
+        pool = pool.newPool(x, y);
+    
+    ---
+   
  ******************************************************************************/
 
 module ocean.core.ObjectPool;
 
-import tango.util.log.Trace;                                                    /// DEBUG
+import tango.util.log.Trace;                                                    // DEBUG
 
 /******************************************************************************
   
@@ -208,7 +226,7 @@ class ObjectPool ( T, A ... )
             {
                 info.idle = false;
                 
-                Trace.formatln(this.CLASS_ID_STRING ~ " > {:X8}", item.toHash());/// DEBUG
+                Trace.formatln(this.CLASS_ID_STRING ~ " > {:X8}", item.toHash());// DEBUG
                 
                 item.recycling = false;
                 
@@ -519,7 +537,7 @@ class ObjectPool ( T, A ... )
         
         this.items[item].idle = true;
         
-        Trace.formatln(this.CLASS_ID_STRING ~ " < {:X8}", item.toHash());       /// DEBUG
+        Trace.formatln(this.CLASS_ID_STRING ~ " < {:X8}", item.toHash());       // DEBUG
     }
 
     /**************************************************************************
@@ -545,7 +563,7 @@ class ObjectPool ( T, A ... )
         
         this.items[item] = ItemInfo(idle);
         
-        Trace.formatln(this.CLASS_ID_STRING ~ " + {:X8}", item.toHash());       /// DEBUG
+        Trace.formatln(this.CLASS_ID_STRING ~ " + {:X8}", item.toHash());       // DEBUG
         
         return item;
     }

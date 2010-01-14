@@ -9,8 +9,10 @@
 
     authors:        David Eckardt
 
-    Manages a pool of threads and class instances where each thread refers to
-    the run() method of a class.
+    The ObjectThreadPool class is derived from tango.core.ThreadPool and manages
+    a pool of threads and class instances where each thread refers to the run()
+    method of a class.
+
     
     The class that should be managed by ObjectThreadPool must contain a public
     run() method. run() may accept any number and types of arguments and must
@@ -45,11 +47,13 @@
     
     because the constructor of MyClass takes the int argument 'ham' and the
     char[] argument 'eggs'.
+    
     The constructor of ObjectThreadPool the arguments for the constructor of
     MyClass, followed by the number of worker threads (size_t workers) and an
     optional queue size parameter (size_t q_size).
     
-    To create an ObjectThreadPool instance for MyClass as defined above, write
+    Hence, an ObjectThreadPool instance for MyClass as defined above is created
+    by
     
     ---
         
@@ -67,7 +71,8 @@
     ---
     
     Since the "new ObjectThreadPool ..." part is quite long, the
-    ObjectThreadPool class provides the newPool() convenience factory method:
+    ObjectThreadPool class provides the newPool() factory method for
+    convenience:
     
     ---
         
@@ -84,8 +89,8 @@
     
     ---
     
-    To start a thread, invoke the assign() method of ObjectThreadPool. assign()
-    takes the arguments for MyClass.run(). The complete example is:
+    A thread is started by invoking the assign() method of ObjectThreadPool.
+    assign() takes the arguments for MyClass.run(). The complete example is:
     
     ---
         
@@ -136,7 +141,7 @@ private import ocean.core.ObjectPool;
 
 private import tango.core.ThreadPool;
 
-/// DEBUG ...
+// DEBUG ...
 
 private import tango.core.Thread;
 
@@ -144,7 +149,7 @@ private import tango.util.log.Trace;
 
 private import tango.stdc.posix.unistd: usleep;
 
-/// ... DEBUG
+// ... DEBUG
 
 /******************************************************************************
 
@@ -209,7 +214,7 @@ class ObjectThreadPool ( T, Ctypes ... ) : ThreadPool!(RunArgTypes!(T))
         
         this.pool.setNumItems(workers);
         
-        (new Thread(&this.monitor)).start;                                      /// DEBUG
+        (new Thread(&this.monitor)).start;                                      // DEBUG
     }
     
     /**************************************************************************
@@ -289,7 +294,7 @@ class ObjectThreadPool ( T, Ctypes ... ) : ThreadPool!(RunArgTypes!(T))
         this.pool.recycle(item);
     }
     
-    /// DEBUG ...
+    // DEBUG ...
 
     /**************************************************************************
     
@@ -307,7 +312,7 @@ class ObjectThreadPool ( T, Ctypes ... ) : ThreadPool!(RunArgTypes!(T))
         }
     }
     
-    /// ... DEBUG
+    // ... DEBUG
     
     /**************************************************************************
     
