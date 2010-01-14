@@ -8,7 +8,8 @@
 
     authors:        Lars Kirchhoff
                     Thomas Nicolai
-
+                    David Eckhardt
+                    
     Config reads all properties of the application from an INI style
     file and stores them in ein internal variable, that can be accessed
     through get and set methods as follows:
@@ -68,9 +69,16 @@
     TODO: Intergrate opcall array that allows to access Configuration keys by
           Config["category"]["key"]
 
-*******************************************************************************/
+********************************************************************************/
 
 module         ocean.util.Config;
+
+
+/*******************************************************************************
+
+    Imports
+
+********************************************************************************/
 
 private        import         tango.io.device.File;
 
@@ -91,83 +99,81 @@ private        import         tango.core.Exception;
 
     Config
 
-*******************************************************************************/
+********************************************************************************/
 
 class Config
 {
+    
+    /*******************************************************************************
+        
+        Config Keys and Properties
+    
+     *******************************************************************************/
+    
+    private		        static char[][char[]][char[]]       properties;
+
 
     /*******************************************************************************
-
-        Constants
-
-    *******************************************************************************/
-
-    const       char[]     CONF_FILE_NOT_FOUND         = "Could not find configuration file: ";
-    const       char[]     PRINT_END_INI_CONFIGURATION = "----- END INI Configuration --------\n\n";
-    const       char[]     PRINT_INI_CONFIGURATION     = "----- INI Configuration --------\nNumber of parameter(s):";
-
-
-    /***************************************************************************
-
-        Variables for the Storage of the Configuration
-
-    ***************************************************************************/
-
-
-	/**
-	 * static variable that holds the property values
-	 */
-    private		static     char[][char[]][char[]]		properties;
-
-
-    /**
-     * static variable that holds the location of the configuration file
-     */
-    private		static      char[]     					configuration_file;
-
-
+        
+        Config File Location
     
-    /**
-     * Constructor: prevented from being called directly
-     *
-     * instantiate the daemon object
-     */
+     *******************************************************************************/
+    
+    private             static char[]                       configuration_file;
+
+
+    /*******************************************************************************
+        
+        Constructor 
+        
+        Don't called directly as its protected to be called. Use function directly
+        instead as they are static.
+    
+     *******************************************************************************/
+    
 	private this() {}
 
 
+    /*******************************************************************************
+        
+        Read Config File
+        
+        Reads the content of the configuration file and copies to a static 
+        array buffer.
+        
+        ---
+     
+        Usage Example:
+     
+            Config.init("etc/config.ini");
+     
+        ---
+     
+        Params:
+            filePath = string that contains the path to the configuration file
+       
+        Returns:
+            true, if configuration could be read
+            
+     *******************************************************************************/
 
-	/**
-	 * Initialization of config object
-	 *
-	 * Reads the content of the configuration file and copies to an static internal array.
-	 *
-	 * ---
-     * Usage Example:
-     *
-     * Config.init("etc/config.ini");
-     * ---
-     *
-	 * Params:
-	 *   conf_file = string that contains the path to the configuration file
-     *
-     * Returns:
-     *   bool = true, if configuration could be read
-	 */
-    public static bool init( char[] conf_file = "etc/config.ini" )
+    public static bool init( char[] filePath = "etc/config.ini" )
 	{
-		this.configuration_file = conf_file;
+		this.configuration_file = filePath;
 
         return read();
     }
 
 
-
-    /**
-     * Returns wheter the configuration was already initialized or not
-     *
-     * Returns:
-     *     true, if configuration is already initalized
-     */
+    /*******************************************************************************
+        
+        Returns Config Status
+       
+        Returns:
+            true, if configuration is already initalized
+            
+     *******************************************************************************/
+    
     public static bool isRead()
     {
         if ( this.properties.length == 0 )
@@ -177,37 +183,39 @@ class Config
     }
 
 
-
-    /**
-     * Returns the value of a configuration key
-     *
-     * Function needs to be called statically. Template can be instantiated with
-     * integer, float or string (char[]) type.
-     * If the requested key cannot be found, an exception is thrown.
-     *
-     * ---
-     *
-     * Usage Example:
-     *
-     * const char[] my_config_cat = "options";
-     * 
-     * char[] my_config_par;
-     * int    num_threads;
-     * 
-     * Config.init("etc/config.ini");
-     *
-     * my_config_par = Config.get!(char[])(my_config_cat, "my_config_key");     //retrieve the string value of a key
-     * num_threads   = Config.get!(int   )(my_config_cat, "number_of_threads"); //retrieve an int value of a key
-     *
-     * ---
-     *
-     * Params:
-     *   category = category to get key from
-     *   key      = name of the property to get
-     *
-     * Returns:
-     *   The value of a configuration key
-     */
+    /*******************************************************************************
+        
+        Returns Value of a Config-Key
+        
+        Function needs to be called statically. Template can be instantiated with
+        integer, float or string (char[]) type. If the requested key cannot be 
+        found, an exception is thrown.
+        
+        ---
+     
+        Usage Example:
+     
+            const char[] my_config_cat = "options";
+            
+            char[] my_config_par;
+            int    num_threads;
+            
+            Config.init("etc/config.ini");
+            
+            my_config_par = Config.get!(char[])(my_config_cat, "my_config_key");
+            num_threads   = Config.get!(int)(my_config_cat, "number_of_threads");
+            
+        ---
+     
+        Params:
+            category = category to get key from
+            key      = name of the property to get
+       
+        Returns:
+            value of a configuration key, or null if none
+            
+     *******************************************************************************/
+    
     public static T get (T) (char[] category, char[] key)
     {
         try
@@ -249,39 +257,40 @@ class Config
     }
     
     
+    /*******************************************************************************
+        
+        Returns Value of a Config-Key
+        
+        Function needs to be called statically. Instantitate template with T = int, 
+        long, float, bool or string (char[]) type or a type compatible to these. If 
+        the configuration key cannot be found, "value" remains unchanged.
+        
+        ---
+     
+        Usage Example:
+     
+            const char[] my_config_cat = "options";
+            
+            char[] my_config_par = "my_default_value";
+            int    num_threads   = 4711;
+            
+            Config.init("etc/config.ini");
+            
+            Config.get!(char[])(my_config_cat, my_config_par, "my_config_key");
+            Config.get!(int   )(my_config_cat, num_threads, "number_of_threads");
+            
+        ---
+     
+        Params:
+            value    = key value
+            category = category to get key from
+            key      = name of the property to get
+            
+        Returns:
+            true on success or false if the key could not be found
+            
+     *******************************************************************************/
     
-    /**
-     * Returns the value of a configuration key
-     *
-     * Function needs to be called statically. Instantitate template with
-     * T = int, long, float, bool or string (char[]) type or a type compatible
-     * to these. If the configuration key cannot be found, "value" remains
-     * unchanged.
-     *
-     * ---
-     *
-     * Usage Example:
-     * 
-     * const char[] my_config_cat = "options";
-     * 
-     * char[] my_config_par = "my_default_value";
-     * int    num_threads   = 4711;
-     * 
-     * Config.init("etc/config.ini");
-     * 
-     * Config.get!(char[])(my_config_cat, my_config_par, "my_config_key");     //retrieve the string value of a key
-     * Config.get!(int   )(my_config_cat, num_threads,   "number_of_threads"); //retrieve an int value of a key
-     *
-     * ---
-     *
-     * Params:
-     *   value    = key value
-     *   category = category to get key from
-     *   key      = name of the property to get
-     *
-     * Returns:
-     *   true on success or false if the key could not be found
-     */
     public static bool get (T) (ref T value, char[] category, char[] key)
     {
         bool found = exists(category, key);
@@ -295,118 +304,128 @@ class Config
     }
     
     
+    /*******************************************************************************
+        
+        Returns Value of a Config-Key
+        
+        Function needs to be called statically. Instantitate template with a value 
+        parameter which is of int, long, float, bool or string (char[]) type or a 
+        type compatible to these. If the configuration key cannot be found, "value" 
+        remains unchanged.
+        
+        ---
+     
+        Usage Example:
+     
+            const char[] my_config_cat = "options";
+            
+            char[] my_config_par = "my_default_value";
+            int    num_threads   = 4711;
+            
+            Config.init("etc/config.ini");
+            
+            my_config_par     = Config.get!(my_config_par)(my_config_cat, "my_config_key");
+            number_of_threads = Config.get!(number_of_threads)(my_config_cat);
+            
+        ---
+     
+        Params:
+            value    = key value
+            category = category to get key from
+            key      = name of the property to get; omit or set to null to use the
+                       name of the variable behind "value"
+        Returns:
+            true on success or false if the key could not be found
+            
+     *******************************************************************************/
     
-    /**
-     * Returns the value of a configuration key
-     *
-     * Function needs to be called statically. Instantitate template with a
-     * value parameter which is of int, long, float, bool or string (char[])
-     * type or a type compatible to these. If the configuration key cannot be
-     * found, "value" remains unchanged.
-     *
-     * ---
-     *
-     * Usage Example:
-     * 
-     * const char[] my_config_cat = "options";
-     * 
-     * char[] my_config_par     = "my_default_value";
-     * int    number_of_threads = 4711;
-     * 
-     * Config.init("etc/config.ini");
-     * 
-     * my_config_par     = Config.get!(my_config_par)(my_config_cat, "my_config_key"); //retrieve the string value of a key
-     * number_of_threads = Config.get!(number_of_threads)(my_config_cat);              //retrieve an int value of a key
-     *
-     * ---
-     *
-     * Params:
-     *   value    = key value
-     *   category = category to get key from
-     *   key      = name of the property to get; omit or set to null to use the
-     *              name of the variable behind "value"
-     *
-     * Returns:
-     *   true on success or false if the key could not be found
-     */
     public static bool get (alias value) (char[] category, char[] key = null)
     {
         return get!(typeof (value))(value, category, key? key : value.stringof);
     }
     
     
-    /**
-     * Returns the value of a configuration key
-     *
-     * ---
-     *
-     * Usage Example:
-     *
-     * Config.init("etc/config.ini");
-     *
-     * char[] value = Config.getChar("category", "key");
-     *
-     * ---
-     *
-     * Params:
-     *   category = category to get key from
-     *   key      = name of the property to get
-     *
-     * Returns:
-     *   key value as char[]
-     */
+    /*******************************************************************************
+        
+        Returns Value of a Config-Key
+        
+        ---
+     
+        Usage Example:
+     
+            Config.init("etc/config.ini");
+            
+            char[] value = Config.getChar("category", "key");
+            
+        ---
+     
+        Params:
+            category = category to get key from
+            key      = name of the property to get
+            
+        Returns:
+            value of config key
+            
+     *******************************************************************************/
+
     public static T[] getChar ( T = char ) (char[] category, char[] key)
     {
         return get!(T[])(category, key);
     }
 
 
-
-    /**
-     * Returns the value of a configuration key
-     *
-     * ---
-     *
-     * Usage Example:
-     *
-     * Config.init("etc/config.ini");
-     *
-     * int value = Config.getInt("category", "key");
-     *
-     * ---
-     *
-     * Params:
-     *   category = category to get key from
-     *   key      = name of the property to get
-     *
-     * Returns:
-     *   key value as int
-     */
+    /*******************************************************************************
+        
+        Returns Value of a Config-Key
+        
+        ---
+     
+        Usage Example:
+     
+            Config.init("etc/config.ini");
+            
+            int value = Config.getInt("category", "key");
+            
+        ---
+     
+        Params:
+            category = category to get key from
+            key      = name of the property to get
+            
+        Returns:
+            value of config key
+            
+     *******************************************************************************/
+    
     public static int getInt(char[] category, char[] key)
     {
         return Config.get!(int)(category, key);
     }
     
-    /**
-     * Returns the value of a configuration key
-     *
-     * ---
-     *
-     * Usage Example:
-     *
-     * Config.init("etc/config.ini");
-     *
-     * bool value = Config.getBool("category", "key");
-     *
-     * ---
-     *
-     * Params:
-     *   category = category to get key from
-     *   key      = name of the property to get
-     *
-     * Returns:
-     *   key value as bool
-     */
+    
+    /*******************************************************************************
+        
+        Returns Value of a Config-Key
+        
+        ---
+     
+        Usage Example:
+     
+            Config.init("etc/config.ini");
+            
+            bool value = Config.getBool("category", "key");
+            
+        ---
+     
+        Params:
+            category = category to get key from
+            key      = name of the property to get
+            
+        Returns:
+            value of config key
+            
+     *******************************************************************************/
+    
     public static bool getBool(char[] category, char[] key)
     {
         char[] value;
@@ -420,105 +439,130 @@ class Config
     }
     
     
+    /*******************************************************************************
+        
+        Returns Value of a Config-Key
+        
+        ---
+     
+        Usage Example:
+     
+            Config.init("etc/config.ini");
+            
+            float value = Config.getFloat("category", "key");
+            
+        ---
+     
+        Params:
+            category = category to get key from
+            key      = name of the property to get
+            
+        Returns:
+            value of config key
+            
+     *******************************************************************************/
     
-    /**
-     * Returns the value of a configuration key
-     *
-     * ---
-     *
-     * Usage Example:
-     *
-     * Config.init("etc/config.ini");
-     *
-     * bool value = Config.getFloat("category", "key");
-     *
-     * ---
-     *
-     * Params:
-     *   category = category to get key from
-     *   key      = name of the property to get
-     *
-     * Returns:
-     *   key value as float
-     */
     public static float getFloat(char[] category, char[] key)
     {
         return get!(float)(category, key);
     }
     
     
+    /*******************************************************************************
+        
+        Returns Value of a Config-Key
+        
+        ---
+     
+        Usage Example:
+     
+            Config.init("etc/config.ini");
+            
+            long value = Config.getLong("category", "key");
+            
+        ---
+     
+        Params:
+            category = category to get key from
+            key      = name of the property to get
+            
+        Returns:
+            value of config key
+            
+     *******************************************************************************/
     
-    /**
-     * Returns the value of a configuration key
-     *
-     * ---
-     *
-     * Usage Example:
-     *
-     * Config.init("etc/config.ini");
-     *
-     * long value = Config.getLong("category", "key");
-     *
-     * ---
-     *
-     * Params:
-     *   category = category to get key from
-     *   key      = name of the property to get
-     *
-     * Returns:
-     *   key value as long
-     */
     public static long getLong(char[] category, char[] key)
     {
         return Config.get!(long)(category, key);
     }
 
 
-
-    /**
-     * Sets a new key = value configuration pair.
-     *
-     * Params:
-     *   key = name of the property to set
-     *   value = value of the property
-     */
+    /*******************************************************************************
+        
+        Set Config-Key Property
+        
+        ---
+     
+        Usage Example:
+     
+            Config.init(`etc/config.ini`);
+            
+            Config.set(`category`, `key`, `value`);
+            
+        ---
+     
+        Params:
+            category = category to get key from
+            key      = name of the property to get
+            value = value of the property
+            
+     *******************************************************************************/
+    
     public static void set( char[] category, char[] key, char[] value )
     {
         this.properties[category][key] = value;
     }
     
     
+    /*******************************************************************************
+        
+        Checks if Key exists in Category
+        
+     
+        Params:
+            category = category to get key from
+            key      = name of the property to get
+        
+        Returns:
+            true if the configuration key exists in this category
+            
+     *******************************************************************************/
     
-    /**
-     * Tells if a configuration key or category exists
-     * 
-     * Params:
-     *   key      = key name to check
-     *   category = name of the category of the key
-     *   
-     *  Returns:
-     *   true if the configuration key exists in this category
-     */
     public static bool exists(char[] category, char[] key)
     {
         return (category in this.properties) && (key in this.properties[category]);
     }
     
 
+    /*******************************************************************************
+        
+        Returns the Multi-Line Value
+        
+        Retrieves the value list of a configuration key with a multi-line value. 
+        If the value is a single line, the list has one element.
+        
+        Params:
+            value    = output list of values, changed only if the key was found
+            category = key category name
+            key      = key name
+        
+        Returns:
+            true on success or false if the key could not be found
+            
+     *******************************************************************************/
     
-    /**
-     * Retrieves the value list of a configuration key with a multi-line value.
-     * If the value is a single line, the list has one element.
-     * 
-     * Params:
-     *      value    = output list of values, changed only if the key was found
-     *      category = key category name
-     *      key      = key name
-     *      
-     * Returns:
-     *      true on success or false if the key could not be found
-     */
-    public static bool getList ( T = char ) ( ref T[][] value, char[] category, char[] key )
+    public static bool getList ( T = char ) ( ref T[][] value, char[] category, 
+                                              char[] key )
     {
         bool found = exists(category, key);
         
@@ -531,44 +575,54 @@ class Config
     }
     
     
+    /*******************************************************************************
+        
+        Returns the Multi-Line Value
+        
+        Retrieves the value list of a configuration key with a multi-line value. 
+        If the value is a single line, the list has one element.
+        
+        Params:
+            category = key category name
+            key      = key name
+        
+        Returns:
+            list of values
+            
+     *******************************************************************************/
     
-    /**
-     * Returns the value list of a configuration key with a multi-line value.
-     * If the value is a single line, the list has one element.
-     * 
-     * Params:
-     *      category = key category name
-     *      key      = key name
-     *      
-     * Returns:
-     *      the value list
-     */
     public static T[][] getList ( T = char ) ( char[] category, char[] key )
     {
         return delimit!(T)(fromString8!(T)(get!(char[])(category, key), null), "\n");
     }
     
     
+    /*******************************************************************************
+        
+        Reads Configuration File
+        
+        Each property in the ini file belongs to a category. A property has always
+        a key and a value associated to the key. The function parses currently 
+        three different elements:
+        
+        ---
+        
+        i. Categories
+        [Example Category]
+        
+        ii. Comments
+        // comments always start with two slashes
+        
+        iii. Property
+        key = value
+        
+        ---
+        
+        Returns:
+            true, if configuration file could be read
+            
+     *******************************************************************************/
     
-    /**
-     * Reads all configuration parameter from INI file
-     *
-     * Each property in the ini file belongs to a category. A property has always
-     * a key and a value associated to the key. The function parses currently three
-     * different elements:
-     *
-     * i. Category (enclosed by [])
-     * [Example Category]
-     *
-     * ii. Comments
-     * // Comments always start with two slashes
-     *
-     * iii. Property
-     * key = value
-     *
-     * Returns:
-     * 	 bool = true, if configuration file could be read
-     */
     public static bool read()
     {
         char[] text, category, key = "";
@@ -587,9 +641,9 @@ class Config
 			    
                 if (text.length >= 2)
                 {
-    				if ( text[0 .. 2] != "//" && text[0] != ';' )        // ignore empty lines and comments
+    				if ( text[0 .. 2] != "//" && text[0] != ';' ) // ignore empty lines and comments
     				{
-    					pos = locate(text, '[');								// category present in line?
+    					pos = locate(text, '['); // category present in line?
     
     					if ( pos == 0 )
     					{
@@ -599,7 +653,7 @@ class Config
     					}
     					else
     					{
-    						pos = locate (text, '=');							// key value pair present in line?
+    						pos = locate (text, '='); // check for key value pair
     
     						if (pos < text.length)
                             {
@@ -641,13 +695,14 @@ class Config
     }
 
 
-
-    /**
-     * Writes the configuration parameter to configuration file
-     *
-     * FIXME: Needs to be adapated to new
-     *       structure with categories!
-     */
+    /*******************************************************************************
+        
+        Writes Configuration
+        
+        FIXME: Needs to be adapated to new structure with categories
+            
+     *******************************************************************************/
+    
     public static void write()
     {
     	/*
@@ -661,22 +716,24 @@ class Config
     }
 
 
-
-    /**
-     * Prints all configuration properties
-     *
-     * FIXME: Needs to be adapated to new
-     *       structure with categories!
-     */
+    /*******************************************************************************
+        
+        Prints Configuration to Screen
+        
+        FIXME: Needs to be adapated to new structure with categories
+            
+     *******************************************************************************/
+    
     public static void print()
     {
     	/*
-        Stdout.format("{} {}\n\n", PRINT_INI_CONFIGURATION, this.properties.length);
+        Stdout.format("----- INI Configuration --------").newline;
+        Stdout.format("{}",    this.properties.length).newline;
 
         foreach(key, value; this.properties)
             Stdout.formatln("{} = {}", key, value);
 
-        Stdout.format(PRINT_END_INI_CONFIGURATION);
+        Stdout.format("--------------------------------").newline;
         */
     }
 

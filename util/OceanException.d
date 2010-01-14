@@ -71,7 +71,7 @@
 
     ---
 
-*******************************************************************************/
+********************************************************************************/
 
 module      ocean.util.OceanException;
 
@@ -80,7 +80,7 @@ module      ocean.util.OceanException;
 
     Imports
 
-*******************************************************************************/
+********************************************************************************/
 
 private     import      tango.util.Arguments;
 
@@ -95,61 +95,74 @@ private     import      tango.text.convert.Layout;
 
     OceanException
 
-*******************************************************************************/
+********************************************************************************/
 
 class OceanException: Exception
 {
 
-    /**
-     * logger
-     */
-    private static Logger logger;
+    /*******************************************************************************
+        
+        Trace Log File Location
+    
+     *******************************************************************************/
+    
+    private             static Logger                   logger;
+    
+    /*******************************************************************************
+        
+        Default Logger Name
+    
+     *******************************************************************************/
 
-    /**
-     * default logger name
-     */
-    private static char[] logger_name = "OceanException";
+    private             static char[]                   loggerName = "OceanException";
 
 
-    /**
-     * Protected Construtor
-     *
-     * Params:
-     *     msg = exception message
-     */
+    
+    /*******************************************************************************
+        
+        Constructor 
+        
+        Params:
+            msg = exception message
+            
+     *******************************************************************************/
+    
     protected this (char[] msg)
     {
         super(msg);
     }
 
 
-
-    /**
-     * Runs and catches exceptions from static method executed
-     *
-     * This function should be called to invoke a static module, method or class that
-     * will be monitored and exception be written to a stdout or the defined appenders.
-     *
-     * ---
-     *
-     *   Usage:
-     *
-     *   class Module
-     *   {
-     *      public static bool run() { return true; }
-     *   }
-     *
-     *   OceanException.run(&Module.run);
-     *
-     * ---
-     *
-     * Params:
-     *     func = static function to be called by OceanException
-     *     ...  = any number of arguments to pass to the static function called
-     *
-     * Returns:
-     *     true, if function was executed successfully
-     */
+    /*******************************************************************************
+        
+        Runs static method and catch exception
+        
+        This function should be called to invoke a static module, method or class 
+        that will be monitored and exception be written to a stdout or the defined 
+        appenders.
+        
+        ---
+        
+        Usage Example:
+        
+            class Module
+            {
+                public static bool run() { return true; }
+            }
+        
+            OceanException.run(&Module.run);
+            
+        ---
+        
+        Params:
+            func = static function to be called by OceanException
+            ...  = any number of arguments to pass to the static function called
+            
+        Returns:
+            true, if function was executed successfully
+            
+     *******************************************************************************/
+    
     public static bool run( bool function(TypeInfo[] arguments, void* args) func, ... )
     {
         try
@@ -168,33 +181,38 @@ class OceanException: Exception
     }
     
     
-    /**
-     * Runs and catches exceptions from static method executed
-     *
-     * This function should be called to invoke a static module, method or class that
-     * will be monitored and exception be written to a stdout or the defined appenders.
-     *
-     * ---
-     *
-     *   Usage:
-     *
-     *   class Module
-     *   {
-     *      public static bool run(Arguments argument) { return true; }
-     *   }
-     *
-     *   OceanException.run(&Module.run, arguments);
-     *
-     * ---
-     *
-     * Params:
-     *     func = static function to be called by OceanException
-     *     ...  = any number of arguments to pass to the static function called
-     *
-     * Returns:
-     *     true, if function was executed successfully
-     */
-    public static bool run( bool function(Arguments arguments) func, Arguments arguments )
+    /*******************************************************************************
+        
+        Runs static method and catch exception
+        
+        This function should be called to invoke a static module, method or class 
+        that will be monitored and exception be written to a stdout or the defined 
+        appenders.
+        
+        ---
+        
+        Usage Example:
+        
+            class Module
+            {
+                public static bool run(Arguments argument) { return true; }
+            }
+        
+            OceanException.run(&Module.run, arguments);
+            
+        ---
+        
+        Params:
+            func = static function to be called by OceanException
+            ...  = any number of arguments to pass to the static function called
+            
+        Returns:
+            true, if function was executed successfully
+            
+     *******************************************************************************/
+    
+    public static bool run( bool function(Arguments arguments) func, 
+            Arguments arguments )
     {
         try
         {
@@ -212,31 +230,35 @@ class OceanException: Exception
     }
     
     
-    /**
-     * Runs and catches exceptions from static method executed
-     *
-     * This function should be called to invoke a static module, method or class that
-     * will be monitored and exception be written to a stdout or the defined appenders.
-     *
-     * ---
-     *
-     *   Usage:
-     *
-     *   class Module
-     *   {
-     *      public static bool run() { return true; }
-     *   }
-     *
-     *   OceanException.run(&Module.run);
-     *
-     * ---
-     *
-     * Params:
-     *     func = static function to be called by OceanException
-     *
-     * Returns:
-     *     true, if function was executed successfully
-     */
+    /*******************************************************************************
+        
+        Runs static method and catch exception
+        
+        This function should be called to invoke a static module, method or class 
+        that will be monitored and exception be written to a stdout or the defined 
+        appenders.
+        
+        ---
+        
+        Usage Example:
+        
+            class Module
+            {
+                public static bool run() { return true; }
+            }
+        
+            OceanException.run(&Module.run, arguments);
+            
+        ---
+        
+        Params:
+            func = static function to be called by OceanException
+            
+        Returns:
+            true, if function was executed successfully
+            
+     *******************************************************************************/
+    
     public static bool run( bool function ( ) func )
     {
         try
@@ -255,31 +277,35 @@ class OceanException: Exception
     }
     
 
-    /**
-     * Runs and catches exceptions from non-static method executed
-     *
-     * This function should be called to invoke a non-static module, method or class that
-     * will be monitored and exception be written to a stdout or the defined appenders.
-     *
-     * ---
-     *
-     *   Usage:
-     *
-     *   class Module
-     *   {
-     *      public bool run() { return true; }
-     *   }
-     *
-     *   OceanException.run(&Module.run);
-     *
-     * ---
-     *
-     * Params:
-     *     func = static function to be called by OceanException
-     *
-     * Returns:
-     *     true, if function was executed successfully
-     */
+    /*******************************************************************************
+        
+        Runs static method and catch exception
+        
+        This function should be called to invoke a static module, method or class 
+        that will be monitored and exception be written to a stdout or the defined 
+        appenders.
+        
+        ---
+        
+        Usage Example:
+        
+            class Module
+            {
+                public bool run() { return true; }
+            }
+        
+            OceanException.run(&Module.run);
+            
+        ---
+        
+        Params:
+            func = static function to be called by OceanException
+            
+        Returns:
+            true, if function was executed successfully
+            
+     *******************************************************************************/
+    
     public static bool run( bool delegate() func )
     {
         try
@@ -298,22 +324,27 @@ class OceanException: Exception
     }
 
 
-    /**
-     * Throw ocean exception
-     *
-     * opCall is invoked by calling OceanException() statically. If there is an appender
-     * attached to OceanException that the message gets written to the appender.
-     *
-     * ---
-     *
-     * Usage example:
-     *
-     *      OceanException("Input Exception ...");
-     *
-     * ---
-     * Params:
-     *     msg = error message
-     */
+    /*******************************************************************************
+        
+        Throw Exception
+        
+        opCall is invoked by calling OceanException() statically. If there is an 
+        appender attached to OceanException that the message gets written to the 
+        appender.
+        
+        ---
+        
+        Usage Example:
+        
+            OceanException("Input Exception ...");
+            
+        ---
+        
+        Params:
+            msg = error message
+            
+     *******************************************************************************/
+    
     public static void opCall( char[] msg )
     {
         if ( OceanException.isAppender() )
@@ -323,50 +354,56 @@ class OceanException: Exception
     }
 
 
-
-    /**
-     * Throw exception and stops code execution immediately
-     *
-     * This method has the same functionaly as by throwing a normal OceanException.
-     *
-     * Params:
-     *     msg = error message
-     */
+    /*******************************************************************************
+        
+        Throws Critical Exception
+        
+        Throws exception and stops code execution immediately. This method has the 
+        same functionaly as by throwing a normal OceanException.
+        
+        ---
+        
+        Usage Example:
+        
+            OceanException.Critical("Input Exception ...");
+            
+        ---
+        
+        Params:
+            msg = error message
+            
+     *******************************************************************************/
+    
     public static void Critical( char[] msg )
     {
         OceanException(msg);
     }
 
-
-
-    /**
-     * Throws exception without stoping code execution
-     *
-     * Params:
-     *     msg = error message
-     */
-    /*
-    public static void Warn( char[] msg )
-    {
-        if ( OceanException.isAppender() )
-            OceanException.write(Logger.Level.Warn, msg);
-        else
-            Trace.formatln("{}", msg).flush;
-    }
-    */
-
     
-    /**
-     * Throws exception without stoping code execution
-     *
-     * Params:
-     *     msg = error message
-     *    _arg = arguments passed to include into formating
-     */
+    /*******************************************************************************
+        
+        Writes Warn Message
+        
+        Throws no exception and doesn't stops code execution.
+        
+        ---
+        
+        Usage Example:
+        
+            char[] message = "exception message";
+            
+            OceanException.Warn("Input Exception {}", message);
+            
+        ---
+        
+        Params:
+            msg = error message
+            ... = arguments passed to include into formating
+            
+     *******************************************************************************/
+    
     public static void Warn( char[] msg, ... )
     {
-        assert(msg.length);
-        
         if ( OceanException.isAppender() )
         {
             OceanException.write(Logger.Level.Warn, 
@@ -380,23 +417,26 @@ class OceanException: Exception
     }
     
     
+    /*******************************************************************************
+        
+        Set Log Appender (output target)
+        
+        If the appender is not set exceptions are written to stdout. An appender 
+        can write exceptions to console, socket, mail or file.
+        
+        Params:
+            appender = output to write to file, mail, socket or console
+            
+        Returns:
+            true, if appender could be set
+            
+     *******************************************************************************/
     
-    /**
-     * Set Log appender (output target)
-     *
-     * If appender is not set exceptions are written to stdout. An appender can write
-     * exceptions to console, socket, mail or file.
-     *
-     * Params:
-     *     appender = output to write to file, mail, socket or console
-     * Returns:
-     *      true, if appender could be set
-     */
     public static bool setOutput ( Appender ap )
     {
         try
         {
-            OceanException.logger = Log.getLogger(OceanException.logger_name);
+            OceanException.logger = Log.getLogger(OceanException.loggerName);
 
             ap.layout(new LayoutDate);
             OceanException.logger.add(ap);
@@ -410,52 +450,60 @@ class OceanException: Exception
     }
     
 
-
-    /**
-     * Sets the OceanException Logger Name
-     *
-     * Params:
-     *     name = name of logger instance
-     */
+    /*******************************************************************************
+        
+        Sets Logger Name
+        
+        Params:
+            name = name of logger instance
+            
+     *******************************************************************************/
+    
     public static void setLoggerName( char[] name )
     {
-        OceanException.logger_name = name;
+        OceanException.loggerName = name;
     }
 
     
+    /*******************************************************************************
+        
+        Returns Logger Instance
+        
+        Returns:
+            logger instance
+            
+     *******************************************************************************/
     
-    /**
-     * Returns the logger
-     * 
-     * Returns:
-     *  the logger
-     */
     public static Logger getLogger ( )
     {
         return logger;
     }
     
     
+    /*******************************************************************************
+        
+        Write Exception to the attached Appender
+        
+        Params:
+            msg = error message
+            
+     *******************************************************************************/
     
-    /**
-     * Write exception to attached appender
-     *
-     * Params:
-     *     msg = error message
-     */
     private static void write( Level level, char[] msg  )
     {
         OceanException.logger.append(level, msg);
     }
 
 
-
-    /**
-     * Checks if appender is attached
-     *
-     * Returns:
-     *      true, if appender is set
-     */
+    /*******************************************************************************
+        
+        Returns if Appender is attached
+        
+        Returns:
+            true, if appender is set
+            
+     *******************************************************************************/
+    
     private static bool isAppender()
     {
         if ( OceanException.logger )
@@ -465,5 +513,5 @@ class OceanException: Exception
     }
 
 
-} // OceanException
+}
 

@@ -25,7 +25,7 @@
 
     --
 
-*******************************************************************************/
+********************************************************************************/
 
 module ocean.util.TraceLog;
 
@@ -34,7 +34,7 @@ module ocean.util.TraceLog;
 
     Imports
 
-*******************************************************************************/
+********************************************************************************/
 
 private     import      tango.util.log.Log, tango.util.log.LayoutDate, tango.util.log.AppendFile;
 
@@ -49,49 +49,65 @@ private     import      tango.text.convert.Layout;
 
 class TraceLog
 {
+    
+    /*******************************************************************************
+        
+        Trace Log File Location
+    
+     *******************************************************************************/
+    
+    private             static char[]                   trace_log_file;
 
-    /**
-     * location of the trace log file
-     */
-    private     static      char[]      trace_log_file;
+    
+    /*******************************************************************************
+        
+        Trace Logging Activated/Deactivated
+    
+     *******************************************************************************/
 
-    /**
-     * trace logging enabled by default
-     */
-    private     static      bool        enabled = true;
+    private             static bool                     enabled = true;
 
-    /**
-     * logger instance
-     */
-    private     static      Logger      logger;
+    
+    /*******************************************************************************
+        
+        Logger Instance
+    
+     *******************************************************************************/
+    
+    private             static Logger                   logger;
 
 
-
-    /**
-     * Constructor: prevented from being called directly
-     *
-     * instantiate the daemon object
-     */
+    /*******************************************************************************
+        
+        Constructor 
+        
+        Don't called directly as its protected to be called. Use function directly
+        instead as they are static.
+    
+     *******************************************************************************/
+    
     private this() {}
 
 
-
-    /**
-     * Initialization of TraceLog
-     *
-     * Sets the file to write TraceInformation to
-     *
-     * ---
-     *
-     * Usage Example:
-     *
-     * TraceLog.init("log/trace.log");
-     *
-     * ---
-     *
-     * Params:
-     *   trace_file = string that contains the path to the trace log file
-     */
+    /*******************************************************************************
+        
+        Initialization of TraceLog
+    
+        Sets the file to write TraceInformation to
+        
+        ---
+     
+        Usage Example:
+     
+            TraceLog.init("log/trace.log");
+     
+        ---
+     
+        Params:
+            trace_file = string that contains the path to the trace log file
+       
+     *******************************************************************************/
+    
     public static void init( char[] trace_file, char[] id = "TraceLog" )
     {
         this.trace_log_file = trace_file;
@@ -104,69 +120,64 @@ class TraceLog
     }
 
 
-
-    /**
-     * Formats a message string and writes it to the trace log file.
-     * String formatting is done in Stdout.formatln(...) fashion.
-     *
-     * ---
-     *
-     * Usage Example:
-     *
-     * int i = 16767;
-     * TraceLog.write("Counted {} times...", i);
-     *
-     * ---
-     *
-     * Params:
-     *   fmt  = message to format with given arguments
-     *   _arg = arguments passed to include into formating
-     */
+    /*******************************************************************************
+        
+        Writes Trace Message
+    
+        Formats a message string and writes it to the trace log file. String 
+        formatting is done in Stdout.formatln(...) fashion.
+        
+        ---
+     
+        Usage Example:
+     
+            int i = 16767;
+            
+            TraceLog.write("Counted {} times...", i);
+            TraceLog.write("Trace message without parameter");
+        
+        ---
+     
+        Params:
+            fmt = message to format with given arguments
+            ... = optional arguments to format
+       
+     *******************************************************************************/
+    
     public static void write( char[] fmt, ... )
     {
         if ( TraceLog.enabled && fmt.length )
-            TraceLog.writeString((new Layout!(char)).convert(_arguments, _argptr, fmt));
+        {
+            if ( _arguments.length )
+            {
+                TraceLog.writeString((new Layout!(char)).convert(_arguments, _argptr, fmt));
+            }
+            else
+            {
+                TraceLog.logger.append(Logger.Level.Trace, message);
+            }
+        }
     }
+    
+    
+    /*******************************************************************************
+        
+        Returns Logger Instance
+        
+        ---
+     
+        Usage Example:
+     
+            auto log   = Logger.getLogger()
+            auto queue = new QueueFile (log, "Queue", 30 * 1024 * 1024);
+        
+        ---
+     
+        Returns:
+            Logger instance
+       
+     *******************************************************************************/
 
-    
-    
-    /**
-     * Writes a message string to the trace log file.
-     *
-     * ---
-     *
-     * Usage Example:
-     *
-     * TraceLog.write("Counted 16767 times...");
-     *
-     * ---
-     *
-     * Params:
-     *   message = message string
-     */
-    public static void writeString ( char[] message )
-    {
-        if ( TraceLog.logger )
-            TraceLog.logger.append(Logger.Level.Trace, message);
-    }
-    
-    
-    /**
-     * Return Logger instance
-     * 
-     * ---
-     * 
-     * Usage Example
-     * 
-     *  
-     *      auto log   = Logger.getLogger()
-     *      auto queue = new QueueFile (log, "Queue", 30 * 1024 * 1024);
-     *      
-     * ---
-     * 
-     * Returns:
-     *      Logger instance
-     */
     public static Logger getLogger ()
     {
         if ( TraceLog.logger )
@@ -176,49 +187,59 @@ class TraceLog
     }
     
     
-    
-    /**
-     * Disables trace logging
-     *
-     * ---
-     *
-     * Usage Example:
-     *
-     * TraceLog.disableTrace;
-     *
-     * ---
-     */
+    /*******************************************************************************
+        
+        Disable Trace Logging
+        
+        ---
+     
+        Usage Example:
+     
+            TraceLog.disableTrace;
+        
+        ---
+     
+        Returns:
+            Logger instance
+       
+     *******************************************************************************/
+
     public static void disableTrace()
     {
         TraceLog.enabled = false;
     }
 
 
+    /*******************************************************************************
+        
+        Enable Trace Logging
+        
+        ---
+     
+        Usage Example:
+     
+            TraceLog.enableTrace;
+        
+        ---
+     
+        Returns:
+            Logger instance
+       
+     *******************************************************************************/
 
-    /**
-     * Enables trace logging
-     *
-     * ---
-     *
-     * Usage Example:
-     *
-     * TraceLog.enableTrace;
-     *
-     * ---
-     */
     public static void enableTrace()
     {
         TraceLog.enabled = true;
     }
 
-
 }
 
-/******************************************************************************
+
+/*******************************************************************************
 
     TraceLogException
 
-*******************************************************************************/
+********************************************************************************/
 
 class TraceLogException : Exception
 {
