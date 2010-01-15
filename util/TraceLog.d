@@ -75,6 +75,15 @@ class TraceLog
      *******************************************************************************/
     
     private             static Logger                   logger;
+    
+    
+    /*******************************************************************************
+        
+        Layout Instance
+    
+     *******************************************************************************/
+    
+    private             static Layout!(char)             layout;
 
 
     /*******************************************************************************
@@ -87,8 +96,7 @@ class TraceLog
      *******************************************************************************/
     
     private this() {}
-
-
+    
     /*******************************************************************************
         
         Initialization of TraceLog
@@ -115,8 +123,10 @@ class TraceLog
         auto appender = new AppendFile(trace_file);
         appender.layout(new LayoutDate);
 
-        TraceLog.logger = Log.getLogger(id);
-        TraceLog.logger.add(appender);
+        this.logger = Log.getLogger(id);
+        this.logger.add(appender);
+        
+        this.layout = new Layout!(char);
     }
 
 
@@ -124,8 +134,10 @@ class TraceLog
         
         Writes Trace Message
     
-        Formats a message string and writes it to the trace log file. String 
-        formatting is done in Stdout.formatln(...) fashion.
+        Writes a message string or a formatted string to the trace log file.
+        If no argument is passed after fmt, fmt is simply written to the trace
+        log. For further arguments, string formatting is done in
+        Stdout.formatln(...) fashion using fmt as formatting string.
         
         ---
      
@@ -134,28 +146,23 @@ class TraceLog
             int i = 16767;
             
             TraceLog.write("Counted {} times...", i);
-            TraceLog.write("Trace message without parameter");
+            TraceLog.write("Trace message without parameter {not formatted}");
         
         ---
      
         Params:
-            fmt = message to format with given arguments
+            fmt = message string to format with given arguments if any
             ... = optional arguments to format
        
      *******************************************************************************/
     
     public static void write( char[] fmt, ... )
     {
-        if ( TraceLog.enabled && fmt.length )
+        if (this.enabled)
         {
-            if ( _arguments.length )
-            {
-                TraceLog.writeString((new Layout!(char)).convert(_arguments, _argptr, fmt));
-            }
-            else
-            {
-                TraceLog.logger.append(Logger.Level.Trace, message);
-            }
+            this.logger.append(Logger.Level.Trace, _arguments.length?
+                                   this.layout.convert(_arguments, _argptr, fmt) :
+                                   fmt);
         }
     }
     
@@ -180,8 +187,8 @@ class TraceLog
 
     public static Logger getLogger ()
     {
-        if ( TraceLog.logger )
-            return TraceLog.logger;
+        if ( this.logger )
+            return this.logger;
         
         return null;
     }
@@ -206,7 +213,7 @@ class TraceLog
 
     public static void disableTrace()
     {
-        TraceLog.enabled = false;
+        this.enabled = false;
     }
 
 
@@ -229,7 +236,7 @@ class TraceLog
 
     public static void enableTrace()
     {
-        TraceLog.enabled = true;
+        this.enabled = true;
     }
 
 }
