@@ -4,8 +4,10 @@
 
     version:        Dec 2008: Initial release
 
-    authors:        Lars Kirchhoff, Thomas Nicolai
-
+    authors:        Lars Kirchhoff 
+                    Thomas Nicolai
+                    David Eckhardt
+                    
     Module to create a unix daemon with several child processes. The daemon 
     detaches from the console to run as background process and starts a given
     number of child processes that run parallel. All child processes execute 
@@ -15,91 +17,82 @@
 
     Usage example:
 
-    //
-    // class that should be executed in the child processes
-    // 
-    class doSomething
-    {
-        int cool () 
+        class doSomething
         {
-            // do something very cool
-            return 0;
+            int cool () 
+            {
+                // run code...
+                
+                return 0;
+            }
         }
-    }
-
-    Daemon daemon = new Daemon();           // create daemon object
-
-    daemon.setNumChildren(10);              // set number of children
-    daemon.setPidFile("daemon.pid");        // set daemon PID file in which pid of the daemon will be written
-                                            // if nothing is set no PID file will be created
-                                            // The PID file is important for creation of rc startup files
-    daemon.setFuncCall(&d.cool);            // set function that should be called in each children
-
-    daemon.daemonize();                     // start daemon
+    
+        Daemon daemon = new Daemon();
+    
+        daemon.setNumChildren(10);
+        daemon.setPidFile("daemon.pid"); 
+        daemon.setFuncCall(&d.cool);
+    
+        daemon.daemonize();
 
     --
 
     References:
 
     Unix Daemon Server Programming
-        http://www.enderunix.org/docs/eng/daemon.php
-        http://www.netzmafia.de/skripten/unix/linux-daemon-howto.html
-        http://linux.die.net/man/2/wait
-        http://bytes.com/groups/c/517843-how-run-multiple-processes-single-process
-        http://www.yolinux.com/TUTORIALS/ForkExecProcesses.html
-        http://www.dsource.org/projects/tutorials/wiki/ThreadsAndDelegatesExample
+    
+    http://www.enderunix.org/docs/eng/daemon.php
+    http://www.netzmafia.de/skripten/unix/linux-daemon-howto.html
+    http://linux.die.net/man/2/wait
+    http://bytes.com/groups/c/517843-how-run-multiple-processes-single-process
+    http://www.yolinux.com/TUTORIALS/ForkExecProcesses.html
+    http://www.dsource.org/projects/tutorials/wiki/ThreadsAndDelegatesExample
 
-*******************************************************************************/
+
+********************************************************************************/
 
 module      ocean.sys.Daemon;
 
+/*******************************************************************************
+
+    Imports
+
+********************************************************************************/
+
+private         import          tango.stdc.signal, tango.stdc.stdlib;
+
+private         import          tango.sys.linux.linux;
+
+private         import          tango.util.log.Log, tango.util.log.AppendFile;
+
+private         import          Integer = tango.text.convert.Integer;
+
+private         import          tango.io.device.File, tango.io.FilePath;
 
 
 /*******************************************************************************
 
-            constants
+    Log File Path
 
-*******************************************************************************/
+********************************************************************************/
 
-
-/**
- * Logfile 
- */
-const       char[]      logfile     = "/var/log/daemon.log";
-
-
-/**
- *  path
- */
-const       char[]      pidpath     = "/var/run/";
-                        
+const               char[]                  logfile     = "/var/log/daemon.log";
 
 
 /*******************************************************************************
 
-            tango imports
+    PID File Path
 
-*******************************************************************************/
+********************************************************************************/
 
-private     import      tango.stdc.signal,
-                        tango.stdc.stdlib,
-                        tango.sys.linux.linux;
-
-private     import		tango.util.log.Log,
-						tango.util.log.AppendFile;
-
-private     import		Integer = tango.text.convert.Integer;
-
-private		import  	tango.io.device.File,
-						tango.io.FilePath;
-
+const               char[]                  pidpath     = "/var/run/";
 
 
 /*******************************************************************************
 
-        C POSIX functions definition
+    C POSIX Functions
 
-*******************************************************************************/
+********************************************************************************/
 
 extern (C)
 {    
@@ -122,93 +115,98 @@ extern (C)
 }
 
 
-
 /*******************************************************************************
 
-		SIGNAL HANDLER
+    Signal Handler
 
-*******************************************************************************/
+    Receives and handles all process signals. The method is called by the
+    external C signal handler defined above.
+    
+    Params
+        signal = recieved signal
+        
+********************************************************************************/
 
-/**
- * Signal handler
- * Receives and handles all process signals
- *
- * Params
- *     signal = recieved signal 
- */
 void signal_handler ( int sig )
 {
 	pid_t process_group, process;
-	Daemon d = new Daemon();
+	Daemon daemon = new Daemon();
 	
-	// if termination signal is send
-	if (sig == SIGTERM) 
+	if (sig == SIGTERM)               // if termination signal is send
     {	
-		// get process group ID
-		process_group = getpgrp();
 		
-		// get process ID
-		process = getpid();
+		process_group = getpgrp();    // get process group ID
+		process = getpid();           // get process ID
 		
-		// kill all other processes only if parent process is terminated 
-		if (process_group == process) 
+		
+		if (process_group == process) // kill all other processes only if parent process is terminated 
         {			
-			d.shutdown();			
-		}    	
+            daemon.shutdown();			
+		}
+        
     	exit(EXIT_SUCCESS);
-    }
-           
-	// if child terminates create a new child
-	if (sig == SIGCHLD) 
+    } 
+	
+	if (sig == SIGCHLD)               // if child terminates create a new child
     {      
-		d.log("Start new child.");
-		d.startChildren();
+        daemon.log("Starting new child");
+        daemon.startChildren();
     }	
 }
 
 
-
 /*******************************************************************************
 
-        Daemon creates a daemon process with a given number of childs
-
-        @author  Lars Kirchhoff <lars.kirchhoff () sociomantic () com>
-        @author  Thomas Nicolai <thomas.nicolai () sociomantic () com>        
-        @package ocean
-        @link    http://www.sociomantic.com
+    Daemon
     
-*******************************************************************************/
+********************************************************************************/
 
 class Daemon
 {
-	/**
-	 * holds the daemon instance for the singleton pattern
-	 */
-	static		Daemon	            instance;
-	            
-	/**
-	 * holds the reference to the function that should be executed.
-	 */
-	static      int delegate()      func;
-	                                
-	/**
-	 * Number of process to be started, default = 2
-	 */
-	private     static int          number_process      = 2;
-	            	
-    /**
-     * pid file for a safe kill 
-     */
-	private     static char[]       pidfile;
+    
+    /*******************************************************************************
+        
+        Daemon Instance
+    
+     *******************************************************************************/
 
+	private            static Daemon                       instance;
 
     
-    /**
-     * Constructor
-     *
-     * instantiate the daemon object 
-     */
-	static this()
+    /*******************************************************************************
+        
+        Delegate Callback
+    
+     *******************************************************************************/
+
+	private            static int delegate()               func;
+	    
+    
+    /*******************************************************************************
+        
+        Number of Processes started
+    
+     *******************************************************************************/
+
+	private            static int                          number_process      = 2;
+	          
+    
+    /*******************************************************************************
+        
+        PID File
+    
+     *******************************************************************************/
+
+	private            static char[]                       pidfile;
+
+
+    /*******************************************************************************
+        
+        Static Constructor 
+    
+     *******************************************************************************/
+    
+	public static this()
     {
 		if (!this.instance) 
         {			
@@ -216,83 +214,93 @@ class Daemon
 		}	
     }
 
-
 	
-    /**
-     * Constructor
-     */
-    this () {}
+    /*******************************************************************************
+        
+        Constructor 
     
+     *******************************************************************************/
+    
+    public this () {}
 
     
-    /**
-     * Set number of children that should be created 
-     * 
-     * Params:
-     *     num_children = number of children
-     */
+    /*******************************************************************************
+        
+        Sets Number of Children created
+        
+        Params:
+            num_children = number of children
+            
+     *******************************************************************************/
+    
     public void setNumChildren ( int num_children )
     {
     	 this.number_process = num_children;
     }
     
     
+    /*******************************************************************************
+        
+        Returns Number of Children
+        
+        Returns:
+            number of children
+            
+     *******************************************************************************/
     
-    /**
-     * Return number of children
-     * 
-     * Returns:
-     *      number of children
-     */
     public int getNumChildren ()
     {
     	 return this.number_process;
     }
 
     
+    /*******************************************************************************
+        
+        Sets Function Callback
+        
+        Set the function reference to a global variable to be accessed later in 
+        startChildren function without passing it directly to the function. This 
+        is because the signal handler has no information about the function 
+        reference any more.
+        
+        Params:
+            dg = function delegate
+            
+     *******************************************************************************/
     
-    /**
-     * Set the function reference to a global variable to be accessed
-     * later in startChildren function without passing it directly to the
-     * function. This is because the signal handler has no information 
-     * about the function reference any more.
-     * 
-     * Params:
-     *     dg = function delegate
-     */
     public void setFuncCall ( int delegate() dg )
     {
     	this.func = dg;
     }
-        
+      
     
-    /**
-     * Starts the daemon
-     * 
-     * Forks a new process and kills the parent process to detach
-     * from the console. The new process starts the spawning of the 
-     * childs. The number of childs is set by number_process variable
-     * 
-     * Params:
-     *     restart_on_termination = restart on termination
-     */
+    /*******************************************************************************
+        
+        Starts Daemon
+        
+        Forks a new process and kills the parent process to detach from the console. 
+        The new process starts the spawning of the childs. The number of childs is 
+        set by number_process variable
+        
+        Params:
+            restart_on_termination = restart on termination
+            
+     *******************************************************************************/
+    
     public void daemonize ( bool restart_on_termination = true )
     {
     	pid_t pid, sid;
 		
-    	// Fork off the parent process
-    	pid = fork();
+    	pid = fork();  // Fork off the parent process
     	
     	this.log("Start Daemon");
     	
-    	// couldnt fork
-    	if (pid < 0)
+    	if (pid < 0)  // couldnt fork
         {
             exit(EXIT_FAILURE);
         }
          	 
-    	// If we got a good PID, then we can exit the parent process.
-    	if (pid > 0) 
+    	if (pid > 0) // If we got a good PID, then we can exit the parent process.
         {
             exit(EXIT_SUCCESS);
         }
@@ -304,20 +312,16 @@ class Daemon
     	    exit(EXIT_FAILURE);
         }
     	
-    	// Change the file mode mask
-    	umask(0);
+    	umask(0);  // Change the file mode mask
     	    	
-    	 // change directory to pid file directory (same as .log file location)      
-        try 
-        {        	
-            // write pid to file        	
-        	int process_pid = getpid();
+        try
+        {
+        	int process_pid = getpid();  // write pid to file
             this.writePidFile(process_pid);
         } 
         catch (Exception e)
         {
-            // still need to write something to the logfile
-        	this.log("Couldn't create pid file!");        	
+        	this.log("Couldn't create pid file!");
             return;
         }    	
      		
@@ -326,9 +330,8 @@ class Daemon
     		this.startChildren(restart_on_termination);
     	}	
     	
-        if (restart_on_termination)
+        if (restart_on_termination)  // set signal handler for parent process
         {
-        	// set signal handler for parent process
         	signal(SIGTERM, &sighandler);
         	signal(SIGCHLD, &sighandler);
         }
@@ -346,22 +349,21 @@ class Daemon
     }
          
       
+    /*******************************************************************************
+        
+        Start Child Process
+        
+        Forks child, assigns function to run and sets the signal handler.
+        
+        Params:
+            restart_on_termination = restart on termination
+            
+     *******************************************************************************/
     
-    /**
-     * Start children process
-     * Forks child, assigns function to run and sets 
-     * the signal handler.
-     * 
-     * Params:
-     *     restart_on_termination = restart on termination
-     */
     public void startChildren ( bool restart_on_termination = true ) 
     {    	
-    	// get process group ID
-    	pid_t process_group = getpgrp();
-    	
-    	// fork child
-    	pid_t child_pid = fork();    	
+    	pid_t process_group = getpgrp(); // get process group ID
+    	pid_t child_pid = fork();    	 // fork child
     	    	
     	// if work is successful set process group ID 
     	// for child and set signal handler 
@@ -375,8 +377,7 @@ class Daemon
                 signal(SIGTERM, &sighandler);
             }
             
-    		// run children code
-    		this.func();    		
+    		this.func();    		// run children code
     		
     		exit(EXIT_SUCCESS);
     	}
@@ -387,62 +388,74 @@ class Daemon
     } 
     
 
+    /*******************************************************************************
+        
+        Shutdown Process Tree
+        
+        Forks child, assigns function to run and sets the signal handler.
+        
+        Params:
+            restart_on_termination = restart on termination
+            
+     *******************************************************************************/
     
-    /**
-     * shutdown complete process tree
-     */
     public void shutdown ()
-    {    	
-    	// ignore signals from childs and kill all processes 
-    	signal(SIGCHLD,SIG_IGN);
+    {
+    	signal(SIGCHLD,SIG_IGN);  // ignore signals from childs and kill all processes 
 		
-		// write log file
-		this.log("Shutdown daemon process.");
-		
-		// remove PID file
+		this.log("Shutting down daemon process");
 		this.removePidFile();
 		
-		// kill all processes
-		kill(0, SIGTERM);    	
+		kill(0, SIGTERM);    	  // kill all processes
     }
     
     
+    /*******************************************************************************
+        
+        Sets PID Filename
+        
+        Sets daemon PID file in which pid of the daemon will be written if nothing 
+        is set no PID file will be created. The PID file is important for creation 
+        for rc startup files.
+        
+        Params:
+            filename = name of the PID file that should be created
+            
+     *******************************************************************************/
     
-    /**
-     * Set name for PID file of daemon 
-     * 
-     * Params:
-     *     filename = name of the PID file that should be created
-     */
     public void setPidFile ( char[] filename )
     {
         this.pidfile = filename;
     }
     
     
-    
-    /**
-     * Get method to return the name of the PID file
-     * 
-     * Returns:
-     *     name of the PID file for the daemon
-     */
+    /*******************************************************************************
+        
+        Return PID Filename
+        
+        Returns:
+            PID filename
+            
+     *******************************************************************************/
+
     public char[] getPidFile ()
     {
         return this.pidfile;
     }
     
     
+    /*******************************************************************************
+        
+        Writes PID file
+        
+        Params:
+            pid = process ID of the daemon 
+            
+     *******************************************************************************/
     
-    /**
-     * Create PID file if PID file property is set 
-     * 
-     * Params:
-     *     pid = process ID of the daemon 
-     */
     private void writePidFile ( int pid )
     {
-        if (this.pidfile != "") 
+        if ( this.pidfile ) 
         {
             File fi = new File (pidpath ~ this.pidfile, File.WriteCreate);            
             fi.output.write(Integer.toString(pid));
@@ -451,13 +464,15 @@ class Daemon
     }
     
     
+    /*******************************************************************************
+        
+        Removes PID File
+            
+     *******************************************************************************/
     
-    /**
-     * Remove PID file  
-     */
     private void removePidFile () 
     {
-        if (this.pidfile != "") 
+        if ( this.pidfile ) 
         {
             pid_t process_pid = getpgrp();
             FilePath path = FilePath(pidpath ~ this.pidfile);
@@ -466,15 +481,17 @@ class Daemon
     }
     
     
+    /*******************************************************************************
         
-    /**
-     * Log function 
-     * Creates and appends log file for log messages 
-     * of the daemon process
-     *
-     * Params
-     * 	   log_message = string with the message for the log file
-     */
+        Writes Message to Log File
+        
+        Creates and appends log file for log messages of the daemon process
+        
+        Params:
+            log_message = string with the message for the log file
+        
+     *******************************************************************************/
+    
     private void log ( char[] log_message ) 
     {
     	Logger logger = Log.getLogger("daemon");
@@ -482,5 +499,5 @@ class Daemon
         logger.append(Logger.Level.Info, log_message);        
     }    
     
-} // class Daemon
+}
 

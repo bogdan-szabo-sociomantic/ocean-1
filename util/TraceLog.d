@@ -36,7 +36,8 @@ module ocean.util.TraceLog;
 
 ********************************************************************************/
 
-private     import      tango.util.log.Log, tango.util.log.LayoutDate, tango.util.log.AppendFile;
+private     import      tango.util.log.Log, tango.util.log.LayoutDate, 
+                        tango.util.log.AppendFile;
 
 private     import      tango.text.convert.Layout;
 
@@ -56,7 +57,7 @@ class TraceLog
     
      *******************************************************************************/
     
-    private             static char[]                   trace_log_file;
+    private             static char[]                   traceLogFile;
 
     
     /*******************************************************************************
@@ -116,11 +117,11 @@ class TraceLog
        
      *******************************************************************************/
     
-    public static void init( char[] trace_file, char[] id = "TraceLog" )
+    public static void init( char[] file, char[] id = "TraceLog" )
     {
-        this.trace_log_file = trace_file;
+        this.traceLogFile = file;
 
-        auto appender = new AppendFile(trace_file);
+        auto appender = new AppendFile(file);
         appender.layout(new LayoutDate);
 
         this.logger = Log.getLogger(id);

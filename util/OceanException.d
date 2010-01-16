@@ -108,6 +108,7 @@ class OceanException: Exception
     
     private             static Logger                   logger;
     
+    
     /*******************************************************************************
         
         Default Logger Name

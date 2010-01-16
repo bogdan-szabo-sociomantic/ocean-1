@@ -119,9 +119,10 @@ class Config
     
      *******************************************************************************/
     
-    private             static char[]                       configuration_file;
+    private             static char[]                       configFile;
 
 
+    
     /*******************************************************************************
         
         Constructor 
@@ -159,7 +160,7 @@ class Config
 
     public static bool init( char[] filePath = "etc/config.ini" )
 	{
-		this.configuration_file = filePath;
+		this.configFile = filePath;
 
         return read();
     }
@@ -635,7 +636,7 @@ class Config
 
         try
         {
-            foreach (line; new Lines!(char) (new File(this.configuration_file)))
+            foreach (line; new Lines!(char) (new File(this.configFile)))
         	{
 				text = trim (line);
 			    
@@ -706,7 +707,7 @@ class Config
     public static void write()
     {
     	/*
-        auto map = new MapOutput!(char)(new FileOutput(this.configuration_file));
+        auto map = new MapOutput!(char)(new FileOutput(this.configFile));
 
         map.append(this.properties);
 
