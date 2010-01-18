@@ -111,7 +111,7 @@ class TokyoCabinet
                                         Bzip    = HDBOPTS.HDBTBZIP,
                                         Tcbs    = HDBOPTS.HDBTTCBS,
                                         
-                                        None    = 0
+                                        None    = cast (HDBOPTS) 0
                                     }
     
     
