@@ -59,33 +59,17 @@ module      ocean.sys.Daemon;
 
 ********************************************************************************/
 
-private         import          tango.stdc.signal, tango.stdc.stdlib;
+private         import           tango.stdc.signal:       signal, SIGTERM, SIG_IGN;
+private         import           tango.stdc.posix.signal: SIGCHLD;
 
-private         import          tango.sys.linux.linux;
+private         import           tango.stdc.stdlib: exit, EXIT_SUCCESS, EXIT_FAILURE;
 
-private         import          tango.util.log.Log, tango.util.log.AppendFile;
+private         import           tango.util.log.Log, tango.util.log.AppendFile;
 
-private         import          Integer = tango.text.convert.Integer;
+private         import Integer = tango.text.convert.Integer: toString;
 
-private         import          tango.io.device.File, tango.io.FilePath;
-
-
-/*******************************************************************************
-
-    Log File Path
-
-********************************************************************************/
-
-const               char[]                  logfile     = "/var/log/daemon.log";
-
-
-/*******************************************************************************
-
-    PID File Path
-
-********************************************************************************/
-
-const               char[]                  pidpath     = "/var/run/";
+private         import           tango.io.device.File;
+private         import Path =    tango.io.Path: FS;
 
 
 /*******************************************************************************
@@ -97,15 +81,16 @@ const               char[]                  pidpath     = "/var/run/";
 extern (C)
 {    
 	alias	int pid_t;
+    
+    int     close(int fd);
 	pid_t	fork();
+    int     getdtablesize();
 	pid_t   getpid();
+    int     getpgrp();  
+    int     kill(pid_t pid, int sig);
+    int     setpgid(pid_t pid, pid_t pgid);
+    int     setsid();
 	int		umask(int);
-	int		setsid();
-	int		close(int fd);
-	int		getdtablesize();
-	int		getpgrp();	
-	int		setpgid(pid_t pid, pid_t pgid);
-	int		kill(pid_t pid, int sig);
 	int		wait();
 	
 	void sighandler(int sig) 
@@ -127,7 +112,7 @@ extern (C)
         
 ********************************************************************************/
 
-void signal_handler ( int sig )
+private void signal_handler ( int sig )
 {
 	pid_t process_group, process;
 	Daemon daemon = new Daemon();
@@ -163,23 +148,13 @@ void signal_handler ( int sig )
 
 class Daemon
 {
-    
-    /*******************************************************************************
-        
-        Daemon Instance
-    
-     *******************************************************************************/
-
-	private            static Daemon                       instance;
-
-    
     /*******************************************************************************
         
         Delegate Callback
     
      *******************************************************************************/
 
-	private            static int delegate()               func;
+	private            int delegate()                      func;
 	    
     
     /*******************************************************************************
@@ -188,40 +163,49 @@ class Daemon
     
      *******************************************************************************/
 
-	private            static int                          number_process      = 2;
+	private            int                                 number_process      = 2;
 	          
     
-    /*******************************************************************************
+	/*******************************************************************************
         
         PID File
     
-     *******************************************************************************/
-
-	private            static char[]                       pidfile;
-
+	 *******************************************************************************/
+	
+	private            char[]                              pidfile;
+	
+	
+    /*******************************************************************************
+    
+        PID File Path
+    
+    ********************************************************************************/
+    
+    const               char[]                  pidpath     = "/var/run/";
+    
 
     /*******************************************************************************
         
-        Static Constructor 
+        Logger
     
      *******************************************************************************/
-    
-	public static this()
-    {
-		if (!this.instance) 
-        {			
-			this.instance = new Daemon();
-		}	
-    }
-
 	
+    static const                                logger_id   = "demon";
+    static const                                logfile     = "/var/log/daemon.log";
+    
+    private             Logger                  logger;
+
     /*******************************************************************************
         
         Constructor 
     
      *******************************************************************************/
     
-    public this () {}
+    public this ( )
+    {
+        this.logger = Log.getLogger(this.logger_id);
+        this.logger.add(new AppendFile(this.logfile));
+    }
 
     
     /*******************************************************************************
@@ -321,7 +305,7 @@ class Daemon
         } 
         catch (Exception e)
         {
-        	this.log("Couldn't create pid file!");
+        	this.log("Couldn't create pid file: " ~ e.msg);
             return;
         }    	
      		
@@ -457,9 +441,9 @@ class Daemon
     {
         if ( this.pidfile ) 
         {
-            File fi = new File (pidpath ~ this.pidfile, File.WriteCreate);            
+            scope fi = new File (this.pidpath ~ this.pidfile, File.WriteCreate);            
             fi.output.write(Integer.toString(pid));
-            fi.close;
+            fi.close();
         }
     }
     
@@ -474,9 +458,7 @@ class Daemon
     {
         if ( this.pidfile ) 
         {
-            pid_t process_pid = getpgrp();
-            FilePath path = FilePath(pidpath ~ this.pidfile);
-            path.remove();
+            Path.FS.remove(this.pidpath ~ this.pidfile);
         }
     }
     
@@ -494,9 +476,7 @@ class Daemon
     
     private void log ( char[] log_message ) 
     {
-    	Logger logger = Log.getLogger("daemon");
-    	logger.add(new AppendFile(logfile));
-        logger.append(Logger.Level.Info, log_message);        
+        this.logger.append(Logger.Level.Info, log_message);        
     }    
     
 }
