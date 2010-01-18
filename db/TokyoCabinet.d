@@ -8,16 +8,16 @@
                         
         author:         Thomas Nicolai, Lars Kirchhoff
 
-*******************************************************************************/
+ *******************************************************************************/
 
 module db.TokyoCabinet;
 
 
-/*******************************************************************************
+/******************************************************************************
 
     Imports
 
-********************************************************************************/
+ ******************************************************************************/
 
 //private import ocean.db.c.tokyocabinet;
 private     import  ocean.db.c.tokyocabinet_hash;
@@ -40,7 +40,7 @@ private     import  tango.stdc.stdlib;
         import ocean.db.TokyoCabinet;
         
         auto db = new TokyoCabinet("db.tch");
-        db.setTuneOpts(TokyoCabinet.TUNEOPTS.HDBTLARGE);
+        db.setTuneOpts(TokyoCabinet.TuneOpts.HDBTLARGE);
         db.setTuneBnum(20_000_000);
         db.enableAsync();
         db.open();
@@ -71,7 +71,6 @@ private     import  tango.stdc.stdlib;
 
 class TokyoCabinet
 {
-        
     /**************************************************************************
         
         Definitions
@@ -81,7 +80,6 @@ class TokyoCabinet
     private         char[]          dbfile;                         // database name
     private         TCHDB*          db;                             // tokyocabinet instance
     private         bool            async = false;                  // disable by default
-    
     
     /**************************************************************************
         
@@ -99,14 +97,21 @@ class TokyoCabinet
         
         constants for tchdbtune options
     
+        Large:      size of the database can be larger than 2GB 
+        Deflate:    each recordis compressed with deflate encoding
+        Bzip:       each record is compressed with BZIP2 encoding
+        Tcbs:       each record is compressed with TCBS encoding
+    
     ***************************************************************************/
     
-    const           enum            TUNEOPTS : ubyte
+    const           enum            TuneOpts : HDBOPTS
                                     {
-                                        HDBTLARGE, 
-                                        HDBTDEFLATE,
-                                        HDBTBZIP,
-                                        HDBTTCBS,        
+                                        Large   = HDBOPTS.HDBTLARGE, 
+                                        Deflate = HDBOPTS.HDBTDEFLATE,
+                                        Bzip    = HDBOPTS.HDBTBZIP,
+                                        Tcbs    = HDBOPTS.HDBTTCBS,
+                                        
+                                        None    = 0
                                     }
     
     
@@ -117,8 +122,6 @@ class TokyoCabinet
     ***************************************************************************/
     
     private         char[]          tmp_buffer;
-    
-    
     
     /**************************************************************************
         
@@ -151,14 +154,14 @@ class TokyoCabinet
   
     ***************************************************************************/    
     
-    public void open ()
+    public void open ( )
     {   
         // Tune database before opening database
         tchdbtune(this.db, this.tune_bnum, 
             this.tune_apow, this.tune_fpow, this.tune_opts);
         
         if (!tchdbopen(this.db, toCString(this.dbfile), 
-            HDBOWRITER | HDBOCREAT | HDBOLCKNB))
+            HDBOMODE.HDBOWRITER | HDBOMODE.HDBOCREAT | HDBOMODE.HDBOLCKNB))
             {
                 TokyoCabinetException("open error");
             }
@@ -198,6 +201,13 @@ class TokyoCabinet
     ***************************************************************************/
     
     public void enableThreadSupport ()
+    in
+    {
+        assert (!this.db, typeof (this).stringof ~ ".enableThreadSupport(): "
+                          "cannot enable thread support after open() has been "
+                          "called");
+    }
+    body
     {
         if (this.db !is null)
             tchdbsetmutex(this.db);
@@ -223,22 +233,28 @@ class TokyoCabinet
     
         Set Database Options
         
-        HDBTLARGE:      size of the database can be larger than 2GB 
-        HDBTDEFLATE:    each recordis compressed with deflate encoding
-        HDBTBZIP:       each record is compressed with BZIP2 encoding
-        HDBTTCBS:       each record is compressed with TCBS encoding
+        TuneOpts.Large:      size of the database can be larger than 2GB 
+        TuneOpts.Deflate:    each recordis compressed with deflate encoding
+        TuneOpts.Bzip:       each record is compressed with BZIP2 encoding
+        TuneOpts.Tcbs:       each record is compressed with TCBS encoding
         
-        setTuneOpts(HDBTLARGE);
-        setTuneOpts(HDBTLARGE|HDBTDEFLATE);       
+        Options may be combined by bit-wise OR '|':
                 
+        ---
+        
+            setTuneOpts(TuneOpts.Large);
+            setTuneOpts(TuneOpts.Large | TuneOpts.Deflate);       
+        
+        ---
+        
         Params:
             opts = tune options
             
     ***************************************************************************/
     
-    public void setTuneOpts ( ubyte opts )
+    public void setTuneOpts ( TuneOpts opts )
     {
-        this.tune_opts = HDBTLARGE;
+        this.tune_opts = opts;
     }
     
     
@@ -293,13 +309,18 @@ class TokyoCabinet
             
     ***************************************************************************/
     
-    public bool add ( char[] key, char[] value )
+    public bool put ( char[] key, char[] value )
     in
     {
         assert(key);
     }
     body
     {
+        return this.async?
+            tchdbputasync2(this.db, toCString(key), toCString(value)) :
+            tchdbput2     (this.db, toCString(key), toCString(value));
+                
+        /*
         // I should try it with malloc() to get arround the GC
         //tchdbmemsync(this.db, true);
         if ( this.async )
@@ -320,6 +341,32 @@ class TokyoCabinet
         }
         
         return true;
+        */
+    }
+    
+    
+    /**************************************************************************
+    
+        Push Key/Value Pair to Database
+       
+        Params:
+            key = hash key
+            value = key value
+            
+        Returns:
+            true if successful concenated, false on error
+            
+    ***************************************************************************/
+
+   
+    public bool putkeep ( char[] key, char[] value )
+    in
+    {
+        assert(key);
+    }
+    body
+    {
+        return tchdbputkeep2(this.db, toCString(key), toCString(value));
     }
     
     
@@ -336,7 +383,7 @@ class TokyoCabinet
             
     ***************************************************************************/
     
-    public bool addconcat ( char[] key, char[] value )
+    public bool putcat ( char[] key, char[] value )
     in
     {
         assert(key);
@@ -344,12 +391,7 @@ class TokyoCabinet
     }
     body
     {   
-        if (!tchdbputcat2(this.db, toCString(key), toCString(value)))
-        {
-            return false;
-        }
-
-        return true;    
+        return tchdbputcat2(this.db, toCString(key), toCString(value));
     }
     
     
@@ -380,10 +422,10 @@ class TokyoCabinet
             return null;
         }
         
-        tmp_buffer = toDString(cvalue).dup;
+        this.tmp_buffer = toDString(cvalue).dup;
         free(cvalue);
         
-        return tmp_buffer;
+        return this.tmp_buffer;
     }
     
     
@@ -589,7 +631,6 @@ class TokyoCabinet
     {
         return tchdbrnum(this.db);
     }
-
 }
 
 
