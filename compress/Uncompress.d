@@ -140,7 +140,7 @@ class Uncompress
      *      output      = return buffer
      *      encoding    = encoding [zlib, gzip, deflate]
      */
-    public void decodeUni ( T = char ) ( char[] compressed, out T[] output, char[] encoding = DEFAULT_ENCODING )
+    public void decode ( T ) ( char[] compressed, out T[] output, char[] encoding = DEFAULT_ENCODING )
     {   
         int size = 0;        
         uint total = 0;
@@ -175,7 +175,7 @@ class Uncompress
     }
     
     
-    
+    /+
     /**
      * Uncompresses content. Output data is duplicated (copy on write).
      * 
@@ -188,7 +188,7 @@ class Uncompress
     {
         this.decodeUni(compressed, output, encoding);
     }
-    
+    +/
     
     
     /**
@@ -202,7 +202,7 @@ class Uncompress
      * Returns:
      *     number of uncompressed bytes, or 0 if none
      */
-    public long decode ( InputStream stream_in, OutputStream stream_out, char[] encoding = DEFAULT_ENCODING )
+    public long decode ( T = char ) ( InputStream stream_in, OutputStream stream_out, char[] encoding = DEFAULT_ENCODING )
     { 
         int size = 0;
         long written = 0;
@@ -237,7 +237,7 @@ class Uncompress
      *     output       = return buffer
      *     encoding     = encoding [zlib, gzip, deflate]
      */    
-    public void decodeUni ( T ) ( InputStream stream_in, out T[] output, char[] encoding = DEFAULT_ENCODING )
+    public void decode ( T ) ( InputStream stream_in, out T[] output, char[] encoding = DEFAULT_ENCODING )
     {   
         int size = 0;
         uint total = 0;
@@ -271,7 +271,7 @@ class Uncompress
     }
     
     
-    
+    /+
     /**
      * Returns uncompressed content
      * 
@@ -284,7 +284,7 @@ class Uncompress
     {
         this.decodeUni(stream_in, output, encoding);
     }
-    
+    +/
     
     /**
      * Close the buffer

@@ -124,7 +124,7 @@ class Gzip: Uncompress
         
         if (this.was_gzip)
         {
-            super.decodeUni!(T)(content_in, content_out);
+            super.decode(content_in, content_out);
         }
         else
         {
