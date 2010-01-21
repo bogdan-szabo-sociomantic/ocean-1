@@ -125,15 +125,7 @@ class Uncompress
     
     public alias ZlibOutput.Encoding Encoding;
     public alias ZlibInput.Encoding  Decoding;
-    
-    /**************************************************************************
-
-        Default Encoding/Decoding constants
-        
-     **************************************************************************/
-
-    const       Encoding DEFAULT_ENCODING               = Encoding.Zlib;
-    const       Decoding DEFAULT_DECODING               = Decoding.Guess;
+    public alias ZlibOutput.Level    Level;
     
     /**************************************************************************
 
@@ -141,9 +133,9 @@ class Uncompress
         
      **************************************************************************/
 
-    private     Encoding encoding                       = this.DEFAULT_ENCODING; // Store the encoding
-    private     Decoding decoding                       = this.DEFAULT_DECODING; // Store the encoding
-    private     ZlibOutput.Level    level               = ZlibOutput.Level.Normal;
+    private     Encoding encoding                       = Encoding.Zlib; // Store the encoding
+    private     Decoding decoding                       = Decoding.Guess; // Store the encoding
+    private     ZlibOutput.Level     level              = ZlibOutput.Level.Normal;
     
     /**************************************************************************
 
@@ -151,21 +143,23 @@ class Uncompress
         
      **************************************************************************/
 
-    const       uint                UNCOMPRESS_BUF_SIZE = 1024*1024;    // Initial Buffer size for uncompressed content
-    const       uint                GROW_UB_SIZE        = 32*1024;      // Size that is used to allocate new memory in case of buffer grow
-    const       uint                CHUNK_SIZE          = 4*1024;       // Chunk size for reading from ZlibStream  
-    const       uint                INPUT_BUF_SIZE      = 64 * 1024;    // Initial input buffer size    
-    const       uint                GROW_IB_SIZE        = 1024;         // Size of which the input buffer will grow 
-    
+    static struct BufferSize
+    {
+        static const                    CHUNK       = 0x1000,      // Chunk size for ZlibStream access
+                                        INPUT_INIT  = 0x1_0000,    // Initial input buffer size    
+                                        INPUT_GROW  = 0x400,       // Size of which the input buffer will grow
+                                        OUTPUT_INIT = 0x10_0000,   // Initial output buffer size
+                                        OUTPUT_GROW = 0x8000;      // Size of which the output buffer will grow 
+    }
     /**************************************************************************
 
         I/O buffers
         
      **************************************************************************/
 
-    private     ubyte[CHUNK_SIZE]   chunk;                              // Chunk that is used to read the uncompressed data from ZlibStream
-    private     Array               input_buffer;                       // Input stream buffer used in case of a char[] input
-    private     Array               output_buffer;                      // Output stream buffer that is used to store the uncompressed data
+    private     ubyte[BufferSize.CHUNK] chunk;                              // Chunk that is used to read the uncompressed data from ZlibStream
+    private     Array                   input_buffer;                       // Input stream buffer used in case of a char[] input
+    private     Array                   output_buffer;                      // Output stream buffer that is used to store the uncompressed data
     
     /**************************************************************************
 
@@ -173,8 +167,8 @@ class Uncompress
         
      **************************************************************************/
 
-    private     ZlibInput           decomp;                             // global ZlibStream object
-    private     ZlibOutput          comp;                               // global ZlibStream object
+    private     ZlibInput               decomp;                             // global ZlibStream object
+    private     ZlibOutput              comp;                               // global ZlibStream object
     
     /**************************************************************************
 
@@ -182,66 +176,75 @@ class Uncompress
         
      **************************************************************************/
 
-    const       ubyte[]             GZIP_SIGNATURE      = [0x1F, 0x8B];
+    static const ubyte[]                 GZIP_SIGNATURE      = [0x1F, 0x8B];
     
     /**************************************************************************
 
-        EnumIds struct
-        
-        Holds an enumerator value and string identifiers associated to the value
+        Compression/decompression parameter codes
         
      **************************************************************************/
     
-    private struct EnumIds ( E )
+    static const struct Codes
     {
-        E        code;
-        char[][] ids;
+        static const    ENCODING =
+                        [
+                                     Encoding.Zlib,
+                                     Encoding.None,
+                                     Encoding.Gzip
+                        ],
         
-        bool opIn_r ( char[] id_in )
-        {
-            foreach (id; this.ids)
-            {
-                if (id == id_in) return true;
-            }
-            
-            return false;
-        }
+                        DECODING =
+                        [
+                                   Decoding.Guess,
+                                   Decoding.None,
+                                   Decoding.Gzip,
+                                   Decoding.Zlib
+                        ],
+        
+                        LEVEL =
+                        [
+                                    Level.Normal,
+                                    Level.None,
+                                    Level.Fast,
+                                    Level.Best
+                        ];
     }
     
     /**************************************************************************
 
-        Enumerator/option identification string constants
-        
-        These constants determine the option identifier strings accepted by
-        setEncoding(), setDecoding() and setLevel()  
-        
+        Compression/decompression parameter identifier strings
+    
      **************************************************************************/
 
-    public static const EnumIds!(Encoding)[] encodings =
-    [
-         {this.DEFAULT_ENCODING,    [""]},
-         {Encoding.None,            ["none", "off", "false", "no"]},
-         {Encoding.Gzip,            ["gzip"]},
-         {Encoding.Zlib,            ["zlib"]}
-     ];
-    
-    public static const EnumIds!(Decoding)[] decodings =
-    [
-         {this.DEFAULT_DECODING,    [""]},
-         {Decoding.None,            ["none", "off", "false", "no"]},
-         {Decoding.Guess,           ["guess", "auto", "on", "true", "yes"]},
-         {Decoding.Gzip,            ["gzip"]},
-         {Decoding.Zlib,            ["zlib"]}
-     ];
-    
-    public static const EnumIds!(ZlibOutput.Level)[] levels =
-    [
-        {ZlibOutput.Level.Normal, ["", "normal", "auto", "on", "true", "yes"]},
-        {ZlibOutput.Level.None,   ["none", "off", "false", "no"]},
-        {ZlibOutput.Level.Fast,   ["fast", "min"]},
-        {ZlibOutput.Level.Best,   ["best", "max"]}
-    ];
+    static const struct Ids
+    {
+        static const char[][] FALSE = ["false", "off", "no",  "disabled"];
+        static const char[][] TRUE  = ["true",  "on",  "yes", "enabled"];
         
+        static const char[][][] ENCODING =
+        [
+            ["zlib"],
+            ["none"] ~ this.FALSE,
+            ["gzip"]
+        ];
+        
+        static const char[][][] DECODING =
+        [
+            ["guess"] ~ this.TRUE,
+            ["none"]  ~ this.FALSE,
+            ["gzip"],
+            ["zlib"]
+        ];
+            
+        static const char[][][] LEVEL =
+        [
+            ["normal"] ~ this.TRUE,
+            ["none"]   ~ this.FALSE,
+            ["fast", "min"],
+            ["best", "max"]
+        ];
+    }
+    
     /*******************************************************************************
 
          Public Methods
@@ -273,12 +276,14 @@ class Uncompress
     
     public size_t encode ( T = void ) ( InputStream stream_in, OutputStream stream_out )
     {
-        size_t total = 0;
-        size_t size  = 0;
-        size_t s;
-    
         try 
         {
+            size_t total = 0;
+            size_t size  = 0;
+            size_t s;
+            
+            scope (success) this.comp.commit();
+            
             this.initZlibStreamOutput(stream_out);
             
             s = stream_in.read(this.chunk);
@@ -295,89 +300,21 @@ class Uncompress
                 s = stream_in.read(this.chunk);
             }
             
-            this.comp.commit();
+            return total;
         }
         catch (Exception e)
         {
-            UncompressException("Uncompress Error: " ~ e.msg);
+            UncompressException("Compress Error: " ~ e.msg);
         }
-        
-        return total;
-    }
-    
-     /**************************************************************************
-    
-        Uncompresses Stream
-        
-        FIXME: Gzip signature detection with streams (unget functionality)
-        
-        Params:
-            stream_in    = compressed input stream conduit
-            stream_out   = uncompressed output stream conduit
-        
-        Returns:
-            number of output bytes, or 0 if none
-    
-     **************************************************************************/
-
-    // Template with 'T = void' is to avoid collisions of overloaded method.
-    
-    public size_t decode ( T = void ) ( InputStream stream_in, OutputStream stream_out )
-    {
-        bool do_decode = true;
-        
-        size_t total = 0;
-        size_t size  = 0;
-        size_t s;
-        
-        try
-        {
-            /*
-            if (this.decoding == Decoding.Guess)
-            {
-                do_decode = this.detectGzip(stream_in, stream_out, total);
-            }
-            */
-            
-            if (do_decode)
-            {
-                s = this.initZlibStreamInput(stream_in).read(this.chunk);
-                
-                while (s != stream_in.Eof)
-                {
-                    size = s;
-                    total += size;
-                    
-                    Stderr.formatln("{} {}", size, total);
-                    
-                    stream_out.write(this.chunk[0 .. size]);
-                    
-                    s = this.decomp.read(this.chunk);
-                }
-            }
-            else
-            {
-                stream_out.copy(stream_in);
-                
-                // FIXME: "total" should be set to the number of bytes passed to stream_out
-            }
-        }
-        catch (Exception e)
-        {
-            UncompressException("Uncompress Error: " ~ e.msg);
-        }
-        
-        return total;
     }
     
     /**************************************************************************
     
-        Compresses Buffered Input Stream. Output data is duplicated (copy on
-        write).
+        Compresses Buffered Input Stream.
         
         Params:
-            stream_in    = compressed input buffer stream
-            output       = return buffer
+            stream_in    = uncompressed input stream conduit
+            buffer_out   = return buffer
             
      **************************************************************************/
     
@@ -385,21 +322,37 @@ class Uncompress
     {
         cast (void) this.assertByteType!(T, ".encode()", "buffer_out");
         
-        size_t total = this.encode(stream_in, this.initOutputBuffer());
+        scope (success) this.sliceOutputBuffer(buffer_out);
         
-        buffer_out = cast (T[]) this.output_buffer.slice(total).dup;
-        
-        return total;
+        return this.encode(stream_in, this.initOutputBuffer());
     }
     
     
     /**************************************************************************
     
-        Compresses content. Output data is duplicated (copy on write).
+        Compresses Buffered Input Stream.
         
         Params:
-             compressed  = compressed string
-             output      = return buffer
+            buffer_in  = data to compress
+            stream_out = compressed output stream conduit
+            
+     **************************************************************************/
+    
+    public size_t encode ( S ) ( S[] buffer_in, OutputStream stream_out )
+    {
+        cast (void) this.assertByteType!(S, ".encode()", "buffer_out");
+        
+        return this.encode(this.initInputBuffer().append(buffer_in), stream_out);
+    }
+    
+    
+    /**************************************************************************
+    
+        Compresses content.
+        
+        Params:
+             buffer_in = data to compress
+             output    = return buffer
              
      **************************************************************************/
     
@@ -413,36 +366,94 @@ class Uncompress
     
     /**************************************************************************
     
-        Uncompresses Buffered Input Stream. Output data is duplicated (copy on
-        write).
+        Uncompresses Stream
+        
+        Params:
+            stream_in    = compressed input stream conduit
+            stream_out   = uncompressed output stream conduit
+        
+        Returns:
+            number of output bytes, or 0 if none
+    
+     **************************************************************************/
+    
+    // Template with 'T = void' is to avoid collisions of overloaded method.
+    
+    public size_t decode ( T = void ) ( InputStream stream_in, OutputStream stream_out )
+    {
+        try
+        {
+            bool do_decode = true;
+            
+            size_t total = 0;
+            size_t size  = 0;
+            size_t s = this.initZlibStreamInput(stream_in).read(this.chunk);
+            
+            while (s != stream_in.Eof)
+            {
+                size = s;
+                total += size;
+                
+                Stderr.formatln("{} {}", size, total);
+                
+                stream_out.write(this.chunk[0 .. size]);
+                
+                s = this.decomp.read(this.chunk);
+            }
+            
+            return total;
+        }
+        catch (Exception e)
+        {
+            UncompressException("Uncompress Error: " ~ e.msg);
+        }
+    }
+
+    /**************************************************************************
+    
+        Uncompresses Buffered Input Stream.
         
         Params:
             stream_in    = compressed input buffer stream
             output       = return buffer
             
-    **************************************************************************/
+     **************************************************************************/
     
     public size_t decode ( T ) ( InputStream stream_in, out T[] buffer_out )
     {
         cast (void) this.assertByteType!(T, ".decode()", "buffer_out");
         
-        size_t total;
+        scope (success) this.sliceOutputBuffer(buffer_out);
         
-        total = this.decode(stream_in, this.initOutputBuffer());
-        
-        buffer_out = cast (T[]) this.output_buffer.slice(total).dup;
-        
-        return total;
+        return this.decode(stream_in, this.initOutputBuffer());
     }
     
     
     /**************************************************************************
     
-        Uncompresses content. Output data is duplicated (copy on write).
+        Uncompresses content.
         
         Params:
-             compressed  = compressed string
-             output      = return buffer
+            buffer_in  = compressed data
+            stream_out = uncompressed output stream conduit
+            
+    **************************************************************************/
+    
+    public size_t decode ( S ) ( S[] buffer_in, OutputStream stream_out )
+    {
+        cast (void) this.assertByteType!(S, ".decode()", "buffer_in");
+        
+        return this.decode(this.initInputBuffer().append(buffer_in), stream_out);
+    }
+    
+    
+    /**************************************************************************
+    
+        Uncompresses content.
+        
+        Params:
+             buffer_in  = compressed data
+             buffer_out = return buffer
              
         Returns:
             number of uncompressed bytes, or 0 if none
@@ -454,33 +465,17 @@ class Uncompress
     {   
         cast (void) this.assertByteType!(S, ".decode()", "buffer_in");
         
-        bool do_decode = true;
-        
-        if (this.decoding == Decoding.Guess)
-        {
-            do_decode = this.detectGzip(buffer_in);
-        }
-        
-        if (do_decode)
-        {
-            return this.decode(this.initInputBuffer().append(buffer_in), buffer_out);
-        }
-        else
-        {
-            buffer_out = buffer_in.dup;
-            
-            return buffer_out.length;
-        }
+        return this.decode(this.initInputBuffer().append(buffer_in), buffer_out);
     }
     
     /**************************************************************************
     
-        Uncompresses content. Output data is duplicated (copy on write).
+        Uncompresses data.
         
         Params:
-             compressed  = compressed string
-             output      = return buffer
-             encoding     = encoding [auto, zlib, gzip, none]
+             buffer_in  = compressed data
+             buffer_out = return buffer
+             encoding   = encoding [auto, zlib, gzip, none]
              
         Returns:
             number of uncompressed bytes, or 0 if none
@@ -550,63 +545,6 @@ class Uncompress
         this.output_buffer.close();
     }
     
-    /**************************************************************************
-        
-        Determines if "content" (most likely) contains gzipped data by
-        comparing the first two bytes against the gzip signature.
-        
-        Params:
-             content = content to examine
-             
-        Returns:
-             true if content data appear to be gzipped or false otherwise
-             
-     **************************************************************************/
-    
-    public static bool detectGzip ( T ) ( T[] content )
-    {
-        cast (void) assertByteType!(T, ".detectGzip()", "content");
-        
-        ubyte[] sign = (cast (ubyte[]) content)[0 .. min(this.GZIP_SIGNATURE.length, content.length)];
-        
-        return (sign == this.GZIP_SIGNATURE);
-    }
-    
-    /**************************************************************************
-    
-        Compares the first bytes of stream_in to the Gzip signature and puts
-        them to stream_out.
-         
-        Params:
-            stream_in    = compressed input stream conduit
-            stream_out   = uncompressed output stream conduit
-         
-        Returns:
-            true on match or false otherwise
-    
-     **************************************************************************/
-    
-    public static bool detectGzip ( T = void ) ( InputStream stream_in, OutputStream stream_out, ref size_t total )
-    {
-        size_t s;
-        
-        bool is_gzip = false;
-        
-        ubyte[this.GZIP_SIGNATURE.length] gz_sign;
-        
-        s = stream_in.read(gz_sign);                // try to read Gzip signature to gz_sign
-        
-        if (s != stream_in.Eof)                     // EOF while reading Gzip signature
-        {
-            total += s;
-            
-            stream_out.write(gz_sign[0 .. s]);      // write gz_sign to output
-            
-            is_gzip = detectGzip(gz_sign);     // check gz_sign for Gzip signature
-        }
-        
-        return is_gzip;
-    }
     
     /**************************************************************************
       
@@ -629,29 +567,70 @@ class Uncompress
     
     public typeof (this) setEncoding ( Encoding code, bool accept_invalid = false )
     {
-        bool ok = accept_invalid;
-        
-        if (!ok) foreach (encoding; this.encodings)
-        {
-            ok = (encoding.code == code);
-            
-            if (ok) break;
-        }
-        
-        assert (ok, typeof (this).stringof ~ ": invalid encoding option");
-        
-        this.encoding = code;
+        this.encoding = this.validateCode(code, this.Codes.ENCODING, accept_invalid);
         
         return this;
     }
     
     
     /**************************************************************************
+    
+        Set compression encoding.  An empty id string corresponds to the default 
+        compression encoding.
+        
+        If an unknown identifier string is supplied, and accept_unknown is
+             - true, the encoding is set to the default value;
+             - false, an exception is thrown.
+     
+        Params:
+            id             = encoding identifier string
+            accept_unknown = Set to true to set to default encoding on unknown
+                             identifier string or to false to throw an exception
+                             in this case.
+            
+        Returns:
+            this instance
+        
+    **************************************************************************/
+    
+    public typeof (this) setEncoding ( char[] id = "", bool accept_unknown = false )
+    {
+        this.encoding = this.getEncodingFromId(id, accept_unknown);
+        
+        return this;
+    }
+    
+
+    /**************************************************************************
+    
+        Get compression encoding code from identifier string.  An empty id
+        string corresponds to the default compression encoding. 
+        
+        If an unknown identifier string is supplied, and accept_unknown is
+             - true, the encoding is set to the default value;
+             - false, an exception is thrown.
+     
+        Params:
+            id             = encoding identifier string
+            accept_unknown = Set to true to set to default encoding on unknown
+                             identifier string or to false to throw an exception
+                             in this case.
+            
+        Returns:
+            compression encoding code
+        
+    **************************************************************************/
+    
+    public static Encoding getEncodingFromId ( char[] id = "", bool accept_unknown = false )
+    {
+        return getCodeFromId(id, this.Codes.ENCODING, this.Ids.ENCODING, accept_unknown);
+    }
+
+    /**************************************************************************
       
           Set decompression encoding.
           If an invalid code is supplied, and accept_invalid is
-               - true, the encoding is set to the default value as defined in
-                       DEFAULT_ENCODING;
+               - true, the encoding is set to the default value;
                - false, an exception is thrown.
        
           Params:
@@ -667,18 +646,7 @@ class Uncompress
     
     public typeof (this) setDecoding ( Decoding code, bool accept_invalid = false )
     {
-        bool ok = accept_invalid;
-        
-        if (!ok) foreach (decoding; this.decodings)
-        {
-            ok = (decoding.code == code);
-            
-            if (ok) break;
-        }
-        
-        assert (ok, typeof (this).stringof ~ ": invalid decoding option");
-        
-        this.decoding = code;
+        this.decoding = this.validateCode(code, this.Codes.DECODING, accept_invalid);
         
         return this;
     }
@@ -686,11 +654,11 @@ class Uncompress
     
     /**************************************************************************
     
-        Set decompression encoding.
+        Set decompression encoding. An empty id string corresponds to the
+        default decompression encoding.
         
         If an unknown identifier string is supplied, and accept_unknown is
-             - true, the encoding is set to the default value as defined in
-                     DEFAULT_ENCODING;
+             - true, the encoding is set to the default value;
              - false, an exception is thrown.
      
         Params:
@@ -704,21 +672,20 @@ class Uncompress
         
      **************************************************************************/
     
-    public typeof (this) setDecoding ( char[] id, bool accept_unknown = false )
+    public typeof (this) setDecoding ( char[] id = "", bool accept_unknown = false )
     {
         this.decoding = this.getDecodingFromId(id, accept_unknown);
         
         return this;
     }
-    
-    
+
     /**************************************************************************
     
-        Set compression encoding.
+        Get decompression encoding code from identifier string. An empty id
+        string corresponds to the default decompression encoding. 
         
         If an unknown identifier string is supplied, and accept_unknown is
-             - true, the encoding is set to the default value as defined in
-                     DEFAULT_ENCODING;
+             - true, the encoding is set to the default value;
              - false, an exception is thrown.
      
         Params:
@@ -728,18 +695,16 @@ class Uncompress
                              in this case.
             
         Returns:
-            this instance
+            decompression encoding code
         
-    **************************************************************************/
-
-    public typeof (this) setEncoding ( char[] id, bool accept_unknown = false )
+     **************************************************************************/
+    
+    
+    public static Decoding getDecodingFromId ( char[] id = "", bool accept_unknown = false )
     {
-        this.encoding = this.getEncodingFromId(id, accept_unknown);
-        
-        return this;
+        return getCodeFromId(id, this.Codes.DECODING, this.Ids.DECODING, accept_unknown);
     }
-    
-    
+
     /**************************************************************************
     
         Set compression level.
@@ -762,94 +727,51 @@ class Uncompress
             this instance
         
     **************************************************************************/
-
-    public typeof (this) setLevel ( ZlibOutput.Level code, bool accept_unknown = false )
+    
+    public typeof (this) setLevel ( int code, bool accept_unknown = false )
     {
-        this.level = this.normalizeLevel(code, accept_unknown);
+        this.level = this.validateLevel(code, accept_unknown);
         
         return this;
     }
     
     
+
     /**************************************************************************
     
-        Get encoding option code from identifier string.
+        Set compression level. An empty id string
+        corresponds to the default level.
         
-        If an unknown identifier string is supplied, and accept_unknown is
-             - true, the encoding is set to the default value as defined in
-                     DEFAULT_ENCODING;
+        The compression level may be an integer value from -1 to 9 where -1
+        denotes the default compression level, 0 no, 1 lowest/fastest and 9
+        highest/slowest compression.
+        
+        If an invalid code is supplied, and accept_unknown is
+             - true, the compression level is set to the default level;
              - false, an exception is thrown.
-     
+        
         Params:
-            id             = encoding option identifier string
-            accept_unknown = Set to true to set to default encoding on unknown
-                             identifier string or to false to throw an exception
-                             in this case.
+            code           = compression level code
+            accept_unknown = Set to true to set to default compression level
+                             on unknown identifier string or to false to throw
+                             an exception in this case.
             
         Returns:
-            encoding option code
-        
-     **************************************************************************/
-    
-    public static Encoding getEncodingFromId ( char[] id, bool accept_unknown = false )
-    out (r)
-    {
-        Stderr.formatln("{} {}", id, r);
-    }
-    body
-    {
-        foreach (encoding; this.encodings)
-        {
-            if (id in encoding) return encoding.code;
-        }
-        
-        assert (accept_unknown, typeof (this).stringof ~
-                ": unknown encoding identifier '" ~ id ~ '\'');
-        
-        return this.DEFAULT_ENCODING;
-    }
-    
-    /**************************************************************************
-    
-        Get decoding option code from identifier string.
-        
-        If an unknown identifier string is supplied, and accept_unknown is
-             - true, the encoding is set to the default value as defined in
-                     DEFAULT_ENCODING;
-             - false, an exception is thrown.
-     
-        Params:
-            id             = encoding option identifier string
-            accept_unknown = Set to true to set to default encoding on unknown
-                             identifier string or to false to throw an exception
-                             in this case.
-            
-        Returns:
-            encoding option code
+            this instance
         
     **************************************************************************/
-
-    public static Decoding getDecodingFromId ( char[] id, bool accept_unknown = false )
-    out (r)
+    
+    public typeof (this) setLevel ( char[] id = "", bool accept_unknown = false )
     {
-        Stderr.formatln("{} {}", id, r);
-    }
-    body
-    {
-        foreach (decoding; this.decodings)
-        {
-            if (id in decoding) return decoding.code;
-        }
+        this.level = this.getLevelFromId(id, accept_unknown);
         
-        assert (accept_unknown, typeof (this).stringof ~
-                                ": unknown decoding identifier '" ~ id ~ '\'');
-        
-        return this.DEFAULT_DECODING;
+        return this;
     }
     
     /**************************************************************************
     
-        Get compression level code from identifier string.
+        Get compression level code from identifier string. An empty id string
+        corresponds to the default level.
         
         The compression level identifier string may be a string containing the
         decimal representation of an integer value from -1 to 9 where -1 denotes
@@ -871,77 +793,48 @@ class Uncompress
             compression level code
         
     **************************************************************************/
-
-    public static ZlibOutput.Level getLevelFromId ( char[] id, bool accept_unknown = false )
+    
+    public static Level getLevelFromId ( char[] id = "", bool accept_unknown = false )
     out (r)
     {
         Stderr.formatln("{} {}", id, r);
     }
     body
     {
-        ZlibOutput.Level code; 
+        bool is_of_enum = true;
         
-        foreach (level; this.levels)
-        {
-            if (id in level) return level.code;
-        }
+        Level code = getCodeFromId(id, this.Codes.LEVEL, this.Ids.LEVEL, is_of_enum); 
         
-        try
+        if (is_of_enum)
         {
-            code = cast (typeof (code)) Integer.toInt(id);
+            return code;
         }
-        catch (Exception e)
+        else
         {
-            if (accept_unknown)
+            try
             {
-                return ZlibOutput.Level.Normal;
+                Level n = cast (Level) Integer.toInt(id);
             }
-            else
+            catch (Exception e)
             {
-                e.msg = typeof (this).stringof ~
-                        ": invalid encoding identifier '" ~ id ~ "' (" ~ e.msg ~ ')';
-                
-                throw e;
+                if (accept_unknown)
+                {
+                    return code;
+                }
+                else
+                {
+                    e.msg = typeof (this).stringof ~
+                            ": invalid encoding identifier '" ~ id ~ "' (" ~ e.msg ~ ')';
+                    
+                    throw e;
+                }
             }
         }
         
-        return normalizeLevel(code, accept_unknown);
+        return validateLevel(code, accept_unknown);
     }
-    
-    
-    /**************************************************************************
-    
-        Normalize compression level to a valid value.
-        
-        The compression level may be an integer value from -1 to 9 where -1
-        denotes the default compression level, 0 no, 1 lowest/fastest and 9
-        highest/slowest compression.
-        
-        If an invalid code is supplied, and nevermind is
-             - true, the default compression level value is returned;
-             - false, an exception is thrown.
-        
-        Params:
-            code           = 
-            accept_unknown = Set to true to set to default compression level
-                             on unknown identifier string or to false to throw
-                             an exception in this case.
-            
-        Returns:
-            normalized compression level
-        
-    **************************************************************************/
 
-    private static ZlibOutput.Level normalizeLevel ( ZlibOutput.Level code, bool nevermind )
-    {
-        bool in_range = ((code >= ZlibOutput.Level.min) && (ZlibOutput.Level.max >= code));
-        
-        assert (in_range || nevermind, typeof (this).stringof ~ "compression level parameter out of range");
-        
-        return in_range? code : ZlibOutput.Level.Normal;
-    }
-    
-    
+
     /**************************************************************************
       
       Initialize ZlibStream input to read from a new input stream
@@ -1004,7 +897,8 @@ class Uncompress
       else 
       {
           // Create input buffer for ZlibStream to consume
-          this.input_buffer = new Array(this.INPUT_BUF_SIZE, this.GROW_IB_SIZE);
+          this.input_buffer = new Array(this.BufferSize.INPUT_INIT,
+                                        this.BufferSize.INPUT_GROW);
       }
       
       return this.input_buffer;
@@ -1027,13 +921,163 @@ class Uncompress
       else 
       {
           // Create output buffer for ZlibStream to consume
-          this.output_buffer = new Array(this.UNCOMPRESS_BUF_SIZE, this.GROW_UB_SIZE);            
+          this.output_buffer = new Array(this.BufferSize.OUTPUT_INIT,
+                                         this.BufferSize.OUTPUT_GROW);            
       }
       
       return this.output_buffer;
     }
+    
+    /**************************************************************************
+    
+        Slice output buffer
+        
+         Params:
+             buffer_out = destination output buffer
+    
+    **************************************************************************/
 
+    private void sliceOutputBuffer ( T ) ( out T[] buffer_out )
+    {
+        try
+        {
+            buffer_out = cast (T[]) this.output_buffer.slice();
+        }
+        catch (Exception e)
+        {
+            UncompressException(e.msg);
+        }
+    }
+    
 
+    
+    /**************************************************************************
+    
+        Verify code_in is equal to an element of codes.
+        
+        If code is equal to any element of codes, and nevermind is
+             - true, the value of the first element of code is returned and
+                     nevermind is set to false;
+             - false, an exception is thrown.
+        
+        Params:
+            code           = code to validate
+            codes          = list of valid codes
+            accept_unknown = Set to true to return the value of the first
+                             element of code on invalid code or to false to
+                             throw an exception in this case.
+            
+        Returns:
+            verified code
+        
+    **************************************************************************/
+
+    private static T validateCode ( T ) ( T code_in, T[] codes,
+                                         ref bool nevermind )
+    in                                         
+    {
+        assert (codes.length, typeof (this).stringof ~ ".validateCode(): empty codes list");
+    }
+    body
+    {
+        foreach (code; codes)
+        {
+            if (code == code_in) return code;
+        }
+        
+        assert (nevermind, typeof (this).stringof ~ " invalid " ~
+                                T.stringof ~ " code");
+
+        nevermind = false;
+        
+        return codes[0];    
+    }
+    
+    
+    /**************************************************************************
+    
+        Validate compression level.
+        
+        The compression level may be an integer value from -1 to 9 where -1
+        denotes the default compression level, 0 no, 1 lowest/fastest and 9
+        highest/slowest compression.
+        
+        If an invalid code is supplied, and nevermind is
+             - true, the default compression level value is returned and
+                     nevermind is set to false;
+             - false, an exception is thrown.
+        
+        Params:
+            code           = compression level code to validate
+            accept_unknown = Set to true to return default compression level
+                             on unknown identifier string or to false to throw
+                             an exception in this case.
+            
+        Returns:
+            validated compression level
+        
+    **************************************************************************/
+    
+    private static Level validateLevel ( int code, bool nevermind )
+    {
+        bool in_range = ((code >= Level.min) && (Level.max >= code));
+        
+        assert (in_range || nevermind, typeof (this).stringof ~ ": compression level parameter out of range");
+        
+        return in_range? cast (Level) code : Level.Normal;
+    }
+    
+
+    /**************************************************************************
+    
+        Looks up id in ids and returns the code corresponding to the id. An
+        empty id string corresponds to the first element of code.
+        
+        If id is not found in ids and not an empty string, and nevermind is
+             - true, the value of the first element of code is returned and
+                     nevermind is set to false;
+             - false, an exception is thrown.
+        
+        Params:
+            id             = code identifier string
+            codes          = list of codes
+            ids            = list of ids corresponding to codes
+            accept_unknown = Set to true to return the value of the first
+                             element of code on unknown id or to false to
+                             throw an exception in this case.
+            
+        Returns:
+            verified code
+        
+    **************************************************************************/
+
+    private static T getCodeFromId ( T ) ( char[] id, T[] codes, char[][][] ids,
+                                           ref bool nevermind )
+    in
+    {
+        assert (codes.length == ids.length, typeof (this).stringof ~ ".getCodeFromId(): "
+                                            "codes/ids length mismatch");
+        
+        assert (codes.length, typeof (this).stringof ~ ".getCodeFromId(): empty codes list");
+    }
+    body
+    {
+        foreach (i, id_aliases; ids)
+        {
+            foreach (id_alias; id_aliases)
+            {
+                if (id ==  id_alias) return codes[i];
+            }
+        }
+        
+        assert (!id.length || nevermind, typeof (this).stringof ~ ": unknown " ~
+                                         T.stringof ~ " identifier '" ~ id ~ '\'');
+        
+        nevermind = false;
+        
+        return codes[0];
+    }
+    
     /**************************************************************************
     
         Assert T is a single byte type or void 
