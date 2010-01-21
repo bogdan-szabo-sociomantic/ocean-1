@@ -96,10 +96,6 @@ private     import      Integer = tango.text.convert.Integer: toInt;
 private     import      tango.math.Math: min;
 
 
-private     import      tango.util.log.Trace;
-private     import      tango.io.Stdout;
-
-
 /******************************************************************************
 
     Uncompress
@@ -293,8 +289,6 @@ class Uncompress
                 size = s;
                 total += size;
                 
-                Stderr.formatln("{} {}", size, total);
-                
                 this.comp.write(this.chunk[0 .. size]);
                 
                 s = stream_in.read(this.chunk);
@@ -393,8 +387,6 @@ class Uncompress
             {
                 size = s;
                 total += size;
-                
-                Stderr.formatln("{} {}", size, total);
                 
                 stream_out.write(this.chunk[0 .. size]);
                 
@@ -795,11 +787,6 @@ class Uncompress
     **************************************************************************/
     
     public static Level getLevelFromId ( char[] id = "", bool accept_unknown = false )
-    out (r)
-    {
-        Stderr.formatln("{} {}", id, r);
-    }
-    body
     {
         bool is_of_enum = true;
         
