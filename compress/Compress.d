@@ -1,64 +1,104 @@
 /******************************************************************************
 
-        Uncompresses Content
+        Compresses/uncompresses data from stream or buffer to stream or buffer
         
         copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
         version:        Feb 2009: Initial release
 
-        authors:        Thomas Nicolai, Lars Kirchhoff
+        authors:        Thomas Nicolai, Lars Kirchhoff and David Eckardt
 
-        This module uncompresses content based on an input stream, buffer or 
-        string. This module uses automatic gzdetect of encoding type within
-        the zlib library and returns a char[].
+        This module uses the zlib to compress (encodes) and uncompress (decodes)
+        content based on a stream, buffer or string, supporting zlib and gzip
+        encoding of compressed data as well as non-encoded compressed data. For
+        uncompression, encoding auto-detection is provided as an option.
+        
+        If compressed data are taken from/put to a buffer, the base type of the
+        array representing this buffer must be a single byte data type as char,
+        byte or ubyte, or void. 
         
         --
         
-        Compile Instructions:
+        Build Instructions:
+        Code using this module must be linked against the libz which is 
+        contained in 'libz.a' (static library) or 'libz.so' (Linux shared
+        library). For DMD and GDC compiler, given that the Linux shared library
+        which is located in the /usr/lib/ directory should be used, add
         
-        Please add buildflags=-L/usr/lib/libpcre.so to your dsss.conf
-                
+        ---
+        
+        -L/usr/lib/libz.so
+        
+        ---
+        
+        to the command line when compiling or linking. When using DSSS, this
+        line in the dsss.conf has the same effect:
+        
+        ---
+        
+        buildflags = -L/usr/lib/libz.so
+       
+        ---
+        
         --
         
-        Usage:
+        Usage examples:
         
-        Simple usage:
+        Decode (uncompress) content from a buffer and put uncompressed data into
+        a char buffer using encoding auto-detection:
         
         ---
 
-            auto comp = new Uncompress();
-
-            try 
-            {
-                auto content = comp.decode(gzip_content);
-                Stdout(content).newline;
-            }
-            catch (Exception e)
-            {
-                Stdout("Error on Encoding");
-            }
-                
+            import $(TITLE);
+            
+            auto comp = new Compress;
+            
+            ubyte[] compressed;
+            
+            char[] content;
+            
+            // fill "compressed" with gzip or zlib encoded compressed data
+            
+            // if we certainly knew compressed data are zlib or gzip encoded, we
+            // could add
+            //
+            //      comp.setDecoding(Compress.Decoding.Zlib);
+            //
+            // or, respectively,
+            //
+            //      comp.setDecoding(Compress.Decoding.Gzip);
+            //
+            
+            comp.decode(compressed, content);
+            
+            // "content" now contains decoded data
+            
         ---
         
-        If lots of data needs to be decompressed, please instantiate this class as 
-        class property and call decode within the appropriate method. Additionally
-        you can add the prefered encoding type if it is known. Otherwise ZlibStream 
-        will try guess to guess the encoding. 
+        Encode (compress) content from a char buffer and put compressed data to
+        a stream which is a file in this example, using gzip encoding with
+        fastest compression level.
         
         ---
             
-            auto    comp        = new Uncompress();
-            char[]  encoding    = "gzip";
+            import $(TITLE);
+            import tango.io.device.File;
             
-            try 
-            {
-                auto content = comp.decode(gzip_content, encoding);
-                Stdout(content).newline;
-            }
-            catch (Exception e)
-            {
-                Stdout("Error on Encoding");
-            }
+            auto comp = new Compress;
+            auto file = new File;
+            
+            char[] content;
+            
+            // fill "content" with data to compress
+            
+            file.open("mycontent.gz", File.WriteCreate);
+            
+            scope (exit) file.close();
+            
+            comp.setEncoding(comp.Encoding.Gzip);
+            comp.setLevel(comp.Level.Fast);
+            
+            comp.encode(content, file);
             
         ---
          
@@ -75,7 +115,7 @@
             
  ******************************************************************************/
 
-module ocean.compress.Uncompress;
+module ocean.compress.Compress;
 
 
 
@@ -98,11 +138,11 @@ private     import      tango.math.Math: min;
 
 /******************************************************************************
 
-    Uncompress
+    Compress
 
  ******************************************************************************/
 
-class Uncompress
+class Compress
 {
     /**************************************************************************
 
@@ -141,11 +181,11 @@ class Uncompress
 
     static struct BufferSize
     {
-        static const                    CHUNK       = 0x1000,      // Chunk size for ZlibStream access
-                                        INPUT_INIT  = 0x1_0000,    // Initial input buffer size    
-                                        INPUT_GROW  = 0x400,       // Size of which the input buffer will grow
-                                        OUTPUT_INIT = 0x10_0000,   // Initial output buffer size
-                                        OUTPUT_GROW = 0x8000;      // Size of which the output buffer will grow 
+        static const                    CHUNK           = 0x1000,      // Chunk size for ZlibStream access
+                                        INPUT_INIT      = 0x1_0000,    // Initial input buffer size    
+                                        INPUT_GROW      = 0x400,       // Size of which the input buffer will grow
+                                        OUTPUT_INIT     = 0x10_0000,   // Initial output buffer size
+                                        OUTPUT_GROW     = 0x8000;      // Size of which the output buffer will grow 
     }
     /**************************************************************************
 
@@ -165,14 +205,6 @@ class Uncompress
 
     private     ZlibInput               decomp;                             // global ZlibStream object
     private     ZlibOutput              comp;                               // global ZlibStream object
-    
-    /**************************************************************************
-
-        Gzip signature
-        
-     **************************************************************************/
-
-    static const ubyte[]                 GZIP_SIGNATURE      = [0x1F, 0x8B];
     
     /**************************************************************************
 
@@ -298,7 +330,7 @@ class Uncompress
         }
         catch (Exception e)
         {
-            UncompressException("Compress Error: " ~ e.msg);
+            CompressException("Compress Error: " ~ e.msg);
         }
     }
     
@@ -345,8 +377,8 @@ class Uncompress
         Compresses content.
         
         Params:
-             buffer_in = data to compress
-             output    = return buffer
+             buffer_in  = data to compress
+             buffer_out = return buffer
              
      **************************************************************************/
     
@@ -397,7 +429,7 @@ class Uncompress
         }
         catch (Exception e)
         {
-            UncompressException("Uncompress Error: " ~ e.msg);
+            CompressException("Uncompress Error: " ~ e.msg);
         }
     }
 
@@ -407,7 +439,10 @@ class Uncompress
         
         Params:
             stream_in    = compressed input buffer stream
-            output       = return buffer
+            buffer_out   = return buffer
+            
+        Returns:
+            number of output bytes, or 0 if none
             
      **************************************************************************/
     
@@ -428,6 +463,9 @@ class Uncompress
         Params:
             buffer_in  = compressed data
             stream_out = uncompressed output stream conduit
+
+        Returns:
+            number of output bytes, or 0 if none
             
     **************************************************************************/
     
@@ -460,6 +498,7 @@ class Uncompress
         return this.decode(this.initInputBuffer().append(buffer_in), buffer_out);
     }
     
+    /+
     /**************************************************************************
     
         Uncompresses data.
@@ -522,7 +561,7 @@ class Uncompress
     {
         return this.setEncoding(encoding).decode(stream_in, output);
     }
-    
+    +/
     
     
     /**************************************************************************
@@ -531,7 +570,7 @@ class Uncompress
      
      **************************************************************************/
     
-    public void close()
+    public void close ( )
     {
         this.input_buffer.close();
         this.output_buffer.close();
@@ -932,7 +971,7 @@ class Uncompress
         }
         catch (Exception e)
         {
-            UncompressException(e.msg);
+            CompressException(e.msg);
         }
     }
     
@@ -959,8 +998,7 @@ class Uncompress
         
     **************************************************************************/
 
-    private static T validateCode ( T ) ( T code_in, T[] codes,
-                                         ref bool nevermind )
+    private static T validateCode ( T ) ( T code_in, T[] codes, ref bool nevermind )
     in                                         
     {
         assert (codes.length, typeof (this).stringof ~ ".validateCode(): empty codes list");
@@ -1009,7 +1047,8 @@ class Uncompress
     {
         bool in_range = ((code >= Level.min) && (Level.max >= code));
         
-        assert (in_range || nevermind, typeof (this).stringof ~ ": compression level parameter out of range");
+        assert (in_range || nevermind, typeof (this).stringof ~ ": compression "
+                                       "level parameter out of range");
         
         return in_range? cast (Level) code : Level.Normal;
     }
@@ -1085,11 +1124,11 @@ class Uncompress
 
 /******************************************************************************
 
-    UncompressException
+    CompressException
 
  ******************************************************************************/
 
-class UncompressException : Exception
+class CompressException : Exception
 {
     this ( char[] msg )
     {
@@ -1098,6 +1137,6 @@ class UncompressException : Exception
     
     private static void opCall ( char[] msg ) 
     { 
-        throw new UncompressException(msg); 
+        throw new CompressException(msg); 
     }
 }
