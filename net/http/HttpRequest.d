@@ -38,13 +38,13 @@
     char[] post_data;
         
     SocketConduit conduit  = ServerSocket.accept();
-    HttpRequest request    = new HttpRequest(conduit, &this.handle_post_data, 3_145_728);
+    HttpRequest request    = new HttpRequest(conduit, &this.handle_post_data);
     
     request.read();
     
-    char[] method   = request.getMethod();
-    char[] url      = request.getURL();
-    char[] protocol = request.getProtocol();
+    char[] method   = request.getRequestMethod();
+    char[] url      = request.getRequestUrl();
+    char[] protocol = request.getProtocolVersion();
         
     private void handle_post_data ( char[] chunk )
     {
