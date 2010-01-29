@@ -117,8 +117,8 @@ class TypeCheckedArgs
 			x = The variable to store the value of next argument.
 		
 		Returns:
-			The index of the current argument starting with 1 on success,
-			or 0 on type mismatch or end of list reached.
+			The index of the current argument starting with 1 on success, or 0 
+			on type mismatch or end of list reached.
 
      **************************************************************************/
     
@@ -137,6 +137,6 @@ class TypeCheckedArgs
             }
         }
 
-        return ok? this.index: 0;
+        return ok ? this.index : 0;
     }
 }
