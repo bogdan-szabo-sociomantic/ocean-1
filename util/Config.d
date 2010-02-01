@@ -638,7 +638,7 @@ class Config
         {
             foreach (line; new Lines!(char) (new File(this.configFile)))
         	{
-				text = trim (line);
+				text = trim(line);
 			    
                 if (text.length >= 2)
                 {
@@ -648,19 +648,19 @@ class Config
     
     					if ( pos == 0 )
     					{
-    						category = text[pos+1..locate (text, ']')];
+    						category = text[pos + 1 .. locate(text, ']')].dup;
                             
                             key = "";
     					}
     					else
     					{
-    						pos = locate (text, '='); // check for key value pair
+    						pos = locate(text, '='); // check for key value pair
     
     						if (pos < text.length)
                             {
-                                key = trim (text[0 .. pos]);
+                                key = trim(text[0 .. pos]).dup;
                                 
-                                text = trim(text[pos+1 .. $]);
+                                text = trim(text[pos + 1 .. $]).dup;
                                 
     							this.properties[category][key] = text;
                                 
@@ -668,7 +668,7 @@ class Config
                             }
                             else
                             {
-                                text = trim(text);
+                                text = trim(text).dup;
                                 
                                 if (text.length)
                                 {
