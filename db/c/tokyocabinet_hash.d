@@ -226,7 +226,7 @@ enum
   HDBFFATAL = 1 << 1                     /* whetehr with fatal error */
 };
 
-enum HDBOPTS : ubyte
+enum HDBOPT : ubyte
 {                                   /* enumeration for tuning options */
   HDBTLARGE   = 1 << 0,                 /* use 64-bit bucket array */
   HDBTDEFLATE = 1 << 1,                 /* compress each record with Deflate */
@@ -263,6 +263,39 @@ struct TCLIST
     int          num;                          /* number of used elements */
 };
 
+
+enum TCHERRCODE : int
+{                                       /* enumeration for error codes */
+    TCESUCCESS,                            /* success */
+    TCETHREAD,                             /* threading error */
+    TCEINVALID,                            /* invalid operation */
+    TCENOFILE,                             /* file not found */
+    TCENOPERM,                             /* no permission */
+    TCEMETA,                               /* invalid meta data */
+    TCERHEAD,                              /* invalid record header */
+    TCEOPEN,                               /* open error */
+    TCECLOSE,                              /* close error */
+    TCETRUNC,                              /* trunc error */
+    TCESYNC,                               /* sync error */
+    TCESTAT,                               /* stat error */
+    TCESEEK,                               /* seek error */
+    TCEREAD,                               /* read error */
+    TCEWRITE,                              /* write error */
+    TCEMMAP,                               /* mmap error */
+    TCELOCK,                               /* lock error */
+    TCEUNLINK,                             /* unlink error */
+    TCERENAME,                             /* rename error */
+    TCEMKDIR,                              /* mkdir error */
+    TCERMDIR,                              /* rmdir error */
+    TCEKEEP,                               /* existing record */
+    TCENOREC,                              /* no record found */
+    TCEMISC = 9999                         /* miscellaneous error */
+};
+
+
+
+
+
 /* Get the message string corresponding to an error code.
    `ecode' specifies the error code.
    The return value is the message string of the error code. */
@@ -284,16 +317,33 @@ void tchdbdel(TCHDB *hdb);
 /* Get the last happened error code of a hash database object.
    `hdb' specifies the hash database object.
    The return value is the last happened error code.
-   The following error codes are defined: `TCESUCCESS' for success, `TCETHREAD' for threading
-   error, `TCEINVALID' for invalid operation, `TCENOFILE' for file not found, `TCENOPERM' for no
-   permission, `TCEMETA' for invalid meta data, `TCERHEAD' for invalid record header, `TCEOPEN'
-   for open error, `TCECLOSE' for close error, `TCETRUNC' for trunc error, `TCESYNC' for sync
-   error, `TCESTAT' for stat error, `TCESEEK' for seek error, `TCEREAD' for read error,
-   `TCEWRITE' for write error, `TCEMMAP' for mmap error, `TCELOCK' for lock error, `TCEUNLINK'
-   for unlink error, `TCERENAME' for rename error, `TCEMKDIR' for mkdir error, `TCERMDIR' for
-   rmdir error, `TCEKEEP' for existing record, `TCENOREC' for no record found, and `TCEMISC' for
-   miscellaneous error. */
-int tchdbecode(TCHDB *hdb);
+   The following error codes are defined:
+       `TCESUCCESS' for success,
+       `TCETHREAD'  for threading error,
+       `TCEINVALID' for invalid operation,
+       `TCENOFILE'  for file not found,
+       `TCENOPERM'  for no permission,
+       `TCEMETA'    for invalid meta data,
+       `TCERHEAD'   for invalid record header,
+       `TCEOPEN'    for open error,
+       `TCECLOSE'   for close error,
+       `TCETRUNC'   for trunc error,
+       `TCESYNC'    for sync error,
+       `TCESTAT'    for stat error,
+       `TCESEEK'    for seek error,
+       `TCEREAD'    for read error,
+       `TCEWRITE'   for write error,
+       `TCEMMAP'    for mmap error,
+       `TCELOCK'    for lock error,
+       `TCEUNLINK'  for unlink error,
+       `TCERENAME'  for rename error,
+       `TCEMKDIR'   for mkdir error,
+       `TCERMDIR'   for rmdir error,
+       `TCEKEEP'    for existing record,
+       `TCENOREC'   for no record found, and
+       `TCEMISC'    for miscellaneous error.
+*/
+TCHERRCODE tchdbecode(TCHDB *hdb);
 
 
 /* Set mutual exclusion control of a hash database object for threading.
