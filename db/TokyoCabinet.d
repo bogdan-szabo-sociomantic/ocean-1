@@ -19,13 +19,10 @@ module db.TokyoCabinet;
 
  ******************************************************************************/
 
-//private import ocean.db.c.tokyocabinet;
-private     import  ocean.db.c.tokyocabinet_hash;
 
+private     import  ocean.db.c.tokyocabinet_hash;
 private     import  tango.stdc.stdlib;
 private     import  tango.stdc.string: strlen;
-
-// private     import  tango.util.log.Trace;
 
 
 /*******************************************************************************
@@ -51,21 +48,6 @@ private     import  tango.stdc.string: strlen;
         
         ---
         
-        We should use this database in combination with the FNV  
-        hash algorithm in order to build a distributed hash table (DTH)
-        
-        References
-        
-        http://www.audioscrobbler.net/development/ketama/
-        svn://svn.audioscrobbler.net/misc/ketama/
-        http://pdos.csail.mit.edu/chord/
-        
-        Iteration
-        
-        http://torum.net/2009/10/iterating-tokyo-cabinet-in-parallel/
-        http://torum.net/2009/05/tokyo-cabinet-protected-database-iteration/
-        
-        ---
 
 *******************************************************************************/
 
@@ -91,24 +73,24 @@ class TokyoCabinet
     
     extern (C) 
     {
-        private alias bool function ( TCHDB *hdb, void *key, int ksiz, void *value, int vsiz ) TchPutFunc;
+        private alias bool function ( TCHDB *hdb, void *key, int ksiz, 
+                void *value, int vsiz ) TchPutFunc;
     }
     
     /**************************************************************************
         
         Definitions
     
-    ***************************************************************************/ 
+     **************************************************************************/ 
     
-    //private         char[]          dbfile;                         // database name
     private         TCHDB*          db;                             // tokyocabinet instance
     private         bool            async = false;                  // disable by default
     
     /**************************************************************************
         
-        tuning parameter for hash database tchdbtune
+        Tuning parameter for hash database tchdbtune
     
-    ***************************************************************************/ 
+     **************************************************************************/ 
     
     private         long            tune_bnum; //  = 30_000_000;       
     private         byte            tune_apow; //   = 2;
@@ -125,7 +107,7 @@ class TokyoCabinet
         Bzip:       each record is compressed with BZIP2 encoding
         Tcbs:       each record is compressed with TCBS encoding
     
-    ***************************************************************************/
+     **************************************************************************/
     
     enum                            TuneOpts : HDBOPT
                                     {
@@ -137,7 +119,13 @@ class TokyoCabinet
                                         None    = cast (HDBOPT) 0
                                     }
     
+    /**************************************************************************
+    
+        Destructor check if called twice
+
+     **************************************************************************/
     bool            deleted         = false;
+    
     
     /**************************************************************************
         
@@ -146,12 +134,10 @@ class TokyoCabinet
         Params:
             dbfile = path to database file (e.g. /tmp/store.tch)
                              
-    ***************************************************************************/
+     **************************************************************************/
     
     public this ( ) 
     {
-        //this.dbfile = toCstring(dbfile);
-        
         this.db = tchdbnew();
         
         // tchdbsetxmsiz(db, 500_000_000); // set memory used in bytes
@@ -163,11 +149,12 @@ class TokyoCabinet
     
         Destructor    
         
+        FIXME: destructor called twice: why?
+        
         tchdbdel() will close the database object if it is still open.
                              
-    ***************************************************************************/
+     **************************************************************************/
 
-    
     ~this ( )
     {
         if (!deleted)
@@ -175,14 +162,20 @@ class TokyoCabinet
             tchdbdel(this.db);
         }
         
-        this.deleted = true;        // FIXME: destructor called twice: why?
+        this.deleted = true;
     }
     
+    /**************************************************************************
+        
+        Invariat: called every time a publica method is called
+                             
+     **************************************************************************/
     
     invariant ( )
     {
         assert (this.db, typeof (this).stringof ~ ": invalid Tokyo Cabinet core object");
     }
+    
     
     /**************************************************************************
     
@@ -193,11 +186,10 @@ class TokyoCabinet
                pool by power of 2.
         opts = specifies options by bitwise-or
   
-    ***************************************************************************/    
+     **************************************************************************/    
     
     public void open ( char[] dbfile )
     {   
-        // Tune database before opening database
         tchdbtune(this.db, this.tune_bnum, this.tune_apow, this.tune_fpow, this.tune_opts);
         
         this.tokyoAssert(tchdbopen(this.db, this.toCstring(dbfile).ptr, 
@@ -209,7 +201,7 @@ class TokyoCabinet
     
     /**************************************************************************
         
-            Close Database
+        Close Database
     
     ***************************************************************************/
     
@@ -459,10 +451,13 @@ class TokyoCabinet
             key = hash key
             value = return buffer for value
             
+        Returns:
+            true if key found, otherwise false
+            
     ***************************************************************************/
     
     
-    public void get ( char[] key, out char[] value )
+    public bool get ( char[] key, out char[] value )
     {
         int length;
         
@@ -473,7 +468,11 @@ class TokyoCabinet
             value = (cast (char*) cvalue)[0 .. length].dup;
             
             free(cvalue);  // allocated by tchdbget()
+            
+            return true;
         }
+        
+        return false;
     }
     
     
@@ -489,7 +488,6 @@ class TokyoCabinet
             
     ***************************************************************************/
     
-
     public char[] get ( char[] key )
     {
         int length;
@@ -505,6 +503,7 @@ class TokyoCabinet
         
         return "";
     }
+    
     
     /**************************************************************************
     
@@ -533,6 +532,7 @@ class TokyoCabinet
         }
     }
     
+    
     /**************************************************************************
     
         Get Value of Key via indexing. 
@@ -547,6 +547,7 @@ class TokyoCabinet
         
         return value.dup;
     }
+    
     
     /**************************************************************************
     
@@ -571,6 +572,7 @@ class TokyoCabinet
         
         @see reference
         
+        http://torum.net/2009/10/iterating-tokyo-cabinet-in-parallel/
         http://torum.net/2009/05/tokyo-cabinet-protected-database-iteration/
         
         Returns:
@@ -594,6 +596,7 @@ class TokyoCabinet
         
         @see refererence
          
+        http://torum.net/2009/10/iterating-tokyo-cabinet-in-parallel/
         http://torum.net/2009/05/tokyo-cabinet-protected-database-iteration/
         
         Params:
