@@ -30,11 +30,11 @@
         
         dchar[] content;
         
-        StringReplace!(dchar) replace = new replace!(dchar);
+        StringReplace!(dchar) replace = new StringReplace!(dchar);
         
         // fill "content" with text
         
-        stringReplace.replacePattern(content, "Max", "Moritz");
+        replace.replacePattern(content, "Max", "Moritz");
         
         // all occurrences of "Max" in "content" are now replaced by "Moritz"
         
