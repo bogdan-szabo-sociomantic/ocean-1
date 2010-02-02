@@ -22,17 +22,17 @@ module db.TokyoCabinet;
 //private import ocean.db.c.tokyocabinet;
 private     import  ocean.db.c.tokyocabinet_hash;
 
-private     import  tango.stdc.stringz : toDString = fromStringz, toCString = toStringz;
 private     import  tango.stdc.stdlib;
+private     import  tango.stdc.string: strlen;
 
-//private     import  tango.util.log.Trace;
+// private     import  tango.util.log.Trace;
 
 
 /*******************************************************************************
 
         Tokyo Cabinet Database
         
-        Very fast and lightwight database with 10K to 200K inserts per second
+        Very fast and lightweight database with 10K to 200K inserts per second
         based on the storage engine used.
         
         ---
@@ -71,13 +71,36 @@ private     import  tango.stdc.stdlib;
 
 class TokyoCabinet
 {
+    
+    /**************************************************************************
+     
+        Tokyo Cabinet put function definition
+        
+        The following Tokyo Cabinet functions comply to TchPutFunc:
+        
+        ---
+        
+            tchdbput()
+            tchdbputkeep()
+            tchdbputcat()
+            tchdbputasync()
+
+        ---
+        
+     **************************************************************************/
+    
+    extern (C) 
+    {
+        private alias bool function ( TCHDB *hdb, void *key, int ksiz, void *value, int vsiz ) TchPutFunc;
+    }
+    
     /**************************************************************************
         
         Definitions
     
     ***************************************************************************/ 
     
-    private         char[]          dbfile;                         // database name
+    //private         char[]          dbfile;                         // database name
     private         TCHDB*          db;                             // tokyocabinet instance
     private         bool            async = false;                  // disable by default
     
@@ -87,10 +110,10 @@ class TokyoCabinet
     
     ***************************************************************************/ 
     
-    private         long            tune_bnum   = 30_000_000;       
-    private         byte            tune_apow   = 2;
-    private         byte            tune_fpow   = 3;
-    private         ubyte           tune_opts;         
+    private         long            tune_bnum; //  = 30_000_000;       
+    private         byte            tune_apow; //   = 2;
+    private         byte            tune_fpow; //   = 3;
+    private         TuneOpts        tune_opts;         
     
 
     /**************************************************************************
@@ -104,24 +127,17 @@ class TokyoCabinet
     
     ***************************************************************************/
     
-    const           enum            TuneOpts : HDBOPTS
+    enum                            TuneOpts : HDBOPT
                                     {
-                                        Large   = HDBOPTS.HDBTLARGE, 
-                                        Deflate = HDBOPTS.HDBTDEFLATE,
-                                        Bzip    = HDBOPTS.HDBTBZIP,
-                                        Tcbs    = HDBOPTS.HDBTTCBS,
+                                        Large   = HDBOPT.HDBTLARGE, 
+                                        Deflate = HDBOPT.HDBTDEFLATE,
+                                        Bzip    = HDBOPT.HDBTBZIP,
+                                        Tcbs    = HDBOPT.HDBTTCBS,
                                         
-                                        None    = cast (HDBOPTS) 0
+                                        None    = cast (HDBOPT) 0
                                     }
     
-    
-    /**************************************************************************
-        
-        Buffer
-    
-    ***************************************************************************/
-    
-    private         char[]          tmp_buffer;
+    bool            deleted         = false;
     
     /**************************************************************************
         
@@ -132,9 +148,10 @@ class TokyoCabinet
                              
     ***************************************************************************/
     
-    public this ( char[] dbfile ) 
+    public this ( ) 
     {
-        this.dbfile = dbfile;
+        //this.dbfile = toCstring(dbfile);
+        
         this.db = tchdbnew();
         
         // tchdbsetxmsiz(db, 500_000_000); // set memory used in bytes
@@ -142,6 +159,30 @@ class TokyoCabinet
         // tchdbtune(db, 20_000_000, 4, 10, HDBTLARGE);
     }
     
+    /**************************************************************************
+    
+        Destructor    
+        
+        tchdbdel() will close the database object if it is still open.
+                             
+    ***************************************************************************/
+
+    
+    ~this ( )
+    {
+        if (!deleted)
+        {
+            tchdbdel(this.db);
+        }
+        
+        this.deleted = true;        // FIXME: destructor called twice: why?
+    }
+    
+    
+    invariant ( )
+    {
+        assert (this.db, typeof (this).stringof ~ ": invalid Tokyo Cabinet core object");
+    }
     
     /**************************************************************************
     
@@ -154,17 +195,15 @@ class TokyoCabinet
   
     ***************************************************************************/    
     
-    public void open ( )
+    public void open ( char[] dbfile )
     {   
         // Tune database before opening database
-        tchdbtune(this.db, this.tune_bnum, 
-            this.tune_apow, this.tune_fpow, this.tune_opts);
+        tchdbtune(this.db, this.tune_bnum, this.tune_apow, this.tune_fpow, this.tune_opts);
         
-        if (!tchdbopen(this.db, toCString(this.dbfile), 
-            HDBOMODE.HDBOWRITER | HDBOMODE.HDBOCREAT | HDBOMODE.HDBOLCKNB))
-            {
-                TokyoCabinetException("open error");
-            }
+        this.tokyoAssert(tchdbopen(this.db, this.toCstring(dbfile).ptr, 
+                                   HDBOMODE.HDBOWRITER |
+                                   HDBOMODE.HDBOCREAT  |
+                                   HDBOMODE.HDBOLCKNB), "Open error");
     }
     
     
@@ -176,9 +215,10 @@ class TokyoCabinet
     
     public void close ()
     {
-        if (this.db !is null)
-            if (!tchdbclose(this.db))
-                TokyoCabinetException("close error");
+        if (this.db)
+        {
+            this.tokyoAssert(tchdbclose(this.db), "close error");
+        }
     }
     
     
@@ -201,16 +241,8 @@ class TokyoCabinet
     ***************************************************************************/
     
     public void enableThreadSupport ()
-    in
     {
-        assert (!this.db, typeof (this).stringof ~ ".enableThreadSupport(): "
-                          "cannot enable thread support after open() has been "
-                          "called");
-    }
-    body
-    {
-        if (this.db !is null)
-            tchdbsetmutex(this.db);
+        tchdbsetmutex(this.db);
     }
 
     
@@ -223,7 +255,7 @@ class TokyoCabinet
             
     ***************************************************************************/
     
-    public void setTuneBnum ( uint bnum )
+    public void setTuneBnum ( uint bnum = tune_bnum.init )
     {
         this.tune_bnum = bnum;
     }
@@ -252,7 +284,7 @@ class TokyoCabinet
             
     ***************************************************************************/
     
-    public void setTuneOpts ( TuneOpts opts )
+    public void setTuneOpts ( TuneOpts opts = tune_opts.init )
     {
         this.tune_opts = opts;
     }
@@ -272,8 +304,7 @@ class TokyoCabinet
     
     public void setCacheSize( uint size )
     {
-        if (this.db !is null)
-            tchdbsetcache(this.db, size);
+        tchdbsetcache(this.db, size);
     }
     
     
@@ -291,8 +322,7 @@ class TokyoCabinet
     
     public void setMemSize( uint size )
     {
-        if (this.db !is null)
-            tchdbsetxmsiz(this.db, size);
+        tchdbsetxmsiz(this.db, size);
     }
     
     
@@ -309,17 +339,20 @@ class TokyoCabinet
             
     ***************************************************************************/
     
-    public bool put ( char[] key, char[] value )
-    in
+    public void put ( char[] key, char[] value )
     {
-        assert(key);
+        this.tchPut(key, value, this.async? &tchdbputasync : &tchdbput);
     }
-    body
+    
+    public alias put opIndexAssign;
+    
+    /+
+    public bool put ( char[] key, char[] value )
     {
         return this.async?
-            tchdbputasync2(this.db, toCString(key), toCString(value)) :
-            tchdbput2     (this.db, toCString(key), toCString(value));
-                
+            tchdbputasync(this.db, key.ptr, key.length, value.ptr, value.length) :
+            tchdbput     (this.db, key.ptr, key.length, value.ptr, value.length);
+            
         /*
         // I should try it with malloc() to get arround the GC
         //tchdbmemsync(this.db, true);
@@ -343,7 +376,7 @@ class TokyoCabinet
         return true;
         */
     }
-    
+    +/
     
     /**************************************************************************
     
@@ -358,15 +391,10 @@ class TokyoCabinet
             
     ***************************************************************************/
 
-   
-    public bool putkeep ( char[] key, char[] value )
-    in
+    
+    public void putkeep ( char[] key, char[] value )
     {
-        assert(key);
-    }
-    body
-    {
-        return tchdbputkeep2(this.db, toCString(key), toCString(value));
+        this.tchPut(key, value, &tchdbputkeep);
     }
     
     
@@ -383,15 +411,9 @@ class TokyoCabinet
             
     ***************************************************************************/
     
-    public bool putcat ( char[] key, char[] value )
-    in
+    public void putcat ( char[] key, char[] value )
     {
-        assert(key);
-        assert(value);
-    }
-    body
-    {   
-        return tchdbputcat2(this.db, toCString(key), toCString(value));
+        this.tchPut(key, value, &tchdbputcat);
     }
     
     
@@ -406,7 +428,7 @@ class TokyoCabinet
             value of key
             
     ***************************************************************************/
-    
+    /+
     public char[] get ( char[] key )
     in
     {
@@ -423,9 +445,35 @@ class TokyoCabinet
         }
         
         this.tmp_buffer = toDString(cvalue).dup;
-        free(cvalue);
+        free(cvalue);                       // allocated by tchdbget2()
         
         return this.tmp_buffer;
+    }
+    +/
+    
+    /**************************************************************************
+    
+        Get Value of Key without heap activity using free
+    
+        Params:
+            key = hash key
+            value = return buffer for value
+            
+    ***************************************************************************/
+    
+    
+    public void get ( char[] key, out char[] value )
+    {
+        int length;
+        
+        void* cvalue = tchdbget(this.db, key.ptr, key.length, &length);
+        
+        if (cvalue)
+        {
+            value = (cast (char*) cvalue)[0 .. length].dup;
+            
+            free(cvalue);  // allocated by tchdbget()
+        }
     }
     
     
@@ -435,32 +483,83 @@ class TokyoCabinet
     
         Params:
             key = hash key
-            value = return buffer for value
     
         Returns
-            true on success, false on error
+            value or empty string if item not existing
             
     ***************************************************************************/
     
-    public bool get ( char[] key, inout char[] value )
-    in
+
+    public char[] get ( char[] key )
     {
-        assert(key);
-    }
-    body
-    {
-        char* cvalue;
+        int length;
         
-        if ((cvalue = tchdbget2(this.db, toCString(key))) is null)
+        void* cvalue = tchdbget(this.db, key.ptr, key.length, &length);
+        
+        if (cvalue)
         {
-//            Trace.formatln("TokyoCabinet Get Error: '{} {}'", key, toDString(tchdberrmsg(tchdbecode(this.db))));
-            return false;
+            scope (exit) free(cvalue);  // allocated by tchdbget()
+            
+            return (cast (char*) cvalue)[0 .. length].dup;
         }
         
-        value = toDString(cvalue).dup;
-        free(cvalue);
+        return "";
+    }
+    
+    /**************************************************************************
+    
+        Get Value of Key without intermediate value buffer
+    
+        Params:
+            key = hash key
+    
+        Returns
+            value or empty string if item not existing
+            
+    ***************************************************************************/
+
+    public void get_alt ( char[] key, out char[] value )
+    {
+        int length = tchdbvsiz(this.db, key.ptr, key.length);
         
-        return true;
+        if (length >= 0)
+        {
+            value.length = length;
+            
+            if (tchdbget3(this.db, key.ptr, key.length, value.ptr, length) < 0)
+            {
+                value.length = 0;
+            }
+        }
+    }
+    
+    /**************************************************************************
+    
+        Get Value of Key via indexing. 
+    
+    ***************************************************************************/
+
+    public char[] opIndex ( char[] key )
+    {
+        char[] value;
+        
+        this.get_alt(key, value);
+        
+        return value.dup;
+    }
+    
+    /**************************************************************************
+    
+        Remove item
+        
+        Params:
+            key = key of item to remove
+    
+    ***************************************************************************/
+
+    public void remove ( char[] key )
+    {
+        tchdbout(this.db, key.ptr, key.length);
     }
     
     
@@ -479,17 +578,9 @@ class TokyoCabinet
        
     ***************************************************************************/
     
-    public bool initIterator ()
+    public void initIterator ()
     {
-        if (tchdbiterinit(this.db) != true) 
-        {
-            TokyoCabinetException("TokyoCabinet failed to init Iterator: '" ~ 
-                toDString(tchdberrmsg(tchdbecode(this.db))) ~ "'");
-            
-//            return false;
-        }
-        
-        return true;
+        this.tokyoAssert(tchdbiterinit(this.db), "Error initializing Iterator"); 
     }
     
     
@@ -513,22 +604,14 @@ class TokyoCabinet
         
     ***************************************************************************/
     
-    public bool iterNext ( ref char[] dst )
+    public void iterNext ( out char[] dst )
     {
-        char* key;
+        char* key = tchdbiternext2(this.db);
         
-        if ((key = tchdbiternext2(this.db)) is null)
-        {
-            TokyoCabinetException("TokyoCabinet Iterator Error: '" ~ 
-                toDString(tchdberrmsg(tchdbecode(this.db))) ~ "'");
-            
-//            return false;
-        }
+        tokyoAssert(key, "Error on iteration");
         
         dst = toDString(key).dup;
         free(key);
-        
-        return true;
     }
     
     
@@ -631,6 +714,154 @@ class TokyoCabinet
     {
         return tchdbrnum(this.db);
     }
+    
+    
+    
+    /**************************************************************************
+    
+        Invokes put_func to put key/value into the database.
+        
+        The following Tokyo Cabinet functions comply to TchPutFunc:
+        
+            tchdbput
+            tchdbputkeep
+            tchdbputcat
+            tchdbputasync
+        
+        Params:
+            key      = key of item to put
+            value    = item value
+            put_func = Tokyo Cabinet put function
+        
+    ***************************************************************************/
+
+   
+    private void tchPut ( char[] key, char[] value, TchPutFunc put_func )
+    in
+    {
+        assert (key,   "Error on put: null key");
+        assert (value, "Error on put: null value");
+    }
+    body
+    {
+        this.tokyoAssert(put_func(this.db, key.ptr, key.length, value.ptr, value.length),
+                         "Error on put");
+    }
+
+    
+    /**************************************************************************
+    
+        Retrieves the current Tokyo Cabinet error message string.
+        
+        Returns:
+            current Tokyo Cabinet error message string
+        
+    ***************************************************************************/
+
+    private char[] getTokyoErrMsg ( )
+    {
+        return this.getTokyoErrMsg(tchdbecode(this.db));
+    }
+    
+    
+    /**************************************************************************
+    
+        Retrieves the Tokyo Cabinet error message string for errcode.
+        
+        Params:
+            errcode = Tokyo Cabinet error code
+            
+        Returns:
+            Tokyo Cabinet error message string for errcode
+        
+    ***************************************************************************/
+
+    private char[] getTokyoErrMsg ( TCHERRCODE errcode )
+    {
+        return toDString(tchdberrmsg(errcode));
+    }
+    
+    
+    /**************************************************************************
+    
+        Asserts p is not null; p == null is considered an error reported by
+        Tokyo Cabinet.
+        
+        Params:
+            p       = not null assertion pointer
+            context = error context description string for message
+        
+    ***************************************************************************/
+    
+    private void tokyoAssert ( void* p, char[] context = "Error" )
+    {
+        this.tokyoAssert(!!p, context);
+    }
+
+    /**************************************************************************
+    
+        Asserts ok; ok == false is considered an error reported by Tokyo
+        Cabinet.
+        
+        Params:
+            ok      = assert condition
+            context = error context description string for message
+        
+    ***************************************************************************/
+
+    private void tokyoAssert ( bool ok, char[] context = "Error" )
+    {
+        if (!ok)
+        {
+            TCHERRCODE errcode = tchdbecode(this.db);
+            
+            if (errcode != TCHERRCODE.TCESUCCESS)
+            {
+                TokyoCabinetException(typeof (this).stringof ~ ": " ~
+                                      context ~ ": " ~ this.getTokyoErrMsg(errcode));
+            }
+        }
+    }
+    
+    
+    /**************************************************************************
+    
+        Converts str to a C string, that is, a null terminator is appended if
+        not present.
+        
+        Params:
+            str = input string
+        
+        Returns:
+            C compatible (null terminated) string
+        
+    ***************************************************************************/
+
+    private static char[] toCstring ( char[] str )
+    {
+        bool term = str.length? !!str[$ - 1] : true;
+        
+        return term? str ~ '\0' : str;
+    }
+    
+    /**************************************************************************
+    
+        Converts str to a D string: str is sliced from beginning to its null
+        terminator.
+        
+        Params:
+            str = C compatible input string (pointer to first element of null
+                  terminated string)
+        
+        Returns:
+            C compatible (null terminated) string
+        
+    ***************************************************************************/
+
+    private static char[] toDString ( char* str )
+    {
+        return str? str[0 .. strlen(str)] : "";
+    }
 }
 
 
@@ -642,13 +873,9 @@ class TokyoCabinet
 
 class TokyoCabinetException : Exception
 {
-    this(char[] msg)
-    {
-        super(msg);
-    }
+    public this ( char[] msg ) { super(msg); }
     
-    protected:
-        static void opCall(char[] msg) { throw new TokyoCabinetException(msg); }
+    protected static void opCall ( char[] msg ) { throw new TokyoCabinetException(msg); }
 }
 
 
