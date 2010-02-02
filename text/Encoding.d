@@ -22,11 +22,11 @@
             
             // fill "content" with text
             
-            Encode.repairUtf8(content);
+            encode.repairUtf8(content);
             
             // "content" now is cleaned of "Ã£"-like malcoded UTF-8 characters
             
-            Encode.decodeHtmlEntities(content);
+            encode.decodeHtmlEntities(content);
             
             // all Unicode and ISO8859-1/15 (Latin 1/9) named character entities
             // in "content" are now replaced by their corresponding Unicode
