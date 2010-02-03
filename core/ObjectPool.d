@@ -263,11 +263,14 @@ class ObjectPool ( T, A ... )
 
     public This recycle ( PoolItem item )
     {
-        //item.recycling = true;
-        
         this._recycle(item);
         
         return this;
+    }
+    
+    public This recycle ( T item )
+    {
+        return this.recycle(cast (PoolItem) item);
     }
     
     /**************************************************************************
