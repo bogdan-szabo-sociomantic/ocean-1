@@ -167,7 +167,7 @@ class TokyoCabinet
     
     /**************************************************************************
         
-        Invariat: called every time a publica method is called
+        Invariant: called every time a public class method is called
                              
      **************************************************************************/
     
@@ -181,10 +181,7 @@ class TokyoCabinet
     
         Open Database
 
-        apow = specifies the size of record alignment by power of 2.
-        fpow = specifies the maximum number of elements of the free block 
-               pool by power of 2.
-        opts = specifies options by bitwise-or
+        dbfile = specifies the database  file name
   
      **************************************************************************/    
     
@@ -510,26 +507,33 @@ class TokyoCabinet
         Get Value of Key without intermediate value buffer
     
         Params:
-            key = hash key
+            key   = hash key
+            value = value output
     
         Returns
-            value or empty string if item not existing
+            true on success or false if item not existing
             
     ***************************************************************************/
 
-    public void get_alt ( char[] key, out char[] value )
+    public bool get_alt ( char[] key, out char[] value )
     {
         int length = tchdbvsiz(this.db, key.ptr, key.length);
         
-        if (length >= 0)
+        bool found = length >= 0;
+        
+        if (found)
         {
             value.length = length;
             
-            if (tchdbget3(this.db, key.ptr, key.length, value.ptr, length) < 0)
+            found = (tchdbget3(this.db, key.ptr, key.length, value.ptr, length) >= 0);
+            
+            if (!found)
             {
                 value.length = 0;
             }
         }
+        
+        return found;
     }
     
     
@@ -555,12 +559,15 @@ class TokyoCabinet
         
         Params:
             key = key of item to remove
-    
+        
+        Returns:
+            true on success or false otherwise
+        
     ***************************************************************************/
 
-    public void remove ( char[] key )
+    public bool remove ( char[] key )
     {
-        tchdbout(this.db, key.ptr, key.length);
+        return tchdbout(this.db, key.ptr, key.length);
     }
     
     
