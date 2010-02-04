@@ -1106,7 +1106,7 @@ struct TchDbIterator
         
         Params:
             hdb:  TokyoCabinet database reference
-            delg: D 'foreach' 'opAppy'
+            delg: D 'foreach' delegate
             
         Returns:
             false on to continue or true to stop iteration, complying to the
