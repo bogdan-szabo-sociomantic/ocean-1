@@ -1121,8 +1121,11 @@ struct TchDbIterator
     
     /**************************************************************************
     
-        tchdbforeach() callback function; adapts a D delegate of type
-        ForeachDelg.
+        tchdbforeach() callback function
+        
+        Assumes that the pointer to a D delegate of type ForeachDelg was passed
+        to tchdbforeach() as custom reference parameter "op" (last argument of
+        tchdbforeach()) and invokes this delegate.
         
         Params:
             kbuf = key buffer
@@ -1130,8 +1133,8 @@ struct TchDbIterator
             vbuf = value buffer
             ksiz = value length (bytes)
             op   = custom reference; contains the value of the last
-                   tchdbforeach() parameter "void* op". This must be a pointer
-                   to a D delegate of type ForeachDelg.
+                   tchdbforeach() argument "op". This must be a pointer to the D
+                   delegate of type ForeachDelg to invoke.
             
         Returns:
             true on to continue or false to stop iteration, complying to the
@@ -1147,8 +1150,8 @@ struct TchDbIterator
         assert (vbuf,       "tchiter: got null value from tchdbforeach()");
         assert (ksiz >= 0,  "tchiter: invalid key length from tchdbforeach()");
         assert (vsiz >= 0,  "tchiter: invalid value length from tchdbforeach()");
-        assert (op,         "tchiter: null op from tchdbforeach(); expected pointer "
-                            "to ForeachDelg delegate");
+        assert (op,         "tchiter: got null op from tchdbforeach(); expected "
+                            "pointer to ForeachDelg delegate");
     }
     body
     {
