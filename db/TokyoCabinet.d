@@ -570,104 +570,6 @@ class TokyoCabinet
         return tchdbout(this.db, key.ptr, key.length);
     }
     
-    
-    /**************************************************************************
-    
-        Iterate through database and return key
-        
-        Iterator needs to be initialized before it can be used!
-        
-        @see reference
-        
-        http://torum.net/2009/10/iterating-tokyo-cabinet-in-parallel/
-        http://torum.net/2009/05/tokyo-cabinet-protected-database-iteration/
-        
-        Returns:
-            true, if iterator could be initialized, false on error 
-       
-    ***************************************************************************/
-    
-    public void initIterator ()
-    {
-        this.tokyoAssert(tchdbiterinit(this.db), "Error initializing Iterator"); 
-    }
-    
-    
-    /**************************************************************************
-        
-        Returns the next key from the iterator
-        
-        The iterator needs to be initialized with initIterator key needs to be 
-        deleted, because on every iteration a new malloc is made by the tokyo 
-        cabinet library.
-        
-        @see refererence
-         
-        http://torum.net/2009/10/iterating-tokyo-cabinet-in-parallel/
-        http://torum.net/2009/05/tokyo-cabinet-protected-database-iteration/
-        
-        Params:
-            dst = return buffer for next element
-        
-        Returns: 
-            true, if next item is available false, otherwise
-        
-    ***************************************************************************/
-    
-    public void iterNext ( out char[] dst )
-    {
-        char* key = tchdbiternext2(this.db);
-        
-        tokyoAssert(key, "Error on iteration");
-        
-        dst = toDString(key).dup;
-        free(key);
-    }
-    
-    
-    /**************************************************************************
-    
-        Returns the next key/value pair from the iterator
-        
-        The iterator needs to be initialized with initIterator key needs to be 
-        deleted, because on every iteration a new malloc is made by the tokyo 
-        cabinet library.
-        
-        @see refererence
-         
-        http://torum.net/2009/05/tokyo-cabinet-protected-database-iteration/
-        
-        Params:
-            key   = return buffer for next key
-            value = return buffer for next value
-        
-        Returns: 
-            true, if next item is available false, otherwise
-    
-     ***************************************************************************/
-
-    public bool iterNext ( ref char[] key, ref char[] value )
-    {
-        char* _value = null;
-        
-        char* _key = tchdbiternext2(this.db);
-        
-        if (_key)
-        {
-            _value = tchdbget2(this.db, _key);
-            
-            key = toDString(_key).dup;
-            
-            if (_value)
-            {
-                value = toDString(_value).dup;
-            }
-        }
-            
-        return !!_value;
-    }
-    
-    
     /**************************************************************************
     
         "foreach" iterator over items in database. The "key" and "val"
@@ -691,7 +593,12 @@ class TokyoCabinet
 
             
         ---
-    
+        
+        @see reference
+        
+        http://torum.net/2009/10/iterating-tokyo-cabinet-in-parallel/
+        http://torum.net/2009/05/tokyo-cabinet-protected-database-iteration/
+        
      ***************************************************************************/
     
     public int opApply ( TchDbIterator.ForeachDelg delg )
