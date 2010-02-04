@@ -15,7 +15,8 @@ module c.tokyocabinet_hash;
  * Boston, MA 02111-1307 USA.
  *************************************************************************************************/
 
-extern (C):
+extern (C)
+{
 
 /*************************************************************************************************
  * basic utilities (for experts)
@@ -956,8 +957,8 @@ bool tchdbdefrag(TCHDB *hdb, long step);
    If successful, the return value is true, else, it is false.
    Note that the callback function can not perform any database operation because the function
    is called in the critical section guarded by the same locks of database operations. */
-bool tchdbputproc(TCHDB *hdb, void *kbuf, int ksiz, void *vbuf, int vsiz,
-                  TCPDPROC proc, void *op);
+bool tchdbputproc(TCHDB *hdb, void *kbuf, int ksiz, void *vbuf = null, int vsiz = 0,
+                  TCPDPROC proc = null, void *op = null);
 
 
 /* Retrieve the next record of a record in a hash database object.
@@ -983,7 +984,7 @@ void *tchdbgetnext(TCHDB *hdb, void *kbuf, int ksiz, int *sp);
    returned if no record corresponds.
    Because the region of the return value is allocated with the `malloc' call, it should be
    released with the `free' call when it is no longer in use. */
-char *tchdbgetnext2(TCHDB *hdb, char *kstr);
+char *tchdbgetnext2(TCHDB *hdb, char *kstr = null);
 
 
 /* Retrieve the key and the value of the next record of a record in a hash database object.
@@ -1032,7 +1033,7 @@ bool tchdbiterinit3(TCHDB *hdb, char *kstr);
    If successful, the return value is true, else, it is false.
    Note that the callback function can not perform any database operation because the function
    is called in the critical section guarded by the same locks of database operations. */
-bool tchdbforeach(TCHDB *hdb, TCITER iter, void *op);
+bool tchdbforeach(TCHDB *hdb, TCITER iter, void *op = null);
 
 
 /* Void the transaction of a hash database object.
@@ -1040,3 +1041,122 @@ bool tchdbforeach(TCHDB *hdb, TCITER iter, void *op);
    If successful, the return value is true, else, it is false.
    This function should be called only when no update in the transaction. */
 bool tchdbtranvoid(TCHDB *hdb);
+} // extern (C)
+
+
+/******************************************************************************
+
+    TchDbIterator structure
+    
+    TchDbIterator holds the static tchdbopapply() method which can be used to
+    perform 'foreach' iteration over the Tokyo Cabinet database. The iteration
+    variables are key and value, both of type char[].
+    
+    Essentially, TchDbIterator invokes tchdbforeach(), adapting the D 'foreach'
+    delegate to the callback function reference of tchdbforeach().
+    
+    The provided functionality should be reentrant/thread-safe.
+    
+    Usage example:
+    
+    ---
+    
+        import $(TITLE);
+        
+        class MyTokyo
+        {
+            TCHDB* hdb;
+             
+            // opApply forwarding to tchdbopapply():
+             
+            int opApply ( TchDbIterator.ForeachDelg delg )
+            {
+                return TchDbIterator.tchdbopapply(this.hdb, delg);
+            }
+        }
+        
+        void iterate ( )
+        {
+            auto database = new MyTokyo;
+            
+            foreach (key, value; database)
+            {
+                // "key" now contains the key and "val" the value of the current
+                // database record
+            }
+        }
+        
+    ---
+    
+ ******************************************************************************/
+
+struct TchDbIterator
+{
+    /**************************************************************************
+    
+        D 'foreach' delegate
+    
+     **************************************************************************/
+
+    public alias int delegate ( ref char[] key, ref char[] val ) ForeachDelg;
+    
+    /**************************************************************************
+    
+        Invokes tchdbforeach() with the provided D 'foreach' delegate.
+        
+        Params:
+            hdb:  TokyoCabinet database reference
+            delg: D 'foreach' 'opAppy'
+            
+        Returns:
+            false on to continue or true to stop iteration, complying to the
+            return value prescripted for a D 'foreach' delegate.
+          
+     **************************************************************************/
+    
+    public static int tchdbopapply ( TCHDB* hdb, ForeachDelg delg )
+    {
+        return !tchdbforeach(hdb, &tchiter_callback, &delg);
+    }
+    
+    /**************************************************************************
+    
+        tchdbforeach() callback function; adapts a D delegate of type
+        ForeachDelg.
+        
+        Params:
+            kbuf = key buffer
+            ksiz = key length (bytes)
+            vbuf = value buffer
+            ksiz = value length (bytes)
+            op   = custom reference; contains the value of the last
+                   tchdbforeach() parameter "void* op". This must be a pointer
+                   to a D delegate of type ForeachDelg.
+            
+        Returns:
+            true on to continue or false to stop iteration, complying to the
+            return value prescripted for the tchdbforeach() callback function.
+          
+     **************************************************************************/
+
+    extern (C) private static bool tchiter_callback ( void* kbuf, int ksiz,
+                                                      void* vbuf, int vsiz, void* op )
+    in
+    {
+        assert (kbuf,       "tchiter: got null key from tchdbforeach()");
+        assert (vbuf,       "tchiter: got null value from tchdbforeach()");
+        assert (ksiz >= 0,  "tchiter: invalid key length from tchdbforeach()");
+        assert (vsiz >= 0,  "tchiter: invalid value length from tchdbforeach()");
+        assert (op,         "tchiter: null op from tchdbforeach(); expected pointer "
+                            "to ForeachDelg delegate");
+    }
+    body
+    {
+        char[] key = cast (char[]) kbuf[0 .. ksiz];
+        char[] val = cast (char[]) vbuf[0 .. vsiz];
+        
+        ForeachDelg delg = *(cast (ForeachDelg*) op); 
+        
+        return !delg(key, val);
+    }
+}

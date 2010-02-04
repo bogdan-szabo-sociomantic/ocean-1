@@ -694,22 +694,10 @@ class TokyoCabinet
     
      ***************************************************************************/
     
-    public int opApply ( int delegate ( ref char[] key, ref char[] value ) dg )
+    public int opApply ( TchDbIterator.ForeachDelg delg )
     {
-        int result = 0;
-        
-        char[] key, value;
-        
-        this.initIterator();
-        
-        while (this.iterNext(key, value) && !result)
-        {
-            result = dg(key, value);
-        }
-        
-        return result;
+        return TchDbIterator.tchdbopapply(this.db, delg);
     }
-    
     
     /**************************************************************************
         
