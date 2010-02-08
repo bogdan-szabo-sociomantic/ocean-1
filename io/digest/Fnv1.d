@@ -136,7 +136,14 @@ private import tango.core.ByteSwap;
 
 class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
 {
+    /**************************************************************************
+    
+        Binary digest length and hexadecimal digest string length constants
+    
+     **************************************************************************/
+
     public static const DIGEST_LENGTH = T.sizeof;
+    public static const HEXDGT_LENGTH = DIGEST_LENGTH * 2;
     
     /**************************************************************************
     
