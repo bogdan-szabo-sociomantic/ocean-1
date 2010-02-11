@@ -10,7 +10,7 @@
     
  ******************************************************************************/
 
-module swarm.util.StringSplit;
+module ocean.text.StringSplit;
 
 /******************************************************************************
 
@@ -36,7 +36,7 @@ private import           tango.math.Math:   min;
 
  ******************************************************************************/
 
-struct CatSplit ( Char = char )
+struct StringSplit ( Char = char )
 {
     /**************************************************************************
 
@@ -138,46 +138,34 @@ struct CatSplit ( Char = char )
     {
         Char[][] slices;
         
-        uint i = 0;
+        uint   i     = 0;
         
-        size_t prev_pos = 0;
+        size_t start = collapse? skipLeadingDelims(str, delim) : 0;
         
-        if (collapse)
+        size_t pos   = locateChar(str, delim, start);
+        
+        while ((pos < str.length) && (!n || (i < n)))
         {
-            foreach (j, c; str)          // skip leading consecutive occurrences
+            if (!((pos == start) && collapse))
             {
-                if (c != delim)
-                {
-                    prev_pos = j;
-                    
-                    break;
-                }
-            }
-        }
-        
-        for (size_t pos = locateChar(str, delim);
-                    (pos < str.length) && (!n || (i < n));
-                    pos = locateChar(str, delim, prev_pos))
-        {
-            if (!((pos == prev_pos) && collapse))
-            {
-                slices ~= str[prev_pos .. pos];
+                slices ~= str[start .. pos];
                 
                 i++;
             }
+        
+            start = pos + 1;
             
-            prev_pos = pos + 1;
+            pos = locateChar(str, delim, start);
         }
         
-        if ((!n || (i < n)) && (!((prev_pos == str.length) && collapse)))
+        
+        if ((!n || (i < n)) && (!((start == str.length) && collapse)))
         {
-            slices ~= str[prev_pos .. $];                         // append tail
+            slices ~= str[start .. $];                         // append tail
         }
-        
         
         return slices;
     }
-    
     
     /**************************************************************************
         
@@ -199,5 +187,29 @@ struct CatSplit ( Char = char )
     public static Char[][] splitCollapse ( Char[] str, Char delim, uint n = 0 )
     {
         return split(str, delim, n, true);
+    }
+    
+    /**************************************************************************
+    
+        Skips leading occurrences of delim in string.
+        
+        Params:
+             str      = input string
+             delim    = delimiter character
+            
+        Returns:
+             index of character in str after skipping leading occurrences of
+             delim (length of str if str consists of delim characters)
+     
+     **************************************************************************/
+    
+    private static size_t skipLeadingDelims ( Char[] str, Char delim )
+    {
+        foreach (i, c; str)          // skip leading consecutive occurrences
+        {
+            if (c != delim) return i;
+        }
+        
+        return str.length;
     }
 }
