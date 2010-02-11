@@ -74,7 +74,7 @@ class TokyoCabinet
     extern (C) 
     {
         private alias bool function ( TCHDB *hdb, void *key, int ksiz, 
-                void *value, int vsiz ) TchPutFunc;
+                                      void *value, int vsiz ) TchPutFunc;
     }
     
     /**************************************************************************
@@ -330,7 +330,7 @@ class TokyoCabinet
     
     public void put ( char[] key, char[] value )
     {
-        this.tchPut(key, value, this.async? &tchdbputasync : &tchdbput);
+        this.tchPut(key, value, this.async? &tchdbputasync : &tchdbput, "tchdbput");
     }
     
     public alias put opIndexAssign;
@@ -383,7 +383,7 @@ class TokyoCabinet
     
     public void putkeep ( char[] key, char[] value )
     {
-        this.tchPut(key, value, &tchdbputkeep);
+        this.tchPut(key, value, &tchdbputkeep, "tchdbputkeep", [TCHERRCODE.TCEKEEP]);
     }
     
     
@@ -402,7 +402,7 @@ class TokyoCabinet
     
     public void putcat ( char[] key, char[] value )
     {
-        this.tchPut(key, value, &tchdbputcat);
+        this.tchPut(key, value, &tchdbputcat, "tchdbputcat");
     }
     
     
@@ -634,25 +634,28 @@ class TokyoCabinet
             tchdbputasync
         
         Params:
-            key      = key of item to put
-            value    = item value
-            put_func = Tokyo Cabinet put function
+            key             = key of item to put
+            value           = item value
+            put_func        = Tokyo Cabinet put function
+            description     = description string for error messages
+            ignore_errcodes = do not throw an exception on these error codes
         
     ***************************************************************************/
 
    
-    private void tchPut ( char[] key, char[] value, TchPutFunc put_func )
+    private void tchPut ( char[] key, char[] value, TchPutFunc put_func,
+                          char[] description, TCHERRCODE[] ignore_errcodes = [] )
     in
     {
-        assert (key,   "Error on put: null key");
-        assert (value, "Error on put: null value");
+        assert (key,   "Error on " ~ description ~ ": null key");
+        assert (value, "Error on " ~ description ~ ": null value");
     }
     body
     {
         this.tokyoAssert(put_func(this.db, key.ptr, key.length, value.ptr, value.length),
-                         "Error on put");
+                         ignore_errcodes, "Error on " ~ description);
     }
-
+    
     
     /**************************************************************************
     
@@ -689,8 +692,8 @@ class TokyoCabinet
     
     /**************************************************************************
     
-        Asserts p is not null; p == null is considered an error reported by
-        Tokyo Cabinet.
+        If p is null, retrieves the current Tokyo Cabinet error code and
+        throws an exception (even if the error code equals TCESUCCESS).
         
         Params:
             p       = not null assertion pointer
@@ -700,13 +703,13 @@ class TokyoCabinet
     
     private void tokyoAssert ( void* p, char[] context = "Error" )
     {
-        this.tokyoAssert(!!p, context);
+        this.tokyoAssertStrict(!!p, context);
     }
 
     /**************************************************************************
     
-        Asserts ok; ok == false is considered an error reported by Tokyo
-        Cabinet.
+        If ok == false, retrieves the current Tokyo Cabinet error code and
+        throws an exception if the error code is different from TCESUCCESS.
         
         Params:
             ok      = assert condition
@@ -716,15 +719,69 @@ class TokyoCabinet
 
     private void tokyoAssert ( bool ok, char[] context = "Error" )
     {
+        this.tokyoAssert(ok, [], context);
+    }
+    
+    /**************************************************************************
+    
+        If ok == false, retrieves the current Tokyo Cabinet error code and
+        throws an exception (even if the error code equals TCESUCCESS).
+        
+        Params:
+            ok      = assert condition
+            context = error context description string for message
+        
+    ***************************************************************************/
+
+    private void tokyoAssertStrict ( bool ok, char[] context = "Error" )
+    {
+        this.tokyoAssertStrict(ok, [], context);
+    }
+    
+    /**************************************************************************
+    
+        If ok == false, retrieves the current Tokyo Cabinet error code and
+        throws an exception if the error code is different from TCESUCCESS and
+        all error codes in ignore_codes.
+        
+        Params:
+            ok           = assert condition
+            ignore_codes = do not throw an exception on these codes
+            context      = error context description string for message
+        
+    ***************************************************************************/
+
+    private void tokyoAssert ( bool ok, TCHERRCODE[] ignore_codes, char[] context = "Error" )
+    {
+        this.tokyoAssertStrict(ok, ignore_codes ~ TCHERRCODE.TCESUCCESS, context);
+    }
+    
+    /**************************************************************************
+    
+        If ok == false, retrieves the current Tokyo Cabinet error code and
+        throws an exception if the error code is different from  all error codes
+        in ignore_codes (even if it equals TCESUCCESS).
+        
+        Params:
+            ok           = assert condition
+            ignore_codes = do not throw an exception on these codes
+            context      = error context description string for message
+        
+    ***************************************************************************/
+
+    private void tokyoAssertStrict ( bool ok, TCHERRCODE[] ignore_codes, char[] context = "Error" )
+    {
         if (!ok)
         {
             TCHERRCODE errcode = tchdbecode(this.db);
             
-            if (errcode != TCHERRCODE.TCESUCCESS)
+            foreach (ignore_core; ignore_codes)
             {
-                TokyoCabinetException(typeof (this).stringof ~ ": " ~
-                                      context ~ ": " ~ this.getTokyoErrMsg(errcode));
+                if (errcode == ignore_core) return; 
             }
+            
+            TokyoCabinetException(typeof (this).stringof ~ ": " ~
+                                  context ~ ": " ~ this.getTokyoErrMsg(errcode));
         }
     }
     
