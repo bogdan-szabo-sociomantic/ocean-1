@@ -454,7 +454,7 @@ class TokyoCabinet
     ***************************************************************************/
     
     
-    public bool get ( char[] key, out char[] value )
+    public bool get_alt ( char[] key, out char[] value )
     {
         int length;
         
@@ -501,7 +501,6 @@ class TokyoCabinet
         return "";
     }
     
-    
     /**************************************************************************
     
         Get Value of Key without intermediate value buffer
@@ -515,7 +514,7 @@ class TokyoCabinet
             
     ***************************************************************************/
 
-    public bool get_alt ( char[] key, out char[] value )
+    public bool get ( char[] key, out char[] value )
     {
         int length = tchdbvsiz(this.db, key.ptr, key.length);
         
@@ -552,6 +551,23 @@ class TokyoCabinet
         return value.dup;
     }
     
+    
+    /**************************************************************************
+    
+        Tells whether an item exists
+        
+         Params:
+            key = item key
+        
+        Returns:
+             true if item exists or false itherwise
+    
+    ***************************************************************************/
+
+    public bool exists ( char[] key )
+    {
+        return (tchdbvsiz(this.db, key.ptr, key.length) >= 0);
+    }
     
     /**************************************************************************
     
