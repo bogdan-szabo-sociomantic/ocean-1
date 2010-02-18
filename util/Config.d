@@ -103,7 +103,22 @@ private        import         tango.core.Exception;
 
 class Config
 {
+    /*******************************************************************************
     
+        Boolean value strings
+    
+     *******************************************************************************/
+
+    public static const char[][2][] BOOL_IDS =
+    [
+       ["false",    "true"],
+       ["disabled", "enabled"],
+       ["off",      "on"],
+       ["no",       "yes"],
+       ["0",        "1"]
+    ];
+        
+
     /*******************************************************************************
         
         Config Keys and Properties
@@ -406,7 +421,7 @@ class Config
     
     /*******************************************************************************
         
-        Returns Value of a Config-Key
+        Returns Value of a boolean Config-Key
         
         ---
      
@@ -419,22 +434,28 @@ class Config
         ---
      
         Params:
-            category = category to get key from
-            key      = name of the property to get
+            category       = category to get key from
+            key            = name of the property to get
+            accept_unknown = true: treat unknown value as "false"; false:
+                             throw exception on unknown value
             
         Returns:
             value of config key
             
      *******************************************************************************/
     
-    public static bool getBool(char[] category, char[] key)
+    public static bool getBool(char[] category, char[] key, bool accept_unknown = true)
     {
-        char[] value;
+        char[] value = get!(char[])(category, key);
         
-        value = get!(char[])(category, key);
+        foreach (id; this.BOOL_IDS)
+        {
+            if (value == id[0]) return false;
+            if (value == id[1]) return true;
+        }
         
-        if ( value == "1" || value == "true" )
-            return true;
+        assert (accept_unknown, typeof (this).stringof ~
+                ": unknown boolean identifier '" ~ value~ '\'');
         
         return false;
     }
