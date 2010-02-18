@@ -244,7 +244,7 @@ class Config
             
             static if ( is(T : bool) )
             {
-                return getBool(category, key);
+                return getBool(category, key, false);
             }
             else static if ( is(T : long) )
             {
