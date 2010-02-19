@@ -31,13 +31,13 @@ private import tango.core.ByteSwap;
         
             (cited from http://www.isthe.com/chongo/tech/comp/fnv/)
         
-        FNV1a is said to have a wider
-        distribution for short messages than FNV1. For details see
-        http://www.isthe.com/chongo/tech/comp/fnv/.
         
         The FNV1A template parameter selects FNV1a if set to true on
         instantiation or FNV1 otherwise. It is recommended to use the 
         Fnv1XX/Fnv1aXX aliases.
+        
+        Fnv1 and Fnv1a (without 32/64 suffix) use the native machine data word
+        width.
         
         32bit ~ 3704333.44 hash/sec
         64bit ~ 1728119.76 hash/sec
@@ -87,7 +87,7 @@ private import tango.core.ByteSwap;
         
             char[] hello = "Hello World!";
             
-            size_t hash   = Fnv1a(hello);
+            size_t hash   = Fnv1a(hello);       // size_t uses the native machine data word width
             uint   hash32 = Fnv1a32(hello);
             ulong  hash64 = Fnv1a64(hello);
         
@@ -117,17 +117,21 @@ private import tango.core.ByteSwap;
         
         --
         
-        NOTE: Fnv132, Fnv164, Fnv1a32 and Fnv1a64 are defined as aliases. Since
-              The D language does not allow forward referencing, these are
-              defined AFTER the class definition near the end of this document:
+        NOTE: Fnv1, Fnv1a, Fnv132, Fnv164, Fnv1a32 and Fnv1a64 are defined as
+              aliases. Since the D language does not allow forward referencing,
+              these are defined AFTER the class definition near the end of this
+              document:
         
         ---
         
-        alias Fnv1!(uint,  false) Fnv132;
-        alias Fnv1!(ulong, false) Fnv164;
+        alias Fnv1Generic!(false) Fnv132;
+        alias Fnv1Generic!(uint,  false) Fnv132;
         
-        alias Fnv1!(uint,  true ) Fnv1a32;
-        alias Fnv1!(ulong, true ) Fnv1a64;
+        alias Fnv1Generic!(false, uint) Fnv132;
+        alias Fnv1Generic!(false, ulong) Fnv164;
+        
+        alias Fnv1aGeneric!(true, uint) Fnv1a32;
+        alias Fnv1aGeneric!(true, ulong) Fnv1a64;
         
         ---
         
@@ -138,12 +142,22 @@ class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
 {
     /**************************************************************************
     
+        DigestType type alias
+    
+     **************************************************************************/
+
+    alias T DigestType;
+    
+    /**************************************************************************
+    
         Binary digest length and hexadecimal digest string length constants
     
      **************************************************************************/
 
-    public static const DIGEST_LENGTH = T.sizeof;
+    public static const DIGEST_LENGTH = DigestType.sizeof;
     public static const HEXDGT_LENGTH = DIGEST_LENGTH * 2;
+    
+    alias char[HEXDGT_LENGTH] HexDigest;
     
     /**************************************************************************
     
@@ -152,55 +166,58 @@ class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
      **************************************************************************/
     
     
-    static if (is (T == uint))
+    static if (is (DigestType == uint))
     {
-        public static const T FNV_PRIME = 0x0100_0193; // 32 bit prime
-        public static const T FNV_INIT  = 0x811C_9DC5; // 32 bit inital digest
+        public static const DigestType PRIME = 0x0100_0193; // 32 bit prime
+        public static const DigestType INIT  = 0x811C_9DC5; // 32 bit inital digest
         
         private alias ByteSwap.swap32 toBigEnd;
     }
-    else static if (is (T == ulong))
+    else static if (is (DigestType == ulong))
     {
-        public static const T FNV_PRIME = 0x0000_0100_0000_01B3; // 64 bit prime
-        public static const T FNV_INIT  = 0xCBF2_9CE4_8422_2325; // 64 bit inital digest
+        public static const DigestType PRIME = 0x0000_0100_0000_01B3; // 64 bit prime
+        public static const DigestType INIT  = 0xCBF2_9CE4_8422_2325; // 64 bit inital digest
         
         private alias ByteSwap.swap64 toBigEnd;
     }
     /*
     // be prepared for the day when Walter introduces cent...
-    else static if (is (T == ucent))
+    else static if (is (DigestType == ucent))
     {
-        static const T FNV_PRIME = 0x0000_0000_0100_0000_0000_0000_0000_013B; // 128 bit prime
-        static const T FNV_PRIME = 0x6C62_272E_07BB_0142_62B8_2175_6295_C58D; // 128 bit inital digest
+        static const DigestType PRIME = 0x0000_0000_0100_0000_0000_0000_0000_013B; // 128 bit prime
+        static const DigestType PRIME = 0x6C62_272E_07BB_0142_62B8_2175_6295_C58D; // 128 bit inital digest
     }
     */
-    else static assert (false, "type '" ~ T.stringof ~
+    else static assert (false, "type '" ~ DigestType.stringof ~
                                "' is not supported, only uint and ulong");
     
     
     /**************************************************************************
     
-        unions
-
-     **************************************************************************/
-
+        This alias for chainable methods
     
-    /**
-     * Endianness aware integer to byte array converter
-     * 
-     * Usage:
-     * 
-     * ---
-     * 
-     *      Fnv32.BinConvert bc;
-     *      
-     *      ubyte[] binstr = bc(0xAFFE4711);
-     *      
-     *      // binstr now is [0xAF, 0xFE, 0x47, 0x11]
-     *      
-     * ---
-     * 
-     */
+     **************************************************************************/
+    
+    alias typeof (this) This;
+    
+    /**************************************************************************
+    
+        Endianness aware integer to byte array converter
+        
+        Usage:
+        
+        ---
+        
+             Fnv32.BinConvert bc;
+             
+             ubyte[] binstr = bc(0xAFFE4711);
+             
+             // binstr now is [0xAF, 0xFE, 0x47, 0x11]
+             
+        ---
+    
+     **************************************************************************/
+    
      union BinConvert
      {
          alias ubyte[DIGEST_LENGTH] BinString;
@@ -209,12 +226,12 @@ class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
          
          BinString array;
          
-         T         value;
+         DigestType         value;
          
-         /* cast "value" from integer type "T" to binary string type "BinString"
+         /* cast "value" from integer type "DigestType" to binary string type "BinString"
             considering machine byte order (endianness) */
          
-         ubyte[] opCall ( T value )
+         ubyte[] opCall ( DigestType value )
          {
              this.value = value;
              
@@ -232,27 +249,27 @@ class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
      **************************************************************************/
     
     
-    private T digest = this.FNV_INIT;
+    private DigestType digest = this.INIT;
     
     
     /**************************************************************************
     
-        Tango Digest class methods
+        Tango DigestType class methods
 
      **************************************************************************/
     
     
-    /*********************************************************************
+    /**************************************************************************
     
         Processes data
         
         Remarks:
               Updates the hash algorithm state with new data
       
-     *********************************************************************/
+     **************************************************************************/
     
     
-    public Digest update ( void[] data )
+    public This update ( void[] data )
     {
         this.digest = this.fnv1(data, this.digest);
         
@@ -260,7 +277,7 @@ class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
     }
     
     
-    /********************************************************************
+    /**************************************************************************
     
         Computes the digest and resets the state
     
@@ -278,7 +295,7 @@ class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
             binaryDigest. Use the digestSize method to find out how
             large the buffer has to be.
             
-    *********************************************************************/
+    ***************************************************************************/
 
     
     public ubyte[] binaryDigest( ubyte[] buffer = null )
@@ -303,7 +320,7 @@ class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
     }
     
     
-    /********************************************************************
+    /**************************************************************************
     
         Returns the size in bytes of the digest
         
@@ -313,7 +330,7 @@ class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
         Remarks:
           Returns the size of the digest.
           
-    *********************************************************************/
+    ***************************************************************************/
 
     
     public uint digestSize ( )
@@ -324,33 +341,37 @@ class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
     
     /**************************************************************************
     
-        extenstion class methods (in addition to the Digest standard methods)
+        extension class methods (in addition to the DigestType standard methods)
 
      **************************************************************************/
     
     
-    /**
-     * resets the state
-     * 
-     * Returns:
-     *      this instance
-     */
-    public Digest reset ( )
+    /**************************************************************************
+    
+        Resets the state
+        
+        Returns:
+             this instance
+             
+     ***************************************************************************/
+    public This reset ( )
     {
-        this.digest = this.FNV_INIT;
+        this.digest = this.INIT;
         
         return this;
     }
     
     
     
-    /**
-     * simply returns the digest
-     * 
-     * Returns:
-     *      digest
-     */
-    public T getDigest ( )
+    /**************************************************************************
+    
+        Simply returns the digest
+        
+        Returns:
+             digest
+         
+     **************************************************************************/
+    public DigestType getDigest ( )
     {
         return this.digest;
     }
@@ -358,44 +379,48 @@ class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
     
     /**************************************************************************
     
-        core methods
+        Core methods
     
      **************************************************************************/
     
     
     
-    /**
-     * Computes a FNV1/FNV1a digest from data.
-     * 
-     * Usage:
-     * 
-     * ---
-     *      
-     *      import ocean.io.digest.Fnv;
-     *      
-     *      char[] data;
-     * 
-     *      uint  digest32 = Fnv32.fnv1(data);
-     *      ulong digest64 = Fnv64.fnv1(data);
-     * 
-     * ---
-     *
-     * 
-     * Params:
-     *      data = data to digest
-     *      hash = initial digest; defaults to the magic 32 bit or 64 bit
-     *             initial value, according to T
-     *      
-     * Returns:
-     *      resulting digest
-     */
-    //public static T fnv1 ( U ) ( ubyte[] data, T hash = FNV_INIT )
-    public static T fnv1 ( U ) ( U data, T hash = FNV_INIT )
+    /**************************************************************************
+    
+        Calculates a FNV1/FNV1a digest from data. data are processed in
+        octet/byte-wise manner.
+        
+        Usage:
+        
+        ---
+             
+             import ocean.io.digest.Fnv;
+             
+             char[] data;
+        
+             uint  digest32 = Fnv32.fnv1(data);
+             ulong digest64 = Fnv64.fnv1(data);
+        
+        ---
+        
+        Params:
+             data =   data to digest
+             digest = initial digest; defaults to the magic 32 bit or 64 bit
+                      initial value, according to DigestType
+             
+        Returns:
+             resulting digest
+         
+     **************************************************************************/
+    
+    public static DigestType fnv1 ( U ) ( U data, DigestType digest = INIT )
     {
         ubyte[] data_;
         
-        static if (is (U: void[]))
+        static if (is (U V : V[]))
         {
+            static assert (V.sizeof == 1, "Fnv1: supports only single-byte types, not '" ~ V.stringof ~ '\'');
+            
             data_ = cast (ubyte[]) data;
         }
         else
@@ -405,39 +430,83 @@ class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
         
         foreach (d; data_)
         {
-            hash = fnv1_core(d, hash);
+            digest = fnv1_core(d, digest);
         }
         
-        return hash;
+        return digest;
     }
-    /*
-    public static T fnv1 ( ubyte[] data, T hash = FNV_INIT )
-    {
-        return fnv1(cast (ubyte[]) data, hash);
-    }
-    */
     public alias fnv1 opCall;
     
     
-    /**
-     * FNV1/FNV1a core; digests one octet "d" to "hash"
-     * 
-     * Params:
-     *      d    = data to digest
-     *      hash = initial digest
-     *  
-     * Returns:
-     *      resulting digest
-     */
-    public static T fnv1_core ( ubyte d, T hash )
+    /**************************************************************************
+    
+        Calculates a FNV1/FNV1a digest from data and generates a hexdecimal
+        string representation of the digest. data are processed in
+        octet/byte-wise manner.
+        
+        Usage:
+        
+        ---
+             
+             import ocean.io.digest.Fnv;
+             
+             Fnv32.HexDigest digest32;
+             Fnv64.HexDigest digest64;
+             
+             char[] data;
+        
+             digest32 = Fnv32.fnv1(data, digest32);
+             digest64 = Fnv64.fnv1(data, digest32);
+        
+        ---
+        
+        Params:
+             data    = data to digest
+             hexdgst = string buffer
+             digest  = initial digest; defaults to the magic 32 bit or 64 bit
+                       initial value, according to DigestType
+             
+        Returns:
+             hexdecimal string representation of resulting digest
+         
+     **************************************************************************/
+
+    public static char[] fnv1_hex ( U ) ( U data, HexDigest hexdgst, DigestType digest = INIT )
+    {
+        digest = fnv1(data, digest);
+        
+        foreach_reverse (ref h; hexdgst)
+        {
+            h = "0123456789abcdef"[digest & 0xF];
+            
+            digest >>= 4;
+        }
+        
+        return hexdgst;
+    }
+    
+    /**************************************************************************
+    
+        FNV1/FNV1a core; calculates a digest of one octet d
+        
+        Params:
+             d      = data to digest
+             digest = initial digest
+         
+        Returns:
+             resulting digest
+         
+     **************************************************************************/
+    
+    public static DigestType fnv1_core ( ubyte d, DigestType digest )
     {
         static if (FNV1A)
         {
-            return (hash ^ d) * FNV_PRIME;
+            return (digest ^ d) * PRIME;
         }
         else
         {
-            return (hash * FNV_PRIME) ^ d;
+            return (digest * PRIME) ^ d;
         }
     }
 } // Fnv
