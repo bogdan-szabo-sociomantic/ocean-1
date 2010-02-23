@@ -100,14 +100,29 @@ struct SignalHandler
         Sets/registers handler for signal code.
         
         Params:
-            code    = signal code to handle by handler
+            code    = code of signal to handle by handler
+            handler = signal handler callback function
+     
+     **************************************************************************/
+    
+    void set ( int code, SignalHandler handler )
+    {
+        set([code], handler);
+    }
+    
+    /**************************************************************************
+    
+        Sets/registers handler for signals of codes.
+        
+        Params:
+            codes   = codes of signals to handle by handler
             handler = signal handler callback function
      
      **************************************************************************/
 
-   void set ( int code, SignalHandler handler )
+   void set ( int[] codes, SignalHandler handler )
     {
-        synchronized
+        synchronized foreach (code; codes)
         {
             SignalHandler prev_handler = signal(code, handler);
             
@@ -120,17 +135,32 @@ struct SignalHandler
     
    /**************************************************************************
    
-       Resets handler for signal code to the default handler and unregisters
+       Resets handlers for signal codes to the default handler and unregisters
        the handler.
        
        Params:
            code = signal code
     
     **************************************************************************/
+   
+   void reset ( int code )
+   {
+       reset([code]);
+   }
+   
+   /**************************************************************************
+   
+       Resets handlers for signals of codes to the default handlers and
+       unregisters the handlers.
+       
+       Params:
+           codes = signal codes
+    
+    **************************************************************************/
 
-    void reset ( int code )
+    void reset ( int[] codes )
     {
-        synchronized
+        synchronized foreach (code; codes)
         {
             SignalHandler* handler = code in this.default_handlers;
             
