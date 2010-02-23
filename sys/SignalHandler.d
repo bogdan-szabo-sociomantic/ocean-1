@@ -17,7 +17,7 @@
     
  ******************************************************************************/
     
-module ocean.sys.SignalHandlerRegistry;
+module ocean.sys.SignalHandler;
 
 /******************************************************************************
  
@@ -48,44 +48,90 @@ struct SignalHandler
     
     /**************************************************************************
     
-        Signal enumerator
+        Signal enumerator and identifier strings
      
      **************************************************************************/
 
-    version (Posix) enum : int
+    version (Posix)
     {
-        SIGABRT   = .SIGABRT, // Abnormal termination
-        SIGFPE    = .SIGFPE,  // Floating-point error
-        SIGILL    = .SIGILL,  // Illegal hardware instruction
-        SIGINT    = .SIGINT,  // Terminal interrupt character
-        SIGSEGV   = .SIGSEGV, // Invalid memory reference
-        SIGTERM   = .SIGTERM, // Termination
+        enum : int
+        {
+            SIGABRT   = .SIGABRT, // Abnormal termination
+            SIGFPE    = .SIGFPE,  // Floating-point error
+            SIGILL    = .SIGILL,  // Illegal hardware instruction
+            SIGINT    = .SIGINT,  // Terminal interrupt character
+            SIGSEGV   = .SIGSEGV, // Invalid memory reference
+            SIGTERM   = .SIGTERM, // Termination
+            
+            SIGALRM   = .SIGALRM,
+            SIGBUS    = .SIGBUS,
+            SIGCHLD   = .SIGCHLD,
+            SIGCONT   = .SIGCONT,
+            SIGHUP    = .SIGHUP,
+            SIGKILL   = .SIGKILL,
+            SIGPIPE   = .SIGPIPE,
+            SIGQUIT   = .SIGQUIT,
+            SIGSTOP   = .SIGSTOP,
+            SIGTSTP   = .SIGTSTP,
+            SIGTTIN   = .SIGTTIN,
+            SIGTTOU   = .SIGTTOU,
+            SIGUSR1   = .SIGUSR1,
+            SIGUSR2   = .SIGUSR2,
+            SIGURG    = .SIGURG
+        }
         
-        SIGALRM   = .SIGALRM,
-        SIGBUS    = .SIGBUS,
-        SIGCHLD   = .SIGCHLD,
-        SIGCONT   = .SIGCONT,
-        SIGHUP    = .SIGHUP,
-        SIGKILL   = .SIGKILL,
-        SIGPIPE   = .SIGPIPE,
-        SIGQUIT   = .SIGQUIT,
-        SIGSTOP   = .SIGSTOP,
-        SIGTSTP   = .SIGTSTP,
-        SIGTTIN   = .SIGTTIN,
-        SIGTTOU   = .SIGTTOU,
-        SIGUSR1   = .SIGUSR1,
-        SIGUSR2   = .SIGUSR2,
-        SIGURG    = .SIGURG
+        const char[][] Ids =
+        [
+            0         : "",
+            SIGABRT   : "SIGABRT",
+            SIGFPE    : "SIGFPE",
+            SIGILL    : "SIGILL",
+            SIGINT    : "SIGINT",
+            SIGSEGV   : "SIGSEGV",
+            SIGTERM   : "SIGTERM",
+             
+            SIGALRM   : "SIGALRM",
+            SIGBUS    : "SIGBUS",
+            SIGCHLD   : "SIGCHLD",
+            SIGCONT   : "SIGCONT",
+            SIGHUP    : "SIGHUP",
+            SIGKILL   : "SIGKILL",
+            SIGPIPE   : "SIGPIPE",
+            SIGQUIT   : "SIGQUIT",
+            SIGSTOP   : "SIGSTOP",
+            SIGTSTP   : "SIGTSTP",
+            SIGTTIN   : "SIGTTIN",
+            SIGTTOU   : "SIGTTOU",
+            SIGUSR1   : "SIGUSR1",
+            SIGUSR2   : "SIGUSR2",
+            SIGURG    : "SIGURG"
+        ];
     }
-    else enum : int
+    else
     {
-        SIGABRT   = .SIGABRT, // Abnormal termination
-        SIGFPE    = .SIGFPE,  // Floating-point error
-        SIGILL    = .SIGILL,  // Illegal hardware instruction
-        SIGINT    = .SIGINT,  // Terminal interrupt character
-        SIGSEGV   = .SIGSEGV, // Invalid memory reference
-        SIGTERM   = .SIGTERM  // Termination
+        enum : int
+        {
+            SIGABRT   = .SIGABRT, // Abnormal termination
+            SIGFPE    = .SIGFPE,  // Floating-point error
+            SIGILL    = .SIGILL,  // Illegal hardware instruction
+            SIGINT    = .SIGINT,  // Terminal interrupt character
+            SIGSEGV   = .SIGSEGV, // Invalid memory reference
+            SIGTERM   = .SIGTERM  // Termination
+        }
+        
+        const char[][] Ids =
+        [
+             0         : "",
+             SIGABRT   : "SIGABRT",
+             SIGFPE    : "SIGFPE",
+             SIGILL    : "SIGILL",
+             SIGINT    : "SIGINT",
+             SIGSEGV   : "SIGSEGV",
+             SIGTERM   : "SIGTERM"
+         ];
     }
+    
+    
     
     /**************************************************************************
     
@@ -185,5 +231,21 @@ struct SignalHandler
     int[] registered ( )
     {
         return this.default_handlers.keys.dup;
+    }
+    
+    /**************************************************************************
+    
+        Returns the identifier string for signal code.
+        
+        Returns:
+            identifier string for signal code
+     
+     **************************************************************************/
+
+    char[] getId ( int code )
+    {
+        assert ((this.Ids.length > code) && (code >= 0), "invalid signal code");
+        
+        return this.Ids[code];
     }
 }
