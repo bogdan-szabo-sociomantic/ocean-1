@@ -72,7 +72,7 @@
 
 module  ocean.io.PersistentQueue;
 
-private import  ocean.compress.Uncompress;
+private import  ocean.compress.Compress;
 
 private import  ocean.util.TraceLog;
 
@@ -319,7 +319,7 @@ class PersistentQueue
             {
                 auto file = new File (file_path, File.ReadExisting);
                 
-                auto comp = new Uncompress();
+                auto comp = new Compress();
                 content = comp.decode(file.input);
             }
             
