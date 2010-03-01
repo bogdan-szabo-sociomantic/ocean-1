@@ -203,7 +203,7 @@ class SocketProtocol : Socket
         return this;
     }
     
-
+    
     /**************************************************************************
     
         Receives items in the order of being passed. Supports items of
@@ -351,5 +351,19 @@ class SocketProtocol : Socket
         super.connect(this.address);
         
         this.connected = true;
+    }
+    
+    /**********************************************************************
+    
+        Destructor
+    
+     **********************************************************************/
+    
+    private ~this ( )
+    {
+        if (this.connected)
+        {
+            super.shutdown().detach();
+        }
     }
 }
