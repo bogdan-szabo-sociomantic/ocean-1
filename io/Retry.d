@@ -56,7 +56,9 @@
 
 module ocean.io.Retry;
 
-private import  tango.stdc.posix.unistd: usleep;
+private import Ctime  = tango.stdc.posix.time:      nanosleep;
+private import Ctimer = tango.stdc.posix.timer:     timespec;
+private import          tango.stdc.time:            time_t;
 
 class Retry
 {
@@ -206,7 +208,7 @@ class Retry
     public bool opCall ( char[] message )
     {
         return this.callback_is_delg? this.callback.delg(message) :
-            this.callback.func(message);
+                                      this.callback.func(message);
     }
     
     /**************************************************************************
@@ -238,7 +240,7 @@ class Retry
     
     public This setDefaultCallback ( )
     {
-        this.callback.delg = &this.wait;
+        this.opAssign(&this.wait);
         
         return this;
     }
@@ -355,9 +357,35 @@ class Retry
         {
             this.n++;
             
-            usleep(this.ms * 1000);
+            this.sleep(this.ms);
         }
         
         return retry;
+    }
+    
+    /**************************************************************************
+    
+        Sleep in a multi-thread compatible way.
+        sleep() in multiple threads is not trivial because when several threads
+        simultaneously sleep and the first wakes up, the others will instantly
+        wake up, too. See nanosleep() man page
+        
+        http://www.kernel.org/doc/man-pages/online/pages/man2/nanosleep.2.html
+        
+        or
+        
+        http://www.opengroup.org/onlinepubs/007908799/xsh/nanosleep.html
+        
+        Params:
+            ms = milliseconds to sleep
+    
+     **************************************************************************/
+
+
+    static void sleep ( time_t ms )
+    {
+        auto ts = Ctimer.timespec(ms / 1_000, (ms % 1_000) * 1_000_000);
+        
+        while (Ctime.nanosleep(&ts, &ts)) {}
     }
 }
