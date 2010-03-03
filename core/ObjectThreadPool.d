@@ -147,11 +147,11 @@ private import tango.core.ThreadPool;
     
     Params:
         T      = type of items in pool; must be a class
-        Ctypes = types of constructor arguments of class T
+        Args = types of constructor arguments of class T
 
  ******************************************************************************/
 
-class ObjectThreadPool ( T, Ctypes ... ) : ThreadPool!(RunArgTypes!(T))
+class ObjectThreadPool ( T, Args ... ) : ThreadPool!(RunArgTypes!(T))
 {
     /**************************************************************************
     
@@ -161,7 +161,7 @@ class ObjectThreadPool ( T, Ctypes ... ) : ThreadPool!(RunArgTypes!(T))
 
     private alias typeof (this) This;
     
-    private alias ObjectPool!(T, Ctypes) OPool;
+    private alias ObjectPool!(T, Args) OPool;
     
     /**************************************************************************
     
@@ -196,7 +196,7 @@ class ObjectThreadPool ( T, Ctypes ... ) : ThreadPool!(RunArgTypes!(T))
          
      **************************************************************************/
     
-    public this ( Ctypes args, size_t workers, size_t q_size = 0 )
+    public this ( Args args, size_t workers, size_t q_size = 0 )
     {
         super(workers, q_size);
         
@@ -294,7 +294,7 @@ class ObjectThreadPool ( T, Ctypes ... ) : ThreadPool!(RunArgTypes!(T))
     
     **************************************************************************/
     
-    public static This newPool ( Ctypes args, size_t workers, size_t q_size = 0 )
+    public static This newPool ( Args args, size_t workers, size_t q_size = 0 )
     {
         return new This(args, workers, q_size);
     }
