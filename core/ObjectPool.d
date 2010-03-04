@@ -567,7 +567,7 @@ class ObjectPool ( T, A ... )
      
      **************************************************************************/
     
-    ~this ( )
+    private ~this ( )
     {
         foreach (item, info; this.items)
         {
