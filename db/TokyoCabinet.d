@@ -20,10 +20,19 @@ module db.TokyoCabinet;
  ******************************************************************************/
 
 
-private     import  ocean.db.c.tokyocabinet_hash;
-private     import  tango.stdc.stdlib;
-private     import  tango.stdc.string: strlen;
+public      import ocean.core.Exception: TokyoCabinetException;
 
+private     import  ocean.db.c.tokyocabinet_hash;
+//private     import  tango.stdc.stdlib: free;
+//private     import  tango.stdc.string: strlen;
+
+private     import  tango.util.log.Trace;
+
+extern (C) static
+{
+    void   free   ( void* );
+    size_t strlen ( char* );
+}
 
 /*******************************************************************************
 
@@ -71,11 +80,8 @@ class TokyoCabinet
         
      **************************************************************************/
     
-    extern (C) 
-    {
-        private alias bool function ( TCHDB *hdb, void *key, int ksiz, 
-                                      void *value, int vsiz ) TchPutFunc;
-    }
+    extern (C) private alias bool function ( TCHDB *hdb, void *key, int ksiz, 
+                                              void *value, int vsiz ) TchPutFunc;
     
     /**************************************************************************
         
@@ -119,13 +125,27 @@ class TokyoCabinet
                                         None    = cast (HDBOPT) 0
                                     }
     
+    enum                            OpenStyle : HDBOMODE
+                                    {
+                                        Read             = HDBOMODE.HDBOREADER, // open as a reader 
+                                        Write            = HDBOMODE.HDBOWRITER, // open as a writer 
+                                        Create           = HDBOMODE.HDBOCREAT,  // writer creating 
+                                        Truncate         = HDBOMODE.HDBOTRUNC,  // writer truncating 
+                                        DontLock         = HDBOMODE.HDBONOLCK,  // open without locking 
+                                        LockNonBlocking  = HDBOMODE.HDBOLCKNB,  // lock without blocking 
+                                        SyncAlways       = HDBOMODE.HDBOTSYNC,  // synchronize every transaction
+                                        
+                                        WriteCreate      = Write | Create,
+                                        ReadOnly         = Read  | DontLock,
+                                    }
+    
     /**************************************************************************
     
         Destructor check if called twice
 
      **************************************************************************/
-    bool            deleted         = false;
     
+    bool            deleted         = false;
     
     /**************************************************************************
         
@@ -138,6 +158,8 @@ class TokyoCabinet
     
     public this ( ) 
     {
+        Trace.formatln(typeof (this).stringof ~ " created").flush();
+        
         this.db = tchdbnew();
         
         // tchdbsetxmsiz(db, 500_000_000); // set memory used in bytes
@@ -155,11 +177,12 @@ class TokyoCabinet
                              
      **************************************************************************/
 
-    ~this ( )
+    private ~this ( )
     {
         if (!deleted)
         {
             tchdbdel(this.db);
+            Trace.formatln(typeof (this).stringof ~ " deleted").flush();
         }
         
         this.deleted = true;
@@ -179,7 +202,7 @@ class TokyoCabinet
     
     /**************************************************************************
     
-        Open Database
+        Open Database for reading/writing, create if necessary
 
         dbfile = specifies the database  file name
   
@@ -189,12 +212,18 @@ class TokyoCabinet
     {   
         tchdbtune(this.db, this.tune_bnum, this.tune_apow, this.tune_fpow, this.tune_opts);
         
-        this.tokyoAssert(tchdbopen(this.db, this.toCstring(dbfile).ptr, 
-                                   HDBOMODE.HDBOWRITER |
-                                   HDBOMODE.HDBOCREAT  |
-                                   HDBOMODE.HDBOLCKNB), "Open error");
+        return this.openNonBlocking(dbfile, OpenStyle.WriteCreate);
     }
     
+    public void openNonBlocking ( char[] dbfile, OpenStyle style )
+    {
+        return this.open(dbfile, style | OpenStyle.LockNonBlocking);
+    }
+    
+    public void open ( char[] dbfile, OpenStyle style )
+    {
+        this.tokyoAssert(tchdbopen(this.db, this.toCstring(dbfile).ptr, style), "Open error");
+    }
     
     /**************************************************************************
         
@@ -841,19 +870,3 @@ class TokyoCabinet
         return str? str[0 .. strlen(str)] : "";
     }
 }
-
-
-/*******************************************************************************
-
-    PersistentQueueException
-
-*******************************************************************************/
-
-class TokyoCabinetException : Exception
-{
-    public this ( char[] msg ) { super(msg); }
-    
-    protected static void opCall ( char[] msg ) { throw new TokyoCabinetException(msg); }
-}
-
-
