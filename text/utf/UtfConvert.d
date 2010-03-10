@@ -304,7 +304,7 @@ class FixUtf8
      
      **************************************************************************/
     
-    public static const Char UTF8_MAGIC_CHAR = 0xC3; // 'Ã'
+    public static const Char[] Utf8MagicChars = [0xC2, 0xC3, 0xC4, 0xC5]; // "ÂÃÄÅ"
     
     /**************************************************************************
     
@@ -360,7 +360,7 @@ class FixUtf8
     
     public This opCall ( ref Char[] content )
     {
-        this.stringReplace.replaceDecodeChar(content, this.UTF8_MAGIC_CHAR, &this.decodeUtf8);
+        this.stringReplace.replaceDecodeCharSet(content, this.Utf8MagicChars, &this.decodeUtf8);
         
         return this;
     }
