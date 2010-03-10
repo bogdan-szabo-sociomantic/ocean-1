@@ -151,8 +151,6 @@ class HtmlEncoding ( bool wide_char = false )
     {
         char[]* name = c in this.html_chars;
         
-        //assert (name, "no named ISO-8859-1/-15 HTML entity for character");
-        
         if (name)
         {
             return *name;
@@ -161,9 +159,9 @@ class HtmlEncoding ( bool wide_char = false )
         {
             char[0x10] buf;
             
-            snprintf(buf.ptr, buf.length - 1, "%d", c);
+            snprintf(buf.ptr, buf.length - 1, "#x%x", c);
             
-            return buf[0 .. strlen(buf.ptr)];
+            return buf[0 .. strlen(buf.ptr)].dup;
         }
         
     }
