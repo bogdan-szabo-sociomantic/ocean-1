@@ -93,10 +93,12 @@ extern (C)
 	int		umask(int);
 	int		wait();
 	
+    /*
 	void sighandler(int sig) 
     {		
 		signal_handler(sig);
-	}	
+	}
+    */	
 }
 
 
@@ -112,7 +114,7 @@ extern (C)
         
 ********************************************************************************/
 
-private void signal_handler ( int sig )
+extern (C) private void sighandler ( int sig )
 {
 	pid_t process_group, process;
 	Daemon daemon = new Daemon();
@@ -217,9 +219,11 @@ class Daemon
             
      *******************************************************************************/
     
-    public void setNumChildren ( int num_children )
+    public typeof (this) setNumChildren ( int num_children )
     {
     	 this.number_process = num_children;
+         
+         return this;
     }
     
     
@@ -252,9 +256,11 @@ class Daemon
             
      *******************************************************************************/
     
-    public void setFuncCall ( int delegate() dg )
+    public typeof (this) setFuncCall ( int delegate() dg )
     {
     	this.func = dg;
+        
+        return this;
     }
       
     
@@ -309,7 +315,7 @@ class Daemon
             return;
         }    	
      		
-    	for (int no_childs=0; no_childs < this.number_process; no_childs++) 
+    	for (int no_childs = 0; no_childs < this.number_process; no_childs++) 
         {					
     		this.startChildren(restart_on_termination);
     	}	
@@ -320,13 +326,13 @@ class Daemon
         	signal(SIGCHLD, &sighandler);
         }
         
-    	for (int i=1; i<= this.number_process; i++) 
+    	for (int i = 1; i <= this.number_process; i++) 
         {
     		int status = wait();
     		this.log("Child killed.");
     	}
     	
-    	for (int i=getdtablesize(); i>=0; --i) 
+    	for (int i = getdtablesize(); i >= 0; --i) 
         { 
     	    close(i);
         }

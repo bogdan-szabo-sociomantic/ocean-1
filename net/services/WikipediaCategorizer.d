@@ -94,6 +94,8 @@
 
 module ocean.net.services.WikipediaCategorizer;
 
+public  import  ocean.core.Exception: WikipediaCategorizerException;
+
 private import  tango.io.device.Array;
 
 private import  tango.io.stream.Lines;
@@ -605,24 +607,4 @@ class WikipediaCategorizer
             this.keywords[level].length = 0;
         }
     }
-}
-
-
-
-/******************************************************************************
-
-    WikipediaCategorizerException
-
-******************************************************************************/
-
-class WikipediaCategorizerException : Exception
-{
-    this (char[] msg)
-    {
-        super(msg);
-    }
-
-    private:
-        static void opCall (char[] msg) { throw new WikipediaCategorizerException(msg); }
-
 }

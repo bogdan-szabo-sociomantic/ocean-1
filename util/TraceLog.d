@@ -241,23 +241,3 @@ class TraceLog
     }
 
 }
-
-
-/*******************************************************************************
-
-    TraceLogException
-
-********************************************************************************/
-
-class TraceLogException : Exception
-{
-    this(char[] msg)
-    {
-        super(msg);
-    }
-
-    protected:
-        static void opCall(char[] msg) { throw new TraceLogException(msg); }
-}
-
-

@@ -46,6 +46,8 @@
 
 module ocean.net.services.LiveSearch;
 
+public  import  ocean.core.Exception: LiveException;
+
 private import  ocean.net.services.model.IClient;
 
 private import  tango.net.http.HttpClient, tango.net.http.HttpGet, tango.net.http.HttpHeaders;
@@ -602,23 +604,3 @@ class LiveSearch: IClient
     
     
 }
-
-
-/******************************************************************************
-
-    LiveException
-
-******************************************************************************/
-
-class LiveException : Exception
-{
-    this(char[] msg)
-    {
-        super(msg);
-    }
-
-    private:
-        static void opCall(char[] msg) { throw new LiveException(msg); }
-
-} // class LiveException
-

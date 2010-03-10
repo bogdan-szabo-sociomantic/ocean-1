@@ -616,23 +616,3 @@ class AmazonAssociates
     }
     
 }
-
-
-
-/******************************************************************************
-
-    AmazonException
-
-******************************************************************************/
-
-class AmazonException : Exception
-{
-    this(char[] msg)
-    {
-        super(msg);
-    }
-
-    private:
-        static void opCall(char[] msg) { throw new AmazonException(msg); }
-
-}

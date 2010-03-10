@@ -125,6 +125,8 @@ module ocean.compress.Compress;
 
  ******************************************************************************/
 
+public      import      ocean.core.Exception: CompressException;
+
 private     import      tango.io.compress.ZlibStream: ZlibInput, ZlibOutput;
 
 private     import      tango.io.device.Array;
@@ -1121,22 +1123,3 @@ class Compress
     }
 }
 
-
-/******************************************************************************
-
-    CompressException
-
- ******************************************************************************/
-
-class CompressException : Exception
-{
-    this ( char[] msg )
-    {
-        super(msg);
-    }
-    
-    private static void opCall ( char[] msg ) 
-    { 
-        throw new CompressException(msg); 
-    }
-}

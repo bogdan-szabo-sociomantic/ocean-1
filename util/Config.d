@@ -80,6 +80,8 @@ module         ocean.util.Config;
 
 ********************************************************************************/
 
+public         import         ocean.core.Exception: ConfigException;
+
 private        import         tango.io.device.File;
 
 private        import         tango.io.stream.Lines;
@@ -760,22 +762,3 @@ class Config
     }
 
 }
-
-/******************************************************************************
-
-    ConfigException
-
-*******************************************************************************/
-
-class ConfigException : Exception
-{
-    this(char[] msg)
-    {
-        super(msg);
-    }
-
-    private:
-        static void opCall(char[] msg) { throw new ConfigException(msg); }
-
-}
-

@@ -47,6 +47,8 @@ module ocean.net.http.HttpResponse;
 
 *******************************************************************************/
 
+public      import      ocean.core.Exception: HttpResponseException;
+
 private     import      ocean.net.http.HttpConstants;
 
 private     import      tango.net.http.HttpConst;
@@ -263,23 +265,4 @@ class HttpResponse
         this.response_header[HttpHeader.ContentType.value] = "text/html";
     }
     
-}
-
-
-/*******************************************************************************
-
-    HttpResponseException
-
-********************************************************************************/
-
-class HttpResponseException : Exception
-{
-    this(char[] msg)
-    {
-        super(msg);
-    }
-    
-    private:
-        static void opCall(char[] msg) { throw new HttpResponseException(msg); }
-
 }

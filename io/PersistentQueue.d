@@ -72,6 +72,8 @@
 
 module  ocean.io.PersistentQueue;
 
+public  import ocean.core.Exception: PersistentQueueException;
+
 private import  ocean.compress.Compress;
 
 private import  ocean.util.TraceLog;

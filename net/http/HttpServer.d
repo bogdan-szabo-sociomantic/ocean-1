@@ -107,6 +107,8 @@ module      ocean.net.http.HttpServer;
 *******************************************************************************/
 
 
+public      import      ocean.core.Exception: HttpServerException;
+
 private     import      tango.core.Thread, tango.core.ThreadPool;
 
 private     import      tango.io.selector.EpollSelector;
@@ -404,23 +406,4 @@ class HttpServer
         }
     }
     
-}
-
-
-/*******************************************************************************
-
-        HttpServerException
-
-********************************************************************************/
-
-class HttpServerException : Exception
-{
-    this(char[] msg)
-    {
-        super(msg);
-    }
-
-    private:
-        static void opCall(char[] msg) { throw new HttpServerException(msg); }
-
 }

@@ -77,6 +77,8 @@ module      ocean.net.http.HttpRequest;
 
 ********************************************************************************/
 
+public      import      ocean.core.Exception: HttpRequestException;
+
 private     import      tango.io.Stdout, tango.io.selector.EpollSelector,
                         tango.io.stream.Buffered, tango.io.stream.Lines;
 
@@ -880,23 +882,4 @@ class HttpRequest
     }      
 
     
-}
-
-
-/*******************************************************************************
-
-    HttpRequestException
-
-********************************************************************************/
-
-class HttpRequestException : Exception
-{
-    this(char[] msg)
-    {
-        super(msg);
-    }
-
-    private:
-        static void opCall(char[] msg) { throw new HttpRequestException(msg); }
-
 }

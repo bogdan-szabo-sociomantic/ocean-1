@@ -334,22 +334,3 @@ class HttpQueryParams
     
     
 }
-
-
-/*******************************************************************************
-
-    HttpQueryParamsException
-
-********************************************************************************/
-
-class HttpQueryParamsException : Exception
-{
-    this(char[] msg)
-    {
-        super(msg);
-    }
-
-    private:
-        static void opCall(char[] msg) { throw new HttpQueryParamsException(msg); }
-
-}

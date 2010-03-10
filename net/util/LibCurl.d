@@ -20,6 +20,8 @@ module  ocean.net.util.LibCurl;
 
 ********************************************************************************/
 
+public      import      ocean.core.Exception: CurlException;
+
 private     import      ocean.net.util.c.curlh;
 
 private     import  	tango.stdc.stdlib : free;
@@ -354,97 +356,82 @@ class LibCurl
 		return curl_easy_setopt(curl, option, prarm) == CURLcode.CURLE_OK;
 	}
     
-    
-    /******************************************************************************
-        
-        Message Write Callback Method
-         
-        Interface follows fwrite syntax: http://www.manpagez.com/man/3/fwrite/
-        
-        Params:
-            ptr = data pointer
-            size = element size
-            nmemb = number of elements
-            obj = passthru object instance to work on
-        
-        Returns:
-            zero on write error, or number of written bytes
-       
-    *******************************************************************************/
-    
-	private extern (C) static size_t writeCallback( void* ptr, size_t size , 
-            size_t nmemb, void* obj ) 
+    extern (C) static
     {
-		LibCurl curl = cast(LibCurl)obj;
+        /******************************************************************************
+            
+            Message Write Callback Method
+             
+            Interface follows fwrite syntax: http://www.manpagez.com/man/3/fwrite/
+            
+            Params:
+                ptr = data pointer
+                size = element size
+                nmemb = number of elements
+                obj = passthru object instance to work on
+            
+            Returns:
+                zero on write error, or number of written bytes
+           
+        *******************************************************************************/
         
-        if ( curl is null || !nmemb || ptr is null )
-            return 0;
-        
-        if ( (curl.messageBuffer.length + (size * nmemb)) < curl.maxFileSize )
+    	private size_t writeCallback( void* ptr, size_t size , size_t nmemb, void* obj ) 
         {
-            try 
-            {
-                *curl.messageBuffer ~= toDString(cast(char*)ptr)[0 .. (size * nmemb)].dup;
-            }
-            catch (Exception e)
-            {
-                //*curl.messageBuffer ~= toDString(cast(char*)ptr)[0 .. strlen(cast(char*)ptr)].dup;
+    		LibCurl curl = cast(LibCurl)obj;
+            
+            if ( curl is null || !nmemb || ptr is null )
                 return 0;
+            
+            if ( (curl.messageBuffer.length + (size * nmemb)) < curl.maxFileSize )
+            {
+                try 
+                {
+                    *curl.messageBuffer ~= toDString(cast(char*)ptr)[0 .. (size * nmemb)].dup;
+                }
+                catch (Exception e)
+                {
+                    //*curl.messageBuffer ~= toDString(cast(char*)ptr)[0 .. strlen(cast(char*)ptr)].dup;
+                    return 0;
+                }
             }
-        }
-        else
+            else
+            {
+                return 0; // exceeded download limit
+            }
+            
+    		return size*nmemb;
+    	}
+    
+        
+        /******************************************************************************
+            
+            Header Write Callback Method
+             
+            Interface follows fwrite syntax: http://www.manpagez.com/man/3/fwrite/
+            
+            Params:
+                ptr = data pointer
+                size = element size
+                nmemb = number of elements
+                obj = passthru object instance to work on
+            
+            Returns:
+                zero on write error, or number of written bytes
+           
+        *******************************************************************************/
+        private size_t headerCallback( void* ptr, size_t size, size_t nmemb, void* obj ) 
         {
-            return 0; // exceeded download limit
+            LibCurl curlobj = cast(LibCurl)obj;
+            
+            //char [] str = chomp(toDString(cast(char*)ptr)[0 .. (size * nmemb)].dup);
+    //        char [] str = toDString(cast(char*)ptr)[0 .. (size * nmemb)].dup;
+    //
+    //        if (str.length) 
+    //        {
+    //            curlobj.headerBuffer ~= str;
+    //        }
+            
+            return size*nmemb;
         }
-        
-		return size*nmemb;
-	}
-
-    
-    /******************************************************************************
-        
-        Header Write Callback Method
-         
-        Interface follows fwrite syntax: http://www.manpagez.com/man/3/fwrite/
-        
-        Params:
-            ptr = data pointer
-            size = element size
-            nmemb = number of elements
-            obj = passthru object instance to work on
-        
-        Returns:
-            zero on write error, or number of written bytes
-       
-    *******************************************************************************/
-    private extern (C) static size_t headerCallback( void* ptr, size_t size , 
-            size_t nmemb, void* obj ) 
-    {
-        LibCurl curlobj = cast(LibCurl)obj;
-        
-        //char [] str = chomp(toDString(cast(char*)ptr)[0 .. (size * nmemb)].dup);
-//        char [] str = toDString(cast(char*)ptr)[0 .. (size * nmemb)].dup;
-//
-//        if (str.length) 
-//        {
-//            curlobj.headerBuffer ~= str;
-//        }
-        
-        return size*nmemb;
     }
-    
-}
-
-
-/*******************************************************************************
-
-    CurlException
-
-********************************************************************************/
-
-class CurlException : Exception 
-{
-	this(char[] msg) {
-		super(msg);
-	}
 }
