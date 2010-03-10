@@ -54,18 +54,10 @@ module ocean.text.html.HtmlEncoding;
  
  ******************************************************************************/
 
-private import text.html.HtmlTables;
+private import text.html.HtmlCharSets;
 
-private import text.utf.GlibUnicode;
-
-private import text.util.StringSearch;
-private import text.util.StringReplace;
-
-private import Integer  = tango.text.convert.Integer:   toInt;
-
-private import Math     = tango.math.Math:              min;
-
-private import tango.io.Stdout;
+private import tango.stdc.stdio:  snprintf;
+private import tango.stdc.string: strlen;
 
 /******************************************************************************
 
@@ -76,80 +68,55 @@ private import tango.io.Stdout;
 class HtmlEncoding ( bool wide_char = false )
 {
     /**************************************************************************
-    
-        Template instance aliases
-     
-     **************************************************************************/
 
-    alias StringSearch!(wide_char)      StringSearch_;
+        Template instance alias
     
-    alias HtmlDecodingTables!()                 HtmlDecodingTables_;
+     **************************************************************************/
+    
+    alias HtmlEntity!()             HtmlEntity_;
     
     /**************************************************************************
     
-        Content character type alias
-     
+        Character type alias
+    
      **************************************************************************/
-
-    alias StringSearch_.Char            Char;
     
-    /**************************************************************************
+    alias HtmlEntity_.Char          Char;
     
-        Character type alias for HTML entities; always wide character
-     
-     **************************************************************************/
-
-    alias HtmlDecodingTables_.Char              HtChar;
-    
-    /**************************************************************************
-    
-        This alias for chainable methods
-     
-     **************************************************************************/
-
     private alias typeof (this) This;
     
     /**************************************************************************
     
-        StringReplace instance
-     
-     **************************************************************************/
-
-    private StringReplace!(wide_char) stringReplace;
+        HTML character entities
+    
+    ***************************************************************************/
+    
+    private static char[][Char] html_chars;
+    
+    
+    private Char[]        buf;
     
     /**************************************************************************
     
-        Constructor
-
-     **************************************************************************/
+        Static constructor; fills the table
+    
+    ***************************************************************************/
+    
+    static this ( )
+    {
+        foreach (html_char; HtmlCharSets!().ISO8859_1_15)
+        {
+            this.html_chars[html_char.code] = html_char.name;
+        }
+    }
     
     this ( )
     {
-        this.stringReplace = new StringReplace!(wide_char);
+        this.buf = new Char[0x100];
     }
     
     /**************************************************************************
     
-        Scans content for HTML entities representing Unicode characters or named
-        ISO8859-1/-15 (Latin 1/9) characters and replaces them in-place by the
-        corresponding Unicode letters.
-        Note: Since the character entity escape literal '&' itself may be
-        represented as the "&amp;" entity, first all occurrences of "&amp;" are
-        replaced by '&'.
-        
-        Examples:
-             Result for all of the example input strings: 
-                 Diego Mauricio Riaño-Pachón
-        
-             Input example 1 -- named ISO8859-1 entities:
-                 Diego Mauricio Ria&ntilde;o-Pach&oacute;n
-                 
-             Input example 2 -- Unicode entities:
-                 Diego Mauricio Ria&#xf1;o-Pach&#xf3;n
-             
-             Input example 3 -- both with "&amp;" instead of '&':
-                 Diego Mauricio Ria&amp;#xf1;o-Pach&amp;oacute;n
-        
         Params:
             content = content to process
             
@@ -157,319 +124,48 @@ class HtmlEncoding ( bool wide_char = false )
             this instance
      
      **************************************************************************/
-    
+    /+
     public This opCall ( ref Char[] content )
     {
-        this.stringReplace.replacePattern(content, "&amp;", "&");
         
-        this.stringReplace.replaceDecodeChar(content, '&', &this.decodeReplaceHtmlEntity);
+        assert (false, "not implemented yet");
         
         return this;
     }
-    
+    +/
     /**************************************************************************
     
-        Checks if content contains a Unicode or named ISO8859-1/-15 HTML
-        character entity string starting at src_pos. If so, the corresponding
-        Unicode character is put to content[dst_pos].
+        Returns the HTML character entity name of an UTF ISO-8859-1/-15
+        character.
         
         Params:
-            content = content to process
-            src_pos = start position (index) of the HTML character entity string
-            dst_pos = position (index) to put the resulting character
-            length  = number of characters put to content
-            
+             c = character
+                         
         Returns:
-            number of characters replaced in content, which is the
-            entity length on success or 0 otherwise 
-
+             HTML character entity name
+    
      **************************************************************************/
     
-    private size_t decodeReplaceHtmlEntity ( Char[] content, out Char[] replacement )
+    
+    static char[] encodeEntity ( Char c )
     {
-        /*
-        Char[] entity = this.parseHtmlEntity(content);
+        char[]* name = c in this.html_chars;
         
-        size_t replaced = 0;
+        //assert (name, "no named ISO-8859-1/-15 HTML entity for character");
         
-        if (entity) if (entity.length >= 4)
+        if (name)
         {
-            replaced = entity.length;
-            
-            static if (wide_char)
-            {
-                Char chr = this.decodeHtmlEntity(entity);
-                    
-                if (chr)
-                {
-                    replacement = [chr];
-                }
-            }
-            else
-            {
-                Char[] chr = this.decodeHtmlEntity(entity);
-                
-                if (chr.length && chr.length <= entity.length)
-                {
-                    replacement = chr;
-                }
-            }
+            return *name;
         }
-        */
-        
-        Char[] entity = this.parseHtmlEntity(content);
-        
-        size_t replaced = 0;
-        
-        if (entity.length >= 4)
+        else
         {
-            replaced = entity.length;
+            char[0x10] buf;
             
-            static if (wide_char)
-            {
-                Char chr = this.decodeHtmlEntity(entity);
-                    
-                if (chr)
-                {
-                    replacement = [chr];
-                }
-            }
-            else
-            {
-                Char[] chr = this.decodeHtmlEntity(entity);
-                
-                if (chr.length && chr.length <= entity.length)
-                {
-                    replacement = chr;
-                }
-            }
+            snprintf(buf.ptr, buf.length - 1, "%d", c);
+            
+            return buf[0 .. strlen(buf.ptr)];
         }
         
-        return replaced;
-    }
-    
-    
-    static if (wide_char)
-    {
-        /**********************************************************************
-        
-            Converts a HTML character entity string to an Unicode multi-byte
-            character. The entity may be either
-                - a Unicode entity (like "&#xE1;" for 'á') or
-                - a named ISO8859-1/15 (Latin 1/9) entity (like "&szlig;" for 'ß').
-            
-            Params:
-                entity = entity content to convert; trailing '&' and terminating ';'
-                         is not checked
-                
-            Returns:
-                the Unicode character or 0 on failure
-            
-         **********************************************************************/
-
-        public static Char decodeHtmlEntity ( Char[] entity )
-        {
-            return decodeHtmlEntity_(entity);
-        }
-    }
-    else
-    {
-        /**********************************************************************
-        
-            Converts a HTML character entity string to an UTF-8 string holding
-            the Unicode character. The entity may be either
-                - a Unicode entity (like "&#xE1;" for 'á') or
-                - a named ISO8859-1/15 (Latin 1/9) entity (like "&szlig;" for 'ß').
-            
-            Params:
-                entity = entity content to convert; trailing '&' and terminating ';'
-                         is not checked
-                
-            Returns:
-                the Unicode character or 0 on failure
-            
-         **********************************************************************/
-
-        public static Char[] decodeHtmlEntity ( Char[] entity )
-        {
-            return GlibUnicode.toUtf8(decodeHtmlEntity_(entity));
-        }
-    }
-    
-    /**************************************************************************
-    
-        Converts a HTML character entity string to an Unicode character. The
-        entity may be either
-            - a Unicode entity (like "&#xE1;" for 'á') or
-            - a named ISO8859-1/15 (Latin 1/9) entity (like "&szlig;" for 'ß').
-        
-        Params:
-            entity = entity content to convert; trailing '&' and terminating ';'
-                     is not checked
-            
-        Returns:
-            the Unicode character or 0 on failure
-        
-     **************************************************************************/
-
-    private static HtChar decodeHtmlEntity_ ( Char[] entity )
-    {
-        HtChar chr =  0;
-        
-        assert (entity.length >= 2, "HTML character entity too short");
-        assert (entity[0] == '&' && entity[$ - 1] == ';', "invalid HTML character entity");
-        
-        if (entity.length)
-        {
-            if (entity[1] == '#')
-            {
-                chr = decodeHtmlUnicodeEntity(entity);
-            }
-            else
-            {
-                chr = decodeHtml8859_1_15Entity(entity);
-            }
-        }
-        
-        return chr;
-    }
-    
-    /**************************************************************************
-    
-        Converts a named ISO8859-1/15 (Latin 1/9) HTML character entity to a
-        Unicode character.
-        
-        Params:
-            entity = entity content to convert; trailing '&' and terminating ';'
-                     is not checked
-            
-        Returns:
-            the Unicode character or 0 on failure
-        
-     **************************************************************************/
-
-    private static HtChar decodeHtml8859_1_15Entity ( Char[] entity )
-    {
-        HtChar chr = 0;
-        
-        if (entity) if (entity.length >= 3)
-        {
-            if (StringSearch_.isAlNum(entity[1]))
-            {
-                chr = HtmlDecodingTables_.decode(entity[1 .. $ - 1]);
-            }
-        }
-        
-        return chr;
     }
 
-    /**************************************************************************
-    
-        Converts a HTML Unicode entity to a Unicode character. A HTML Unicode
-        entity follows one of the schemes
-        
-             &#<decimal Unicode>; 
-        or
-             &#x<hexadecimal Unicode>;
-             
-        in a case insensitive way.
-        
-        Examples:
-        
-             Entity      Character       Unicode hex (dec)
-             "&#65;"     'A'             0x41 (65)
-             "&#xE1;"    'á'             0xE1 (225)
-             "&#Xf1;"    'ñ'             0xF1 (241)
-        
-        Params:
-            entity = entity content to convert; trailing "&#" and terminating ';'
-                     is not checked
-            
-        Returns:
-            the Unicode character or 0 on failure
-     
-     **************************************************************************/
-    
-    private static HtChar decodeHtmlUnicodeEntity ( Char[] entity )
-    {
-        HtChar chr = 0;
-        
-        if (entity) if (entity.length >= 4) try
-        {
-            if (entity[2] == 'x' || entity[2] == 'X')
-            {
-                chr = cast (HtChar) Integer.toInt(entity[3 .. $ - 1], 0x10);
-            }
-            else
-            {
-                chr = cast (HtChar) Integer.toInt(entity[2 .. $ - 1], 10);
-            }
-        }
-        catch {}
-        
-        return chr;
-    }
-    
-    
-    
-    /**************************************************************************
-    
-        Parses "entity" which is (hopefully) a HTML entity string. The criteria
-        are:
-        
-         a) length of "entity" is at least 3,
-         b) character 0 is '&',
-         c) a ';' between characters 1 and 16,
-         d) no white space character or '&' before the first ';'.
-         e) first ';' is behind character 2
-         
-        If "entity" comlies with all of these, slice until the ';' is returned,
-        otherwise null.
-        
-        Params:
-             entity = HTML entity string to parse
-            
-        Returns:
-             The entity if parsing was successfull or null on failure.
-             
-     **************************************************************************/
-    
-    private Char[] parseHtmlEntity ( Char[] entity )
-    {
-        size_t semicolon = 0;
-        
-        if (entity.length <= 2)                         // a) criterium
-        {
-            return "";
-        }
-        
-        if (entity[0] != '&')                           // b) criterium
-        {
-            return "";
-        }
-        
-        foreach (i, c; entity[1 .. Math.min($, 0x10)])  // c) criterium
-        {
-            bool ko = false;
-            
-            if (c == ';')
-            {
-                semicolon = i + 1;
-                
-                break;
-            }
-            
-            ko |= !!StringSearch_.isSpace(c);                 // d) criterium
-            ko |= (c == '&');                           // d) criterium
-            
-            if (ko) break;
-        }
-        
-        if (semicolon <= 2)                             // e) criterium
-        {
-            return "";
-        }
-        
-        return entity[0 .. semicolon + 1];
-    }
 }
