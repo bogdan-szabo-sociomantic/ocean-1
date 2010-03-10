@@ -69,6 +69,8 @@ module      ocean.text.ngram.NGramParser;
 
 *******************************************************************************/
 
+public      import ocean.core.Exception: NgramParserException;
+
 private     import      TextUtil    = tango.text.Util:          contains, substitute, replace, split, trim;
 private     import      Utf         = tango.text.convert.Utf:   toString32;
 private     import      Unicode     = tango.text.Unicode:       toLower;
@@ -504,23 +506,3 @@ public class NGramParser
     }
     
 } // NgramParser
-
-
-
-/*******************************************************************************
-    
-    NgramParserException        
-
-*******************************************************************************/
-
-class NgramParserException : Exception
-{
-    this(char[] msg)
-    {
-        super(msg);
-    }
-
-    private:
-        static void opCall(char[] msg) { throw new NgramParserException(msg); }
-
-} // NgramParserException
