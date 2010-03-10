@@ -74,7 +74,8 @@ alias bool function (void* kbuf, int ksiz, void* vbuf, int vsiz, void* op) TCITE
 alias _TCMAPREC TCMAPREC;
 
 /* type of structure for an element of a map */
-struct _TCMAPREC {               
+struct _TCMAPREC
+{               
     int ksiz;                                  /* size of the region of the key */
     int vsiz;                                  /* size of the region of the value */
     _TCMAPREC* left;                           /* pointer to the left child */
@@ -411,7 +412,7 @@ bool tchdbsetdfunit(TCHDB *hdb, int dfunit);
    bitwise-or: `HDBONOLCK', which means it opens the database file without file locking, or
    `HDBOLCKNB', which means locking is performed without blocking.
    If successful, the return value is true, else, it is false. */
-bool tchdbopen(TCHDB *hdb, char* path, int omode);
+bool tchdbopen(TCHDB *hdb, char* path, HDBOMODE omode);
 
 
 /* Close a hash database object.
@@ -693,7 +694,7 @@ bool tchdbsync(TCHDB *hdb);
    If successful, the return value is true, else, it is false.
    This function is useful to reduce the size of the database file with data fragmentation by
    successive updating. */
-bool tchdboptimize(TCHDB *hdb, long bnum, byte apow, byte fpow, ubyte opts);
+bool tchdboptimize(TCHDB *hdb, long bnum, byte apow, byte fpow, HDBOPT opts);
 
 
 /* Remove all records of a hash database object.
