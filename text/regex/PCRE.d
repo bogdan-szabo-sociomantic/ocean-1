@@ -52,6 +52,8 @@
 
 module  ocean.text.PCRE;
 
+public  import ocean.core.Exception: PCREException;
+
 private import ocean.text.c.pcre;
 
 private import tango.stdc.stringz : toDString = fromStringz, toCString = toStringz;
@@ -236,22 +238,4 @@ class PCRE
     
     
     
-}
-
-/******************************************************************************
-
-     PCREException
-
-*******************************************************************************/
-
-class PCREException : Exception
-{
-    this(char[] msg)
-    {
-        super(msg);
-    }
-
-    private:
-        static void opCall(char[] msg) { throw new PCREException(msg); }
-
 }

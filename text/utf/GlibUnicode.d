@@ -1,0 +1,283 @@
+/******************************************************************************
+    
+    Unicode character case conversion based on GLIB
+    
+    copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
+
+    version:        February 2010: Initial release
+
+    author:         David Eckardt
+    
+    Note: Requires linking against glib-2: "libglib-2.0.so" on Linux
+    
+    TODO: Conversion from UTF-8
+    
+ ******************************************************************************/
+
+module ocean.text.utf.GlibUnicode;
+
+/******************************************************************************
+
+    Imports
+
+ ******************************************************************************/
+
+private import ocean.text.utf.c.glib_unicode: g_unichar_to_utf8,
+                                              g_unichar_tolower,
+                                              g_unichar_toupper,
+                                              g_unichar_totitle;
+
+/******************************************************************************
+
+    GlibUnicode structure
+
+ ******************************************************************************/
+
+struct GlibUnicode
+{
+    /**************************************************************************
+    
+        Converter function alias definition
+    
+     **************************************************************************/
+    
+    extern (C) alias dchar function ( dchar c ) Converter;
+    
+    /**************************************************************************
+    
+        Converts UTF-32 input to lower case
+        
+        Params:
+            input  = UTF-32 input string
+            output = result output (UTF-32 as input)
+        
+     **************************************************************************/
+
+    static void toLower ( dchar[] input, out dchar[] output )
+    {
+        return convert(input, output, &g_unichar_tolower);
+    }
+    
+    /**************************************************************************
+    
+        Converts UTF-32 input to UTF-8 lower case
+        
+        Params:
+            input  = UTF-32 input string
+            output = result output (UTF-8)
+        
+     **************************************************************************/
+    
+    static void toLower ( dchar[] input, out char[] output )
+    {
+        return convert(input, output, &g_unichar_tolower);
+    }
+
+    /**************************************************************************
+    
+        Converts UTF-32 content in-place to lower case
+        
+        Params:
+            content = content buffer
+        
+     **************************************************************************/
+
+    static void toLower ( ref dchar[] content )
+    {
+        return convert(content, &g_unichar_tolower);
+    }
+    
+    /**************************************************************************
+    
+        Converts UTF-32 input to upper case
+        
+        Params:
+            input  = UTF-32 input string
+            output = result output (UTF-32 as input)
+        
+     **************************************************************************/
+
+    static void toUpper ( dchar[] input, out dchar[] output )
+    {
+        return convert(input, output, &g_unichar_toupper);
+    }
+    
+    /**************************************************************************
+    
+        Converts UTF-32 input to UTF-8 upper case
+        
+        Params:
+            input  = UTF-32 input string
+            output = result output (UTF-8)
+        
+     **************************************************************************/
+
+    static void toUpper ( dchar[] input, out char[] output )
+    {
+        return convert(input, output, &g_unichar_toupper);
+    }
+    
+    /**************************************************************************
+    
+        Converts UTF-32 content in-place to upper case
+        
+        Params:
+            content = content buffer
+        
+     **************************************************************************/
+
+    static void toUpper ( ref dchar[] content )
+    {
+        return convert(content, &g_unichar_toupper);
+    }
+    
+    /**************************************************************************
+    
+        Converts UTF-32 input to title case
+        
+        Params:
+            input  = UTF-32 input string
+            output = result output (UTF-32 as input)
+        
+     **************************************************************************/
+
+    static void toTitle ( dchar[] input, out dchar[] output )
+    {
+        return convert(input, output, &g_unichar_totitle);
+    }
+    
+    /**************************************************************************
+    
+        Converts UTF-32 input to UTF-8 title case
+        
+        Params:
+            input  = UTF-32 input string
+            output = result output (UTF-8)
+        
+     **************************************************************************/
+
+    static void toTitle ( dchar[] input, out char[] output )
+    {
+        return convert(input, output, &g_unichar_totitle);
+    }
+    
+    /**************************************************************************
+    
+        Converts UTF-32 content in-place to title case
+        
+        Params:
+            content = content buffer
+        
+     **************************************************************************/
+
+    static void toTitle ( ref dchar[] content )
+    {
+        return convert(content, &g_unichar_totitle);
+    }
+
+    /**************************************************************************
+    
+        Converts UTF-32 input using convert_fn
+        
+        Params:
+            input      = UTF-32 input string
+            output     = result output (UTF-32 as input)
+            convert_fn = convert function
+        
+     **************************************************************************/
+
+    static void convert ( dchar[] input, out char[] output, Converter convert_fn )
+    {
+        char[6] tmp;
+        
+        foreach ( c; input )
+        {
+            int n = g_unichar_to_utf8(convert_fn(c), tmp.ptr);
+            
+            output ~= tmp[0 .. n].dup;
+        }
+    }
+    
+    /**************************************************************************
+    
+        Converts UTF-32 input using convert_fn
+        
+        Params:
+            input      = UTF-32 input string
+            output     = result output (UTF-8)
+            convert_fn = convert function
+        
+     **************************************************************************/
+
+    static void convert ( dchar[] input, out dchar[] output, Converter convert_fn )
+    {
+        output.length = input.length;
+        
+        foreach ( i, c; input )
+        {
+            output[i] = convert_fn(c);
+        }
+    }
+    
+    /**************************************************************************
+    
+        Converts UTF-32 content in-place using convert_fn
+        
+        Params:
+            content    = content buffer
+            convert_fn = convert function
+        
+     **************************************************************************/
+
+    static void convert ( ref dchar[] content, Converter convert_fn )
+    {
+        foreach ( ref c; content )
+        {
+            c = convert_fn(c);
+        }
+    }
+
+    /**************************************************************************
+    
+        Converts UTF-32 input to UTF-8
+        
+        Params:
+            input      = UTF-32 input string
+            output     = result output (UTF-8)
+        
+     **************************************************************************/
+
+    static void toUtf8 ( Char ) ( Char[] input, out char[] output )
+    {
+        foreach ( c; input )
+        {
+            output ~= toUtf8(c);
+        }
+    }
+    
+    
+    /**************************************************************************
+    
+        Converts UTF-32 input to UTF-8
+        
+        Params:
+            input      = UTF-32 input string
+            output     = result output (UTF-8)
+        
+     **************************************************************************/
+    
+    static char[] toUtf8 ( Char ) ( Char c )
+    {
+        static if (Char.sizeof == 2) pragma (msg, typeof (*this).stringof ~
+                                             ".toUtf8: Only Basic "
+                                             "Multilingual Plane supported "
+                                             "with type '" ~ Char.stringof ~
+                                             "'; use 'dchar' for full support");
+        
+        char[6] tmp;
+        
+        int n = g_unichar_to_utf8(c, tmp.ptr);
+        
+        return tmp[0 .. n].dup;
+    }
+}
