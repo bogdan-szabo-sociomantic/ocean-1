@@ -642,7 +642,10 @@ class ObjectPool ( T, A ... )
         
         this ( hash_t hash, Recycler recycle, A args )
         {
-            super(args);
+            static if (A.length)
+            {                   // explicitely invoke super constructor only if
+                super(args);    // arguments are to be passed to it
+            }
             
             this.hash = hash;
             
