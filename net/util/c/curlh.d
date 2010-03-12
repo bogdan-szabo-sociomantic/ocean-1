@@ -23,7 +23,7 @@ module ocean.net.util.c.curlh;
  * $Id: curl.h,v 1.390 2009-08-11 14:07:08 patrickm Exp $
  ***************************************************************************/
 
-alias void CURL;
+typedef void* CURL;
 
 const CURL_ERROR_SIZE = 256;
 
@@ -1078,11 +1078,11 @@ extern(C):
  * $Id: easy.h,v 1.14 2008-05-12 21:43:28 bagder Exp $
  ***************************************************************************/
     
-CURL* curl_easy_init();
+CURL curl_easy_init();
 
-void curl_easy_cleanup(CURL* handle);
-int curl_easy_setopt(CURL* handle, CURLoption option, ...);
-int curl_easy_perform(CURL* handle);
+void curl_easy_cleanup(CURL handle);
+int curl_easy_setopt(CURL handle, CURLoption option, ...);
+int curl_easy_perform(CURL handle);
 
 
 /*
@@ -1098,7 +1098,7 @@ int curl_easy_perform(CURL* handle);
  * performed transfer, all results from this function are undefined until the
  * transfer is completed.
  */
-CURLcode curl_easy_getinfo(CURL* curl, CURLINFO info, ...);
+CURLcode curl_easy_getinfo(CURL curl, CURLINFO info, ...);
 
 /*
  * NAME curl_easy_duphandle()
@@ -1112,7 +1112,7 @@ CURLcode curl_easy_getinfo(CURL* curl, CURLINFO info, ...);
  * curl_easy_duphandle() for each new thread to avoid a series of identical
  * curl_easy_setopt() invokes in every thread.
  */
-CURL* curl_easy_duphandle(CURL* curl);
+CURL curl_easy_duphandle(CURL curl);
 
 /*
  * NAME curl_easy_reset()
@@ -1125,7 +1125,7 @@ CURL* curl_easy_duphandle(CURL* curl);
  * It does keep: live connections, the Session ID cache, the DNS cache and the
  * cookies.
  */
-void curl_easy_reset(CURL* curl);
+void curl_easy_reset(CURL curl);
 
 /*
  * NAME curl_easy_recv()
@@ -1135,7 +1135,7 @@ void curl_easy_reset(CURL* curl);
  * Receives data from the connected socket. Use after successful
  * curl_easy_perform() with CURLOPT_CONNECT_ONLY option.
  */
-CURLcode curl_easy_recv(CURL* curl, void* buffer, size_t buflen,
+CURLcode curl_easy_recv(CURL curl, void* buffer, size_t buflen,
                                     size_t* n);
 
 /*
@@ -1146,7 +1146,7 @@ CURLcode curl_easy_recv(CURL* curl, void* buffer, size_t buflen,
  * Sends data over the connected socket. Use after successful
  * curl_easy_perform() with CURLOPT_CONNECT_ONLY option.
  */
-//CURLcode curl_easy_send(CURL *curl, const void *buffer, size_t buflen, size_t *n);
+//CURLcode curl_easy_send(CURL curl, const void *buffer, size_t buflen, size_t *n);
 
 
 /*
@@ -1180,7 +1180,7 @@ char* curl_easy_strerror(CURLcode);
  * state by setting the bitmask, use the convenience defines below.
  *
  */
-CURLcode curl_easy_pause(CURL *handle, int bitmask);
+CURLcode curl_easy_pause(CURL handle, int bitmask);
 
 /*
  * NAME curl_easy_escape()
@@ -1191,7 +1191,7 @@ CURLcode curl_easy_pause(CURL *handle, int bitmask);
  * %XX versions). This function returns a new allocated string or NULL if an
  * error occurred.
  */
-char* curl_easy_escape(CURL *handle, char *string, int length);
+char* curl_easy_escape(CURL handle, char *string, int length);
 
 
 /*
@@ -1205,7 +1205,7 @@ char* curl_easy_escape(CURL *handle, char *string, int length);
  * Conversion Note: On non-ASCII platforms the ASCII %XX codes are
  * converted into the host encoding.
  */
-char *curl_easy_unescape(CURL *handle, char *string, int length, int *outlength);
+char *curl_easy_unescape(CURL handle, char *string, int length, int *outlength);
 
 /*
  * NAME curl_version_info()

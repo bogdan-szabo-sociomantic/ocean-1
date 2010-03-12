@@ -24,13 +24,14 @@ public      import      ocean.core.Exception: CurlException;
 
 private     import      ocean.net.util.c.curlh;
 
+private     import  	tango.math.Math: max;
+
 private     import  	tango.stdc.stdlib : free;
 
 private     import      tango.stdc.string : strlen;
 
 private     import      tango.stdc.stringz : toDString = fromStringz, 
                                              toCString = toStringz;
-
 
 /*******************************************************************************
 
@@ -40,14 +41,22 @@ private     import      tango.stdc.stringz : toDString = fromStringz,
 
 class LibCurl 
 {
-    
     /******************************************************************************
-        
-        Curl Session
+    
+        Read delegate type alias, used in read() and writeCallback()
             
     *******************************************************************************/
     
-	private             CURL*                            curl;
+    alias size_t delegate ( char[] ) ReadDg; 
+    
+    
+    /******************************************************************************
+        
+        Curl handle
+            
+    *******************************************************************************/
+    
+	private             CURL                             curl;
 
 
     /******************************************************************************
@@ -57,7 +66,7 @@ class LibCurl
     *******************************************************************************/
 
     private             static const uint                DEFAULT_TIME_OUT = 360;
-    private             ulong                            maxFileSize = 1_024_000;
+    public              static const size_t              DEFAULT_MAX_FILE_SIZE = 1_024_000;
 
 
     /******************************************************************************
@@ -66,7 +75,6 @@ class LibCurl
             
     *******************************************************************************/
     
-    private             char[]*                          messageBuffer;
     private             char[][]                         headerBuffer;
     
     
@@ -79,8 +87,6 @@ class LibCurl
 	private             char[CURL_ERROR_SIZE + 1]        errorBuffer = "\0";
 	private             int                              errorCode;
 	
-
-    
     /******************************************************************************
         
         Constructor
@@ -89,13 +95,12 @@ class LibCurl
     
 	this() 
     {
-		curl = curl_easy_init();
+		this.curl = curl_easy_init();
 
 		if (curl is null) throw new CurlException("Error on curl_easy_init!");
 
-		setOption(CURLoption.ERRORBUFFER, &errorBuffer);
+		setOption(CURLoption.ERRORBUFFER, &this.errorBuffer);
 		setOption(CURLoption.WRITEHEADER, cast(void*)this);
-		setOption(CURLoption.WRITEDATA, cast(void*)this);
         
 		setOption(CURLoption.HEADERFUNCTION, &headerCallback);
 		setOption(CURLoption.WRITEFUNCTION, &writeCallback);
@@ -108,8 +113,10 @@ class LibCurl
         
         setOption(CURLoption.NOSIGNAL, 1); // no signals for thread safety
         
-        setOption(CURLoption.TIMEOUT, DEFAULT_TIME_OUT);
-        setOption(CURLoption.MAXFILESIZE, maxFileSize);
+        setOption(CURLoption.FORBID_REUSE, 1);
+        
+        //this.setMaxFileSize(this.DEFAULT_MAX_FILE_SIZE);
+        this.setTimeout(this.DEFAULT_TIME_OUT);
 	}
     
     
@@ -124,55 +131,6 @@ class LibCurl
 		if (curl !is null) 
 			curl_easy_cleanup(curl);
 	}
-    
-    
-    /******************************************************************************
-        
-        Set Response Buffer
-            
-        Params:
-            p = pointer to string write buffer
-            
-    *******************************************************************************/
-    
-    public void setResponseBuffer ( char[]* p ) 
-    {
-        messageBuffer = p;
-    }
-  
-    
-    /******************************************************************************
-        
-        Sets Maximum File Size
-        
-        If the downloaded content exceeds the maximum file size the download
-        is stopped and returns with an error.
-            
-        Params:
-            max = max file size
-            
-    *******************************************************************************/
-    
-    public void setMaxFileSize ( long max ) 
-    {
-        maxFileSize = max;
-        setOption(CURLoption.MAXFILESIZE, maxFileSize);
-    }
-    
-    
-    /******************************************************************************
-        
-        Set User Agent
-            
-        Params:
-            agent = user agent identifier string
-            
-    *******************************************************************************/
-    
-    public void setUserAgent ( char[] string ) 
-    {
-        setOption(CURLoption.USERAGENT, string);
-    }
     
     
     /******************************************************************************
@@ -243,22 +201,58 @@ class LibCurl
     /******************************************************************************
         
         Read Url
-            
+        
         Params:
-            url = url to download content from
+            url     = url to download content from
+            content = response content output
             
-    *******************************************************************************/
+     *******************************************************************************/
     
-	public void read( char[] url ) 
-    { 
-        assert(url, "no url given!");
-        assert(messageBuffer, "no response buffer set");
+	public void read ( ref char[] url, out char[] content ) 
+    {
+        /// appends received to content
         
-		clearBuffers();
-		setOption(CURLoption.URL, toCString(url));
+        size_t append_content ( char[] received )
+        {
+            content ~= received;
+            
+            return received.length;
+        }
         
-		errorCode = curl_easy_perform(curl);
+        return this.read(url, &append_content);
 	}
+    
+    /**************************************************************************
+    
+        Read Url
+        
+        ReadDg is a type alias of
+                                                                             ---
+            size_t delegate ( ref char[] received )
+                                                                             ---
+        where received is the buffer holding the recently arrived data. read_dg
+        shall return the number of elements processed from received, however,
+        a return value which differs from received.length is interpreted as an
+        error indication and will cause cancelling the current request.
+        
+        Params:
+            url     = url to download content from
+            read_dg = callback delegate to be invoked each time data arrive
+            
+     **************************************************************************/
+
+    public void read ( ref char[] url, ReadDg read_dg )
+    {
+        url ~= '\0';
+        
+        scope (exit) url.length = url.length - 1;  // remove null terminator from url
+        
+        this.setOption(CURLoption.WRITEDATA, &read_dg);
+        
+        this.setOption(CURLoption.URL, url.ptr);
+        
+        errorCode = curl_easy_perform(this.curl);
+    }
     
     
     /******************************************************************************
@@ -266,17 +260,17 @@ class LibCurl
         Encode String
             
         Params:
-            string = string reference to encode
+            str = str reference to encode
             
     *******************************************************************************/
     
-    public void encode ( ref char[] string )
+    public void encode ( ref char[] str )
     {
     	char* cvalue;
     	
-    	cvalue = curl_easy_escape(curl, toCString(string), string.length);
+    	cvalue = curl_easy_escape(curl, toCString(str), str.length);
         
-    	string = toDString(cvalue).dup;
+    	str = toDString(cvalue).dup;
         free(cvalue);
     }
     
@@ -305,9 +299,53 @@ class LibCurl
 	private void clearBuffers() 
     {
 		headerBuffer.length = 0;
-//        errorBuffer = "\0";
 	}
     
+    
+    
+    /******************************************************************************
+    
+        Sets cURL option. Parameter value must be an integer, pointer or string.
+        
+        Params:
+            value = parameter value for selected option
+            
+    *******************************************************************************/
+
+	public bool setOptionT ( CURLoption option, T ) ( T value )
+	{
+        static assert (is (T : int) || is (T : void*) || is (T == char[]),
+                       typeof (this).stringof ~ ": cURL option must be "
+                       "integer, pointer or string, not '" ~ T.stringof ~ '\'');
+	    
+        return this.setOption(option, value);
+	}
+	
+    /******************************************************************************
+    
+        Set User Agent
+            
+        Params:
+            value = user agent identifier string
+            
+    *******************************************************************************/
+
+    
+	alias setOptionT!(CURLoption.USERAGENT,   char[]) setUserAgent;
+    
+    
+    /******************************************************************************
+    
+        Set request timeout
+            
+        Params:
+            value = request timeout
+            
+    *******************************************************************************/
+
+    
+    alias setOptionT!(CURLoption.TIMEOUT,     int)    setTimeout;
+
     
     /******************************************************************************
         
@@ -315,13 +353,13 @@ class LibCurl
             
         Params:
             option = libcurl option to set
-            string = parameter value string
+            str = parameter value str
             
     *******************************************************************************/
     
-	private bool setOption(CURLoption option, char[] string) 
+	private bool setOption(CURLoption option, char[] str) 
     {
-		return curl_easy_setopt(curl, option, toCString(string)) == CURLcode.CURLE_OK;
+		return curl_easy_setopt(curl, option, toCString(str)) == CURLcode.CURLE_OK;
 	}
     
     
@@ -364,42 +402,32 @@ class LibCurl
              
             Interface follows fwrite syntax: http://www.manpagez.com/man/3/fwrite/
             
+            The loop-through custom pointer is supplied to libcurl as argument
+            for the CURLoption.WRITEDATA option. The read() method of thi class
+            sets it to a pointer to a ReadDg delegate to invoke with the
+            received data.
+            
             Params:
-                ptr = data pointer
-                size = element size
+                ptr   = data pointer
+                size  = element size
                 nmemb = number of elements
-                obj = passthru object instance to work on
+                obj   = loop-through custom pointer
             
             Returns:
-                zero on write error, or number of written bytes
+                passes through the return value of the read delegate
            
         *******************************************************************************/
         
-    	private size_t writeCallback( void* ptr, size_t size , size_t nmemb, void* obj ) 
+    	private size_t writeCallback ( void* ptr, size_t size, size_t nmemb, void* obj ) 
         {
-    		LibCurl curl = cast(LibCurl)obj;
+            if (!ptr || !obj) return 0;
             
-            if ( curl is null || !nmemb || ptr is null )
-                return 0;
             
-            if ( (curl.messageBuffer.length + (size * nmemb)) < curl.maxFileSize )
-            {
-                try 
-                {
-                    *curl.messageBuffer ~= toDString(cast(char*)ptr)[0 .. (size * nmemb)].dup;
-                }
-                catch (Exception e)
-                {
-                    //*curl.messageBuffer ~= toDString(cast(char*)ptr)[0 .. strlen(cast(char*)ptr)].dup;
-                    return 0;
-                }
-            }
-            else
-            {
-                return 0; // exceeded download limit
-            }
+            ReadDg read_dg = *(cast (ReadDg*) obj);
             
-    		return size*nmemb;
+            char[] content = (cast (char*) ptr)[0 .. size * nmemb].dup;
+            
+            return read_dg(content);
     	}
     
         
