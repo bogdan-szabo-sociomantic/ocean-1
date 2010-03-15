@@ -41,6 +41,8 @@ private     import      tango.stdc.stringz : toDString = fromStringz,
 
 class LibCurl 
 {
+    alias CURLcode CurlCode;
+    
     /******************************************************************************
     
         Read delegate type alias, used in read() and writeCallback()
@@ -84,7 +86,7 @@ class LibCurl
             
     *******************************************************************************/
     
-	private             char[CURL_ERROR_SIZE + 1]        errorBuffer = "\0";
+	private             char[CURL_ERROR_SIZE + 1]        error_msg;
 	private             int                              errorCode;
 	
     /******************************************************************************
@@ -99,7 +101,7 @@ class LibCurl
 
 		if (curl is null) throw new CurlException("Error on curl_easy_init!");
 
-		setOption(CURLoption.ERRORBUFFER, &this.errorBuffer);
+		setOption(CURLoption.ERRORBUFFER, this.error_msg.ptr);
 		setOption(CURLoption.WRITEHEADER, cast(void*)this);
         
 		setOption(CURLoption.HEADERFUNCTION, &headerCallback);
@@ -132,7 +134,7 @@ class LibCurl
 			curl_easy_cleanup(curl);
 	}
     
-    
+    /+
     /******************************************************************************
         
         Returns Curl Error Code
@@ -146,7 +148,7 @@ class LibCurl
     {
         return errorCode;
     }
-    
+    +/
     
     /******************************************************************************
         
@@ -157,9 +159,9 @@ class LibCurl
             
     *******************************************************************************/
     
-    public char[] errorString ()
+    public char[] getErrorMsg ()
     {
-        return errorBuffer;
+        return this.error_msg[0 .. strlen(this.error_msg.ptr)];
     }
     
     
@@ -172,7 +174,7 @@ class LibCurl
             
     *******************************************************************************/
     
-    public long getReturnCode ()
+    public long getResponseCode ()
     {
         long code;
         
@@ -208,7 +210,7 @@ class LibCurl
             
      *******************************************************************************/
     
-	public void read ( ref char[] url, out char[] content ) 
+	public CurlCode read ( ref char[] url, out char[] content ) 
     {
         /// appends received to content
         
@@ -241,8 +243,10 @@ class LibCurl
             
      **************************************************************************/
 
-    public void read ( ref char[] url, ReadDg read_dg )
+    public CurlCode read ( ref char[] url, ReadDg read_dg )
     {
+        int response_code;
+        
         url ~= '\0';
         
         scope (exit) url.length = url.length - 1;  // remove null terminator from url
@@ -251,7 +255,7 @@ class LibCurl
         
         this.setOption(CURLoption.URL, url.ptr);
         
-        errorCode = curl_easy_perform(this.curl);
+        return curl_easy_perform(this.curl);
     }
     
     
@@ -266,11 +270,10 @@ class LibCurl
     
     public void encode ( ref char[] str )
     {
-    	char* cvalue;
-    	
-    	cvalue = curl_easy_escape(curl, toCString(str), str.length);
+    	char* cvalue = curl_easy_escape(curl, str.ptr, str.length);
         
-    	str = toDString(cvalue).dup;
+    	str = cvalue[0 .. strlen(cvalue)].dup;
+        
         free(cvalue);
     }
     
@@ -312,7 +315,7 @@ class LibCurl
             
     *******************************************************************************/
 
-	public bool setOptionT ( CURLoption option, T ) ( T value )
+	public CurlCode setOptionT ( CURLoption option, T ) ( T value )
 	{
         static assert (is (T : int) || is (T : void*) || is (T == char[]),
                        typeof (this).stringof ~ ": cURL option must be "
@@ -353,13 +356,16 @@ class LibCurl
             
         Params:
             option = libcurl option to set
-            str = parameter value str
-            
+            str    = parameter value string
+        
+        Returns:
+            0 on success or Curl error code on failure
+        
     *******************************************************************************/
     
-	private bool setOption(CURLoption option, char[] str) 
+	private CurlCode setOption(CURLoption option, char[] str) 
     {
-		return curl_easy_setopt(curl, option, toCString(str)) == CURLcode.CURLE_OK;
+		return curl_easy_setopt(curl, option, (str ~ '\0').ptr);
 	}
     
     
@@ -369,13 +375,16 @@ class LibCurl
             
         Params:
             option = libcurl option to set
-            str = parameter value pointer
+            p      = parameter value pointer
             
+        Returns:
+            0 on success or Curl error code on failure
+        
     *******************************************************************************/
     
-	private bool setOption(CURLoption option, void* p) 
+	private CurlCode setOption(CURLoption option, void* p) 
     {
-		return curl_easy_setopt(curl, option, p) == CURLcode.CURLE_OK;
+		return curl_easy_setopt(curl, option, p);
 	}
     
     
@@ -385,13 +394,16 @@ class LibCurl
             
         Params:
             option = libcurl option to set
-            str = numeric parameter value
+            value  = numeric parameter value
             
+        Returns:
+            0 on success or Curl error code on failure
+        
     *******************************************************************************/
     
-	private bool setOption(CURLoption option, int prarm) 
+	private CurlCode setOption(CURLoption option, int value) 
     {
-		return curl_easy_setopt(curl, option, prarm) == CURLcode.CURLE_OK;
+		return curl_easy_setopt(curl, option, value);
 	}
     
     extern (C) static

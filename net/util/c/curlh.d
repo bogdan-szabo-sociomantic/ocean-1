@@ -25,13 +25,13 @@ module ocean.net.util.c.curlh;
 
 typedef void* CURL;
 
-const CURL_ERROR_SIZE = 256;
+const CURL_ERROR_SIZE = 0x100;
 
 /* Tests have proven that 20K is a very bad buffer size for uploads on
  Windows, while 16K for some odd reason performed a lot better.
  We do the ifndef check to allow this value to easier be changed at build
  time for those who feel adventurous. */
-const CURL_MAX_WRITE_SIZE = 16384;
+const CURL_MAX_WRITE_SIZE = 0x4000;
 
 /* This is a magic return code for the write callback that, when returned,
    will signal libcurl to pause receiving on the current transfer. */
@@ -58,19 +58,19 @@ alias size_t function (char *buffer, size_t size, size_t nitems, void *instream)
 
 
 /* CURLPROTO_ defines are for the CURLOPT_*PROTOCOLS options */
-const CURLPROTO_HTTP = (1<<0);
-const CURLPROTO_HTTPS = (1<<1);
-const CURLPROTO_FTP = (1<<2);
-const CURLPROTO_FTPS = (1<<3);
-const CURLPROTO_SCP = (1<<4);
-const CURLPROTO_SFTP = (1<<5);
-const CURLPROTO_TELNET = (1<<6);
-const CURLPROTO_LDAP = (1<<7);
-const CURLPROTO_LDAPS = (1<<8);
-const CURLPROTO_DICT = (1<<9);
-const CURLPROTO_FILE = (1<<10);
-const CURLPROTO_TFTP = (1<<11);
-const CURLPROTO_ALL = (~0); /* enable everything */
+const CURLPROTO_HTTP   = (1 << 0x0);
+const CURLPROTO_HTTPS  = (1 << 0x1);
+const CURLPROTO_FTP    = (1 << 0x2);
+const CURLPROTO_FTPS   = (1 << 0x3);
+const CURLPROTO_SCP    = (1 << 0x4);
+const CURLPROTO_SFTP   = (1 << 0x5);
+const CURLPROTO_TELNET = (1 << 0x6);
+const CURLPROTO_LDAP   = (1 << 0x7);
+const CURLPROTO_LDAPS  = (1 << 0x8);
+const CURLPROTO_DICT   = (1 << 0x9);
+const CURLPROTO_FILE   = (1 << 0xA);
+const CURLPROTO_TFTP   = (1 << 0xB);
+const CURLPROTO_ALL    = (~0); /* enable everything */
 
   /* Below here follows defines for the CURLOPT_IPRESOLVE option. If a host
      name resolves addresses using more than one IP protocol version, this
@@ -951,15 +951,12 @@ enum CURLcode
 
 enum curl_proxytype 
 {
-  CURLPROXY_HTTP = 0,   /* added in 7.10, new in 7.19.4 default is to use
-                           CONNECT HTTP/1.1 */
-  CURLPROXY_HTTP_1_0 = 1,   /* added in 7.19.4, force to use CONNECT
-                               HTTP/1.0  */
-  CURLPROXY_SOCKS4 = 4, /* support added in 7.15.2, enum existed already
-                           in 7.10 */
-  CURLPROXY_SOCKS5 = 5, /* added in 7.10 */
-  CURLPROXY_SOCKS4A = 6, /* added in 7.18.0 */
-  CURLPROXY_SOCKS5_HOSTNAME = 7 /* Use the SOCKS5 protocol but pass along the
+  CURLPROXY_HTTP            = 0, /* added in 7.10, new in 7.19.4 default is to use CONNECT HTTP/1.1 */
+  CURLPROXY_HTTP_1_0        = 1, /* added in 7.19.4, force to use CONNECT HTTP/1.0  */
+  CURLPROXY_SOCKS4          = 4, /* support added in 7.15.2, enum existed already in 7.10 */
+  CURLPROXY_SOCKS5          = 5, /* added in 7.10 */
+  CURLPROXY_SOCKS4A         = 6, /* added in 7.18.0 */
+  CURLPROXY_SOCKS5_HOSTNAME = 7  /* Use the SOCKS5 protocol but pass along the
                                    host name rather than the IP address. added
                                    in 7.18.0 */
 }  /* this enum was added in 7.10 */
@@ -975,9 +972,9 @@ enum curl_closepolicy
   CURLCLOSEPOLICY_LAST /* last, never use this */
 }
 
-const CURL_GLOBAL_SSL = (1<<0);
-const CURL_GLOBAL_WIN32 = (1<<1);
-const CURL_GLOBAL_ALL = (CURL_GLOBAL_SSL|CURL_GLOBAL_WIN32);
+const CURL_GLOBAL_SSL     = (1 << 0);
+const CURL_GLOBAL_WIN32   = (1 << 1);
+const CURL_GLOBAL_ALL     = (CURL_GLOBAL_SSL|CURL_GLOBAL_WIN32);
 const CURL_GLOBAL_NOTHING = 0;
 const CURL_GLOBAL_DEFAULT = CURL_GLOBAL_ALL;
 
@@ -995,20 +992,20 @@ enum CURLversion
   CURLVERSION_LAST /* never actually use this */
 }
 
-const CURL_VERSION_IPV6 = (1<<0);  /* IPv6-enabled */
-const CURL_VERSION_KERBEROS4 = (1<<1);  /* kerberos auth is supported */
-const CURL_VERSION_SSL = (1<<2);  /* SSL options are present */
-const CURL_VERSION_LIBZ = (1<<3);  /* libz features are present */
-const CURL_VERSION_NTLM = (1<<4);  /* NTLM auth is supported */
-const CURL_VERSION_GSSNEGOTIATE = (1<<5); /* Negotiate auth support */
-const CURL_VERSION_DEBUG = (1<<6);  /* built with debug capabilities */
-const CURL_VERSION_ASYNCHDNS = (1<<7);  /* asynchronous dns resolves */
-const CURL_VERSION_SPNEGO = (1<<8);  /* SPNEGO auth */
-const CURL_VERSION_LARGEFILE = (1<<9);  /* supports files bigger than 2GB */
-const CURL_VERSION_IDN = (1<<10); /* International Domain Names support */
-const CURL_VERSION_SSPI = (1<<11); /* SSPI is supported */
-const CURL_VERSION_CONV = (1<<12); /* character conversions supported */
-const CURL_VERSION_CURLDEBUG = (1<<13); /* debug memory tracking supported */
+const CURL_VERSION_IPV6         = (1 << 0x0);  // IPv6-enabled 
+const CURL_VERSION_KERBEROS4    = (1 << 0x1);  // kerberos auth is supported 
+const CURL_VERSION_SSL          = (1 << 0x2);  // SSL options are present 
+const CURL_VERSION_LIBZ         = (1 << 0x3);  // libz features are present 
+const CURL_VERSION_NTLM         = (1 << 0x4);  // NTLM auth is supported 
+const CURL_VERSION_GSSNEGOTIATE = (1 << 0x5);  // Negotiate auth support 
+const CURL_VERSION_DEBUG        = (1 << 0x6);  // built with debug capabilities 
+const CURL_VERSION_ASYNCHDNS    = (1 << 0x7);  // asynchronous dns resolves 
+const CURL_VERSION_SPNEGO       = (1 << 0x8);  // SPNEGO auth 
+const CURL_VERSION_LARGEFILE    = (1 << 0x9);  // supports files bigger than 2GB 
+const CURL_VERSION_IDN          = (1 << 0xA);  // International Domain Names support 
+const CURL_VERSION_SSPI         = (1 << 0xB);  // SSPI is supported 
+const CURL_VERSION_CONV         = (1 << 0xC);  // character conversions supported 
+const CURL_VERSION_CURLDEBUG    = (1 << 0xD);  // debug memory tracking supported 
 
 
 /*
@@ -1080,9 +1077,9 @@ extern(C):
     
 CURL curl_easy_init();
 
-void curl_easy_cleanup(CURL handle);
-int curl_easy_setopt(CURL handle, CURLoption option, ...);
-int curl_easy_perform(CURL handle);
+void     curl_easy_cleanup(CURL handle);
+CURLcode curl_easy_setopt(CURL handle, CURLoption option, ...);
+CURLcode curl_easy_perform(CURL handle);
 
 
 /*
