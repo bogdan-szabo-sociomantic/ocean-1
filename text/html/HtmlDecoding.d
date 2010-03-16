@@ -54,12 +54,12 @@ module ocean.text.html.HtmlDecoding;
  
  ******************************************************************************/
 
-private import text.html.HtmlCharSets;
+private import ocean.text.html.HtmlCharSets;
 
-private import text.utf.GlibUnicode;
+private import ocean.text.utf.GlibUnicode;
 
-private import text.util.StringSearch;
-private import text.util.StringReplace;
+private import ocean.text.util.StringSearch;
+private import ocean.text.util.StringReplace;
 
 private import Integer  = tango.text.convert.Integer:   toInt;
 
@@ -183,7 +183,7 @@ class HtmlDecoding ( bool wide_char = false )
      
      **************************************************************************/
     
-    public This decode ( ref Char[] content )
+    public This opCall ( ref Char[] content )
     {
         this.stringReplace.replacePattern(content, "&amp;", "&");
         
