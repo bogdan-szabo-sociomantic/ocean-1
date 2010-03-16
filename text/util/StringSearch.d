@@ -196,6 +196,8 @@ struct StringSearch ( bool wide_char = false )
         alias cstring.wcsstr    pLocatePattern;
         alias cstring.wmemmove  pMemMove;
         alias cstring.wcscspn   pLocateFirstInSet;
+        
+        alias cstring.wcstok    pSplit;
     }
     else
     {
@@ -226,6 +228,8 @@ struct StringSearch ( bool wide_char = false )
         alias cstring.strstr    pLocatePattern;
         alias cstring.memmove   pMemMove;
         alias cstring.strcspn   pLocateFirstInSet;
+        
+        alias cstring.strtok    pSplit;
     }
     
     static const Char TERM = '\0';
@@ -644,7 +648,7 @@ struct StringSearch ( bool wide_char = false )
     }
     
     
-    
+    /+
     /**
      * Splits "str" into at most "n" "slices" on each occurrence of "delim".
      * 
@@ -682,7 +686,7 @@ struct StringSearch ( bool wide_char = false )
     {
         return split(slices, str, delim, n, true);
     }
-    
+    +/
     
     /**************************************************************************
       
