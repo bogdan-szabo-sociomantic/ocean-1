@@ -280,7 +280,7 @@ class FixUtf8
      
      **************************************************************************/
     
-    alias StringReplace!(true) StringReplace_;
+    private alias   StringReplace!(true)    StringReplace_;
     
     /**************************************************************************
     
@@ -288,7 +288,7 @@ class FixUtf8
      
      **************************************************************************/
     
-    alias StringReplace_.Char Char;
+    private alias   StringReplace_.Char     Wchar;
     
     /**************************************************************************
     
@@ -296,7 +296,7 @@ class FixUtf8
      
      **************************************************************************/
     
-    private alias typeof (this) This;
+    private alias   typeof (this)           This;
     
     /**************************************************************************
     
@@ -304,7 +304,7 @@ class FixUtf8
      
      **************************************************************************/
     
-    public static const Char[] Utf8MagicChars = [0xC2, 0xC3, 0xC4, 0xC5]; // "ÂÃÄÅ"
+    public static const Wchar[] Utf8MagicChars = [0xC2, 0xC3, 0xC4, 0xC5]; // "ÂÃÄÅ"
     
     /**************************************************************************
     
@@ -313,6 +313,9 @@ class FixUtf8
      **************************************************************************/
     
     private StringReplace_ stringReplace;
+    
+    
+    private Wchar[] content;
     
     /**************************************************************************
     
@@ -323,6 +326,8 @@ class FixUtf8
     this ( )
     {
         this.stringReplace = new StringReplace_;
+        
+        this.content       = new Wchar[0];
     }
     
     
@@ -358,31 +363,22 @@ class FixUtf8
      
      **************************************************************************/
     
-    public This opCall ( ref Char[] content )
+    public This opCall ( Char ) ( ref Char[] content )
     {
-        this.stringReplace.replaceDecodeCharSet(content, this.Utf8MagicChars, &this.decodeUtf8);
+        static if (is (Char == Wchar))
+        {
+            this.stringReplace.replaceDecodeCharSet(content, this.Utf8MagicChars, &this.decodeUtf8);
+        }
+        else
+        {
+            this.content = convertUtf(content, this.content);
+            
+            this.stringReplace.replaceDecodeCharSet(this.content, this.Utf8MagicChars, &this.decodeUtf8);
+            
+            content = convertUtf(this.content, content);
+        }
         
         return this;
-    }
-    
-    /**************************************************************************
-    
-        Composes an Unicode character from two Unicode malcoded bytes
-        
-        (Taken from tango.text.convert.Utf.toString())
-        
-        Params:
-            lb = lower byte
-            ub = upper byte
-            
-        Returns:
-            composed Unicode character
-        
-     **************************************************************************/
-    
-    public static Char composeUtf8Char ( Char lb, Char ub )
-    {
-        return (((lb & 0x1F) << 6) | (ub & 0x3F));
     }
     
     /**************************************************************************
@@ -400,7 +396,7 @@ class FixUtf8
         
      **************************************************************************/
     
-    private size_t decodeUtf8 ( Char[] content, out Char[] replacement )
+    private size_t decodeUtf8 ( Wchar[] content, out Wchar[] replacement )
     {
         size_t replaced = 0;
         
@@ -411,12 +407,24 @@ class FixUtf8
             
             if (up & 0x80)
             {
-                replacement = [this.composeUtf8Char(lo, up)];
+                replacement = [composeUtf8Char(lo, up)];
                 
                 replaced = 2;
             }
         }
         
         return replaced;
+    }
+    
+    /**************************************************************************
+    
+        Destructor
+        
+     **************************************************************************/
+
+    private ~this ( )
+    {
+        delete this.stringReplace;
+        delete this.content;
     }
 }

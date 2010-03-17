@@ -125,6 +125,12 @@ enum GNormalizeMode
     G_NORMALIZE_NFKC            = G_NORMALIZE_ALL_COMPOSE
 }
 
+enum GUtf8Validation: dchar
+{
+    Invalid    = cast (dchar) -1,
+    Incomplete = cast (dchar) -2
+}
+
 extern (C) static:
 
 struct GError
@@ -163,7 +169,7 @@ dchar*      g_unicode_canonical_decomposition   (dchar c, size_t* result_len);
 bool        g_unichar_get_mirror_char           (dchar c, dchar* mirrored_ch);
 //alias       p                                   g_utf8_next_char;
 dchar       g_utf8_get_char             (char* p);
-dchar       g_utf8_get_char_validated   (char* p,     ptrdiff_t max_len);
+dchar       g_utf8_get_char_validated   (char* p,   ptrdiff_t max_len);
 
 char*       g_utf8_offset_to_pointer    (char* str, long offset);
 long        g_utf8_pointer_to_offset    (char* str, char* pos);
@@ -194,3 +200,15 @@ wchar*      g_ucs4_to_utf16     (dchar* str, long len, long* items_read, long* i
 char*       g_ucs4_to_utf8      (dchar* str, long len, long* items_read, long* items_written, GError** error);
 
 int         g_unichar_to_utf8   (dchar c, char *outbuf);
+
+
+
+alias       g_ucs4_to_utf8   g_to_utf8;
+alias       g_utf16_to_utf8  g_to_utf8;
+
+alias       g_ucs4_to_utf16  g_to_utf16;
+alias       g_utf8_to_utf16  g_to_utf16;
+
+alias       g_utf8_to_ucs4   g_to_ucs4;
+alias       g_utf16_to_ucs4  g_to_ucs4;
+

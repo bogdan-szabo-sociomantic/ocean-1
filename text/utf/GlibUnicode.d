@@ -27,6 +27,8 @@ private import ocean.text.utf.c.glib_unicode: g_unichar_to_utf8,
                                               g_unichar_toupper,
                                               g_unichar_totitle;
 
+public  import ocean.text.utf.c.glib_unicode: GUtf8Validation;
+
 /******************************************************************************
 
     GlibUnicode structure
@@ -35,6 +37,7 @@ private import ocean.text.utf.c.glib_unicode: g_unichar_to_utf8,
 
 struct GlibUnicode
 {
+    
     /**************************************************************************
     
         Converter function alias definition
@@ -242,7 +245,7 @@ struct GlibUnicode
         Converts UTF-32 input to UTF-8
         
         Params:
-            input      = UTF-32 input string
+            input      = UTF-32 string
             output     = result output (UTF-8)
         
      **************************************************************************/
@@ -258,21 +261,23 @@ struct GlibUnicode
     
     /**************************************************************************
     
-        Converts UTF-32 input to UTF-8
+        Converts an UTF-32 charachter to UTF-8
         
         Params:
-            input      = UTF-32 input string
-            output     = result output (UTF-8)
+            input= UTF-32 character
+            
+        Returns:
+            UTF-8 character
         
      **************************************************************************/
     
     static char[] toUtf8 ( Char ) ( Char c )
     {
-        static if (Char.sizeof == 2) pragma (msg, typeof (*this).stringof ~
-                                             ".toUtf8: Only Basic "
-                                             "Multilingual Plane supported "
-                                             "with type '" ~ Char.stringof ~
-                                             "'; use 'dchar' for full support");
+        static if (Char.sizeof == wchar.sizeof) pragma (msg, typeof (*this).stringof ~
+                                                        ".toUtf8: Only Basic Multilingual "
+                                                        "Plane supported with type '" ~
+                                                        Char.stringof ~ "'; use 'dchar' "
+                                                        "for full Unicode support");
         
         char[6] tmp;
         
@@ -280,4 +285,30 @@ struct GlibUnicode
         
         return tmp[0 .. n].dup;
     }
+    
+    /**************************************************************************
+    
+        Converts an UTF-8 character to UTF-32. If the input character is not
+        valid or incomplete, a GUtf8Validation code is returned instead of the
+        character.
+        
+        Params:
+            input = UTF-8 character
+            
+        Returns:
+            UTF-32 character or GUtf8Validation code
+        
+     **************************************************************************/
+    
+    static Char toUtf32 ( Char ) ( char[] c )
+    {
+        static if (Char.sizeof == wchar.sizeof) pragma (msg, typeof (*this).stringof ~
+                                                ".toUtf8: Only Basic Multilingual "
+                                                "Plane supported with type '" ~
+                                                Char.stringof ~ "'; use 'dchar' "
+                                                "for full Unicode support");
+        
+        return result = g_utf8_get_char_validated(c.ptr, c.length);
+    }
+    
 }
