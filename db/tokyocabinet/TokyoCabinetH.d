@@ -32,17 +32,17 @@ private     import  tango.util.log.Trace;
 
 /*******************************************************************************
 
-        Tokyo Cabinet Database
+        Tokyo Cabinet Hash Database
         
         Very fast and lightweight database with 10K to 200K inserts per second
         based on the storage engine used.
         
         ---
         
-        import ocean.db.TokyoCabinet;
+        import ocean.db.tokyocabinet.TokyoCabinetH;
         
-        auto db = new TokyoCabinet();
-        db.setTuneOpts(TokyoCabinet.TuneOpts.HDBTLARGE);
+        auto db = new TokyoCabinetH();
+        db.setTuneOpts(TokyoCabinetH.TuneOpts.HDBTLARGE);
         db.setTuneBnum(20_000_000);
         db.enableAsync();
         db.open("db.tch");
@@ -56,7 +56,7 @@ private     import  tango.util.log.Trace;
 
 *******************************************************************************/
 
-class TokyoCabinet
+class TokyoCabinetH
 {
     
     /**************************************************************************
