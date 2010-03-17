@@ -3,8 +3,6 @@
     String search and replace methods
     
     --
-    
-    StringReplace.d is
 
     copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
@@ -30,11 +28,11 @@
         
         dchar[] content;
         
-        StringReplace!(dchar) replace = new replace!(dchar);
+        StringReplace!() replace = new StringReplace!();
         
         // fill "content" with text
         
-        stringReplace.replacePattern(content, "Max", "Moritz");
+        replace.replacePattern(content, "Max", "Moritz");
         
         // all occurrences of "Max" in "content" are now replaced by "Moritz"
         
