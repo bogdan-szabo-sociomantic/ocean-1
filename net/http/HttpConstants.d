@@ -10,7 +10,7 @@
                 
 *******************************************************************************/
         
-module      net.http.HttpConstants;
+module      ocean.net.http.HttpConstants;
 
 
 /*******************************************************************************
@@ -81,6 +81,117 @@ struct HttpProtocolVersion
 
 const       char[]      HttpHeaderSeparator    = HttpConst.Eol ~ HttpConst.Eol;
 const       char[]      HttpQueryLineSeparator = HttpConst.Eol;
+
+
+/*******************************************************************************
+
+    Http Response Description strings
+
+********************************************************************************/
+
+
+struct HttpResponseNames
+{       
+    /**************************************************************************
+
+        Returns a HTTP response code description string.
+        
+        Params:
+            code = HTTP response code
+            
+        Returns:
+            HTTP response code description string
+
+     **************************************************************************/
+    
+    public static char[] opIndex ( int code )
+    {
+        char[]* str = code in this.response_names;
+        
+        return str? *str : "[unknown HTTP response code]";
+    }
+    
+    /**************************************************************************
+
+        Tells whether a description string is available for a HTTP response code.
+        
+        Params:
+            code = HTTP response code
+            
+        Returns:
+            true if there is a description string or false otherwise
+    
+     **************************************************************************/
+
+    public static bool opIn ( int code )
+    {
+        return !!(code in this.response_names);
+    }
+    
+    /**************************************************************************
+
+        Description strings database
+    
+     **************************************************************************/
+
+    private static char[][int] response_names;
+    
+    /**************************************************************************
+
+        Static constructor; fills the database
+    
+     **************************************************************************/
+
+    static this ( )
+    {
+        foreach (response;
+        [
+            HttpResponses.Continue,
+            HttpResponses.SwitchingProtocols,
+            HttpResponses.OK,
+            HttpResponses.Created,
+            HttpResponses.Accepted,
+            HttpResponses.NonAuthoritativeInformation,
+            HttpResponses.NoContent,
+            HttpResponses.ResetContent,
+            HttpResponses.PartialContent,
+            HttpResponses.MultipleChoices,
+            HttpResponses.MovedPermanently,
+            HttpResponses.Found,
+            HttpResponses.SeeOther,
+            HttpResponses.NotModified,
+            HttpResponses.UseProxy,
+            HttpResponses.TemporaryRedirect,
+            HttpResponses.BadRequest,
+            HttpResponses.Unauthorized,
+            HttpResponses.PaymentRequired,
+            HttpResponses.Forbidden,
+            HttpResponses.NotFound,
+            HttpResponses.MethodNotAllowed,
+            HttpResponses.NotAcceptable,
+            HttpResponses.ProxyAuthenticationRequired,
+            HttpResponses.RequestTimeout,
+            HttpResponses.Conflict,
+            HttpResponses.Gone,
+            HttpResponses.LengthRequired,
+            HttpResponses.PreconditionFailed,
+            HttpResponses.RequestEntityTooLarge,
+            HttpResponses.RequestURITooLarge,
+            HttpResponses.UnsupportedMediaType,
+            HttpResponses.RequestedRangeNotSatisfiable,
+            HttpResponses.ExpectationFailed,
+            HttpResponses.InternalServerError,
+            HttpResponses.NotImplemented,
+            HttpResponses.BadGateway,
+            HttpResponses.ServiceUnavailable,
+            HttpResponses.GatewayTimeout,
+            HttpResponses.VersionNotSupported
+        ])
+        {
+            this.response_names[response.code] = response.name;
+        }
+    }
+}
 
 
 
