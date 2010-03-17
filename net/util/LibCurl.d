@@ -26,12 +26,9 @@ private     import      ocean.net.util.c.curlh;
 
 private     import  	tango.math.Math: max;
 
-private     import  	tango.stdc.stdlib : free;
+private     import  	tango.stdc.stdlib: free;
 
-private     import      tango.stdc.string : strlen;
-
-private     import      tango.stdc.stringz : toDString = fromStringz, 
-                                             toCString = toStringz;
+private     import      tango.stdc.string: strlen;
 
 /*******************************************************************************
 
@@ -95,11 +92,11 @@ class LibCurl
             
     *******************************************************************************/
     
-	this() 
+	public this ( ) 
     {
 		this.curl = curl_easy_init();
 
-		if (curl is null) throw new CurlException("Error on curl_easy_init!");
+		assert (this.curl, "Error on curl_easy_init!");
 
 		setOption(CURLoption.ERRORBUFFER, this.error_msg.ptr);
 		setOption(CURLoption.WRITEHEADER, cast(void*)this);
@@ -117,38 +114,31 @@ class LibCurl
         
         setOption(CURLoption.FORBID_REUSE, 1);
         
-        //this.setMaxFileSize(this.DEFAULT_MAX_FILE_SIZE);
         this.setTimeout(this.DEFAULT_TIME_OUT);
 	}
     
     
     /******************************************************************************
+    
+        Desctructor
+            
+    *******************************************************************************/
+	
+    private ~this ( )
+    {
+        this.close();
+    }
+    
+    /******************************************************************************
         
-        Destructor
+        Closes the session
             
     *******************************************************************************/
     
 	public void close ()
     {
-		if (curl !is null) 
-			curl_easy_cleanup(curl);
+		curl_easy_cleanup(this.curl);
 	}
-    
-    /+
-    /******************************************************************************
-        
-        Returns Curl Error Code
-            
-        Returns:
-            last error code, or zero if none
-            
-    *******************************************************************************/
-    
-    public int error () 
-    {
-        return errorCode;
-    }
-    +/
     
     /******************************************************************************
         
@@ -161,7 +151,7 @@ class LibCurl
     
     public char[] getErrorMsg ()
     {
-        return this.error_msg[0 .. strlen(this.error_msg.ptr)];
+        return this.toDString(this.error_msg.ptr);
     }
     
     
@@ -174,15 +164,36 @@ class LibCurl
             
     *******************************************************************************/
     
-    public long getResponseCode ()
+    public T getInfo ( CURLINFO info, T = int ) ( )
     {
-        long code;
-        
-        curl_easy_getinfo(curl, CURLINFO.CURLINFO_RESPONSE_CODE, &code);
-        
-        return code;
+        T value;
+
+        static if (is (T == char[]))
+        {
+            curl_easy_getinfo(this.curl, info, value.ptr);
+            
+            return this.toDString(value.ptr);
+        }
+        else
+        {
+            static assert (is (T == int) || is (T == double),
+                          typeof (this).stringof ~ ": cURL info must be "
+                          "int, double or string, not '" ~ T.stringof ~ '\'');        
+            
+            curl_easy_getinfo(this.curl, info, &value);
+            
+            return value;
+        }
     }
     
+    
+    public alias getInfo!(CURLINFO.CURLINFO_RESPONSE_CODE)              getResponseCode;
+    
+    public alias getInfo!(CURLINFO.CURLINFO_TOTAL_TIME,         double) getTotalTime;
+    public alias getInfo!(CURLINFO.CURLINFO_CONNECT_TIME,       double) getConnectTime;
+    public alias getInfo!(CURLINFO.CURLINFO_PRETRANSFER_TIME,   double) getPretransferTime;
+    public alias getInfo!(CURLINFO.CURLINFO_STARTTRANSFER_TIME, double) getStarttransferTime;
+    public alias getInfo!(CURLINFO.CURLINFO_REDIRECT_TIME,      double) getRedirectTime;
     
     /******************************************************************************
         
@@ -272,7 +283,7 @@ class LibCurl
     {
     	char* cvalue = curl_easy_escape(curl, str.ptr, str.length);
         
-    	str = cvalue[0 .. strlen(cvalue)].dup;
+    	str = this.toDString(cvalue).dup;
         
         free(cvalue);
     }
@@ -473,5 +484,10 @@ class LibCurl
             
             return size*nmemb;
         }
+    }
+    
+    private static char[] toDString ( char* str )
+    {
+        return str? str[0 .. strlen(str)] : null;
     }
 }
