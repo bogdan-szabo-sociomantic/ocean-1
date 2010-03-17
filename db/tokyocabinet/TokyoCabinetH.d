@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 
         copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
@@ -6,33 +6,29 @@
         
         version:        May 2009: Initial release
                         
-        author:         Thomas Nicolai, Lars Kirchhoff
+        author:         Thomas Nicolai, Lars Kirchhoff, David Eckardt
 
- *******************************************************************************/
+ ******************************************************************************/
 
-module db.TokyoCabinet;
+module ocean.db.tokyocabinet.TokyoCabinetH;
 
 
-/******************************************************************************
+/*******************************************************************************
 
     Imports
 
  ******************************************************************************/
 
 
-public      import ocean.core.Exception: TokyoCabinetException;
+public      import 	ocean.core.Exception: TokyoCabinetException;
 
-private     import  ocean.db.c.tokyocabinet_hash;
-//private     import  tango.stdc.stdlib: free;
-//private     import  tango.stdc.string: strlen;
+private     import  ocean.db.tokyocabinet.c.tchdb;
+
+private     import  tango.stdc.stdlib: free;
+private     import  tango.stdc.string: strlen;
 
 private     import  tango.util.log.Trace;
 
-extern (C) static
-{
-    void   free   ( void* );
-    size_t strlen ( char* );
-}
 
 /*******************************************************************************
 
@@ -45,11 +41,11 @@ extern (C) static
         
         import ocean.db.TokyoCabinet;
         
-        auto db = new TokyoCabinet("db.tch");
+        auto db = new TokyoCabinet();
         db.setTuneOpts(TokyoCabinet.TuneOpts.HDBTLARGE);
         db.setTuneBnum(20_000_000);
         db.enableAsync();
-        db.open();
+        db.open("db.tch");
         
         db.add("foo", "bar");
         
@@ -89,8 +85,8 @@ class TokyoCabinet
     
      **************************************************************************/ 
     
-    private         TCHDB*          db;                             // tokyocabinet instance
-    private         bool            async = false;                  // disable by default
+    private         TCHDB*          db;                             			// tokyocabinet instance
+    private         bool            async = false;                  			// disable by default
     
     /**************************************************************************
         
@@ -98,9 +94,9 @@ class TokyoCabinet
     
      **************************************************************************/ 
     
-    private         long            tune_bnum; //  = 30_000_000;       
-    private         byte            tune_apow; //   = 2;
-    private         byte            tune_fpow; //   = 3;
+    private         long            tune_bnum; 									//  = 30_000_000;       
+    private         byte            tune_apow; 									//   = 2;
+    private         byte            tune_fpow; 									//   = 3;
     private         TuneOpts        tune_opts;         
     
 
@@ -147,6 +143,8 @@ class TokyoCabinet
     
     bool            deleted         = false;
     
+    
+    
     /**************************************************************************
         
         Constructor    
@@ -166,6 +164,8 @@ class TokyoCabinet
         // set elements * 0,5 to 4 times
         // tchdbtune(db, 20_000_000, 4, 10, HDBTLARGE);
     }
+    
+    
     
     /**************************************************************************
     
@@ -188,6 +188,8 @@ class TokyoCabinet
         this.deleted = true;
     }
     
+    
+    
     /**************************************************************************
         
         Invariant: called every time a public class method is called
@@ -200,7 +202,8 @@ class TokyoCabinet
     }
     
     
-    /**************************************************************************
+    
+    /***************************************************************************
     
         Open Database for reading/writing, create if necessary
 
@@ -225,6 +228,8 @@ class TokyoCabinet
         this.tokyoAssert(tchdbopen(this.db, this.toCstring(dbfile).ptr, style), "Open error");
     }
     
+    
+    
     /**************************************************************************
         
         Close Database
@@ -240,6 +245,7 @@ class TokyoCabinet
     }
     
     
+    
     /**************************************************************************
         
         Enable asynchronous write
@@ -250,6 +256,7 @@ class TokyoCabinet
     {
         this.async = true;
     }
+    
     
     
     /**************************************************************************
@@ -264,6 +271,7 @@ class TokyoCabinet
     }
 
     
+    
     /**************************************************************************
     
         Set number of elements in bucket array 
@@ -277,6 +285,7 @@ class TokyoCabinet
     {
         this.tune_bnum = bnum;
     }
+    
     
     
     /**************************************************************************
@@ -308,6 +317,7 @@ class TokyoCabinet
     }
     
     
+    
     /**************************************************************************
         
         Set number of elements in bucket array
@@ -318,12 +328,12 @@ class TokyoCabinet
             size = cache size in bytes
             
     ***************************************************************************/
-    
-    
+        
     public void setCacheSize( uint size )
     {
         tchdbsetcache(this.db, size);
     }
+    
     
     
     /**************************************************************************
@@ -337,11 +347,11 @@ class TokyoCabinet
             
     ***************************************************************************/
     
-    
     public void setMemSize( uint size )
     {
         tchdbsetxmsiz(this.db, size);
     }
+    
     
     
     /**************************************************************************
@@ -364,37 +374,7 @@ class TokyoCabinet
     
     public alias put opIndexAssign;
     
-    /+
-    public bool put ( char[] key, char[] value )
-    {
-        return this.async?
-            tchdbputasync(this.db, key.ptr, key.length, value.ptr, value.length) :
-            tchdbput     (this.db, key.ptr, key.length, value.ptr, value.length);
-            
-        /*
-        // I should try it with malloc() to get arround the GC
-        //tchdbmemsync(this.db, true);
-        if ( this.async )
-        {   
-            if (!tchdbputasync2(this.db, toCString(key), toCString(value)))
-            {
-//                TokyoCabinetException("async write error");
-//                Trace.formatln("TokyoCabinet Write Error {}", toDString(tchdberrmsg(tchdbecode(this.db))));
-                
-                return false;
-            }           
-        }
-        else
-        {
-            if (!tchdbput2(this.db, toCString(key), toCString(value)))
-                //TokyoCabinetException("write error");
-                return false;
-        }
-        
-        return true;
-        */
-    }
-    +/
+    
     
     /**************************************************************************
     
@@ -408,12 +388,12 @@ class TokyoCabinet
             true if successful concenated, false on error
             
     ***************************************************************************/
-
     
     public void putkeep ( char[] key, char[] value )
     {
         this.tchPut(key, value, &tchdbputkeep, "tchdbputkeep", [TCHERRCODE.TCEKEEP]);
     }
+    
     
     
     /**************************************************************************
@@ -435,39 +415,6 @@ class TokyoCabinet
     }
     
     
-    /**************************************************************************
-        
-        Get Value
-    
-        Params:
-            key = lookup hash key
-    
-        Returns
-            value of key
-            
-    ***************************************************************************/
-    /+
-    public char[] get ( char[] key )
-    in
-    {
-        assert(key);
-    }
-    body
-    {
-        char* cvalue;
-        
-        if ((cvalue = tchdbget2(this.db, toCString(key))) is null) 
-        {
-//            Trace.formatln("TokyoCabinet Get Error: '{}'", toDString(tchdberrmsg(tchdbecode(this.db))));
-            return null;
-        }
-        
-        this.tmp_buffer = toDString(cvalue).dup;
-        free(cvalue);                       // allocated by tchdbget2()
-        
-        return this.tmp_buffer;
-    }
-    +/
     
     /**************************************************************************
     
@@ -493,13 +440,14 @@ class TokyoCabinet
         {
             value = (cast (char*) cvalue)[0 .. length].dup;
             
-            free(cvalue);  // allocated by tchdbget()
+            free(cvalue);  														// allocated by tchdbget()
             
             return true;
         }
         
         return false;
     }
+    
     
     
     /**************************************************************************
@@ -522,13 +470,15 @@ class TokyoCabinet
         
         if (cvalue)
         {
-            scope (exit) free(cvalue);  // allocated by tchdbget()
+            scope (exit) free(cvalue);  										// allocated by tchdbget()
             
             return (cast (char*) cvalue)[0 .. length].dup;
         }
         
         return "";
     }
+    
+    
     
     /**************************************************************************
     
@@ -565,6 +515,7 @@ class TokyoCabinet
     }
     
     
+    
     /**************************************************************************
     
         Get Value of Key via indexing. 
@@ -579,6 +530,7 @@ class TokyoCabinet
         
         return value.dup;
     }
+    
     
     
     /**************************************************************************
@@ -598,6 +550,8 @@ class TokyoCabinet
         return (tchdbvsiz(this.db, key.ptr, key.length) >= 0);
     }
     
+    
+    
     /**************************************************************************
     
         Remove item
@@ -614,6 +568,8 @@ class TokyoCabinet
     {
         return tchdbout(this.db, key.ptr, key.length);
     }
+    
+    
     
     /**************************************************************************
     
@@ -651,6 +607,8 @@ class TokyoCabinet
         return TchDbIterator.tchdbopapply(this.db, delg);
     }
     
+    
+    
     /**************************************************************************
         
         Returns number of records
@@ -686,7 +644,6 @@ class TokyoCabinet
             ignore_errcodes = do not throw an exception on these error codes
         
     ***************************************************************************/
-
    
     private void tchPut ( char[] key, char[] value, TchPutFunc put_func,
                           char[] description, TCHERRCODE[] ignore_errcodes = [] )
@@ -702,6 +659,7 @@ class TokyoCabinet
     }
     
     
+    
     /**************************************************************************
     
         Retrieves the current Tokyo Cabinet error message string.
@@ -715,6 +673,7 @@ class TokyoCabinet
     {
         return this.getTokyoErrMsg(tchdbecode(this.db));
     }
+    
     
     
     /**************************************************************************
@@ -735,6 +694,7 @@ class TokyoCabinet
     }
     
     
+    
     /**************************************************************************
     
         If p is null, retrieves the current Tokyo Cabinet error code and
@@ -751,6 +711,8 @@ class TokyoCabinet
         this.tokyoAssertStrict(!!p, context);
     }
 
+    
+    
     /**************************************************************************
     
         If ok == false, retrieves the current Tokyo Cabinet error code and
@@ -767,6 +729,8 @@ class TokyoCabinet
         this.tokyoAssert(ok, [], context);
     }
     
+    
+    
     /**************************************************************************
     
         If ok == false, retrieves the current Tokyo Cabinet error code and
@@ -782,6 +746,8 @@ class TokyoCabinet
     {
         this.tokyoAssertStrict(ok, [], context);
     }
+    
+    
     
     /**************************************************************************
     
@@ -800,6 +766,8 @@ class TokyoCabinet
     {
         this.tokyoAssertStrict(ok, ignore_codes ~ TCHERRCODE.TCESUCCESS, context);
     }
+    
+    
     
     /**************************************************************************
     
@@ -831,6 +799,7 @@ class TokyoCabinet
     }
     
     
+    
     /**************************************************************************
     
         Converts str to a C string, that is, a null terminator is appended if
@@ -843,13 +812,15 @@ class TokyoCabinet
             C compatible (null terminated) string
         
     ***************************************************************************/
-
+    
     private static char[] toCstring ( char[] str )
     {
         bool term = str.length? !!str[$ - 1] : true;
         
         return term? str ~ '\0' : str;
     }
+    
+    
     
     /**************************************************************************
     
