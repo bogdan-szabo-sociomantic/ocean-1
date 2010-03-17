@@ -23,9 +23,7 @@ module ocean.db.tokyocabinet.TokyoCabinetH;
 public      import 	ocean.core.Exception: TokyoCabinetException;
 
 private     import  ocean.db.tokyocabinet.c.tchdb;
-
-private     import  tango.stdc.stdlib: free;
-private     import  tango.stdc.string: strlen;
+private     import  ocean.db.tokyocabinet.model.ITokyoCabinet;
 
 private     import  tango.util.log.Trace;
 
@@ -156,8 +154,7 @@ class TokyoCabinetH
     
     public this ( ) 
     {
-        Trace.formatln(typeof (this).stringof ~ " created").flush();
-        
+        // Trace.formatln(typeof (this).stringof ~ " created").flush();        
         this.db = tchdbnew();
     }
     
@@ -175,7 +172,7 @@ class TokyoCabinetH
 
     private ~this ( )
     {
-        if (!deleted)
+        if (!this.deleted)
         {
             tchdbdel(this.db);
             Trace.formatln(typeof (this).stringof ~ " deleted").flush();
@@ -194,7 +191,7 @@ class TokyoCabinetH
     
     invariant ( )
     {
-        assert (this.db, typeof (this).stringof ~ ": invalid Tokyo Cabinet core object");
+        assert (this.db, typeof (this).stringof ~ ": invalid TokyoCabinet Hash core object");
     }
     
     
@@ -221,7 +218,7 @@ class TokyoCabinetH
     
     public void open ( char[] dbfile, OpenStyle style )
     {
-        this.tokyoAssert(tchdbopen(this.db, this.toCstring(dbfile).ptr, style), "Open error");
+        this.tokyoAssert(tchdbopen(this.db, StringC.toCstring(dbfile), style), "Open error");
     }
     
     
@@ -674,94 +671,20 @@ class TokyoCabinetH
     
     /**************************************************************************
     
-        Retrieves the Tokyo Cabinet error message string for errcode.
-        
-        Params:
-            errcode = Tokyo Cabinet error code
-            
-        Returns:
-            Tokyo Cabinet error message string for errcode
-        
-    ***************************************************************************/
-
+	    Retrieves the Tokyo Cabinet error message string for errcode.
+	    
+	    Params:
+	        errcode = Tokyo Cabinet error code
+	        
+	    Returns:
+	        Tokyo Cabinet error message string for errcode
+	    
+	***************************************************************************/
+    
     private char[] getTokyoErrMsg ( TCHERRCODE errcode )
-    {
-        return toDString(tchdberrmsg(errcode));
-    }
-    
-    
-    
-    /**************************************************************************
-    
-        If p is null, retrieves the current Tokyo Cabinet error code and
-        throws an exception (even if the error code equals TCESUCCESS).
-        
-        Params:
-            p       = not null assertion pointer
-            context = error context description string for message
-        
-    ***************************************************************************/
-    
-    private void tokyoAssert ( void* p, char[] context = "Error" )
-    {
-        this.tokyoAssertStrict(!!p, context);
-    }
-
-    
-    
-    /**************************************************************************
-    
-        If ok == false, retrieves the current Tokyo Cabinet error code and
-        throws an exception if the error code is different from TCESUCCESS.
-        
-        Params:
-            ok      = assert condition
-            context = error context description string for message
-        
-    ***************************************************************************/
-
-    private void tokyoAssert ( bool ok, char[] context = "Error" )
-    {
-        this.tokyoAssert(ok, [], context);
-    }
-    
-    
-    
-    /**************************************************************************
-    
-        If ok == false, retrieves the current Tokyo Cabinet error code and
-        throws an exception (even if the error code equals TCESUCCESS).
-        
-        Params:
-            ok      = assert condition
-            context = error context description string for message
-        
-    ***************************************************************************/
-
-    private void tokyoAssertStrict ( bool ok, char[] context = "Error" )
-    {
-        this.tokyoAssertStrict(ok, [], context);
-    }
-    
-    
-    
-    /**************************************************************************
-    
-        If ok == false, retrieves the current Tokyo Cabinet error code and
-        throws an exception if the error code is different from TCESUCCESS and
-        all error codes in ignore_codes.
-        
-        Params:
-            ok           = assert condition
-            ignore_codes = do not throw an exception on these codes
-            context      = error context description string for message
-        
-    ***************************************************************************/
-
-    private void tokyoAssert ( bool ok, TCHERRCODE[] ignore_codes, char[] context = "Error" )
-    {
-        this.tokyoAssertStrict(ok, ignore_codes ~ TCHERRCODE.TCESUCCESS, context);
-    }
+	{
+	    return StringC.toDString(tchdberrmsg(errcode));
+	}
     
     
     
@@ -792,48 +715,5 @@ class TokyoCabinetH
             TokyoCabinetException(typeof (this).stringof ~ ": " ~
                                   context ~ ": " ~ this.getTokyoErrMsg(errcode));
         }
-    }
-    
-    
-    
-    /**************************************************************************
-    
-        Converts str to a C string, that is, a null terminator is appended if
-        not present.
-        
-        Params:
-            str = input string
-        
-        Returns:
-            C compatible (null terminated) string
-        
-    ***************************************************************************/
-    
-    private static char[] toCstring ( char[] str )
-    {
-        bool term = str.length? !!str[$ - 1] : true;
-        
-        return term? str ~ '\0' : str;
-    }
-    
-    
-    
-    /**************************************************************************
-    
-        Converts str to a D string: str is sliced from beginning to its null
-        terminator.
-        
-        Params:
-            str = C compatible input string (pointer to first element of null
-                  terminated string)
-        
-        Returns:
-            C compatible (null terminated) string
-        
-    ***************************************************************************/
-
-    private static char[] toDString ( char* str )
-    {
-        return str? str[0 .. strlen(str)] : "";
     }
 }
