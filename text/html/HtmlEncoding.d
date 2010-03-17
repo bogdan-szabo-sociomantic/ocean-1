@@ -54,7 +54,7 @@ module ocean.text.html.HtmlEncoding;
  
  ******************************************************************************/
 
-private import text.html.HtmlCharSets;
+private import ocean.text.html.HtmlCharSets;
 
 private import tango.stdc.stdio:  snprintf;
 private import tango.stdc.string: strlen;
