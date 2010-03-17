@@ -159,10 +159,6 @@ class TokyoCabinetH
         Trace.formatln(typeof (this).stringof ~ " created").flush();
         
         this.db = tchdbnew();
-        
-        // tchdbsetxmsiz(db, 500_000_000); // set memory used in bytes
-        // set elements * 0,5 to 4 times
-        // tchdbtune(db, 20_000_000, 4, 10, HDBTLARGE);
     }
     
     
