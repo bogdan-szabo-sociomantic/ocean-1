@@ -15,7 +15,8 @@ module ocean.db.tokyocabinet.c.tcbdb;
  * Boston, MA 02111-1307 USA.
  *************************************************************************************************/
 
-import ocean.db.tokyocabinet.c.tchdb;
+
+import ocean.db.tokyocabinet.c.tcutil;
 
 
 
@@ -35,38 +36,38 @@ struct TCBDB							/* type of structure for a B+ tree database */
 	char *opaque;                       /* opaque buffer */
 	bool open;                          /* whether the internal database is opened */
 	bool wmode;                         /* whether to be writable */
-	uint32_t lmemb;                     /* number of members in each leaf */
-	uint32_t nmemb;                     /* number of members in each node */
-	uint8_t opts;                       /* options */
-	uint64_t root;                      /* ID number of the root page */
-	uint64_t first;                     /* ID number of the first leaf */
-	uint64_t last;                      /* ID number of the last leaf */
-	uint64_t lnum;                      /* number of leaves */
-	uint64_t nnum;                      /* number of nodes */
-	uint64_t rnum;                      /* number of records */
+	uint lmemb;                     	/* number of members in each leaf */
+	uint nmemb;                     	/* number of members in each node */
+	ubyte opts;                       	/* options */
+	ulong root;                      	/* ID number of the root page */
+	ulong first;                     	/* ID number of the first leaf */
+	ulong last;                     	/* ID number of the last leaf */
+	ulong lnum;                      	/* number of leaves */
+	ulong nnum;                      	/* number of nodes */
+	ulong rnum;                      	/* number of records */
 	TCMAP *leafc;                       /* cache for leaves */
 	TCMAP *nodec;                       /* cache for nodes */
 	TCCMP cmp;                          /* pointer to the comparison function */
 	void *cmpop;                        /* opaque object for the comparison function */
-	uint32_t lcnum;                     /* maximum number of cached leaves */
-	uint32_t ncnum;                     /* maximum number of cached nodes */
-	uint32_t lsmax;                     /* maximum size of each leaf */
-	uint32_t lschk;                     /* counter for leaf size checking */
-	uint64_t capnum;                    /* capacity number of records */
-	uint64_t *hist;                     /* history array of visited nodes */
+	uint lcnum;                     	/* maximum number of cached leaves */
+	uint ncnum;                     	/* maximum number of cached nodes */
+	uint lsmax;                     	/* maximum size of each leaf */
+	uint lschk;                     	/* counter for leaf size checking */
+	ulong capnum;                    	/* capacity number of records */
+	ulong *hist;                     	/* history array of visited nodes */
 	int hnum;                           /* number of element of the history array */
-	uint64_t hleaf;                     /* ID number of the leaf referred by the history */
-	uint64_t lleaf;                     /* ID number of the last visited leaf */
+	ulong hleaf;                     	/* ID number of the leaf referred by the history */
+	ulong lleaf;                     	/* ID number of the last visited leaf */
 	bool tran;                          /* whether in the transaction */
 	char *rbopaque;                     /* opaque for rollback */
-	uint64_t clock;                     /* logical clock */
-	int64_t cnt_saveleaf;               /* tesing counter for leaf save times */
-	int64_t cnt_loadleaf;               /* tesing counter for leaf load times */
-	int64_t cnt_killleaf;               /* tesing counter for leaf kill times */
-	int64_t cnt_adjleafc;               /* tesing counter for node cache adjust times */
-	int64_t cnt_savenode;               /* tesing counter for node save times */
-	int64_t cnt_loadnode;               /* tesing counter for node load times */
-	int64_t cnt_adjnodec;               /* tesing counter for node cache adjust times */
+	ulong clock;                     	/* logical clock */
+	long cnt_saveleaf;               	/* tesing counter for leaf save times */
+	long cnt_loadleaf;               	/* tesing counter for leaf load times */
+	long cnt_killleaf;               	/* tesing counter for leaf kill times */
+	long cnt_adjleafc;               	/* tesing counter for node cache adjust times */
+	long cnt_savenode;               	/* tesing counter for node save times */
+	long cnt_loadnode;               	/* tesing counter for node load times */
+	long cnt_adjnodec;               	/* tesing counter for node cache adjust times */
 };
 
 enum                                    /* enumeration for additional flags */
@@ -75,7 +76,7 @@ enum                                    /* enumeration for additional flags */
 	BDBFFATAL = HDBFFATAL               /* whetehr with fatal error */
 };
 
-enum                                    /* enumeration for tuning options */
+enum BDBOPT : ubyte						/* enumeration for tuning options */
 {
 	BDBTLARGE = 1 << 0,                 /* use 64-bit bucket array */
 	BDBTDEFLATE = 1 << 1,               /* compress each page with Deflate */
@@ -84,7 +85,7 @@ enum                                    /* enumeration for tuning options */
 	BDBTEXCODEC = 1 << 4                /* compress each record with outer functions */
 };
 
-enum                                    /* enumeration for open modes */
+enum BDBOMODE : int						/* enumeration for open modes */
 {
 	BDBOREADER = 1 << 0,                /* open as a reader */
 	BDBOWRITER = 1 << 1,                /* open as a writer */
@@ -98,10 +99,10 @@ enum                                    /* enumeration for open modes */
 struct BDBCUR							/* type of structure for a B+ tree cursor */
 {                         
 	TCBDB *bdb;                         /* database object */
-	uint64_t clock;                     /* logical clock */
-	uint64_t id;                        /* ID number of the leaf */
-	int32_t kidx;                       /* number of the key */
-	int32_t vidx;                       /* number of the value */
+	ulong clock;                     	/* logical clock */
+	ulong id;                        	/* ID number of the leaf */
+	int kidx;                       	/* number of the key */
+	int vidx;                       	/* number of the value */
 };
 
 enum                                    /* enumeration for cursor put mode */
@@ -115,12 +116,12 @@ enum                                    /* enumeration for cursor put mode */
 /* Get the message string corresponding to an error code.
    `ecode' specifies the error code.
    The return value is the message string of the error code. */
-const char *tcbdberrmsg(int ecode);
+char *tcbdberrmsg(int ecode);
 
 
 /* Create a B+ tree database object.
    The return value is the new B+ tree database object. */
-TCBDB *tcbdbnew(void);
+TCBDB *tcbdbnew();
 
 
 /* Delete a B+ tree database object.
@@ -142,7 +143,7 @@ void tcbdbdel(TCBDB *bdb);
    for unlink error, `TCERENAME' for rename error, `TCEMKDIR' for mkdir error, `TCERMDIR' for
    rmdir error, `TCEKEEP' for existing record, `TCENOREC' for no record found, and `TCEMISC' for
    miscellaneous error. */
-int tcbdbecode(TCBDB *bdb);
+TCHERRCODE tcbdbecode(TCBDB *bdb);
 
 
 /* Set mutual exclusion control of a B+ tree database object for threading.
@@ -190,8 +191,8 @@ bool tcbdbsetcmpfunc(TCBDB *bdb, TCCMP cmp, void* cmpop);
    BZIP2 encoding, `BDBTTCBS' specifies that each page is compressed with TCBS encoding.
    If successful, the return value is true, else, it is false.
    Note that the tuning parameters should be set before the database is opened. */
-bool tcbdbtune(TCBDB *bdb, int32_t lmemb, int32_t nmemb,
-               int64_t bnum, int8_t apow, int8_t fpow, uint8_t opts);
+bool tcbdbtune(TCBDB *bdb, int lmemb, int nmemb,
+               long bnum, byte apow, byte fpow, ubyte opts);
 
 
 /* Set the caching parameters of a B+ tree database object.
@@ -202,7 +203,7 @@ bool tcbdbtune(TCBDB *bdb, int32_t lmemb, int32_t nmemb,
    the default value is specified.  The default value is 512.
    If successful, the return value is true, else, it is false.
    Note that the caching parameters should be set before the database is opened. */
-bool tcbdbsetcache(TCBDB *bdb, int32_t lcnum, int32_t ncnum);
+bool tcbdbsetcache(TCBDB *bdb, int lcnum, int ncnum);
 
 
 /* Set the size of the extra mapped memory of a B+ tree database object.
@@ -211,7 +212,7 @@ bool tcbdbsetcache(TCBDB *bdb, int32_t lcnum, int32_t ncnum);
    mapped memory is disabled.  It is disabled by default.
    If successful, the return value is true, else, it is false.
    Note that the mapping parameters should be set before the database is opened. */
-bool tcbdbsetxmsiz(TCBDB *bdb, int64_t xmsiz);
+bool tcbdbsetxmsiz(TCBDB *bdb, long xmsiz);
 
 
 /* Set the unit step number of auto defragmentation of a B+ tree database object.
@@ -220,7 +221,7 @@ bool tcbdbsetxmsiz(TCBDB *bdb, int64_t xmsiz);
    is disabled.  It is disabled by default.
    If successful, the return value is true, else, it is false.
    Note that the defragmentation parameter should be set before the database is opened. */
-bool tcbdbsetdfunit(TCBDB *bdb, int32_t dfunit);
+bool tcbdbsetdfunit(TCBDB *bdb, int dfunit);
 
 
 /* Open a database file and connect a B+ tree database object.
@@ -404,7 +405,7 @@ char *tcbdbget2(TCBDB *bdb, char* kstr);
    value can be treated as a character string.  Because the region of the return value is
    volatile and it may be spoiled by another operation of the database, the data should be copied
    into another involatile buffer immediately. */
-const void *tcbdbget3(TCBDB *bdb, void* kbuf, int ksiz, int *sp);
+void *tcbdbget3(TCBDB *bdb, void* kbuf, int ksiz, int *sp);
 
 
 /* Retrieve records in a B+ tree database object.
@@ -564,8 +565,8 @@ bool tcbdbsync(TCBDB *bdb);
    If successful, the return value is true, else, it is false.
    This function is useful to reduce the size of the database file with data fragmentation by
    successive updating. */
-bool tcbdboptimize(TCBDB *bdb, int32_t lmemb, int32_t nmemb,
-                   int64_t bnum, int8_t apow, int8_t fpow, uint8_t opts);
+bool tcbdboptimize(TCBDB *bdb, int lmemb, int nmemb,
+                   long bnum, byte apow, byte fpow, ubyte opts);
 
 
 /* Remove all records of a B+ tree database object.
@@ -617,21 +618,21 @@ bool tcbdbtranabort(TCBDB *bdb);
    `bdb' specifies the B+ tree database object.
    The return value is the path of the database file or `NULL' if the object does not connect to
    any database file. */
-const char *tcbdbpath(TCBDB *bdb);
+char *tcbdbpath(TCBDB *bdb);
 
 
 /* Get the number of records of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the number of records or 0 if the object does not connect to any database
    file. */
-uint64_t tcbdbrnum(TCBDB *bdb);
+ulong tcbdbrnum(TCBDB *bdb);
 
 
 /* Get the size of the database file of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the size of the database file or 0 if the object does not connect to any
    database file. */
-uint64_t tcbdbfsiz(TCBDB *bdb);
+ulong tcbdbfsiz(TCBDB *bdb);
 
 
 /* Create a cursor object.
@@ -764,7 +765,7 @@ char *tcbdbcurkey2(BDBCUR *cur);
    the return value can be treated as a character string.  Because the region of the return value
    is volatile and it may be spoiled by another operation of the database, the data should be
    copied into another involatile buffer immediately. */
-const void* tcbdbcurkey3(BDBCUR *cur, int *sp);
+void* tcbdbcurkey3(BDBCUR *cur, int *sp);
 
 
 /* Get the value of the record where the cursor object is.
@@ -799,7 +800,7 @@ char *tcbdbcurval2(BDBCUR *cur);
    the return value can be treated as a character string.  Because the region of the return value
    is volatile and it may be spoiled by another operation of the database, the data should be
    copied into another involatile buffer immediately. */
-const void* tcbdbcurval3(BDBCUR *cur, int *sp);
+void* tcbdbcurval3(BDBCUR *cur, int *sp);
 
 
 /* Get the key and the value of the record where the cursor object is.
@@ -872,74 +873,74 @@ void* tcbdbcmpop(TCBDB *bdb);
 /* Get the maximum number of cached leaf nodes of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the maximum number of cached leaf nodes. */
-uint32_t tcbdblmemb(TCBDB *bdb);
+uint tcbdblmemb(TCBDB *bdb);
 
 
 /* Get the maximum number of cached non-leaf nodes of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the maximum number of cached non-leaf nodes. */
-uint32_t tcbdbnmemb(TCBDB *bdb);
+uint tcbdbnmemb(TCBDB *bdb);
 
 
 /* Get the number of the leaf nodes of B+ tree database object.
    `bdb' specifies the B+ tree database object.
    If successful, the return value is the number of the leaf nodes or 0 if the object does not
    connect to any database file. */
-uint64_t tcbdblnum(TCBDB *bdb);
+ulong tcbdblnum(TCBDB *bdb);
 
 
 /* Get the number of the non-leaf nodes of B+ tree database object.
    `bdb' specifies the B+ tree database object.
    If successful, the return value is the number of the non-leaf nodes or 0 if the object does
    not connect to any database file. */
-uint64_t tcbdbnnum(TCBDB *bdb);
+ulong tcbdbnnum(TCBDB *bdb);
 
 
 /* Get the number of elements of the bucket array of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the number of elements of the bucket array or 0 if the object does not
    connect to any database file. */
-uint64_t tcbdbbnum(TCBDB *bdb);
+ulong tcbdbbnum(TCBDB *bdb);
 
 
 /* Get the record alignment of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the record alignment or 0 if the object does not connect to any database
    file. */
-uint32_t tcbdbalign(TCBDB *bdb);
+uint tcbdbalign(TCBDB *bdb);
 
 
 /* Get the maximum number of the free block pool of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the maximum number of the free block pool or 0 if the object does not
    connect to any database file. */
-uint32_t tcbdbfbpmax(TCBDB *bdb);
+uint tcbdbfbpmax(TCBDB *bdb);
 
 
 /* Get the inode number of the database file of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the inode number of the database file or 0 if the object does not connect
    to any database file. */
-uint64_t tcbdbinode(TCBDB *bdb);
+ulong tcbdbinode(TCBDB *bdb);
 
 
 /* Get the modification time of the database file of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the inode number of the database file or 0 if the object does not connect
    to any database file. */
-time_t tcbdbmtime(TCBDB *bdb);
+ulong tcbdbmtime(TCBDB *bdb);
 
 
 /* Get the additional flags of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the additional flags. */
-uint8_t tcbdbflags(TCBDB *bdb);
+ubyte tcbdbflags(TCBDB *bdb);
 
 
 /* Get the options of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the options. */
-uint8_t tcbdbopts(TCBDB *bdb);
+ubyte tcbdbopts(TCBDB *bdb);
 
 
 /* Get the pointer to the opaque field of a B+ tree database object.
@@ -952,7 +953,7 @@ char *tcbdbopaque(TCBDB *bdb);
    `bdb' specifies the B+ tree database object.
    The return value is the number of used elements of the bucket array or 0 if the object does not
    connect to any database file. */
-uint64_t tcbdbbnumused(TCBDB *bdb);
+ulong tcbdbbnumused(TCBDB *bdb);
 
 
 /* Set the maximum size of each leaf node.
@@ -961,7 +962,7 @@ uint64_t tcbdbbnumused(TCBDB *bdb);
    value is specified.  The default value is 16386.
    If successful, the return value is true, else, it is false.
    Note that the tuning parameters of the database should be set before the database is opened. */
-bool tcbdbsetlsmax(TCBDB *bdb, uint32_t lsmax);
+bool tcbdbsetlsmax(TCBDB *bdb, uint lsmax);
 
 
 /* Set the capacity number of records.
@@ -971,7 +972,7 @@ bool tcbdbsetlsmax(TCBDB *bdb, uint32_t lsmax);
    If successful, the return value is true, else, it is false.
    When the number of records exceeds the capacity, forehand records are removed implicitly.
    Note that the tuning parameters of the database should be set before the database is opened. */
-bool tcbdbsetcapnum(TCBDB *bdb, uint64_t capnum);
+bool tcbdbsetcapnum(TCBDB *bdb, ulong capnum);
 
 
 /* Set the custom codec functions of a B+ tree database object.
@@ -996,7 +997,7 @@ bool tcbdbsetcodecfunc(TCBDB *bdb, TCCODEC enc, void* encop, TCCODEC dec, void* 
 /* Get the unit step number of auto defragmentation of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the unit step number of auto defragmentation. */
-uint32_t tcbdbdfunit(TCBDB *bdb);
+uint tcbdbdfunit(TCBDB *bdb);
 
 
 /* Perform dynamic defragmentation of a B+ tree database object.
@@ -1004,7 +1005,7 @@ uint32_t tcbdbdfunit(TCBDB *bdb);
    `step' specifie the number of steps.  If it is not more than 0, the whole file is defragmented
    gradually without keeping a continuous lock.
    If successful, the return value is true, else, it is false. */
-bool tcbdbdefrag(TCBDB *bdb, int64_t step);
+bool tcbdbdefrag(TCBDB *bdb, long step);
 
 
 /* Store a new record into a B+ tree database object with backward duplication.
