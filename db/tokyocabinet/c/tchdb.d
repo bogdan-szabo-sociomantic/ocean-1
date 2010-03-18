@@ -18,7 +18,6 @@ module ocean.db.tokyocabinet.c.tchdb;
 
 import		ocean.db.tokyocabinet.c.tcutil;
 
-
 extern (C)
 {
 
@@ -76,7 +75,7 @@ void tchdbdel(TCHDB *hdb);
        `TCENOREC'   for no record found, and
        `TCEMISC'    for miscellaneous error.
 */
-TCHERRCODE tchdbecode(TCHDB *hdb);
+TCERRCODE tchdbecode(TCHDB *hdb);
 
 
 /* Set mutual exclusion control of a hash database object for threading.
@@ -776,6 +775,7 @@ bool tchdbtranvoid(TCHDB *hdb);
 } // extern (C)
 
 
+/+
 /******************************************************************************
 
     TchDbIterator structure
@@ -895,3 +895,4 @@ struct TchDbIterator
         return !delg(key, val);
     }
 }
++/

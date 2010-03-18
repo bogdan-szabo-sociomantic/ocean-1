@@ -1,18 +1,41 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
+    Tokyo Cabinet B+ Tree Database
 
-        license:        BSD style: $(LICENSE)
+    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
+
+    license:        BSD style: $(LICENSE)
+    
+    version:        Mar 2010: Initial release
+                    
+    author:         Thomas Nicolai, Lars Kirchhoff, David Eckardt
+    
+    Description:
+    
+        Very fast and lightweight database with 10K to 200K inserts per second
+        based on the storage engine used.
+    
+    Usage:
+    
+        ---
         
-        version:        Mar 2010: Initial release
-                        
-        author:         Thomas Nicolai, Lars Kirchhoff, David Eckardt
+        import ocean.db.tokyocabinet.TokyoCabinetB;
+        
+        auto db = new TokyoCabinetB();
+        db.setTuneOpts(TokyoCabinetB.TuneOpts.HDBTLARGE);
+        db.setTuneBnum(20_000_000);
+        db.enableAsync();
+        db.open("db.tch");
+        
+        db.add("foo", "bar");
+        
+        db.close;
+        
+        ---
 
  ******************************************************************************/
 
 module ocean.db.tokyocabinet.TokyoCabinetB;
-
-
 
 /*******************************************************************************
 
@@ -20,75 +43,69 @@ module ocean.db.tokyocabinet.TokyoCabinetB;
 
  ******************************************************************************/
 
+protected   import 	ocean.core.Exception: TokyoCabinetException;
 
-public      import 	ocean.core.Exception: TokyoCabinetException;
+private     import  ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
 
-private     import  ocean.db.tokyocabinet.c.tcbdb;
+private     import 	ocean.db.tokyocabinet.util.TokyoCabinetCursor;
+private     import  ocean.db.tokyocabinet.util.TokyoCabinetList;
+
+private     import  ocean.db.tokyocabinet.c.tcbdb:
+                        TCBDB,       BDBOPT,          BDBOMODE,
+                        tcbdbnew,    tcbdbdel,        tcbdbopen,     tcbdbclose,
+                        tcbdbtune,   tcbdbsetmutex,   tcbdbsetcache, tcbdbsetxmsiz,
+                        tcbdbput,    tcbdbputkeep,    tcbdbputcat,
+                        tcbdbputdup, tcbdbputdupback,
+                        tcbdbget3,   tcbdbrange,      tcbdbforeach,
+                        tcbdbout,    tcbdbvsiz,       tcbdbrnum, 
+                        tcbdbecode,  tcbdberrmsg;
+                        
 private     import  ocean.db.tokyocabinet.model.ITokyoCabinet;
 
-private     import  tango.util.log.Trace;
+private     import  ocean.text.util.StringC;
 
-
+//private     import  tango.util.log.Trace;
 
 /*******************************************************************************
 
-	Tokyo Cabinet B+ Tree Database
-	
-	Very fast and lightweight database with 10K to 200K inserts per second
-	based on the storage engine used.
-	
-	---
-	
-	import ocean.db.tokyocabinet.TokyoCabinetB;
-	
-	auto db = new TokyoCabinetB();
-	db.setTuneOpts(TokyoCabinetB.TuneOpts.HDBTLARGE);
-	db.setTuneBnum(20_000_000);
-	db.enableAsync();
-	db.open("db.tch");
-	
-	db.add("foo", "bar");
-	
-	db.close;
-	
-	---
-
-
+	TokyoCabinetB class
+    
 *******************************************************************************/
 
-class TokyoCabinetB : ITokyoCabinet
+class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
 {
-	
-	
-	
-	 /**************************************************************************
+    /***************************************************************************
+        
+        Tune structure
+        
+        Database tuning parameters
     
-	    Definitions
-	
-	 **************************************************************************/ 
-	
-	private         TCBDB*          db;                             			// tokyocabinet instance
+     **************************************************************************/ 
 
+    struct Tune
+    {
+        int      leaf_members           = 128;                                 // lmemb specifies the number of members in each leaf page. The default value is 128.    
+        int      non_leaf_members       = 256;                                 // nmemb specifies the number of members in each non-leaf page. The default value is 256.
+        long     bucket_array_length    = 32749;                                  //  = 30_000_000;       
+        byte     alignment_power        = 8;
+        byte     free_block_power       = 10;
+        TuneOpts options                = TuneOpts.None;         
+    }
 	
-	/***************************************************************************
+    /***************************************************************************
     
-	    Tuning parameter for hash database tcbdbtune
-	
-	 **************************************************************************/ 
-	
-	private			int 			tune_lmemb;									// lmemb specifies the number of members in each leaf page. The default value is 128.	 
-	private			int 			tune_nmemb;									// nmemb specifies the number of members in each non-leaf page. The default value is 256.
-	private         long            tune_bnum; 									//  = 30_000_000;       
-	private         byte            tune_apow; 									//   = 2;
-	private         byte            tune_fpow; 									//   = 3;
-	private         TuneOpts        tune_opts;         
-	
-	
-	
+        tune property
+        
+        Tune parameters may be arbitrarily set and get effective on open() call.
+    
+     **************************************************************************/ 
+
+    public Tune tune;
+    
 	 /**************************************************************************
     
-	    constants for tcbdbtune options
-	
+	    TuneOpts enumerator
+	    
 	    Large:      size of the database can be larger than 2GB 
 	    Deflate:    each recordis compressed with deflate encoding
 	    Bzip:       each record is compressed with BZIP2 encoding
@@ -96,29 +113,35 @@ class TokyoCabinetB : ITokyoCabinet
 	
 	 **************************************************************************/
 	
-	enum                            TuneOpts : BDBOPT
-	                                {
-	                                    Large   = BDBOPT.BDBTLARGE, 
-	                                    Deflate = BDBOPT.BDBTDEFLATE,
-	                                    Bzip    = BDBOPT.BDBTBZIP,
-	                                    Tcbs    = BDBOPT.BDBTTCBS,
-	                                    
-	                                    None    = cast (BDBOPT) 0
-	                                }
+	enum    TuneOpts : BDBOPT
+            {
+                Large   = BDBOPT.BDBTLARGE, 
+                Deflate = BDBOPT.BDBTDEFLATE,
+                Bzip    = BDBOPT.BDBTBZIP,
+                Tcbs    = BDBOPT.BDBTTCBS,
+                
+                None    = cast (BDBOPT) 0
+            }
 	
-	enum                            OpenStyle : BDBOMODE
-	                                {
-	                                    Read             = BDBOMODE.BDBOREADER, // open as a reader 
-	                                    Write            = BDBOMODE.BDBOWRITER, // open as a writer 
-	                                    Create           = BDBOMODE.BDBOCREAT,  // writer creating 
-	                                    Truncate         = BDBOMODE.BDBOTRUNC,  // writer truncating 
-	                                    DontLock         = BDBOMODE.BDBONOLCK,  // open without locking 
-	                                    LockNonBlocking  = BDBOMODE.BDBOLCKNB,  // lock without blocking 
-	                                    SyncAlways       = BDBOMODE.BDBOTSYNC,  // synchronize every transaction
-	                                    
-	                                    WriteCreate      = Write | Create,
-	                                    ReadOnly         = Read  | DontLock,
-	                                }
+     /**************************************************************************
+    
+        OpenStyle enumerator
+    
+     **************************************************************************/
+
+	enum    OpenStyle : BDBOMODE
+            {
+                Read             = BDBOMODE.BDBOREADER,     // open as a reader 
+                Write            = BDBOMODE.BDBOWRITER,     // open as a writer 
+                Create           = BDBOMODE.BDBOCREAT,      // writer creating 
+                Truncate         = BDBOMODE.BDBOTRUNC,      // writer truncating 
+                DontLock         = BDBOMODE.BDBONOLCK,      // open without locking 
+                LockNonBlocking  = BDBOMODE.BDBOLCKNB,      // lock without blocking 
+                SyncAlways       = BDBOMODE.BDBOTSYNC,      // synchronize every transaction
+                
+                WriteCreate      = Write | Create,
+                ReadOnly         = Read  | DontLock,
+            }
 	
 	
 	/**************************************************************************
@@ -127,7 +150,7 @@ class TokyoCabinetB : ITokyoCabinet
 	
 	 **************************************************************************/
 	
-	bool            deleted         = false;
+    private bool            deleted         = false;
 	
 	
 	
@@ -184,35 +207,349 @@ class TokyoCabinetB : ITokyoCabinet
 	
 	
 	
-	/***************************************************************************
+    /***************************************************************************
     
-	    Open Database for reading/writing, create if necessary
-	
-	    dbfile = specifies the database  file name
-	
-	 **************************************************************************/    
-	
+        Opens a database file for reading/writing, creates if necessary. If the
+        database file is locked, an exception is thrown.
+    
+        Params:
+            dbfile = specifies the database file name
+    
+     **************************************************************************/    
+
 	public void open ( char[] dbfile )
 	{   
-	    tcbdbtune(	this.db, this.tune_lmemb, this.tune_nmemb, this.tune_bnum, 
-	    			this.tune_apow, this.tune_fpow, this.tune_opts);
+	    tcbdbtune(this.db, this.tune.leaf_members,
+                           this.tune.non_leaf_members,
+                           this.tune.bucket_array_length, 
+                           this.tune.alignment_power,
+                           this.tune.free_block_power,
+                           this.tune.options);
 	    
 	    return this.openNonBlocking(dbfile, OpenStyle.WriteCreate);
 	}
 	
+    /***************************************************************************
+    
+        Opens a database file. If the file is locked, an exception is thrown.
+    
+        Params:
+            dbfile = specifies the database file name
+            style  = open style (Read, Write, ReadOnly, ...)
+    
+     **************************************************************************/    
+
 	public void openNonBlocking ( char[] dbfile, OpenStyle style )
 	{
 	    return this.open(dbfile, style | OpenStyle.LockNonBlocking);
 	}
 	
+    /***************************************************************************
+    
+        Opens a database file. If the file is locked and style is not composed
+        of OpenStyle.LockNonBlocking, the method blocks until the file is
+        released.
+    
+        Params:
+            dbfile = specifies the database file name
+            style  = open style (Read, Write, ReadOnly, ...)
+    
+     **************************************************************************/    
+
 	public void open ( char[] dbfile, OpenStyle style )
 	{
 	    this.tokyoAssert(tcbdbopen(this.db, StringC.toCstring(dbfile), style), "Open error");
 	}
 	
 	
-	
-	
+    /**************************************************************************
+    
+        Closes the database
+
+    ***************************************************************************/
+
+    public void close ()
+    {
+        if (super.db)
+        {
+            super.tokyoAssert(tcbdbclose(super.db), "close error");
+        }
+    }
+    
+    
+
+    /**************************************************************************
+        
+        Set Mutex for Threading (call before opening)
+    
+    ***************************************************************************/
+    
+    public void enableThreadSupport ()
+    {
+        tcbdbsetmutex(this.db);
+    }
+    
+    
+    /**************************************************************************
+        
+        Set number of elements in bucket array
+        
+        Set cache size of database before opening.
+        
+        Params:
+            size = cache size in bytes
+            
+    ***************************************************************************/
+        
+    public void setCacheSize( int leaf, int non_leaf )
+    {
+        tcbdbsetcache(this.db, leaf, non_leaf);
+    }
+    
+    
+    
+    /**************************************************************************
+        
+        Set memory size
+        
+        Set size of memory used by database before opening.
+        
+        Params:
+            size = mem size in bytes
+            
+    ***************************************************************************/
+    
+    public void setMemSize( uint size )
+    {
+        tcbdbsetxmsiz(this.db, size);
+    }
+    
+    
+
+    /**************************************************************************
+    
+        Puts a record to database; overwrites an existing record
+       
+        Params:
+            key   = record key
+            value = record value
+            
+    ***************************************************************************/
+
+    public void put ( char[] key, char[] value )
+    {
+        super.tcPut(key, value, &tcbdbput, "tcbdbput");
+    }
+    
+    /**************************************************************************
+    
+        Puts a record to database; does not ooverwrite an existing record
+       
+        Params:
+            key   = record key
+            value = record value
+            
+    ***************************************************************************/
+    
+    public void putkeep ( char[] key, char[] value )
+    {
+        super.tcPut(key, value, &tcbdbputkeep, "tcbdbputkeep");
+    }
+    
+
+    /**************************************************************************
+    
+        Attaches/Concenates value to database record; creates a record if not
+        existing
+        
+        Params:
+            key   = record key
+            value = value to concenate to record
+            
+    ***************************************************************************/
+
+    public void putcat ( char[] key, char[] value )
+    {
+        super.tcPut(key, value, &tcbdbputcat, "tcbdbputcat");
+    }
+    
+    /**************************************************************************
+    
+        Puts a record to database allowing duplication of keys.
+       
+        Params:
+            key   = record key
+            value = record value
+            
+     ***************************************************************************/
+    
+    public void putdup ( char[] key, char[] value )
+    {
+        super.tcPut(key, value, &tcbdbputdup, "tcbdbputdup");
+    }
+    
+    /**************************************************************************
+    
+        Puts a record to database with backward duplication.
+       
+        Params:
+            key   = record key
+            value = record value
+            
+     ***************************************************************************/
+    
+    public void putdupback ( char[] key, char[] value )
+    {
+        super.tcPut(key, value, &tcbdbputdupback, "tcbdbputdupback");
+    }
+    
+    
+    
+    
+    /**************************************************************************
+    
+        Get record value
+    
+        Params:
+            key = record key
+    
+        Returns
+            value or empty string if record not existing
+            
+    ***************************************************************************/
+
+    public bool get ( char[] key, out char[] value )
+    {
+        bool found;
+        
+        synchronized
+        {
+            int len;
+            
+            char* valuep = cast (char*) tcbdbget3(super.db, key.ptr, key.length, &len);
+            
+            found = !!valuep;
+            
+            if (found)
+            {
+                value = valuep[0 .. len].dup;
+            }
+        }
+        
+        return found;
+    }
+    
+    /**************************************************************************
+    
+        Get list of records in a range
+    
+        Params:
+            first         = key of first record in range
+            last          = key of last record in range
+            include_first = true/false: include/exclude first record
+            include_last  = true/false: include/exclude last record
+            max           = maximum range length; -1: no maximum
+    
+        Returns
+            TokyoCabinetList.QuickIterator object providing 'foreach' iteration
+            over the retrieved items. Additionally, that object can create a
+            TokyoCabinetList instance.
+            
+    ***************************************************************************/
+    
+    public TokyoCabinetList.QuickIterator getRange ( char[] first, char[] last,
+                                                     bool include_first, bool include_last,
+                                                     int max = -1 )
+    {
+        return TokyoCabinetList.QuickIterator(tcbdbrange(super.db, first.ptr, first.length, include_first,
+                                                                   last.ptr,  last.length,  include_last, max));
+    }
+    
+    /**************************************************************************
+    
+        Get list of records in a range. The first record is included and the last is
+        excluded.
+    
+        Params:
+            first = key of first record in range
+            last  = key of last record in range
+    
+        Returns
+            TcList.QuickIterator object providing 'foreach' iteration over the
+            retrieved items. Additionally, that object can create a TcList
+            instance.
+            
+    ***************************************************************************/
+
+    public TokyoCabinetList.QuickIterator opSlice ( char[] first, char[] last )
+    {
+        return this.getRange(first, last, true, false);
+    }
+    
+    /**************************************************************************
+    
+        Tells whether a record exists
+        
+         Params:
+            key = record key
+        
+        Returns:
+             true if record exists or false itherwise
+    
+    ***************************************************************************/
+    
+    public bool exists ( char[] key )
+    {
+        return (tcbdbvsiz(super.db, key.ptr, key.length) >= 0);
+    }
+    
+    
+    
+    /**************************************************************************
+    
+        Remove record
+        
+        Params:
+            key = key of record to remove
+        
+        Returns:
+            true on success or false otherwise
+        
+    ***************************************************************************/
+    
+    public bool remove ( char[] key )
+    {
+        return tcbdbout(super.db, key.ptr, key.length);
+    }
+    
+    /**************************************************************************
+    
+        Returns number of records
+        
+        Returns: 
+            number of records, or zero if none
+        
+    ***************************************************************************/
+    
+    public ulong numRecords ( )
+    {
+        return tcbdbrnum(super.db);
+    }
+
+
+    /**************************************************************************
+    
+        Creates a cursor for this instance
+        
+        Returns: 
+            new Cursor
+        
+    ***************************************************************************/
+
+    public TokyoCabinetCursor getCursor ( )
+    {
+        return new TokyoCabinetCursor(super.db);
+    }
 	
 	
 	/**************************************************************************
@@ -224,7 +561,7 @@ class TokyoCabinetB : ITokyoCabinet
 	    
 	***************************************************************************/
 	
-	private char[] getTokyoErrMsg ( )
+	protected char[] getTokyoErrMsg ( )
 	{
 	    return this.getTokyoErrMsg(tcbdbecode(this.db));
 	}
@@ -243,7 +580,7 @@ class TokyoCabinetB : ITokyoCabinet
 	    
 	***************************************************************************/
 	
-	private char[] getTokyoErrMsg ( TCHERRCODE errcode )
+    protected char[] getTokyoErrMsg ( TCERRCODE errcode )
 	{
 	    return StringC.toDString(tcbdberrmsg(errcode));
 	}
@@ -263,11 +600,11 @@ class TokyoCabinetB : ITokyoCabinet
 	    
 	***************************************************************************/
 	
-	private void tokyoAssertStrict ( bool ok, TCHERRCODE[] ignore_codes, char[] context = "Error" )
+    protected void tokyoAssertStrict ( bool ok, TCERRCODE[] ignore_codes, char[] context = "Error" )
 	{
 	    if (!ok)
 	    {
-	        TCHERRCODE errcode = tcbdbecode(this.db);
+	        TCERRCODE errcode = tcbdbecode(this.db);
 	        
 	        foreach (ignore_core; ignore_codes)
 	        {

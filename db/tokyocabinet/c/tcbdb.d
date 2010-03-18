@@ -30,10 +30,10 @@ extern (C)
 
 struct TCBDB							/* type of structure for a B+ tree database */
 {
-	void *mmtx;							/* mutex for method */
-	void *cmtx;							/* mutex for cache */
-	TCHDB *hdb;                         /* internal database object */
-	char *opaque;                       /* opaque buffer */
+	void* mmtx;							/* mutex for method */
+	void* cmtx;							/* mutex for cache */
+	TCHDB* hdb;                         /* internal database object */
+	char* opaque;                       /* opaque buffer */
 	bool open;                          /* whether the internal database is opened */
 	bool wmode;                         /* whether to be writable */
 	uint lmemb;                     	/* number of members in each leaf */
@@ -45,21 +45,21 @@ struct TCBDB							/* type of structure for a B+ tree database */
 	ulong lnum;                      	/* number of leaves */
 	ulong nnum;                      	/* number of nodes */
 	ulong rnum;                      	/* number of records */
-	TCMAP *leafc;                       /* cache for leaves */
-	TCMAP *nodec;                       /* cache for nodes */
+	TCMAP* leafc;                       /* cache for leaves */
+	TCMAP* nodec;                       /* cache for nodes */
 	TCCMP cmp;                          /* pointer to the comparison function */
-	void *cmpop;                        /* opaque object for the comparison function */
+	void* cmpop;                        /* opaque object for the comparison function */
 	uint lcnum;                     	/* maximum number of cached leaves */
 	uint ncnum;                     	/* maximum number of cached nodes */
 	uint lsmax;                     	/* maximum size of each leaf */
 	uint lschk;                     	/* counter for leaf size checking */
 	ulong capnum;                    	/* capacity number of records */
-	ulong *hist;                     	/* history array of visited nodes */
+	ulong* hist;                     	/* history array of visited nodes */
 	int hnum;                           /* number of element of the history array */
 	ulong hleaf;                     	/* ID number of the leaf referred by the history */
 	ulong lleaf;                     	/* ID number of the last visited leaf */
 	bool tran;                          /* whether in the transaction */
-	char *rbopaque;                     /* opaque for rollback */
+	char* rbopaque;                     /* opaque for rollback */
 	ulong clock;                     	/* logical clock */
 	long cnt_saveleaf;               	/* tesing counter for leaf save times */
 	long cnt_loadleaf;               	/* tesing counter for leaf load times */
@@ -78,34 +78,34 @@ enum                                    /* enumeration for additional flags */
 
 enum BDBOPT : ubyte						/* enumeration for tuning options */
 {
-	BDBTLARGE = 1 << 0,                 /* use 64-bit bucket array */
-	BDBTDEFLATE = 1 << 1,               /* compress each page with Deflate */
-	BDBTBZIP = 1 << 2,                  /* compress each record with BZIP2 */
-	BDBTTCBS = 1 << 3,                  /* compress each page with TCBS */
-	BDBTEXCODEC = 1 << 4                /* compress each record with outer functions */
+	BDBTLARGE      = 1 << 0,            /* use 64-bit bucket array */
+	BDBTDEFLATE    = 1 << 1,            /* compress each page with Deflate */
+	BDBTBZIP       = 1 << 2,            /* compress each record with BZIP2 */
+	BDBTTCBS       = 1 << 3,            /* compress each page with TCBS */
+	BDBTEXCODEC    = 1 << 4             /* compress each record with outer functions */
 };
 
 enum BDBOMODE : int						/* enumeration for open modes */
 {
-	BDBOREADER = 1 << 0,                /* open as a reader */
-	BDBOWRITER = 1 << 1,                /* open as a writer */
-	BDBOCREAT = 1 << 2,                 /* writer creating */
-	BDBOTRUNC = 1 << 3,                 /* writer truncating */
-	BDBONOLCK = 1 << 4,                 /* open without locking */
-	BDBOLCKNB = 1 << 5,                 /* lock without blocking */
-	BDBOTSYNC = 1 << 6                  /* synchronize every transaction */
+	BDBOREADER     = 1 << 0,            /* open as a reader */
+	BDBOWRITER     = 1 << 1,            /* open as a writer */
+	BDBOCREAT      = 1 << 2,            /* writer creating */
+	BDBOTRUNC      = 1 << 3,            /* writer truncating */
+	BDBONOLCK      = 1 << 4,            /* open without locking */
+	BDBOLCKNB      = 1 << 5,            /* lock without blocking */
+	BDBOTSYNC      = 1 << 6             /* synchronize every transaction */
 };
 
 struct BDBCUR							/* type of structure for a B+ tree cursor */
 {                         
-	TCBDB *bdb;                         /* database object */
+	TCBDB* bdb;                         /* database object */
 	ulong clock;                     	/* logical clock */
 	ulong id;                        	/* ID number of the leaf */
 	int kidx;                       	/* number of the key */
 	int vidx;                       	/* number of the value */
 };
 
-enum                                    /* enumeration for cursor put mode */
+enum BDBCP : int                        /* enumeration for cursor put mode */
 {
 	BDBCPCURRENT,                       /* current */
 	BDBCPBEFORE,                        /* before */
@@ -116,19 +116,19 @@ enum                                    /* enumeration for cursor put mode */
 /* Get the message string corresponding to an error code.
    `ecode' specifies the error code.
    The return value is the message string of the error code. */
-char *tcbdberrmsg(int ecode);
+char* tcbdberrmsg(int ecode);
 
 
 /* Create a B+ tree database object.
    The return value is the new B+ tree database object. */
-TCBDB *tcbdbnew();
+TCBDB* tcbdbnew();
 
 
 /* Delete a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    If the database is not closed, it is closed implicitly.  Note that the deleted object and its
    derivatives can not be used anymore. */
-void tcbdbdel(TCBDB *bdb);
+void tcbdbdel(TCBDB* bdb);
 
 
 /* Get the last happened error code of a B+ tree database object.
@@ -143,7 +143,7 @@ void tcbdbdel(TCBDB *bdb);
    for unlink error, `TCERENAME' for rename error, `TCEMKDIR' for mkdir error, `TCERMDIR' for
    rmdir error, `TCEKEEP' for existing record, `TCENOREC' for no record found, and `TCEMISC' for
    miscellaneous error. */
-TCHERRCODE tcbdbecode(TCBDB *bdb);
+TCERRCODE tcbdbecode(TCBDB* bdb);
 
 
 /* Set mutual exclusion control of a B+ tree database object for threading.
@@ -151,7 +151,7 @@ TCHERRCODE tcbdbecode(TCBDB *bdb);
    If successful, the return value is true, else, it is false.
    Note that the mutual exclusion control is needed if the object is shared by plural threads and
    this function should should be called before the database is opened. */
-bool tcbdbsetmutex(TCBDB *bdb);
+bool tcbdbsetmutex(TCBDB* bdb);
 
 
 /* Set the custom comparison function of a B+ tree database object.
@@ -169,7 +169,7 @@ bool tcbdbsetmutex(TCBDB *bdb);
    `tctccmplexical' (dafault), `tctccmpdecimal', `tctccmpint32', and `tctccmpint64' are built-in.
    Note that the comparison function should be set before the database is opened.  Moreover,
    user-defined comparison functions should be set every time the database is being opened. */
-bool tcbdbsetcmpfunc(TCBDB *bdb, TCCMP cmp, void* cmpop);
+bool tcbdbsetcmpfunc(TCBDB* bdb, TCCMP cmp, void* cmpop);
 
 
 /* Set the tuning parameters of a B+ tree database object.
@@ -191,8 +191,8 @@ bool tcbdbsetcmpfunc(TCBDB *bdb, TCCMP cmp, void* cmpop);
    BZIP2 encoding, `BDBTTCBS' specifies that each page is compressed with TCBS encoding.
    If successful, the return value is true, else, it is false.
    Note that the tuning parameters should be set before the database is opened. */
-bool tcbdbtune(TCBDB *bdb, int lmemb, int nmemb,
-               long bnum, byte apow, byte fpow, ubyte opts);
+bool tcbdbtune(TCBDB* bdb, int lmemb, int nmemb,
+               long bnum, byte apow, byte fpow, BDBOPT opts);
 
 
 /* Set the caching parameters of a B+ tree database object.
@@ -203,7 +203,7 @@ bool tcbdbtune(TCBDB *bdb, int lmemb, int nmemb,
    the default value is specified.  The default value is 512.
    If successful, the return value is true, else, it is false.
    Note that the caching parameters should be set before the database is opened. */
-bool tcbdbsetcache(TCBDB *bdb, int lcnum, int ncnum);
+bool tcbdbsetcache(TCBDB* bdb, int lcnum, int ncnum);
 
 
 /* Set the size of the extra mapped memory of a B+ tree database object.
@@ -212,7 +212,7 @@ bool tcbdbsetcache(TCBDB *bdb, int lcnum, int ncnum);
    mapped memory is disabled.  It is disabled by default.
    If successful, the return value is true, else, it is false.
    Note that the mapping parameters should be set before the database is opened. */
-bool tcbdbsetxmsiz(TCBDB *bdb, long xmsiz);
+bool tcbdbsetxmsiz(TCBDB* bdb, long xmsiz);
 
 
 /* Set the unit step number of auto defragmentation of a B+ tree database object.
@@ -221,7 +221,7 @@ bool tcbdbsetxmsiz(TCBDB *bdb, long xmsiz);
    is disabled.  It is disabled by default.
    If successful, the return value is true, else, it is false.
    Note that the defragmentation parameter should be set before the database is opened. */
-bool tcbdbsetdfunit(TCBDB *bdb, int dfunit);
+bool tcbdbsetdfunit(TCBDB* bdb, int dfunit);
 
 
 /* Open a database file and connect a B+ tree database object.
@@ -235,7 +235,7 @@ bool tcbdbsetdfunit(TCBDB *bdb, int dfunit);
    bitwise-or: `BDBONOLCK', which means it opens the database file without file locking, or
    `BDBOLCKNB', which means locking is performed without blocking.
    If successful, the return value is true, else, it is false. */
-bool tcbdbopen(TCBDB *bdb, char* path, int omode);
+bool tcbdbopen(TCBDB* bdb, char* path, BDBOMODE omode);
 
 
 /* Close a B+ tree database object.
@@ -243,7 +243,7 @@ bool tcbdbopen(TCBDB *bdb, char* path, int omode);
    If successful, the return value is true, else, it is false.
    Update of a database is assured to be written when the database is closed.  If a writer opens
    a database but does not close it appropriately, the database will be broken. */
-bool tcbdbclose(TCBDB *bdb);
+bool tcbdbclose(TCBDB* bdb);
 
 
 /* Store a record into a B+ tree database object.
@@ -254,7 +254,7 @@ bool tcbdbclose(TCBDB *bdb);
    `vsiz' specifies the size of the region of the value.
    If successful, the return value is true, else, it is false.
    If a record with the same key exists in the database, it is overwritten. */
-bool tcbdbput(TCBDB *bdb, void* kbuf, int ksiz, void* vbuf, int vsiz);
+bool tcbdbput(TCBDB* bdb, void* kbuf, int ksiz, void* vbuf, int vsiz);
 
 
 /* Store a string record into a B+ tree database object.
@@ -263,7 +263,7 @@ bool tcbdbput(TCBDB *bdb, void* kbuf, int ksiz, void* vbuf, int vsiz);
    `vstr' specifies the string of the value.
    If successful, the return value is true, else, it is false.
    If a record with the same key exists in the database, it is overwritten. */
-bool tcbdbput2(TCBDB *bdb, char* kstr, char* vstr);
+bool tcbdbput2(TCBDB* bdb, char* kstr, char* vstr);
 
 
 /* Store a new record into a B+ tree database object.
@@ -274,7 +274,7 @@ bool tcbdbput2(TCBDB *bdb, char* kstr, char* vstr);
    `vsiz' specifies the size of the region of the value.
    If successful, the return value is true, else, it is false.
    If a record with the same key exists in the database, this function has no effect. */
-bool tcbdbputkeep(TCBDB *bdb, void* kbuf, int ksiz, void* vbuf, int vsiz);
+bool tcbdbputkeep(TCBDB* bdb, void* kbuf, int ksiz, void* vbuf, int vsiz);
 
 
 /* Store a new string record into a B+ tree database object.
@@ -283,7 +283,7 @@ bool tcbdbputkeep(TCBDB *bdb, void* kbuf, int ksiz, void* vbuf, int vsiz);
    `vstr' specifies the string of the value.
    If successful, the return value is true, else, it is false.
    If a record with the same key exists in the database, this function has no effect. */
-bool tcbdbputkeep2(TCBDB *bdb, char* kstr, char* vstr);
+bool tcbdbputkeep2(TCBDB* bdb, char* kstr, char* vstr);
 
 
 /* Concatenate a value at the end of the existing record in a B+ tree database object.
@@ -294,7 +294,7 @@ bool tcbdbputkeep2(TCBDB *bdb, char* kstr, char* vstr);
    `vsiz' specifies the size of the region of the value.
    If successful, the return value is true, else, it is false.
    If there is no corresponding record, a new record is created. */
-bool tcbdbputcat(TCBDB *bdb, void* kbuf, int ksiz, void* vbuf, int vsiz);
+bool tcbdbputcat(TCBDB* bdb, void* kbuf, int ksiz, void* vbuf, int vsiz);
 
 
 /* Concatenate a string value at the end of the existing record in a B+ tree database object.
@@ -303,7 +303,7 @@ bool tcbdbputcat(TCBDB *bdb, void* kbuf, int ksiz, void* vbuf, int vsiz);
    `vstr' specifies the string of the value.
    If successful, the return value is true, else, it is false.
    If there is no corresponding record, a new record is created. */
-bool tcbdbputcat2(TCBDB *bdb, char* kstr, char* vstr);
+bool tcbdbputcat2(TCBDB* bdb, char* kstr, char* vstr);
 
 
 /* Store a record into a B+ tree database object with allowing duplication of keys.
@@ -315,7 +315,7 @@ bool tcbdbputcat2(TCBDB *bdb, char* kstr, char* vstr);
    If successful, the return value is true, else, it is false.
    If a record with the same key exists in the database, the new record is placed after the
    existing one. */
-bool tcbdbputdup(TCBDB *bdb, void* kbuf, int ksiz, void* vbuf, int vsiz);
+bool tcbdbputdup(TCBDB* bdb, void* kbuf, int ksiz, void* vbuf, int vsiz);
 
 
 /* Store a string record into a B+ tree database object with allowing duplication of keys.
@@ -325,7 +325,7 @@ bool tcbdbputdup(TCBDB *bdb, void* kbuf, int ksiz, void* vbuf, int vsiz);
    If successful, the return value is true, else, it is false.
    If a record with the same key exists in the database, the new record is placed after the
    existing one. */
-bool tcbdbputdup2(TCBDB *bdb, char* kstr, char* vstr);
+bool tcbdbputdup2(TCBDB* bdb, char* kstr, char* vstr);
 
 
 /* Store records into a B+ tree database object with allowing duplication of keys.
@@ -336,7 +336,7 @@ bool tcbdbputdup2(TCBDB *bdb, char* kstr, char* vstr);
    If successful, the return value is true, else, it is false.
    If a record with the same key exists in the database, the new records are placed after the
    existing one. */
-bool tcbdbputdup3(TCBDB *bdb, void* kbuf, int ksiz, TCLIST *vals);
+bool tcbdbputdup3(TCBDB* bdb, void* kbuf, int ksiz, TCLIST* vals);
 
 
 /* Remove a record of a B+ tree database object.
@@ -345,7 +345,7 @@ bool tcbdbputdup3(TCBDB *bdb, void* kbuf, int ksiz, TCLIST *vals);
    `ksiz' specifies the size of the region of the key.
    If successful, the return value is true, else, it is false.
    If the key of duplicated records is specified, the first one is selected. */
-bool tcbdbout(TCBDB *bdb, void* kbuf, int ksiz);
+bool tcbdbout(TCBDB* bdb, void* kbuf, int ksiz);
 
 
 /* Remove a string record of a B+ tree database object.
@@ -353,7 +353,7 @@ bool tcbdbout(TCBDB *bdb, void* kbuf, int ksiz);
    `kstr' specifies the string of the key.
    If successful, the return value is true, else, it is false.
    If the key of duplicated records is specified, the first one is selected. */
-bool tcbdbout2(TCBDB *bdb, char* kstr);
+bool tcbdbout2(TCBDB* bdb, char* kstr);
 
 
 /* Remove records of a B+ tree database object.
@@ -362,7 +362,7 @@ bool tcbdbout2(TCBDB *bdb, char* kstr);
    `ksiz' specifies the size of the region of the key.
    If successful, the return value is true, else, it is false.
    If the key of duplicated records is specified, all of them are removed. */
-bool tcbdbout3(TCBDB *bdb, void* kbuf, int ksiz);
+bool tcbdbout3(TCBDB* bdb, void* kbuf, int ksiz);
 
 
 /* Retrieve a record in a B+ tree database object.
@@ -378,7 +378,7 @@ bool tcbdbout3(TCBDB *bdb, void* kbuf, int ksiz);
    value can be treated as a character string.  Because the region of the return value is
    allocated with the `malloc' call, it should be released with the `free' call when it is no
    longer in use. */
-void* tcbdbget(TCBDB *bdb, void* kbuf, int ksiz, int *sp);
+void* tcbdbget(TCBDB* bdb, void* kbuf, int ksiz, int* sp);
 
 
 /* Retrieve a string record in a B+ tree database object.
@@ -389,7 +389,7 @@ void* tcbdbget(TCBDB *bdb, void* kbuf, int ksiz, int *sp);
    If the key of duplicated records is specified, the first one is selected.  Because the region
    of the return value is allocated with the `malloc' call, it should be released with the `free'
    call when it is no longer in use. */
-char *tcbdbget2(TCBDB *bdb, char* kstr);
+char* tcbdbget2(TCBDB* bdb, char* kstr);
 
 
 /* Retrieve a record in a B+ tree database object as a volatile buffer.
@@ -405,7 +405,7 @@ char *tcbdbget2(TCBDB *bdb, char* kstr);
    value can be treated as a character string.  Because the region of the return value is
    volatile and it may be spoiled by another operation of the database, the data should be copied
    into another involatile buffer immediately. */
-void *tcbdbget3(TCBDB *bdb, void* kbuf, int ksiz, int *sp);
+void* tcbdbget3(TCBDB* bdb, void* kbuf, int ksiz, int* sp);
 
 
 /* Retrieve records in a B+ tree database object.
@@ -416,7 +416,7 @@ void *tcbdbget3(TCBDB *bdb, void* kbuf, int ksiz, int *sp);
    `NULL' is returned if no record corresponds.
    Because the object of the return value is created with the function `tclistnew', it should
    be deleted with the function `tclistdel' when it is no longer in use. */
-TCLIST *tcbdbget4(TCBDB *bdb, void* kbuf, int ksiz);
+TCLIST* tcbdbget4(TCBDB* bdb, void* kbuf, int ksiz);
 
 
 /* Get the number of records corresponding a key in a B+ tree database object.
@@ -424,14 +424,14 @@ TCLIST *tcbdbget4(TCBDB *bdb, void* kbuf, int ksiz);
    `kbuf' specifies the pointer to the region of the key.
    `ksiz' specifies the size of the region of the key.
    If successful, the return value is the number of the corresponding records, else, it is 0. */
-int tcbdbvnum(TCBDB *bdb, void* kbuf, int ksiz);
+int tcbdbvnum(TCBDB* bdb, void* kbuf, int ksiz);
 
 
 /* Get the number of records corresponding a string key in a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    `kstr' specifies the string of the key.
    If successful, the return value is the number of the corresponding records, else, it is 0. */
-int tcbdbvnum2(TCBDB *bdb, char* kstr);
+int tcbdbvnum2(TCBDB* bdb, char* kstr);
 
 
 /* Get the size of the value of a record in a B+ tree database object.
@@ -441,7 +441,7 @@ int tcbdbvnum2(TCBDB *bdb, char* kstr);
    If successful, the return value is the size of the value of the corresponding record, else,
    it is -1.
    If the key of duplicated records is specified, the first one is selected. */
-int tcbdbvsiz(TCBDB *bdb, void* kbuf, int ksiz);
+int tcbdbvsiz(TCBDB* bdb, void* kbuf, int ksiz);
 
 
 /* Get the size of the value of a string record in a B+ tree database object.
@@ -450,7 +450,7 @@ int tcbdbvsiz(TCBDB *bdb, void* kbuf, int ksiz);
    If successful, the return value is the size of the value of the corresponding record, else,
    it is -1.
    If the key of duplicated records is specified, the first one is selected. */
-int tcbdbvsiz2(TCBDB *bdb, char* kstr);
+int tcbdbvsiz2(TCBDB* bdb, char* kstr);
 
 
 /* Get keys of ranged records in a B+ tree database object.
@@ -469,7 +469,7 @@ int tcbdbvsiz2(TCBDB *bdb, char* kstr);
    does never fail.  It returns an empty list even if no record corresponds.
    Because the object of the return value is created with the function `tclistnew', it should
    be deleted with the function `tclistdel' when it is no longer in use. */
-TCLIST *tcbdbrange(TCBDB *bdb, void* bkbuf, int bksiz, bool binc,
+TCLIST* tcbdbrange(TCBDB* bdb, void* bkbuf, int bksiz, bool binc,
                    void* ekbuf, int eksiz, bool einc, int max);
 
 
@@ -487,7 +487,7 @@ TCLIST *tcbdbrange(TCBDB *bdb, void* bkbuf, int bksiz, bool binc,
    does never fail.  It returns an empty list even if no record corresponds.
    Because the object of the return value is created with the function `tclistnew', it should
    be deleted with the function `tclistdel' when it is no longer in use. */
-TCLIST *tcbdbrange2(TCBDB *bdb, char* bkstr, bool binc,
+TCLIST* tcbdbrange2(TCBDB* bdb, char* bkstr, bool binc,
                     char* ekstr, bool einc, int max);
 
 
@@ -501,7 +501,7 @@ TCLIST *tcbdbrange2(TCBDB *bdb, char* bkstr, bool binc,
    It returns an empty list even if no key corresponds.
    Because the object of the return value is created with the function `tclistnew', it should be
    deleted with the function `tclistdel' when it is no longer in use. */
-TCLIST *tcbdbfwmkeys(TCBDB *bdb, void* pbuf, int psiz, int max);
+TCLIST* tcbdbfwmkeys(TCBDB* bdb, void* pbuf, int psiz, int max);
 
 
 /* Get forward matching string keys in a B+ tree database object.
@@ -513,7 +513,7 @@ TCLIST *tcbdbfwmkeys(TCBDB *bdb, void* pbuf, int psiz, int max);
    It returns an empty list even if no key corresponds.
    Because the object of the return value is created with the function `tclistnew', it should be
    deleted with the function `tclistdel' when it is no longer in use. */
-TCLIST *tcbdbfwmkeys2(TCBDB *bdb, char* pstr, int max);
+TCLIST* tcbdbfwmkeys2(TCBDB* bdb, char* pstr, int max);
 
 
 /* Add an integer to a record in a B+ tree database object.
@@ -524,7 +524,7 @@ TCLIST *tcbdbfwmkeys2(TCBDB *bdb, char* pstr, int max);
    If successful, the return value is the summation value, else, it is `INT_MIN'.
    If the corresponding record exists, the value is treated as an integer and is added to.  If no
    record corresponds, a new record of the additional value is stored. */
-int tcbdbaddint(TCBDB *bdb, void* kbuf, int ksiz, int num);
+int tcbdbaddint(TCBDB* bdb, void* kbuf, int ksiz, int num);
 
 
 /* Add a real number to a record in a B+ tree database object.
@@ -535,14 +535,14 @@ int tcbdbaddint(TCBDB *bdb, void* kbuf, int ksiz, int num);
    If successful, the return value is the summation value, else, it is Not-a-Number.
    If the corresponding record exists, the value is treated as a real number and is added to.  If
    no record corresponds, a new record of the additional value is stored. */
-double tcbdbadddouble(TCBDB *bdb, void* kbuf, int ksiz, double num);
+double tcbdbadddouble(TCBDB* bdb, void* kbuf, int ksiz, double num);
 
 
 /* Synchronize updated contents of a B+ tree database object with the file and the device.
    `bdb' specifies the B+ tree database object connected as a writer.
    If successful, the return value is true, else, it is false.
    This function is useful when another process connects to the same database file. */
-bool tcbdbsync(TCBDB *bdb);
+bool tcbdbsync(TCBDB* bdb);
 
 
 /* Optimize the file of a B+ tree database object.
@@ -565,14 +565,14 @@ bool tcbdbsync(TCBDB *bdb);
    If successful, the return value is true, else, it is false.
    This function is useful to reduce the size of the database file with data fragmentation by
    successive updating. */
-bool tcbdboptimize(TCBDB *bdb, int lmemb, int nmemb,
-                   long bnum, byte apow, byte fpow, ubyte opts);
+bool tcbdboptimize(TCBDB* bdb, int lmemb, int nmemb,
+                   long bnum, byte apow, byte fpow, BDBOPT opts);
 
 
 /* Remove all records of a B+ tree database object.
    `bdb' specifies the B+ tree database object connected as a writer.
    If successful, the return value is true, else, it is false. */
-bool tcbdbvanish(TCBDB *bdb);
+bool tcbdbvanish(TCBDB* bdb);
 
 
 /* Copy the database file of a B+ tree database object.
@@ -584,7 +584,7 @@ bool tcbdbvanish(TCBDB *bdb);
    The database file is assured to be kept synchronized and not modified while the copying or
    executing operation is in progress.  So, this function is useful to create a backup file of
    the database file. */
-bool tcbdbcopy(TCBDB *bdb, char* path);
+bool tcbdbcopy(TCBDB* bdb, char* path);
 
 
 /* Begin the transaction of a B+ tree database object.
@@ -596,14 +596,14 @@ bool tcbdbcopy(TCBDB *bdb, char* path);
    cached on memory while the transaction, the amount of referred records is limited by the
    memory capacity.  If the database is closed during transaction, the transaction is aborted
    implicitly. */
-bool tcbdbtranbegin(TCBDB *bdb);
+bool tcbdbtranbegin(TCBDB* bdb);
 
 
 /* Commit the transaction of a B+ tree database object.
    `bdb' specifies the B+ tree database object connected as a writer.
    If successful, the return value is true, else, it is false.
    Update in the transaction is fixed when it is committed successfully. */
-bool tcbdbtrancommit(TCBDB *bdb);
+bool tcbdbtrancommit(TCBDB* bdb);
 
 
 /* Abort the transaction of a B+ tree database object.
@@ -611,28 +611,28 @@ bool tcbdbtrancommit(TCBDB *bdb);
    If successful, the return value is true, else, it is false.
    Update in the transaction is discarded when it is aborted.  The state of the database is
    rollbacked to before transaction. */
-bool tcbdbtranabort(TCBDB *bdb);
+bool tcbdbtranabort(TCBDB* bdb);
 
 
 /* Get the file path of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the path of the database file or `NULL' if the object does not connect to
    any database file. */
-char *tcbdbpath(TCBDB *bdb);
+char* tcbdbpath(TCBDB* bdb);
 
 
 /* Get the number of records of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the number of records or 0 if the object does not connect to any database
    file. */
-ulong tcbdbrnum(TCBDB *bdb);
+ulong tcbdbrnum(TCBDB* bdb);
 
 
 /* Get the size of the database file of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the size of the database file or 0 if the object does not connect to any
    database file. */
-ulong tcbdbfsiz(TCBDB *bdb);
+ulong tcbdbfsiz(TCBDB* bdb);
 
 
 /* Create a cursor object.
@@ -641,26 +641,26 @@ ulong tcbdbfsiz(TCBDB *bdb);
    Note that the cursor is available only after initialization with the `tcbdbcurfirst' or the
    `tcbdbcurjump' functions and so on.  Moreover, the position of the cursor will be indefinite
    when the database is updated after the initialization of the cursor. */
-BDBCUR *tcbdbcurnew(TCBDB *bdb);
+BDBCUR* tcbdbcurnew(TCBDB* bdb);
 
 
 /* Delete a cursor object.
    `cur' specifies the cursor object. */
-void tcbdbcurdel(BDBCUR *cur);
+void tcbdbcurdel(BDBCUR* cur);
 
 
 /* Move a cursor object to the first record.
    `cur' specifies the cursor object.
    If successful, the return value is true, else, it is false.  False is returned if there is
    no record in the database. */
-bool tcbdbcurfirst(BDBCUR *cur);
+bool tcbdbcurfirst(BDBCUR* cur);
 
 
 /* Move a cursor object to the last record.
    `cur' specifies the cursor object.
    If successful, the return value is true, else, it is false.  False is returned if there is
    no record in the database. */
-bool tcbdbcurlast(BDBCUR *cur);
+bool tcbdbcurlast(BDBCUR* cur);
 
 
 /* Move a cursor object to the front of records corresponding a key.
@@ -671,7 +671,7 @@ bool tcbdbcurlast(BDBCUR *cur);
    no record corresponding the condition.
    The cursor is set to the first record corresponding the key or the next substitute if
    completely matching record does not exist. */
-bool tcbdbcurjump(BDBCUR *cur, void* kbuf, int ksiz);
+bool tcbdbcurjump(BDBCUR* cur, void* kbuf, int ksiz);
 
 
 /* Move a cursor object to the front of records corresponding a key string.
@@ -681,21 +681,21 @@ bool tcbdbcurjump(BDBCUR *cur, void* kbuf, int ksiz);
    no record corresponding the condition.
    The cursor is set to the first record corresponding the key or the next substitute if
    completely matching record does not exist. */
-bool tcbdbcurjump2(BDBCUR *cur, char* kstr);
+bool tcbdbcurjump2(BDBCUR* cur, char* kstr);
 
 
 /* Move a cursor object to the previous record.
    `cur' specifies the cursor object.
    If successful, the return value is true, else, it is false.  False is returned if there is
    no previous record. */
-bool tcbdbcurprev(BDBCUR *cur);
+bool tcbdbcurprev(BDBCUR* cur);
 
 
 /* Move a cursor object to the next record.
    `cur' specifies the cursor object.
    If successful, the return value is true, else, it is false.  False is returned if there is
    no next record. */
-bool tcbdbcurnext(BDBCUR *cur);
+bool tcbdbcurnext(BDBCUR* cur);
 
 
 /* Insert a record around a cursor object.
@@ -709,7 +709,7 @@ bool tcbdbcurnext(BDBCUR *cur);
    If successful, the return value is true, else, it is false.  False is returned when the cursor
    is at invalid position.
    After insertion, the cursor is moved to the inserted record. */
-bool tcbdbcurput(BDBCUR *cur, void* vbuf, int vsiz, int cpmode);
+bool tcbdbcurput(BDBCUR* cur, void* vbuf, int vsiz, BDBCP cpmode);
 
 
 /* Insert a string record around a cursor object.
@@ -722,7 +722,7 @@ bool tcbdbcurput(BDBCUR *cur, void* vbuf, int vsiz, int cpmode);
    If successful, the return value is true, else, it is false.  False is returned when the cursor
    is at invalid position.
    After insertion, the cursor is moved to the inserted record. */
-bool tcbdbcurput2(BDBCUR *cur, char* vstr, int cpmode);
+bool tcbdbcurput2(BDBCUR* cur, char* vstr, BDBCP cpmode);
 
 
 /* Remove the record where a cursor object is.
@@ -730,7 +730,7 @@ bool tcbdbcurput2(BDBCUR *cur, char* vstr, int cpmode);
    If successful, the return value is true, else, it is false.  False is returned when the cursor
    is at invalid position.
    After deletion, the cursor is moved to the next record if possible. */
-bool tcbdbcurout(BDBCUR *cur);
+bool tcbdbcurout(BDBCUR* cur);
 
 
 /* Get the key of the record where the cursor object is.
@@ -743,7 +743,7 @@ bool tcbdbcurout(BDBCUR *cur);
    the return value can be treated as a character string.  Because the region of the return
    value is allocated with the `malloc' call, it should be released with the `free' call when
    it is no longer in use. */
-void* tcbdbcurkey(BDBCUR *cur, int *sp);
+void* tcbdbcurkey(BDBCUR* cur, int* sp);
 
 
 /* Get the key string of the record where the cursor object is.
@@ -752,7 +752,7 @@ void* tcbdbcurkey(BDBCUR *cur, int *sp);
    returned when the cursor is at invalid position.
    Because the region of the return value is allocated with the `malloc' call, it should be
    released with the `free' call when it is no longer in use. */
-char *tcbdbcurkey2(BDBCUR *cur);
+char* tcbdbcurkey2(BDBCUR* cur);
 
 
 /* Get the key of the record where the cursor object is, as a volatile buffer.
@@ -765,7 +765,7 @@ char *tcbdbcurkey2(BDBCUR *cur);
    the return value can be treated as a character string.  Because the region of the return value
    is volatile and it may be spoiled by another operation of the database, the data should be
    copied into another involatile buffer immediately. */
-void* tcbdbcurkey3(BDBCUR *cur, int *sp);
+void* tcbdbcurkey3(BDBCUR* cur, int* sp);
 
 
 /* Get the value of the record where the cursor object is.
@@ -778,7 +778,7 @@ void* tcbdbcurkey3(BDBCUR *cur, int *sp);
    the return value can be treated as a character string.  Because the region of the return
    value is allocated with the `malloc' call, it should be released with the `free' call when
    it is no longer in use. */
-void* tcbdbcurval(BDBCUR *cur, int *sp);
+void* tcbdbcurval(BDBCUR* cur, int* sp);
 
 
 /* Get the value string of the record where the cursor object is.
@@ -787,7 +787,7 @@ void* tcbdbcurval(BDBCUR *cur, int *sp);
    returned when the cursor is at invalid position.
    Because the region of the return value is allocated with the `malloc' call, it should be
    released with the `free' call when it is no longer in use. */
-char *tcbdbcurval2(BDBCUR *cur);
+char* tcbdbcurval2(BDBCUR* cur);
 
 
 /* Get the value of the record where the cursor object is, as a volatile buffer.
@@ -800,7 +800,7 @@ char *tcbdbcurval2(BDBCUR *cur);
    the return value can be treated as a character string.  Because the region of the return value
    is volatile and it may be spoiled by another operation of the database, the data should be
    copied into another involatile buffer immediately. */
-void* tcbdbcurval3(BDBCUR *cur, int *sp);
+void* tcbdbcurval3(BDBCUR* cur, int* sp);
 
 
 /* Get the key and the value of the record where the cursor object is.
@@ -809,7 +809,7 @@ void* tcbdbcurval3(BDBCUR *cur, int *sp);
    `vxstr' specifies the object into which the value is wrote down.
    If successful, the return value is true, else, it is false.  False is returned when the cursor
    is at invalid position. */
-bool tcbdbcurrec(BDBCUR *cur, TCXSTR *kxstr, TCXSTR *vxstr);
+bool tcbdbcurrec(BDBCUR* cur, TCXSTR* kxstr, TCXSTR* vxstr);
 
 
 
@@ -824,136 +824,136 @@ bool tcbdbcurrec(BDBCUR *cur, TCXSTR *kxstr, TCXSTR *vxstr);
    `file' specifies the file name of the code.
    `line' specifies the line number of the code.
    `func' specifies the function name of the code. */
-void tcbdbsetecode(TCBDB *bdb, int ecode, char* filename, int line, char* func);
+void tcbdbsetecode(TCBDB* bdb, int ecode, char* filename, int line, char* func);
 
 
 /* Set the file descriptor for debugging output.
    `bdb' specifies the B+ tree database object.
    `fd' specifies the file descriptor for debugging output. */
-void tcbdbsetdbgfd(TCBDB *bdb, int fd);
+void tcbdbsetdbgfd(TCBDB* bdb, int fd);
 
 
 /* Get the file descriptor for debugging output.
    `bdb' specifies the B+ tree database object.
    The return value is the file descriptor for debugging output. */
-int tcbdbdbgfd(TCBDB *bdb);
+int tcbdbdbgfd(TCBDB* bdb);
 
 
 /* Check whether mutual exclusion control is set to a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    If mutual exclusion control is set, it is true, else it is false. */
-bool tcbdbhasmutex(TCBDB *bdb);
+bool tcbdbhasmutex(TCBDB* bdb);
 
 
 /* Synchronize updating contents on memory of a B+ tree database object.
    `bdb' specifies the B+ tree database object connected as a writer.
    `phys' specifies whether to synchronize physically.
    If successful, the return value is true, else, it is false. */
-bool tcbdbmemsync(TCBDB *bdb, bool phys);
+bool tcbdbmemsync(TCBDB* bdb, bool phys);
 
 
 /* Clear the cache of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    If successful, the return value is true, else, it is false. */
-bool tcbdbcacheclear(TCBDB *bdb);
+bool tcbdbcacheclear(TCBDB* bdb);
 
 
 /* Get the comparison function of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the pointer to the comparison function. */
-TCCMP tcbdbcmpfunc(TCBDB *bdb);
+TCCMP tcbdbcmpfunc(TCBDB* bdb);
 
 
 /* Get the opaque object for the comparison function of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the opaque object for the comparison function. */
-void* tcbdbcmpop(TCBDB *bdb);
+void* tcbdbcmpop(TCBDB* bdb);
 
 
 /* Get the maximum number of cached leaf nodes of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the maximum number of cached leaf nodes. */
-uint tcbdblmemb(TCBDB *bdb);
+uint tcbdblmemb(TCBDB* bdb);
 
 
 /* Get the maximum number of cached non-leaf nodes of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the maximum number of cached non-leaf nodes. */
-uint tcbdbnmemb(TCBDB *bdb);
+uint tcbdbnmemb(TCBDB* bdb);
 
 
 /* Get the number of the leaf nodes of B+ tree database object.
    `bdb' specifies the B+ tree database object.
    If successful, the return value is the number of the leaf nodes or 0 if the object does not
    connect to any database file. */
-ulong tcbdblnum(TCBDB *bdb);
+ulong tcbdblnum(TCBDB* bdb);
 
 
 /* Get the number of the non-leaf nodes of B+ tree database object.
    `bdb' specifies the B+ tree database object.
    If successful, the return value is the number of the non-leaf nodes or 0 if the object does
    not connect to any database file. */
-ulong tcbdbnnum(TCBDB *bdb);
+ulong tcbdbnnum(TCBDB* bdb);
 
 
 /* Get the number of elements of the bucket array of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the number of elements of the bucket array or 0 if the object does not
    connect to any database file. */
-ulong tcbdbbnum(TCBDB *bdb);
+ulong tcbdbbnum(TCBDB* bdb);
 
 
 /* Get the record alignment of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the record alignment or 0 if the object does not connect to any database
    file. */
-uint tcbdbalign(TCBDB *bdb);
+uint tcbdbalign(TCBDB* bdb);
 
 
 /* Get the maximum number of the free block pool of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the maximum number of the free block pool or 0 if the object does not
    connect to any database file. */
-uint tcbdbfbpmax(TCBDB *bdb);
+uint tcbdbfbpmax(TCBDB* bdb);
 
 
 /* Get the inode number of the database file of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the inode number of the database file or 0 if the object does not connect
    to any database file. */
-ulong tcbdbinode(TCBDB *bdb);
+ulong tcbdbinode(TCBDB* bdb);
 
 
 /* Get the modification time of the database file of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the inode number of the database file or 0 if the object does not connect
    to any database file. */
-ulong tcbdbmtime(TCBDB *bdb);
+ulong tcbdbmtime(TCBDB* bdb);
 
 
 /* Get the additional flags of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the additional flags. */
-ubyte tcbdbflags(TCBDB *bdb);
+ubyte tcbdbflags(TCBDB* bdb);
 
 
 /* Get the options of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the options. */
-ubyte tcbdbopts(TCBDB *bdb);
+ubyte tcbdbopts(TCBDB* bdb);
 
 
 /* Get the pointer to the opaque field of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the pointer to the opaque field whose size is 128 bytes. */
-char *tcbdbopaque(TCBDB *bdb);
+char* tcbdbopaque(TCBDB* bdb);
 
 
 /* Get the number of used elements of the bucket array of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the number of used elements of the bucket array or 0 if the object does not
    connect to any database file. */
-ulong tcbdbbnumused(TCBDB *bdb);
+ulong tcbdbbnumused(TCBDB* bdb);
 
 
 /* Set the maximum size of each leaf node.
@@ -962,7 +962,7 @@ ulong tcbdbbnumused(TCBDB *bdb);
    value is specified.  The default value is 16386.
    If successful, the return value is true, else, it is false.
    Note that the tuning parameters of the database should be set before the database is opened. */
-bool tcbdbsetlsmax(TCBDB *bdb, uint lsmax);
+bool tcbdbsetlsmax(TCBDB* bdb, uint lsmax);
 
 
 /* Set the capacity number of records.
@@ -972,7 +972,7 @@ bool tcbdbsetlsmax(TCBDB *bdb, uint lsmax);
    If successful, the return value is true, else, it is false.
    When the number of records exceeds the capacity, forehand records are removed implicitly.
    Note that the tuning parameters of the database should be set before the database is opened. */
-bool tcbdbsetcapnum(TCBDB *bdb, ulong capnum);
+bool tcbdbsetcapnum(TCBDB* bdb, ulong capnum);
 
 
 /* Set the custom codec functions of a B+ tree database object.
@@ -991,13 +991,13 @@ bool tcbdbsetcapnum(TCBDB *bdb, ulong capnum);
    If successful, the return value is true, else, it is false.
    Note that the custom codec functions should be set before the database is opened and should be
    set every time the database is being opened. */
-bool tcbdbsetcodecfunc(TCBDB *bdb, TCCODEC enc, void* encop, TCCODEC dec, void* decop);
+bool tcbdbsetcodecfunc(TCBDB* bdb, TCCODEC enc, void* encop, TCCODEC dec, void* decop);
 
 
 /* Get the unit step number of auto defragmentation of a B+ tree database object.
    `bdb' specifies the B+ tree database object.
    The return value is the unit step number of auto defragmentation. */
-uint tcbdbdfunit(TCBDB *bdb);
+uint tcbdbdfunit(TCBDB* bdb);
 
 
 /* Perform dynamic defragmentation of a B+ tree database object.
@@ -1005,7 +1005,7 @@ uint tcbdbdfunit(TCBDB *bdb);
    `step' specifie the number of steps.  If it is not more than 0, the whole file is defragmented
    gradually without keeping a continuous lock.
    If successful, the return value is true, else, it is false. */
-bool tcbdbdefrag(TCBDB *bdb, long step);
+bool tcbdbdefrag(TCBDB* bdb, long step);
 
 
 /* Store a new record into a B+ tree database object with backward duplication.
@@ -1017,7 +1017,7 @@ bool tcbdbdefrag(TCBDB *bdb, long step);
    If successful, the return value is true, else, it is false.
    If a record with the same key exists in the database, the new record is placed after the
    existing one. */
-bool tcbdbputdupback(TCBDB *bdb, void* kbuf, int ksiz, void* vbuf, int vsiz);
+bool tcbdbputdupback(TCBDB* bdb, void* kbuf, int ksiz, void* vbuf, int vsiz);
 
 
 /* Store a new string record into a B+ tree database object with backward duplication.
@@ -1027,7 +1027,7 @@ bool tcbdbputdupback(TCBDB *bdb, void* kbuf, int ksiz, void* vbuf, int vsiz);
    If successful, the return value is true, else, it is false.
    If a record with the same key exists in the database, the new record is placed after the
    existing one. */
-bool tcbdbputdupback2(TCBDB *bdb, char* kstr, char* vstr);
+bool tcbdbputdupback2(TCBDB* bdb, char* kstr, char* vstr);
 
 
 /* Store a record into a B+ tree database object with a duplication handler.
@@ -1049,7 +1049,7 @@ bool tcbdbputdupback2(TCBDB *bdb, char* kstr, char* vstr);
    If successful, the return value is true, else, it is false.
    Note that the callback function can not perform any database operation because the function
    is called in the critical section guarded by the same locks of database operations. */
-bool tcbdbputproc(TCBDB *bdb, void* kbuf, int ksiz, void* vbuf, int vsiz,
+bool tcbdbputproc(TCBDB* bdb, void* kbuf, int ksiz, void* vbuf, int vsiz,
                   TCPDPROC proc, void* op);
 
 
@@ -1061,7 +1061,7 @@ bool tcbdbputproc(TCBDB *bdb, void* kbuf, int ksiz, void* vbuf, int vsiz,
    no record corresponding the condition.
    The cursor is set to the last record corresponding the key or the previous substitute if
    completely matching record does not exist. */
-bool tcbdbcurjumpback(BDBCUR *cur, void* kbuf, int ksiz);
+bool tcbdbcurjumpback(BDBCUR* cur, void* kbuf, int ksiz);
 
 
 /* Move a cursor object to the rear of records corresponding a key string.
@@ -1071,7 +1071,7 @@ bool tcbdbcurjumpback(BDBCUR *cur, void* kbuf, int ksiz);
    no record corresponding the condition.
    The cursor is set to the last record corresponding the key or the previous substitute if
    completely matching record does not exist. */
-bool tcbdbcurjumpback2(BDBCUR *cur, char* kstr);
+bool tcbdbcurjumpback2(BDBCUR* cur, char* kstr);
 
 
 /* Process each record atomically of a B+ tree database object.
@@ -1087,7 +1087,7 @@ bool tcbdbcurjumpback2(BDBCUR *cur, char* kstr);
    If successful, the return value is true, else, it is false.
    Note that the callback function can not perform any database operation because the function
    is called in the critical section guarded by the same locks of database operations. */
-bool tcbdbforeach(TCBDB *bdb, TCITER iter, void* op);
+bool tcbdbforeach(TCBDB* bdb, TCITER iter, void* op);
 
 }
 

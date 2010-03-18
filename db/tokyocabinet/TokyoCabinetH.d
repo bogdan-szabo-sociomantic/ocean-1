@@ -1,5 +1,7 @@
 /*******************************************************************************
 
+        Tokyo Cabinet Hash Database
+
         copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
         license:        BSD style: $(LICENSE)
@@ -7,7 +9,28 @@
         version:        May 2009: Initial release
                         
         author:         Thomas Nicolai, Lars Kirchhoff, David Eckardt
+        
+        Description:
 
+        Very fast and lightweight database with 10K to 200K inserts per second
+        based on the storage engine used.
+        
+        ---
+        
+            import ocean.db.tokyocabinet.TokyoCabinetH;
+            
+            auto db = new TokyoCabinetH();
+            db.setTuneOpts(TokyoCabinetH.TuneOpts.HDBTLARGE);
+            db.setTuneBnum(20_000_000);
+            db.enableAsync();
+            db.open("db.tch");
+            
+            db.add("foo", "bar");
+            
+            db.close();
+        
+        ---
+        
  ******************************************************************************/
 
 module ocean.db.tokyocabinet.TokyoCabinetH;
@@ -20,87 +43,69 @@ module ocean.db.tokyocabinet.TokyoCabinetH;
  ******************************************************************************/
 
 
-public      import 	ocean.core.Exception: TokyoCabinetException;
+protected   import 	ocean.core.Exception: TokyoCabinetException;
 
-private     import  ocean.db.tokyocabinet.c.tchdb;
 private     import  ocean.db.tokyocabinet.model.ITokyoCabinet;
+
+private     import  ocean.db.tokyocabinet.c.tcutil: TCHDB, HDBOPT, HDBOMODE, TCERRCODE;
+
+private     import  ocean.db.tokyocabinet.c.tchdb:
+                        tchdbnew,   tchdbdel,      tchdbopen,     tchdbclose,
+                        tchdbtune,  tchdbsetmutex, tchdbsetcache, tchdbsetxmsiz,
+                        tchdbput,   tchdbputasync, tchdbputkeep,  tchdbputcat,
+                        tchdbget,   tchdbget3,     tchdbforeach,
+                        tchdbout,   tchdbrnum,     tchdbvsiz,
+                        tchdbecode, tchdberrmsg;
+                        
+private     import  ocean.text.util.StringC;
+
 
 private     import  tango.util.log.Trace;
 
 
 /*******************************************************************************
 
-        Tokyo Cabinet Hash Database
-        
-        Very fast and lightweight database with 10K to 200K inserts per second
-        based on the storage engine used.
-        
-        ---
-        
-        import ocean.db.tokyocabinet.TokyoCabinetH;
-        
-        auto db = new TokyoCabinetH();
-        db.setTuneOpts(TokyoCabinetH.TuneOpts.HDBTLARGE);
-        db.setTuneBnum(20_000_000);
-        db.enableAsync();
-        db.open("db.tch");
-        
-        db.add("foo", "bar");
-        
-        db.close;
-        
-        ---
-        
+    TokyoCabinetH class
 
 *******************************************************************************/
 
-class TokyoCabinetH
+class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 {
-    
     /**************************************************************************
-     
-        Tokyo Cabinet put function definition
-        
-        The following Tokyo Cabinet functions comply to TchPutFunc:
-        
-        ---
-        
-            tchdbput()
-            tchdbputkeep()
-            tchdbputcat()
-            tchdbputasync()
-
-        ---
-        
-     **************************************************************************/
     
-    extern (C) private alias bool function ( TCHDB *hdb, void *key, int ksiz, 
-                                              void *value, int vsiz ) TchPutFunc;
-    
-    /**************************************************************************
-        
-        Definitions
-    
-     **************************************************************************/ 
-    
-    private         TCHDB*          db;                             			// tokyocabinet instance
-    private         bool            async = false;                  			// disable by default
-    
-    /**************************************************************************
-        
         Tuning parameter for hash database tchdbtune
     
      **************************************************************************/ 
     
-    private         long            tune_bnum; 									//  = 30_000_000;       
-    private         byte            tune_apow; 									//   = 2;
-    private         byte            tune_fpow; 									//   = 3;
-    private         TuneOpts        tune_opts;         
+    struct Tune
+    {
+        long            bnum;                                              //  = 30_000_000;       
+        byte            apow;                                              //   = 2;
+        byte            fpow;                                              //   = 3;
+        TuneOpts        opts;         
+    }
     
+    /***************************************************************************
+    
+        tune property
+        
+        Tune parameters may be arbitrarily set and get effective on open() call.
+    
+     **************************************************************************/ 
 
+    public Tune tune;
+    
     /**************************************************************************
         
-        constants for tchdbtune options
+        Asynchronous put request flag; Effective on put() call 
+    
+     **************************************************************************/ 
+    
+    public          bool            async = false;                  			// disable by default
+    
+    /**************************************************************************
+        
+        TuneOpts enumerator
     
         Large:      size of the database can be larger than 2GB 
         Deflate:    each recordis compressed with deflate encoding
@@ -109,29 +114,35 @@ class TokyoCabinetH
     
      **************************************************************************/
     
-    enum                            TuneOpts : HDBOPT
-                                    {
-                                        Large   = HDBOPT.HDBTLARGE, 
-                                        Deflate = HDBOPT.HDBTDEFLATE,
-                                        Bzip    = HDBOPT.HDBTBZIP,
-                                        Tcbs    = HDBOPT.HDBTTCBS,
-                                        
-                                        None    = cast (HDBOPT) 0
-                                    }
+    enum    TuneOpts : HDBOPT
+            {
+                Large   = HDBOPT.HDBTLARGE, 
+                Deflate = HDBOPT.HDBTDEFLATE,
+                Bzip    = HDBOPT.HDBTBZIP,
+                Tcbs    = HDBOPT.HDBTTCBS,
+                
+                None    = cast (HDBOPT) 0
+            }
     
-    enum                            OpenStyle : HDBOMODE
-                                    {
-                                        Read             = HDBOMODE.HDBOREADER, // open as a reader 
-                                        Write            = HDBOMODE.HDBOWRITER, // open as a writer 
-                                        Create           = HDBOMODE.HDBOCREAT,  // writer creating 
-                                        Truncate         = HDBOMODE.HDBOTRUNC,  // writer truncating 
-                                        DontLock         = HDBOMODE.HDBONOLCK,  // open without locking 
-                                        LockNonBlocking  = HDBOMODE.HDBOLCKNB,  // lock without blocking 
-                                        SyncAlways       = HDBOMODE.HDBOTSYNC,  // synchronize every transaction
-                                        
-                                        WriteCreate      = Write | Create,
-                                        ReadOnly         = Read  | DontLock,
-                                    }
+    /**************************************************************************
+    
+        OpenStyle enumerator
+    
+     **************************************************************************/
+
+    enum    OpenStyle : HDBOMODE
+            {
+                Read             = HDBOMODE.HDBOREADER,     // open as a reader 
+                Write            = HDBOMODE.HDBOWRITER,     // open as a writer 
+                Create           = HDBOMODE.HDBOCREAT,      // writer creating 
+                Truncate         = HDBOMODE.HDBOTRUNC,      // writer truncating 
+                DontLock         = HDBOMODE.HDBONOLCK,      // open without locking 
+                LockNonBlocking  = HDBOMODE.HDBOLCKNB,      // lock without blocking 
+                SyncAlways       = HDBOMODE.HDBOTSYNC,      // synchronize every transaction
+                
+                WriteCreate      = Write | Create,
+                ReadOnly         = Read  | DontLock,
+            }
     
     /**************************************************************************
     
@@ -139,7 +150,7 @@ class TokyoCabinetH
 
      **************************************************************************/
     
-    bool            deleted         = false;
+    private bool            deleted         = false;
     
     
     
@@ -155,7 +166,7 @@ class TokyoCabinetH
     public this ( ) 
     {
         // Trace.formatln(typeof (this).stringof ~ " created").flush();        
-        this.db = tchdbnew();
+        super.db = tchdbnew();
     }
     
     
@@ -174,7 +185,7 @@ class TokyoCabinetH
     {
         if (!this.deleted)
         {
-            tchdbdel(this.db);
+            tchdbdel(super.db);
             Trace.formatln(typeof (this).stringof ~ " deleted").flush();
         }
         
@@ -191,49 +202,73 @@ class TokyoCabinetH
     
     invariant ( )
     {
-        assert (this.db, typeof (this).stringof ~ ": invalid TokyoCabinet Hash core object");
+        assert (super.db, typeof (this).stringof ~ ": invalid TokyoCabinet Hash core object");
     }
     
     
     
     /***************************************************************************
     
-        Open Database for reading/writing, create if necessary
+        Opens a database file for reading/writing, creates if necessary. If the
+        database file is locked, an exception is thrown.
 
-        dbfile = specifies the database  file name
+        Params:
+            dbfile = specifies the database file name
   
      **************************************************************************/    
     
     public void open ( char[] dbfile )
     {   
-        tchdbtune(this.db, this.tune_bnum, this.tune_apow, this.tune_fpow, this.tune_opts);
+        tchdbtune(super.db, this.tune.bnum, this.tune.apow, this.tune.fpow, this.tune.opts);
         
         return this.openNonBlocking(dbfile, OpenStyle.WriteCreate);
     }
     
+    /***************************************************************************
+    
+        Opens a database file. If the file is locked, an exception is thrown.
+    
+        Params:
+            dbfile = specifies the database file name
+            style  = open style (Read, Write, ReadOnly, ...)
+    
+     **************************************************************************/    
+
     public void openNonBlocking ( char[] dbfile, OpenStyle style )
     {
         return this.open(dbfile, style | OpenStyle.LockNonBlocking);
     }
     
+    /***************************************************************************
+    
+        Opens a database file. If the file is locked and style is not composed
+        of OpenStyle.LockNonBlocking, the method blocks until the file is
+        released.
+    
+        Params:
+            dbfile = specifies the database file name
+            style  = open style (Read, Write, ReadOnly, ...)
+    
+     **************************************************************************/    
+
     public void open ( char[] dbfile, OpenStyle style )
     {
-        this.tokyoAssert(tchdbopen(this.db, StringC.toCstring(dbfile), style), "Open error");
+        super.tokyoAssert(tchdbopen(super.db, StringC.toCstring(dbfile), style), "Open error");
     }
     
     
     
     /**************************************************************************
         
-        Close Database
+        Closes the database
     
     ***************************************************************************/
     
     public void close ()
     {
-        if (this.db)
+        if (super.db)
         {
-            this.tokyoAssert(tchdbclose(this.db), "close error");
+            super.tokyoAssert(tchdbclose(super.db), "close error");
         }
     }
     
@@ -260,7 +295,7 @@ class TokyoCabinetH
     
     public void enableThreadSupport ()
     {
-        tchdbsetmutex(this.db);
+        tchdbsetmutex(super.db);
     }
 
     
@@ -274,9 +309,9 @@ class TokyoCabinetH
             
     ***************************************************************************/
     
-    public void setTuneBnum ( uint bnum = tune_bnum.init )
+    public void setTuneBnum ( uint bnum = Tune.bnum.init )
     {
-        this.tune_bnum = bnum;
+        this.tune.bnum = bnum;
     }
     
     
@@ -304,9 +339,9 @@ class TokyoCabinetH
             
     ***************************************************************************/
     
-    public void setTuneOpts ( TuneOpts opts = tune_opts.init )
+    public void setTuneOpts ( TuneOpts opts = Tune.opts.init )
     {
-        this.tune_opts = opts;
+        this.tune.opts = opts;
     }
     
     
@@ -324,7 +359,7 @@ class TokyoCabinetH
         
     public void setCacheSize( uint size )
     {
-        tchdbsetcache(this.db, size);
+        tchdbsetcache(super.db, size);
     }
     
     
@@ -342,69 +377,58 @@ class TokyoCabinetH
     
     public void setMemSize( uint size )
     {
-        tchdbsetxmsiz(this.db, size);
+        tchdbsetxmsiz(super.db, size);
     }
     
     
     
     /**************************************************************************
      
-        Push Key/Value Pair to Database
+        Puts a record to database; overwrites an existing record
        
         Params:
-            key = hash key
-            value = key value
-            
-        Returns:
-            true if successful concenated, false on error
+            key   = record key
+            value = record value
             
     ***************************************************************************/
     
     public void put ( char[] key, char[] value )
     {
-        this.tchPut(key, value, this.async? &tchdbputasync : &tchdbput, "tchdbput");
+        super.tcPut(key, value, this.async? &tchdbputasync : &tchdbput, "tchdbput");
     }
-    
-    public alias put opIndexAssign;
-    
     
     
     /**************************************************************************
     
-        Push Key/Value Pair to Database
+        Puts a record to database; does not ooverwrite an existing record
        
         Params:
-            key = hash key
-            value = key value
-            
-        Returns:
-            true if successful concenated, false on error
+            key   = record key
+            value = record value
             
     ***************************************************************************/
     
     public void putkeep ( char[] key, char[] value )
     {
-        this.tchPut(key, value, &tchdbputkeep, "tchdbputkeep", [TCHERRCODE.TCEKEEP]);
+        super.tcPut(key, value, &tchdbputkeep, "tchdbputkeep", [TCERRCODE.TCEKEEP]);
     }
     
     
     
     /**************************************************************************
         
-        Attach/Concenate Value to Key
+        Attaches/Concenates value to database record; creates a record if not
+        existing
         
         Params:
-            key = hash key
-            value = value to concenate to key
-            
-        Returns:
-            true if successful concenated, false on error
+            key   = record key
+            value = value to concenate to record
             
     ***************************************************************************/
     
     public void putcat ( char[] key, char[] value )
     {
-        this.tchPut(key, value, &tchdbputcat, "tchdbputcat");
+        super.tcPut(key, value, &tchdbputcat, "tchdbputcat");
     }
     
     
@@ -423,11 +447,11 @@ class TokyoCabinetH
     ***************************************************************************/
     
     
-    public bool get_alt ( char[] key, out char[] value )
+    deprecated public bool get_alt ( char[] key, out char[] value )
     {
         int length;
         
-        void* cvalue = tchdbget(this.db, key.ptr, key.length, &length);
+        void* cvalue = tchdbget(super.db, key.ptr, key.length, &length);
         
         if (cvalue)
         {
@@ -445,10 +469,10 @@ class TokyoCabinetH
     
     /**************************************************************************
     
-        Get Value of Key without heap activity using free
+        Get record value
     
         Params:
-            key = hash key
+            key = record key
     
         Returns
             value or empty string if item not existing
@@ -459,7 +483,7 @@ class TokyoCabinetH
     {
         int length;
         
-        void* cvalue = tchdbget(this.db, key.ptr, key.length, &length);
+        void* cvalue = tchdbget(super.db, key.ptr, key.length, &length);
         
         if (cvalue)
         {
@@ -475,20 +499,20 @@ class TokyoCabinetH
     
     /**************************************************************************
     
-        Get Value of Key without intermediate value buffer
+        Get record value without intermediate value buffer
     
         Params:
-            key   = hash key
-            value = value output
+            key   = record key
+            value = record value output
     
         Returns
-            true on success or false if item not existing
+            true on success or false if record not existing
             
     ***************************************************************************/
 
     public bool get ( char[] key, out char[] value )
     {
-        int length = tchdbvsiz(this.db, key.ptr, key.length);
+        int length = tchdbvsiz(super.db, key.ptr, key.length);
         
         bool found = length >= 0;
         
@@ -496,7 +520,7 @@ class TokyoCabinetH
         {
             value.length = length;
             
-            found = (tchdbget3(this.db, key.ptr, key.length, value.ptr, length) >= 0);
+            found = (tchdbget3(super.db, key.ptr, key.length, value.ptr, length) >= 0);
             
             if (!found)
             {
@@ -511,46 +535,29 @@ class TokyoCabinetH
     
     /**************************************************************************
     
-        Get Value of Key via indexing. 
-    
-    ***************************************************************************/
-
-    public char[] opIndex ( char[] key )
-    {
-        char[] value;
-        
-        this.get_alt(key, value);
-        
-        return value.dup;
-    }
-    
-    
-    
-    /**************************************************************************
-    
-        Tells whether an item exists
+        Tells whether a record exists
         
          Params:
-            key = item key
+            key = record key
         
         Returns:
-             true if item exists or false itherwise
+             true if record exists or false otherwise
     
     ***************************************************************************/
 
     public bool exists ( char[] key )
     {
-        return (tchdbvsiz(this.db, key.ptr, key.length) >= 0);
+        return (tchdbvsiz(super.db, key.ptr, key.length) >= 0);
     }
     
     
     
     /**************************************************************************
     
-        Remove item
+        Remove record
         
         Params:
-            key = key of item to remove
+            key = key of record to remove
         
         Returns:
             true on success or false otherwise
@@ -559,47 +566,8 @@ class TokyoCabinetH
 
     public bool remove ( char[] key )
     {
-        return tchdbout(this.db, key.ptr, key.length);
+        return tchdbout(super.db, key.ptr, key.length);
     }
-    
-    
-    
-    /**************************************************************************
-    
-        "foreach" iterator over items in database. The "key" and "val"
-        parameters of the delegate correspond to the iteration variables.
-        
-        Usage:
-        
-        ---
-        
-            import ocean.db.TokyoCabinet;
-        
-            auto db = new TokyoCabinet("db.tch");
-            db.open();
-            
-            foreach (key, val; db)
-            {
-                // "key" and "val" contain the key and value of the current item
-            }
-            
-            db.close();
-
-            
-        ---
-        
-        @see reference
-        
-        http://torum.net/2009/10/iterating-tokyo-cabinet-in-parallel/
-        http://torum.net/2009/05/tokyo-cabinet-protected-database-iteration/
-        
-     ***************************************************************************/
-    
-    public int opApply ( TchDbIterator.ForeachDelg delg )
-    {
-        return TchDbIterator.tchdbopapply(this.db, delg);
-    }
-    
     
     
     /**************************************************************************
@@ -613,44 +581,8 @@ class TokyoCabinetH
     
     public ulong numRecords ()
     {
-        return tchdbrnum(this.db);
+        return tchdbrnum(super.db);
     }
-    
-    
-    
-    /**************************************************************************
-    
-        Invokes put_func to put key/value into the database.
-        
-        The following Tokyo Cabinet functions comply to TchPutFunc:
-        
-            tchdbput
-            tchdbputkeep
-            tchdbputcat
-            tchdbputasync
-        
-        Params:
-            key             = key of item to put
-            value           = item value
-            put_func        = Tokyo Cabinet put function
-            description     = description string for error messages
-            ignore_errcodes = do not throw an exception on these error codes
-        
-    ***************************************************************************/
-   
-    private void tchPut ( char[] key, char[] value, TchPutFunc put_func,
-                          char[] description, TCHERRCODE[] ignore_errcodes = [] )
-    in
-    {
-        assert (key,   "Error on " ~ description ~ ": null key");
-        assert (value, "Error on " ~ description ~ ": null value");
-    }
-    body
-    {
-        this.tokyoAssert(put_func(this.db, key.ptr, key.length, value.ptr, value.length),
-                         ignore_errcodes, "Error on " ~ description);
-    }
-    
     
     
     /**************************************************************************
@@ -662,9 +594,9 @@ class TokyoCabinetH
         
     ***************************************************************************/
 
-    private char[] getTokyoErrMsg ( )
+    protected char[] getTokyoErrMsg ( )
     {
-        return this.getTokyoErrMsg(tchdbecode(this.db));
+        return this.getTokyoErrMsg(tchdbecode(super.db));
     }
     
     
@@ -681,7 +613,7 @@ class TokyoCabinetH
 	    
 	***************************************************************************/
     
-    private char[] getTokyoErrMsg ( TCHERRCODE errcode )
+    protected char[] getTokyoErrMsg ( TCERRCODE errcode )
 	{
 	    return StringC.toDString(tchdberrmsg(errcode));
 	}
@@ -701,11 +633,11 @@ class TokyoCabinetH
         
     ***************************************************************************/
 
-    private void tokyoAssertStrict ( bool ok, TCHERRCODE[] ignore_codes, char[] context = "Error" )
+    protected void tokyoAssertStrict ( bool ok, TCERRCODE[] ignore_codes, char[] context = "Error" )
     {
         if (!ok)
         {
-            TCHERRCODE errcode = tchdbecode(this.db);
+            TCERRCODE errcode = tchdbecode(super.db);
             
             foreach (ignore_core; ignore_codes)
             {
