@@ -22,13 +22,11 @@ module  ocean.net.util.LibCurl;
 
 public      import      ocean.core.Exception: CurlException;
 
-private     import      ocean.net.util.c.curlh;
+private     import      ocean.net.util.c.curl;
 
-private     import  	tango.math.Math: max;
+private     import      ocean.text.util.StringC;
 
 private     import  	tango.stdc.stdlib: free;
-
-private     import      tango.stdc.string: strlen;
 
 /*******************************************************************************
 
@@ -151,7 +149,7 @@ class LibCurl
     
     public char[] getErrorMsg ()
     {
-        return this.toDString(this.error_msg.ptr);
+        return StringC.toDString(this.error_msg.ptr);
     }
     
     
@@ -172,7 +170,7 @@ class LibCurl
         {
             curl_easy_getinfo(this.curl, info, value.ptr);
             
-            return this.toDString(value.ptr);
+            return StringC.toDString(value.ptr);
         }
         else
         {
@@ -283,7 +281,7 @@ class LibCurl
     {
     	char* cvalue = curl_easy_escape(curl, str.ptr, str.length);
         
-    	str = this.toDString(cvalue).dup;
+    	str = StringC.toDString(cvalue).dup;
         
         free(cvalue);
     }
@@ -486,8 +484,10 @@ class LibCurl
         }
     }
     
+    /*
     private static char[] toDString ( char* str )
     {
         return str? str[0 .. strlen(str)] : null;
     }
+    */
 }
