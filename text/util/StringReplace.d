@@ -321,13 +321,13 @@ class StringReplace ( bool wide_char = false )
                                                            &locateCharsZ :
                                                            &locatePatternZ;
         
-        this.addNullTerm(content);
-        this.addNullTerm(pattern);
+        StringSearch_.appendTerm(content);
+        StringSearch_.appendTerm(pattern);
         
         scope (exit)
         {
-            this.stripNullTerm(content);
-            this.stripNullTerm(pattern);
+            StringSearch_.stripTerm(content);
+            StringSearch_.stripTerm(pattern);
         }
         
         this.items.length = 0;
@@ -562,56 +562,6 @@ class StringReplace ( bool wide_char = false )
     }
     
     
-    
-    /**************************************************************************
-        
-        Adds a '\0' terminator to "string" if none is present.
-        
-        Params:
-             string = string to '\0'-terminate
-            
-        Returns:
-             true if the string did not have a '\0'-terminator and therefore was
-             changed, or false otherwise.
-             
-     **************************************************************************/
-    
-    private static bool addNullTerm ( ref Char[] string )
-    {
-        bool term = string.length? !!string[$ - 1] : true;
-        
-        if (term)
-        {
-            string ~= "\0";
-        }
-        
-        return term;
-    }
-    
-    /**************************************************************************
-        
-        Strips the '\0' terminator from "string" if one is present.
-        
-        Params:
-             string = string to strip
-            
-        Returns:
-             true if the string had a '\0'-terminator and therefore was changed,
-             or false otherwise.
-             
-     **************************************************************************/
-    
-    private static bool stripNullTerm ( ref Char[] string )
-    {
-        bool strip = string.length? !string[$ - 1] : false;
-        
-        if (strip)
-        {
-            string.length = string.length - 1;
-        }
-        
-        return strip;
-    }
     
     /**************************************************************************
     

@@ -396,17 +396,63 @@ struct StringSearch ( bool wide_char = false )
     
     
     /**
-     * Strips the null terminator from "str".
+     * Asserts that "str" is null-terminated.
      * 
      * Params:
-     *      str = input string
-     *      
-     * Returns:
-     *      stripped string
+     *     str = input string
      */
-    public static Char[] stripTerm ( Char[] str )
+    public static void assertTerm ( char[] func ) ( Char[] str )
     {
-        return str[0 .. lengthOf(str)];
+        assert (hasTerm(str), msgFunc!(func) ~ ": unterminated string");
+    }
+
+    
+    
+    /**************************************************************************
+    
+        Adds a '\0' terminator to "str" if not present.
+        
+        Params:
+             string = string to '\0'-terminate
+            
+        Returns:
+             true if the string did not have a '\0'-terminator and therefore was
+             changed, or false otherwise.
+             
+     **************************************************************************/
+    
+    public static bool appendTerm ( ref Char[] str )
+    {
+        bool terminated = str.length? !str[$ - 1] : false;
+        
+        if (!terminated)
+        {
+            str ~= "\0";
+        }
+        
+        return !terminated;
+    }
+
+    /**
+     * Strips the null terminator from "str" if present.
+     * 
+     * Params:
+     *      str = input to '\0'-unterminate
+     *      
+        Returns:
+             true if the string had a '\0'-terminator and therefore was changed,
+             or false otherwise.
+     */
+    public static bool stripTerm ( ref Char[] str )
+    {
+        bool terminated = str.length? !str[$ - 1] : false;
+        
+        if (terminated)
+        {
+            str = str[0 .. lengthOf(str)];
+        }
+        
+        return terminated;
     }
     
     
@@ -426,19 +472,6 @@ struct StringSearch ( bool wide_char = false )
         return str.length? !str[$ - 1] : false;
     }
     
-    
-    
-    /**
-     * Asserts that "str" is null-terminated.
-     * 
-     * Params:
-     *     str = input string
-     */
-    public static void assertTerm ( char[] func ) ( Char[] str )
-    {
-        assert (hasTerm(str), msgFunc!(func) ~ ": unterminated string");
-    }
-
     
     
     /**

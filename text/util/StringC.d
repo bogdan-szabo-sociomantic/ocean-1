@@ -34,13 +34,29 @@
 module ocean.text.util.StringC;
 
 
-import  tango.stdc.string: strlen;
+private import  tango.stdc.string: strlen;
+private import  tango.stdc.wctype: wchar_t;
 
 
 class StringC
 {
+    /**************************************************************************
+     
+        Wide character type alias (platform dependent)
+     
+     **************************************************************************/
+    
+	public alias wchar_t Wchar;
 	
-	
+    /**************************************************************************
+    
+        Null terminators
+     
+     **************************************************************************/
+
+	public static const char  Term  = '\0';
+    public static const Wchar Wterm = '\0';
+    
 	/**************************************************************************
 	
 	    Converts str to a C string, that is, a null terminator is appended if
