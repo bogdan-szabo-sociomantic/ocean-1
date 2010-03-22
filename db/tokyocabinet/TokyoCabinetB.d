@@ -45,18 +45,16 @@ module ocean.db.tokyocabinet.TokyoCabinetB;
 
 protected   import 	ocean.core.Exception: TokyoCabinetException;
 
-private     import  ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
-
 private     import 	ocean.db.tokyocabinet.util.TokyoCabinetCursor;
 private     import  ocean.db.tokyocabinet.util.TokyoCabinetList;
 
 private     import  ocean.db.tokyocabinet.c.tcbdb:
-                        TCBDB,       BDBOPT,          BDBOMODE,
+                        TCBDB,       BDBOPT,          BDBOMODE,      TCERRCODE,
                         tcbdbnew,    tcbdbdel,        tcbdbopen,     tcbdbclose,
                         tcbdbtune,   tcbdbsetmutex,   tcbdbsetcache, tcbdbsetxmsiz,
                         tcbdbput,    tcbdbputkeep,    tcbdbputcat,
                         tcbdbputdup, tcbdbputdupback,
-                        tcbdbget3,   tcbdbrange,      tcbdbforeach,
+                        tcbdbget3,   tcbdbrange,      tcbdbforeach,  tcbdbsync,
                         tcbdbout,    tcbdbvsiz,       tcbdbrnum, 
                         tcbdbecode,  tcbdberrmsg;
                         
@@ -64,7 +62,7 @@ private     import  ocean.db.tokyocabinet.model.ITokyoCabinet;
 
 private     import  ocean.text.util.StringC;
 
-//private     import  tango.util.log.Trace;
+private     import  tango.util.log.Trace;
 
 /*******************************************************************************
 
@@ -186,7 +184,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
 	    if (!this.deleted)
 	    {
 	        tcbdbdel(this.db);
-	        // Trace.formatln(typeof (this).stringof ~ " deleted").flush();
+	        Trace.formatln(typeof (this).stringof ~ " deleted").flush();
 	    }
 	    
 	    this.deleted = true;
@@ -551,7 +549,20 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
         return new TokyoCabinetCursor(super.db);
     }
 	
-	
+    /**************************************************************************
+    
+        Flushes the database content to file.
+        
+        Note: The database must be opened for writing.
+        
+    ***************************************************************************/
+
+    public void flush ( )
+    {
+        super.tokyoAssert(tcbdbsync(this.db));   
+    }
+    
+
 	/**************************************************************************
     
 	    Retrieves the current Tokyo Cabinet error message string.

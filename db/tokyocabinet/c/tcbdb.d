@@ -16,7 +16,10 @@ module ocean.db.tokyocabinet.c.tcbdb;
  *************************************************************************************************/
 
 
-import ocean.db.tokyocabinet.c.tcutil;
+protected import ocean.db.tokyocabinet.c.tcutil: TCHDB,   HDBFLAGS,   TCERRCODE,
+                                                 TCLIST,  TCCODEC,    TCPDPROC,
+                                                 TCITER,  TCMAP,      TCCMP,
+                                                 TCXSTR;
 
 
 
@@ -70,11 +73,7 @@ struct TCBDB							/* type of structure for a B+ tree database */
 	long cnt_adjnodec;               	/* tesing counter for node cache adjust times */
 };
 
-enum                                    /* enumeration for additional flags */
-{
-	BDBFOPEN = HDBFOPEN,                /* whether opened */
-	BDBFFATAL = HDBFFATAL               /* whetehr with fatal error */
-};
+alias HDBFLAGS BDBFLAGS;                /* enumeration for additional flags */
 
 enum BDBOPT : ubyte						/* enumeration for tuning options */
 {

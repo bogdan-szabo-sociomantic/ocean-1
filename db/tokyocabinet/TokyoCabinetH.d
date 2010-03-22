@@ -47,13 +47,12 @@ protected   import 	ocean.core.Exception: TokyoCabinetException;
 
 private     import  ocean.db.tokyocabinet.model.ITokyoCabinet;
 
-private     import  ocean.db.tokyocabinet.c.tcutil: TCHDB, HDBOPT, HDBOMODE, TCERRCODE;
-
 private     import  ocean.db.tokyocabinet.c.tchdb:
+                        TCHDB,      HDBOPT,        HDBOMODE,      TCERRCODE,
                         tchdbnew,   tchdbdel,      tchdbopen,     tchdbclose,
                         tchdbtune,  tchdbsetmutex, tchdbsetcache, tchdbsetxmsiz,
                         tchdbput,   tchdbputasync, tchdbputkeep,  tchdbputcat,
-                        tchdbget,   tchdbget3,     tchdbforeach,
+                        tchdbget,   tchdbget3,     tchdbforeach,  tchdbsync,
                         tchdbout,   tchdbrnum,     tchdbvsiz,
                         tchdbecode, tchdberrmsg;
                         
@@ -584,6 +583,18 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
         return tchdbrnum(super.db);
     }
     
+    /**************************************************************************
+    
+        Flushes the database content to file.
+        
+        Note: The database must be opened for writing.
+        
+    ***************************************************************************/
+
+    public void flush ( )
+    {
+        super.tokyoAssert(tchdbsync(this.db));
+    }
     
     /**************************************************************************
     

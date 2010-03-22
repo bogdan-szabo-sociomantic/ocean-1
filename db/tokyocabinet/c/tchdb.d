@@ -16,7 +16,9 @@ module ocean.db.tokyocabinet.c.tchdb;
  *************************************************************************************************/
 
 
-import		ocean.db.tokyocabinet.c.tcutil;
+protected import ocean.db.tokyocabinet.c.tcutil: TCHDB,    TCLIST,    TCXSTR,
+                                                 TCPDPROC, TCCODEC,   TCITER,
+                                                 HDBOMODE, TCERRCODE, HDBOPT;
 
 extern (C)
 {
