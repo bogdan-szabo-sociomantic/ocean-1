@@ -9,16 +9,17 @@
         authors:        Thomas Nicolai
         
            
-********************************************************************************/
+*******************************************************************************/
 
 module  ocean.net.util.LibCurl;
+
 
 
 /*******************************************************************************
 
     Imports
 
-********************************************************************************/
+*******************************************************************************/
 
 public      import      ocean.core.Exception: CurlException;
 
@@ -28,67 +29,71 @@ private     import      ocean.text.util.StringC;
 
 private     import  	tango.stdc.stdlib: free;
 
+
+
 /*******************************************************************************
 
     LibCurl
 
-********************************************************************************/
+*******************************************************************************/
 
 class LibCurl 
 {
     alias CURLcode CurlCode;
     
-    /******************************************************************************
+    /***************************************************************************
     
         Read delegate type alias, used in read() and writeCallback()
             
-    *******************************************************************************/
+    ***************************************************************************/
     
     alias size_t delegate ( char[] ) ReadDg; 
     
     
-    /******************************************************************************
+    /***************************************************************************
         
         Curl handle
             
-    *******************************************************************************/
+    ***************************************************************************/
     
-	private             CURL                             curl;
+	private			CURL					curl;
 
 
-    /******************************************************************************
+    /***************************************************************************
         
         Default Parameter
             
-    *******************************************************************************/
+    ***************************************************************************/
 
-    private             static const uint                DEFAULT_TIME_OUT = 360;
-    public              static const size_t              DEFAULT_MAX_FILE_SIZE = 1_024_000;
+    private			static const uint		DEFAULT_TIME_OUT = 360;
+    public          static const size_t     DEFAULT_MAX_FILE_SIZE = 1_024_000;
 
 
-    /******************************************************************************
+    /***************************************************************************
         
         Reponse Message Buffer Pointer & Header Buffer
             
-    *******************************************************************************/
+     **************************************************************************/
     
-    private             char[][]                         headerBuffer;
+    private     	char[][]				headerBuffer;
     
     
-    /******************************************************************************
+    /***************************************************************************
         
         Errors
             
-    *******************************************************************************/
+     **************************************************************************/
     
-	private             char[CURL_ERROR_SIZE + 1]        error_msg;
-	private             int                              errorCode;
+	private    		char[CURL_ERROR_SIZE + 1]	error_msg;
+	private        	int                         errorCode;
 	
-    /******************************************************************************
+	
+	
+    /***************************************************************************
         
         Constructor
             
-    *******************************************************************************/
+     **************************************************************************/
     
 	public this ( ) 
     {
@@ -108,44 +113,48 @@ class LibCurl
         setOption(CURLoption.SSL_VERIFYHOST, 0);
         setOption(CURLoption.SSL_VERIFYPEER, 0);
         
-        setOption(CURLoption.NOSIGNAL, 1); // no signals for thread safety
-        
+        setOption(CURLoption.NOSIGNAL, 1); 										// no signals for thread safety        
         setOption(CURLoption.FORBID_REUSE, 1);
         
         this.setTimeout(this.DEFAULT_TIME_OUT);
 	}
     
     
-    /******************************************************************************
+	
+    /***************************************************************************
     
         Desctructor
             
-    *******************************************************************************/
+     **************************************************************************/
 	
     private ~this ( )
     {
         this.close();
     }
     
-    /******************************************************************************
+    
+    
+    /***************************************************************************
         
         Closes the session
             
-    *******************************************************************************/
+     **************************************************************************/
     
 	public void close ()
     {
 		curl_easy_cleanup(this.curl);
 	}
     
-    /******************************************************************************
+	
+	
+    /***************************************************************************
         
         Returns Error String
             
         Returns:
             last error message, or null
             
-    *******************************************************************************/
+     **************************************************************************/
     
     public char[] getErrorMsg ()
     {
@@ -153,14 +162,15 @@ class LibCurl
     }
     
     
-    /******************************************************************************
+    
+    /***************************************************************************
         
         Returns Http Response Code
             
         Returns:
             http response code
             
-    *******************************************************************************/
+     **************************************************************************/
     
     public T getInfo ( CURLINFO info, T = int ) ( )
     {
@@ -183,33 +193,43 @@ class LibCurl
             return value;
         }
     }
+
     
     
-    public alias getInfo!(CURLINFO.CURLINFO_RESPONSE_CODE)              getResponseCode;
+    /***************************************************************************
     
-    public alias getInfo!(CURLINFO.CURLINFO_TOTAL_TIME,         double) getTotalTime;
-    public alias getInfo!(CURLINFO.CURLINFO_CONNECT_TIME,       double) getConnectTime;
-    public alias getInfo!(CURLINFO.CURLINFO_PRETRANSFER_TIME,   double) getPretransferTime;
+	    Alias definition for fast access to common info variables
+	        
+	 **************************************************************************/
+        
+    public alias getInfo!(CURLINFO.CURLINFO_RESPONSE_CODE)              getResponseCode;    
+    public alias getInfo!(CURLINFO.CURLINFO_TOTAL_TIME,	double) 		getTotalTime;
+    public alias getInfo!(CURLINFO.CURLINFO_CONNECT_TIME, double) 		getConnectTime;
+    public alias getInfo!(CURLINFO.CURLINFO_PRETRANSFER_TIME, double) 	getPretransferTime;
     public alias getInfo!(CURLINFO.CURLINFO_STARTTRANSFER_TIME, double) getStarttransferTime;
-    public alias getInfo!(CURLINFO.CURLINFO_REDIRECT_TIME,      double) getRedirectTime;
+    public alias getInfo!(CURLINFO.CURLINFO_REDIRECT_TIME, double) 		getRedirectTime;
     
-    /******************************************************************************
+        
+    
+    /***************************************************************************
         
         Returns Retry After Header Parameter Value
             
         Returns:
             http response code
             
-    *******************************************************************************/
+        @TODO: still needs to be implemented!
+        
+    ***************************************************************************/
     
-    public long getRetryAfter ()
-    {
-        // still needs to be implemented!
+    public long getRetryAfter ()												
+    {        
         return 21;
     }
     
-
-    /******************************************************************************
+    
+    
+    /***************************************************************************
         
         Read Url
         
@@ -217,7 +237,7 @@ class LibCurl
             url     = url to download content from
             content = response content output
             
-     *******************************************************************************/
+     **************************************************************************/
     
 	public CurlCode read ( ref char[] url, out char[] content ) 
     {
@@ -233,14 +253,20 @@ class LibCurl
         return this.read(url, &append_content);
 	}
     
-    /**************************************************************************
+	
+	
+    /***************************************************************************
     
         Read Url
         
         ReadDg is a type alias of
-                                                                             ---
+		
+		---
+		
             size_t delegate ( ref char[] received )
-                                                                             ---
+        
+		---
+		
         where received is the buffer holding the recently arrived data. read_dg
         shall return the number of elements processed from received, however,
         a return value which differs from received.length is interpreted as an
@@ -258,7 +284,7 @@ class LibCurl
         
         url ~= '\0';
         
-        scope (exit) url.length = url.length - 1;  // remove null terminator from url
+        scope (exit) url.length = url.length - 1;  								// remove null terminator from url
         
         this.setOption(CURLoption.WRITEDATA, &read_dg);
         
@@ -268,14 +294,14 @@ class LibCurl
     }
     
     
-    /******************************************************************************
+    /***************************************************************************
         
         Encode String
             
         Params:
             str = str reference to encode
             
-    *******************************************************************************/
+     **************************************************************************/
     
     public void encode ( ref char[] str )
     {
@@ -287,14 +313,15 @@ class LibCurl
     }
     
     
-    /******************************************************************************
+    
+    /***************************************************************************
         
         Return Raw Http Response Header
             
         Params:
             list of http header lines
             
-    *******************************************************************************/
+     **************************************************************************/
     
     public char[][] getResponseHeader() 
     { 
@@ -302,11 +329,12 @@ class LibCurl
     }
 
     
-    /******************************************************************************
+    
+    /***************************************************************************
         
         Clears Internal Buffers
             
-    *******************************************************************************/
+     **************************************************************************/
     
 	private void clearBuffers() 
     {
@@ -315,14 +343,14 @@ class LibCurl
     
     
     
-    /******************************************************************************
+    /***************************************************************************
     
         Sets cURL option. Parameter value must be an integer, pointer or string.
         
         Params:
             value = parameter value for selected option
             
-    *******************************************************************************/
+     **************************************************************************/
 
 	public CurlCode setOptionT ( CURLoption option, T ) ( T value )
 	{
@@ -333,33 +361,35 @@ class LibCurl
         return this.setOption(option, value);
 	}
 	
-    /******************************************************************************
+	
+	
+    /***************************************************************************
     
         Set User Agent
             
         Params:
             value = user agent identifier string
             
-    *******************************************************************************/
-
+     **************************************************************************/
     
-	alias setOptionT!(CURLoption.USERAGENT,   char[]) setUserAgent;
+	alias setOptionT!(CURLoption.USERAGENT, char[]) setUserAgent;
     
+	
     
-    /******************************************************************************
+    /***************************************************************************
     
         Set request timeout
             
         Params:
             value = request timeout
             
-    *******************************************************************************/
+     **************************************************************************/
+    
+    alias setOptionT!(CURLoption.TIMEOUT, int) setTimeout;
 
     
-    alias setOptionT!(CURLoption.TIMEOUT,     int)    setTimeout;
-
     
-    /******************************************************************************
+    /***************************************************************************
         
         Set LibCurl Option
             
@@ -370,15 +400,16 @@ class LibCurl
         Returns:
             0 on success or Curl error code on failure
         
-    *******************************************************************************/
+     **************************************************************************/
     
 	private CurlCode setOption(CURLoption option, char[] str) 
     {
 		return curl_easy_setopt(curl, option, (str ~ '\0').ptr);
 	}
     
+	
     
-    /******************************************************************************
+    /***************************************************************************
         
         Set LibCurl Option
             
@@ -389,7 +420,7 @@ class LibCurl
         Returns:
             0 on success or Curl error code on failure
         
-    *******************************************************************************/
+     **************************************************************************/
     
 	private CurlCode setOption(CURLoption option, void* p) 
     {
@@ -397,7 +428,8 @@ class LibCurl
 	}
     
     
-    /******************************************************************************
+	
+    /***************************************************************************
         
         Set LibCurl Option
             
@@ -408,20 +440,23 @@ class LibCurl
         Returns:
             0 on success or Curl error code on failure
         
-    *******************************************************************************/
+     **************************************************************************/
     
 	private CurlCode setOption(CURLoption option, int value) 
     {
 		return curl_easy_setopt(curl, option, value);
 	}
     
+	
+	
     extern (C) static
     {
-        /******************************************************************************
+        /***********************************************************************
             
             Message Write Callback Method
              
-            Interface follows fwrite syntax: http://www.manpagez.com/man/3/fwrite/
+            Interface follows fwrite syntax: 
+            	http://www.manpagez.com/man/3/fwrite/
             
             The loop-through custom pointer is supplied to libcurl as argument
             for the CURLoption.WRITEDATA option. The read() method of thi class
@@ -437,12 +472,11 @@ class LibCurl
             Returns:
                 passes through the return value of the read delegate
            
-        *******************************************************************************/
+        ***********************************************************************/
         
     	private size_t writeCallback ( void* ptr, size_t size, size_t nmemb, void* obj ) 
         {
-            if (!ptr || !obj) return 0;
-            
+            if (!ptr || !obj) return 0;            
             
             ReadDg read_dg = *(cast (ReadDg*) obj);
             
@@ -451,12 +485,14 @@ class LibCurl
             return read_dg(content);
     	}
     
+    	
         
-        /******************************************************************************
+        /***********************************************************************
             
             Header Write Callback Method
              
-            Interface follows fwrite syntax: http://www.manpagez.com/man/3/fwrite/
+            Interface follows fwrite syntax: 
+            	http://www.manpagez.com/man/3/fwrite/
             
             Params:
                 ptr = data pointer
@@ -467,10 +503,11 @@ class LibCurl
             Returns:
                 zero on write error, or number of written bytes
            
-        *******************************************************************************/
-        private size_t headerCallback( void* ptr, size_t size, size_t nmemb, void* obj ) 
+         **********************************************************************/
+    	
+        private size_t headerCallback ( void* ptr, size_t size, size_t nmemb, void* obj ) 
         {
-            LibCurl curlobj = cast(LibCurl)obj;
+            LibCurl curlobj = cast(LibCurl) obj;
             
             //char [] str = chomp(toDString(cast(char*)ptr)[0 .. (size * nmemb)].dup);
     //        char [] str = toDString(cast(char*)ptr)[0 .. (size * nmemb)].dup;
@@ -482,12 +519,5 @@ class LibCurl
             
             return size*nmemb;
         }
-    }
-    
-    /*
-    private static char[] toDString ( char* str )
-    {
-        return str? str[0 .. strlen(str)] : null;
-    }
-    */
+    }    
 }
