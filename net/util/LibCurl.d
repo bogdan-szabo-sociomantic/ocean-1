@@ -23,7 +23,7 @@ module  ocean.net.util.LibCurl;
 
 public      import      ocean.core.Exception: CurlException;
 
-private     import      ocean.net.util.c.curl;
+public      import      ocean.net.util.c.curl;
 
 private     import      ocean.text.util.StringC;
 
@@ -39,7 +39,7 @@ private     import  	tango.stdc.stdlib: free;
 
 class LibCurl 
 {
-    alias CURLcode CurlCode;
+    alias 			CURLcode 					CurlCode;
     
     /***************************************************************************
     
@@ -47,7 +47,7 @@ class LibCurl
             
     ***************************************************************************/
     
-    alias size_t delegate ( char[] ) ReadDg; 
+    alias 			size_t delegate ( char[] )	ReadDg; 
     
     
     /***************************************************************************
@@ -56,7 +56,7 @@ class LibCurl
             
     ***************************************************************************/
     
-	private			CURL					curl;
+	private			CURL						curl;
 
 
     /***************************************************************************
@@ -65,8 +65,8 @@ class LibCurl
             
     ***************************************************************************/
 
-    private			static const uint		DEFAULT_TIME_OUT = 360;
-    public          static const size_t     DEFAULT_MAX_FILE_SIZE = 1_024_000;
+    private			static const uint			DEFAULT_TIME_OUT = 360;
+    public          static const size_t     	DEFAULT_MAX_FILE_SIZE = 1_024_000;
 
 
     /***************************************************************************
@@ -75,7 +75,7 @@ class LibCurl
             
      **************************************************************************/
     
-    private     	char[][]				headerBuffer;
+    private     	char[][]					headerBuffer;
     
     
     /***************************************************************************
@@ -101,22 +101,22 @@ class LibCurl
 
 		assert (this.curl, "Error on curl_easy_init!");
 
-		setOption(CURLoption.ERRORBUFFER, this.error_msg.ptr);
-		setOption(CURLoption.WRITEHEADER, cast(void*)this);
+		
+		this.setOption(CURLoption.ERRORBUFFER, this.error_msg.ptr);
+		this.setOption(CURLoption.WRITEHEADER, cast(void*)this);
         
-		setOption(CURLoption.HEADERFUNCTION, &headerCallback);
-		setOption(CURLoption.WRITEFUNCTION, &writeCallback);
+		this.setOption(CURLoption.HEADERFUNCTION, &headerCallback);
+		this.setOption(CURLoption.WRITEFUNCTION, &writeCallback);
         
-		setOption(CURLoption.FOLLOWLOCATION, 1);
-        setOption(CURLoption.FAILONERROR, 1);
+		this.setOption(CURLoption.FOLLOWLOCATION, 1);
+		this.setOption(CURLoption.FAILONERROR, 1);
         
-        setOption(CURLoption.SSL_VERIFYHOST, 0);
-        setOption(CURLoption.SSL_VERIFYPEER, 0);
-        
-        setOption(CURLoption.NOSIGNAL, 1); 										// no signals for thread safety        
-        setOption(CURLoption.FORBID_REUSE, 1);
-        
-        this.setTimeout(this.DEFAULT_TIME_OUT);
+		this.setOption(CURLoption.SSL_VERIFYHOST, 0);
+		this.setOption(CURLoption.SSL_VERIFYPEER, 0);
+		
+		this.setOption(CURLoption.NOSIGNAL, 1); 								// no signals for thread safety       
+		
+		this.setTimeout(this.DEFAULT_TIME_OUT);
 	}
     
     
@@ -305,7 +305,7 @@ class LibCurl
     
     public void encode ( ref char[] str )
     {
-    	char* cvalue = curl_easy_escape(curl, str.ptr, str.length);
+    	char* cvalue = curl_easy_escape(this.curl, str.ptr, str.length);
         
     	str = StringC.toDString(cvalue).dup;
         
@@ -325,7 +325,7 @@ class LibCurl
     
     public char[][] getResponseHeader() 
     { 
-        return headerBuffer; 
+        return this.headerBuffer; 
     }
 
     
@@ -338,7 +338,7 @@ class LibCurl
     
 	private void clearBuffers() 
     {
-		headerBuffer.length = 0;
+		this.headerBuffer.length = 0;
 	}
     
     
@@ -354,7 +354,7 @@ class LibCurl
 
 	public CurlCode setOptionT ( CURLoption option, T ) ( T value )
 	{
-        static assert (is (T : int) || is (T : void*) || is (T == char[]),
+        static assert (is (T : int) || is (T : void*) || is (T : char[]),
                        typeof (this).stringof ~ ": cURL option must be "
                        "integer, pointer or string, not '" ~ T.stringof ~ '\'');
 	    
@@ -386,6 +386,19 @@ class LibCurl
      **************************************************************************/
     
     alias setOptionT!(CURLoption.TIMEOUT, int) setTimeout;
+    
+
+    
+    /***************************************************************************
+    
+	    Set if the connection could be reused for another request
+	        
+	    Params:
+	        value = true or false [0|1]
+	        
+	 **************************************************************************/
+    
+    alias setOptionT!(CURLoption.FORBID_REUSE, int) setForbidReuse;
 
     
     
@@ -402,9 +415,9 @@ class LibCurl
         
      **************************************************************************/
     
-	private CurlCode setOption(CURLoption option, char[] str) 
+	private CurlCode setOption ( CURLoption option, char[] str ) 
     {
-		return curl_easy_setopt(curl, option, (str ~ '\0').ptr);
+		return curl_easy_setopt(this.curl, option, StringC.toCstring(str));
 	}
     
 	
@@ -422,9 +435,9 @@ class LibCurl
         
      **************************************************************************/
     
-	private CurlCode setOption(CURLoption option, void* p) 
+	private CurlCode setOption ( CURLoption option, void* p ) 
     {
-		return curl_easy_setopt(curl, option, p);
+		return curl_easy_setopt(this.curl, option, p);
 	}
     
     
@@ -442,9 +455,9 @@ class LibCurl
         
      **************************************************************************/
     
-	private CurlCode setOption(CURLoption option, int value) 
+	private CurlCode setOption ( CURLoption option, int value ) 
     {
-		return curl_easy_setopt(curl, option, value);
+		return curl_easy_setopt(this.curl, option, value);
 	}
     
 	
