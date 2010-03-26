@@ -72,6 +72,24 @@ const CURLPROTO_FILE   = (1 << 0xA);
 const CURLPROTO_TFTP   = (1 << 0xB);
 const CURLPROTO_ALL    = (~0); /* enable everything */
 
+const CURLAUTH_NONE     		= 0;       	/* nothing */
+const CURLAUTH_BASIC        	= (1<<0);  	/* Basic (default) */
+const CURLAUTH_DIGEST       	= (1<<1);  	/* Digest */
+const CURLAUTH_GSSNEGOTIATE 	= (1<<2);  	/* GSS-Negotiate */
+const CURLAUTH_NTLM         	= (1<<3);  	/* NTLM */
+const CURLAUTH_DIGEST_IE    	= (1<<4); 	/* Digest with IE flavour */
+const CURLAUTH_ANY 				= (~CURLAUTH_DIGEST_IE);  /* all fine types set */
+const CURLAUTH_ANYSAFE 			= (~(CURLAUTH_BASIC|CURLAUTH_DIGEST_IE));
+
+const CURLSSH_AUTH_ANY       	= (~0);     /* all types supported by the server */
+const CURLSSH_AUTH_NONE      	= 0;      	/* none allowed, silly but complete */
+const CURLSSH_AUTH_PUBLICKEY 	= (1<<0); 	/* public/private key files */
+const CURLSSH_AUTH_PASSWORD  	= (1<<1); 	/* password */
+const CURLSSH_AUTH_HOST      	= (1<<2); 	/* host key files */
+const CURLSSH_AUTH_KEYBOARD  	= (1<<3); 	/* keyboard interactive */
+const CURLSSH_AUTH_DEFAULT 		= CURLSSH_AUTH_ANY;
+
+
   /* Below here follows defines for the CURLOPT_IPRESOLVE option. If a host
      name resolves addresses using more than one IP protocol version, this
      option might be handy to force libcurl to use a specific IP version. */
