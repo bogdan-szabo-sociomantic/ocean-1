@@ -54,9 +54,9 @@ private     import  ocean.db.tokyocabinet.c.tcbdb:
                         tcbdbtune,   tcbdbsetmutex,   tcbdbsetcache, tcbdbsetxmsiz,
                         tcbdbput,    tcbdbputkeep,    tcbdbputcat,
                         tcbdbputdup, tcbdbputdupback,
-                        tcbdbget3,   tcbdbrange,      tcbdbforeach,  tcbdbsync,
-                        tcbdbout,    tcbdbvsiz,       tcbdbrnum, 
-                        tcbdbecode,  tcbdberrmsg;
+                        tcbdbget3,   tcbdbget5,       tcbdbrange,    tcbdbforeach, 
+                        tcbdbout,    tcbdbvsiz,       tcbdbvnum,     tcbdbrnum,
+                        tcbdbfsiz,   tcbdbsync,       tcbdbecode,    tcbdberrmsg;
                         
 private     import  ocean.db.tokyocabinet.model.ITokyoCabinet;
 
@@ -453,6 +453,29 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
             over the retrieved items. Additionally, that object can create a
             TokyoCabinetList instance.
             
+     ***************************************************************************/
+    
+    public TokyoCabinetList.QuickIterator getDup ( char[] key )
+    {
+        return TokyoCabinetList.QuickIterator(tcbdbget5(super.db, key.ptr, key.length));
+    }
+    
+    /**************************************************************************
+    
+        Get list of records in a range
+    
+        Params:
+            first         = key of first record in range
+            last          = key of last record in range
+            include_first = true/false: include/exclude first record
+            include_last  = true/false: include/exclude last record
+            max           = maximum range length; -1: no maximum
+    
+        Returns
+            TokyoCabinetList.QuickIterator object providing 'foreach' iteration
+            over the retrieved items. Additionally, that object can create a
+            TokyoCabinetList instance.
+            
     ***************************************************************************/
     
     public TokyoCabinetList.QuickIterator getRange ( char[] first, char[] last,
@@ -522,7 +545,25 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     
     /**************************************************************************
     
-        Returns number of records
+        Returns the number of records of a key
+        
+        Params:
+            key = record key
+        
+        Returns: 
+            number of records, or zero if none
+        
+     ***************************************************************************/
+    
+    public int numRecords ( char[] key )
+    {
+        return tcbdbvnum(super.db, key.ptr, key.length);
+    }
+    
+    
+    /**************************************************************************
+    
+        Returns the number of records
         
         Returns: 
             number of records, or zero if none
@@ -534,6 +575,20 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
         return tcbdbrnum(super.db);
     }
 
+
+    /**************************************************************************
+        
+        Returns the database file size in bytes
+        
+        Returns: 
+            database file size in bytes, or zero if none
+        
+    ***************************************************************************/
+    
+    public ulong dbSize ( )
+    {
+        return tcbdbfsiz(super.db);
+    }
 
     /**************************************************************************
     
