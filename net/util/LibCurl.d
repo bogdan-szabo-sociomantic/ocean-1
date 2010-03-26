@@ -101,7 +101,6 @@ class LibCurl
 
 		assert (this.curl, "Error on curl_easy_init!");
 
-		
 		this.setOption(CURLoption.ERRORBUFFER, this.error_msg.ptr);
 		this.setOption(CURLoption.WRITEHEADER, cast(void*)this);
         
