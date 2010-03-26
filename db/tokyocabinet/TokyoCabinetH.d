@@ -53,7 +53,7 @@ private     import  ocean.db.tokyocabinet.c.tchdb:
                         tchdbtune,  tchdbsetmutex, tchdbsetcache, tchdbsetxmsiz,
                         tchdbput,   tchdbputasync, tchdbputkeep,  tchdbputcat,
                         tchdbget,   tchdbget3,     tchdbforeach,  tchdbsync,
-                        tchdbout,   tchdbrnum,     tchdbvsiz,
+                        tchdbout,   tchdbrnum,     tchdbvsiz,     tchdbfsiz,
                         tchdbecode, tchdberrmsg;
                         
 private     import  ocean.text.util.StringC;
@@ -576,11 +576,25 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
         Returns: 
             number of records, or zero if none
         
-    ***************************************************************************/
+     ***************************************************************************/
     
     public ulong numRecords ()
     {
         return tchdbrnum(super.db);
+    }
+    
+    /**************************************************************************
+        
+        Returns number of records
+        
+        Returns: 
+            number of records, or zero if none
+        
+    ***************************************************************************/
+    
+    public ulong dbSize ()
+    {
+        return tchdbfsiz(super.db);
     }
     
     /**************************************************************************
