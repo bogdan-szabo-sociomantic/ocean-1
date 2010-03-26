@@ -17,7 +17,8 @@ module ocean.db.tokyocabinet.c.tcbdb;
 
 
 protected import ocean.db.tokyocabinet.c.tcutil: TCHDB,   HDBFLAGS,   TCERRCODE,
-                                                 TCLIST,  TCCODEC,    TCPDPROC,
+                                                 TCLIST,  tclistnew,
+                                                 TCCODEC, TCPDPROC,
                                                  TCITER,  TCMAP,      TCCMP,
                                                  TCXSTR;
 
@@ -417,6 +418,20 @@ void* tcbdbget3(TCBDB* bdb, void* kbuf, int ksiz, int* sp);
    be deleted with the function `tclistdel' when it is no longer in use. */
 TCLIST* tcbdbget4(TCBDB* bdb, void* kbuf, int ksiz);
 
+/* Retrieve records in a B+ tree database object.
+    `bdb' specifies the B+ tree database object.
+    `kbuf' specifies the pointer to the region of the key.
+    `ksiz' specifies the size of the region of the key.
+    If successful, the return value is a list object of the values of the corresponding records.
+    An empty list is returned if no record corresponds.
+    Because the object of the return value is created with the function `tclistnew', it should
+    be deleted with the function `tclistdel' when it is no longer in use. */
+TCLIST* tcbdbget5(TCBDB* bdb, void* kbuf, int ksiz)
+{
+    TCLIST* list = tcbdbget4(bdb, kbuf, ksiz);
+    
+    return list? list : tclistnew();
+}
 
 /* Get the number of records corresponding a key in a B+ tree database object.
    `bdb' specifies the B+ tree database object.
