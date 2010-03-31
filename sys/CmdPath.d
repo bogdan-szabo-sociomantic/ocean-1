@@ -12,29 +12,29 @@
     
     Usage:
     
-        import src.core.util.MainExe;
+        import $(TITLE);
         
         void main ( char[][] args )
         {
-            MainExe mainexe;
+            CmdPath cmdpath;
             
             // set to path of running executable
             
-            mainexe.set(args[0]);
+            cmdpath(args[0]);
             
             // get absolute directory path of running executable
             
-            char[] exepath = mainexe.get();
+            char[] exepath = cmdpath.get();
             
             // get absolute path of file "config.ini" located in subdirectory
             // "etc" of the running executable's directory
            
-            char[] cfgpath = mainexe.prepend(["etc", "config.ini"]);
+            char[] cfgpath = cmdpath.prepend(["etc", "config.ini"]);
         }
     
  ******************************************************************************/
 
-module util.MainExe;
+module ocean.sys.CmdPath;
 
 /******************************************************************************
 
@@ -54,7 +54,7 @@ private import PathUtil = tango.util.PathUtil: normalize;
 
  ******************************************************************************/
 
-struct MainExe
+struct CmdPath
 {
     /**************************************************************************
      
