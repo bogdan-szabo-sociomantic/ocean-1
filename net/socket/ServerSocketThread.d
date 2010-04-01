@@ -100,6 +100,14 @@ private  import  ocean.util.TraceLog;
 class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : Thread
 {
     /**************************************************************************
+    
+        Maximum number of accepted pending connections
+        
+     **************************************************************************/
+
+    public              uint                            conn_queue_max = 100;
+    
+    /**************************************************************************
         
         Server socket
         
@@ -109,11 +117,11 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
     
     /**************************************************************************
     
-        Termination flag for listening loop; may be used by a subclass
+        Termination flag for listener loop
         
      **************************************************************************/
 
-    protected           bool                            terminated = false;
+    private           bool                            terminated = false;
     
     /**************************************************************************
     
@@ -134,15 +142,30 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
         
      **************************************************************************/
     
-    this ( ServerSocket socket, Args args, uint n_conn_threads )
+    this ( ServerSocket server_socket, Args args, uint n_conn_threads )
     {
-        this.server_socket = socket;
-        this.connections   = this.connections.newPool(args, n_conn_threads);
+        this.server_socket = server_socket;
+        this.connections   = this.connections.newPool(args, n_conn_threads, this.conn_queue_max);
         
         super(&this.listen);
     }
     
+    /**************************************************************************
     
+        Shuts down the server
+        
+     **************************************************************************/
+
+    public void shutdown ( )
+    {
+        this.terminated = true;
+        
+        IConnectionHandler.terminate();
+        
+        this.server_socket.shutdown();
+        this.server_socket.detach();
+    }
+
     /**************************************************************************
         
         Listens to socket; starts a connection handler on incoming connection
@@ -151,22 +174,31 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
     
     private void listen ( )
     {
+        uint conn_count = 0;
+        
         while (!(Runtime.isHalting() || this.terminated))
         {
             try 
             {
                 Socket socket = this.server_socket.accept();
-               
+                
+                if (this.terminated) return;
+                
                 if (socket)
                 {
-                    this.connections.assign(socket);
+                    if (this.connections.pendingJobs < this.conn_queue_max)
+                    {
+                        this.connections.append(socket);
+                    }
+                    else
+                    {
+                        socket.shutdown();
+                        socket.detach();
+                    }
                 }
-                else
+                else if (socket.isAlive)
                 {
-                   if (socket.isAlive)
-                   {
-                       TraceLog.write("Socket.accept failed");
-                   }
+                    TraceLog.write("Socket.accept failed");
                 }
            }
            catch (Exception e)
@@ -175,4 +207,5 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
            }
         }
     }
+    
 }
