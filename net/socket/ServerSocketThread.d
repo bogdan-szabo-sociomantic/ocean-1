@@ -80,16 +80,18 @@ module net.socket.SocketThread;
     
  ******************************************************************************/
 
-private  import  tango.net.device.Socket;
-
 private  import  ocean.net.socket.model.IConnectionHandler;
-
-private  import  tango.core.Thread;
-private  import  tango.core.Runtime;
 
 private  import  ocean.core.ObjectThreadPool;
 
 private  import  ocean.util.TraceLog;
+
+private  import  tango.net.device.Socket;
+private  import  tango.net.device.Berkeley: Address;
+private  import  tango.net.InternetAddress;
+
+private  import  tango.core.Thread;
+private  import  tango.core.Runtime;
 
 /******************************************************************************
 
@@ -148,6 +150,43 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
         this.connections   = this.connections.newPool(args, n_conn_threads, this.conn_queue_max);
         
         super(&this.listen);
+    }
+    
+    /**************************************************************************
+    
+        Constructor
+        
+        address      = Address instange holding server address data
+        args         = ConnectionHandler constructor arguments (no argument if
+                       Args left empty)
+        backlog      = server socket backlog size
+        reuse        = socket reuse flag
+        conn_threads = number of connection threads
+        
+     **************************************************************************/
+
+    this ( Address address, Args args, int backlog, bool reuse, uint n_conn_threads )
+    {
+        this(new ServerSocket(address, backlog, reuse), args, n_conn_threads);
+    }
+    
+    /**************************************************************************
+    
+        Constructor
+        
+        address      = server address
+        port         = server Port
+        args         = ConnectionHandler constructor arguments (no argument if
+                       Args left empty)
+        backlog      = server socket backlog size
+        reuse        = socket reuse flag
+        conn_threads = number of connection threads
+        
+     **************************************************************************/
+
+    this ( char[] address, ushort port, Args args, int backlog, bool reuse, uint n_conn_threads )
+    {
+        this(new ServerSocket(new InternetAddress(address, port), backlog, reuse), args, n_conn_threads);
     }
     
     /**************************************************************************
