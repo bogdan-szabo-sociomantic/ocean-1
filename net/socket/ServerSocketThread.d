@@ -105,7 +105,15 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
         
      **************************************************************************/
     
-    private             ServerSocket                    socket;
+    protected           ServerSocket                    server_socket;
+    
+    /**************************************************************************
+    
+        Termination flag for listening loop; may be used by a subclass
+        
+     **************************************************************************/
+
+    protected           bool                            terminated = false;
     
     /**************************************************************************
     
@@ -128,12 +136,13 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
     
     this ( ServerSocket socket, Args args, uint n_conn_threads )
     {
-        this.socket      = socket;
-        this.connections = this.connections.newPool(args, n_conn_threads);
+        this.server_socket = socket;
+        this.connections   = this.connections.newPool(args, n_conn_threads);
         
         super(&this.listen);
     }
-
+    
+    
     /**************************************************************************
         
         Listens to socket; starts a connection handler on incoming connection
@@ -142,28 +151,28 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
     
     private void listen ( )
     {
-        while (!Runtime.isHalting())
+        while (!(Runtime.isHalting() || this.terminated))
         {
-               try 
-               {
-                   Socket socket = this.socket.accept();
-                   
-                   if (socket)
+            try 
+            {
+                Socket socket = this.server_socket.accept();
+               
+                if (socket)
+                {
+                    this.connections.assign(socket);
+                }
+                else
+                {
+                   if (socket.isAlive)
                    {
-                       this.connections.assign(socket);
+                       TraceLog.write("Socket.accept failed");
                    }
-                   else
-                   {
-                      if (socket.isAlive)
-                      {
-                          TraceLog.write("Socket.accept failed");
-                      }
-                   }
-               }
-               catch (Exception e)
-               {
-                   TraceLog.write("IOException: " ~ e.msg);
-               }
+                }
+           }
+           catch (Exception e)
+           {
+               TraceLog.write("IOException: " ~ e.msg);
+           }
         }
     }
 }
