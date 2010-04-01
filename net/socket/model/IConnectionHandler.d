@@ -37,7 +37,7 @@ private import tango.io.model.IConduit;
 
 private import tango.core.Runtime;
 
-private import tango.core.Exception: IOException, IllegalArgumentException;
+private import tango.core.Exception: IOException;
 
 /******************************************************************************
 
@@ -75,6 +75,14 @@ abstract class IConnectionHandler
     private const         size_t                          BUFFER_SIZE_INIT = 0x2000;
     
     /**************************************************************************
+    
+        Termination flag
+    
+     **************************************************************************/
+
+    protected static      bool                            terminated;
+    
+    /**************************************************************************
         
         Set socket conduit & DHT nodes
         
@@ -102,29 +110,33 @@ abstract class IConnectionHandler
     
     public void run ( IConduit conduit )
     {
+        if (this.terminated) return;
+        
         this.buffer.setConduit(conduit);
         
         try 
         {
-            while (true)
+            while (!this.terminated)
             {
-                  // start with a clear conscience
-                  this.buffer.clear();
+                // start with a clear conscience
+                this.buffer.clear();
                   
-                  // wait for something to arrive before we try/catch
-                  this.buffer.slice(1, false);
+                // wait for something to arrive before we try/catch
+                this.buffer.slice(1, false);
                   
-                  try 
-                  {
-                      this.dispatch();
-                  } 
-                  catch (Exception e)
-                  {
-                      TraceLog.write("request error '{}'", e);
-                  }
-                  // send response back to client
+                if (this.terminated) return;
+                
+                try 
+                {
+                    this.dispatch();
+                } 
+                catch (Exception e)
+                {
+                    TraceLog.write("request error '{}'", e);
+                }
+                // send response back to client
                   
-                  this.buffer.flush();
+                this.buffer.flush();
             }
         } 
         catch (IOException e)
@@ -133,13 +145,28 @@ abstract class IConnectionHandler
             {
                 TraceLog.write("socket exception '{}'", e);
             }
+            Trace.formatln("runtime exception '{}'", e);
         }
         catch (Exception e)
         {
             TraceLog.write("runtime exception '{}'", e);
+            Trace.formatln("runtime exception '{}'", e);
         }
-        
-        conduit.detach();
+        finally
+        {
+            conduit.detach();
+        }
+    }
+    
+    /**************************************************************************
+    
+        Sets the termination flag for all instances of this class
+            
+     **************************************************************************/
+
+    static void terminate ( )
+    {
+        this.terminated = true;
     }
     
     /**************************************************************************
