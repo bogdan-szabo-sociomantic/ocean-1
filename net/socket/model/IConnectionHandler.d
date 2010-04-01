@@ -145,12 +145,10 @@ abstract class IConnectionHandler
             {
                 TraceLog.write("socket exception '{}'", e);
             }
-            Trace.formatln("runtime exception '{}'", e);
         }
         catch (Exception e)
         {
             TraceLog.write("runtime exception '{}'", e);
-            Trace.formatln("runtime exception '{}'", e);
         }
         finally
         {
