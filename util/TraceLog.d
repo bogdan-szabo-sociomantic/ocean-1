@@ -41,6 +41,8 @@ private     import      tango.util.log.Log, tango.util.log.LayoutDate,
 
 private     import      tango.text.convert.Layout;
 
+private     import      tango.util.log.Trace;
+
 
 /*******************************************************************************
 
@@ -48,17 +50,9 @@ private     import      tango.text.convert.Layout;
 
 ********************************************************************************/
 
-class TraceLog
+struct TraceLog
 {
-    
-    /*******************************************************************************
-        
-        Trace Log File Location
-    
-     *******************************************************************************/
-    
-    private             static char[]                   traceLogFile;
-
+    static:
     
     /*******************************************************************************
         
@@ -66,7 +60,15 @@ class TraceLog
     
      *******************************************************************************/
 
-    private             static bool                     enabled = true;
+    public                  bool                enabled = true;
+    
+    /*******************************************************************************
+        
+        Trace Log File Location
+    
+     *******************************************************************************/
+    
+    private                 char[]              traceLogFile;
 
     
     /*******************************************************************************
@@ -75,7 +77,7 @@ class TraceLog
     
      *******************************************************************************/
     
-    private             static Logger                   logger;
+    private synchronized    Logger              logger = null;
     
     
     /*******************************************************************************
@@ -84,20 +86,8 @@ class TraceLog
     
      *******************************************************************************/
     
-    private             static Layout!(char)             layout;
+    private synchronized    Layout!(char)       layout;
 
-
-    /*******************************************************************************
-        
-        Constructor 
-        
-        Don't called directly as its protected to be called. Use function directly
-        instead as they are static.
-    
-     *******************************************************************************/
-    
-    private this() {}
-    
     /*******************************************************************************
         
         Initialization of TraceLog
@@ -117,7 +107,7 @@ class TraceLog
        
      *******************************************************************************/
     
-    public static void init( char[] file, char[] id = "TraceLog" )
+    public void init( char[] file, char[] id = "TraceLog" )
     {
         this.traceLogFile = file;
 
@@ -157,9 +147,9 @@ class TraceLog
        
      *******************************************************************************/
     
-    public static void write( char[] fmt, ... )
+    public void write ( char[] fmt, ... )
     {
-        if (this.enabled)
+        if (this.enabled && this.logger)
         {
             this.logger.append(Logger.Level.Trace, _arguments.length?
                                    this.layout.convert(_arguments, _argptr, fmt) :
@@ -186,12 +176,9 @@ class TraceLog
        
      *******************************************************************************/
 
-    public static Logger getLogger ()
+    public Logger getLogger ()
     {
-        if ( this.logger )
-            return this.logger;
-        
-        return null;
+        return this.logger;
     }
     
     
@@ -212,7 +199,7 @@ class TraceLog
        
      *******************************************************************************/
 
-    public static void disableTrace()
+    public void disableTrace()
     {
         this.enabled = false;
     }
