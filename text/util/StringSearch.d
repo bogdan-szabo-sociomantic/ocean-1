@@ -163,7 +163,7 @@ private import           tango.math.Math:   min;
         
  ******************************************************************************/
 
-struct StringSearch ( bool wide_char = false )
+template StringSearch ( bool wide_char = false )
 {
     alias cstddef.wchar_t WcharT;
     
@@ -230,9 +230,12 @@ struct StringSearch ( bool wide_char = false )
         alias cstring.strcspn   pLocateFirstInSet;
         
         alias cstring.strtok    pSplit;
+        
     }
     
-    static const Char TERM = '\0';
+    static:
+    
+    const Char TERM = '\0';
     
     /**
      * Locates the first occurence of "value" within the first "length"
@@ -248,12 +251,10 @@ struct StringSearch ( bool wide_char = false )
      *      the index of the first element with value "value" or the index of
      *      the last examined element + 1
      */
-    public static size_t locateChar ( Char[] str, Char value,
-                                      size_t start  = 0, 
-                                      size_t length = size_t.max )
+    size_t locateChar ( Char[] str, Char value, size_t start = 0, size_t length = size_t.max )
     in
     {
-        assert (start <= str.length, this.THIS_STR ~ "locateChar(): start index out of range");
+        assert (start <= str.length, "locateChar: start index out of range");
     }
     body
     {
@@ -276,10 +277,10 @@ struct StringSearch ( bool wide_char = false )
      * Returns:
      *      true if str contains value or false otherwise
      */
-    public static bool containsChar ( Char[] str, Char value, size_t start = 0 )
+    bool containsChar ( Char[] str, Char value, size_t start = 0 )
     in
     {
-        assert (start <= str.length, this.THIS_STR ~ "charInSet(): start index out of range");
+        assert (start <= str.length, "charInSet(): start index out of range");
     }
     body
     {
@@ -299,7 +300,35 @@ struct StringSearch ( bool wide_char = false )
      *      If found, the index of the first occurrence, or the length of "str"
      *      otherwise.
      */
-    public static size_t locatePattern ( Char[] str, Char[] pattern, size_t start = 0 )
+    size_t locatePattern ( Char[] str, Char[] pattern, size_t start = 0 )
+    {
+        if (str.length)
+        {
+            start = min(start, str.length - 1);
+        }
+        
+        Char[] str_search = str[start .. $] ~ TERM;
+        
+        Char* item = pLocatePattern(str_search.ptr, (pattern ~ TERM).ptr);
+        
+        return item? ((item - str_search.ptr) + start) : str.length;
+    }
+    
+    
+    
+    /**
+     * Scans "str" for "pattern" and returns the index of the first occurrence
+     * if found. 
+     * 
+     * Params:
+     *      str     = string to scan
+     *      pattern = search pattern
+     *      
+     * Returns:
+     *      If found, the index of the first occurrence, or the length of "str"
+     *      otherwise.
+     */
+    size_t locatePatternT ( Char[] str, Char[] pattern, size_t start = 0 )
     {
         if (str.length)
         {
@@ -325,21 +354,21 @@ struct StringSearch ( bool wide_char = false )
      * Returns:
      *      true if "str" contains "pattern" or false otherwise
      */
-    public static bool containsPattern ( Char[] str, Char[] pattern )
+    bool containsPattern ( Char[] str, Char[] pattern )
     {
-        return !!pLocatePattern((str ~ this.TERM).ptr, (pattern ~ this.TERM).ptr);
+        return !!pLocatePattern((str ~ TERM).ptr, (pattern ~ TERM).ptr);
     }
     
     
-    public static size_t locateCharSet ( Char[] str, Char[] charset )
+    size_t locateCharSet ( Char[] str, Char[] charset )
     {
-        return pLocateFirstInSet((str ~ this.TERM).ptr, (charset ~ this.TERM).ptr);
+        return pLocateFirstInSet((str ~ TERM).ptr, (charset ~ TERM).ptr);
     }
     
     
-    public static size_t locateCharSetT ( Char[] charset ) ( Char[] str )
+    size_t locateCharSetT ( Char[] charset ) ( Char[] str )
     {
-        return pLocateFirstInSet((str ~ this.TERM).ptr, charset.ptr);
+        return pLocateFirstInSet((str ~ TERM).ptr, charset.ptr);
     }
     
     
@@ -359,11 +388,10 @@ struct StringSearch ( bool wide_char = false )
      *     src_pos = source start position (index)
      *     length  = number of array elements to shift
      */
-    public static Char[] shiftString ( ref Char[] str, size_t dst_pos,
-                                     size_t src_pos, size_t length )
+    Char[] shiftString ( ref Char[] str, size_t dst_pos, size_t src_pos, size_t length )
     in
     {
-        static const PREFIX = this.THIS_STR ~ ".shiftString(): ";
+        static const PREFIX = "shiftString(): ";
         
         assert (src_pos <= str.length, PREFIX ~ "source start out of range");
         assert (dst_pos <= str.length, PREFIX ~ "destination start out of range");
@@ -388,7 +416,7 @@ struct StringSearch ( bool wide_char = false )
      * Returns:
      *      the length of the string of this segment
      */
-    public static size_t lengthOf ( Char[] str )
+    size_t lengthOf ( Char[] str )
     {
         return str.length? (str[$ - 1]? str.length : lengthOf(str.ptr)) : 0;
     }
@@ -401,7 +429,7 @@ struct StringSearch ( bool wide_char = false )
      * Params:
      *     str = input string
      */
-    public static void assertTerm ( char[] func ) ( Char[] str )
+    void assertTerm ( char[] func ) ( Char[] str )
     {
         assert (hasTerm(str), msgFunc!(func) ~ ": unterminated string");
     }
@@ -421,7 +449,7 @@ struct StringSearch ( bool wide_char = false )
              
      **************************************************************************/
     
-    public static bool appendTerm ( ref Char[] str )
+    bool appendTerm ( ref Char[] str )
     {
         bool terminated = str.length? !str[$ - 1] : false;
         
@@ -443,7 +471,7 @@ struct StringSearch ( bool wide_char = false )
              true if the string had a '\0'-terminator and therefore was changed,
              or false otherwise.
      */
-    public static bool stripTerm ( ref Char[] str )
+    bool stripTerm ( ref Char[] str )
     {
         bool terminated = str.length? !str[$ - 1] : false;
         
@@ -467,7 +495,7 @@ struct StringSearch ( bool wide_char = false )
      *      true if "str" is null-terminated or false otherwise
      *      
      */
-    public static bool hasTerm ( Char[] str )
+    bool hasTerm ( Char[] str )
     {
         return str.length? !str[$ - 1] : false;
     }
@@ -485,7 +513,7 @@ struct StringSearch ( bool wide_char = false )
      * Returns:
      *      true on match or false otherwise
      */
-    public static bool matches ( Char[] str, Char[] pattern )
+    bool matches ( Char[] str, Char[] pattern )
     {
         return (stripTerm(str) == stripTerm(pattern));
     }
@@ -503,7 +531,7 @@ struct StringSearch ( bool wide_char = false )
     * Returns:
     *      the resulting string
     */
-    public static Char[] trim ( Char[] str, bool terminate = false )
+    Char[] trim ( Char[] str, bool terminate = false )
     {
         terminate &= hasTerm(str);
         
@@ -527,8 +555,6 @@ struct StringSearch ( bool wide_char = false )
         return "";
     }
     
-    
-    
     /**
      * Converts each character of "str" in-place using "convert". "convert"
      * must be something that takes a character in the first argument and
@@ -540,7 +566,7 @@ struct StringSearch ( bool wide_char = false )
      * Returns:
      *      converted string
      */
-    public static Char[] charConv ( alias convert ) ( ref Char[] str )
+    Char[] charConv ( alias convert ) ( ref Char[] str )
     {
         foreach (ref c; str)
         {
@@ -585,7 +611,7 @@ struct StringSearch ( bool wide_char = false )
      *      true if all letter characters match the the condition checked by
      *      "check" or false otherwise
      */
-    public static bool caseCheck ( alias check ) ( Char[] str )
+    bool caseCheck ( alias check ) ( Char[] str )
     {
         bool result = true;
         
@@ -619,7 +645,7 @@ struct StringSearch ( bool wide_char = false )
      */
     alias caseCheck!(isUpper) strIsUpper;
 
-    
+    /+
     /**
      * Splits "str" into at most "n" "slices" on each occurrence of "delim".
      * "collapse" indicates whether to collapse consecutive occurrences  to a
@@ -636,7 +662,7 @@ struct StringSearch ( bool wide_char = false )
      * Returns:
      *      the resulting slices
      */
-    public static Char[][] split ( Char[][] slices, Char[] str, Char delim, uint n, bool collapse )
+    Char[][] split ( Char[][] slices, Char[] str, Char delim, uint n, bool collapse )
     {
         uint i = 0;
         
@@ -681,7 +707,7 @@ struct StringSearch ( bool wide_char = false )
     }
     
     
-    /+
+    
     /**
      * Splits "str" into at most "n" "slices" on each occurrence of "delim".
      * 
@@ -739,7 +765,7 @@ struct StringSearch ( bool wide_char = false )
     
      **************************************************************************/
     
-    public static Char[][] split ( Char[] str, Char delim, uint n = 0, bool collapse = false )
+    Char[][] split ( Char[] str, Char delim, uint n = 0, bool collapse = false )
     {
         Char[][] slices;
         
@@ -789,7 +815,7 @@ struct StringSearch ( bool wide_char = false )
      
      **************************************************************************/
     
-    public static Char[][] splitCollapse ( Char[] str, Char delim, uint n = 0 )
+    Char[][] splitCollapse ( Char[] str, Char delim, uint n = 0 )
     {
         return split(str, delim, n, true);
     }
@@ -808,7 +834,7 @@ struct StringSearch ( bool wide_char = false )
      
      **************************************************************************/
     
-    private static size_t skipLeadingDelims ( Char[] str, Char delim )
+    size_t skipLeadingDelims ( Char[] str, Char delim )
     {
         foreach (i, c; str)          // skip leading consecutive occurrences
         {
@@ -817,12 +843,4 @@ struct StringSearch ( bool wide_char = false )
         
         return str.length;
     }
-
-    /**************************************************************************
-
-        Name string of this for message generation
-    
-     **************************************************************************/
-    
-    private static const THIS_STR = typeof (*this).stringof;
 }
