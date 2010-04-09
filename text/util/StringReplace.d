@@ -111,7 +111,7 @@ class StringReplace ( bool wide_char = false )
     
     public this ( size_t inital_items = DefaultItemsLength )
     {
-        this.items = new size_t[n];
+        this.items = new size_t[inital_items];
     }
     
     /**************************************************************************
