@@ -31,6 +31,8 @@ private import cstring = tango.stdc.string;
 
 private import           tango.math.Math:   min;
 
+private import           tango.util.log.Trace;
+
 /++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
     /**************************************************************************
@@ -163,7 +165,7 @@ private import           tango.math.Math:   min;
         
  ******************************************************************************/
 
-template StringSearch ( bool wide_char = false )
+struct StringSearch ( bool wide_char = false )
 {
     alias cstddef.wchar_t WcharT;
     
@@ -238,20 +240,20 @@ template StringSearch ( bool wide_char = false )
     const Char TERM = '\0';
     
     /**
-     * Locates the first occurence of "value" within the first "length"
-     * characters of "str". If "length" is greater than the length of "str",
-     * it is set to the length of "str".
+     * Locates the first occurence of value within the first length characters
+     * of str. If greater, length is truncated to the length of str.
      * 
      * Params:
-     *      str    = string to search for "value"
+     *      str    = string to search for value
      *      value  = element value to find
-     *      length = number of elements to examine (at most length of "str")
+     *      start  = start index
+     *      length = number of elements to examine (at most length of str)
      *     
      * Returns:
      *      the index of the first element with value "value" or the index of
      *      the last examined element + 1
      */
-    size_t locateChar ( Char[] str, Char value, size_t start = 0, size_t length = size_t.max )
+    size_t locateChar ( Char[] str, Char value, size_t start, size_t length )
     in
     {
         assert (start <= str.length, "locateChar: start index out of range");
@@ -265,28 +267,52 @@ template StringSearch ( bool wide_char = false )
         return item? (item - str.ptr) : length;
     }
     
-    
     /**
-     * Tells whether str contains value.
+     * Locates the first occurence of value within str.
      * 
      * Params:
-     *     str   = string to search for value
-     *     value = value to search for
-     *     start = start index
+     *      str    = string to search for "value"
+     *      value  = element value to find
+     *      start  = start index
+     *     
+     * Returns:
+     *      the index of the first element with value "value" or the index of
+     *      the last examined element + 1
+     */
+    size_t locateChar ( Char[] str, Char value, size_t start = 0 )
+    {
+        return locateChar(str, value, start, size_t.max);
+    }
+    
+    /**
+     * Tells whether the first length characters of str, starting fromo start,
+     * contain value. If greater, length is truncated to the length of str.
+     * 
+     * Params:
+     *     str    = string to search for value
+     *     value  = value to search for
+     *     start  = start index
+     *     length = number of elements to examine (at most length of str)
      *     
      * Returns:
      *      true if str contains value or false otherwise
      */
-    bool containsChar ( Char[] str, Char value, size_t start = 0 )
+    bool containsChar ( Char[] str, Char value, size_t start, size_t length )
     in
     {
-        assert (start <= str.length, "charInSet(): start index out of range");
+        assert (start <= str.length, "containsChar: start index out of range");
     }
     body
     {
-        return !!pLocateBinChar(str.ptr + start, value, str.length - start);
+        length = min(length, str.length);
+        
+        return !!pLocateBinChar(str.ptr + start, value, length - start);
     }
     
+    bool containsChar ( Char[] str, Char value, size_t start = 0 )
+    {
+        return containsChar(str, value, start, size_t.max);
+    }
     
     /**
      * Scans "str" for "pattern" and returns the index of the first occurrence
@@ -328,7 +354,12 @@ template StringSearch ( bool wide_char = false )
      *      If found, the index of the first occurrence, or the length of "str"
      *      otherwise.
      */
-    size_t locatePatternT ( Char[] str, Char[] pattern, size_t start = 0 )
+    size_t locatePatternT ( Char[] pattern ) ( Char[] str, Char[] pattern, size_t start = 0 )
+    in
+    {
+        assert (start <= str.length, "locatePatternT: start index out of range");
+    }
+    body
     {
         if (str.length)
         {
@@ -337,57 +368,112 @@ template StringSearch ( bool wide_char = false )
         
         Char[] str_search = str[start .. $] ~ TERM;
         
-        Char* item = pLocatePattern(str_search.ptr, (pattern ~ TERM).ptr);
+        Char* item = pLocatePattern(str_search.ptr, pattern.ptr);
         
         return item? ((item - str_search.ptr) + start) : str.length;
     }
     
     
     
-    /**
-     * Tells whether "str" contains "pattern".
-     * 
-     * Params:
-     *      str     = string to scan
-     *      pattern = search pattern
-     *      
-     * Returns:
-     *      true if "str" contains "pattern" or false otherwise
-     */
-    bool containsPattern ( Char[] str, Char[] pattern )
+    /**************************************************************************
+     
+         Tells whether str contains pattern
+         
+         Params:
+              str     = string to scan
+              pattern = search pattern
+              start   = search start index
+              
+         Returns:
+              true if str contains pattern or false otherwise
+              
+     **************************************************************************/
+    
+    bool containsPattern ( Char[] str, Char[] pattern, size_t start = 0 )
+    in
     {
-        return !!pLocatePattern((str ~ TERM).ptr, (pattern ~ TERM).ptr);
+        assert (start <= str.length, "containsPattern: start index out of range");
+    }
+    body
+    {
+        return !!pLocatePattern((str ~ TERM).ptr + start, (pattern ~ TERM).ptr);
     }
     
     
-    size_t locateCharSet ( Char[] str, Char[] charset )
+    /**************************************************************************
+    
+        Locates the first occurrence of any of the characters of charset in str.
+        
+        Params:
+             str     = string to scan
+             charset = set of characters to look for
+             start   = search start index
+             
+        Returns:
+             index of first occurrence of any of the characters of charset in
+             str
+                          
+    **************************************************************************/
+
+    size_t locateCharSet ( Char[] str, Char[] charset, size_t start = 0 )
+    in
     {
-        return pLocateFirstInSet((str ~ TERM).ptr, (charset ~ TERM).ptr);
+        assert (start <= str.length, "locateCharSet: start index out of range");
+    }
+    body
+    {
+        size_t item = pLocateFirstInSet((str ~ TERM).ptr + start, (charset ~ TERM).ptr);
+        
+        return item + start;
     }
     
     
-    size_t locateCharSetT ( Char[] charset ) ( Char[] str )
+    /**************************************************************************
+    
+        Locates the first occurrence of any of the characters of charset in str.
+        Passing charset as template parameter makes this method somewhat more
+        efficient when used very frequently.
+        
+        Params:
+             str     = string to scan
+             start   = search start index
+             
+        Returns:
+             index of first occurrence of any of the characters of charset in
+             str
+                          
+    **************************************************************************/
+
+    size_t locateCharSetT ( Char[] charset ) ( Char[] str, size_t start = 0 )
+    in
     {
-        return pLocateFirstInSet((str ~ TERM).ptr, charset.ptr);
+        assert (start <= str.length, "locateCharSetT: start index out of range");
+    }
+    body
+    {
+        return pLocateFirstInSet((str ~ TERM).ptr + start, charset.ptr);
     }
     
     
-    /**
-     * Shifts "length" characters inside "string" from "src_pos" to "dst_pos".
-     * This effectively does the same thing as
-     * 
-     * ---
-     *      string[src_pos .. src_pos + length] =  string[dst_pos .. dst_pos + length];
-     * ---
-     * 
-     * but allows overlapping ranges.
-     * 
-     * Params:
-     *     string  = string to process
-     *     dst_pos = destination start position (index) 
-     *     src_pos = source start position (index)
-     *     length  = number of array elements to shift
-     */
+    /**************************************************************************
+         
+         Shifts "length" characters inside "string" from "src_pos" to "dst_pos".
+         This effectively does the same thing as
+         
+         ---
+              string[src_pos .. src_pos + length] =  string[dst_pos .. dst_pos + length];
+         ---
+         
+         but allows overlapping ranges.
+         
+         Params:
+             string  = string to process
+             dst_pos = destination start position (index) 
+             src_pos = source start position (index)
+             length  = number of array elements to shift
+             
+     **************************************************************************/
+    
     Char[] shiftString ( ref Char[] str, size_t dst_pos, size_t src_pos, size_t length )
     in
     {
@@ -407,15 +493,17 @@ template StringSearch ( bool wide_char = false )
     
     
     
-    /**
-     * Returns the length of "str" without null terminator.
-     * 
-     * Params:
-     *      str = input string (may or may not be null terminated)
-     *       
-     * Returns:
-     *      the length of the string of this segment
-     */
+    /**************************************************************************
+     
+         Returns the length of "str" without null terminator.
+         
+         Params:
+              str = input string (may or may not be null terminated)
+               
+         Returns:
+              the length of the string of this segment
+          
+     **************************************************************************/
     size_t lengthOf ( Char[] str )
     {
         return str.length? (str[$ - 1]? str.length : lengthOf(str.ptr)) : 0;
@@ -423,12 +511,14 @@ template StringSearch ( bool wide_char = false )
     
     
     
-    /**
-     * Asserts that "str" is null-terminated.
-     * 
-     * Params:
-     *     str = input string
-     */
+    /**************************************************************************
+     
+         Asserts that "str" is null-terminated.
+         
+         Params:
+             str = input string
+         
+     ***************************************************************************/
     void assertTerm ( char[] func ) ( Char[] str )
     {
         assert (hasTerm(str), msgFunc!(func) ~ ": unterminated string");
@@ -461,16 +551,19 @@ template StringSearch ( bool wide_char = false )
         return !terminated;
     }
 
-    /**
-     * Strips the null terminator from "str" if present.
-     * 
-     * Params:
-     *      str = input to '\0'-unterminate
-     *      
+    
+    /**************************************************************************
+
+        Strips the null terminator from str, if any.
+        
+        Params:
+             str = input to '\0'-unterminate
+             
         Returns:
              true if the string had a '\0'-terminator and therefore was changed,
              or false otherwise.
-     */
+             
+     **************************************************************************/
     bool stripTerm ( ref Char[] str )
     {
         bool terminated = str.length? !str[$ - 1] : false;
@@ -485,16 +578,17 @@ template StringSearch ( bool wide_char = false )
     
     
     
-    /**
-     * Tells whether "str" is null-terminated.
-     * 
-     * Params:
-     *      str = input string
-     *       
-     * Returns:
-     *      true if "str" is null-terminated or false otherwise
-     *      
-     */
+    /**************************************************************************
+     
+         Tells whether "str" is null-terminated.
+         
+         Params:
+              str = input string
+               
+         Returns:
+              true if "str" is null-terminated or false otherwise
+              
+     **************************************************************************/
     bool hasTerm ( Char[] str )
     {
         return str.length? !str[$ - 1] : false;
@@ -502,17 +596,19 @@ template StringSearch ( bool wide_char = false )
     
     
     
-    /**
-     * Tells whether "str" and "pattern" are equal regardless of null
-     * terminators.
-     * 
-     * Params:
-     *      str     = str to compare to "pattern"
-     *      pattern = comparison pattern for "str"
-     *      
-     * Returns:
-     *      true on match or false otherwise
-     */
+    /**************************************************************************
+     
+         Tells whether "str" and "pattern" are equal regardless of null
+         terminators.
+         
+         Params:
+              str     = str to compare to "pattern"
+              pattern = comparison pattern for "str"
+              
+         Returns:
+              true on match or false otherwise
+              
+     **************************************************************************/
     bool matches ( Char[] str, Char[] pattern )
     {
         return (stripTerm(str) == stripTerm(pattern));
@@ -520,17 +616,19 @@ template StringSearch ( bool wide_char = false )
    
     
     
-   /**
-    * Trims white space from "str".
-    * 
-    * Params:
-    *      str       = input string
-    *      terminate = set to true to null-terminate the resulting string if
-    *                  the input string is null-terminated
-    *              
-    * Returns:
-    *      the resulting string
-    */
+   /***************************************************************************
+    
+        Trims white space from "str".
+        
+        Params:
+             str       = input string
+             terminate = set to true to null-terminate the resulting string if
+                         the input string is null-terminated
+                     
+        Returns:
+             the resulting string
+             
+    ***************************************************************************/
     Char[] trim ( Char[] str, bool terminate = false )
     {
         terminate &= hasTerm(str);
@@ -555,17 +653,20 @@ template StringSearch ( bool wide_char = false )
         return "";
     }
     
-    /**
-     * Converts each character of "str" in-place using "convert". "convert"
-     * must be something that takes a character in the first argument and
-     * returns the converted character.
-     * 
-     * Params:
-     *      str = string to convert
-     *       
-     * Returns:
-     *      converted string
-     */
+    /**************************************************************************
+     
+         Converts each character of str in-place using convert. convert must be
+         a function that takes a character in the first argument and returns the
+         converted character.
+         
+         Params:
+              str = string to convert
+               
+         Returns:
+              converted string
+          
+     **************************************************************************/
+    
     Char[] charConv ( alias convert ) ( ref Char[] str )
     {
         foreach (ref c; str)
@@ -575,42 +676,52 @@ template StringSearch ( bool wide_char = false )
         
         return str;
     }
-    /**
-     * Converts "str" in-place to lower case.
-     * 
-     * Params:
-     *      str = string to convert
-     *       
-     * Returns:
-     *      converted string
-     */
+    
+    /**************************************************************************
+         
+         Converts "str" in-place to lower case.
+         
+         Params:
+              str = string to convert
+               
+         Returns:
+              converted string
+              
+     **************************************************************************/
+    
     alias charConv!(toLower) strToLower;
-    /**
-     * Converts "str" in-place to upper case.
-     * 
-     * Params:
-     *      str = string to convert
-     *       
-     * Returns:
-     *      converted string
-     */
+    
+    /**************************************************************************
+     
+         Converts "str" in-place to upper case.
+         
+         Params:
+              str = string to convert
+               
+         Returns:
+              converted string
+              
+     **************************************************************************/
+    
     alias charConv!(toUpper) strToUpper;
     
     
     
-    /**
-     * Tells if all letter characters in "str" match the condition checked by
-     * "check". "check" must be something that takes a character in the first
-     * argument and returns an integer type where a value different from 0 means
-     * that the condition is satisfied. 
-     * 
-     * Params:
-     *      str = string to convert
-     *       
-     * Returns:
-     *      true if all letter characters match the the condition checked by
-     *      "check" or false otherwise
-     */
+    /**************************************************************************
+     
+         Tells if all letter characters in "str" match the condition checked by
+         "check". "check" must be something that takes a character in the first
+         argument and returns an integer type where a value different from 0 means
+         that the condition is satisfied. 
+         
+         Params:
+              str = string to convert
+               
+         Returns:
+              true if all letter characters match the the condition checked by
+              "check" or false otherwise
+              
+     **************************************************************************/
     bool caseCheck ( alias check ) ( Char[] str )
     {
         bool result = true;
@@ -622,136 +733,44 @@ template StringSearch ( bool wide_char = false )
         
         return result;
     }
-    /**
-     * Checks if all letter characters in "str" are lower case.
-     * 
-     * Params:
-     *      str = string to check
-     *       
-     * Returns:
-     *      true if all letter characters in "str" are lower case or false
-     *      otherwise
-     */
-    alias caseCheck!(isLower) strIsLower;
-    /**
-     * Checks if all letter characters in "str" are upper case.
-     * 
-     * Params:
-     *      str = string to check
-     *       
-     * Returns:
-     *      true if all letter characters in "str" are upper case or false
-     *      otherwise
-     */
-    alias caseCheck!(isUpper) strIsUpper;
-
-    /+
-    /**
-     * Splits "str" into at most "n" "slices" on each occurrence of "delim".
-     * "collapse" indicates whether to collapse consecutive occurrences  to a
-     * single one to prevent producing empty slices.
-     * 
-     * Params:
-     *      slices   = array to put the resulting slices
-     *      str      = input string
-     *      delim    = delimiter character
-     *      n        = maximum number of slices; set to 0 to indicate no limit
-     *      collapse = set to true to collapse consecutive occurrences to
-     *                 prevent producing empty "slices"
-     *     
-     * Returns:
-     *      the resulting slices
-     */
-    Char[][] split ( Char[][] slices, Char[] str, Char delim, uint n, bool collapse )
-    {
-        uint i = 0;
-        
-        size_t prev_pos = 0;
-        
-        slices.length = 0;
-        
-        if (collapse)
-        {
-            foreach (j, c; str)          // skip leading consecutive occurrences
-            {
-                if (c != delim)
-                {
-                    prev_pos = j;
-                    
-                    break;
-                }
-            }
-        }
-        
-        for (size_t pos = locateChar(str, delim);
-                    (pos < str.length) && (!n || (i < n));
-                    pos = locateChar(str, delim, prev_pos))
-        {
-            if (!((pos == prev_pos) && collapse))
-            {
-                slices ~= str[prev_pos .. pos];
-                
-                i++;
-            }
-            
-            prev_pos = pos + 1;
-        }
-        
-        if ((!n || (i < n)) && (!((prev_pos == str.length) && collapse)))
-        {
-            slices ~= str[prev_pos .. $];
-        }
-        
-        
-        return slices;
-    }
     
-    
-    
-    /**
-     * Splits "str" into at most "n" "slices" on each occurrence of "delim".
-     * 
-     * Params:
-     *      slices   = array to put the resulting slices
-     *      str      = input string
-     *      delim    = delimiter character
-     *      n        = maximum number of slices; set to 0 to indicate no limit
-     *     
-     * Returns:
-     *      the resulting slices
-     */
-    public static Char[][] split ( Char[][] slices, Char[] str, Char delim, uint n = 0 )
-    {
-        return split(slices, str, delim, n, false);
-    }
-    
-    
-    
-    /**
-     * Splits "str" into at most "n" "slices" on each occurrence of "delim".
-     * Consecutive occurrences are collapsed  to a single one to prevent
-     * producing empty slices.
-     * 
-     * Params:
-     *      slices   = array to put the resulting slices
-     *      str      = input string
-     *      delim    = delimiter character
-     *      n        = maximum number of slices; set to 0 to indicate no limit
-     *     
-     * Returns:
-     *      the resulting slices
-     */
-    public static Char[][] splitCollapse ( Char[][] slices, Char[] str, Char delim, uint n = 0 )
-    {
-        return split(slices, str, delim, n, true);
-    }
-    +/
     
     /**************************************************************************
-      
-        Splits "str" into at most "n" "slices" on each occurrence of "delim".
-        "collapse" indicates whether to collapse consecutive occurrences  to a
-        single one to prevent producing empty slices.
+     
+         Checks if all letter characters in "str" are lower case.
+         
+         Params:
+              str = string to check
+               
+         Returns:
+              true if all letter characters in "str" are lower case or false
+              otherwise
+          
+     **************************************************************************/
+    
+    alias caseCheck!(isLower) strIsLower;
+    
+    
+    
+    /**************************************************************************
+     
+     Checks if all letter characters in "str" are upper case.
+     
+     Params:
+          str = string to check
+           
+     Returns:
+          true if all letter characters in "str" are upper case or false
+          otherwise
+          
+     **************************************************************************/
+    alias caseCheck!(isUpper) strIsUpper;
+
+    /**************************************************************************
+    
+        Splits str into at most n slices on each occurrence of delim. collapse
+        indicates whether to collapse consecutive occurrences  to a single one
+        to prevent producing empty slices.
         
         Params:
              str      = input string
@@ -764,8 +783,120 @@ template StringSearch ( bool wide_char = false )
              the resulting slices
     
      **************************************************************************/
-    
+
     Char[][] split ( Char[] str, Char delim, uint n = 0, bool collapse = false )
+    {
+        return split_!(Char)(str, delim, &locateChar, n, collapse);
+    }
+    
+    /**************************************************************************
+    
+        Splits str on each occurrence of delim. collapse indicates whether to
+        collapse consecutive occurrences  to a single one to prevent producing
+        empty slices.
+        
+        Params:
+             slices   = array to put the resulting slices
+             str      = input string
+             delim    = delimiter character
+            
+        Returns:
+             the resulting slices
+     
+     **************************************************************************/
+    
+    Char[][] splitCollapse ( Char[] str, Char delim, uint n = 0 )
+    {
+        return split(str, delim, n, true);
+    }
+
+    /**************************************************************************
+    
+        Splits str into at most n slices on each occurrence of any character in
+        delims. collapse indicates whether to collapse consecutive occurrences
+        to a single one to prevent producing empty slices.
+        
+        Params:
+             str      = input string
+             delim    = delimiter character
+             n        = maximum number of slices; set to 0 to indicate no limit
+             collapse = set to true to collapse consecutive occurrences to
+                        prevent producing empty "slices"
+            
+        Returns:
+             the resulting slices
+    
+     **************************************************************************/
+
+    Char[][] split ( Char[] str, Char[] delims, uint n = 0, bool collapse = false )
+    {
+        return split_!(Char[])(str, delims, &locateCharSet, n, collapse);
+    }
+    
+    /**************************************************************************
+        
+        Splits str on each occurrence of any character in delims. collapse
+        indicates whether to collapse consecutive occurrences to a single one to
+        prevent producing empty slices.
+        
+        Params:
+             str      = input string
+             delim    = delimiter character
+             collapse = set to true to collapse consecutive occurrences to
+                        prevent producing empty "slices"
+            
+        Returns:
+             the resulting slices
+     
+     **************************************************************************/
+    
+    Char[][] splitCollapse ( Char[] str, Char[] delim, uint n = 0 )
+    {
+        return split(str, delim, n, true);
+    }
+    
+    /**************************************************************************
+    
+        Locate delimiter function definition template. LocateDelimDg is the type
+        of the function callback used by split_().
+        
+        LocateDelimDg params:
+            str   = string to search for delim
+            delim = search pattern of arbitrary type: single character, set of
+                    characters, search string, ...
+            start = search start start index
+            
+        LocateDelimDg shall return:
+            index of first occurrence of delim in str, starting from start
+     
+     **************************************************************************/
+
+    template LocateDelimDg ( T )
+    {
+        alias size_t function ( Char[] str, T delim, size_t start ) LocateDelimDg;
+    }
+    
+    /**************************************************************************
+    
+        Splits str into at most n slices on each occurrence reported by
+        locateDelim. collapse indicates whether to collapse consecutive
+        occurrences to a single one to prevent producing empty slices.
+        
+        Params:
+             str         = input string
+             delim       = delimiter(s), depending on locateDelim
+             locateDelim = callback function which shall locate the 
+                           occurrence of delim in str; see LocateDelimDg
+                           
+             collapse = set to true to collapse consecutive occurrences to
+                        prevent producing empty "slices"
+            
+        Returns:
+             the resulting slices
+     
+     **************************************************************************/
+
+    private Char[][] split_  ( T ) ( Char[] str, T delim, LocateDelimDg!(T) locateDelim, uint n, bool collapse )
     {
         Char[][] slices;
         
@@ -773,7 +904,7 @@ template StringSearch ( bool wide_char = false )
         
         size_t start = collapse? skipLeadingDelims(str, delim) : 0;
         
-        size_t pos   = locateChar(str, delim, start);
+        size_t pos   = locateDelim(str, delim, start);
         
         while ((pos < str.length) && (!n || (i < n)))
         {
@@ -786,38 +917,15 @@ template StringSearch ( bool wide_char = false )
         
             start = pos + 1;
             
-            pos = locateChar(str, delim, start);
+            pos = locateDelim(str, delim, start);
         }
-        
         
         if ((!n || (i < n)) && (!((start == str.length) && collapse)))
         {
-            slices ~= str[start .. $];                         // append tail
+            slices ~= str[start .. $];                                          // append tail
         }
         
         return slices;
-    }
-    
-    /**************************************************************************
-        
-        Splits "str" into at most "n" "slices" on each occurrence of "delim".
-        Consecutive occurrences are collapsed  to a single one to prevent
-        producing empty slices.
-        
-        Params:
-             slices   = array to put the resulting slices
-             str      = input string
-             delim    = delimiter character
-             n        = maximum number of slices; set to 0 to indicate no limit
-            
-        Returns:
-             the resulting slices
-     
-     **************************************************************************/
-    
-    Char[][] splitCollapse ( Char[] str, Char delim, uint n = 0 )
-    {
-        return split(str, delim, n, true);
     }
     
     /**************************************************************************
@@ -833,12 +941,28 @@ template StringSearch ( bool wide_char = false )
              delim (length of str if str consists of delim characters)
      
      **************************************************************************/
-    
-    size_t skipLeadingDelims ( Char[] str, Char delim )
+
+    private size_t skipLeadingDelims ( T ) ( Char[] str, T delim )
     {
-        foreach (i, c; str)          // skip leading consecutive occurrences
+        foreach (i, c; str)
         {
-            if (c != delim) return i;
+            bool found;
+            
+            static if (is (T U : U[]))
+            {
+                found = containsChar(delim, c);
+            }
+            else static if (is (T : Char))
+            {
+                found = c == delim;
+            }
+            else static assert (false, "skipLeadingDelims: delim must be of type '" ~
+                                       Char.stringof ~ "' or '" ~ (Char[]).stringof ~
+                                       "', not '" ~ T.stringof ~ '\'');
+
+                
+            
+            if (!found) return i;
         }
         
         return str.length;
