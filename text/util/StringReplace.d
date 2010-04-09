@@ -93,14 +93,25 @@ class StringReplace ( bool wide_char = false )
     
     
     /**************************************************************************
+    
+        Default length of occurrence items list 
+    
+     **************************************************************************/
+
+    static const DefaultItemsLength = 0x1000;
+    
+    /**************************************************************************
      
          Constructor
-     
+         
+         Params:
+             inital_items = initial length of occurrence items list
+         
      **************************************************************************/
     
-    public this ( )
+    public this ( size_t inital_items = DefaultItemsLength )
     {
-        this.items = new size_t[0x1000];
+        this.items = new size_t[n];
     }
     
     /**************************************************************************
