@@ -19,30 +19,11 @@
 
 			auto string_enc = new StringEncode!("ISO-8859-1", "UTF-8");
 
-		The following public bool properties set useful controls on the process
-		(both default to true):
-
-			string_enc.auto_resize_out_buf : automatically resize the output
-			buffer if it's too small
-			
-			string_enc.strip_non_display_chars : replace any non-displayable
-			characters with spaces
-		
 		The conversion function is called as follows:
 			char[] input = "A string to be converted";
 			char[] output; // The buffer which is written into
 
-			char[] output_written;
-			char[] remaining_in;
-			char[] remaining_out;
-			uint inchars_read;
-			uint outchars_written;
-	
-			ptrdiff_t result = string_enc.convert(input, output, output_written,
-				remaining_in, remaining_out, inchars_read, outchars_written);
-
-		If the conversion succeeds, output_written is set to a slice of the
-		output buffer.
+			string_enc.convert(input, output);
 
 *******************************************************************************/
 
@@ -91,30 +72,6 @@ public class StringEncode ( char[] fromcode, char[] tocode )
 
 	/***************************************************************************
 
-		Public property : should the output buffer be automatically resized if
-		it isn't big enough for the conversion?
-		
-		The constructor sets this to default as true.
-
-	***************************************************************************/
-
-	public bool auto_resize_out_buf;
-
-
-	/***************************************************************************
-
-		Public property : Should non displayable characters (< ascii 0x20) in
-		the output buffer be replaced with spaces?
-
-		The constructor sets this to default as true.
-
-	***************************************************************************/
-
-	public bool strip_non_display_chars;
-
-	
-	/***************************************************************************
-
 		Constructor.
 		Initialises iconv with the desired character encoding conversion types,
 		and sets default values for the public bool properties above.
@@ -124,8 +81,6 @@ public class StringEncode ( char[] fromcode, char[] tocode )
 	public this ( )
 	{
 		this.cd = iconv_open(tocode.ptr, fromcode.ptr);
-		this.auto_resize_out_buf = true;
-		this.strip_non_display_chars = true;
 	}
 
 
@@ -133,128 +88,74 @@ public class StringEncode ( char[] fromcode, char[] tocode )
 
 		Converts a string in one encoding type to another (as specified by the 
 		class' template parameters).
-		
-		Optionally will resize the output buffer so it fits (if auto_resize_out_buf
-		is true), and replace non-displayable characters with spaces (if
-		strip_non_display_chars is true).
-		
-		Calls the protected method doConvert to do the actual conversion.
+
+		Repeatedly trys converting the input and resizing the output buffer
+		until the conversion succeeds.
 
 		Params:
-			inbuf = the array of characters to be converted.
+			input = the array of characters to be converted.
 			
-			outbuf = reference to an array of characters which will be filled
-			with the results of the conversion.
-			
-			written_out = a slice of outbuf containing just the characters which
-			were converted (outbuf will usually be longer than necessary, and so
-			has some "junk" at the end).
-
-		Fail params: (these parameters are only relevant in cases where the full
-		conversion was not possible, for example if the output buffer was too
-		small)
-			remaining_in = a slice of the input buffer, from the point where
-			conversion finished to the end.
-			
-			remaining_out = a slice of the output buffer, from the point where
-			conversion finished to the end.
-			
-			inchars_read = the number of characters read from inbuf.
-			
-			outchars_written = the number of characters written to outbuf.
+			output = array of characters which will be filled with the results
+			of the conversion. The output array is resized to fit the results.
 
 		Returns:
-			passes on the return value of the C inconv function
+			void
 
 	***************************************************************************/
 
-	public ptrdiff_t convert ( char[] inbuf, ref char[] outbuf, out char[] written_out,
-			out char[] remaining_in, out char[] remaining_out,
-			out uint inchars_read, out uint outchars_written )
+
+	public void convert ( char[] input, out char[] output )
 	{
-		ptrdiff_t result;
-		if ( this.auto_resize_out_buf )
+		bool succeeded = false;
+		while ( !succeeded )
 		{
-			bool succeeded = false;
-			while ( !succeeded )
+			try
 			{
-				try
+				this.convert_(input, output);
+				succeeded = true;
+			}
+			// If the conversion fails because the output buffer was too small,
+			// resize the output buffer and try again.
+			catch ( IconvException.TooBig )
+			{
+				output.length = output.length + input.length;
+				debug
 				{
-					result = this.doConvert(inbuf, outbuf, written_out, remaining_in,
-							remaining_out, inchars_read, outchars_written);
-					succeeded = true;
-				}
-				// If the conversion fails because the output buffer was too small,
-				// resize the output buffer and try again.
-				catch ( IconvException.TooBig )
-				{
-					outbuf.length = outbuf.length + inbuf.length;
-					debug
-					{
-						Stderr.formatln("Iconv.convert : expanding output buffer to {} chars", outbuf.length);
-					}
+					Stderr.formatln("StringEncode.convert : expanding output buffer to {} chars", output.length);
 				}
 			}
 		}
-		else
-		{
-			result = this.doConvert(inbuf, outbuf, written_out, remaining_in,
-					remaining_out, inchars_read, outchars_written);
-		}
-
-		// Optionally strip out any non-displayable characters (below 0x20)
-		if ( this.strip_non_display_chars )
-		{
-			this.stripNonDisplayChars(outbuf);
-		}
-
-		return result;
 	}
 
 
 	/***************************************************************************
 
 		Internal conversion method which calls the C iconv function.
-		
-		Params:
-			inbuf = the array of characters to be converted.
-			
-			outbuf = reference to an array of characters which will be filled
-			with the results of the conversion.
-			
-			written_out = a slice of outbuf containing just the characters which
-			were converted (outbuf will usually be longer than necessary, and so
-			has some "junk" at the end).
+		The error return values from iconv are thrown as exceptions.
 	
-		Fail params: (these parameters are only relevant in cases where the full
-		conversion was not possible, for example if the output buffer was too
-		small)
-			remaining_in = a slice of the input buffer, from the point where
-			conversion finished to the end.
+		Params:
+			input = the array of characters to be converted.
 			
-			remaining_out = a slice of the output buffer, from the point where
-			conversion finished to the end.
-			
-			inchars_read = the number of characters read from inbuf.
-			
-			outchars_written = the number of characters written to outbuf.
+			output = array of characters which will be filled with the results
+			of the conversion. The output array is resized to fit the results.
 	
 		Returns:
-			passes on the return value of the C inconv function
+			void
 	
 	***************************************************************************/
 
-	protected ptrdiff_t doConvert ( char[] inbuf, ref char[] outbuf, out char[] written_out,
-			out char[] remaining_in, out char[] remaining_out,
-			out uint inchars_read, out uint outchars_written )
+	protected void convert_ ( char[] input, out char[] output )
 	{
-		size_t inbytesleft  = inbuf.length;
-		size_t outbytesleft = outbuf.length;
-		char* inptr  = inbuf.ptr;
-		char* outptr = outbuf.ptr;
+		output.length = input.length;
+		
+		size_t inbytesleft  = input.length;
+		size_t outbytesleft = output.length;
+		char* inptr  = input.ptr;
+		char* outptr = output.ptr;
 		
 		// Do the conversion
 		ptrdiff_t result = iconv(this.cd, &inptr, &inbytesleft, &outptr, &outbytesleft);
+		output.length = output.length - outbytesleft;
 
 		// Check for any errors from iconv and throw them as exceptions
 		if (result < 0)
@@ -274,52 +175,8 @@ public class StringEncode ( char[] fromcode, char[] tocode )
 					throw new IconvException;
 			}
 		}
-
-		// Calculate out values
-		inchars_read = inbuf.length - inbytesleft;
-		outchars_written = outbuf.length - outbytesleft;
-		written_out = outbuf[0..outchars_written];
-		remaining_in = inbuf[inbuf.length - inbytesleft..inbuf.length];
-		remaining_out = outbuf[outbuf.length - outbytesleft..outbuf.length];
-
-		return result;
 	}
 
-
-	/***************************************************************************
-
-		Processes a char array, replacing any character below ASCII 0x20 with a
-		space. The exceptions are 0x09 (tab), 0x0A (line feed) and 0x0D (carriage
-		return), which are not modified.
-
-		Params:
-			buf = the array of characters to be processed.
-
-		Returns:
-			void
-
-	***************************************************************************/
-
-	public void stripNonDisplayChars ( ref char[] buf )
-	{
-		const uint TAB = 0x09;
-		const uint LINEFEED = 0x0A;
-		const uint CARRIAGE_RET = 0x0D;
-
-		foreach ( i, c; buf )
-		{
-			if ( c < 0x20 && !(c == TAB || c == LINEFEED || c == CARRIAGE_RET) )
-			{
-				buf[i] = 32;
-				debug
-				{
-					Stderr.formatln("Iconv.stripNonDisplayChars : converting non-displayable character ({}) -> 32 (space)", cast(uint)c);
-				}
-			}
-		}
-
-	}
-	
 
 	/***************************************************************************
 
