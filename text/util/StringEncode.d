@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-	D class wrapping the C iconv library.
+	Character encoding conversion.
 
 	copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
 
@@ -9,24 +9,26 @@
 	authors:        David Eckardt
 					Gavin Norman
 
-	D class wrapping the C iconv library for character encoding conversion.
+	Character encoding conversion using the C iconv library
+	(ocean.text.util.c.Iconv).
 
 	Usage:
-		Iconv can be used by creating an instance of the Iconv class with the
-		template parameters of the desired character encoding conversion:
+		This module can be used by creating an instance of the StringEncode
+		class with the template parameters of the desired character encoding
+		conversion:
 
-			auto iconv = new Iconv!("ISO-8859-1", "UTF-8");
+			auto string_enc = new StringEncode!("ISO-8859-1", "UTF-8");
 
 		The following public bool properties set useful controls on the process
 		(both default to true):
 
-			iconv.auto_resize_out_buf : automatically resize the output buffer
-			if it's too small
+			string_enc.auto_resize_out_buf : automatically resize the output
+			buffer if it's too small
 			
-			iconv.strip_non_display_chars : replace any non-displayable characters
-			with spaces
+			string_enc.strip_non_display_chars : replace any non-displayable
+			characters with spaces
 		
-		The conversion is called as follows:
+		The conversion function is called as follows:
 			char[] input = "A string to be converted";
 			char[] output; // The buffer which is written into
 
@@ -36,7 +38,7 @@
 			uint inchars_read;
 			uint outchars_written;
 	
-			ptrdiff_t result = iconv.convert(input, output, output_written,
+			ptrdiff_t result = string_enc.convert(input, output, output_written,
 				remaining_in, remaining_out, inchars_read, outchars_written);
 
 		If the conversion succeeds, output_written is set to a slice of the
@@ -69,7 +71,7 @@ debug
 
 /*******************************************************************************
 
-	Iconv class
+	StringEncode class
 	The template parameters are the character encoding types for the input
 	and output of the converter.
 
