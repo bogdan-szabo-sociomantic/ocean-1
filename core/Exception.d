@@ -274,6 +274,65 @@ class ConfigException : Exception
 
 /******************************************************************************
 
+	IconvException
+
+ ******************************************************************************/
+
+class IconvException : Exception
+{
+	const MSG = "Iconv: Error";
+	
+	this ( char[] msg = MSG ) { super(msg); }
+	this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+	
+	static mixin ExceptionOpCalls!(typeof (this));
+	
+	/**************************************************************************
+
+		Invalid Multibyte Sequence
+
+	 **************************************************************************/
+
+	static class InvalidMbSeq :  IconvException
+	{
+		const msg = "Iconv: Invalid Multibyte Sequence";
+		
+		this ( ) { super(this.msg); }
+	}
+	
+	/**************************************************************************
+
+		Incomplete Multibyte Sequence
+	
+	 **************************************************************************/
+
+	static class IncompleteMbSeq :  IconvException
+	{
+		const msg = "Iconv: Incomplete Multibyte Sequence";
+		
+		this ( ) { super(this.msg); }
+	}
+	
+	
+	/**************************************************************************
+
+		Too Big (output buffer full)
+	
+	 **************************************************************************/
+
+	static class TooBig :  IconvException
+	{
+		const msg = "Iconv: Too Big (output buffer full)";
+		
+		this ( ) { super(this.msg); }
+	}
+	
+	
+
+}
+
+/******************************************************************************
+
     opCall template for Exception classes
 
  ******************************************************************************/
