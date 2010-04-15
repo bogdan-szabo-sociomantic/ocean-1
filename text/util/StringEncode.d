@@ -20,6 +20,7 @@
 			auto string_enc = new StringEncode!("ISO-8859-1", "UTF-8");
 
 		The conversion function is called as follows:
+		
 			char[] input = "A string to be converted";
 			char[] output; // The buffer which is written into
 
@@ -45,7 +46,7 @@ private import ocean.core.Exception : IconvException;
 
 debug
 {
-	private import tango.io.Stdout;
+	private import tango.util.log.Trace;
 }
 
 
@@ -60,6 +61,7 @@ debug
 
 public class StringEncode ( char[] fromcode, char[] tocode )
 {
+	
 	/***************************************************************************
 
 		Protected property : the conversion descriptor which iconv uses
@@ -89,8 +91,13 @@ public class StringEncode ( char[] fromcode, char[] tocode )
 		Converts a string in one encoding type to another (as specified by the 
 		class' template parameters).
 
-		Repeatedly trys converting the input and resizing the output buffer
-		until the conversion succeeds.
+		Makes a guess at the required size of output buffer, simply setting it
+		to the same size as the input buffer. Then repeatedly trys converting
+		the input and increasing the size of the output buffer until the
+		conversion succeeds.
+
+		To avoid repeated memory allocation, if you need to call this function
+		many times, it's best to always pass the same output buffer.
 
 		Params:
 			input = the array of characters to be converted.
@@ -103,11 +110,12 @@ public class StringEncode ( char[] fromcode, char[] tocode )
 
 	***************************************************************************/
 
-
 	public void convert ( char[] input, out char[] output )
 	{
+		output.length = input.length;
+
 		bool succeeded = false;
-		while ( !succeeded )
+		do
 		{
 			try
 			{
@@ -121,10 +129,10 @@ public class StringEncode ( char[] fromcode, char[] tocode )
 				output.length = output.length + input.length;
 				debug
 				{
-					Stderr.formatln("StringEncode.convert : expanding output buffer to {} chars", output.length);
+					Trace.formatln("StringEncode.convert : expanding output buffer to {} chars", output.length);
 				}
 			}
-		}
+		} while ( !succeeded )
 	}
 
 
@@ -144,10 +152,8 @@ public class StringEncode ( char[] fromcode, char[] tocode )
 	
 	***************************************************************************/
 
-	protected void convert_ ( char[] input, out char[] output )
+	protected void convert_ ( char[] input, ref char[] output )
 	{
-		output.length = input.length;
-		
 		size_t inbytesleft  = input.length;
 		size_t outbytesleft = output.length;
 		char* inptr  = input.ptr;
