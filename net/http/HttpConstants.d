@@ -29,7 +29,7 @@ import      tango.net.http.HttpConst;
 ********************************************************************************/
 
 
-struct HttpRequestType
+struct HttpMethod
 {       
     static const char[] Options      = "OPTIONS";
     static const char[] Get          = "GET";
@@ -38,7 +38,7 @@ struct HttpRequestType
     static const char[] Put          = "PUT";
     static const char[] Delete       = "DELETE";
     static const char[] Trace        = "TRACE";
-    static const char[] Connect      = "CONNECT";   
+    static const char[] Connect      = "CONNECT";
 }
 
 
@@ -61,14 +61,18 @@ struct UriDelim
 /*******************************************************************************
 
     Http Protocol Version
+    
+    The type definition is an easy means to avoid inadvertent use of an
+    arbitrary string where a HTTP version identifier string is required.
 
 ********************************************************************************/
 
+typedef char[] HttpVersionId;
 
-struct HttpProtocolVersion
-{       
-    static const char[] V_10 = "HTTP/1.0";
-    static const char[] V_11 = "HTTP/1.1";   
+struct HttpVersion
+{   
+    static const HttpVersionId v10 = cast (HttpVersionId) "HTTP/1.0",
+                               v11 = cast (HttpVersionId) "HTTP/1.1";
 }
 
 
@@ -83,24 +87,43 @@ const       char[]      HttpHeaderSeparator    = HttpConst.Eol ~ HttpConst.Eol;
 const       char[]      HttpQueryLineSeparator = HttpConst.Eol;
 
 
+struct HttpCookieAttr
+{
+    static const struct Name
+    {
+        static const Comment  = "Comment",
+                     Domain   = "Domain",
+                     MaxAge   = "Max-Age",
+                     Path     = "Path",
+                     Secure   = "Secure",
+                     Version  = "Version";
+    }
+    
+    static const struct Delim
+    {
+        static const AttrValue  = '=',
+                     Attributes = ';';
+    }
+}
+
 /*******************************************************************************
 
-    Http Response Description strings
+    Http Status Description strings
 
 ********************************************************************************/
 
 
-struct HttpResponseNames
+struct HttpStatusNames
 {       
     /**************************************************************************
 
-        Returns a HTTP response code description string.
+        Returns a HTTP status code description string.
         
         Params:
-            code = HTTP response code
+            code = HTTP status code
             
         Returns:
-            HTTP response code description string
+            HTTP status code description string
 
      **************************************************************************/
     
@@ -108,15 +131,15 @@ struct HttpResponseNames
     {
         char[]* str = code in this.response_names;
         
-        return str? *str : "[unknown HTTP response code]";
+        return str? *str : "[unknown HTTP status code]";
     }
     
     /**************************************************************************
 
-        Tells whether a description string is available for a HTTP response code.
+        Tells whether a description string is available for a HTTP status code.
         
         Params:
-            code = HTTP response code
+            code = HTTP status code
             
         Returns:
             true if there is a description string or false otherwise
@@ -144,7 +167,7 @@ struct HttpResponseNames
 
     static this ( )
     {
-        foreach (response;
+        foreach (status;
         [
             HttpResponses.Continue,
             HttpResponses.SwitchingProtocols,
@@ -188,7 +211,7 @@ struct HttpResponseNames
             HttpResponses.VersionNotSupported
         ])
         {
-            this.response_names[response.code] = response.name;
+            this.response_names[status.code] = status.name;
         }
     }
 }
