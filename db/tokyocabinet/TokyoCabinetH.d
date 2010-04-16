@@ -317,30 +317,41 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     
     /**************************************************************************
     
-        Set Database Options
+        Enable database tune option
         
         TuneOpts.Large:      size of the database can be larger than 2GB 
         TuneOpts.Deflate:    each recordis compressed with deflate encoding
         TuneOpts.Bzip:       each record is compressed with BZIP2 encoding
         TuneOpts.Tcbs:       each record is compressed with TCBS encoding
         
-        Options may be combined by bit-wise OR '|':
-                
-        ---
+        Params:
+            option = tune option
+            
+     ***************************************************************************/
+    
+    public void enableTuneOption ( TuneOpts option )
+    {
+        this.tune.opts |= option;
+    }
+    
+    
+    /**************************************************************************
+    
+        Disable database tune option
         
-            setTuneOpts(TuneOpts.Large);
-            setTuneOpts(TuneOpts.Large | TuneOpts.Deflate);       
-        
-        ---
+        TuneOpts.Large:      size of the database can be larger than 2GB 
+        TuneOpts.Deflate:    each recordis compressed with deflate encoding
+        TuneOpts.Bzip:       each record is compressed with BZIP2 encoding
+        TuneOpts.Tcbs:       each record is compressed with TCBS encoding
         
         Params:
-            opts = tune options
+            option = tune option
             
     ***************************************************************************/
     
-    public void setTuneOpts ( TuneOpts opts = Tune.opts.init )
+    public void disableTuneOption ( TuneOpts option )
     {
-        this.tune.opts = opts;
+        this.tune.opts &= ~option;
     }
     
     
