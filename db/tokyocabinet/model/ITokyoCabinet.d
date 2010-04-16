@@ -82,12 +82,26 @@ abstract class ITokyoCabinet ( TCDB, alias tcdbforeach )
     
     /**************************************************************************
     
-        "foreach" iterator over items in database. The "key" and "val"
-        parameters of the delegate correspond to the iteration variables.
+        "foreach" iterator over key/value pairs of records in database. The
+        "key" and "val" parameters of the delegate correspond to the iteration
+        variables.
         
      ***************************************************************************/
     
-    public int opApply ( TcIterator.ForeachDelg delg )
+    public int opApply ( TcIterator.KeyValIterDg delg )
+    {
+        return TcIterator.tcdbopapply(this.db, delg);
+    }
+    
+    
+    /**************************************************************************
+    
+        "foreach" iterator over keys of records in database. The "key"
+        parameter of the delegate corresponds to the iteration variable.
+        
+     ***************************************************************************/
+    
+    public int opApply ( TcIterator.KeyIterDg delg )
     {
         return TcIterator.tcdbopapply(this.db, delg);
     }
@@ -295,11 +309,12 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
 {
     /**************************************************************************
     
-        D 'foreach' delegate definition
+        D 'foreach' key/value and key-only delegate definition
     
      **************************************************************************/
     
-    public alias int delegate ( ref char[] key, ref char[] val ) ForeachDelg;
+    public alias int delegate ( ref char[] key, ref char[] val ) KeyValIterDg;
+    public alias int delegate ( ref char[] key                 ) KeyIterDg;
     
     /**************************************************************************
     
@@ -315,16 +330,35 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
           
      **************************************************************************/
     
-    public static int tcdbopapply ( TCDB* db, ForeachDelg delg )
+    public static int tcdbopapply ( TCDB* db, KeyValIterDg delg )
     {
-        return !tcdbforeach(db, &tciter_callback, &delg);
+        return !tcdbforeach(db, &tciter_callback_keyval, &delg);
     }
     
     /**************************************************************************
     
-        tchdbforeach() callback function
+        Invokes tchdbforeach() with the provided D 'foreach' delegate.
         
-        Assumes that the pointer to a D delegate of type ForeachDelg was passed
+        Params:
+            db:  TokyoCabinet database reference
+            delg: D 'foreach' delegate
+            
+        Returns:
+            false on to continue or true to stop iteration, complying to the
+            return value prescripted for a D 'foreach' delegate.
+          
+     **************************************************************************/
+    
+    public static int tcdbopapply ( TCDB* db, KeyIterDg delg )
+    {
+        return !tcdbforeach(db, &tciter_callback_key, &delg);
+    }
+    
+    /**************************************************************************
+    
+        tchdbforeach() callback function for key/value iteration
+        
+        Assumes that the pointer to a D delegate of type KeyValIterDg was passed
         to tchdbforeach() as custom reference parameter "op" (last argument of
         tchdbforeach()) and invokes this delegate.
         
@@ -335,7 +369,7 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
             ksiz = value length (bytes)
             op   = custom reference; contains the value of the last
                    tchdbforeach() argument "op". This must be a pointer to the D
-                   delegate of type ForeachDelg to invoke.
+                   delegate of type KeyValIterDg to invoke.
             
         Returns:
             true on to continue or false to stop iteration, complying to the
@@ -343,24 +377,74 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
           
      **************************************************************************/
     
-    extern (C) private static bool tciter_callback ( void* kbuf, int ksiz,
-                                                      void* vbuf, int vsiz, void* op )
+    extern (C) private static bool tciter_callback_keyval ( void* kbuf, int ksiz,
+                                                            void* vbuf, int vsiz, void* op )
     in
     {
-        assert (kbuf,       "tchiter: got null key from tchdbforeach()");
-        assert (vbuf,       "tchiter: got null value from tchdbforeach()");
-        assert (ksiz >= 0,  "tchiter: invalid key length from tchdbforeach()");
-        assert (vsiz >= 0,  "tchiter: invalid value length from tchdbforeach()");
-        assert (op,         "tchiter: got null op from tchdbforeach(); expected "
-                            "pointer to ForeachDelg delegate");
+        callback_in_contract(kbuf, ksiz, vbuf, vsiz, op);
     }
     body
     {
         char[] key = cast (char[]) kbuf[0 .. ksiz];
         char[] val = cast (char[]) vbuf[0 .. vsiz];
         
-        ForeachDelg delg = *(cast (ForeachDelg*) op); 
+        KeyValIterDg delg = *(cast (KeyValIterDg*) op); 
         
         return !delg(key, val);
+    }
+    
+    /**************************************************************************
+    
+        tchdbforeach() callback function for key-only iteration
+        
+        Assumes that the pointer to a D delegate of type KeyIterDg was passed
+        to tchdbforeach() as custom reference parameter "op" (last argument of
+        tchdbforeach()) and invokes this delegate.
+        
+        Params:
+            kbuf = key buffer
+            ksiz = key length (bytes)
+            vbuf = value buffer
+            ksiz = value length (bytes)
+            op   = custom reference; contains the value of the last
+                   tchdbforeach() argument "op". This must be a pointer to the D
+                   delegate of type KeyValIterDg to invoke.
+            
+        Returns:
+            true on to continue or false to stop iteration, complying to the
+            return value prescripted for the tchdbforeach() callback function.
+          
+     **************************************************************************/
+    
+    extern (C) private static bool tciter_callback_key ( void* kbuf, int ksiz,
+                                                         void* vbuf, int vsiz, void* op )
+    in
+    {
+        callback_in_contract(kbuf, ksiz, vbuf, vsiz, op);
+    }
+    body
+    {
+        char[] key = cast (char[]) kbuf[0 .. ksiz];
+        
+        KeyIterDg delg = *(cast (KeyIterDg*) op); 
+        
+        return !delg(key);
+    }
+    
+    /**************************************************************************
+    
+        'in' contract for tciter_callback_keyval() and tciter_callback_key()
+          
+     **************************************************************************/
+
+    private static void callback_in_contract ( void* kbuf, int ksiz,
+                                               void* vbuf, int vsiz, void* op )
+    {
+        assert (kbuf,       "tchiter: got null key from tchdbforeach()");
+        assert (vbuf,       "tchiter: got null value from tchdbforeach()");
+        assert (ksiz >= 0,  "tchiter: invalid key length from tchdbforeach()");
+        assert (vsiz >= 0,  "tchiter: invalid value length from tchdbforeach()");
+        assert (op,         "tchiter: got null op from tchdbforeach(); expected "
+                            "pointer to iteration delegate");
     }
 }
