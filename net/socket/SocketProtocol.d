@@ -198,6 +198,9 @@ class SocketProtocol : Socket
             super.native.reopen();
             
             this.connected = false;
+            
+            this.reader.buffer().clear();
+            this.writer.buffer().clear();
         }
         
         return this;
