@@ -24,6 +24,8 @@ private	        import  ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
 private		    import	ocean.text.util.StringC;
 private 		import  tango.stdc.stdlib: free;
 
+private 		import  tango.util.log.Trace;
+
 /******************************************************************************
 
     ITokyoCabinet abstract class
@@ -316,135 +318,168 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
     public alias int delegate ( ref char[] key, ref char[] val ) KeyValIterDg;
     public alias int delegate ( ref char[] key                 ) KeyIterDg;
     
-    /**************************************************************************
-    
-        Invokes tchdbforeach() with the provided D 'foreach' delegate.
-        
-        Params:
-            db:  TokyoCabinet database reference
-            delg: D 'foreach' delegate
-            
-        Returns:
-            false on to continue or true to stop iteration, complying to the
-            return value prescripted for a D 'foreach' delegate.
-          
-     **************************************************************************/
-    
-    public static int tcdbopapply ( TCDB* db, KeyValIterDg delg )
-    {
-        return !tcdbforeach(db, &tciter_callback_keyval, &delg);
-    }
     
     /**************************************************************************
     
-        Invokes tchdbforeach() with the provided D 'foreach' delegate.
-        
-        Params:
-            db:  TokyoCabinet database reference
-            delg: D 'foreach' delegate
-            
-        Returns:
-            false on to continue or true to stop iteration, complying to the
-            return value prescripted for a D 'foreach' delegate.
-          
-     **************************************************************************/
+        Definitions of argument structures passed to tcdbforeach() callback 
     
-    public static int tcdbopapply ( TCDB* db, KeyIterDg delg )
-    {
-        return !tcdbforeach(db, &tciter_callback_key, &delg);
-    }
-    
-    /**************************************************************************
-    
-        tchdbforeach() callback function for key/value iteration
-        
-        Assumes that the pointer to a D delegate of type KeyValIterDg was passed
-        to tchdbforeach() as custom reference parameter "op" (last argument of
-        tchdbforeach()) and invokes this delegate.
-        
-        Params:
-            kbuf = key buffer
-            ksiz = key length (bytes)
-            vbuf = value buffer
-            ksiz = value length (bytes)
-            op   = custom reference; contains the value of the last
-                   tchdbforeach() argument "op". This must be a pointer to the D
-                   delegate of type KeyValIterDg to invoke.
-            
-        Returns:
-            true on to continue or false to stop iteration, complying to the
-            return value prescripted for the tchdbforeach() callback function.
-          
-     **************************************************************************/
-    
-    extern (C) private static bool tciter_callback_keyval ( void* kbuf, int ksiz,
-                                                            void* vbuf, int vsiz, void* op )
-    in
-    {
-        callback_in_contract(kbuf, ksiz, vbuf, vsiz, op);
-    }
-    body
-    {
-        char[] key = cast (char[]) kbuf[0 .. ksiz];
-        char[] val = cast (char[]) vbuf[0 .. vsiz];
-        
-        KeyValIterDg delg = *(cast (KeyValIterDg*) op); 
-        
-        return !delg(key, val);
-    }
-    
-    /**************************************************************************
-    
-        tchdbforeach() callback function for key-only iteration
-        
-        Assumes that the pointer to a D delegate of type KeyIterDg was passed
-        to tchdbforeach() as custom reference parameter "op" (last argument of
-        tchdbforeach()) and invokes this delegate.
-        
-        Params:
-            kbuf = key buffer
-            ksiz = key length (bytes)
-            vbuf = value buffer
-            ksiz = value length (bytes)
-            op   = custom reference; contains the value of the last
-                   tchdbforeach() argument "op". This must be a pointer to the D
-                   delegate of type KeyValIterDg to invoke.
-            
-        Returns:
-            true on to continue or false to stop iteration, complying to the
-            return value prescripted for the tchdbforeach() callback function.
-          
-     **************************************************************************/
-    
-    extern (C) private static bool tciter_callback_key ( void* kbuf, int ksiz,
-                                                         void* vbuf, int vsiz, void* op )
-    in
-    {
-        callback_in_contract(kbuf, ksiz, vbuf, vsiz, op);
-    }
-    body
-    {
-        char[] key = cast (char[]) kbuf[0 .. ksiz];
-        
-        KeyIterDg delg = *(cast (KeyIterDg*) op); 
-        
-        return !delg(key);
-    }
-    
-    /**************************************************************************
-    
-        'in' contract for tciter_callback_keyval() and tciter_callback_key()
-          
      **************************************************************************/
 
-    private static void callback_in_contract ( void* kbuf, int ksiz,
-                                               void* vbuf, int vsiz, void* op )
+    struct KeyValIterArgs
     {
-        assert (kbuf,       "tchiter: got null key from tchdbforeach()");
-        assert (vbuf,       "tchiter: got null value from tchdbforeach()");
-        assert (ksiz >= 0,  "tchiter: invalid key length from tchdbforeach()");
-        assert (vsiz >= 0,  "tchiter: invalid value length from tchdbforeach()");
-        assert (op,         "tchiter: got null op from tchdbforeach(); expected "
-                            "pointer to iteration delegate");
+        KeyValIterDg dg;
+        Exception    e = null;
+    }
+    
+    struct KeyIterArgs
+    {
+        KeyIterDg dg;
+        Exception e = null;
+    }
+    
+    /**************************************************************************
+    
+        Invokes tchdbforeach() with the provided D 'foreach' delegate. Rethrows
+        an exception caught inside tchdbforeach().
+        
+        Params:
+            db: TokyoCabinet database reference
+            dg: D 'foreach' delegate
+            
+        Returns:
+            false on to continue or true to stop iteration, complying to the
+            return value mandated for a D 'foreach' delegate.
+          
+     **************************************************************************/
+    
+    public static int tcdbopapply ( TCDB* db, KeyValIterDg dg )
+    {
+        KeyValIterArgs args = KeyValIterArgs(dg, null);
+        
+        scope (exit) if (!!args.e) throw args.e;
+        
+        return !tcdbforeach(db, &tciter_callback_key, &args);
+    }
+    
+    /**************************************************************************
+    
+        Invokes tchdbforeach() with the provided D 'foreach' delegate. Rethrows
+        an exception caught inside tchdbforeach().
+        
+        Params:
+            db: TokyoCabinet database reference
+            dg: D 'foreach' delegate
+            
+        Returns:
+            false on to continue or true to stop iteration, complying to the
+            return value mandated for a D 'foreach' delegate.
+          
+     **************************************************************************/
+    
+    public static int tcdbopapply ( TCDB* db, KeyIterDg dg )
+    {
+        KeyIterArgs args = KeyIterArgs(dg, null);
+        
+        scope (exit) if (!!args.e) throw args.e;
+        
+        return !tcdbforeach(db, &tciter_callback_key, &args);
+    }
+    
+    /**************************************************************************
+     
+        tchdbforeach() callback function definitions
+     
+     **************************************************************************/
+    
+    extern (C) private static 
+    {
+        /**********************************************************************
+        
+            tchdbforeach() callback function for key/value iteration
+            
+            Assumes that op is a pointer to a KeyValIterArgs structure and
+            invokes the delegate member KeyValIterArgs.dg (which likely
+            represents a 'foreach' loop body).
+            If an exception is thrown from inside dg, it is caught,
+            KeyValIterArgs.e is set to it and false is returned to stop
+            iteration.
+            
+            Params:
+                kbuf = key buffer
+                ksiz = key length (bytes)
+                vbuf = value buffer
+                ksiz = value length (bytes)
+                op   = custom reference; contains the value of the last
+                       tchdbforeach() argument "op". This must be a pointer to a
+                       KeyValIterArgs structure.
+                
+            Returns:
+                true to continue or false to stop iteration, complying to the
+                return value mandated for the tchdbforeach() callback function.
+              
+         **********************************************************************/
+        
+        bool tciter_callback_keyval ( void* kbuf, int ksiz, void* vbuf, int vsiz, void* op )
+        {
+            char[] key = cast (char[]) kbuf[0 .. ksiz];
+            char[] val = cast (char[]) vbuf[0 .. vsiz];
+            
+            KeyValIterArgs* args = cast (KeyValIterArgs*) op;
+            
+            try
+            {
+                return !args.dg(key, val);
+            }
+            catch (Exception e)
+            {
+                args.e = e;
+                
+                return false;
+            }
+        }
+        
+        /**********************************************************************
+        
+            tchdbforeach() callback function for key/value iteration
+            
+            Assumes that op is a pointer to a KeyValIterArgs structure and
+            invokes the delegate member KeyValIterArgs.dg (which likely
+            represents a 'foreach' loop body).
+            If an exception is thrown from inside dg, it is caught,
+            KeyValIterArgs.e is set to it and false is returned to stop
+            iteration.
+            
+            Params:
+                kbuf = key buffer
+                ksiz = key length (bytes)
+                vbuf = value buffer
+                ksiz = value length (bytes)
+                op   = custom reference; contains the value of the last
+                       tchdbforeach() argument "op". This must be a pointer to a
+                       KeyValIterArgs structure.
+                
+            Returns:
+                true to continue or false to stop iteration, complying to the
+                return value mandated for the tchdbforeach() callback function.
+              
+         **********************************************************************/
+        
+        bool tciter_callback_key ( void* kbuf, int ksiz, void* vbuf, int vsiz, void* op )
+        {
+            char[] key = cast (char[]) kbuf[0 .. ksiz];
+            
+            KeyIterArgs* args = cast (KeyIterArgs*) op;
+            
+            try
+            {
+                return !args.dg(key);
+            }
+            catch (Exception e)
+            {
+                args.e = e;
+                
+                return false;
+            }
+        }
     }
 }
