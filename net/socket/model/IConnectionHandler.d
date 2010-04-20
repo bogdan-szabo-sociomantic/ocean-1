@@ -30,7 +30,7 @@ private import ocean.io.protocol.ListWriter;
 
 private import ocean.util.TraceLog;
 
-private import tango.io.Buffer: GrowBuffer;
+private import tango.io.Buffer;
 
 private import tango.io.model.IBuffer;
 private import tango.io.model.IConduit;
@@ -38,6 +38,8 @@ private import tango.io.model.IConduit;
 private import tango.core.Runtime;
 
 private import tango.core.Exception: IOException;
+
+private import tango.util.log.Trace;
 
 /******************************************************************************
 
@@ -72,7 +74,7 @@ abstract class IConnectionHandler
     
     private               IBuffer                         buffer;  
     
-    private const         size_t                          BUFFER_SIZE_INIT = 0x2000;
+    private const         size_t                          DefaultBufferSize = 0x1_0000;
     
     /**************************************************************************
     
@@ -80,24 +82,43 @@ abstract class IConnectionHandler
     
      **************************************************************************/
 
-    protected static      bool                            terminated;
+    protected static      bool                            terminated = false;
+    
+    /**************************************************************************
+    
+        Finished flag for run()
+    
+     **************************************************************************/
+
+    protected             bool                            finished;
     
     /**************************************************************************
         
-        Set socket conduit & DHT nodes
-        
+        Constructor
+    
         Params:
-            dht_node_items = list (array) of DHT nodes to connect to
+            buffer_size = I/O buffer size
     
      **************************************************************************/
     
-    this ( )
+    this ( size_t buffer_size )
     {
-        this.buffer    = new GrowBuffer(this.BUFFER_SIZE_INIT);
+        this.buffer    = new Buffer(buffer_size);
         
         this.reader    = new ListReader(buffer);
         this.writer    = new ListWriter(buffer);
     } 
+    
+    /**************************************************************************
+    
+        Constructor
+    
+     **************************************************************************/
+
+    this ( )
+    {
+        this(this.DefaultBufferSize);
+    }
     
     /**************************************************************************
         
@@ -116,26 +137,21 @@ abstract class IConnectionHandler
         
         try 
         {
-            while (!this.terminated)
+            this.finished = false;
+            
+            while (!this.terminated && !this.finished)
             {
                 // start with a clear conscience
                 this.buffer.clear();
-                  
+                
                 // wait for something to arrive before we try/catch
                 this.buffer.slice(1, false);
                   
                 if (this.terminated) return;
                 
-                try 
-                {
-                    this.dispatch();
-                } 
-                catch (Exception e)
-                {
-                    TraceLog.write("request error '{}'", e);
-                }
+                this.dispatch();
                 // send response back to client
-                  
+                
                 this.buffer.flush();
             }
         } 
@@ -144,15 +160,19 @@ abstract class IConnectionHandler
             if (!Runtime.isHalting())
             {
                 TraceLog.write("socket exception '{}'", e);
+                Trace.formatln("socket exception '{}'", e);
             }
         }
         catch (Exception e)
         {
             TraceLog.write("runtime exception '{}'", e);
+            Trace.formatln("runtime exception '{}'", e);
         }
         finally
         {
             conduit.detach();
+            
+            this.buffer.clear();
         }
     }
     

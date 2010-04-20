@@ -90,7 +90,10 @@ private  import  tango.net.device.Socket;
 private  import  tango.net.device.Berkeley: Address;
 private  import  tango.net.InternetAddress;
 
-private  import  tango.core.Thread;
+private  import  tango.core.Thread: Thread;
+
+private  import  Thread_ = tango.core.Thread: thread_joinAll;
+
 private  import  tango.core.Runtime;
 
 /******************************************************************************
@@ -101,6 +104,14 @@ private  import  tango.core.Runtime;
 
 class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : Thread
 {
+    /**************************************************************************
+    
+        Call joinAll() like a static method do wait for all threads to finish.
+        
+     **************************************************************************/
+
+    public alias        Thread_.thread_joinAll          joinAll;
+    
     /**************************************************************************
     
         Maximum number of accepted pending connections
@@ -225,6 +236,8 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
                 
                 if (socket)
                 {
+                    socket.checkError();
+                    
                     if (this.connections.pendingJobs < this.conn_queue_max)
                     {
                         this.connections.append(socket);

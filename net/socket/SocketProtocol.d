@@ -42,7 +42,7 @@ class SocketProtocol : Socket
         
     **************************************************************************/
 
-    static const BUFFER_SIZE = 0x800;
+    static const DefaultBufferSize = 0x800;
     
     /**************************************************************************
     
@@ -90,7 +90,7 @@ class SocketProtocol : Socket
         
     **************************************************************************/
     
-    this ( char[] address, ushort port, size_t buf_size = BUFFER_SIZE )
+    this ( char[] address, ushort port, size_t buf_size = DefaultBufferSize )
     {
         this(new IPv4Address(address, port), buf_size, buf_size);
     }
@@ -126,7 +126,7 @@ class SocketProtocol : Socket
         
     **************************************************************************/
 
-    this ( IPv4Address address, size_t buf_size = BUFFER_SIZE )
+    this ( IPv4Address address, size_t buf_size = DefaultBufferSize )
     {
         this(address, buf_size, buf_size);
     }
@@ -152,8 +152,8 @@ class SocketProtocol : Socket
         
         this.connect_();
         
-        this.reader  = new ListReader((new GrowBuffer(rbuf_size)).setConduit(super));
-        this.writer  = new ListWriter((new GrowBuffer(wbuf_size)).setConduit(super));
+        this.reader  = new ListReader((new Buffer(rbuf_size)).setConduit(super));
+        this.writer  = new ListWriter((new Buffer(wbuf_size)).setConduit(super));
     }
     
     /**************************************************************************
