@@ -8,12 +8,9 @@
     
     authors:        David Eckardt
     
-    Invoked by ServerSocketThread on incoming connection; manages a persistent
-    client connection. Stops when client breaks the connection or hangs-up on
-    it.
-    A class for a connection handler created and invoked by ServerSocketThread
-    must implement dispatch(). For socket I/O the reader/writer class properties
-    are available to a subclass.
+    Abstract class for a connection handler invoked by ServerSocketThread. A 
+    subclass must implement dispatch(). For conduit (socket) I/O the
+    reader/writer class properties are available to the subclass.
     
  ******************************************************************************/
 
@@ -111,7 +108,7 @@ abstract class IConnectionHandler
     
     /**************************************************************************
     
-        Constructor
+        Constructor; uses default I/O buffer size
     
      **************************************************************************/
 
@@ -122,7 +119,9 @@ abstract class IConnectionHandler
     
     /**************************************************************************
         
-        Handle connection
+        Handles a client connection. Stops when the "finished" (for temporary
+        connections) or the "terminate" flag (for persistent connections) is set
+        to true or the client closes/breaks the connection.
         
         Params:
             conduit = connection conduit (e.g. socket)
