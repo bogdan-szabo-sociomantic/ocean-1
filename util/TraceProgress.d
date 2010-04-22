@@ -41,7 +41,7 @@
 		---
 
 		uint max = 1000;
-		scope progress = Tracer(Tracer.Title("test"), Tracer.Percentage(max));
+		scope progress = Tracer(Tracer.Name("test"), Tracer.Percentage(max));
 		for ( int i = 0; i < max; i++ )
 		{
 			// Do stuff...
@@ -58,7 +58,7 @@
 
 		---
 
-		scope progress = Tracer(Tracer.Title("test), Tracer.ConsoleStatic());
+		scope progress = Tracer(Tracer.Name("test), Tracer.ConsoleStatic());
 		foreach ( val; data_source )
 		{
 			// Do stuff...
@@ -76,7 +76,7 @@
 
 		---
 
-		scope progress = Tracer(Tracer.Title("test), Tracer.ConsoleStatic(),
+		scope progress = Tracer(Tracer.Name("test), Tracer.ConsoleStatic(),
 			Tracer.Interval(1000), Tracer.Time());
 		foreach ( val; data_source )
 		{
@@ -96,7 +96,7 @@
 
 		---
 
-		scope progress = Tracer(Tracer.Title("test), Tracer.IncConsoleStreaming(),
+		scope progress = Tracer(Tracer.Name("test), Tracer.IncConsoleStreaming(),
 			Tracer.Interval(1000), Tracer.Time(), Tracer.WorkDone("bytes"));
 		foreach ( val; data_source )
 		{
