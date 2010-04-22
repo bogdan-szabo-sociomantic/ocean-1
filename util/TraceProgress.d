@@ -1063,6 +1063,8 @@ public class Tracer
 
 	public void finished ( )
 	{
+		this.updateTimer();
+
 		getTotalProgress(this.str);
 		this.str ~= " - finished\n";
 
@@ -1339,12 +1341,28 @@ public class Tracer
 
 	protected void interval ( )
 	{
-		if ( this.time.isActive() )
-		{
+		this.updateTimer();
+		this.display();
+	}
+
+
+	/***************************************************************************
+	 
+		 Updates the timer, if it's active.
+		 
+		 Params:
+		 	void
+		 
+		 Returns:
+		 	void
+	
+	***************************************************************************/
+	
+	protected void updateTimer ( )
+	{
+		if(this.time.isActive()) {
 			this.time.set(timer.microsec());
 		}
-
-		this.display();
 	}
 
 
