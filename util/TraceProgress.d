@@ -38,6 +38,8 @@
 	Example usage 1 - Displays progress to the log file as a percentage of the
 	total once per iteration:
 
+		---
+
 		uint max = 1000;
 		scope progress = Tracer(Tracer.Title("test"), Tracer.Percentage(max));
 		for ( int i = 0; i < max; i++ )
@@ -48,9 +50,13 @@
 		}
 		progress.finished();
 
+		---
+
 
 	Example usage 2: Displays progress to the log file once per iteration, and
 	also to the console as a dynamically updated (over-written) line of text:
+
+		---
 
 		scope progress = Tracer(Tracer.Title("test), Tracer.ConsoleStatic());
 		foreach ( val; data_source )
@@ -61,10 +67,14 @@
 		}
 		progress.finished();
 
+		---
+
 
 	Example usage 3: Displays progress to the log file once per 1000 iterations,
 	and	also to the console as a dynamically updated (over-written) line of
 	text. The total time taken is also displayed:
+
+		---
 
 		scope progress = Tracer(Tracer.Title("test), Tracer.ConsoleStatic(),
 			Tracer.Interval(1000), Tracer.Time());
@@ -76,11 +86,15 @@
 		}
 		progress.finished();
 
+		---
+
     
 	Example usage 4: Displays incremental progress to the log file once per 1000
 	iterations,	and	also to the console as streaming lines of text. The time per
 	interval (1000 iterations) is displayed, along with the number of bytes
 	processed per interval:
+
+		---
 
 		scope progress = Tracer(Tracer.Title("test), Tracer.IncConsoleStreaming(),
 			Tracer.Interval(1000), Tracer.Time(), Tracer.WorkDone("bytes"));
@@ -92,7 +106,8 @@
 			progress.tick(bytes_processed);
 		}
 		progress.finished();
-    
+		---
+
 *******************************************************************************/
 
 module src.core.TraceProgress;
