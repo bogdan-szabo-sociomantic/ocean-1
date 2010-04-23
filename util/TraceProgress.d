@@ -17,14 +17,15 @@
 	"interval").
 
 	The output can be set to show either the total cumulative progress, or the
-	(incremental) progress per interval.
+	incremental progress per interval, or both.
 
 	Console output can be set to either static or streaming mode. Streaming mode
-	outputs a new line of information each interval. Static mode progerssively
+	outputs a new line of information each interval. Static mode progressively
 	erases and re-writes the same line of text (using \b characters sent to the
 	console).
 	
-	The time (in seconds) per interval can optionally be displayed.
+	The time (in seconds, milliseconds or microseconds) can	optionally be
+	displayed.
 
 	An optionl "work done" value can be displayed, which is passed to the Tracer
 	object each iteration. This value can be used to keep track of the amount of
@@ -58,7 +59,7 @@
 
 		---
 
-		scope progress = Tracer(Tracer.Name("test), Tracer.ConsoleStatic());
+		scope progress = Tracer(Tracer.Name("test), Tracer.ConsoleDisplay.Static);
 		foreach ( val; data_source )
 		{
 			// Do stuff...
@@ -76,8 +77,8 @@
 
 		---
 
-		scope progress = Tracer(Tracer.Name("test), Tracer.ConsoleStatic(),
-			Tracer.Interval(1000), Tracer.Time());
+		scope progress = Tracer(Tracer.Name("test), Tracer.ConsoleDisplay.Static,
+			Tracer.Interval(1000), Tracer.Time.Secs);
 		foreach ( val; data_source )
 		{
 			// Do stuff...
@@ -96,8 +97,9 @@
 
 		---
 
-		scope progress = Tracer(Tracer.Name("test), Tracer.IncConsoleStreaming(),
-			Tracer.Interval(1000), Tracer.Time(), Tracer.WorkDone("bytes"));
+		scope progress = Tracer(Tracer.Name("test), Tracer.ConsoleDisplay.Streaming,
+			Tracer.ConsoleDisplay.PerInterval, Tracer.LogDisplay.PerInterval,
+			Tracer.Interval(1000), Tracer.Time.Secs, Tracer.WorkDone("bytes"));
 		foreach ( val; data_source )
 		{
 			// Do stuff...
@@ -144,7 +146,8 @@ public class Tracer
 
 			Off = none.
 			Total = cumulative progress.
-			Incremental = progress per interval.
+			PerInterval = progress per interval.
+			All = both cumulative and incremental display.
 
 	***************************************************************************/
 
@@ -152,7 +155,8 @@ public class Tracer
 	{
 		Off,
 		Total,
-		Incremental
+		PerInterval,
+		All
 	}
 
 
@@ -252,6 +256,24 @@ public class Tracer
 		T percentage_max;
 
 		
+		/***********************************************************************
+
+			Sets display mode to off.
+			
+			Params:
+				void
+			
+			Returns:
+				void
+	
+		***********************************************************************/
+	
+		void displayOff ( )
+		{
+			this.display_mode = DisplayMode.Off;
+		}
+	
+
 		/***********************************************************************
 
 			Sets Normal display mode.
@@ -499,26 +521,40 @@ public class Tracer
 				switch ( this.display_mode )
 				{
 					case DisplayMode.Normal:
-						str ~= Format(" - {} {}", value, this.title);
+						str ~= Format("{} {} - ", value, this.title);
 						break;
 
 					case DisplayMode.Divided:
-						str ~= Format(" - {} {}", cast(float) value / this.float_div, this.title);
+						str ~= Format("{} {} - ", cast(float) value / this.float_div, this.title);
 						break;
 
 					case DisplayMode.Percentage:
 						float progress = cast(float) value / cast(float) this.percentage_max;
 						uint progress_percent = cast(uint)(progress * 100);
-						str ~= Format(" - {}% {}", progress_percent, this.title);
+						str ~= Format("{}% {} - ", progress_percent, this.title);
 						break;
 
 					default:
 						break;
 				}
-
-				// Start counting from the next interval
-				this.last_displayed = this.current;
 			}
+		}
+
+		/***********************************************************************
+
+			Starts the counter counting from the next interval.
+			
+			Params:
+				void
+			
+			Returns:
+				void
+	
+		***********************************************************************/
+		
+		void interval ( )
+		{
+			this.last_displayed = this.current;
 		}
 	}
 
@@ -577,17 +613,27 @@ public class Tracer
 
 	***************************************************************************/
 
-	protected char[] title;
+	protected char[] title = "";
 
 
 	/***************************************************************************
 
-		Protected property : a char buffer, used for message formatting
+		Protected property : a char buffer, used for per interval message
+		formatting
 	
 	***************************************************************************/
 
-	protected char[] str;
+	protected char[] per_interval_str;
 
+
+	/***************************************************************************
+
+		Protected property : a char buffer, used for total message formatting
+	
+	***************************************************************************/
+	
+	protected char[] total_str;
+	
 
 	/***************************************************************************
 
@@ -625,7 +671,7 @@ public class Tracer
 	
 	***************************************************************************/
 
-	protected DisplayMode log_display = DisplayMode.Incremental;
+	protected DisplayMode log_display = DisplayMode.All;
 
 
 	/***************************************************************************
@@ -638,8 +684,8 @@ public class Tracer
 	{
 		char[] name;
 	}
-	
-	
+
+
 	/***************************************************************************
 	
 		Struct to pass an interval size (ie how many iterations between message
@@ -654,82 +700,52 @@ public class Tracer
 	
 	
 	/***************************************************************************
-	
-		Struct to specify a static console output setup into the Tracer's
-		constructor.
-		
-		If the max_iterations property is set, the counter display is set to
-		percentage mode.
+
+		Enum to pass a console display mode into the Tracer's constructor.
 	
 	***************************************************************************/
 	
-	public struct ConsoleStatic
+	public enum ConsoleDisplay
 	{
-		uint max_iteration = 0;
-	}
-	
-	
-	/***************************************************************************
-	
-		Struct to specify a streaming  console output setup into the Tracer's
-		constructor.
-		
-		If the max_iterations property is set, the counter display is set to
-		percentage mode.
-	
-	***************************************************************************/
-	
-	public struct ConsoleStreaming
-	{
-		uint max_iteration = 0;
-	}
-	
-	
-	/***************************************************************************
-	
-		Struct to specify an incremental static console output setup into the
-		Tracer's constructor.
-		
-		If the max_iterations property is set, the counter display is set to
-		percentage mode.
-	
-	***************************************************************************/
-	
-	public struct IncConsoleStatic
-	{
-		uint max_iteration = 0;
-	}
-	
-	
-	/***************************************************************************
-	
-		Struct to specify an incremental streaming console output setup into the
-		Tracer's constructor.
-		
-		If the max_iterations property is set, the counter display is set to
-		percentage mode.
-	
-	***************************************************************************/
-	
-	public struct IncConsoleStreaming
-	{
-		uint max_iteration = 0;
-	}
-	
-	
-	/***************************************************************************
-	
-		Struct to specify time display setup to the Tracer's constructor.
-	
-	***************************************************************************/
-	
-	public struct Time
-	{
-		// Required to avoid segmentation faults when incrementing _agrptr
-		uint dummy;
+		Off,
+		Total,
+		PerInterval,
+		All,
+		Static,
+		Streaming
 	}
 
+
+	/***************************************************************************
+
+		Enum to pass a log display mode into the Tracer's constructor.
 	
+	***************************************************************************/
+
+	public enum LogDisplay
+	{
+		Off,
+		Total,
+		PerInterval,
+		All
+	}
+
+
+	/***************************************************************************
+	
+		Enum to pass a time display mode into the Tracer's constructor.
+	
+	***************************************************************************/
+
+	public enum Time
+	{
+		Off,
+		Secs,
+		Msecs,
+		Usecs
+	}
+
+
 	/***************************************************************************
 
 		Struct to specify percentage iterations display to the Tracer's
@@ -775,10 +791,8 @@ public class Tracer
 			Time = sets time display active
 			WorkDone = sets work done display active
 			Interval = sets the display interval
-			ConsoleStatic = sets static console display mode
-			ConsoleStreaming = sets streaming console display mode
-			IncConsoleStatic = sets incremental static console display mode
-			IncConsoleStreaming = sets incremental streaming console display mode
+			ConsoleDisplay = sets console output display mode
+			LogDisplay = sets logoutput display mode
 			Percentage = sets percentage disply mode of the count property.
 
 		Any other arguments cause an assert.
@@ -800,7 +814,6 @@ public class Tracer
 		this.timer.start();
 
 		// Always show the iteration counter
-		this.count.title = "iterations";
 		this.count.displayAsNormal();
 
 		// Reset the counters to their initial values
@@ -817,21 +830,13 @@ public class Tracer
 			{
 				this.interpretIntervalArg(_argptr);
 			}
-			else if ( _arguments[i] == typeid(ConsoleStatic) )
+			else if ( _arguments[i] == typeid(ConsoleDisplay) )
 			{
-				this.interpretConsoleStaticArg(_argptr);
+				this.interpretConsoleDisplayArg(_argptr);
 			}
-			else if ( _arguments[i] == typeid(ConsoleStreaming) )
+			else if ( _arguments[i] == typeid(LogDisplay) )
 			{
-				this.interpretConsoleStreamingArg(_argptr);
-			}
-			else if ( _arguments[i] == typeid(IncConsoleStatic) )
-			{
-				this.interpretIncConsoleStaticArg(_argptr);
-			}
-			else if ( _arguments[i] == typeid(IncConsoleStreaming) )
-			{
-				this.interpretIncConsoleStreamingArg(_argptr);
+				this.interpretLogDisplayArg(_argptr);
 			}
 			else if ( _arguments[i] == typeid(WorkDone) )
 			{
@@ -874,10 +879,10 @@ public class Tracer
 
 	/***************************************************************************
 	
-		Sets the tracer's console streaming mode (see StreamMode enum).
+		Sets the tracer's console streaming mode.
 		
 		Params:
-			stream = the stream mode to set
+			stream = true = streaming, false = static
 			
 		Returns:
 			void
@@ -889,6 +894,24 @@ public class Tracer
 		this.console_streaming = stream;
 	}
 
+
+	/***************************************************************************
+	
+		Sets the tracer's log display mode (see DisplayMode enum).
+			
+		Params:
+			mode = the display mode to set
+			
+		Returns:
+			void
+	
+	***************************************************************************/
+	
+	public void setLogDisplayMode ( DisplayMode mode )
+	{
+		this.log_display = mode;
+	}
+	
 
 	/***************************************************************************
 	
@@ -905,7 +928,7 @@ public class Tracer
 
 	public void setTitle ( char[] _title )
 	{
-		title = _title.dup;
+		title = _title.dup ~ ": ";
 	}
 
 
@@ -939,10 +962,26 @@ public class Tracer
 	
 	***************************************************************************/
 
-	public void showTime ( )
+	public void setTimeMode ( Time mode )
 	{
-		this.time.title = "secs";
-		this.time.displayAsDivided(1000000);
+		switch ( mode )
+		{
+			case Time.Off:
+				this.time.displayOff();
+				break;
+			case Time.Secs:
+				this.time.title = "s";
+				this.time.displayAsDivided(1000000);
+				break;
+			case Time.Msecs:
+				this.time.title = "ms";
+				this.time.displayAsDivided(1000);
+				break;
+			case Time.Usecs:
+				this.time.title = "Us";
+				this.time.displayAsNormal();
+				break;
+		}
 	}
 
 
@@ -951,7 +990,8 @@ public class Tracer
 		Activates the display of work done.
 		
 		Params:
-			void
+			_work_done_title = the unit title of the work done (eg. Mb, chars,
+			etc)
 	
 		Returns:
 			void
@@ -970,7 +1010,10 @@ public class Tracer
 		Activates the display of work done, and sets a divider value for it.
 		
 		Params:
-			void
+			_work_done_title = the unit title of the work done (eg. Mb, chars,
+			etc)
+			
+			div = divider for the units of work done
 	
 		Returns:
 			void
@@ -986,7 +1029,9 @@ public class Tracer
 
 	/***************************************************************************
 
-		Sets the iterations progress to display as a percentage of the total.
+		Sets the iterations progress to display as a percentage of the total. If
+		the number of iterations passed is 0, the request is meaningless and is
+		ignored.
 		
 		Params:
 			max = the total number of iterations in the process
@@ -1065,11 +1110,7 @@ public class Tracer
 	{
 		this.updateTimer();
 
-		getTotalProgress(this.str);
-		this.str ~= " - finished\n";
-
-		writeToConsole(this.str);
-		writeToLog(this.str);
+		this.display(" - finished");
 		
 		this.resetCounters();
 	}
@@ -1125,7 +1166,7 @@ public class Tracer
 	
 	/***************************************************************************
 
-		Sets the Tracer's console display mode based on a ConsoleStatic
+		Sets the Tracer's console display mode based on a ConsoleDisplay
 		argument from a variadic arguments list.
 		
 		Params:
@@ -1137,22 +1178,41 @@ public class Tracer
 	
 	***************************************************************************/
 
-	protected void interpretConsoleStaticArg( ref void* arg_ptr )
+	protected void interpretConsoleDisplayArg( ref void* arg_ptr )
 	{
-		ConsoleStatic console = *cast(ConsoleStatic*) arg_ptr;
+		ConsoleDisplay console = *cast(ConsoleDisplay*) arg_ptr;
 
-		this.setConsoleDisplayMode(DisplayMode.Total);
-		this.setConsoleStreaming(false);
-		this.showIterationsAsPercentage(console.max_iteration);
+		switch ( console )
+		{
+			case ConsoleDisplay.Off:
+				this.setConsoleDisplayMode(DisplayMode.Off);
+				break;
+			case ConsoleDisplay.Total:
+				this.setConsoleDisplayMode(DisplayMode.Total);
+				break;
+			case ConsoleDisplay.PerInterval:
+				this.setConsoleDisplayMode(DisplayMode.PerInterval);
+				break;
+			case ConsoleDisplay.All:
+				this.setConsoleDisplayMode(DisplayMode.All);
+				break;
+			case ConsoleDisplay.Static:
+				this.setConsoleDisplayMode(DisplayMode.Total);
+				this.setConsoleStreaming(false);
+				break;
+			case ConsoleDisplay.Streaming:
+				this.setConsoleDisplayMode(DisplayMode.Total);
+				this.setConsoleStreaming(true);
+				break;
+		}
 
-		arg_ptr += ConsoleStatic.sizeof;
+		arg_ptr += ConsoleDisplay.sizeof;
 	}
-
 
 	/***************************************************************************
 
-		Sets the Tracer's console display mode based on a ConsoleStreaming
-		argument from a variadic arguments list.
+		Sets the Tracer's log display mode based on a LogDisplay argument from a
+		variadic arguments list.
 		
 		Params:
 			arg_ptr = a variadic args pointer which is shifted on to the next
@@ -1162,68 +1222,28 @@ public class Tracer
 			void
 	
 	***************************************************************************/
-
-	protected void interpretConsoleStreamingArg( ref void* arg_ptr )
+	
+	protected void interpretLogDisplayArg( ref void* arg_ptr )
 	{
-		ConsoleStreaming console = *cast(ConsoleStreaming*) arg_ptr;
+		LogDisplay console = *cast(LogDisplay*) arg_ptr;
 
-		this.setConsoleDisplayMode(DisplayMode.Total);
-		this.setConsoleStreaming(true);
-		this.showIterationsAsPercentage(console.max_iteration);
-
-		arg_ptr += ConsoleStreaming.sizeof;
-	}
-
-
-	/***************************************************************************
-
-		Sets the Tracer's console display mode based on an IncConsoleStatic
-		argument from a variadic arguments list.
-		
-		Params:
-			arg_ptr = a variadic args pointer which is shifted on to the next
-				argument after this argument is interpreted
+		switch ( console )
+		{
+			case LogDisplay.Off:
+				this.setLogDisplayMode(DisplayMode.Off);
+				break;
+			case LogDisplay.Total:
+				this.setLogDisplayMode(DisplayMode.Total);
+				break;
+			case LogDisplay.PerInterval:
+				this.setLogDisplayMode(DisplayMode.PerInterval);
+				break;
+			case LogDisplay.All:
+				this.setLogDisplayMode(DisplayMode.All);
+				break;
+		}
 	
-		Returns:
-			void
-	
-	***************************************************************************/
-
-	protected void interpretIncConsoleStaticArg( ref void* arg_ptr )
-	{
-		IncConsoleStatic console = *cast(IncConsoleStatic*) arg_ptr;
-
-		this.setConsoleDisplayMode(DisplayMode.Incremental);
-		this.setConsoleStreaming(false);
-		this.showIterationsAsPercentage(console.max_iteration);
-
-		arg_ptr += IncConsoleStatic.sizeof;
-	}
-
-	
-	/***************************************************************************
-
-		Sets the Tracer's console display mode based on a IncConsoleStreaming
-		argument from a variadic arguments list.
-		
-		Params:
-			arg_ptr = a variadic args pointer which is shifted on to the next
-				argument after this argument is interpreted
-	
-		Returns:
-			void
-	
-	***************************************************************************/
-
-	protected void interpretIncConsoleStreamingArg( ref void* arg_ptr )
-	{
-		IncConsoleStreaming console = *cast(IncConsoleStreaming*) arg_ptr;
-
-		this.setConsoleDisplayMode(DisplayMode.Incremental);
-		this.setConsoleStreaming(true);
-		this.showIterationsAsPercentage(console.max_iteration);
-
-		arg_ptr += IncConsoleStreaming.sizeof;
+		arg_ptr += LogDisplay.sizeof;
 	}
 
 	
@@ -1243,7 +1263,9 @@ public class Tracer
 
 	protected void interpretTimeArg ( ref void* arg_ptr )
 	{
-		this.showTime();
+		Time time = *cast(Time*) arg_ptr;
+
+		this.setTimeMode(time);
 
 		arg_ptr += Time.sizeof;
 	}
@@ -1328,8 +1350,9 @@ public class Tracer
 
 	/***************************************************************************
 	
-		Marks the passing of an interval. Updates the timer and displays
-		the progress message.
+		Marks the passing of an interval. Updates the timer, displays the
+		progress message, and tells the counters to start counting the next
+		interval.
 	
 		Params:
 			void
@@ -1342,7 +1365,12 @@ public class Tracer
 	protected void interval ( )
 	{
 		this.updateTimer();
+
 		this.display();
+		
+		this.count.interval();
+		this.time.interval();
+		this.work_done.interval();
 	}
 
 
@@ -1368,88 +1396,115 @@ public class Tracer
 
 	/***************************************************************************
 
-		Displays the Tracer's progress message.
-
-		In total display mode the cumulative totals of all counters are shown.
-
-		In incremental display mode just the progress this interval is shown.
+		Displays the Tracer's progress message. First the per interval and total
+		messages are formatted. Then the messages are written to the console and
+		the log.
 
 		Params:
-			void
+			append = string to append to the end of the messages displayed
 
 		Returns:
 			void
 
 	***************************************************************************/
 
-	protected void display ( )
+	protected void display ( char[] append = "" )
 	{
-		// Total display
-		if ( console_display == DisplayMode.Total || log_display == DisplayMode.Total )
-		{
-			this.getTotalProgress(this.str);
-			if ( console_display == DisplayMode.Total )
-			{
-				writeToConsole(this.str);
-			}
-			if ( log_display == DisplayMode.Total )
-			{
-				writeToLog(this.str);
-			}
-		}
+		this.per_interval_str.length = 0;
+		this.getProgressThisInterval(this.per_interval_str);
+		
+		this.total_str.length = 0;
+		this.getTotalProgress(this.total_str);
+		
+		this.write(this.console_display, append, &this.writeToConsole);
 
-		// Incremental display
-		if ( console_display == DisplayMode.Incremental || log_display == DisplayMode.Incremental )
+		this.write(this.log_display, append, &this.writeToLog);
+	}
+
+
+	/***************************************************************************
+
+		Writes the Tracer's progress message to a particular output. A list of
+		strings is built up, depending on the display mode set. The strings are
+		written by a delegate which is passed as a parameter.
+	
+		Params:
+			mode = display mode (see DisplayMode enum)
+
+			append = string to append to the end of the messages displayed
+			
+			write_dg = delegate to write the list of strings produced
+	
+		Returns:
+			void
+	
+	***************************************************************************/
+
+	protected void write ( DisplayMode mode, char[] append, void delegate ( char[][] ) write_dg )
+	{
+		switch ( mode )
 		{
-			this.getProgressThisInterval(this.str);
-			if ( console_display == DisplayMode.Incremental )
-			{
-				writeToConsole(this.str);
-			}
-			if ( log_display == DisplayMode.Incremental )
-			{
-				writeToLog(this.str);
-			}
+			case DisplayMode.Off:
+				break;
+			case DisplayMode.Total:
+				write_dg([this.title, this.total_str, append]);
+				break;
+			case DisplayMode.PerInterval:
+				write_dg([this.title, this.per_interval_str, append]);
+				break;
+			case DisplayMode.All:
+				const char[] spacer = " --- ";
+				write_dg([this.title, this.total_str, spacer, this.per_interval_str, append]);
+				break;
 		}
 	}
 
 
 	/***************************************************************************
 
-		Writes a message to the console (unless console display is switched
-		off).
+		Writes a list of strings to the console.
 
-		In static display mode a single (progressively overwritten) total
-		progress message is shown.
+		In static display mode the strings are written, followed by a string of
+		equal length filled with backspace characters, moving the console cursor
+		back to the start of the line.
 
-		In streaming display mode each new message displays on a new line,
-		resulting in a stream of incremental progress messages.
+		In streaming display mode the strings are written, followed by a
+		newline.
 		
 		Params:
-			void
-	
+			strings = the list of strings to display
+
 		Returns:
 			void
 	
 	***************************************************************************/
 
-	protected void writeToConsole ( char[] str )
+	protected void writeToConsole ( char[][] strings )
 	{
-		if ( console_display != DisplayMode.Off && str.length > 0 )
+		uint strings_length;
+		foreach ( string; strings )
 		{
-			if ( console_streaming )
+			strings_length += string.length;
+		}
+
+		if ( strings_length > 0 )
+		{
+			if ( this.console_streaming )
 			{
-				Trace.format(str ~ "\n");
-				Trace.flush();
+				for ( uint i = 0; i < strings.length - 1; i++ )
+				{
+					Trace.format(strings[i]);
+				}
+				Trace.formatln(strings[$ - 1]);
 			}
 			else
 			{
-				Trace.format(str);
-
-				this.backspace_str.length = str.length;
-				this.backspace_str[0..$] = '\b';
+				foreach ( string; strings )
+				{
+					Trace.format(string);
+				}
+				formatBackspaceString(this.backspace_str, strings_length);
 				Trace.format(this.backspace_str);
-
 				Trace.flush();
 			}
 		}
@@ -1458,22 +1513,53 @@ public class Tracer
 
 	/***************************************************************************
 
-		Writes a message to the TraceLog (unless log display is switched off).
-		
+		Writes a list of strings to the trace log, followed by a newline.
+	
 		Params:
-			void
+			strings = the list of strings to display
 	
 		Returns:
 			void
 	
 	***************************************************************************/
 
-	protected void writeToLog ( char[] str )
+	protected void writeToLog ( char[][] strings )
 	{
-		if ( log_display != DisplayMode.Off && str.length > 0 )
+		uint strings_length;
+		foreach ( string; strings )
 		{
-			TraceLog.write(str ~ "\n");
+			strings_length += string.length;
 		}
+
+		if ( strings_length > 0 )
+		{
+			foreach ( string; strings )
+			{
+				TraceLog.write(string);
+			}
+			TraceLog.write("\n");
+		}
+	}
+
+
+	/***************************************************************************
+	
+		Formats a string with a specified number of backspace '\b' characters.
+	
+		Params:
+			str = char buffer to be written into
+			
+			length = number of characters to write to the string
+	
+		Returns:
+			void
+	
+	***************************************************************************/
+
+	protected void formatBackspaceString ( ref char[] str, uint length )
+	{
+		str.length = length;
+		str[0..$] = '\b';
 	}
 
 
@@ -1489,15 +1575,13 @@ public class Tracer
 	
 	***************************************************************************/
 
-	protected void getProgressThisInterval ( out char[] str )
+	protected void getProgressThisInterval ( ref char[] str )
 	{
-		str ~= this.title;
-
 		this.count.display(str);
 		this.time.display(str);
 		this.work_done.display(str);
 
-		str ~= " [this interval]";
+		str ~= "[this interval]";
 	}
 
 
@@ -1513,15 +1597,13 @@ public class Tracer
 	
 	***************************************************************************/
 
-	protected void getTotalProgress ( out char[] str )
+	protected void getTotalProgress ( ref char[] str )
 	{
-		str ~= this.title;
-	
 		this.count.displayTotal(str);
 		this.time.displayTotal(str);
 		this.work_done.displayTotal(str);
 
-		str ~= " [total]";
+		str ~= "[total]";
 	}
 }
 
