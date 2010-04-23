@@ -1410,11 +1410,9 @@ public class Tracer
 
 	protected void display ( char[] append = "" )
 	{
-		this.per_interval_str.length = 0;
-		this.getProgressThisInterval(this.per_interval_str);
+		this.formatProgressThisInterval(this.per_interval_str);
 		
-		this.total_str.length = 0;
-		this.getTotalProgress(this.total_str);
+		this.formatTotalProgress(this.total_str);
 		
 		this.write(this.console_display, append, &this.writeToConsole);
 
@@ -1556,7 +1554,7 @@ public class Tracer
 	
 	***************************************************************************/
 
-	protected void formatBackspaceString ( ref char[] str, uint length )
+	protected void formatBackspaceString ( out char[] str, uint length )
 	{
 		str.length = length;
 		str[0..$] = '\b';
@@ -1575,7 +1573,7 @@ public class Tracer
 	
 	***************************************************************************/
 
-	protected void getProgressThisInterval ( ref char[] str )
+	protected void formatProgressThisInterval ( out char[] str )
 	{
 		this.count.display(str);
 		this.time.display(str);
@@ -1597,7 +1595,7 @@ public class Tracer
 	
 	***************************************************************************/
 
-	protected void getTotalProgress ( ref char[] str )
+	protected void formatTotalProgress ( out char[] str )
 	{
 		this.count.displayTotal(str);
 		this.time.displayTotal(str);
