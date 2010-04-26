@@ -350,3 +350,32 @@ template ExceptionOpCalls  ( E : Exception )
     }
     
 }
+
+/******************************************************************************
+
+	Throws exception E if ok is false or equal to 0 or a null pointer.
+	
+	Params:
+		ok  = condition which must be true else an exception E is thrown
+		msg = exception message
+
+ ******************************************************************************/
+
+void assertEx ( E : Exception, T ) ( T ok, char[] msg )
+{
+	if (!ok) throw new E(msg);
+}
+
+/******************************************************************************
+
+	Throws exception E if ok is false or equal to 0 or a null pointer.
+	
+	Params:
+		ok  = condition which must be true else an exception E is thrown
+	
+ ******************************************************************************/
+
+void assertEx ( E : Exception, T ) ( T ok )
+{
+	if (!ok) throw new E;
+}
