@@ -138,28 +138,8 @@ private import tango.text.convert.Format;
 
 *******************************************************************************/
 
-public class Tracer
+public struct Tracer
 {
-	/***************************************************************************
-
-		Enum : determines what kind of output the tracer should produce:
-
-			Off = none.
-			Total = cumulative progress.
-			PerInterval = progress per interval.
-			All = both cumulative and incremental display.
-
-	***************************************************************************/
-
-	public enum DisplayMode
-	{
-		Off,
-		Total,
-		PerInterval,
-		All
-	}
-
-
 	/***************************************************************************
 
 		Struct representing a single quantity which the Tracer is counting.
@@ -561,6 +541,26 @@ public class Tracer
 
 	/***************************************************************************
 
+		Enum : determines what kind of output the tracer should produce:
+	
+			Off = none.
+			Total = cumulative progress.
+			PerInterval = progress per interval.
+			All = both cumulative and incremental display.
+	
+	***************************************************************************/
+	
+	public enum DisplayMode
+	{
+		Off,
+		Total,
+		PerInterval,
+		All
+	}
+
+
+	/***************************************************************************
+
 		Protected property : tracks the total number of iteration counts
 
 	***************************************************************************/
@@ -667,6 +667,34 @@ public class Tracer
 
 	/***************************************************************************
 
+		Protected property : should a spinner be displayed in the console
+		output?
+	
+	***************************************************************************/
+	
+	protected bool spinner = false;
+
+
+	/***************************************************************************
+
+		Protected property : the progressive spinner "animation" strings
+	
+	***************************************************************************/
+
+	protected static const char[][] rotor = ["|", "/", "-", "\\"];
+
+
+	/***************************************************************************
+
+		Protected property : counter used for spinner animation
+	
+	***************************************************************************/
+
+	protected uint spin_counter;
+
+
+	/***************************************************************************
+
 		Protected property : log output mode
 	
 	***************************************************************************/
@@ -712,7 +740,8 @@ public class Tracer
 		PerInterval,
 		All,
 		Static,
-		Streaming
+		Streaming,
+		Spinner
 	}
 
 
@@ -808,7 +837,7 @@ public class Tracer
 			
 	***************************************************************************/
 
-	public this ( ... )
+	public void initDisplay ( ... )
 	{
 		// Start the timer
 		this.timer.start();
@@ -928,7 +957,7 @@ public class Tracer
 
 	public void setTitle ( char[] _title )
 	{
-		title = _title.dup ~ ": ";
+		title = _title.dup ~ " | ";
 	}
 
 
@@ -1051,6 +1080,24 @@ public class Tracer
 
 
 	/***************************************************************************
+
+		Sets the console's spinner display mode.
+		
+		Params:
+			_spinner = true: on, false: off
+	
+		Returns:
+			void
+	
+	***************************************************************************/
+	
+	public void showConsoleSpinner( bool _spinner )
+	{
+		this.spinner = _spinner;
+	}
+	
+
+	/***************************************************************************
 	
 		Advances the tracer one iteration. The iteration counter is incremented,
 		and the passing of an interval is checked.
@@ -1094,6 +1141,77 @@ public class Tracer
 	}
 
 	
+	/***************************************************************************
+	
+		Spins the console spinner clockwise or anti-clockwise.
+		
+		Params:
+			void
+	
+		Returns:
+			void
+	
+	***************************************************************************/
+
+	public void spin ( bool clockwise )
+	{
+    	if ( clockwise )
+    	{
+    		this.spinClockwise();
+    	}
+    	else
+    	{
+    		this.spinAntiClockwise();
+    	}
+	}
+
+
+	/***************************************************************************
+	
+		Spins the console spinner clockwise and writes it to the console.
+		
+		Params:
+			void
+	
+		Returns:
+			void
+	
+	***************************************************************************/
+
+	public void spinClockwise ( )
+	{
+		this.spin_counter++;
+		if ( this.spin_counter == this.rotor.length )
+		{
+			this.spin_counter = 0;
+		}
+		this.writeToConsole([this.rotor[this.spin_counter]]);
+	}
+
+
+	/***************************************************************************
+	
+		Spins the console spinner anti-clockwise and writes it to the console.
+		
+		Params:
+			void
+	
+		Returns:
+			void
+	
+	***************************************************************************/
+
+	public void spinAntiClockwise ( )
+	{
+		if ( this.spin_counter == 0 )
+		{
+			this.spin_counter = this.rotor.length;
+		}
+		this.spin_counter--;
+		this.writeToConsole([this.rotor[this.spin_counter]]);
+	}
+
+
 	/***************************************************************************
 	
 		Finishes the trace. Displays a finished message and resets the counters.
@@ -1207,6 +1325,9 @@ public class Tracer
 			case ConsoleDisplay.Streaming:
 				this.setConsoleDisplayMode(DisplayMode.Total);
 				this.setConsoleStreaming(true);
+				break;
+			case ConsoleDisplay.Spinner:
+				this.showConsoleSpinner(true);
 				break;
 		}
 
@@ -1418,9 +1539,16 @@ public class Tracer
 		
 		this.formatTotalProgress(this.total_str);
 		
-		this.write(this.console_display, append, &this.writeToConsole);
+		if ( this.spinner )
+		{
+			this.write(this.console_display, "  ", append, &this.writeToConsole);
+		}
+		else
+		{
+			this.write(this.console_display, "", append, &this.writeToConsole);
+		}
 
-		this.write(this.log_display, append, &this.writeToLog);
+		this.write(this.log_display, "", append, &this.writeToLog);
 	}
 
 
@@ -1442,21 +1570,21 @@ public class Tracer
 	
 	***************************************************************************/
 
-	protected void write ( DisplayMode mode, char[] append, void delegate ( char[][] ) write_dg )
+	protected void write ( DisplayMode mode, char[] prepend, char[] append, void delegate ( char[][] ) write_dg )
 	{
 		switch ( mode )
 		{
 			case DisplayMode.Off:
 				break;
 			case DisplayMode.Total:
-				write_dg([this.title, this.total_str, append]);
+				write_dg([prepend, this.title, this.total_str, append]);
 				break;
 			case DisplayMode.PerInterval:
-				write_dg([this.title, this.per_interval_str, append]);
+				write_dg([prepend, this.title, this.per_interval_str, append]);
 				break;
 			case DisplayMode.All:
-				const char[] spacer = " --- ";
-				write_dg([this.title, this.total_str, spacer, this.per_interval_str, append]);
+				const char[] spacer = "| ";
+				write_dg([prepend, this.title, this.total_str, spacer, this.per_interval_str, append]);
 				break;
 		}
 	}
@@ -1472,43 +1600,47 @@ public class Tracer
 
 		In streaming display mode the strings are written, followed by a
 		newline.
-		
+
 		Params:
 			strings = the list of strings to display
 
 		Returns:
 			void
-	
+
 	***************************************************************************/
 
 	protected void writeToConsole ( char[][] strings )
 	{
-		uint strings_length;
-		foreach ( string; strings )
+		if ( this.console_streaming )
 		{
-			strings_length += string.length;
-		}
-
-		if ( strings_length > 0 )
-		{
-			if ( this.console_streaming )
+			for ( uint i = 0; i < strings.length - 1; i++ )
 			{
-				for ( uint i = 0; i < strings.length - 1; i++ )
+				if ( strings[i].length > 0 )
 				{
 					Trace.format(strings[i]);
 				}
-				Trace.formatln(strings[$ - 1]);
 			}
-			else
+			Trace.formatln(strings[$ - 1]);
+		}
+		else
+		{
+			// Work out the total length of all the strings
+			uint strings_length;
+			foreach ( string; strings )
 			{
-				foreach ( string; strings )
+				strings_length += string.length;
+			}
+
+			foreach ( string; strings )
+			{
+				if ( string.length > 0 )
 				{
 					Trace.format(string);
 				}
-				formatBackspaceString(this.backspace_str, strings_length);
-				Trace.format(this.backspace_str);
-				Trace.flush();
 			}
+			formatBackspaceString(this.backspace_str, strings_length);
+			Trace.format(this.backspace_str);
+			Trace.flush();
 		}
 	}
 
@@ -1579,11 +1711,10 @@ public class Tracer
 
 	protected void formatProgressThisInterval ( out char[] str )
 	{
+		str ~= "Last Interval: ";
 		this.count.display(str);
 		this.time.display(str);
 		this.work_done.display(str);
-
-		str ~= "[this interval]";
 	}
 
 
@@ -1601,11 +1732,18 @@ public class Tracer
 
 	protected void formatTotalProgress ( out char[] str )
 	{
+		str ~= "Total: ";
 		this.count.displayTotal(str);
 		this.time.displayTotal(str);
 		this.work_done.displayTotal(str);
+	}
 
-		str ~= "[total]";
+
+	protected static Tracer static_instance;
+
+	public typeof(this) instance ( )
+	{
+		return &this.static_instance;
 	}
 }
 
