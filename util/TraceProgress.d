@@ -112,7 +112,7 @@
 
 *******************************************************************************/
 
-module src.core.TraceProgress;
+module ocean.util.TraceProgress;
 
 
 
