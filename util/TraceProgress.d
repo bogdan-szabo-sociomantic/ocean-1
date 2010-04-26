@@ -1111,6 +1111,10 @@ public class Tracer
 		this.updateTimer();
 
 		this.display(" - finished");
+		if ( this. console_display != DisplayMode.Off && !this.console_streaming )
+		{
+			Trace.format("\n");
+		}
 		
 		this.resetCounters();
 	}
