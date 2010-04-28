@@ -349,12 +349,13 @@ struct StringSearch ( bool wide_char = false )
      * Params:
      *      str     = string to scan
      *      pattern = search pattern
+     *      start   = index to start searching from
      *      
      * Returns:
      *      If found, the index of the first occurrence, or the length of "str"
      *      otherwise.
      */
-    size_t locatePatternT ( Char[] pattern ) ( Char[] str, Char[] pattern, size_t start = 0 )
+    size_t locatePatternT ( Char[] pattern ) ( Char[] str, size_t start = 0 )
     in
     {
         assert (start <= str.length, "locatePatternT: start index out of range");
