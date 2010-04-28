@@ -481,9 +481,6 @@ public struct Tracer
 			Worker display method. Writes the passed value into the passed
 			string buffer, according to the counter's display mode.
 			
-			Also sets the last_displayed property to = the current property,
-			meaning that the counter starts counting the next interval.
-
 			Params:
 				str = string buffer to be written into
 				
@@ -1228,7 +1225,7 @@ public struct Tracer
 	{
 		this.updateTimer();
 
-		this.display(" - finished");
+		this.display("finished");
 		if ( this. console_display != DisplayMode.Off && !this.console_streaming )
 		{
 			Trace.format("\n");
