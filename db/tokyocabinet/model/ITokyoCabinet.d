@@ -358,7 +358,7 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
         
         scope (exit) if (!!args.e) throw args.e;
         
-        return !tcdbforeach(db, &tciter_callback_key, &args);
+        return !tcdbforeach(db, &tciter_callback_keyval, &args);
     }
     
     /**************************************************************************
