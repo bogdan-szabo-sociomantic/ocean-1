@@ -128,8 +128,8 @@ struct HttpResponse
         Sends a HTTP response (without message body).
     
         Params:
-            conduit     = output conduit (socket)
-            code        = response code
+            socket	    = output conduit (socket)
+            status      = response code
             description = optional response code description, e.g. error message
             
           Returns:
@@ -155,9 +155,9 @@ struct HttpResponse
          up in a permanent blocking state of the socket.
          
          Params:
-              conduit = output conduit (socket)
+              socket      = output conduit (socket)
               data        = message body data, may be empty
-              code        = response code
+              status      = response code
               description = optional response code description, e.g. error message
          
          Returns:
