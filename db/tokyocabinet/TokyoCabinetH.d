@@ -59,7 +59,7 @@ private     import  ocean.db.tokyocabinet.c.tchdb:
 private     import  ocean.text.util.StringC;
 
 
-private     import  tango.util.log.Trace;
+debug private     import  tango.util.log.Trace;
 
 
 /*******************************************************************************
@@ -218,7 +218,12 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     
     public void open ( char[] dbfile )
     {   
-        tchdbtune(super.db, this.tune.bnum, this.tune.apow, this.tune.fpow, this.tune.opts);
+        super.tokyoAssert(tchdbtune(super.db,
+                                    this.tune.bnum,
+                                    this.tune.apow, 
+                                    this.tune.fpow,
+                                    this.tune.opts),
+                           "error setting tune options");
         
         return this.openNonBlocking(dbfile, OpenStyle.WriteCreate);
     }
@@ -294,7 +299,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     
     public void enableThreadSupport ()
     {
-        tchdbsetmutex(super.db);
+        super.tokyoAssert(tchdbsetmutex(super.db), "error setting mutex");
     }
 
     
@@ -369,7 +374,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
         
     public void setCacheSize( uint size )
     {
-        tchdbsetcache(super.db, size);
+        super.tokyoAssert(tchdbsetcache(super.db, size), "error setting cache size");
     }
     
     
@@ -387,7 +392,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     
     public void setMemSize( uint size )
     {
-        tchdbsetxmsiz(super.db, size);
+        super.tokyoAssert(tchdbsetxmsiz(super.db, size), "error setting memory size");
     }
     
     

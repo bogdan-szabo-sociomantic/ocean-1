@@ -24,7 +24,7 @@ private	        import  ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
 private		    import	ocean.text.util.StringC;
 private 		import  tango.stdc.stdlib: free;
 
-private 		import  tango.util.log.Trace;
+debug private 		import  tango.util.log.Trace;
 
 /******************************************************************************
 

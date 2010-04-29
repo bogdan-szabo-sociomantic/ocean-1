@@ -62,7 +62,7 @@ private     import  ocean.db.tokyocabinet.model.ITokyoCabinet;
 
 private     import  ocean.text.util.StringC;
 
-private     import  tango.util.log.Trace;
+debug private     import  tango.util.log.Trace;
 
 /*******************************************************************************
 
@@ -217,12 +217,13 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
 
 	public void open ( char[] dbfile )
 	{   
-	    tcbdbtune(this.db, this.tune.leaf_members,
-                           this.tune.non_leaf_members,
-                           this.tune.bucket_array_length, 
-                           this.tune.alignment_power,
-                           this.tune.free_block_power,
-                           this.tune.options);
+        super.tokyoAssert(tcbdbtune(this.db, this.tune.leaf_members,
+                                    this.tune.non_leaf_members,
+                                    this.tune.bucket_array_length, 
+                                    this.tune.alignment_power,
+                                    this.tune.free_block_power,
+                                    this.tune.options),
+                          "error setting tune options");
 	    
 	    return this.openNonBlocking(dbfile, OpenStyle.WriteCreate);
 	}
@@ -284,7 +285,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     
     public void enableThreadSupport ()
     {
-        tcbdbsetmutex(this.db);
+        super.tokyoAssert(tcbdbsetmutex(this.db), "error setting mutex");
     }
     
     
@@ -301,7 +302,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
         
     public void setCacheSize( int leaf, int non_leaf )
     {
-        tcbdbsetcache(this.db, leaf, non_leaf);
+        super.tokyoAssert(tcbdbsetcache(this.db, leaf, non_leaf), "error setting cache size");
     }
     
     
@@ -319,7 +320,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     
     public void setMemSize( uint size )
     {
-        tcbdbsetxmsiz(this.db, size);
+        super.tokyoAssert(tcbdbsetxmsiz(this.db, size), "error setting memory size");
     }
     
     
