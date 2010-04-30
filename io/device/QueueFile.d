@@ -19,6 +19,15 @@ private import  tango.util.log.model.ILogger;
 
 private import  tango.net.cluster.model.IChannel;
 
+
+version ( QueueTrace )
+{
+	private import tango.util.log.Trace;
+	private import Integer = tango.text.convert.Integer;
+	private import Float = tango.text.convert.Float;
+}
+
+
 /******************************************************************************
 
         QueueFile
@@ -99,7 +108,7 @@ class QueueFile
         private Header          current;        // top-of-stack info
         private File            conduit;        // the file itself
         private IChannel        channel_;       // the channel we're using
-
+        
         /**********************************************************************
 
                 Constructor (Channel)
@@ -253,6 +262,17 @@ class QueueFile
                 return false;
         }
         
+        /**********************************************************************
+
+		        Returns true if queue is full (items >= limit)
+		
+		**********************************************************************/
+		
+		final bool isFull ()
+		{
+		        return items >= limit;
+		}
+
         /**********************************************************************
 
                 Free wasted blocks at the queue front
@@ -456,47 +476,143 @@ class QueueFile
         
         private final bool remap ()
         {
-                uint i, pos;
-                auto buffer = new void[16];
+            log.trace ("Thinking about remapping queue '{}'", name);
+
+            uint i, pos;
+            auto buffer = new void[16];
+            if (first == 0 || first < buffer.sizeof)
+			{
+				return false;
+			}
+
+            this.logSeekPositions("Old seek positions");
+                    
+            auto input = conduit.input;
+            auto output = conduit.output;
             
-                log.trace ("Trying to remap queue '{}'", name);
-                
-                if (first == 0 || first < buffer.sizeof)
-                        return false;
-                
-                log.trace ("Old seek positions [ front = {} rear = {} ]", first, insert);
-                
-                auto input = conduit.input;
-                auto output = conduit.output;
-                
-                while ((first + pos) < insert && i !is conduit.Eof)
-                {
-                        // seek to read position
-                        conduit.seek(first + pos);
-                        i = input.read (buffer);
-                        
-                        if ( i !is conduit.Eof )
-                        {
-                                // seek to write position
-                                conduit.seek(pos);
-                                output.write (buffer[0..i]);
-                                
-                                pos += i;
-                        }
-                }
-                
-                conduit.seek(insert = insert - first);
-                first = 0;
-                
-                // write zero header to indicate Eof
-                Header zero;
-                write (&zero, zero.sizeof);
-                
-                log.trace ("Remapping done [ new front pos = {} new rear pos = {} ]", first, insert);
-                
-                return true;
+            while ((first + pos) < insert && i !is conduit.Eof)
+            {
+                    // seek to read position
+                    conduit.seek(first + pos);
+                    i = input.read (buffer);
+                    
+                    if ( i !is conduit.Eof )
+                    {
+                            // seek to write position
+                            conduit.seek(pos);
+                            output.write (buffer[0..i]);
+                            
+                            pos += i;
+                    }
+            }
+            
+            conduit.seek(insert = insert - first);
+            first = 0;
+            
+            // write zero header to indicate Eof
+            Header zero;
+            write (&zero, zero.sizeof);
+            
+            this.logSeekPositions("Remapping done, new seek positions");
+
+            return true;
         }
 
+
+        /***********************************************************************
+         * 
+         * Outputs the queue's current seek positions to the log.
+         * 
+         * If compiled as the QueueTrace version, also outputs a message to
+         * Trace.
+         * 
+         * Params:
+         *     str = message to prepend to seek positions output 
+         */
+
+        protected void logSeekPositions ( char[] str )
+        {
+	        version ( QueueTrace )
+	        {
+	        	Trace.format("\nRemapping {} ", this.name);
+	        	this.traceSeekPositions(true);
+	        }
+	
+	        log.trace ("{} [ front = {} rear = {} ]", str, first, insert);
+        }
+
+
+        version ( QueueTrace )
+        {
+        	/*******************************************************************
+        	 * 
+        	 * Internal character buffer, used repeatedly for string formatting
+        	 */
+
+        	protected char[] trace_buf;
+
+        	
+        	/*******************************************************************
+        	 * 
+        	 * Prints the queue's current seek positions to Trace.
+        	 * 
+        	 * Params:
+        	 *     show_pcnt = show seek positions as a % o the queue's total
+        	 *     		size
+        	 *     nl = output a newline after the seek positions info
+        	 */
+
+        	public void traceSeekPositions ( bool show_pcnt, bool nl = true )
+        	{
+        		this.trace_buf = "";
+        		this.formatSeekPositions(this.trace_buf, show_pcnt, nl);
+        		Trace.format(this.trace_buf).flush;
+        	}
+        	
+
+        	/*******************************************************************
+        	 *
+        	 * Format a string with the queue's current start and end seek
+        	 * positions.
+        	 * 
+        	 * Params:
+        	 *     buf = string buffer to be written into
+        	 *     show_pcnt = show seek positions as a % o the queue's total
+        	 *     		size
+        	 *     nl = write a newline after the seek positions info
+        	 */        	
+
+        	public void formatSeekPositions ( ref char[] buf, bool show_pcnt, bool nl = true )
+        	{
+        		float first_pcnt = 100.0 * (cast(float) this.first / cast(float) this.limit);
+        		float insert_pcnt = 100.0 * (cast(float) this.insert / cast(float) this.limit);
+
+        		if ( show_pcnt )
+        		{
+        			buf ~= "[" ~ Integer.toString(this.first) ~ " (" ~ Float.toString(first_pcnt) ~ "%).."
+    				~ Integer.toString(this.insert) ~ " (" ~ Float.toString(insert_pcnt) ~ "%)]";
+        		}
+        		else
+        		{
+        			buf ~= "[" ~ Integer.toString(this.first) ~ ".." ~ Integer.toString(this.insert) ~ "]";
+        		}
+
+    			if ( this.isFull() )
+    			{
+    				buf ~= "F";
+    			}
+
+    			if ( this.isDirty() )
+    			{
+    				buf ~= "D";
+    			}
+
+    			if ( nl )
+        		{
+        			buf ~= "\n";
+        		}
+        	}
+        }
 }
 
 
