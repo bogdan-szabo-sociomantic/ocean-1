@@ -1740,9 +1740,28 @@ public struct Tracer
 	}
 
 
+	/***************************************************************************
+	
+		Static protected property: Global instance of this struct
+	
+	***************************************************************************/
+
 	protected static Tracer static_instance;
 
-	public typeof(this) instance ( )
+
+	/***************************************************************************
+	
+		Static method: Gets the global Tracer instance
+
+		Params:
+			void
+	
+		Returns:
+			global instance of this struct
+	
+	***************************************************************************/
+
+	public static typeof(this) instance ( )
 	{
 		return &this.static_instance;
 	}
