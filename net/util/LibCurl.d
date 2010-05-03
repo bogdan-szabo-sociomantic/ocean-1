@@ -372,9 +372,22 @@ class LibCurl
      **************************************************************************/
     
 	alias setOptionT!(CURLoption.USERAGENT, char[]) setUserAgent;
-    
 	
+	
+	
+	/***************************************************************************
     
+	    Set Encoding 
+	        
+	    Params:
+	        value = encoding type (identity|gzip|deflate)
+	        
+	 **************************************************************************/
+	
+	alias setOptionT!(CURLoption.ENCODING, char[]) setEncoding;
+	
+	
+	
     /***************************************************************************
     
         Set request timeout
