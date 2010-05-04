@@ -69,7 +69,7 @@ abstract class IConnectionHandler
     
      **************************************************************************/
     
-    private               IBuffer                         buffer;  
+    private               IBuffer                         rbuffer, wbuffer;  
     
     private const         size_t                          DefaultBufferSize = 0x1_0000;
     
@@ -100,10 +100,11 @@ abstract class IConnectionHandler
     
     this ( size_t buffer_size )
     {
-        this.buffer    = new Buffer(buffer_size);
+        this.rbuffer    = new Buffer(buffer_size);
+        this.wbuffer    = new Buffer(buffer_size);
         
-        this.reader    = new ListReader(buffer);
-        this.writer    = new ListWriter(buffer);
+        this.reader    = new ListReader(rbuffer);
+        this.writer    = new ListWriter(wbuffer);
     } 
     
     /**************************************************************************
@@ -132,21 +133,22 @@ abstract class IConnectionHandler
     {
         if (this.terminated) return;
         
-        this.buffer.setConduit(conduit);
+        this.rbuffer.setConduit(conduit);
+        this.wbuffer.setConduit(conduit);
         
         try 
         {
             this.finished = false;
             
-            this.buffer.clear();                                                // start with a clear conscience
+            this.rbuffer.clear();                                               // start with a clear conscience
             
-            this.buffer.slice(1, false);                                        // wait for something to arrive before we try/catch
+            this.rbuffer.slice(1, false);                                       // wait for something to arrive before we try/catch
               
             while (!this.terminated && !this.finished)
             {
                 this.dispatch();
                 
-                this.writer.flush();                                            // send response back to client
+                this.wbuffer.flush();                                           // send response back to client
             }
         } 
         catch (IOException e)
@@ -166,9 +168,10 @@ abstract class IConnectionHandler
         {
             conduit.detach();
             
-            this.buffer.clear();
+            this.rbuffer.clear();
         }
     }
+    
     
     /**************************************************************************
     
@@ -202,6 +205,7 @@ abstract class IConnectionHandler
         delete this.reader;
         delete this.writer;
         
-        delete this.buffer;
+        delete this.rbuffer;
+        delete this.wbuffer;
     }
 }
