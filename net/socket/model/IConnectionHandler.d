@@ -138,20 +138,15 @@ abstract class IConnectionHandler
         {
             this.finished = false;
             
+            this.buffer.clear();                                                // start with a clear conscience
+            
+            this.buffer.slice(1, false);                                        // wait for something to arrive before we try/catch
+              
             while (!this.terminated && !this.finished)
             {
-                // start with a clear conscience
-                this.buffer.clear();
-                
-                // wait for something to arrive before we try/catch
-                this.buffer.slice(1, false);
-                  
-                if (this.terminated) return;
-                
                 this.dispatch();
-                // send response back to client
                 
-                this.buffer.flush();
+                this.writer.flush();                                            // send response back to client
             }
         } 
         catch (IOException e)
