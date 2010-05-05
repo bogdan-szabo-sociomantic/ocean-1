@@ -592,8 +592,7 @@ class QueueFile
 
         		if ( show_pcnt )
         		{
-        			buf ~= "[" ~ Integer.toString(this.first) ~ " (" ~ Float.toString(first_pcnt) ~ "%).."
-    				~ Integer.toString(this.insert) ~ " (" ~ Float.toString(insert_pcnt) ~ "%)]";
+        			buf ~= "[" ~ Float.toString(first_pcnt) ~ "%.." ~ Float.toString(insert_pcnt) ~ "%]";
         		}
         		else
         		{
