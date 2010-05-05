@@ -1320,11 +1320,9 @@ public struct Tracer
 				this.setConsoleDisplayMode(DisplayMode.All);
 				break;
 			case ConsoleDisplay.Static:
-				this.setConsoleDisplayMode(DisplayMode.Total);
 				this.setConsoleStreaming(false);
 				break;
 			case ConsoleDisplay.Streaming:
-				this.setConsoleDisplayMode(DisplayMode.Total);
 				this.setConsoleStreaming(true);
 				break;
 			case ConsoleDisplay.Spinner:
