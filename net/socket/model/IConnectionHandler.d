@@ -155,14 +155,14 @@ abstract class IConnectionHandler
         {
             if (!Runtime.isHalting())
             {
-                TraceLog.write("socket exception '{}'", e);
-                Trace.formatln("socket exception '{}'", e);
+                TraceLog.write("socket exception '{}'", e.msg);
+                Trace.formatln("socket exception '{}'", e.msg);
             }
         }
         catch (Exception e)
         {
-            TraceLog.write("runtime exception '{}'", e);
-            Trace.formatln("runtime exception '{}'", e);
+            TraceLog.write("runtime exception '{}'", e.msg);
+            Trace.formatln("runtime exception '{}'", e.msg);
         }
         finally
         {
