@@ -20,6 +20,9 @@
     As an option, a custom retry callback method (delegate or function
     reference) may be supplied.
     
+    Also optionally, a custom timeout method may be supplied, which is called by
+    the built-in wait method after the specified number of retries has passed.
+    
     --
     
     Usage:
@@ -45,7 +48,7 @@
             }
             catch (Exception e)
             {
-                more = retry(e);    // Retry up to 10 times, then rethrow e
+                more = retry(e);    // Retry up to 10 times, then rethrows e
             }
         }
         while (more)
@@ -56,36 +59,199 @@
 
 module ocean.io.Retry;
 
+
+
+/*******************************************************************************
+
+	Imports
+
+*******************************************************************************/
+
 private import Ctime  = tango.stdc.posix.time:      nanosleep;
 private import Ctimer = tango.stdc.posix.timer:     timespec;
 private import          tango.stdc.time:            time_t;
+private import 			tango.util.log.Trace;
+
+
+
+/*******************************************************************************
+
+	Template struct encapsulating a pointer to either a delegate or a
+	function.
+	
+	Template parameters:
+		R = the return type of the function / delegate
+		T = tuple of the function / delegate's parameters
+
+*******************************************************************************/
+
+struct DelgOrFunc ( R, T ... )
+{
+	/***************************************************************************
+	
+	    Convenience aliases for the templated delegate & function types.
+	
+	***************************************************************************/
+	
+	alias R delegate ( T ) DelgType;
+	alias R function ( T ) FuncType;
+	
+	
+	/***************************************************************************
+	
+	    Union of the templated delegate & function types.
+	    Also has a void* member, used for convenient comparison with null.
+	
+	***************************************************************************/
+	
+	union Pointer
+	{
+		DelgType delg;
+		FuncType func;
+		void* address;
+	}
+	
+	
+	/***************************************************************************
+	
+	    The delegate / function pointer.
+	
+	***************************************************************************/
+	
+	Pointer pointer;
+	
+	
+	/***************************************************************************
+	
+	    Flag denoting whether the pointer is to a delegate or a function.
+	
+	***************************************************************************/
+	
+	bool is_delegate;
+	
+	
+	/***************************************************************************
+	
+	    Overloaded opAssign. Sets the pointer to a delegate with the
+	    templated return type and arguments.
+	    
+	    Params:
+	    	delg = delegate to set
+	    
+	    Returns:
+	    	void
+	
+	***************************************************************************/
+	
+	public void opAssign ( DelgType delg )
+	{
+	    this.pointer.delg = delg;
+	    this.is_delegate = true;
+	}
+	
+	
+	/***************************************************************************
+	
+	    Overloaded opAssign. Sets the pointer to a function with the
+	    templated return type and arguments.
+	    
+	    Params:
+	    	func = function to set
+	    
+	    Returns:
+	    	void
+	
+	***************************************************************************/
+	
+	public void opAssign ( FuncType func)
+	{
+	    this.pointer.func = func;
+	    this.is_delegate = false;
+	}
+	
+	
+	/***************************************************************************
+	
+		Checks whether the delegate / function pointer has been set.
+	
+	    Params:
+	    	void
+	    
+	    Returns:
+	    	bool
+	
+	***************************************************************************/
+	
+	public bool isNull ( )
+	{
+		return this.pointer.address == null;
+	}
+	
+	
+	/***************************************************************************
+	
+	    Overloaded opCall.
+	    Asserts if no function / delegate has been set.
+	    Otherwise calls the function / delegate with the passed arguments.
+	    
+	    Params:
+	    	t = templated tuple of arguments to pass to the function /
+	    	delegate.
+	    
+	    Returns:
+	    	templated function / delegate return type
+	
+	***************************************************************************/
+	
+	public R opCall ( T t )
+	{
+		assert ( !this.isNull() );
+		return this.is_delegate ? this.pointer.delg(t) :
+	        this.pointer.func(t);
+	}
+}
+
+
+
+/*******************************************************************************
+
+	Retry class
+
+*******************************************************************************/
 
 class Retry
 {
-    /**************************************************************************
+    /***************************************************************************
     
-        Callback method type aliases 
-    
-     **************************************************************************/
-    
-    public alias bool delegate ( char[] message ) CallbackDelg;
-    public alias bool function ( char[] message ) CallbackFunc;
-
-    /**************************************************************************
-    
-        Callback union
-        
-        Holds the callback method reference (either delegate or function)
+        Callback struct. Holds the callback method reference (either delegate or
+        function).
+        Also convenience aliases for the templated struct, and the delegate and
+        function types.
       
-     **************************************************************************/
+    ***************************************************************************/
 
-    union Callback
-    {
-        Retry.CallbackDelg delg;
-        Retry.CallbackFunc func;
-    }
+	public alias DelgOrFunc!(bool, char[]) Callback;
+	public alias Callback.DelgType CallbackDelg;
+	public alias Callback.FuncType CallbackFunc;
+	public Callback callback;
+
+
+    /***************************************************************************
     
-    /**************************************************************************
+	    Timeout struct. Holds the timeout method reference (either delegate or
+	    function).
+	    Also convenience aliases for the templated struct, and the delegate and
+	    function types.
+	  
+	***************************************************************************/
+
+	public alias DelgOrFunc!(void) Timeout;
+	public alias Timeout.DelgType TimeoutDelg;
+	public alias Timeout.FuncType TimeoutFunc;
+	public Timeout timeout;
+
+
+	/***************************************************************************
     
         Parameters for default wait/retry callback method; may be changed at any
         time
@@ -95,15 +261,26 @@ class Retry
         enabled = do retry
         ms      = time to wait before each retry
         retries = maximum number of consecutive retries; 0 = unlimited
+        n       = internal counter of the number of retries
         
-     **************************************************************************/
+    ***************************************************************************/
     
     public bool enabled = true;
     public uint ms      = 500;
     public uint retries = 0;
     
     private uint n = 0;
-    
+
+
+	/***************************************************************************
+
+    	Property to toggle debug text output (to Trace). Off by default.
+	    
+	***************************************************************************/
+
+    public bool debug_text = false;
+
+
     /**************************************************************************
     
         This alias for method chaining
@@ -111,25 +288,8 @@ class Retry
      **************************************************************************/
     
     private alias typeof (this) This;
-    
-    /**************************************************************************
-    
-        callback method reference
-      
-     **************************************************************************/
 
-    private Callback callback;
-    
-    /**************************************************************************
-    
-        "callback is delegate flag"
-        
-        true: callback holds a delegate; false: callback holds a function
-      
-     **************************************************************************/
 
-    private bool callback_is_delg;
-    
     /**************************************************************************
     
         Constructor
@@ -140,23 +300,23 @@ class Retry
     {
         this.setDefaultCallback();
     }
-    
+
+
     /**************************************************************************
     
         Constructor
        
         Params:
             ms = default retry callback: time to wait before each retry (ms)
-            n  = default retry callback: maximum number of retries
+            retries  = default retry callback: maximum number of retries
        
     **************************************************************************/
     
     public this ( uint ms, uint retries )
     {
         this();
-        
-        this.ms       = ms;
-        this.retries  = retries;
+        this.ms = ms;
+        this.retries = retries;
     }
     
     
@@ -193,6 +353,7 @@ class Retry
         this = func;
     }
 
+
     /**************************************************************************
         
         Calls the retry callback method.
@@ -207,10 +368,10 @@ class Retry
     
     public bool opCall ( char[] message )
     {
-        return this.callback_is_delg? this.callback.delg(message) :
-                                      this.callback.func(message);
+    	return this.callback(message);
     }
-    
+
+
     /**************************************************************************
         
         Calls the retry callback method and rethrows e if the callback indicates
@@ -223,12 +384,11 @@ class Retry
     
     public void opCall ( Exception e )
     {
-        bool retry = this.callback_is_delg? this.callback.delg(e.msg) :
-                                            this.callback.func(e.msg);
-        
+        bool retry = this.callback(e.msg);
         if (!retry) throw (e);
     }
-    
+
+
     /**************************************************************************
      
        Resets the retry callback to the default wait method.
@@ -244,7 +404,8 @@ class Retry
         
         return this;
     }
-    
+
+
     /**************************************************************************
      
          Resets the wait parameters.
@@ -262,7 +423,8 @@ class Retry
         
         return this;
     }
-    
+
+
     /**************************************************************************
      
        Sets the callback method.
@@ -273,17 +435,15 @@ class Retry
        Returns:
             this instance
             
-     ***************************************************************/
+     **************************************************************************/
     
     public This opAssign ( CallbackDelg delg )
     {
-        this.callback.delg = delg;
-        this.callback_is_delg   = true;
-        
+    	this.callback = delg;
         return this;
     }
-    
-    
+
+
     /**************************************************************************
     
         Sets the callback method.
@@ -294,13 +454,11 @@ class Retry
         Returns:
              this instance
              
-      **************************************************************************/
+    ***************************************************************************/
     
     public This opAssign ( CallbackFunc func )
     {
-        this.callback.func    = func;
-        this.callback_is_delg = false;
-        
+    	this.callback = func;
         return this;
     }
 
@@ -320,7 +478,8 @@ class Retry
         
         return this;
     }
-    
+
+
     /**************************************************************************
     
         Returns the counter level
@@ -334,7 +493,8 @@ class Retry
     {
         return this.n;
     }
-    
+
+
     /**************************************************************************
     
         Default retry callback method for push/pop retries
@@ -350,20 +510,38 @@ class Retry
     
     public bool wait ( char[] message )
     {
-        // Is retry enabled and are we below the retry limit or unlimited?
+    	if ( this.debug_text )
+    	{
+    		Trace.formatln("Retry {} ({})", this.n, message);
+    	}
+    	
+    	// Is retry enabled and are we below the retry limit or unlimited?
         bool retry = this.enabled && ((this.n < this.retries) || !this.retries);
-        
+
         if (retry)
         {
             this.n++;
             
             this.sleep(this.ms);
         }
-        
+        else
+        {
+        	if ( !this.timeout.isNull() )
+        	{
+            	if ( this.debug_text )
+            	{
+            		Trace.formatln("Calling timeout function");
+            	}
+	        	this.resetCounter();
+	       		this.timeout();
+        	}
+        }
+
         return retry;
     }
-    
-    /**************************************************************************
+
+
+    /***************************************************************************
     
         Sleep in a multi-thread compatible way.
         sleep() in multiple threads is not trivial because when several threads
@@ -379,8 +557,7 @@ class Retry
         Params:
             ms = milliseconds to sleep
     
-     **************************************************************************/
-
+    ***************************************************************************/
 
     static void sleep ( time_t ms )
     {
@@ -389,3 +566,4 @@ class Retry
         while (Ctime.nanosleep(&ts, &ts)) {}
     }
 }
+
