@@ -479,8 +479,11 @@ class QueueFile
             log.trace ("Thinking about remapping queue '{}'", name);
 
             uint i, pos;
-            auto buffer = new void[16];
-            if (first == 0 || first < buffer.sizeof)
+//            auto buffer = new void[16];
+//            if (first == 0 || first < buffer.sizeof)
+
+            // I think this works better (Gavin)
+			if (first == 0 || first < limit / 4)
 			{
 				return false;
 			}
