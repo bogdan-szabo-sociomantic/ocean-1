@@ -164,7 +164,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     
     public this ( ) 
     {
-        // Trace.formatln(typeof (this).stringof ~ " created").flush();        
+        debug Trace.formatln(typeof (this).stringof ~ " created").flush();        
         super.db = tchdbnew();
     }
     
@@ -185,7 +185,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
         if (!this.deleted)
         {
             tchdbdel(super.db);
-            Trace.formatln(typeof (this).stringof ~ " deleted").flush();
+            debug Trace.formatln(typeof (this).stringof ~ " deleted").flush();
         }
         
         this.deleted = true;
