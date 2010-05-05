@@ -110,8 +110,8 @@ struct DelgOrFunc ( R, T ... )
 		FuncType func;
 		void* address;
 	}
-	
-	
+
+
 	/***************************************************************************
 	
 	    The delegate / function pointer.
@@ -224,7 +224,7 @@ class Retry
     /***************************************************************************
     
         Callback struct. Holds the callback method reference (either delegate or
-        function).
+        function, returning bool and acceptiong a char[]).
         Also convenience aliases for the templated struct, and the delegate and
         function types.
       
@@ -233,13 +233,14 @@ class Retry
 	public alias DelgOrFunc!(bool, char[]) Callback;
 	public alias Callback.DelgType CallbackDelg;
 	public alias Callback.FuncType CallbackFunc;
+
 	public Callback callback;
 
 
     /***************************************************************************
     
 	    Timeout struct. Holds the timeout method reference (either delegate or
-	    function).
+	    function, returning void and accepting no arguments).
 	    Also convenience aliases for the templated struct, and the delegate and
 	    function types.
 	  
@@ -248,6 +249,7 @@ class Retry
 	public alias DelgOrFunc!(void) Timeout;
 	public alias Timeout.DelgType TimeoutDelg;
 	public alias Timeout.FuncType TimeoutFunc;
+
 	public Timeout timeout;
 
 
@@ -495,7 +497,7 @@ class Retry
     }
 
 
-    /**************************************************************************
+    /***************************************************************************
     
         Default retry callback method for push/pop retries
                 
@@ -506,7 +508,7 @@ class Retry
             true if the caller shall continue trying or false if the caller
             shall quit
                   
-     **************************************************************************/
+    ***************************************************************************/
     
     public bool wait ( char[] message )
     {
@@ -526,18 +528,38 @@ class Retry
         }
         else
         {
-        	if ( !this.timeout.isNull() )
-        	{
-            	if ( this.debug_text )
-            	{
-            		Trace.formatln("Calling timeout function");
-            	}
-	        	this.resetCounter();
-	       		this.timeout();
-        	}
+        	this.callTimeout();
         }
 
         return retry;
+    }
+
+
+    /***************************************************************************
+    
+	    Calls the custom timeout delegate / function (if set), and resets the
+	    internal counter.
+
+	    Params:
+	        void
+
+	    Returns:
+	        void
+
+	***************************************************************************/
+
+    protected void callTimeout ( )
+    {
+    	if ( !this.timeout.isNull() )
+    	{
+        	if ( this.debug_text )
+        	{
+        		Trace.formatln("Calling timeout function");
+        	}
+        	this.resetCounter();
+       		this.timeout();
+    	}
+
     }
 
 
