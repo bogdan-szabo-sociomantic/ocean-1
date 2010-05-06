@@ -43,10 +43,11 @@ module ocean.db.tokyocabinet.TokyoCabinetB;
 
  ******************************************************************************/
 
-protected   import 	ocean.core.Exception: TokyoCabinetException;
+protected   import  ocean.core.Exception: TokyoCabinetException;
 
-private     import 	ocean.db.tokyocabinet.util.TokyoCabinetCursor;
+private     import  ocean.db.tokyocabinet.util.TokyoCabinetCursor;
 private     import  ocean.db.tokyocabinet.util.TokyoCabinetList;
+private     import  ocean.db.tokyocabinet.util.TokyoCabinetExtString;
 
 private     import  ocean.db.tokyocabinet.c.tcbdb:
                         TCBDB,       BDBOPT,          BDBOMODE,      TCERRCODE,
@@ -66,7 +67,7 @@ debug private     import  tango.util.log.Trace;
 
 /*******************************************************************************
 
-	TokyoCabinetB class
+    TokyoCabinetB class
     
 *******************************************************************************/
 
@@ -89,7 +90,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
         byte     free_block_power       = 10;                                   // 'fpow' specifies the maximum number of elements of the free block pool by power of 2. If it is negative, the default value is specified. The default value is 10 standing for 2^10=1024.
         TuneOpts options                = TuneOpts.None;         
     }
-	
+    
     /***************************************************************************
     
         tune property
@@ -100,18 +101,18 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
 
     public Tune tune;
     
-	 /**************************************************************************
+     /**************************************************************************
     
-	    TuneOpts enumerator
-	    
-	    Large:      size of the database can be larger than 2GB 
-	    Deflate:    each recordis compressed with deflate encoding
-	    Bzip:       each record is compressed with BZIP2 encoding
-	    Tcbs:       each record is compressed with TCBS encoding
-	
-	 **************************************************************************/
-	
-	enum    TuneOpts : BDBOPT
+        TuneOpts enumerator
+        
+        Large:      size of the database can be larger than 2GB 
+        Deflate:    each recordis compressed with deflate encoding
+        Bzip:       each record is compressed with BZIP2 encoding
+        Tcbs:       each record is compressed with TCBS encoding
+    
+     **************************************************************************/
+    
+    enum    TuneOpts : BDBOPT
             {
                 Large   = BDBOPT.BDBTLARGE, 
                 Deflate = BDBOPT.BDBTDEFLATE,
@@ -120,14 +121,14 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
                 
                 None    = cast (BDBOPT) 0
             }
-	
+    
      /**************************************************************************
     
         OpenStyle enumerator
     
      **************************************************************************/
 
-	enum    OpenStyle : BDBOMODE
+    enum    OpenStyle : BDBOMODE
             {
                 Read             = BDBOMODE.BDBOREADER,     // open as a reader 
                 Write            = BDBOMODE.BDBOWRITER,     // open as a writer 
@@ -140,72 +141,71 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
                 WriteCreate      = Write | Create,
                 ReadOnly         = Read  | DontLock,
             }
-	
-	
-	/**************************************************************************
     
-	    Destructor check if called twice
-	
-	 **************************************************************************/
-	
+    
+    /**************************************************************************
+    
+        Destructor check if called twice
+    
+     **************************************************************************/
+    
     private bool            deleted         = false;
-	
-	
-	
-	/**************************************************************************
-	    
-	    Constructor    
-	    
-	    Params:
-	        dbfile = path to database file (e.g. /tmp/store.tcb)
-	                         
-	 **************************************************************************/
-	
-	public this ( ) 
-	{
-	    // Trace.formatln(typeof (this).stringof ~ " created").flush();	    
-	    this.db = tcbdbnew();
-	}
     
-	
-	
-	/**************************************************************************
     
-	    Destructor    
-	    
-	    FIXME: destructor called twice: why?
-	    
-	    tcbdbdel() will close the database object if it is still open.
-	                         
-	 **************************************************************************/
-	
-	private ~this ( )
-	{
-	    if (!this.deleted)
-	    {
-	        tcbdbdel(this.db);
+    
+    /**************************************************************************
+        
+        Constructor    
+        
+        Params:
+            dbfile = path to database file (e.g. /tmp/store.tcb)
+                             
+     **************************************************************************/
+    
+    public this ( ) 
+    {
+        this.db = tcbdbnew();
+    }
+    
+    
+    
+    /**************************************************************************
+    
+        Destructor    
+        
+        FIXME: destructor called twice: why?
+        
+        tcbdbdel() will close the database object if it is still open.
+                             
+     **************************************************************************/
+    
+    private ~this ( )
+    {
+        if (!this.deleted)
+        {
+            tcbdbdel(this.db);
             
-	        debug Trace.formatln(typeof (this).stringof ~ " deleted").flush();
-	    }
-	    
-	    this.deleted = true;
-	}
+            debug Trace.formatln(typeof (this).stringof ~ " deleted").flush();
+        }
+        
+        this.deleted = true;
+    }
 
-	
-	
-	/**************************************************************************
     
-	    Invariant: called every time a public class method is called
-	                         
-	 **************************************************************************/
-	
-	invariant ( )
-	{
-	    assert (this.db, typeof (this).stringof ~ ": invalid TokyoCabinet B+ Tree core object");
-	}
-	
-	
-	
+    
+    /**************************************************************************
+    
+        Invariant: called every time a public class method is called
+                             
+     **************************************************************************/
+    
+    invariant ( )
+    {
+        assert (this.db, typeof (this).stringof ~ ": invalid TokyoCabinet B+ Tree core object");
+    }
+    
+    
+    
     /***************************************************************************
     
         Opens a database file for reading/writing, creates if necessary. If the
@@ -216,8 +216,8 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     
      **************************************************************************/    
 
-	public void open ( char[] dbfile )
-	{   
+    public void open ( char[] dbfile )
+    {   
         super.tokyoAssert(tcbdbtune(this.db, this.tune.leaf_members,
                                     this.tune.non_leaf_members,
                                     this.tune.bucket_array_length, 
@@ -225,10 +225,10 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
                                     this.tune.free_block_power,
                                     this.tune.options),
                           "error setting tune options");
-	    
-	    return this.openNonBlocking(dbfile, OpenStyle.WriteCreate);
-	}
-	
+        
+        return this.openNonBlocking(dbfile, OpenStyle.WriteCreate);
+    }
+    
     /***************************************************************************
     
         Opens a database file. If the file is locked, an exception is thrown.
@@ -239,11 +239,11 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     
      **************************************************************************/    
 
-	public void openNonBlocking ( char[] dbfile, OpenStyle style )
-	{
-	    return this.open(dbfile, style | OpenStyle.LockNonBlocking);
-	}
-	
+    public void openNonBlocking ( char[] dbfile, OpenStyle style )
+    {
+        return this.open(dbfile, style | OpenStyle.LockNonBlocking);
+    }
+    
     /***************************************************************************
     
         Opens a database file. If the file is locked and style is not composed
@@ -256,12 +256,12 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     
      **************************************************************************/    
 
-	public void open ( char[] dbfile, OpenStyle style )
-	{
-	    this.tokyoAssert(tcbdbopen(this.db, StringC.toCstring(dbfile), style), "Open error");
-	}
-	
-	
+    public void open ( char[] dbfile, OpenStyle style )
+    {
+        this.tokyoAssert(tcbdbopen(this.db, StringC.toCstring(dbfile), style), "Open error");
+    }
+    
+    
     /**************************************************************************
     
         Closes the database
@@ -464,7 +464,8 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     
     /**************************************************************************
     
-        Get list of records in a range
+        Get list of records in a range. Note that the list of record keys in
+        range is built before this method returns and iteration starts.
     
         Params:
             first         = key of first record in range
@@ -475,7 +476,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     
         Returns
             TokyoCabinetList.QuickIterator object providing 'foreach' iteration
-            over the retrieved items. Additionally, that object can create a
+            over the retrieved records. Additionally, that object can create a
             TokyoCabinetList instance.
             
     ***************************************************************************/
@@ -485,28 +486,52 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
                                                      int max = -1 )
     {
         return TokyoCabinetList.QuickIterator(tcbdbrange(super.db, first.ptr, first.length, include_first,
-                                                                   last.ptr,  last.length,  include_last, max));
+                                                         last.ptr,  last.length,  include_last, max));
+    }
+    
+    
+    /**************************************************************************
+    
+        Get 'foreach'/'foreach_reverse' iterator over records in range.
+        (The records are retrieved during iteration, not before.)
+    
+        Params:
+            first         = key of first record in range
+            last          = key of last record in range
+            include_first = true/false: include/exclude first record
+            include_last  = true/false: include/exclude last record
+    
+        Returns
+            RangeIterator object providing 'foreach'/'foreach_reverse'
+            iteration, retrieving one record per iteration cycle.
+            
+    ***************************************************************************/
+
+    public RangeIterator getRangeAlt ( char[] first, char[] last,
+                                       bool include_first, bool include_last )
+    {
+        return RangeIterator(this, first, last, include_first, include_last);
     }
     
     /**************************************************************************
     
-        Get list of records in a range. The first record is included and the last is
-        excluded.
+        Get 'foreach'/'foreach_reverse' iterator over records in range,
+        including the first and excluding the last key.
+        (The records are retrieved during iteration, not before.)
     
         Params:
-            first = key of first record in range
-            last  = key of last record in range
+            first         = key of first record in range
+            last          = key of last record in range
     
         Returns
-            TcList.QuickIterator object providing 'foreach' iteration over the
-            retrieved items. Additionally, that object can create a TcList
-            instance.
+            RangeIterator object providing 'foreach'/'foreach_reverse'
+            iteration, retrieving one record per iteration cycle.
             
     ***************************************************************************/
 
-    public TokyoCabinetList.QuickIterator opSlice ( char[] first, char[] last )
+    public RangeIterator getRangeAlt ( char[] first, char[] last )
     {
-        return this.getRange(first, last, true, false);
+        return RangeIterator(this, first, last);
     }
     
     /**************************************************************************
@@ -523,7 +548,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     
     public bool exists ( char[] key )
     {
-        return (tcbdbvsiz(super.db, key.ptr, key.length) >= 0);
+        return tcbdbvsiz(super.db, key.ptr, key.length) >= 0;
     }
     
     
@@ -605,7 +630,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     {
         return new TokyoCabinetCursor(super.db);
     }
-	
+    
     /**************************************************************************
     
         Flushes the database content to file.
@@ -619,68 +644,181 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
         super.tokyoAssert(tcbdbsync(this.db));   
     }
     
-
-	/**************************************************************************
     
-	    Retrieves the current Tokyo Cabinet error message string.
-	    
-	    Returns:
-	        current Tokyo Cabinet error message string
-	    
-	***************************************************************************/
-	
-	protected char[] getTokyoErrMsg ( )
-	{
-	    return this.getTokyoErrMsg(tcbdbecode(this.db));
-	}
-	
-	
-	
-	/**************************************************************************
-	
-	    Retrieves the Tokyo Cabinet error message string for errcode.
-	    
-	    Params:
-	        errcode = Tokyo Cabinet error code
-	        
-	    Returns:
-	        Tokyo Cabinet error message string for errcode
-	    
-	***************************************************************************/
-	
+    public int compareKeys ( char[] key1, char[] key2 )
+    {
+        // int function (char* aptr, int asiz, char* bptr, int bsiz, void* op) TCCMP;
+        
+        
+        return this.db.cmp(key1.ptr, key1.length, key2.ptr, key2.length, this.db.cmpop);
+    }
+
+    /**************************************************************************
+    
+        Retrieves the current Tokyo Cabinet error message string.
+        
+        Returns:
+            current Tokyo Cabinet error message string
+        
+    ***************************************************************************/
+    
+    protected char[] getTokyoErrMsg ( )
+    {
+        return this.getTokyoErrMsg(tcbdbecode(this.db));
+    }
+    
+    
+    
+    /**************************************************************************
+    
+        Retrieves the Tokyo Cabinet error message string for errcode.
+        
+        Params:
+            errcode = Tokyo Cabinet error code
+            
+        Returns:
+            Tokyo Cabinet error message string for errcode
+        
+    ***************************************************************************/
+    
     protected char[] getTokyoErrMsg ( TCERRCODE errcode )
-	{
-	    return StringC.toDString(tcbdberrmsg(errcode));
-	}
-	
-	
-	
-	/**************************************************************************
-	
-	    If ok == false, retrieves the current Tokyo Cabinet error code and
-	    throws an exception if the error code is different from  all error codes
-	    in ignore_codes (even if it equals TCESUCCESS).
-	    
-	    Params:
-	        ok           = assert condition
-	        ignore_codes = do not throw an exception on these codes
-	        context      = error context description string for message
-	    
-	***************************************************************************/
-	
+    {
+        return StringC.toDString(tcbdberrmsg(errcode));
+    }
+    
+    
+    
+    /**************************************************************************
+    
+        If ok == false, retrieves the current Tokyo Cabinet error code and
+        throws an exception if the error code is different from  all error codes
+        in ignore_codes (even if it equals TCESUCCESS).
+        
+        Params:
+            ok           = assert condition
+            ignore_codes = do not throw an exception on these codes
+            context      = error context description string for message
+        
+    ***************************************************************************/
+    
     protected void tokyoAssertStrict ( bool ok, TCERRCODE[] ignore_codes, char[] context = "Error" )
-	{
-	    if (!ok)
-	    {
-	        TCERRCODE errcode = tcbdbecode(this.db);
-	        
-	        foreach (ignore_core; ignore_codes)
-	        {
-	            if (errcode == ignore_core) return; 
-	        }
-	        
-	        TokyoCabinetException(typeof (this).stringof ~ ": " ~
-	                              context ~ ": " ~ this.getTokyoErrMsg(errcode));
-	    }
-	}
+    {
+        if (!ok)
+        {
+            TCERRCODE errcode = tcbdbecode(this.db);
+            
+            foreach (ignore_core; ignore_codes)
+            {
+                if (errcode == ignore_core) return; 
+            }
+            
+            TokyoCabinetException(typeof (this).stringof ~ ": " ~
+                                  context ~ ": " ~ this.getTokyoErrMsg(errcode));
+        }
+    }
+    
+    /**************************************************************************
+    
+        Range iterator for TokyoCabinetB
+        
+    ***************************************************************************/
+
+    struct RangeIterator
+    {
+        /**********************************************************************
+        
+            TokyoCabinetB instance
+            
+         **********************************************************************/
+
+        private TokyoCabinetB      tokyo;
+        
+        /**********************************************************************
+        
+            First and last key of iteration range; may be changed at any time
+            
+         **********************************************************************/
+
+        public  char[]             first, last;
+        
+        public bool                include_first = true, include_last = false;
+        
+        /**********************************************************************
+        
+            'foreach' iterator of key/value pairs in range
+            
+         **********************************************************************/
+        
+        public int opApply ( int delegate ( ref char[] key, ref char[] val ) dg )
+        {
+            int result = 0;
+            
+            char[] key = this.first;
+            char[] val;
+            
+            scope cursor = this.tokyo.getCursor().select(this.first);
+            
+            if (!include_first)
+            {
+                cursor++;
+            }
+            
+            while (!result && this.tokyo.compareKeys(key, this.last) < 0)
+            {
+                cursor.get(key, val);
+                
+                result = dg(key, val);
+                
+                cursor++;
+            }
+            
+            if (include_last && !result)
+            {
+                cursor.get(key, val);
+                
+                result = dg(key, val);
+            }
+            
+            return result;
+        }
+        
+        /**********************************************************************
+        
+            'foreach_reverse' iterator of key/value pairs in range
+            
+         **********************************************************************/
+
+        public int opApply_reverse ( int delegate ( ref char[] key, ref char[] val ) dg )
+        {
+            int result = 0;
+            
+            char[] key = this.last;
+            char[] val;
+            
+            scope cursor = this.tokyo.getCursor().select(this.last);
+            
+            if (!include_last)
+            {
+                cursor--;
+            }
+            
+            while (!result && this.tokyo.compareKeys(key, this.last) > 0)
+            {
+                cursor.get(key, val);
+                
+                result = dg(key, val);
+                
+                cursor--;
+            }
+            
+            if (include_first && !result)
+            {
+                cursor.get(key, val);
+                
+                result = dg(key, val);
+            }
+                
+            return result;
+        }
+    }
 }

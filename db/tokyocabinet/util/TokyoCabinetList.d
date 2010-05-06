@@ -28,7 +28,7 @@ module    ocean.db.tokyocabinet.util.TokyoCabinetList;
 
  ******************************************************************************/
 
-private   import ocean.db.tokyocabinet.c.tcutil:
+private   import ocean.db.tokyocabinet.c.util.tclist:
                                 TCLIST,        ListCmp,
                                 tclistnew,     tclistnew2,      tclistload,
                                 tclistdup,     tclistdump,
@@ -606,6 +606,8 @@ class TokyoCabinetList
 
         int opApply ( int delegate ( ref char[] item ) dg )
         {
+            //debug Trace.formatln(typeof (*this).stringof ~ ": opApply");
+            
             scope list = this.getPersistent();
             
             int result;
@@ -616,6 +618,8 @@ class TokyoCabinetList
                 
                 if (result) break;
             }
+            
+            //debug Trace.formatln(typeof (*this).stringof ~ ": opApply finished");
             
             return result;
         }

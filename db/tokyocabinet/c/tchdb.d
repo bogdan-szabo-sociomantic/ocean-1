@@ -15,19 +15,126 @@ module ocean.db.tokyocabinet.c.tchdb;
  * Boston, MA 02111-1307 USA.
  *************************************************************************************************/
 
+private import ocean.db.tokyocabinet.c.tcutil:      TCCODEC, TCERRCODE;
 
-protected import ocean.db.tokyocabinet.c.tcutil: TCHDB,    TCLIST,    TCXSTR,
-                                                 TCPDPROC, TCCODEC,   TCITER,
-                                                 HDBOMODE, TCERRCODE, HDBOPT;
+private import ocean.db.tokyocabinet.c.util.tcxstr: TCXSTR;
+private import ocean.db.tokyocabinet.c.util.tclist: TCLIST, TCLISTDATUM, ListCmp;
+private import ocean.db.tokyocabinet.c.util.tcmap:  TCMAP;
 
-extern (C)
-{
+private import ocean.db.tokyocabinet.c.tcmdb:       TCMDB;
 
+private import ocean.db.tokyocabinet.c.util.tcmap:  TCPDPROC;
 
+private import ocean.db.tokyocabinet.c.tcmdb:       TCITER;
+
+extern (C):
 
 /*************************************************************************************************
- * API
+ * Hash database
  *************************************************************************************************/
+
+/* type of structure for a hash database */
+struct TCHDB 
+{                         
+    void* mmtx;                                 /* mutex for method */
+    void* rmtxs;                                /* mutexes for records */
+    void* dmtx;                                 /* mutex for the while database */
+    void* tmtx;                                 /* mutex for transaction */
+    void* wmtx;                                 /* mutex for write ahead logging */
+    void* eckey;                                /* key for thread specific error code */
+    char* rpath;                                /* real path for locking */
+    ubyte type;                                 /* database type */
+    ubyte flags;                                /* additional flags */
+    ulong bnum;                                 /* number of the bucket array */
+    ubyte apow;                                 /* power of record alignment */
+    ubyte fpow;                                 /* power of free block pool number */
+    ubyte opts;                                 /* options */
+    char* path;                                 /* path of the database file */
+    int fd;                                     /* file descriptor of the database file */
+    uint omode;                                 /* open mode */
+    ulong rnum;                                 /* number of the records */
+    ulong fsiz;                                 /* size of the database file */
+    ulong frec;                                 /* offset of the first record */
+    ulong dfcur;                                /* offset of the cursor for defragmentation */
+    ulong iter;                                 /* offset of the iterator */
+    char* map;                                  /* pointer to the mapped memory */
+    ulong msiz;                                 /* size of the mapped memory */
+    ulong xmsiz;                                /* size of the extra mapped memory */
+    ulong xfsiz;                                /* extra size of the file for mapped memory */
+    uint* ba32;                                 /* 32-bit bucket array */
+    ulong* ba64;                                /* 64-bit bucket array */
+    uint _align;                                /* record alignment */
+    uint runit;                                 /* record reading unit */
+    bool zmode;                                 /* whether compression is used */
+    int fbpmax;                                 /* maximum number of the free block pool */
+    void* fbpool;                               /* free block pool */
+    int fbpnum;                                 /* number of the free block pool */
+    int fbpmis;                                 /* number of missing retrieval of the free block pool */
+    bool async;                                 /* whether asynchronous storing is called */
+    TCXSTR *drpool;                             /* delayed record pool */
+    TCXSTR *drpdef;                             /* deferred records of the delayed record pool */
+    ulong drpoff;                               /* offset of the delayed record pool */
+    TCMDB* recc;                                /* cache for records */
+    uint rcnum;                                 /* maximum number of cached records */
+    TCCODEC enc;                                /* pointer to the encoding function */
+    void* encop;                                /* opaque object for the encoding functions */
+    TCCODEC dec;                                /* pointer to the decoding function */
+    void* decop;                                /* opaque object for the decoding functions */
+    int ecode;                                  /* last happened error code */
+    bool fatal;                                 /* whether a fatal error occured */
+    ulong inode;                                /* inode number */
+    ulong mtime;                                /* modification time */
+    uint dfunit;                                /* unit step number of auto defragmentation */
+    uint dfcnt;                                 /* counter of auto defragmentation */
+    bool tran;                                  /* whether in the transaction */
+    int walfd;                                  /* file descriptor of write ahead logging */
+    ulong walend;                               /* end offset of write ahead logging */
+    int dbgfd;                                  /* file descriptor for debugging */
+    ulong cnt_writerec;                         /* tesing counter for record write times */
+    ulong cnt_reuserec;                         /* tesing counter for record reuse times */
+    ulong cnt_moverec;                          /* tesing counter for record move times */
+    ulong cnt_readrec;                          /* tesing counter for record read times */
+    ulong cnt_searchfbp;                        /* tesing counter for FBP search times */
+    ulong cnt_insertfbp;                        /* tesing counter for FBP insert times */
+    ulong cnt_splicefbp;                        /* tesing counter for FBP splice times */
+    ulong cnt_dividefbp;                        /* tesing counter for FBP divide times */
+    ulong cnt_mergefbp;                         /* tesing counter for FBP merge times */
+    ulong cnt_reducefbp;                        /* tesing counter for FBP reduce times */
+    ulong cnt_appenddrp;                        /* tesing counter for DRP append times */
+    ulong cnt_deferdrp;                         /* tesing counter for DRP defer times */
+    ulong cnt_flushdrp;                         /* tesing counter for DRP flush times */
+    ulong cnt_adjrecc;                          /* tesing counter for record cache adjust times */
+    ulong cnt_defrag;                           /* tesing counter for defragmentation times */
+    ulong cnt_shiftrec;                         /* tesing counter for record shift times */
+    ulong cnt_trunc;                            /* tesing counter for truncation times */
+  } ;
+  
+
+enum HDBFLAGS                                   /* enumeration for additional flags */
+{                                               
+    HDBFOPEN  = 1 << 0,                         /* whether opened */
+    HDBFFATAL = 1 << 1                          /* whetehr with fatal error */
+};
+
+enum HDBOPT : ubyte                             /* enumeration for tuning options */
+{                                               
+    HDBTLARGE   = 1 << 0,                       /* use 64-bit bucket array */
+    HDBTDEFLATE = 1 << 1,                       /* compress each record with Deflate */
+    HDBTBZIP    = 1 << 2,                       /* compress each record with BZIP2 */
+    HDBTTCBS    = 1 << 3,                       /* compress each record with TCBS */
+    HDBTEXCODEC = 1 << 4                        /* compress each record with custom functions */
+};
+
+enum HDBOMODE : int                            /* enumeration for open modes */
+{                                           
+    HDBOREADER = 1 << 0,                        /* open as a reader */
+    HDBOWRITER = 1 << 1,                        /* open as a writer */
+    HDBOCREAT  = 1 << 2,                        /* writer creating */
+    HDBOTRUNC  = 1 << 3,                        /* writer truncating */
+    HDBONOLCK  = 1 << 4,                        /* open without locking */
+    HDBOLCKNB  = 1 << 5,                        /* lock without blocking */
+    HDBOTSYNC  = 1 << 6                         /* synchronize every transaction */
+};
 
 
 /* Get the message string corresponding to an error code.
@@ -774,4 +881,3 @@ bool tchdbforeach(TCHDB *hdb, TCITER iter, void *op = null);
    If successful, the return value is true, else, it is false.
    This function should be called only when no update in the transaction. */
 bool tchdbtranvoid(TCHDB *hdb);
-} // extern (C)

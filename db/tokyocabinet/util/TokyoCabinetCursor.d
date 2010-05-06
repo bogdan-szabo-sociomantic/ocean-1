@@ -28,14 +28,18 @@ module ocean.db.tokyocabinet.util.TokyoCabinetCursor;
 
  ******************************************************************************/
 
-private import ocean.db.tokyocabinet.c.tcutil: TCXSTR;
+private import ocean.db.tokyocabinet.c.util.tcxstr:  TCXSTR;
+private import ocean.db.tokyocabinet.c.bdb.tcbdbcur: BDBCUR,
+                                                     tcbdbcurnew,   tcbdbcurdel,
+                                                     tcbdbcurfirst, tcbdbcurlast,
+                                                     tcbdbcurjump,  tcbdbcurjumpback,
+                                                     tcbdbcurprev,  tcbdbcurnext,
+                                                     tcbdbcurout,   tcbdbcurrec,
+                                                     tcbdbcurkey;
+private import ocean.db.tokyocabinet.c.tcbdb:        TCBDB;
+private import ocean.db.tokyocabinet.c.tcutil:       TCCMP;
 
-private import ocean.db.tokyocabinet.c.tcbdb:   BDBCUR,        TCBDB,
-                                                tcbdbcurnew,   tcbdbcurdel,
-                                                tcbdbcurfirst, tcbdbcurlast,
-                                                tcbdbcurjump,  tcbdbcurjumpback,
-                                                tcbdbcurprev,  tcbdbcurnext,
-                                                tcbdbcurout,   tcbdbcurrec;
+private import ocean.db.tokyocabinet.util.TokyoCabinetExtString;
 
 /******************************************************************************
 
@@ -64,6 +68,14 @@ class TokyoCabinetCursor
     
     /**************************************************************************
     
+        Extensible string instances for key and value, used in get()
+        
+    ***************************************************************************/
+
+    private TokyoCabinetExtString xkey, xval;
+    
+    /**************************************************************************
+    
         Constructor
         
         Creates a Cursor instance from a TCBDB (database) object
@@ -73,6 +85,8 @@ class TokyoCabinetCursor
     this ( TCBDB* db )
     {
         this.cursor = tcbdbcurnew(db);
+        
+        this();
     }
     
     /**************************************************************************
@@ -86,8 +100,23 @@ class TokyoCabinetCursor
     this ( BDBCUR* cursor )
     {
         this.cursor = cursor;
+        
+        this();
     }
     
+    /**************************************************************************
+    
+        Constructor
+        
+        Must be invoked by any public constructor
+        
+    ***************************************************************************/
+
+    private this ( )
+    {
+        this.xkey = new TokyoCabinetExtString;
+        this.xval = new TokyoCabinetExtString;
+    }
     
     /**************************************************************************
     
@@ -199,7 +228,6 @@ class TokyoCabinetCursor
         return this.cursorAssert!(tcbdbcurout, "remove")();
     }
     
-    
     /**************************************************************************
     
         Retrieves the record at current cursor position
@@ -215,15 +243,13 @@ class TokyoCabinetCursor
     
     public This get ( out char[] key, out char[] val )
     {
-        TCXSTR key_, val_;
-        
         scope (success)
         {
-            key = key_.ptr[0 .. key_.size];
-            val = val_.ptr[0 .. val_.size];
+            key = this.xkey.toString();
+            val = this.xval.toString();
         }
         
-        return this.cursorAssert!(tcbdbcurrec, ".get")(&key_, &val_);
+        return this.cursorAssert!(tcbdbcurrec, ".get")(this.xkey.getNative(), this.xval.getNative());
     }
     
     /**************************************************************************
@@ -269,5 +295,8 @@ class TokyoCabinetCursor
     private ~this ( )
     {
         tcbdbcurdel(this.cursor);
+        
+        delete this.xkey;
+        delete this.xval;
     }
 } // Cursor class
