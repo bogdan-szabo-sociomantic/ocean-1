@@ -83,12 +83,12 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
 
     struct Tune
     {
-        int      leaf_members           = 128;                                  // 'lmemb' specifies the number of members in each leaf page. If it is not more than 0, the default value is specified. The default value is 128.    
-        int      non_leaf_members       = 256;                                  // 'nmemb' specifies the number of members in each non-leaf page. If it is not more than 0, the default value is specified. The default value is 256.
-        long     bucket_array_length    = 32749;                                // 'bnum' specifies the number of elements of the bucket array. If it is not more than 0, the default value is specified. The default value is 32749. Suggested size of the bucket array is about from 1 to 4 times of the number of all pages to be stored.
-        byte     alignment_power        = 8;                                    // 'apow' specifies the size of record alignment by power of 2. If it is negative, the default value is specified. The default value is 8 standing for 2^8=256.
-        byte     free_block_power       = 10;                                   // 'fpow' specifies the maximum number of elements of the free block pool by power of 2. If it is negative, the default value is specified. The default value is 10 standing for 2^10=1024.
-        TuneOpts options                = TuneOpts.None;         
+        int      lmemb   = 128;                                                 // 'lmemb' specifies the number of members in each leaf page. If it is not more than 0, the default value is specified. The default value is 128.    
+        int      nmemb   = 256;                                                 // 'nmemb' specifies the number of members in each non-leaf page. If it is not more than 0, the default value is specified. The default value is 256.
+        long     bnum    = 32749;                                               // 'bnum' specifies the number of elements of the bucket array. If it is not more than 0, the default value is specified. The default value is 32749. Suggested size of the bucket array is about from 1 to 4 times of the number of all pages to be stored.
+        byte     apow    = 8;                                                   // 'apow' specifies the size of record alignment by power of 2. If it is negative, the default value is specified. The default value is 8 standing for 2^8=256.
+        byte     fpow    = 10;                                                  // 'fpow' specifies the maximum number of elements of the free block pool by power of 2. If it is negative, the default value is specified. The default value is 10 standing for 2^10=1024.
+        TuneOpts options = TuneOpts.None;         
     }
     
     /***************************************************************************
@@ -218,12 +218,10 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
 
     public void open ( char[] dbfile )
     {   
-        super.tokyoAssert(tcbdbtune(this.db, this.tune.leaf_members,
-                                    this.tune.non_leaf_members,
-                                    this.tune.bucket_array_length, 
-                                    this.tune.alignment_power,
-                                    this.tune.free_block_power,
-                                    this.tune.options),
+        super.tokyoAssert(tcbdbtune(this.db, this.tune.lmemb, this.tune.nmemb,
+                                             this.tune.bnum, 
+                                             this.tune.apow,  this.tune.fpow,
+                                             this.tune.options),
                           "error setting tune options");
         
         return this.openNonBlocking(dbfile, OpenStyle.WriteCreate);
@@ -649,6 +647,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     {
         // int function (char* aptr, int asiz, char* bptr, int bsiz, void* op) TCCMP;
         
+        assert (!!this.db.cmp, typeof (this).stringof ~ ": no comparison function");
         
         return this.db.cmp(key1.ptr, key1.length, key2.ptr, key2.length, this.db.cmpop);
     }
@@ -821,4 +820,80 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
             return result;
         }
     }
+    
+    /+
+    void testCmp ( )
+    {
+        Ctime.timeval tv;
+        Ctime.gettimeofday(&tv, null);
+        Cstdlib.srand48(tv.tv_usec);
+        
+        //char[8] hex1, hex2;
+        
+        UnixTime.HexTime hext;
+        
+        UnixTime.HexTime hext_ref;
+        
+        auto t_ref = UnixTime.fromDateTime(hext_ref, 2000, 1, 15, 14, 23, 51); 
+        
+        /*
+        for (int day = 1; day <= 31; day++)
+        for (int hou = 0; hou < 24; hou++) for (int min = 0; min < 60; min++) for (int sec = 0; sec < 60; sec++) 
+        {
+            
+            auto t = UnixTime.fromDateTime(hext, 2000, 1, day, hou, min, sec);
+            printf("%10d %c%c %10d\n", t, bc(t - t_ref), bc(this.compareKeys(hext, hext_ref)), t_ref);
+        }
+        */
+        
+        const int[12] mdays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        
+        for (int yea = 1970; yea <= 2030; yea++) for (int mon = 1; mon <= 12; mon++) for (int day = 1; day <= mdays[mon - 1]; day++)
+        {
+            int hou =  random(0, 24),
+                min = random(0, 60),
+                sec = random(0, 60);
+            
+            //printf("%4d-%2d-%2d %2d:%2d:%2d\n", yea, mon, day, hou, min, sec);
+            
+            auto t = UnixTime.fromDateTime(hext, yea, mon, day, hou, min, sec);
+            printf("%04d-%02d-%02d %02d:%02d:%02d %10d %c%c %10d\n", yea, mon, day, hou, min, sec, t, bc(t - t_ref), bc(this.compareKeys(hext, hext_ref)), t_ref);
+        }
+        
+        
+        fflush(stdout);
+        
+    }
+    
+    private static char bc ( int i )
+    {
+        return i? ((i > 0)? '>' : '<') : '=';
+    }
+    
+    private static int random ( int mini, int maxi )
+    {
+        return cast (int) (Cstdlib.drand48() * (maxi - mini)) + mini;
+    }
+    
+    /*
+    private static void intToHex ( size_t n, char[] hex_str )
+    {
+        foreach_reverse (ref c; hex_str)
+        {
+            c = "0123456789abcdef"[n & 0xF];
+            n >>= 4;
+        }
+    }
+    */
+    +/
 }
+
+/*
+//required for testCmp()
+
+private import Cstdlib = tango.stdc.posix.stdlib:   srand48, drand48;
+private import Ctime   = tango.stdc.posix.sys.time: timeval, gettimeofday;
+
+private import tango.stdc.stdio: printf, fflush, stdout;
+private import ocean.db.tokyocabinet.UnixTime;
+*/
