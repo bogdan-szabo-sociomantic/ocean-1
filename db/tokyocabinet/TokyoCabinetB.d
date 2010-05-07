@@ -83,12 +83,24 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
 
     struct Tune
     {
-        int      lmemb   = 128;                                                 // 'lmemb' specifies the number of members in each leaf page. If it is not more than 0, the default value is specified. The default value is 128.    
-        int      nmemb   = 256;                                                 // 'nmemb' specifies the number of members in each non-leaf page. If it is not more than 0, the default value is specified. The default value is 256.
-        long     bnum    = 32749;                                               // 'bnum' specifies the number of elements of the bucket array. If it is not more than 0, the default value is specified. The default value is 32749. Suggested size of the bucket array is about from 1 to 4 times of the number of all pages to be stored.
-        byte     apow    = 8;                                                   // 'apow' specifies the size of record alignment by power of 2. If it is negative, the default value is specified. The default value is 8 standing for 2^8=256.
-        byte     fpow    = 10;                                                  // 'fpow' specifies the maximum number of elements of the free block pool by power of 2. If it is negative, the default value is specified. The default value is 10 standing for 2^10=1024.
-        TuneOpts options = TuneOpts.None;         
+        static const struct Default
+        {
+            static const:
+                
+            int      lmemb = 128;    
+            int      nmemb = 256;
+            long     bnum  = 32749;
+            byte     apow  = 8;
+            byte     fpow  = 10;
+            TuneOpts opts  = TuneOpts.None;         
+        }
+        
+        int      lmemb = Default.lmemb;                                         // 'lmemb' specifies the number of members in each leaf page. If it is not more than 0, the default value is specified. The default value is 128.    
+        int      nmemb = Default.nmemb;                                         // 'nmemb' specifies the number of members in each non-leaf page. If it is not more than 0, the default value is specified. The default value is 256.
+        long     bnum  = Default.bnum;                                          // 'bnum' specifies the number of elements of the bucket array. If it is not more than 0, the default value is specified. The default value is 32749. Suggested size of the bucket array is about from 1 to 4 times of the number of all pages to be stored.
+        byte     apow  = Default.apow;                                          // 'apow' specifies the size of record alignment by power of 2. If it is negative, the default value is specified. The default value is 8 standing for 2^8=256.
+        byte     fpow  = Default.fpow;                                          // 'fpow' specifies the maximum number of elements of the free block pool by power of 2. If it is negative, the default value is specified. The default value is 10 standing for 2^10=1024.
+        TuneOpts opts  = Default.opts;         
     }
     
     /***************************************************************************
@@ -221,7 +233,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
         super.tokyoAssert(tcbdbtune(this.db, this.tune.lmemb, this.tune.nmemb,
                                              this.tune.bnum, 
                                              this.tune.apow,  this.tune.fpow,
-                                             this.tune.options),
+                                             this.tune.opts),
                           "error setting tune options");
         
         return this.openNonBlocking(dbfile, OpenStyle.WriteCreate);

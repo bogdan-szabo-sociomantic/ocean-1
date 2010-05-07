@@ -78,10 +78,20 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     
     struct Tune
     {
-        long            bnum;                                              //  = 30_000_000;       
-        byte            apow;                                              //   = 2;
-        byte            fpow;                                              //   = 3;
-        TuneOpts        opts;         
+        static const struct Default
+        {
+            static const:
+                
+            long            bnum = 131_071;       
+            byte            apow = 4;
+            byte            fpow = 10;
+            TuneOpts        opts = TuneOpts.None;
+        }
+        
+        long            bnum = Default.bnum;                                    //  = 30_000_000;       
+        byte            apow = Default.apow;                                    //   = 2;
+        byte            fpow = Default.fpow;                                    //   = 3;
+        TuneOpts        opts = Default.opts;         
     }
     
     /***************************************************************************
