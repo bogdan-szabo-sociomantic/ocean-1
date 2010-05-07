@@ -133,14 +133,15 @@ abstract class IConnectionHandler
     {
         if (this.terminated) return;
         
-        this.rbuffer.setConduit(conduit);
-        this.wbuffer.setConduit(conduit);
+        this.finished = false;
         
         try 
         {
-            this.finished = false;
-            
             this.rbuffer.clear();                                               // start with a clear conscience
+            this.wbuffer.clear();                                               // start with a clear conscience
+            
+            this.rbuffer.setConduit(conduit);
+            this.wbuffer.setConduit(conduit);
             
             this.rbuffer.slice(1, false);                                       // wait for something to arrive before we try/catch
               
@@ -155,20 +156,18 @@ abstract class IConnectionHandler
         {
             if (!Runtime.isHalting())
             {
-                TraceLog.write("socket exception '{}'", e.msg);
-                Trace.formatln("socket exception '{}'", e.msg);
+                TraceLog.write("socket exception '{}'", e);
+                Trace.formatln("socket exception '{}'", e);
             }
         }
         catch (Exception e)
         {
-            TraceLog.write("runtime exception '{}'", e.msg);
-            Trace.formatln("runtime exception '{}'", e.msg);
+            TraceLog.write("runtime exception '{}'", e);
+            Trace.formatln("runtime exception '{}'", e);
         }
         finally
         {
             conduit.detach();
-            
-            this.rbuffer.clear();
         }
     }
     
