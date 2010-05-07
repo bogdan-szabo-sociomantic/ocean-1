@@ -85,6 +85,14 @@ class TokyoCabinetException : Exception
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
     
     static mixin ExceptionOpCalls!(typeof (this));
+    
+    static class Cursor : TokyoCabinetException
+    {
+        this ( char[] msg ) { super(msg); }
+        this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+        
+        static mixin ExceptionOpCalls!(typeof (this));
+    }
 }
 
 /******************************************************************************

@@ -43,7 +43,7 @@ module ocean.db.tokyocabinet.TokyoCabinetB;
 
  ******************************************************************************/
 
-protected   import  ocean.core.Exception: TokyoCabinetException;
+private     import  ocean.core.Exception: TokyoCabinetException;
 
 private     import  ocean.db.tokyocabinet.util.TokyoCabinetCursor;
 private     import  ocean.db.tokyocabinet.util.TokyoCabinetList;
@@ -750,9 +750,27 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
             
          **********************************************************************/
 
-        public  char[]             first, last;
+        char[]              first;
+        char[]              last;
         
-        public bool                include_first = true, include_last = false;
+        /**********************************************************************
+        
+            Inclusion flags for first and last record in range.
+            May be changed at any time
+            
+         **********************************************************************/
+
+        bool                include_first   = true;
+        bool                include_last    = false;
+        
+        /**********************************************************************
+        
+            "Not found" indicator; if true, iteration has been halted because
+            a Tokyo Cabinet cursor method reported that a key was not found.
+            
+         **********************************************************************/
+
+        bool                not_found       = false;
         
         /**********************************************************************
         
@@ -760,34 +778,43 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
             
          **********************************************************************/
         
-        public int opApply ( int delegate ( ref char[] key, ref char[] val ) dg )
+        int opApply ( int delegate ( ref char[] key, ref char[] val ) dg )
         {
             int result = 0;
             
             char[] key = this.first;
             char[] val;
             
-            scope cursor = this.tokyo.getCursor().select(this.first);
-            
-            if (!include_first)
+            try
             {
-                cursor++;
+                scope cursor = this.tokyo.getCursor().select(this.first);
+                
+                if (!include_first)
+                {
+                    cursor++;
+                }
+                
+                while (!result && this.tokyo.compareKeys(key, this.last) < 0)
+                {
+                    cursor.get(key, val);
+                    
+                    result = dg(key, val);
+                    
+                    cursor++;
+                }
+                
+                if (include_last && !result)
+                {
+                    cursor.get(key, val);
+                    
+                    result = dg(key, val);
+                }
             }
-            
-            while (!result && this.tokyo.compareKeys(key, this.last) < 0)
+            catch (TokyoCabinetException e)
             {
-                cursor.get(key, val);
+                this.not_found = true;
                 
-                result = dg(key, val);
-                
-                cursor++;
-            }
-            
-            if (include_last && !result)
-            {
-                cursor.get(key, val);
-                
-                result = dg(key, val);
+                debug Trace.formatln(e.msg);
             }
             
             return result;
@@ -799,36 +826,45 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
             
          **********************************************************************/
 
-        public int opApply_reverse ( int delegate ( ref char[] key, ref char[] val ) dg )
+        int opApply_reverse ( int delegate ( ref char[] key, ref char[] val ) dg )
         {
             int result = 0;
             
             char[] key = this.last;
             char[] val;
             
-            scope cursor = this.tokyo.getCursor().select(this.last);
-            
-            if (!include_last)
+            try
             {
-                cursor--;
+                scope cursor = this.tokyo.getCursor().select(this.last);
+                
+                if (!include_last)
+                {
+                    cursor--;
+                }
+                
+                while (!result && this.tokyo.compareKeys(key, this.last) > 0)
+                {
+                    cursor.get(key, val);
+                    
+                    result = dg(key, val);
+                    
+                    cursor--;
+                }
+                
+                if (include_first && !result)
+                {
+                    cursor.get(key, val);
+                    
+                    result = dg(key, val);
+                }
+            }
+            catch (TokyoCabinetException e)
+            {
+                this.not_found = true;
+                
+                debug Trace.formatln(e.msg);
             }
             
-            while (!result && this.tokyo.compareKeys(key, this.last) > 0)
-            {
-                cursor.get(key, val);
-                
-                result = dg(key, val);
-                
-                cursor--;
-            }
-            
-            if (include_first && !result)
-            {
-                cursor.get(key, val);
-                
-                result = dg(key, val);
-            }
-                
             return result;
         }
     }

@@ -28,6 +28,8 @@ module ocean.db.tokyocabinet.util.TokyoCabinetCursor;
 
  ******************************************************************************/
 
+private import ocean.core.Exception: TokyoCabinetException, assertEx;
+
 private import ocean.db.tokyocabinet.c.util.tcxstr:  TCXSTR;
 private import ocean.db.tokyocabinet.c.bdb.tcbdbcur: BDBCUR,
                                                      tcbdbcurnew,   tcbdbcurdel,
@@ -37,9 +39,10 @@ private import ocean.db.tokyocabinet.c.bdb.tcbdbcur: BDBCUR,
                                                      tcbdbcurout,   tcbdbcurrec,
                                                      tcbdbcurkey;
 private import ocean.db.tokyocabinet.c.tcbdb:        TCBDB;
-private import ocean.db.tokyocabinet.c.tcutil:       TCCMP;
 
 private import ocean.db.tokyocabinet.util.TokyoCabinetExtString;
+
+debug private import tango.util.log.Trace;
 
 /******************************************************************************
 
@@ -129,7 +132,7 @@ class TokyoCabinetCursor
     
     public This selectStart ( )
     {
-        return this.cursorAssert!(tcbdbcurfirst, "moveToStart")();
+        return this.cursorAssert!(tcbdbcurfirst, "selectStart")();
     }
     
     /**************************************************************************
@@ -143,7 +146,7 @@ class TokyoCabinetCursor
     
     public This selectEnd ( )
     {
-        return this.cursorAssert!(tcbdbcurlast, "moveToEnd");
+        return this.cursorAssert!(tcbdbcurlast, "selectEnd");
     }
     
     /**************************************************************************
@@ -160,7 +163,7 @@ class TokyoCabinetCursor
     
     public This select ( char[] key )
     {
-        return this.cursorAssert!(tcbdbcurjump, "moveTo")(key.ptr, key.length);
+        return this.cursorAssert!(tcbdbcurjump, "select")(key.ptr, key.length);
     }
     
     public alias select opAssign;
@@ -179,7 +182,7 @@ class TokyoCabinetCursor
     
     public This selectLast ( char[] key )
     {
-        return this.cursorAssert!(tcbdbcurjumpback, "moveToLast")(key.ptr, key.length);
+        return this.cursorAssert!(tcbdbcurjumpback, "selectLast")(key.ptr, key.length);
     }
     
     /**************************************************************************
@@ -193,7 +196,7 @@ class TokyoCabinetCursor
     
     public This prev ( )
     {
-        return this.cursorAssert!(tcbdbcurprev, "moveToPrev")();
+        return this.cursorAssert!(tcbdbcurprev, "prev")();
     }
     
     public alias prev opPostDec;
@@ -209,7 +212,7 @@ class TokyoCabinetCursor
     
     public This next ( )
     {
-        return this.cursorAssert!(tcbdbcurnext, "moveToNext")();
+        return this.cursorAssert!(tcbdbcurnext, "next")();
     }
     
     public alias next opPostInc;
@@ -254,8 +257,7 @@ class TokyoCabinetCursor
     
     /**************************************************************************
     
-        Invokes func and asserts that func returns true. func must be of
-        type
+        Invokes func and asserts that func returns true. func must be of type
             ---
                 bool ( BDBCUR* cursor, Args args )
             ---
@@ -275,13 +277,16 @@ class TokyoCabinetCursor
         Returns:
             this instance
         
+        Throws:
+            TokyoCabinetException.Cursor if func returned false
+        
     ***************************************************************************/
     
     private This cursorAssert ( alias func, char[] fname, Args ... ) ( Args args )
     {
         bool ok = func(this.cursor, args);
         
-        assert (ok, This.stringof ~ '.' ~ fname ~ ": key not found");
+        assertEx!(TokyoCabinetException.Cursor)(ok, This.stringof ~ '.' ~ fname ~ ": key not found");
         
         return this;
     }
@@ -299,4 +304,4 @@ class TokyoCabinetCursor
         delete this.xkey;
         delete this.xval;
     }
-} // Cursor class
+}
