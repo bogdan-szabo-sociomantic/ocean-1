@@ -669,7 +669,50 @@ class Retry
             again = this.callback(e.msg);
             if ( !again )
             {
-            	throw e;
+           		throw e;
+            }
+        }
+        while (again)
+    }
+
+
+    /***************************************************************************
+    
+		try / catch / retry loop which creates and throws exceptions of a new
+		class on failure. Can be called from classes which use this class.
+	
+		Calls the passed delegate function, catches any exceptions, and retries
+		the delegate according to the retry setup.
+	
+		Note: If your class needs to explcitly handle any exceptions of other
+		types, it will need to implement its own version of this loop, adding
+		extra catch blocks.
+
+		Template params:
+			E = type of exceptions to rethrow on failure
+
+	    Params:
+	        dg = delegate to try
+	        args = arguments of delegate
+	
+	***************************************************************************/
+
+    public void loop ( E : Exception, D, T ... ) ( D dg, T args )
+    {
+    	bool again;
+    	this.resetCounter();
+
+    	do try
+        {
+        	again = false;
+        	dg(args);
+        }
+        catch (Exception e)
+        {
+            again = this.callback(e.msg);
+            if ( !again )
+            {
+           		throw new E(e.msg);
             }
         }
         while (again)
