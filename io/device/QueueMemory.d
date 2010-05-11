@@ -1,20 +1,21 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2004 Kris Bell. All rights reserved
+    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
 
     license:        BSD style: $(LICENSE)
-    
+
     version:        May 2010: Initial release      
-                    
-    author:         Thomas Nicolai / Gavin Norman
+
+    author:         Gavin Norman
 
     QueueMemory implements the QueueConduit base class. It is a FIFO queue
     based on the Memory Conduit (which is a non-growing memory buffer).
 
-	Also in this file is QueueMemoryPersist, an extension of QueueMemory which
+	Also in this module is QueueMemoryPersist, an extension of QueueMemory which
 	loads itself from a dump file upon construction, and saves itself to a file
-	upon destruction. It handles the Ctrl-C terminate signal to ensure that its
-	state is saved if the program is interrupted.
+	upon destruction. It handles the Ctrl-C terminate signal to ensure that the
+	state and content of all QueueMemoryPersist instances are saved if the
+	program is terminated.
 
 *******************************************************************************/
 
@@ -28,11 +29,9 @@ module  ocean.io.device.QueueMemory;
 
 *******************************************************************************/
 
-private import ocean.io.device.model.IQueueChannel;
+private import ocean.io.device.model.IConduitQueue;
 
 private import tango.util.log.model.ILogger;
-
-private import tango.net.cluster.model.IChannel;
 
 private import tango.io.device.Conduit;
 
@@ -43,6 +42,8 @@ private import tango.io.FilePath, tango.io.device.File;
 private import Csignal = tango.stdc.signal: signal, raise, SIGTERM, SIGINT, SIG_DFL;
 
 private import ocean.sys.SignalHandler;
+
+private import tango.util.log.Trace;
 
 
 
@@ -56,52 +57,29 @@ class QueueMemory : ConduitQueue!(Memory)
 {
 	/***************************************************************************
 
-	    Constructor (Channel)
-	    
+	    Constructor
+
 	    Params:
-	    	log = logger instance
 	    	name = name of queue (for logging)
 	    	max = max queue size (bytes)
 	
 	***************************************************************************/
 
-    this ( ILogger log, char[] name, uint max )
+    this ( char[] name, uint max )
     {
-    	super(log, name, max);
+    	super(name, max);
     }
 
 
-	/***************************************************************************
-
-	    Constructor (Channel)
-	    
-	    Params:
-	    	log = logger instance
-	    	channel = cluster channel
-	    	max = max queue size (bytes)
-	
-	***************************************************************************/
-	
-	this ( ILogger log, IChannel channel, uint max )
-	{
-		super(log, channel, max);
-	}
-
-
-	public void open ( char[] name )
-	{
-		this.initMemory();
-	}
-	
-	/***************************************************************************
+    /***************************************************************************
 
 		Initialises the Array conduit with the size set in the constructor.
-
+	
 	***************************************************************************/
 
-	protected void initMemory ( )
+    public void open ( char[] name )
 	{
-		this.log.trace ("initializing memory queue '{}' to {} KB", this.name, this.limit / 1024);
+		this.log("Initializing memory queue '{}' to {} KB", this.name, this.limit / 1024);
         this.conduit = new Memory(this.limit); // non-growing array
 	}
 }
@@ -118,39 +96,31 @@ class QueueMemoryPersist : QueueMemory
 {
 	/***************************************************************************
 
-	    Constructor (Channel)
+	    Constructor
 	    
 	    Params:
-	    	log = logger instance
 	    	name = name of queue (for logging)
 	    	max = max queue size (bytes)
 	
 	***************************************************************************/
 	
-	this ( ILogger log, char[] name, uint max )
+	public this ( char[] name, uint max )
 	{
-		super(log, name, max);
-		this.instances ~= this;
+		super(name, max);
+		this.registerInstance();
 		this.readFromFile();
 	}
-	
-	
+
+
 	/***************************************************************************
-	
-	    Constructor (Channel)
-	    
-	    Params:
-	    	log = logger instance
-	    	channel = cluster channel
-	    	max = max queue size (bytes)
+
+    	Registers this instance of this class with the static instances list.
 	
 	***************************************************************************/
-	
-	this ( ILogger log, IChannel channel, uint max )
+
+	protected void registerInstance ( )
 	{
-		super(log, channel, max);
-		this.instances ~= this;
-		this.readFromFile();
+		registerInstance(this);
 	}
 
 
@@ -160,7 +130,7 @@ class QueueMemoryPersist : QueueMemory
 	
 	***************************************************************************/
 	
-	public void close ( )
+	public synchronized override void close ( )
 	{
 		this.dumpToFile();
 		super.close();
@@ -174,7 +144,7 @@ class QueueMemoryPersist : QueueMemory
 	    below.
 
 	***************************************************************************/
-	
+
 	static this ( )
 	{
 	    Csignal.signal(Csignal.SIGTERM, &terminate);
@@ -192,16 +162,19 @@ class QueueMemoryPersist : QueueMemory
 	    
 	***************************************************************************/
 	
-	extern (C) static protected void terminate ( int code )
+	extern (C) static protected synchronized void terminate ( int code )
 	{
 		char[] msg = SignalHandler.getId(code) ~ " raised: terminating";
-	
+		Trace.formatln(msg);
+
 		foreach ( instance; instances )
 		{
-			instance.log.trace(msg);
+			Trace.formatln("Closing {} (saving {} entries to {})",
+					instance.getName(), instance.size(), instance.getName() ~ ".dump");
+			instance.log(msg);
 			instance.dumpToFile();
 		}
-	
+
 	    Csignal.signal(code, SIG_DFL);
 	    Csignal.raise(code);
 	}
@@ -214,5 +187,21 @@ class QueueMemoryPersist : QueueMemory
 	***************************************************************************/
 	
 	static protected QueueMemoryPersist[] instances;
+
+
+	/***************************************************************************
+	
+    	Registers an instance of this class with the static instances list.
+    	
+    	Params:
+    		instance = instance to register
+    
+	***************************************************************************/
+
+	static protected void registerInstance ( QueueMemoryPersist instance )
+	{
+		Trace.formatln("Adding {} to memory persist queue instances list", instance.getName());
+		instances ~= instance;
+	}
 }
 
