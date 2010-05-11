@@ -887,8 +887,6 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
                 this.first = this.last;
                 this.last  = tmp;
             }
-            
-            Trace.formatln("{} {} {}", this.first, this.last, descending);
         }
         
     }
