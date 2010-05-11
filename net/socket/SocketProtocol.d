@@ -34,6 +34,10 @@ private import tango.net.device.Berkeley: IPv4Address;
 
 private import tango.io.Buffer;
 
+private import ocean.io.Retry;
+
+
+
 class SocketProtocol : Socket
 {
     /**************************************************************************
@@ -77,6 +81,15 @@ class SocketProtocol : Socket
 
     private bool        connected = false;
     
+    /**************************************************************************
+    
+	    Retry instance for output retrying
+	
+	 **************************************************************************/
+	
+	public Retry retry;
+
+
     /**************************************************************************
     
         Constructor
@@ -147,13 +160,17 @@ class SocketProtocol : Socket
     this ( IPv4Address address, size_t rbuf_size, size_t wbuf_size )
     {
         super();
-        
+
         this.address = address;
-        
+
         this.connect_();
-        
+
         this.reader  = new ListReader((new Buffer(rbuf_size)).setConduit(super));
         this.writer  = new ListWriter((new Buffer(wbuf_size)).setConduit(super));
+
+        this.retry = new Retry();
+
+        super.timeout(1000);
     }
     
     /**************************************************************************
@@ -244,10 +261,25 @@ class SocketProtocol : Socket
 
     public This put ( T ... ) ( T items )
     {
-        this.connect();
-        
-        this.writer.put(items);
-        
+    	bool again;
+    	this.retry.resetCounter();
+
+    	do try
+        {
+        	again = false;
+        	this.connect();
+            this.writer.put(items);
+        }
+        catch (Exception e)
+        {
+            again = this.retry(e.msg);
+            if ( !again )
+            {
+            	throw e;
+            }
+        }
+        while (again)
+
         return this;
     }
     
@@ -320,7 +352,7 @@ class SocketProtocol : Socket
     {
         return this.address.port();
     }
-    
+
     /**********************************************************************
     
         Checks whether the socket is OK. If not, arranges throwing an
