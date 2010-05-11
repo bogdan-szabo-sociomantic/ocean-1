@@ -785,28 +785,28 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
             char[] key = this.first;
             char[] val;
             
+            this.sortRangeKeys(false);
+            
             try
             {
                 scope cursor = this.tokyo.getCursor().select(this.first);
                 
                 if (!include_first)
                 {
-                    cursor++;
+                    cursor.next();
                 }
+                
+                cursor.get(key, val);
                 
                 while (!result && this.tokyo.compareKeys(key, this.last) < 0)
                 {
-                    cursor.get(key, val);
-                    
                     result = dg(key, val);
                     
-                    cursor++;
+                    cursor.next().get(key, val);
                 }
                 
                 if (include_last && !result)
                 {
-                    cursor.get(key, val);
-                    
                     result = dg(key, val);
                 }
             }
@@ -830,31 +830,32 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
         {
             int result = 0;
             
-            char[] key = this.last;
+            char[] key = this.first;
             char[] val;
+            
+            this.sortRangeKeys(true);
             
             try
             {
                 scope cursor = this.tokyo.getCursor().select(this.last);
                 
-                if (!include_last)
+                if (!include_first)
                 {
-                    cursor--;
+                    cursor.prev();
                 }
                 
-                while (!result && this.tokyo.compareKeys(key, this.last) > 0)
+                cursor.get(key, val);
+                
+                do
                 {
-                    cursor.get(key, val);
-                    
                     result = dg(key, val);
                     
-                    cursor--;
+                    cursor.prev().get(key, val);
                 }
+                while (!result && this.tokyo.compareKeys(key, this.first) > 0)
                 
                 if (include_first && !result)
                 {
-                    cursor.get(key, val);
-                    
                     result = dg(key, val);
                 }
             }
@@ -867,6 +868,29 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
             
             return result;
         }
+        
+        /**********************************************************************
+        
+            Sorts the range keys this.first/this.last.
+            
+            Params:
+                descending = true: greater key first; false: lesser key first
+            
+         **********************************************************************/
+
+        private void sortRangeKeys ( bool descending )
+        {
+            if ((this.tokyo.compareKeys(this.first, this.last) > 0) ^ descending)
+            {
+                char[] tmp = this.first;
+                
+                this.first = this.last;
+                this.last  = tmp;
+            }
+            
+            Trace.formatln("{} {} {}", this.first, this.last, descending);
+        }
+        
     }
     
     /+
