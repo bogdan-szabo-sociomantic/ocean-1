@@ -165,7 +165,7 @@ class AmazonAssociates
         setApiEndpoints();
         
         curl = new LibCurl();
-        curl.setMaxFileSize(maxFileSize);
+        curl.setOptionT!(CURLoption.MAXFILESIZE, typeof(this.maxFileSize)) (this.maxFileSize);
         
         hmac = new HMAC(new SHA256(), secretKey);
     }
@@ -233,7 +233,7 @@ class AmazonAssociates
     public void setResponseBuffer( char[]* buffer ) 
     {
         responseBuffer = buffer;
-        curl.setResponseBuffer(responseBuffer);
+//        curl.setResponseBuffer(responseBuffer);
     }
 
     
@@ -401,7 +401,7 @@ class AmazonAssociates
     
     public bool isError ()
     {
-        if ( containsPattern(*responseBuffer, "<Error>") )
+        if ( containsPattern(*this.responseBuffer, "<Error>") )
             error = true;
 
         return error;
@@ -455,11 +455,11 @@ class AmazonAssociates
         if ( wait )
             sleep(wait);
         
-        curl.read(requestUrl);
+        auto errcode = curl.read(this.requestUrl, *this.responseBuffer);
 
-        if (curl.error)
+        if ( errcode )
         {
-            if (curl.getReturnCode == 503)
+            if (curl.getResponseCode == 503)
             {
                 if ( retry < maxRetries )
                 {
@@ -517,7 +517,7 @@ class AmazonAssociates
 
     private void reset()
     {
-        *responseBuffer = null;
+        responseBuffer.length = 0;
         
         requestUrl.length = 0;
         queryString.length = 0;
