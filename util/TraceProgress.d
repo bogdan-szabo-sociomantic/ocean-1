@@ -35,6 +35,9 @@
 	The default output is to the log file only, and shows the count of
 	iterations completed.
 
+	There's also a global instance of the Tracer, which can be accessed with the
+	Tracer.instance() static method. This is useful if multiple functions in a 
+	program need to feed information into the tracer.
 
 	Example usage 1 - Displays progress to the log file as a percentage of the
 	total once per iteration:
@@ -682,7 +685,7 @@ public struct Tracer
 	
 	***************************************************************************/
 
-	protected static const char[][] rotor = ["|", "/", "-", "\\"];
+	protected static const char[][] rotor = ["| ", "/ ", "- ", "\\ "];
 
 
 	/***************************************************************************
@@ -1144,7 +1147,8 @@ public struct Tracer
 	
 	/***************************************************************************
 	
-		Spins the console spinner clockwise or anti-clockwise.
+		Spins the console spinner clockwise or anti-clockwise and updates the
+		console display.
 		
 		Params:
 			void
@@ -1156,20 +1160,26 @@ public struct Tracer
 
 	public void spin ( bool clockwise )
 	{
-    	if ( clockwise )
-    	{
-    		this.spinClockwise();
-    	}
-    	else
-    	{
-    		this.spinAntiClockwise();
-    	}
+		if ( this.spinner )
+		{
+	    	if ( clockwise )
+	    	{
+	    		this.spinClockwise();
+	    	}
+	    	else
+	    	{
+	    		this.spinAntiClockwise();
+	    	}
+	
+			this.updateDisplayStrings();
+			this.write(this.console_display, this.spinnerString(), "", &this.writeToConsole);
+		}
 	}
 
 
 	/***************************************************************************
 	
-		Spins the console spinner clockwise and writes it to the console.
+		Spins the console spinner clockwise.
 		
 		Params:
 			void
@@ -1179,20 +1189,19 @@ public struct Tracer
 	
 	***************************************************************************/
 
-	public void spinClockwise ( )
+	protected void spinClockwise ( )
 	{
 		this.spin_counter++;
 		if ( this.spin_counter == this.rotor.length )
 		{
 			this.spin_counter = 0;
 		}
-		this.writeToConsole([this.rotor[this.spin_counter]]);
 	}
 
 
 	/***************************************************************************
 	
-		Spins the console spinner anti-clockwise and writes it to the console.
+		Spins the console spinner anti-clockwise.
 		
 		Params:
 			void
@@ -1209,7 +1218,6 @@ public struct Tracer
 			this.spin_counter = this.rotor.length;
 		}
 		this.spin_counter--;
-		this.writeToConsole([this.rotor[this.spin_counter]]);
 	}
 
 
@@ -1534,22 +1542,46 @@ public struct Tracer
 
 	protected void display ( char[] append = "" )
 	{
-		this.formatProgressThisInterval(this.per_interval_str);
+		this.updateDisplayStrings();
 		
-		this.formatTotalProgress(this.total_str);
-		
-		if ( this.spinner )
-		{
-			this.write(this.console_display, "  ", append, &this.writeToConsole);
-		}
-		else
-		{
-			this.write(this.console_display, "", append, &this.writeToConsole);
-		}
-
+		this.write(this.console_display, this.spinnerString(), append, &this.writeToConsole);
 		this.write(this.log_display, "", append, &this.writeToLog);
 	}
 
+
+	/***************************************************************************
+
+		Updates the internal string buffers with the latest info for this
+		interval and the total progress.
+
+		Params:
+			append = string to append to the end of the messages displayed
+
+		Returns:
+			void
+
+	***************************************************************************/
+
+	protected void updateDisplayStrings ( )
+	{
+		this.formatProgressThisInterval(this.per_interval_str);
+		this.formatTotalProgress(this.total_str);
+	}
+
+
+	/***************************************************************************
+
+		Gets the spinner string, if it's active. Otherwise returns "".
+
+		Returns:
+			string to display for progress spinner
+
+	***************************************************************************/
+
+	protected char[] spinnerString ( )
+	{
+		return this.spinner ? this.rotor[this.spin_counter] : "";
+	}
 
 	/***************************************************************************
 
