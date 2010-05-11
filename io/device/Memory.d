@@ -15,11 +15,14 @@
 
 		Adapted from tango.io.device.Conduit and tango.io.device.Array.
 		
-		tango.io.device.Array implements a memory array which always appends
-		new data to the end.
+		(tango.io.device.Array implements a memory array which always appends
+		new data to the end.)
 		
 		The Memory conduit is random access - data can be read from or written
 		to the seek position.
+
+		(See http://www.dsource.org/projects/tango/ticket/1916 for a short
+		discussion on why Array is implemented as it is.)
 
 *******************************************************************************/
 
