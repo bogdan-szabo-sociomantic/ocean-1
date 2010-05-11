@@ -54,6 +54,37 @@
         while (more)
         
     ---
+
+    For cases where you don't need to specifically handle different exception
+    types, the Retry class includes a standard loop, which is passed a 
+    delegate for the action to repeatedly try / retry:
+    
+    ---
+
+        import $(TITLE);
+
+        class C
+        {
+        	Retry retry;
+
+			this ( )
+			{
+	        	this.retry = new Retry(250, 10); // Retry up to 10 times, wait 250 ms
+	                                             // before each retry
+			}
+
+			void doSomething ( int arg )
+			{
+				this.retry.loop(&this.trySomething, arg);
+			}
+	        
+			void trySomething ( int arg )
+			{
+				// code to do something with arg
+			}
+		}
+
+    ---
     
  ******************************************************************************/
 
@@ -602,6 +633,46 @@ class Retry
         auto ts = Ctimer.timespec(ms / 1_000, (ms % 1_000) * 1_000_000);
         
         while (Ctime.nanosleep(&ts, &ts)) {}
+    }
+
+
+    /***************************************************************************
+    
+		Standard try / catch / retry loop. Can be called from classes which use
+		this class.
+
+		Calls the passed delegate function, catches any exceptions, and retries
+		the delegate according to the retry setup.
+
+		Note: If your class needs to explcitly handle any exceptions of other
+		types, it will need to implement its own version of this loop, adding
+		extra catch blocks.
+
+	    Params:
+	        dg = delegate to try
+	        args = arguments of delegate
+
+	***************************************************************************/
+
+    public void loop ( D, T ... ) ( D dg, T args )
+    {
+    	bool again;
+    	this.resetCounter();
+
+    	do try
+        {
+        	again = false;
+        	dg(args);
+        }
+        catch (Exception e)
+        {
+            again = this.callback(e.msg);
+            if ( !again )
+            {
+            	throw e;
+            }
+        }
+        while (again)
     }
 }
 
