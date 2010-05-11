@@ -236,15 +236,16 @@ class SocketProtocol : Socket
             this instance
     
      **************************************************************************/
-    
+import tango.util.log.Trace;    
     public This get ( T ... ) ( out T items )
     {
-    	this.safeRetry(&this.getDelegate!(T), items);
+    	this.retry.loop(&this.getDelegate!(T), items);
     	return this;
     }
 
     void getDelegate ( T ... ) ( out T items )
     {
+Trace.formatln("SocketProtocol.get - try");
     	this.connect();
         this.reader.get(items);
     }
@@ -264,49 +265,17 @@ class SocketProtocol : Socket
 
     public This put ( T ... ) ( T items )
     {
-    	this.safeRetry(&this.putDelegate!(T), items);
+    	this.retry.loop(&this.tryPut!(T), items);
         return this;
     }
-    
-    void putDelegate ( T ... ) ( T items )
+
+    void tryPut ( T ... ) ( T items )
     {
+Trace.formatln("SocketProtocol.put - try");
     	this.connect();
         this.writer.put(items);
     }
 
-
-    /**************************************************************************
-    
-		Calls the passed delegate function, catches any exceptions, and retries
-		the delegate according to the setup of the retry member.
-	    
-	    Params:
-	        dg = delegate to try
-	        args = arguments of delegate
-	        
-	 **************************************************************************/
-
-    void safeRetry ( D, T ... ) ( D dg, T args )
-    {
-    	bool again;
-    	this.retry.resetCounter();
-
-    	do try
-        {
-        	again = false;
-        	dg(args);
-        }
-        catch (Exception e)
-        {
-            again = this.retry(e.msg);
-            if ( !again )
-            {
-            	throw e;
-            }
-        }
-        while (again)
-    }
-    
     /**************************************************************************
     
         Clears received input data. 
