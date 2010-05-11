@@ -512,10 +512,7 @@ class Retry
     
     public bool wait ( char[] message )
     {
-    	if ( this.debug_text )
-    	{
-    		Trace.formatln("Retry {} ({})", this.n, message);
-    	}
+    	this.trace("Retry {} ({})", this.n, message);
     	
     	// Is retry enabled and are we below the retry limit or unlimited?
         bool retry = this.enabled && ((this.n < this.retries) || !this.retries);
@@ -552,14 +549,33 @@ class Retry
     {
     	if ( !this.timeout.isNull() )
     	{
-        	if ( this.debug_text )
-        	{
-        		Trace.formatln("Calling timeout function");
-        	}
+       		this.trace("Calling timeout function");
         	this.resetCounter();
        		this.timeout();
     	}
 
+    }
+
+
+    /***************************************************************************
+    
+	    Outputs a message to Trace if debug_text is switched on.
+	
+	    Params:
+	        fmt = format string
+	        ... = format string arguments
+	
+	    Returns:
+	        void
+	
+	***************************************************************************/
+
+    protected void trace ( char[] fmt, ... )
+    {
+    	if ( this.debug_text )
+    	{
+    		Trace.formatln(fmt,  _arguments, _argptr);
+    	}
     }
 
 
