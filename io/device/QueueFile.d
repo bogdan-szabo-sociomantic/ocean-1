@@ -3,9 +3,9 @@
     copyright:      Copyright (c) 2004 Kris Bell. All rights reserved
 
     license:        BSD style: $(LICENSE)
-    
+
     version:        May 2010: Initial release      
-                    
+
     author:         Kris Bell / Thomas Nicolai / Gavin Norman
 
     QueueFile implements the ConduitQueue base class. It is a FIFO queue
@@ -39,11 +39,9 @@ module  ocean.io.device.QueueFile;
 
 *******************************************************************************/
 
-private import ocean.io.device.model.IQueueChannel;
+private import ocean.io.device.model.IConduitQueue;
 
 private import tango.util.log.model.ILogger;
-
-private import tango.net.cluster.model.IChannel;
 
 private import tango.io.device.Conduit;
 
@@ -60,49 +58,35 @@ private import  tango.io.FilePath, tango.io.device.File;
 class QueueFile : ConduitQueue!(File)
 {
 	/***************************************************************************
-
-	    Constructor (Channel)
-	    
-		Params:
-			log = logger instance
-	    	cluster = cluster channel
-	    	max = max queue size (bytes)
-
+	
+		The queue file's minimum size (in bytes).
+		If a new queue is constructed, the file will be initialised to this
+		size.
+	
 	***************************************************************************/
 
-	public this ( ILogger log, IChannel channel, uint max, uint min = 1024 * 1024 )
-	{
-		this.min_file_size = min;
-		super(log, channel, max);
-	}
+	protected uint min_file_size;
 
 
 	/***************************************************************************
 	
-	    Constructor (Name)
-		Creates or opens existing persistent queue with the given name.
+	    Constructor
+		Creates or opens existing queue file with the given name.
 
 		Params:
-			log = logger instance
 	    	name = name of queue (file path)
 	    	max = max queue size (bytes)
+	    	min = minimum queue file size (bytes)
 
 	***************************************************************************/
-	
-	public this ( ILogger log, char[] name, uint max, uint min = 1024 * 1024 )
+
+	public this ( char[] name, uint max, uint min = 1024 * 1024 )
 	{
 		this.min_file_size = min;
-		super(log, name, max);
+		super(name, max);
 	}
 
 
-	protected uint min_file_size;
-
-	public void open ( char[] name )
-	{
-		this.openFile(name, this.min_file_size);
-	}
-	
 	/***************************************************************************
 
 		Opens a persistent queue file. The file is scanned to find the front and
@@ -116,7 +100,7 @@ class QueueFile : ConduitQueue!(File)
     
 	***************************************************************************/
 
-	protected void openFile ( char[] name, uint min )
+	protected void open ( char[] name )
 	{
 		Header chunk;
 
@@ -127,11 +111,12 @@ class QueueFile : ConduitQueue!(File)
 		if (length is 0)
 		{
 			// initialize file with min length
-			min = (min + this.buffer.length - 1) / this.buffer.length;
+			uint buffers_to_write = (this.min_file_size + this.buffer.length - 1) / this.buffer.length;
 
-			this.log.trace ("initializing file queue '{}' to {} KB", this.name, (min * this.buffer.length) / 1024);
+			this.log("initializing file queue '{}' to {} KB", this.name,
+					(buffers_to_write * this.buffer.length) / 1024);
           
-			while ( min-- > 0 )
+			while ( buffers_to_write-- > 0 )
 			{
 				write(this.buffer.ptr, this.buffer.length);
 			}
@@ -151,7 +136,7 @@ class QueueFile : ConduitQueue!(File)
 				{
 					if ( Header.checksum(chunk) != chunk.check )
 					{
-						this.log.error ("Invalid header located in queue '{}': truncating after item {}",
+						this.logger.error ("Invalid header located in queue '{}': truncating after item {}",
 								this.name, this.items);
 						break;
 					}
@@ -175,7 +160,7 @@ class QueueFile : ConduitQueue!(File)
 				}
 			}
 
-			this.log.trace ("initializing file queue '{}' [ queue front pos = {} queue rear pos = {} items = {}]",
+			this.log("initializing file queue '{}' [ queue front pos = {} queue rear pos = {} items = {}]",
 					this.name, this.first, this.insert, this.items);
            
 			this.remap();
