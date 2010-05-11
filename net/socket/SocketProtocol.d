@@ -239,11 +239,11 @@ class SocketProtocol : Socket
 import tango.util.log.Trace;    
     public This get ( T ... ) ( out T items )
     {
-    	this.retry.loop(&this.getDelegate!(T), items);
+    	this.retry.loop(&this.tryGet!(T), items);
     	return this;
     }
 
-    void getDelegate ( T ... ) ( out T items )
+    void tryGet ( T ... ) ( out T items )
     {
 Trace.formatln("SocketProtocol.get - try");
     	this.connect();
