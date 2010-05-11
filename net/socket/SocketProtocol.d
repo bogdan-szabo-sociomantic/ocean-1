@@ -236,16 +236,19 @@ class SocketProtocol : Socket
             this instance
     
      **************************************************************************/
-
+    
     public This get ( T ... ) ( out T items )
     {
-        this.connect();
-        
-        this.reader.get(items);
-        
-        return this;
+    	this.safeRetry(&this.getDelegate!(T), items);
+    	return this;
     }
-    
+
+    void getDelegate ( T ... ) ( out T items )
+    {
+    	this.connect();
+        this.reader.get(items);
+    }
+
     /**************************************************************************
     
         Sends items in the order of being passed. Supports items of elementary
@@ -261,14 +264,37 @@ class SocketProtocol : Socket
 
     public This put ( T ... ) ( T items )
     {
+    	this.safeRetry(&this.putDelegate!(T), items);
+        return this;
+    }
+    
+    void putDelegate ( T ... ) ( T items )
+    {
+    	this.connect();
+        this.writer.put(items);
+    }
+
+
+    /**************************************************************************
+    
+		Calls the passed delegate function, catches any exceptions, and retries
+		the delegate according to the setup of the retry member.
+	    
+	    Params:
+	        dg = delegate to try
+	        args = arguments of delegate
+	        
+	 **************************************************************************/
+
+    void safeRetry ( D, T ... ) ( D dg, T args )
+    {
     	bool again;
     	this.retry.resetCounter();
 
     	do try
         {
         	again = false;
-        	this.connect();
-            this.writer.put(items);
+        	dg(args);
         }
         catch (Exception e)
         {
@@ -279,8 +305,6 @@ class SocketProtocol : Socket
             }
         }
         while (again)
-
-        return this;
     }
     
     /**************************************************************************
