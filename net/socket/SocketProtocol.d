@@ -236,19 +236,38 @@ class SocketProtocol : Socket
             this instance
     
      **************************************************************************/
-import tango.util.log.Trace;    
     public This get ( T ... ) ( out T items )
     {
-    	this.retry.loop(&this.tryGet!(T), items);
+//        this.retry.loop(&this.tryGet!(T), &items);
+
+        bool again;
+    	this.retry.resetCounter();
+
+    	do try
+        {
+        	again = false;
+        	this.connect();
+            this.reader.get(items);
+        }
+        catch (Exception e)
+        {
+            again = this.retry(e.msg);
+            if ( !again )
+            {
+           		throw e;
+            }
+        }
+        while (again)
+
     	return this;
     }
 
-    void tryGet ( T ... ) ( out T items )
-    {
-Trace.formatln("SocketProtocol.get - try");
-    	this.connect();
-        this.reader.get(items);
-    }
+//    void tryGet ( T ... ) ( out T items )
+//    {
+//Trace.formatln("SocketProtocol.get - try");
+//    	this.connect();
+//        this.reader.get(items);
+//    }
 
     /**************************************************************************
     
@@ -265,16 +284,35 @@ Trace.formatln("SocketProtocol.get - try");
 
     public This put ( T ... ) ( T items )
     {
-    	this.retry.loop(&this.tryPut!(T), items);
+//    	this.retry.loop(&this.tryPut!(T), items);
+        bool again;
+    	this.retry.resetCounter();
+
+    	do try
+        {
+        	again = false;
+        	this.connect();
+            this.writer.put(items);
+        }
+        catch (Exception e)
+        {
+            again = this.retry(e.msg);
+            if ( !again )
+            {
+           		throw e;
+            }
+        }
+        while (again)
+
         return this;
     }
 
-    void tryPut ( T ... ) ( T items )
-    {
-Trace.formatln("SocketProtocol.put - try");
-    	this.connect();
-        this.writer.put(items);
-    }
+//    void tryPut ( T ... ) ( T items )
+//    {
+//Trace.formatln("SocketProtocol.put - try");
+//    	this.connect();
+//        this.writer.put(items);
+//    }
 
     /**************************************************************************
     
