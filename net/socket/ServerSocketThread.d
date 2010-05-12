@@ -114,10 +114,19 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
     
     /**************************************************************************
     
-        Maximum number of accepted pending connections
+        Default timeout of 1 minute, set by constructor.
+        A subclass may change the timeout calling this.server_socket.timeout().
         
      **************************************************************************/
 
+    public const        uint                            Timeout        = 60_000;
+    
+    /**************************************************************************
+    
+        Maximum number of accepted pending connections
+        
+     **************************************************************************/
+    
     public              uint                            conn_queue_max = 100;
     
     /**************************************************************************
@@ -159,6 +168,8 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
     {
         this.server_socket = server_socket;
         this.connections   = this.connections.newPool(args, n_conn_threads, this.conn_queue_max);
+        
+        this.server_socket.timeout(this.Timeout);
         
         super(&this.listen);
     }
