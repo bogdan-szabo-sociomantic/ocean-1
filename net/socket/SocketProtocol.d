@@ -248,7 +248,6 @@ class SocketProtocol : Socket
      **************************************************************************/
     public This get ( T ... ) ( out T items )
     {
-        scope (success) Trace.formatln("get succeeded");
 //        this.retry.loop(&this.tryGet!(T), &items);
 
         bool again;
@@ -295,8 +294,6 @@ class SocketProtocol : Socket
 
     public This put ( T ... ) ( T items )
     {
-        scope (success) Trace.formatln("put succeeded");
-        
 //    	this.retry.loop(&this.tryPut!(T), items);
         bool again;
     	this.retry.resetCounter();
