@@ -36,7 +36,7 @@ private import tango.io.Buffer;
 
 private import ocean.io.Retry;
 
-
+private import tango.util.log.Trace;
 
 class SocketProtocol : Socket
 {
@@ -178,16 +178,20 @@ class SocketProtocol : Socket
         Connects to remote, or, if already connected, checks whether the socket
         is OK.
         
+        Params:
+            clear_buffers = true: If a socket error is detected, clear
+                                  read/write buffers after disconnecting.
+        
         Returns:
             this instance
         
      **************************************************************************/
 
-    public This connect ( )
+    public This connect ( bool clear_buffers = true )
     {
         if (this.connected)
         {
-            this.checkSocketOk();
+            this.checkSocketOk(clear_buffers);
         }
         else
         {
@@ -201,12 +205,15 @@ class SocketProtocol : Socket
     
         Disconnects from remote if connected.
         
+        Params:
+            clear_buffers = true: Clear read/write buffers after disconnecting.
+        
         Returns:
             this instance
         
      **************************************************************************/
     
-    public This disconnect ( )
+    public This disconnect ( bool clear_buffers = true )
     {
         if (this.connected)
         {
@@ -216,8 +223,11 @@ class SocketProtocol : Socket
             
             this.connected = false;
             
-            this.reader.buffer().clear();
-            this.writer.buffer().clear();
+            if (clear_buffers)
+            {
+                this.reader.buffer().clear();
+                this.writer.buffer().clear();
+            }
         }
         
         return this;
@@ -238,6 +248,7 @@ class SocketProtocol : Socket
      **************************************************************************/
     public This get ( T ... ) ( out T items )
     {
+        scope (success) Trace.formatln("get succeeded");
 //        this.retry.loop(&this.tryGet!(T), &items);
 
         bool again;
@@ -284,6 +295,8 @@ class SocketProtocol : Socket
 
     public This put ( T ... ) ( T items )
     {
+        scope (success) Trace.formatln("put succeeded");
+        
 //    	this.retry.loop(&this.tryPut!(T), items);
         bool again;
     	this.retry.resetCounter();
@@ -349,9 +362,35 @@ class SocketProtocol : Socket
     
     public This commit ( )
     {
-        this.writer.flush();
+        uint i = 0;
         
-        this.checkSocketOk();
+        bool again;
+        this.retry.resetCounter();
+        
+        this.connect();
+        
+        do try
+        {
+            if (again)                                                          // If retrying, reconnect without
+            {                                                                   // clearing R/W buffers
+                this.disconnect(false).connect(false);
+            }
+            
+            again = false;
+            this.writer.flush();
+        }
+        catch (Exception e)
+        {
+            again = this.retry(e.msg);
+            
+            Trace.formatln("commit: {,2} {}", ++i, e.msg);
+            
+            if (!again)
+            {
+                throw e;
+            }
+        }
+        while (again)
         
         return this;
     }
@@ -388,14 +427,17 @@ class SocketProtocol : Socket
     
         Checks whether the socket is OK. If not, arranges throwing an
         exception and disconnects the socket.
-    
+        
+        Params:
+            clear_buffers = true: clear buffers when disconnecting on error
+        
      **********************************************************************/
     
-    private void checkSocketOk ( )
+    private void checkSocketOk ( bool clear_buffers = true )
     {
         scope (failure)
         {
-            this.disconnect();
+            this.disconnect(clear_buffers);
         }
         
         if (!super.isAlive())
