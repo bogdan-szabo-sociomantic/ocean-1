@@ -20,7 +20,7 @@
             import ocean.db.tokyocabinet.TokyoCabinetH;
             
             auto db = new TokyoCabinetH();
-            db.setTuneOpts(TokyoCabinetH.TuneOpts.HDBTLARGE);
+            db.enableTuneOption(TokyoCabinetH.TuneOpts.Large);
             db.setTuneBnum(20_000_000);
             db.enableAsync();
             db.open("db.tch");
@@ -59,7 +59,10 @@ private     import  ocean.db.tokyocabinet.c.tchdb:
 private     import  ocean.text.util.StringC;
 
 
-debug private     import  tango.util.log.Trace;
+debug 
+{
+    private import  tango.util.log.Trace;
+}
 
 
 /*******************************************************************************
@@ -70,6 +73,7 @@ debug private     import  tango.util.log.Trace;
 
 class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 {
+    
     /**************************************************************************
     
         Tuning parameter for hash database tchdbtune
@@ -85,12 +89,12 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
             long            bnum = 131_071;       
             byte            apow = 4;
             byte            fpow = 10;
-            TuneOpts        opts = TuneOpts.None;
+            TuneOpts        opts = TuneOpts.Large;
         }
         
-        long            bnum = Default.bnum;                                    //  = 30_000_000;       
-        byte            apow = Default.apow;                                    //   = 2;
-        byte            fpow = Default.fpow;                                    //   = 3;
+        long            bnum = Default.bnum;
+        byte            apow = Default.apow;
+        byte            fpow = Default.fpow;
         TuneOpts        opts = Default.opts;         
     }
     
@@ -106,11 +110,13 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     
     /**************************************************************************
         
-        Asynchronous put request flag; Effective on put() call 
+        Asynchronous put request flag; Effective on put() call; 
+        
+		Disabled by default
     
      **************************************************************************/ 
     
-    public          bool            async = false;                  			// disable by default
+    public          bool            async = false;
     
     /**************************************************************************
         
@@ -174,7 +180,11 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     
     public this ( ) 
     {
-        debug Trace.formatln(typeof (this).stringof ~ " created").flush();        
+        debug 
+        {
+            Trace.formatln(typeof (this).stringof ~ " created").flush();
+        }
+        
         super.db = tchdbnew();
     }
     
@@ -195,7 +205,11 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
         if (!this.deleted)
         {
             tchdbdel(super.db);
-            debug Trace.formatln(typeof (this).stringof ~ " deleted").flush();
+            
+            debug 
+            {
+                Trace.formatln(typeof (this).stringof ~ " deleted").flush();
+            }
         }
         
         this.deleted = true;
