@@ -7,48 +7,6 @@
     version:        Mar 2009: Initial release
 
     authors:        Lars Kirchhoff, Thomas Nicolai
-
-    --
-    
-    Description:
-    
-    --
-    
-    Usage:
-    
-    ---
-    
-    HttpQueryParams query_params = new HttpQueryParams("/index.php?param1=212&param2=47392);
-    
-    // get all parameter from the URL 
-    char[][char[]] parameter = query_params.getAllParams();
-    foreach (name, value; parameter) 
-    {
-        Stdout.formatln("{}: {}", name, value);
-    }
-    
-    // get request URL 
-    char[] url = query_params.getURL();
-    
-    char[][] url_token = query_params.getURLToken();
-    foreach (name; url_token) 
-    {
-        Stdout.formatln("{}", name);
-    }
-    
-    // get number of parameter
-    Stdout.formatln("Number of request parameter: {}", query_params.count());
-    
-    char[] param_value = query_params.get(param_name);
-    
-    ---
-    
-    --
-    
-    TODO: 
-    1. Add URL string decode
-    2. Add exceptions
-    
     
 ********************************************************************************/
 
@@ -72,9 +30,52 @@ private     import      Unicode = tango.text.Unicode;
 private     import      TextUtil = tango.text.Util : split;
 
 
-/*******************************************************************************
+/*******************************************************************************  
 
-    HttpQueryParams
+    Http query parser
+    
+    Usage example on retrieving query parameter
+    ---
+    char[] query = "/index.php?param1=212&param2=47392";
+    
+    HttpQueryParams query_params = new HttpQueryParams(query);
+    
+    char[][char[]] parameter = query_params.getAllParams();
+    
+    foreach (name, value; parameter) 
+    {
+        Stdout.formatln("{}: {}", name, value);
+    }
+    ---
+    
+    Retrieving url path elements
+    ---
+    char[] url = query_params.getURL();
+    
+    char[][] url_token = query_params.getURLToken();
+    
+    foreach (name; url_token) 
+    {
+        Stdout.formatln("{}", name);
+    }
+    ---
+    
+    Returning the number of query parameters
+    ---
+    Stdout.formatln("Number of request parameter: {}", query_params.count());
+    ---
+    
+    Returning a single parameter value
+    ---
+    char[] param_value = query_params.get(param_name);
+    ---
+    ---
+    
+    TODO
+    
+    change class to struct
+    add URL string (en)decode and exception handling
+
 
 ********************************************************************************/
 
@@ -83,40 +84,51 @@ class HttpQueryParams
     
     /*******************************************************************************
     
-        Request Uri
-    
-    *******************************************************************************/
+        Request Uri parameter
+
+     ******************************************************************************/
 
     
-    private             char[][char[]]                  params; // uri query parameter
-    private             char[][]                        request_uri_token; // uri token (path elements)
-    private             char[]                          request_uri; // requested url
-                                                        
+    private             char[][char[]]                  params;
     
     /*******************************************************************************
         
-        Public Methods
+       Request Uri path elements
+
+     ******************************************************************************/
+    
+    private             char[][]                        request_uri_token;
+    
+    /*******************************************************************************
+        
+        Request Uri string
+        
+     ******************************************************************************/                                                   
+    
+    private             char[]                          request_uri;
+    
+    
+    /*******************************************************************************
+        
+        Constructor; nothing to do.
     
      *******************************************************************************/
     
-    
-    /**
-     * Constructor
-     * 
-     */
     public this () {}
         
     
+    /*******************************************************************************
+        
+        Return Query Parameter Value
+        
+        Params:
+            name = name of the paramater 
+            
+        Returns:
+            parameter value or null if not existing
+            
+     *******************************************************************************/
     
-    /**
-     * Return Query Parameter Value
-     * 
-     * Params:
-     *     name = name of the paramater 
-     *      
-     * Returns:
-     *     the value for a parameter 
-     */
     public char[] get ( char[] name )
     {
         if (name in this.params) 
@@ -128,13 +140,15 @@ class HttpQueryParams
     }
     
     
-    
-    /**
-     * Returns the names of all parameter passed with the query
-     *
-     * Returns:
-     *     names of all parameter passed with the query
-     */
+    /*******************************************************************************
+        
+        Returns the parameter names
+            
+        Returns:
+            names of all parameter
+            
+     *******************************************************************************/
+
     public char[][] getNames () 
     {
         char[][] names;
@@ -148,63 +162,76 @@ class HttpQueryParams
     }
    
    
-    
-    /**
-     * Returns all parameter
-     * 
-     * Returns:
-     */
+    /*******************************************************************************
+        
+        Returns all parameter
+            
+        Returns:
+            list of parameter
+            
+     *******************************************************************************/
+
     public char[][char[]] getAllParams ()
     {
         return this.params;        
     }
+     
+    
+    /*******************************************************************************
         
-    
-    
-    /**
-     * Returns the token of the URL path
-     * 
-     * Returns:
-     */
+        Returns Uri path tokens
+            
+        Returns:
+            list of tokens
+            
+     *******************************************************************************/
+
     public char[][] getUrlToken ()
     {
         return this.request_uri_token;
     }
     
     
+    /*******************************************************************************
+        
+        Returns the url path without parameter 
+            
+        Returns:
+            url path
+            
+     *******************************************************************************/
     
-    /**
-     * Returns the request url path without parameter 
-     * 
-     * Returns:
-     *     request url path without parameter
-     */
     public char[] getRequestUrl ()
     {
         return this.request_uri;       
     }
     
     
+    /*******************************************************************************
+        
+        Returns the number of parameter
+            
+        Returns:
+            number of parameter
+            
+     *******************************************************************************/
     
-    /**
-     * Returns the number of parameters passed with the query
-     * 
-     * Returns:
-     *     number of parameter passed with the query
-     */
     public uint count ()
     {
         return this.params.length;        
     }
     
     
-    
-    /**
-     * Return resource version  
-     *  
-     * Returns:
-     */
-    public char[] getVersion ()
+    /*******************************************************************************
+        
+        Return resource version
+            
+        Returns:
+            resource version or null if not given
+            
+     *******************************************************************************/
+
+    deprecated public char[] getVersion ()
     {
         if (this.request_uri_token.length > 1) 
         {
@@ -215,13 +242,16 @@ class HttpQueryParams
     }
 
     
-    
-    /**
-     * Return resource format
-     * 
-     * Returns:
-     */
-    public char[] getFormat ()
+    /*******************************************************************************
+        
+        Return resource format
+            
+        Returns:
+            resource format or null if not given
+            
+     *******************************************************************************/
+
+    deprecated public char[] getFormat ()
     {
         if (this.request_uri_token.length > 0) 
         {
@@ -232,14 +262,19 @@ class HttpQueryParams
     }
     
     
+    /*******************************************************************************
+        
+        Parses request Uri
+            
+        Params:
+            request_uri = request uri
+            tolower     = enable/disable transformation of elements to lowercase
+            
+        Returns:
+            resource format or null if not given
+            
+     *******************************************************************************/
     
-    /**
-     * Parses Request Uri
-     * 
-     * Params:
-     *     uri     = request uri
-     *     tolower = transform elements to lowercase
-     */
     public void parse ( char[] request_uri, bool tolower = true )
     {
         scope uri = new Uri();
@@ -257,26 +292,32 @@ class HttpQueryParams
     }
     
     
-    
     /*******************************************************************************
+    
+        Parses URL params into an associative array
         
-        Private Methods
-    
+        Method transforms
+        ---
+        char[] = "language=en&set=large"
+        ---
+        
+        into 
+        ---
+        char[][char[]] param;
+        
+        param['language'] = 'en';
+        param['set']      = 'large';
+        ---
+        
+        
+        Params:
+            query_string = query string to parse
+            
+        Returns:
+            void
+        
      *******************************************************************************/
-    
-    
-    /**
-     * Parses URL params into an associative array
-     * this.params
-     * 
-     *  e.g. language=en&set=large
-     *  
-     *       this.params['language'] = 'en';
-     *       this.params['set']      = 'large';
-     *       
-     * Params:
-     *      query_string = query string to parse     
-     */
+
     private void parseQuery ( char[] query_string )
     {
         char[][] elements, pair;
@@ -285,7 +326,6 @@ class HttpQueryParams
         
         foreach ( element; elements )
         {
-            // if the delim will be passed to split, a segmentation is thrown
             if ( element.length && element != UriDelim.PARAM ) 
             {
                 pair = TextUtil.split(element, UriDelim.KEY_VALUE);
@@ -303,19 +343,31 @@ class HttpQueryParams
     }
     
     
+    /*******************************************************************************
+        
+        Parses the path elements of a URL string
+        
+        Method transforms
+        ---
+        char[] = "/path/element"
+        ---
+        
+        into 
+        ---
+        char[][] param;
+        
+        param[] = 'path';
+        param[] = 'element';
+        ---
+            
+        Params:
+            path = uri path
+            
+        Returns:
+            void
+        
+     *******************************************************************************/
     
-    /**
-     * Parses the path elements of a URL string and puts it into
-     * this.request_uri_token as single elements
-     * 
-     * e.g. /url/example
-     *       
-     *       [1] => url
-     *       [2] => example
-     * 
-     * Params:
-     *      str = uri path
-     */
     private void parseUriPath ( char[] path )
     {
         char[][] token;
@@ -329,7 +381,6 @@ class HttpQueryParams
                 this.request_uri_token ~= token[i].dup;
             }
         }
-        
     }
     
     

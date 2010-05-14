@@ -243,7 +243,7 @@ class ObjectPool ( T, A ... )
     
     static if (A.length)
     {
-        public PoolItem get ( )
+        public PoolItem get ()
         {
             return this.get(this.args);
         }

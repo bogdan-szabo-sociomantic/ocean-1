@@ -1,101 +1,14 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
-    
-    version:        Feb 2009: Initial release
-    
-    authors:        Lars Kirchhoff & Thomas Nicolai
-            
-    Basic HTTP Server implementation to serve HTTP requests.
-     
-    
-    --
-    
-    Description:
-    
-    --
-    
-    Usage:
-    
-    // initialize the object, that will be executed in the HttpServer 
-    // class.
-    auto worker = new Worker();
-                          
-    // initialize the server         
-    HttpServer http_server  = new HttpServer(10, 8000, 400, true); 
-    
-    // set the function that should be executed
-    http_server.setThreadFunction(&worker.categorize);
-    
-    // finally start the server
-    http_server.start();  
-    
-    -- 
-    
-    Additional information:
-    
-    Fast file copy over a socket with sendfile()
-    
-    // c function declaration
-    extern (C)  {
-        size_t sendfile(int out_fd, int in_fd, off_t *offset, size_t count);
-    }
-    
-    // file position pointer
-    off_t offset = 0;
-    
-    // get file handle
-    FileInput fi = new FileInput(fileName);
-    int file_handle = fi.fileHandle();
-    
-    // get file length
-    int file_length = fi.length();
-    
-    // get socket file handle
-    int sock_handle = SocketConduit.fileHandle();
-    
-    // use sendfile
-    int out_size = sendfile (sock_handle, file_handle, &offset, file_length);
-    
-    // close file handle
-    fi.close ();
-    
-    // close socket handle
-    SocketConduit.detach()
-  
-    http://articles.techrepublic.com.com/5100-10878_11-1050878.html
-    http://articles.techrepublic.com.com/5100-10878_11-1044112.html
-    http://www.informit.com/articles/article.aspx?p=23618&seqNum=13
-    
-    --
-    
-    IMPORTANT 
-    
-    tango.net.Socket --> send() needs to be patched  
-    
-    enum SocketFlags: int
-    {
-            NONE =           0,
-            OOB =            0x1, //out of band
-            PEEK =           0x02, //only for receiving
-            DONTROUTE =      0x04, //only for sending
-            MSG_NOSIGNAL =   0x4000,
-    }
-    
-    int send(void[] buf, SocketFlags flags=SocketFlags.MSG_NOSIGNAL)   
-     
-    SIGPIPE will kill program:
-    http://www.digitalmars.com/d/archives/digitalmars/D/bugs/Issue_1491_New_if_working_with_timed-out_socket_SIGPIPE_will_kill_program_12123.html
-    http://www.dsource.org/projects/tango/ticket/968
-     
-    Good non-blocking socket tutorial:
-    http://www.scottklement.com/rpg/socktut/selectserver.html
+    Http Server (Async epoll-based)
 
-    Enabling High Performance Data Transfers:
-    http://www.psc.edu/networking/projects/tcptune/
+    Copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
     
+    Version:        Feb 2009: Initial release
     
-*******************************************************************************/
+    Authors:        Lars Kirchhoff, Thomas Nicolai & David Eckhardt
+    
+*******************************************************************************/     
 
 module      ocean.net.http.HttpServer;
 
@@ -109,66 +22,115 @@ module      ocean.net.http.HttpServer;
 
 public      import      ocean.core.Exception: HttpServerException;
 
-private     import      tango.core.Thread, tango.core.ThreadPool;
+private     import      tango.core.ThreadPool;
 
 private     import      tango.io.selector.EpollSelector;
 
-private     import      tango.net.device.Berkeley, tango.net.device.Socket,                            
-                        tango.net.InternetAddress, tango.net.http.HttpConst;
+private     import      tango.net.device.Socket, tango.net.InternetAddress;
 
 private     import      tango.sys.linux.linux;
 
-private     import      Integer = tango.text.convert.Integer;
-
-private     import      ocean.util.OceanException, ocean.util.TraceLog;
-
-
-/*******************************************************************************
-
-    Module Constants
-
-********************************************************************************/
-
-
-private     const int[1]        TCP_OPTION_ENABLE  = true;   // TCP Options enable
-private     const int[1]        TCP_OPTION_DISABLE = false; // TCP Options disable
-
-private     const int           EPOLLWAIT_INFINITE = -1;    // Infinite Wait for EPoll 
+debug
+{
+    private     import      tango.util.log.Trace;
+}
 
 
 /*******************************************************************************
 
-    HttpServer
+    Constants
 
 ********************************************************************************/
+
+private     const int           EPOLLWAIT_INFINITE = -1;
+
+
+/*******************************************************************************   
+    
+    Http server creates a socket server listening for incoming requests and
+    passes the child socket to a thread function.
+    
+    Usage example for server with 10 threads
+    ---   
+    scope server = new HttpServer(10); 
+    ---
+    
+    Set thread handler delegate to handle request and start server
+    ---
+    int reply ( Socket socket )
+    {
+        ...
+    }
+    
+    server.setThreadFunction(&reply);
+    server.start();  
+    ---
+    ---
+
+
+    Usage example on creating server with using an object pool
+    ---
+    scope pool   = new ObjectPool!(HttpRequest);
+    scope server = new HttpServer(10);
+    ---
+    
+    Setting up the delegate function to be called on a request
+    ---
+    int reply ( Socket socket )
+    {
+        char[] data;
+        HttpResponse response;
+            
+        auto request  = pool.get();         // get request object
+            
+        scope (exit)
+        {
+            pool.recycle(request);       // put back on stack on exit
+        }
+            
+        bool status = request.read(socket, data);
+        
+        return 0;
+    }
+    ---
+    
+    Setting the delegate function and starting the server
+    ---
+    server.setThreadFunction(&reply);
+    server.start();
+    ---
+    ---
+    
+
+*******************************************************************************/
 
 class HttpServer
 {
     
     /*******************************************************************************
 
-         Server Configuration
+         Number of server threads
 
-     *******************************************************************************/
+    ********************************************************************************/
        
-    private             uint                            number_threads;  // number of threads          
-    private             uint                            socket_port;     // port      
-    private             uint                            back_log;        // size of backlog
-
-    private             bool                            reuse;           // socket reuse
+    private             uint                            number_threads;
     
-    private             pid_t                           child_id;        // child process id
+    /*******************************************************************************
     
+        Child process
     
+     *******************************************************************************/
+    
+    private             pid_t                           child_id;
+        
     /*******************************************************************************
 
          Socket & EPoll
 
-    *******************************************************************************/
+     *******************************************************************************/
     
     private             ServerSocket                    socket;     
     private             EpollSelector                   selector;
-
     
     /*******************************************************************************
     
@@ -177,8 +139,7 @@ class HttpServer
         thread_pool = thread pool managing socket connections
         thread_func     delegate called to handle socket connections
     
-    *******************************************************************************/
-    
+     *******************************************************************************/
     
     private             ThreadPool!(Socket)             thread_pool;
     private             int delegate(Socket)            thread_func;
@@ -186,75 +147,103 @@ class HttpServer
     
     /*******************************************************************************
         
-        Public Methods
-    
+        Constructor; creates http server socket
+        
+        Params:
+            number_threads = number of worker threads
+            socket_port = server port
+            backlog = size of backlog
+            reuse = enable/disable socket reuse
+                
      *******************************************************************************/
     
-    
-    /**
-     * Initialize server object with parameter
-     *
-     * Params:
-     *     number_threads = number of worker threads
-     *     socket_port = server port
-     *     back_log = size of backlog
-     *     reuse = enable/disable socket reuse
-     */
-    this ( uint number_threads = 1, uint socket_port = 80, uint back_log = 128, bool reuse = false )
+    this ( uint threads = 1, uint port = 80, uint backlog = 128, bool reuse = true )
     {
-        this.number_threads = number_threads;
-        this.socket_port    = socket_port;
-        this.back_log       = back_log;
-        this.reuse          = reuse;  
-        this.child_id       = getpid();   
+        this.number_threads = threads;
+        this.child_id       = getpid();
         
-        createSocket();    
+        this.bind(new InternetAddress(port), backlog, reuse);    
     }
+
+    
+    /*******************************************************************************
+    
+        Set the thread delegate function 
         
+        When possible this function should be executed within its own thread as 
+        long as the request and response class are not updated to be working 100%
+        async. Until this you should also use a thread object pool to manage the
+        different threads and objects efficiently.
+        
+        Usage example
+        ---
+        import ocean.core.ObjectPool;
+        import ocean.net.http.HttpRequest;
+        
+        scope pool = new ObjectPool!(HttpRequest);
+        ---
+        
+        Get thread instance with request object from pool and Put it back on the 
+        stack once done to be reused on next request
+        ---
+        int reply ( Socket socket )
+        {
+            auto request = pool.get();
+            
+            scope (exit)
+            {
+                request.recycle(request);
+            }
+        
+            ...
+        }
+        
+        server.setThreadFunction(&reply);
+        ---
+        ---
     
-    
-    /**
-     * Set function that should be executed with a single thread
-     * 
-     */
-    public void setThreadFunction ( int delegate(Socket conduit) func_dg )
+        Params:
+            thread_func_dg = thread function delegate
+        
+        Returns:
+            void
+        
+     *******************************************************************************/
+
+    public void setThreadFunction ( int delegate(Socket conduit) thread_func_dg )
     {
-        this.thread_func = func_dg;
+        this.thread_func = thread_func_dg;
     }
-    
+
+
+    /*******************************************************************************
         
+        Start and listen to the server socket asynchronously.
+        
+        Method binds to the non-blocking server socket and creates an epoll event 
+        listener for incoming socket requests. If an event is triggered the child
+        socket is passed on to the delegete thread function set via the 
+        setThreadFunction() method.
+
+        Returns:
+            void
+                
+     *******************************************************************************/
     
-    /**
-     * Start the Asnychronous EPoll Server. 
-     * 
-     * First the EPollSelector object is created, which lists for events 
-     * on the socket and on the conduits afterwards.
-     * 
-     * The EPollSelector listens on two different interface:
-     * 
-     * 1. ServerSocket (this.socket), which listens to any connection 
-     *    attempt by a client
-     *    
-     * 2. SocketConduit (_conduit), which is the conduit, that is returned
-     *    from the ServerSocket on accept. On this interface it listens 
-     *    to any read events.
-     *  
-     * Returns:
-     *      success or failure
-     */
     public int start () 
     {   
         int                 event_count;         
         Socket              conduit;
         int                 conduit_filehandle;
-        Socket[int]         connections;        // socket conduit connection pool
+        Socket[int]         connections;        // socket connection pool
         
         createThreadpool();
         
         this.selector = new EpollSelector(); 
         
         this.selector.open(500, 64);
-        this.selector.register(this.socket, Event.Read | Event.Hangup | Event.Error | Event.InvalidHandle);     
+        this.selector.register(this.socket, Event.Read | Event.Hangup | 
+                                            Event.Error | Event.InvalidHandle);     
         
         scope(exit) 
         {
@@ -263,18 +252,20 @@ class HttpServer
             this.socket.close;
         }
         
-        this.socket.socket.blocking(false);     //  socket to non-blocking
+        this.socket.socket.blocking(false);     //  set non-blocking
        
         while(true)
         {  
             try 
             {
-                // wait for connections to arrive
-                event_count = this.selector.select(EPOLLWAIT_INFINITE);
+                event_count = this.selector.select(EPOLLWAIT_INFINITE);  // wait
             }
             catch (Exception e) 
             {
-                TraceLog.write("HttpServer (EPoll Selector select): " ~ e.msg);
+                debug
+                {
+                    Trace.formatln("Error on event select {}", e.msg);
+                }
             } 
             
             if (event_count > 0) 
@@ -294,115 +285,136 @@ class HttpServer
 
                         // Run thread non blocking reading/writing is done in the 
                         // HttpRequest/HttpResponse object                
-                        this.serviceThread(connections[conduit_filehandle]);                        
+                        this.runThread(connections[conduit_filehandle]);                        
                     }
-                    
-                    // If an error on the SelectionKey occurs
                     else if (key.isError() || key.isHangup() || key.isInvalidHandle())
                     {
-                        TraceLog.write("HttpServer: key.conduit error");
+                        debug
+                        {
+                            Trace.formatln("Key error");
+                        }
+                        
                         this.selector.unregister(key.conduit);                              
                     }
-                    
                     else
                     {
-                        TraceLog.write("HttpServer: unknown conduit");
+                        debug
+                        {
+                            Trace.formatln("Unknown socket error");
+                        }
                     }
                 }  
             }
             else 
             {
-                TraceLog.write("HttpServer: event count <= 0");
+                debug
+                {
+                    Trace.formatln("Event count <= 0");
+                }
             }
             
-            selector.register(this.socket, Event.Read | Event.Hangup | Event.Error | Event.InvalidHandle);
+            selector.register(this.socket, Event.Read | Event.Hangup | 
+                                           Event.Error | Event.InvalidHandle);
         }
         
-        
-       
         return 0;
     }
     
     
     /*******************************************************************************
         
-        Private Methods
+        Creates new server socket.
     
-    ********************************************************************************/
+        Params:
+            address = internet address to bind socket to
+            backlog = max number of socket connections to keep in the backlog
+            reuse   = enable/disable socket reuse
+            
+        Returns:
+            void
+                
+     *******************************************************************************/
     
-    /**
-     * Create Server Socket 
-     *
-     */
-    private void createSocket () 
+    private void bind ( InternetAddress address, uint backlog, bool reuse ) 
     {
-        socket = new ServerSocket(new InternetAddress(socket_port), back_log, reuse);
+        this.socket = new ServerSocket(address, backlog, reuse);
     }
         
     
+    /*******************************************************************************
+        
+        Creates thread pool.
     
-    /**
-     * Create ThreadPool
-     *
-     */
+        Returns:
+            void
+                
+     *******************************************************************************/
+    
     private void createThreadpool ()
     {   
         this.thread_pool = new ThreadPool!(Socket)(this.number_threads);                
     }
     
     
+    /*******************************************************************************
+        
+        Runs the request handler thread function
+        
+        Function that assigns the thread action to the ThreadPool together with the
+        socket.
     
-    /**
-     * Function that assigns the thread action to the ThreadPool together
-     * with the SocketConduit. This is packaged in this function for possible 
-     * later additions to thread functionality.
-     * 
-     * Params:     
-     *     socket_conduit   = conduit for writing and reading on the socket
-     *                
-     * TODO: 
-     * Add a timeout after which a thread is freed again --> setting 
-     * running to false               
-     */
-    private void serviceThread ( Socket socket_conduit ) 
+        TODO    
+        
+        Add a timeout after which a thread is freed again; set running = false
+            
+        Params:
+            socket = socket connection
+            
+        Returns:
+            void
+                
+     *******************************************************************************/
+
+    private void runThread ( Socket socket ) 
     {   
-        thread_pool.assign(&threadAction, socket_conduit);
+        thread_pool.assign(&this.threadAction, socket);
     }
     
     
-    
-    /**
-     * Executes the function that is provide by this.thread_func 
-     * and detaches the socket conduit if socket action is finished.
-     * 
-     * Params:
-     *     socket_conduit = socket conduit 
-     */
-    private void threadAction ( Socket socket_conduit )
-    {      
-        // start socket action defined by this.thread_func delegate
-        if (thread_func)
-        {   
-            thread_func(socket_conduit);         
-        }
-        else 
-        {
-            throw new HttpServerException("HttpServer Exception (_threadAction): thread function/object is not defined");     
-        }
+    /*******************************************************************************
+        
+        Executes the thread delegate function passed to setThreadFunction()
+        
+        Method calls delegate and detaches the socket if the thread finished 
+        serving the request.
+            
+        Params:
+            socket = socket connection
+            
+        Returns:
+            void
+                
+     *******************************************************************************/
+
+    private void threadAction ( Socket socket )
+    {
+        assert(this.thread_func, "No thread delegate given!");
+        
+        this.thread_func(socket); // run func inside thread
        
-        // detach socket conduit, which will close the client connection 
         try 
         {
-            if (socket_conduit)
+            if (socket)
             {
-                socket_conduit.shutdown();
-                socket_conduit.detach();
-                this.selector.unregister(socket_conduit);
+                socket.shutdown();
+                socket.detach();
+                
+                this.selector.unregister(socket);
             }
         }
         catch (Exception e)
         {
-            throw new HttpServerException("HttpServer Exception (_threadAction): " ~ e.msg);            
+            throw new HttpServerException("HttpServer Error: " ~ e.msg);            
         }
     }
     

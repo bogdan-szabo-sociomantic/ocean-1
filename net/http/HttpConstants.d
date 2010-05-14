@@ -6,7 +6,7 @@
     
     version:        April 2009: Initial release
     
-    authors:        Lars Kirchhoff, Thomas Nicolai
+    authors:        Lars Kirchhoff, Thomas Nicolai & David Eckhardt
                 
 *******************************************************************************/
         

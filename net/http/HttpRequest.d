@@ -1,25 +1,55 @@
 /*******************************************************************************
                 
-    HTTP Server Request class that handles reading and parsing the input data 
-    from a HTTP request. 
+    HTTP Request Handler
 
     Copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
     
     Version:        Feb 2009: Initial release
     
-    Authors:        Lars Kirchhoff, Thomas Nicolai, David Eckardt      
+    Authors:        Lars Kirchhoff, Thomas Nicolai & David Eckardt      
     
-    --
-    
-    Description:
-    
-    
-    --
-    
-    Usage Example:
+*******************************************************************************/
+
+module      ocean.net.http.HttpRequest;
+
+
+/*******************************************************************************
+
+    Imports
+
+********************************************************************************/
+
+public      import      ocean.net.http.HttpResponse, ocean.net.http.HttpConstants;
+
+public      import      ocean.core.Exception: assertEx;
+
+private     import      ocean.text.util.StringSearch;
+private     import      ocean.text.util.StringReplace;
+
+private     import      tango.io.selector.EpollSelector, 
+                        tango.io.model.IConduit: IConduit;
+
+private     import      tango.net.device.Socket;
+private     import      tango.net.http.HttpConst;
+
+private     import      Integer = tango.text.convert.Integer: toInt;
+
+private     import      tango.math.Math: min;
+
+private     import      tango.core.Exception: SocketException;
+
+debug
+{
+    private     import      tango.util.log.Trace;
+}
+
+
+/*******************************************************************************
+
+    Implements an Http request handler for reading and parsing the incoming 
+    Http data from the given socket connection.
     
     ---
-    
         import ocean.core.ObjectPool;
         
         import ocean.net.http.HttpServer;
@@ -83,7 +113,7 @@
                 
                 scope (exit)
                 {
-                    requests.recycle(request);
+                    requests_pool.recycle(request);
                 }
                 
                 // Read and process current request.
@@ -153,58 +183,15 @@
             server.setThreadFunction(&reply);
             server.start();
         }
-    
+        
     ---
-           
-    -- 
-    
-    Additional Information in RFC 2161:
-    
-        http://www.w3.org/Protocols/rfc2616/rfc2616.html
-    
-    --
-    
-    
+
+    See also
+
+    http://www.w3.org/Protocols/rfc2616/rfc2616.html
+
+
 *******************************************************************************/
-
-module      ocean.net.http.HttpRequest;
-
-
-/*******************************************************************************
-
-    Imports
-
-********************************************************************************/
-
-public      import      ocean.net.http.HttpResponse;
-
-public      import      ocean.core.Exception: assertEx;
-
-private     import      tango.io.selector.EpollSelector;
-private     import      tango.io.model.IConduit: IConduit;
-private     import      tango.core.Exception:    SocketException;
-
-private     import      tango.net.device.Socket;
-private     import      tango.net.http.HttpConst;
-
-private     import      Integer = tango.text.convert.Integer: toInt;
-
-private     import      tango.math.Math: min;
-
-private     import      ocean.net.http.HttpConstants;
-
-private     import      ocean.text.util.StringSearch;
-private     import      ocean.text.util.StringReplace;
-
-private     import      ocean.util.TraceLog;
-
-private     import      tango.util.log.Trace;
-
-/******************************************************************************
-
-    HttpRequest class
-
- ******************************************************************************/
 
 class HttpRequest
 {
@@ -221,7 +208,9 @@ class HttpRequest
         Default message which must be supported by all general-purpose servers
         as mandated in RFC 2616, 5.1.1:
         
-            http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.1
+        See also
+        
+        http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.1
     
      **************************************************************************/
 
@@ -498,11 +487,8 @@ class HttpRequest
     body
     {
         this.selector      = new EpollSelector;
-        
         this.input_chunk   = new char[iobuffer_size];
-        
         this.strrep        = new StringReplace!();
-        
         this.msg_body      = new char[0];
         
         this.header_values = HeaderValues(&this.header_values_);
@@ -514,7 +500,7 @@ class HttpRequest
     /**************************************************************************
     
         Reads a request from socket.
-        
+
         Params:
             socket = network connection socket
             data   = message body output buffer (remains empty if no body
@@ -533,7 +519,10 @@ class HttpRequest
     {
         this.using_builtin_dg = true;
         
-        scope (exit) data = this.msg_body;
+        scope (exit) 
+        {
+            data = this.msg_body;
+        }
         
         return this.read(socket, &this.appendBody);
     }
@@ -541,6 +530,7 @@ class HttpRequest
     /**************************************************************************
      
         Reads a request from socket.
+        
         If a message body is attached and accepted, read_body_dg is invoked for
         each received message body chunk and receives that chunk. To continue
         receiving, read_body_dg must return false. If read_body_dg returns true,
@@ -597,8 +587,10 @@ class HttpRequest
         }
         catch (Exception e)
         {
-            TraceLog.write(e.msg);
-            Trace.formatln(e.msg);
+            debug
+            {
+                Trace.formatln(e.msg);
+            }
             
             this.socket_error = true;
         }
@@ -705,9 +697,10 @@ class HttpRequest
         Returns:
              true if the end of message has been reached or false if not
         
-        TODO: 
-             1. Add functionality to handle post messages even if no 
-                content length is given
+        TODO
+         
+        add functionality to handle post messages even if no content length 
+        is given
             
      **************************************************************************/
     
@@ -891,6 +884,11 @@ class HttpRequest
             {
                 StringSearch!().strToLower(key);
                 
+                debug
+                {
+                    Trace.formatln("[request header] {} = {}", key, val);
+                }
+                
                 this.header_values_[key.dup] = val.dup;
             }
         }
@@ -1049,8 +1047,8 @@ class HttpRequest
     
     /**************************************************************************
     
-        Sends a HTTP response to the client taking status code and message from
-        e.
+        Sends a HTTP response to the client taking status code and message 
+        from Exception thrown.
         
         Params:
             socket: connection socket
@@ -1064,9 +1062,13 @@ class HttpRequest
         
         auto status = e.getStatus();
         
-        Trace.formatln("reportErrorToClient: {} {}: {}", status.code, status.name, e.msg);
-        
         response.send(socket, status, e.msg);
+        
+        debug
+        {
+            Trace.formatln("Request error {}:{} with {}", status.code, 
+                    status.name, e.msg);
+        }
     }
     
 
@@ -1114,7 +1116,7 @@ class HttpRequest
     {
         static int size        = EpollSelector.DefaultSize,
                    max_events  = EpollSelector.DefaultMaxEvents,
-                   timeout     = 20;                                            // -1 = infinite
+                   timeout     = 20;  // -1 = infinite
     }
 
     /**************************************************************************

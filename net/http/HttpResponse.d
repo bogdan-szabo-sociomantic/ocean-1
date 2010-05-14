@@ -1,47 +1,12 @@
 /*******************************************************************************
 
-    HTTP Server Response structure 
+    HTTP Response Handler
 
-    copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
+    Copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
-    version:        Mar 2009: Initial release
+    Version:        Mar 2009: Initial release
 
-    authors:        Lars Kirchhoff, Thomas Nicolai, David Eckardt
-
-    --
-    Description:
-    
-    This class sends out the data to the client, while adding common header 
-    to the response. 
-    
-    --
-        
-    Usage Example:
-    
-    ---
-    
-        import tango.net.http.HttpConst;
-        
-        SocketConduit conduit = ServerSocket.accept();
-        HttpResponse response = new HttpResponse(conduit);
-        
-        // set a cookie
-        
-        response.cookie.attributes["spam"] = "sausage";
-        response.cookie.domain             = "www.example.net";
-           
-        response.send(someData);        // sends a response message with 200 "OK"
-                                        // status, including the cookie and someData
-                                        // as body
-
-    ---
-
-    --
-    
-    TODO:
-    
-    Add Epoll non-blocking writing
-    
+    Authors:        Lars Kirchhoff, Thomas Nicolai & David Eckardt
     
 *******************************************************************************/
 
@@ -60,7 +25,7 @@ private     import      ocean.net.http.HttpConstants;
 
 private     import      tango.net.http.HttpConst;
 
-private     import      tango.net.device.Socket: Socket; 
+private     import      tango.net.device.Socket: Socket;
 
 private     import      tango.io.model.IConduit: IConduit;
 
@@ -69,18 +34,80 @@ private     import      tango.stdc.stdio: snprintf;
 
 private     import      Integer = tango.text.convert.Integer;
 
-private     import      tango.util.log.Trace;
+debug
+{
+    private     import      tango.util.log.Trace;
+}
+
+/*******************************************************************************
+
+    Implements Http response handler that manages the socket write after 
+    retrieving a Http request.   
+    
+    Usage example
+    ---
+        import tango.net.http.HttpConst;
+        
+        SocketConduit socket  = ServerSocket.accept();
+        HttpResponse response = new HttpResponse(socket);
+    ---
+    
+    Sending a cookie in the header
+    ---
+        response.cookie.attributes["spam"] = "sausage";
+        response.cookie.domain             = "www.example.net";
+    ---
+    
+    Sending response wit a body message
+    ---
+    response.send(someData);
+    ---
+    ---
+    
+    
+    Advanced usage example for using zero-copy to send file 
+    content over the network.
+    -- 
+    extern (C)  
+    {
+        size_t sendfile(int out_fd, int in_fd, off_t *offset, 
+            size_t count);
+    }
+    
+    off_t offset = 0;
+    
+    FileInput fi = new FileInput(fileName);
+    
+    int file_handle = fi.fileHandle();
+    int file_length = fi.length();
+    
+    int sock_handle = SocketConduit.fileHandle();
+    
+    int out_size = sendfile (sock_handle, file_handle, 
+                             &offset, file_length);
+    
+    fi.close ();
+    
+    SocketConduit.detach()
+    ---
+    ---
+    
+    More information about using zero-copy can be found here:
+    
+    http://articles.techrepublic.com.com/5100-10878_11-1050878.html
+    http://articles.techrepublic.com.com/5100-10878_11-1044112.html
+    http://www.informit.com/articles/article.aspx?p=23618&seqNum=13
+    
+    TODO
+     
+    Add non-blocking writing with epoll
 
 
-/******************************************************************************
-
-    HttpResponse
-
- ******************************************************************************/
-
+*******************************************************************************/
 
 struct HttpResponse
 {
+    
     /**************************************************************************
         
         HTTP version
@@ -111,7 +138,7 @@ struct HttpResponse
     
      **************************************************************************/    
 
-   private             char[]                  cookie_header;
+   private              char[]                  cookie_header;
     
     /*******************************************************************************
         
@@ -120,28 +147,48 @@ struct HttpResponse
      *******************************************************************************/    
     
     
-    private             char[][char[]]          response_header;     // response header values
-    private             bool                    header_sent = false; // header already sent?
+    private             char[][char[]]          response_header;
+    
     
     /**************************************************************************
     
         Sends a HTTP response (without message body).
-    
+        
+         = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
+         !! Please be aware not to use the write funtion when the 
+         connection was going down. This will end up in a permanent 
+         blocking state of the socket.
+         
+         Please, always check status returned on request.read()
+         
+         Usage example
+         ---
+         bool status = request.read(socket, buffer);
+         
+         if ( status )
+         {
+             response.send(...);
+         }
+         ---
+         
+         = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
+         
         Params:
-            socket	    = output conduit (socket)
-            status      = response code
-            description = optional response code description, e.g. error message
+            socket	= output conduit (socket)
+            status  = response code
+            msg     = optional response code message, e.g. error message
             
           Returns:
              true on success or false on error
          
     **************************************************************************/
     
-    
-    public bool send ( Socket socket, HttpStatus status = HttpResponses.OK, char[] description = "" )
+    public bool send ( Socket socket, 
+                       HttpStatus status = HttpResponses.OK, char[] msg = "" )
     {
-        return this.send(socket, "", status, description);
+        return this.send(socket, "", status, msg);
     }
+    
     
     /**************************************************************************
     
@@ -150,22 +197,38 @@ struct HttpResponse
          Sends response header and message body through the output 
          buffer stream to the receiving client.
          
-         !! Please be aware not to use the write funtion
-         when the connection was going down. This will end
-         up in a permanent blocking state of the socket.
+         = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
+         !! Please be aware not to use the write funtion when the 
+         connection was going down. This will end up in a permanent 
+         blocking state of the socket.
+         
+         Please, always check status returned on request.read()
+         
+         Usage example
+         ---
+         bool status = request.read(socket, buffer);
+         
+         if ( status )
+         {
+             response.send(...);
+         }
+         ---
+         
+         = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
          
          Params:
-              socket      = output conduit (socket)
-              data        = message body data, may be empty
-              status      = response code
-              description = optional response code description, e.g. error message
+              socket = output conduit (socket)
+              data   = message body data, may be empty
+              status = response code
+              msg    = optional response code mesage, e.g. error message
          
          Returns:
              true on success or false on error
-         
+
      **************************************************************************/
     
-    public bool send ( Socket socket, char[] data, HttpStatus status = HttpResponses.OK, char[] description = "" )
+    public bool send ( Socket socket, char[] data, 
+                       HttpStatus status = HttpResponses.OK, char[] msg = "" )
     {
         bool ok = true;
         
@@ -174,7 +237,6 @@ struct HttpResponse
             socket.checkError();
             
             this.setDefaultHeader();
-            
             this.setHeaderValue(HttpHeader.ContentLength.value, data.length);
             
             if (this.send_date)
@@ -185,21 +247,21 @@ struct HttpResponse
             if (this.cookie.isSet())
             {
                 this.cookie.write(this.cookie_header);
-                
                 this.setHeaderValue(HttpHeader.SetCookie.value, this.cookie_header);
             }
             
-            this.sendHeader(socket, status, description);
+            this.sendHeader(socket, status, msg);
             
             socket.write(HttpConst.Eol);
-            
             socket.write(data);
-            
             socket.flush();
         }
         catch (Exception e)
         {
-            Trace.formatln("Error on response: {}", e.msg);
+            debug
+            {
+                Trace.formatln("Error on response: {}", e.msg);
+            }
             
             ok = false;
         }
@@ -210,7 +272,7 @@ struct HttpResponse
     
     /**************************************************************************
      
-         Set value for HTTP header parameter 
+         Set value for HTTP header field 
          
          Params:
              name  = header parameter name
@@ -224,10 +286,9 @@ struct HttpResponse
     }
     
     
-    
     /**************************************************************************
      
-         Set value for HTTP header parameter 
+         Set value for HTTP header field
          
          Params:
              name  = header parameter name
@@ -240,16 +301,24 @@ struct HttpResponse
         this.response_header[name.dup] = Integer.toString(value).dup;
     }
     
+    
     /**************************************************************************
      
         Set Default Header
      
      **************************************************************************/
+    
     private void setDefaultHeader ()
     {
-        this.response_header[HttpHeader.Server.value]      = "ocean/sociomantic/0.1";
-        this.response_header[HttpHeader.Connection.value]  = "close";
-        this.response_header[HttpHeader.ContentType.value] = "text/html";
+        if ( !(HttpHeader.ContentType.value in this.response_header) )
+        {
+            this.response_header[HttpHeader.ContentType.value] = HttpHeader.TextHtml.value;
+        }
+        
+        if ( !(HttpHeader.Connection.value in this.response_header) )
+        {
+            this.response_header[HttpHeader.Connection.value] = "close";
+        }
     }
     
 
@@ -258,34 +327,42 @@ struct HttpResponse
         Send Response Header
      
          Params:
-             conduit:     output conduit
-             status:      HTTP response status
-             description: additional status description
+             conduit =  output conduit
+             status  = HTTP response status
+             msg     = additional status message
          
      **************************************************************************/
     
-    private void sendHeader ( IConduit conduit, HttpStatus status, char[] description = "" )
+    private void sendHeader ( IConduit conduit, HttpStatus status, 
+                              char[] msg = "" )
     {
         conduit.write(this.http_version);
         conduit.write(" ");
         conduit.write(Integer.toString(status.code));
         conduit.write(" ");
         conduit.write(status.name);
-        if (description.length)
+        
+        if (msg.length)
         {
             conduit.write(": ");
-            conduit.write(description);
+            conduit.write(msg);
         }
+        
         conduit.write(HttpConst.Eol);
         
-        foreach (header_name, header_value; this.response_header)
+        foreach (name, value; this.response_header)
         {
-            conduit.write(header_name);
+            debug
+            {
+                Trace.formatln("[response header] {} = {}", name, value);
+            }
+            
+            conduit.write(name);
             conduit.write(" ");
-            conduit.write(header_value);
+            conduit.write(value);
             conduit.write(HttpConst.Eol);
         }
-    }  
+    }
     
     
     /**************************************************************************
@@ -293,6 +370,8 @@ struct HttpResponse
         Formats the current GMT as RFC 1123 time stamp according to
         RFC 2616, 14.18:
         
+        e.g. Sun, 06 Nov 1994 08:49:37 GMT
+         
             http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18
              
         Returns:
@@ -300,10 +379,8 @@ struct HttpResponse
          
      **************************************************************************/
 
-    private char[] formatTime ( )
+    private char[] formatTime ()
     {
-        // Sun, 06 Nov 1994 08:49:37 GMT
-        
         const char[3][] Weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Sat"];
         const char[3][] Months   = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
