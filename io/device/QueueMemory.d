@@ -71,6 +71,11 @@ class QueueMemory : ConduitQueue!(Memory)
     }
 
 
+	public bool isDirty ( )
+	{
+		return this.first > this.limit / 10;
+	}
+
     /***************************************************************************
 
 		Initialises the Array conduit with the size set in the constructor.
@@ -172,14 +177,15 @@ class QueueMemoryPersist : QueueMemory
 			Trace.formatln("Closing {} (saving {} entries to {})",
 					instance.getName(), instance.size(), instance.getName() ~ ".dump");
 			instance.log(msg);
+			instance.stopIO();
 			instance.dumpToFile();
 		}
 
 	    Csignal.signal(code, SIG_DFL);
 	    Csignal.raise(code);
 	}
-	
-	
+
+
 	/***************************************************************************
 	
 	    Static list of instances of this class
