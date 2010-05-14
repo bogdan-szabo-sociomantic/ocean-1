@@ -57,7 +57,15 @@
 
     For cases where you don't need to specifically handle different exception
     types, the Retry class includes a standard loop, which is passed a 
-    delegate for the action to repeatedly try / retry:
+    delegate for the action to repeatedly try / retry.
+    
+    BEWARE: the Retry.loop method is a template over the type of the delegate
+    (the method to retry) and the types of the delegate's arguments. As it's a
+    template it is NOT possible to specify the pass-type (ie in / out / ref) of
+    the delegate's arguments. This means that if the delegate needs to modify
+    any of the passed arguments, then you need to pass them as pointers.
+    
+    Example:
     
     ---
 
@@ -75,12 +83,13 @@
 
 			void doSomething ( int arg )
 			{
-				this.retry.loop(&this.trySomething, arg);
+				this.retry.loop(&this.trySomething, &arg);
 			}
 	        
-			void trySomething ( int arg )
+			void trySomething ( int* arg )
 			{
 				// code to do something with arg
+				*arg ++; // for example
 			}
 		}
 
@@ -529,16 +538,16 @@ class Retry
 
 
     /***************************************************************************
-    
+
         Default retry callback method for push/pop retries
-                
+
         Params:
             message = error message
-        
+
         Returns:
             true if the caller shall continue trying or false if the caller
             shall quit
-                  
+
     ***************************************************************************/
     
     public bool wait ( char[] message )
@@ -647,13 +656,16 @@ class Retry
 		Note: If your class needs to explcitly handle any exceptions of other
 		types, it will need to implement its own version of this loop, adding
 		extra catch blocks.
+		
+		BEWARE: See note in the header comments about passing pointers as the
+		delegate's arguments.
 
 	    Params:
 	        dg = delegate to try
 	        args = arguments of delegate
 
 	***************************************************************************/
-
+    
     public void loop ( D, T ... ) ( D dg, T args )
     {
     	bool again;
@@ -687,6 +699,9 @@ class Retry
 		Note: If your class needs to explcitly handle any exceptions of other
 		types, it will need to implement its own version of this loop, adding
 		extra catch blocks.
+
+		BEWARE: See note in the header comments about passing pointers as the
+		delegate's arguments.
 
 		Template params:
 			E = type of exceptions to rethrow on failure
