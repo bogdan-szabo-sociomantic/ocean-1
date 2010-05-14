@@ -80,12 +80,15 @@ class QueueFile : ConduitQueue!(File)
 
 	***************************************************************************/
 
-	public this ( char[] name, uint max, uint min = 1024 * 1024 )
+	public this ( char[] name, uint max  )
 	{
-		this.min_file_size = min;
 		super(name, max);
 	}
 
+	public bool isDirty ( )
+	{
+		return this.first > this.limit / 4;
+	}
 
 	/***************************************************************************
 
@@ -110,8 +113,8 @@ class QueueFile : ConduitQueue!(File)
 
 		if (length is 0)
 		{
-			// initialize file with min length
-			uint buffers_to_write = (this.min_file_size + this.buffer.length - 1) / this.buffer.length;
+			// initialize file with max length
+			uint buffers_to_write = (this.limit + this.buffer.length - 1) / this.buffer.length;
 
 			this.log("initializing file queue '{}' to {} KB", this.name,
 					(buffers_to_write * this.buffer.length) / 1024);
@@ -136,8 +139,11 @@ class QueueFile : ConduitQueue!(File)
 				{
 					if ( Header.checksum(chunk) != chunk.check )
 					{
-						this.logger.error ("Invalid header located in queue '{}': truncating after item {}",
+						if ( this.logger )
+						{
+							this.logger.error ("Invalid header located in queue '{}': truncating after item {}",
 								this.name, this.items);
+						}
 						break;
 					}
 
