@@ -19,8 +19,10 @@ module      ocean.net.http.HttpRequest;
 
 ********************************************************************************/
 
-public      import      ocean.net.http.HttpResponse, ocean.net.http.HttpConstants;
-
+public      import      ocean.net.http.HttpResponse, 
+                        ocean.net.http.HttpConstants,
+                        ocean.net.http.Url;
+                        
 public      import      ocean.core.Exception: assertEx;
 
 private     import      ocean.text.util.StringSearch;
@@ -188,6 +190,7 @@ debug
 
     See also
 
+    http://labs.apache.org/webarch/http/draft-fielding-http/
     http://www.w3.org/Protocols/rfc2616/rfc2616.html
 
 
@@ -307,7 +310,7 @@ class HttpRequest
         
     ***************************************************************************/
     
-    public              char[]                  uri;
+    public              Url                     url;
     
     /**************************************************************************
     
@@ -829,14 +832,14 @@ class HttpRequest
                                                this.toLogString(request_line) ~ '\'');
         
         this.method   = tokens[0].dup;
-        this.uri  = tokens[1].dup;
+        this.url.parse(tokens[1].dup);
         this.ver = tokens[2].dup;
         
         assertEx!(RequestException.NotImplemented)
                  (this.method in this.supported_methods);
         
         assertEx!(RequestException.BadRequest)
-                 (this.uri.length, "empty url path in header");
+                 (this.url.length, "empty url path in header");
         
         switch (this.ver)
         {
