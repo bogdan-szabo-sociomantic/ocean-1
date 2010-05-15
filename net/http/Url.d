@@ -51,7 +51,7 @@ private     import      TextUtil = tango.text.Util : split;
     
     Retrieving a specific path segment
     ---
-    char[] segment = url.path.get(1);
+    char[] segment = url.path[1];
     ---
     
     Retrieving the number of query parameter
@@ -61,7 +61,7 @@ private     import      TextUtil = tango.text.Util : split;
     
     Retrieving a specific query value for a given key
     ---
-    char[] value = url.query.get("key");
+    char[] value = url.query["key"];
     ---
     
     TODO
@@ -172,7 +172,7 @@ struct Url
         
         if (uri.path.length)
             this.path.parse(uri.path);
-        
+
         if (uri.query.length)
             this.query.parse(uri.query);
     }
@@ -351,10 +351,11 @@ struct Url
         public void parse ( char[] path )
         {
             this.path = path.dup;
+            this.segments.length = 0;
             
             char[][] segments = TextUtil.split(path, UriDelim.QUERY_URL);        
             
-            for (uint i=0; i<segments.length; i++)        
+            for ( uint i = 0; i < segments.length; i++ )        
             {
                 if ( segments[i].length )
                 {
@@ -374,6 +375,18 @@ struct Url
     struct Query
     {
         
+        /***************************************************************************
+    
+            QueryPair
+        
+         ***************************************************************************/
+        
+        struct QueryPair
+        {       
+                char[] key;
+                char[] value;
+        }
+    
         /*******************************************************************************
             
             Query component string
@@ -386,9 +399,9 @@ struct Url
             
             Query key/value pairs
             
-         *******************************************************************************/                                                   
-        
-        private             char[][char[]]                  pairs;
+         *******************************************************************************/
+
+        private             QueryPair[]                     pairs;
         
         
         /*******************************************************************************
@@ -405,9 +418,12 @@ struct Url
         
         public char[] opIndex ( char[] key )
         {
-            if (key in this.pairs) 
+            foreach ( pair; this.pairs )
             {
-                return this.pairs[key];
+                if ( pair.key == key )
+                {
+                    return pair.value; // TODO does this needs a .dup?
+                }
             }
             
             return null;
@@ -472,9 +488,11 @@ struct Url
         
         public void parse ( char[] query_string )
         {
-            this.query = query_string;
+            char[][] elements, split;
+            QueryPair pair;
             
-            char[][] elements, pair;
+            this.pairs.length = 0;
+            this.query = query_string;
             
             elements = TextUtil.split(query_string, UriDelim.PARAM);
             
@@ -482,15 +500,19 @@ struct Url
             {
                 if ( element.length && element != UriDelim.PARAM ) 
                 {
-                    pair = TextUtil.split(element, UriDelim.KEY_VALUE);
+                    split = TextUtil.split(element, UriDelim.KEY_VALUE);
                     
-                    if (pair.length == 2)
+                    if ( split.length )
                     {
-                        this.pairs[pair[0].dup] = pair[1].dup;                      
-                    }
-                    else
-                    {
-                        this.pairs[pair[0].dup] = null;
+                        pair.key   = split[0].dup;
+                        pair.value = null;
+                        
+                        if (split.length == 2)
+                        {
+                            pair.value = split[1].dup;
+                        }
+    
+                        this.pairs ~= pair;
                     }
                 }
             }
@@ -507,14 +529,20 @@ struct Url
 
 ********************************************************************************/
 
-unittest
-{
+debug ( OceanUnitTest )
+{  
+    import tango.util.log.Trace;
+    import tango.core.Memory;
     
+    unittest
+    {
         Url    url;
         char[] url_string;
         
         url_string = "http://www.example.com/path1/path2?key1=value1&key2=value2";
         
+        Trace.formatln("running unittest ocean.net.http.Url");
+
         url.parse(url_string);
         
         assert(url.toString == url_string);
@@ -530,7 +558,34 @@ unittest
         assert(url.query.toString  == "key1=value1&key2=value2");
         assert(url.query["key1"] == "value1");
         assert(url.query["key2"] == "value2");
-    
+
+        Trace.formatln("running mem test on ocean.net.http.Url");
+        
+        uint x = 0;
+        
+        for ( uint i=0; i <= 500_000; i++ )
+        {
+            url.parse(url_string);
+            
+            assert(url.host.toString  == "www.example.com");
+            assert(url.path.toString  == "/path1/path2");
+            assert(url.query.toString  == "key1=value1&key2=value2");
+            
+            if ( x == 50_000 )
+            {
+                Trace.formatln("finished 50000 calls: alloc mem {} b", 
+                        GC.stats["poolSize"]);
+                
+                assert(GC.stats["poolSize"] < 2000000, "found memory leak");
+                
+                x = 0;
+            }
+            
+            x++;
+        }
+        
+        Trace.formatln("done unittest ocean.net.http.Url");
+    }
 }
 
 
