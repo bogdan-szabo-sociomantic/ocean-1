@@ -155,11 +155,13 @@ struct HttpResponse
         Sends a HTTP response (without message body).
         
          = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
+         
          !! Please be aware not to use the write funtion when the 
          connection was going down. This will end up in a permanent 
          blocking state of the socket.
          
-         Please, always check status returned on request.read()
+         Please, always check status returned on request.read() 
+         before using send().
          
          Usage example
          ---
@@ -183,8 +185,8 @@ struct HttpResponse
          
     **************************************************************************/
     
-    public bool send ( Socket socket, 
-                       HttpStatus status = HttpResponses.OK, char[] msg = "" )
+    public bool send ( Socket socket, HttpStatus status = HttpResponses.OK, 
+                       char[] msg = "" )
     {
         return this.send(socket, "", status, msg);
     }
@@ -198,6 +200,7 @@ struct HttpResponse
          buffer stream to the receiving client.
          
          = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
+         
          !! Please be aware not to use the write funtion when the 
          connection was going down. This will end up in a permanent 
          blocking state of the socket.
@@ -354,7 +357,7 @@ struct HttpResponse
         {
             debug
             {
-                Trace.formatln("[response header] {} = {}", name, value);
+                Trace.formatln("[response header] {} {}", name, value);
             }
             
             conduit.write(name);
@@ -381,7 +384,7 @@ struct HttpResponse
 
     private char[] formatTime ()
     {
-        const char[3][] Weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Sat"];
+        const char[3][] Weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         const char[3][] Months   = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         
