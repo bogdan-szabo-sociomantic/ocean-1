@@ -284,7 +284,14 @@ class HttpServer
                         connections[conduit_filehandle] = conduit; 
 
                         // Run thread non blocking reading/writing is done in the 
-                        // HttpRequest/HttpResponse object                
+                        // HttpRequest/HttpResponse object
+                        //
+                        // TODO this is nuts! passing on the stuff to the thread
+                        //      makes the server stall. in case the server runs
+                        //      with 10 threads and 10 clients sending data
+                        //      the server can only handle 10 parallel request.
+                        //      the stuff should only be passed to a thread
+                        //      once the incoming data was read.
                         this.runThread(connections[conduit_filehandle]);                        
                     }
                     else if (key.isError() || key.isHangup() || key.isInvalidHandle())
