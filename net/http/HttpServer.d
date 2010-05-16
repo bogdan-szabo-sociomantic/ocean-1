@@ -258,13 +258,13 @@ class HttpServer
         {  
             try 
             {
-                event_count = this.selector.select(EPOLLWAIT_INFINITE);  // wait
+                event_count = this.selector.select(EPOLLWAIT_INFINITE);
             }
             catch (Exception e) 
             {
                 debug
                 {
-                    Trace.formatln("Error on event select {}", e.msg);
+                    Trace.formatln("select error {}", e.msg);
                 }
             } 
             
@@ -298,7 +298,7 @@ class HttpServer
                     {
                         debug
                         {
-                            Trace.formatln("Key error");
+                            Trace.formatln("socket error; unregister from selector");
                         }
                         
                         this.selector.unregister(key.conduit);                              
@@ -307,7 +307,7 @@ class HttpServer
                     {
                         debug
                         {
-                            Trace.formatln("Unknown socket error");
+                            Trace.formatln("unknown socket error");
                         }
                     }
                 }  
@@ -320,7 +320,7 @@ class HttpServer
                 }
             }
             
-            selector.register(this.socket, Event.Read | Event.Hangup | 
+            selector.register(this.socket, Event.Read  | Event.Hangup | 
                                            Event.Error | Event.InvalidHandle);
         }
         
