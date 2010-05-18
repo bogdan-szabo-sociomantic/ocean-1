@@ -104,6 +104,8 @@ private import ocean.io.device.model.IQueue,
 
 private import tango.util.log.model.ILogger;
 
+private import tango.util.log.Log;
+
 private import swarm.queue.model.IChannel;
 
 private import tango.io.device.Conduit;
@@ -274,7 +276,7 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	                    items;          // number of items in the queue
 	protected void[]	buffer;         // read buffer
 	protected Header	current;        // top-of-stack info
-	protected ILogger	logger;            // logging target
+	protected Logger	logger;            // logging target
 
 	protected static const uint BUFFER_SIZE = 1024 * 8; // default read buffer size
 
@@ -329,7 +331,7 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	
 	***************************************************************************/
 	
-	public void attachLogger ( ILogger logger )
+	public void attachLogger ( Logger logger )
 	{
 		this.logger = logger;
 	}
@@ -341,7 +343,7 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	
 	***************************************************************************/
 
-	public ILogger getLogger ( )
+	public Logger getLogger ( )
 	{
 		return this.logger;
 	}
@@ -356,12 +358,12 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	    	... = 
 
 	***************************************************************************/
-	
+
 	public void log ( char[] fmt, ... )
 	{
 		if ( this.logger )
 		{
-			this.logger.trace(fmt, _arguments, _argptr);
+			this.logger.format(ILogger.Level.Trace, fmt, _arguments, _argptr);
 		}
 	}
 
@@ -614,7 +616,7 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 
 	synchronized public bool remap ( )
 	{
-	    this.log("Thinking about remapping queue '{}'", name);
+	    this.log("Thinking about remapping queue '" ~ name ~ "'");
 	
 	    uint bytes_read, bytes_written;
 	    long offset;
@@ -624,6 +626,7 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 		}
 	
 	    this.logSeekPositions("Old seek positions");
+	    this.traceContents("Before remap", true);
 	            
 	    auto input = this.conduit.input;
 	    auto output = this.conduit.output;
@@ -662,6 +665,7 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	    this.eof();
 	
 	    this.logSeekPositions("Remapping done, new seek positions");
+	    this.traceContents("After remap", true);
 
 	    return true;
 	}
@@ -692,10 +696,10 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 		If the file already exists it is overwritten.
 	
 	***************************************************************************/
-	
+
 	public synchronized void dumpToFile ( )
 	{
-		this.log("Writing to file {}", this.name ~ ".dump");
+		this.log("Writing to file " ~ this.name ~ ".dump");
 		scope fp = new FilePath(this.name ~ ".dump");
 		if ( fp.exists() )
 		{
@@ -707,8 +711,8 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 		this.serialize(file);
 		file.close();
 	}
-	
-	
+
+
 	/***************************************************************************
 	
 	    Reads the queue's state and contents from a file.
@@ -877,7 +881,7 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	    	if the end of the conduit is passed while reading
 	        
 	***************************************************************************/
-	
+
 	protected void read ( void* data, uint len )
 	{
 		scope ( failure )
@@ -916,6 +920,7 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 		scope ( failure )
 		{
 //			Trace.formatln("Write error");
+			Trace.formatln("Write error, trying to write {} bytes", len);
 		}
 
 		auto output = this.conduit.output;
@@ -1043,11 +1048,25 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 		
 	***************************************************************************/
 
-	public void traceContents ( char[] message = "", bool show_contents_size = false )
+	private import tango.time.StopWatch;
+	protected static StopWatch timer;
+
+	static this ()
+	{
+		timer.start();
+	}
+
+	synchronized public void traceContents ( char[] message = "", bool show_contents_size = false )
 	{
 		scope ( failure )
 		{
 			Trace.formatln("EXCEPTION OCCURRED");
+			
+			// Wait
+			ulong start = timer.microsec();
+			while ( timer.microsec() < start + 1000000)
+			{
+			}
 		}
 
 		Trace.format("{}: {}: ", this.name, message);
