@@ -12,6 +12,12 @@
 
 module  ocean.io.digest.Fnv1;
 
+/******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
 private import tango.io.digest.Digest;
 
 private import tango.core.ByteSwap;

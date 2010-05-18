@@ -12,7 +12,7 @@
     subclass must implement dispatch(). For conduit (socket) I/O the
     reader/writer class properties are available to the subclass.
     
- ******************************************************************************/
+*******************************************************************************/
 
 module ocean.net.socket.model.IConnectionHandler;
 
@@ -20,29 +20,30 @@ module ocean.net.socket.model.IConnectionHandler;
 
     Imports
     
- ******************************************************************************/
+*******************************************************************************/
 
-private import ocean.io.protocol.ListReader;
-private import ocean.io.protocol.ListWriter;
+private     import      ocean.io.protocol.ListReader, 
+                        ocean.io.protocol.ListWriter;
 
-private import ocean.util.TraceLog;
+private     import      tango.io.Buffer;
 
-private import tango.io.Buffer;
+private     import      tango.io.model.IBuffer, tango.io.model.IConduit;
 
-private import tango.io.model.IBuffer;
-private import tango.io.model.IConduit;
+private     import      tango.core.Runtime;
 
-private import tango.core.Runtime;
+private     import      tango.core.Exception: IOException;
 
-private import tango.core.Exception: IOException;
-
-private import tango.util.log.Trace;
+debug 
+{
+    private import ocean.util.TraceLog;
+    private import tango.util.log.Trace;
+}
 
 /******************************************************************************
 
-    ConnectionHandlery class
+    ConnectionHandlery
     
- ******************************************************************************/
+*******************************************************************************/
 
 abstract class IConnectionHandler
 {
@@ -156,14 +157,20 @@ abstract class IConnectionHandler
         {
             if (!Runtime.isHalting())
             {
-                TraceLog.write("socket exception '{}'", e.msg);
-                Trace.formatln("socket exception '{}'", e.msg);
+                debug
+                {
+                    TraceLog.write("socket exception '{}'", e.msg);
+                    Trace.formatln("socket exception '{}'", e.msg);
+                }
             }
         }
         catch (Exception e)
         {
-            TraceLog.write("runtime exception '{}'", e.msg);
-            Trace.formatln("runtime exception '{}'", e.msg);
+            debug
+            {
+                TraceLog.write("runtime exception '{}'", e.msg);
+                Trace.formatln("runtime exception '{}'", e.msg);
+            }
         }
         finally
         {

@@ -18,35 +18,45 @@
     
  ******************************************************************************/
 
-module ocean.io.protocol.SocketProtocol;
+module ocean.net.socket.SocketProtocol;
 
 /******************************************************************************
 
     Imports
 
- ******************************************************************************/
+*******************************************************************************/
 
-private import ocean.io.protocol.ListReader;
-private import ocean.io.protocol.ListWriter;
+private     import      ocean.io.protocol.ListReader, ocean.io.protocol.ListWriter;
 
-private import tango.net.device.Socket;
-private import tango.net.device.Berkeley: IPv4Address;
+private     import      tango.net.device.Socket;
 
-private import tango.io.Buffer;
+private     import      tango.net.device.Berkeley: IPv4Address;
 
-private import ocean.io.Retry;
+private     import      tango.io.Buffer;
 
-private import tango.util.log.Trace;
+private     import      ocean.io.Retry;
+
+debug 
+{
+    private     import      tango.util.log.Trace;
+}
+
+/******************************************************************************
+
+    SocketProtocol
+
+*******************************************************************************/
 
 class SocketProtocol : Socket
 {
+    
     /**************************************************************************
     
         Default initial read/write buffer size (bytes)
         
     **************************************************************************/
 
-    static const DefaultBufferSize = 0x800;
+    static                      const DefaultBufferSize = 0x800;
     
     /**************************************************************************
     
@@ -54,7 +64,7 @@ class SocketProtocol : Socket
         
     **************************************************************************/
 
-    alias typeof (this) This;
+    alias                       typeof (this)           This;
     
     /**************************************************************************
     
@@ -62,7 +72,7 @@ class SocketProtocol : Socket
         
     **************************************************************************/
 
-    private IPv4Address address;
+    private                     IPv4Address             address;
     
     /**************************************************************************
     
@@ -70,8 +80,8 @@ class SocketProtocol : Socket
         
     **************************************************************************/
 
-    private ListWriter  writer;
-    private ListReader  reader;
+    private                     ListWriter              writer;
+    private                     ListReader              reader;
     
     /**************************************************************************
     
@@ -79,7 +89,7 @@ class SocketProtocol : Socket
         
     **************************************************************************/
 
-    private bool        connected = false;
+    private                     bool                    connected = false;
     
     /**************************************************************************
     
@@ -87,7 +97,7 @@ class SocketProtocol : Socket
 	
 	 **************************************************************************/
 	
-	public Retry retry;
+	public                      Retry                   retry;
 
 
     /**************************************************************************
@@ -274,7 +284,7 @@ class SocketProtocol : Socket
 
 //    void tryGet ( T ... ) ( out T items )
 //    {
-//Trace.formatln("SocketProtocol.get - try");
+//debug Trace.formatln("SocketProtocol.get - try");
 //    	this.connect();
 //        this.reader.get(items);
 //    }
@@ -319,7 +329,7 @@ class SocketProtocol : Socket
 
 //    void tryPut ( T ... ) ( T items )
 //    {
-//Trace.formatln("SocketProtocol.put - try");
+//debug Trace.formatln("SocketProtocol.put - try");
 //    	this.connect();
 //        this.writer.put(items);
 //    }
@@ -344,20 +354,19 @@ class SocketProtocol : Socket
     
         Commits (flushes) sent output data. 
         
+        Note: This method must not be named "flush" because the Conduit 
+              abstract class, from which this class is indirectly derived, 
+              also implements flush() leading to crashes at runtime 
+              (segmentation fault or infinite loop).
+              Module tango.io.device.Conduit contains the Conduit class.
+        
+        
         Returns:
             this instance
     
      **************************************************************************/
     
-    /*
-     * Note: This method must not be named "flush" because the Conduit abstract
-     *       class, from which this class is indirectly derived, also implements
-     *       flush() leading to crashes at runtime (segmentation fault or
-     *       infinite loop).
-     *       Module tango.io.device.Conduit contains the Conduit class.
-     */ 
-    
-    public This commit ( )
+    public This commit ()
     {
         uint i = 0;
         
@@ -368,9 +377,9 @@ class SocketProtocol : Socket
         
         do try
         {
-            if (again)                                                          // If retrying, reconnect without
-            {                                                                   // clearing R/W buffers
-                this.disconnect(false).connect(false);
+            if (again)  // If retrying, reconnect without
+            {
+                this.disconnect(false).connect(false); // clearing R/W buffers
             }
             
             again = false;
@@ -380,7 +389,10 @@ class SocketProtocol : Socket
         {
             again = this.retry(e.msg);
             
-            Trace.formatln("commit: {,2} {}", ++i, e.msg);
+            debug
+            {
+                Trace.formatln("commit: {,2} {}", ++i, e.msg);
+            }
             
             if (!again)
             {

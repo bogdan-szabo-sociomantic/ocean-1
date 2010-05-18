@@ -4,75 +4,14 @@
 
     copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
-    version:        Jan 2009: Initial release
-
-    authors:        Lars Kirchhoff
-                    Thomas Nicolai
-                    David Eckhardt
+    version:        Jan 2009: initial release
+                    May 2010: revised version with struct opIndex support
                     
-    Config reads all properties of the application from an INI style
-    file and stores them in ein internal variable, that can be accessed
-    through get and set methods as follows:
-
-    --
-
-    Usage example:
-
-        Config.init("etc/my_config.ini");
-
-        char[] value = Config.getChar("category", "key");
-
-        After first initialization by calling Config.init because the config
-        object is a static implementation as well as its member variables.
-        Therefore there is no need to call Config.init again.
-
-    --
-
-    A print function provides a facility to print all config properties at
-    once for debugging reasons.
-
-    	Config.print;
-
-    Additionally the properties can be read again from the file with a read
-    method and new configuration options can be written to the INI file using
-    the write method as follows:
-
-    	Config.read;
-
-    If properties have changed within the program it can be written back to
-    the INI file with a write function. This function clears the INI file and
-    writes all current parameters stored in properties to INI file
-
-    	Config.set("key", "new value");
-        Config.write;
-
-    --
-
-    Config File Example Structure
-
-    // --------------------------
-    // Config Example
-    // --------------------------
-
-    [DATABASE]
-    table1 = "name_of_table1"
-    table2 = "name_of_table2"
-
-    [LOGGING]
-    level = 4
-    file = "access.log"
-
-    --
-
-    TODO: Update Config.write and Config.print to new structure
-
-    TODO: Intergrate opcall array that allows to access Configuration keys by
-          Config["category"]["key"]
+    authors:        Lars Kirchhoff, Thomas Nicolai & David Eckhardt
 
 ********************************************************************************/
 
 module         ocean.util.Config;
-
 
 /*******************************************************************************
 
@@ -86,9 +25,9 @@ private        import         tango.io.device.File;
 
 private        import         tango.io.stream.Lines;
 
-private        import         Integer = tango.text.convert.Integer: toInt;
+private        import         tango.text.convert.Integer: toLong;
 
-private        import         Float = tango.text.convert.Float: toFloat;
+private        import         tango.text.convert.Float: toFloat;
 
 private        import         tango.text.Util: locate, trim, delimit;
 
@@ -98,8 +37,64 @@ private        import         tango.core.Exception;
 
 
 /*******************************************************************************
-
-    Config
+ 
+    Config reads all properties of the application from an INI style
+    file and stores them in ein internal variable, that can be accessed
+    through get and set methods as follows:
+    
+    --
+    
+    Usage example:
+    
+        Config.init("etc/my_config.ini");
+    
+        char[] value = Config.getChar("category", "key");
+        
+        // or
+        
+        char[] value = Config.Char["category", "key"];
+        
+        After first initialization by calling Config.init because the config
+        object is a static implementation as well as its member variables.
+        Therefore there is no need to call Config.init again.
+    
+    --
+    
+    A print function provides a facility to print all config properties at
+    once for debugging reasons.
+    
+        Config.print;
+    
+    Additionally the properties can be read again from the file with a read
+    method and new configuration options can be written to the INI file using
+    the write method as follows:
+    
+        Config.read;
+    
+    If properties have changed within the program it can be written back to
+    the INI file with a write function. This function clears the INI file and
+    writes all current parameters stored in properties to INI file
+    
+        Config.set("key", "new value");
+        Config.write;
+    
+    --
+    
+    Config File Example Structure
+    
+    // --------------------------
+    // Config Example
+    // --------------------------
+    
+    [DATABASE]
+    table1 = "name_of_table1"
+    table2 = "name_of_table2"
+    
+    [LOGGING]
+    level = 4
+    file = "access.log"
+    
+    --
 
 ********************************************************************************/
 
@@ -250,11 +245,11 @@ class Config
             }
             else static if ( is(T : long) )
             {
-                return Integer.toLong(property);
+                return toLong(property);
             }
             else static if ( is(T : real) )
             {
-                return Float.toFloat(property);
+                return toFloat(property);
             }
             else static if ( is(char[] T : T[]) || is(wchar[] T : T[]) || is(dchar[] T : T[]) )
             {
@@ -718,47 +713,163 @@ class Config
         return true;
     }
 
-
     /*******************************************************************************
         
-        Writes Configuration
+        Returns integer value of a configuration key
         
-        FIXME: Needs to be adapated to new structure with categories
+        ---
+     
+        Usage Example:
+     
+            Config.init("etc/config.ini");
+            
+            int value = Config.Int["category", "key"];
+            
+        ---
+     
+        Params:
+            category = category to get key from
+            key      = name of the property to get
+            
+        Returns:
+            value of config key
             
      *******************************************************************************/
     
-    public static void write()
+    struct Int
     {
-    	/*
-        auto map = new MapOutput!(char)(new FileOutput(this.configFile));
-
-        map.append(this.properties);
-
-        map.flush();
-        map.close();
-        */
+        public static int opIndex (char[] category, char[] key)
+        {
+            return Config.get!(int)(category, key);
+        }
     }
-
-
+    
     /*******************************************************************************
         
-        Prints Configuration to Screen
+        Returns float value of a configuration key
         
-        FIXME: Needs to be adapated to new structure with categories
+        ---
+     
+        Usage Example:
+     
+            Config.init("etc/config.ini");
+            
+            float value = Config.Float["category", "key"];
+            
+        ---
+     
+        Params:
+            category = category to get key from
+            key      = name of the property to get
+            
+        Returns:
+            value of config key
             
      *******************************************************************************/
     
-    public static void print()
+    struct Float
     {
-    	/*
-        Stdout.format("----- INI Configuration --------").newline;
-        Stdout.format("{}",    this.properties.length).newline;
-
-        foreach(key, value; this.properties)
-            Stdout.formatln("{} = {}", key, value);
-
-        Stdout.format("--------------------------------").newline;
-        */
+        public static float opIndex (char[] category, char[] key)
+        {
+            return get!(float)(category, key);
+        }
     }
+
+    /*******************************************************************************
+        
+        Returns long value of a configuration key
+        
+        ---
+     
+        Usage Example:
+     
+            Config.init("etc/config.ini");
+            
+            long value = Config.Long["category", "key"];
+            
+        ---
+     
+        Params:
+            category = category to get key from
+            key      = name of the property to get
+            
+        Returns:
+            value of config key
+            
+     *******************************************************************************/
+    
+    struct Long
+    {
+        public static long opIndex(char[] category, char[] key)
+        {
+            return Config.get!(long)(category, key);
+        }
+    }
+    
+    /*******************************************************************************
+        
+        Returns value of configuration key as string
+        
+        ---
+     
+        Usage Example:
+     
+            Config.init("etc/config.ini");
+            
+            char[] value = Config.Char["category", "key"];
+            
+        ---
+     
+        Params:
+            category = category to get key from
+            key      = name of the property to get
+            
+        Returns:
+            value of config key
+            
+     *******************************************************************************/
+    
+    struct Char
+    {
+        public static char[] opIndex ( T = char ) (char[] category, char[] key)
+        {
+            return Config.get!(char[])(category, key);
+        }
+    }
+    
+    /*******************************************************************************
+        
+        Returns bool value of configuration key
+        
+        ---
+     
+        Usage Example:
+     
+            Config.init("etc/config.ini");
+            
+            bool value = Config.Bool["category", "key"];
+            
+        ---
+     
+        Params:
+            category       = category to get key from
+            key            = name of the property to get
+            accept_unknown = true: treat unknown value as "false"; false:
+                             throw exception on unknown value
+            
+        Returns:
+            value of config key
+            
+     *******************************************************************************/
+    
+    struct Bool
+    {
+        public static bool opIndex(char[] category, char[] key, 
+                                   bool accept_unknown = true)
+        {
+            return Config.getBool(category, key, accept_unknown);
+        }
+    }
+    
 
 }

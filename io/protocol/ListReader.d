@@ -12,7 +12,7 @@
     arrays or strings. Such a string/array list must be terminated by an empty
     item as is done by ListWriter.
 
- ******************************************************************************/
+*******************************************************************************/
 
 module core.protocol.ListReader;
 
@@ -20,7 +20,7 @@ module core.protocol.ListReader;
 
     Imports
 
- ******************************************************************************/
+*******************************************************************************/
 
 private import tango.io.protocol.Reader;
 
@@ -28,7 +28,7 @@ private import tango.io.protocol.Reader;
 
     ListReader class
     
- ******************************************************************************/
+*******************************************************************************/
 
 class ListReader : Reader
 {
