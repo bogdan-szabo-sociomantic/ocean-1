@@ -107,11 +107,16 @@ module ocean.io.Retry;
 
 *******************************************************************************/
 
-private import Ctime  = tango.stdc.posix.time:      nanosleep;
-private import Ctimer = tango.stdc.posix.timer:     timespec;
-private import          tango.stdc.time:            time_t;
-private import 			tango.util.log.Trace;
+private     import      Ctime  = tango.stdc.posix.time:      nanosleep;
 
+private     import      Ctimer = tango.stdc.posix.timer:     timespec;
+
+private     import               tango.stdc.time:            time_t;
+
+debug
+{
+    private     import 			     tango.util.log.Trace;
+}
 
 
 /*******************************************************************************
@@ -312,15 +317,6 @@ class Retry
     public uint retries = 0;
     
     private uint n = 0;
-
-
-	/***************************************************************************
-
-    	Property to toggle debug text output (to Trace). Off by default.
-	    
-	***************************************************************************/
-
-    public bool debug_text = false;
 
 
     /**************************************************************************
@@ -590,16 +586,16 @@ class Retry
     	if ( !this.timeout.isNull() )
     	{
        		this.trace("Calling timeout function");
+            
         	this.resetCounter();
        		this.timeout();
     	}
-
     }
 
 
     /***************************************************************************
     
-	    Outputs a message to Trace if debug_text is switched on.
+	    Outputs a message to Trace if debug compiler switch is enabled.
 	
 	    Params:
 	        as Trace.formatln
@@ -620,7 +616,7 @@ class Retry
 
     protected void trace ( T ... ) ( T t )
     {
-    	if ( this.debug_text )
+    	debug
     	{
     		Trace.formatln(t);
     	}
