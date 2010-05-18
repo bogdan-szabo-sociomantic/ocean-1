@@ -133,7 +133,7 @@ struct Profiler
     void display ( )
     {
 		ulong total;
-    	foreach ( name, start; section_start )
+    	foreach ( name, start; this.section_start )
     	{
     		if ( name in section_end )
     		{
@@ -165,6 +165,7 @@ struct Profiler
     	this.endSection(name);
     }
 
+
 	/***************************************************************************
 
 		Shared instance of the Profiler.
@@ -172,7 +173,7 @@ struct Profiler
 	***************************************************************************/
 
     static Profiler static_instance;
-    
+
 
 	/***************************************************************************
 
