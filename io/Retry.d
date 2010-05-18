@@ -602,19 +602,27 @@ class Retry
 	    Outputs a message to Trace if debug_text is switched on.
 	
 	    Params:
-	        fmt = format string
-	        ... = format string arguments
+	        as Trace.formatln
 	
 	    Returns:
 	        void
-	
+
+		Note: doing this as a template function isn't ideal, it'd be nicer to be
+		able to simply pass through the variadic args required for the format
+		function. Unfortunately there's no syntax for this in D, and the other
+		alternative of passing the variadic args to a method of type:
+			void formatln(char[] fmt, va_list args, TypeInfo[] arg_types)
+		in Trace isn't possible (as it doesn't expose such a method, and it's
+		impossible to extend Trace due to everything in it being decalred as
+		final - thanks Tango! ;)
+
 	***************************************************************************/
 
-    protected void trace ( char[] fmt, ... )
+    protected void trace ( T ... ) ( T t )
     {
     	if ( this.debug_text )
     	{
-    		Trace.formatln(fmt,  _arguments, _argptr);
+    		Trace.formatln(t);
     	}
     }
 
