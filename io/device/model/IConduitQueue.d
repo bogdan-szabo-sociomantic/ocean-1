@@ -626,7 +626,7 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 		}
 	
 	    this.logSeekPositions("Old seek positions");
-	    this.traceContents("Before remap", true);
+	    this.traceContents("Before remap");
 	            
 	    auto input = this.conduit.input;
 	    auto output = this.conduit.output;
@@ -665,7 +665,7 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	    this.eof();
 	
 	    this.logSeekPositions("Remapping done, new seek positions");
-	    this.traceContents("After remap", true);
+	    this.traceContents("After remap");
 
 	    return true;
 	}
