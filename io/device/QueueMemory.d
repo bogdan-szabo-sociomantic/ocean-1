@@ -71,9 +71,18 @@ class QueueMemory : ConduitQueue!(Memory)
     }
 
 
-	public bool isDirty ( )
+    /***************************************************************************
+
+		Determines when the queue is ready to be remapped.
+		
+		For a memory queue we can be pretty easy with this - remap it if the
+		read position is more than 10% or 512Kb from the beginning.
+
+    ***************************************************************************/
+
+    public bool isDirty ( )
 	{
-		return this.first > this.limit / 10;
+		return (this.first > this.limit / 10) || (this.first > 512 * 1024);
 	}
 
     /***************************************************************************
