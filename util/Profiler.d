@@ -29,7 +29,9 @@
     ---
 
 	The Profiler can also be used to time and display the *average* time taken
-	by timed sections over a series of runs.
+	by timed sections over a series of runs. Note that the averages are only
+	updated when the displayAverages function is called, not when display is
+	called.
 	
 	Averages example:
 
