@@ -1058,10 +1058,16 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 
 	synchronized public void traceContents ( char[] message = "", bool show_contents_size = false )
 	{
+		this.validateContents(true, message, show_contents_size);
+	}
+
+
+	synchronized public void validateContents ( bool show_summary, char[] message = "", bool show_contents_size = false )
+	{
 		scope ( failure )
 		{
 			Trace.formatln("EXCEPTION OCCURRED");
-			
+
 			// Wait
 			ulong start = timer.microsec();
 			while ( timer.microsec() < start + 1000000)
@@ -1069,7 +1075,10 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 			}
 		}
 
-		Trace.format("{}: {}: ", this.name, message);
+		if ( show_summary )
+		{
+			Trace.format("{}: {}: ", this.name, message);
+		}
 		uint count = 0;
 		long seek_pos = this.first;
 		Header header;
@@ -1083,7 +1092,10 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 				
 				if ( show_contents_size )
 				{
-					Trace.format("{} ", header.size);
+					if ( show_summary )
+					{
+						Trace.format("{} ", header.size);
+					}
 //					auto content = this.readItem(header);
 				}
 
@@ -1098,12 +1110,15 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 			}
 		} while ( header.size > 0 );
 
-		bool valid = count - 1 == this.items;
-		Trace.formatln("({}) - ({}) ({} bytes free){}", count - 1, this.items, this.limit - this.insert,
-				valid ? "" : " # OF ITEMS INVALID");
+		if ( show_summary )
+		{
+			bool valid = count - 1 == this.items;
+			Trace.formatln("({}) - ({}) ({} bytes free){}", count - 1, this.items, this.limit - this.insert,
+					valid ? "" : " # OF ITEMS INVALID");
+		}
 	}
 
-
+	
 	/***************************************************************************
 	
 		Outputs the queue's current seek positions to the log.
