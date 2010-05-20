@@ -317,6 +317,54 @@ class SocketProtocol : Socket
     
     /**************************************************************************
     
+	    Receives items in the order of being passed. Supports items of
+	    elementary type, arrays/strings and lists (arrays) of arrays/strings.
+
+	    Retries the get operation in accordance with the retry member's settings.
+
+	    Params:
+	        items = items to extract (variable argument list)
+	        
+	    Returns:
+	        this instance
+	
+	 **************************************************************************/
+	
+	public This getRetry ( T ... ) ( out T items )
+	{
+		this.retry.loop({
+			this.get(items);
+		});
+		return this;
+	}
+	
+	
+	/**************************************************************************
+	
+	    Sends items in the order of being passed. Supports items of elementary
+	    type, arrays/strings and lists (arrays) of arrays/strings.
+	    
+	    Retries the put operation in accordance with the retry member's settings.
+
+	    Params:
+	        items = items to extract (variable argument list)
+	        
+	    Returns:
+	        this instance
+	
+	 **************************************************************************/
+	
+	public This putRetry ( T ... ) ( T items )
+	{
+		this.retry.loop({
+			this.put(items);
+		});
+	    return this;
+	}
+	
+
+    /**************************************************************************
+    
         Clears received input data. 
         
         Returns:
@@ -354,6 +402,26 @@ class SocketProtocol : Socket
         this.writer.flush();
         return this;
     }
+
+    /**************************************************************************
+    
+	    Commits (flushes) sent output data. 
+	    
+	    Retries the commit operation in accordance with the retry member's
+	    settings.
+
+	    Returns:
+	        this instance
+	
+	 **************************************************************************/
+	
+	public This commitRetry ( )
+	{
+		this.retry.loop({
+			this.commit();
+		});
+	    return this;
+	}
 
     /***************************************************************************
     
@@ -467,34 +535,3 @@ class SocketProtocol : Socket
     }
 }
 
-
-/*
-class RetrySocketProtocol : SocketProtocol
-{
-	public Retry retry;
-
-	public this ( char[] address, ushort port )
-	{
-		super(address, port);
-        this.retry = new Retry(&this.reconnect);
-	}
-
-	public bool reconnect ( char[] msg )
-	{
-		debug Trace.formatln("RetrySocketProtocol, reconnecting");
-		bool again = this.retry.wait(msg);
-		if ( again )                                                          	// If retrying, reconnect without
-	    {                                                                   	// clearing R/W buffers
-			try
-			{
-				this.disconnect(false).connect(false);
-			}
-			catch ( Exception e )
-			{
-				debug Trace.formatln("Socket reconnection failed: {}", e.msg);
-			}
-	    }
-		return again;
-	}
-}
-*/
