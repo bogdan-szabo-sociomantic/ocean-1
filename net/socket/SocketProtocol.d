@@ -13,50 +13,78 @@
     
     Encapsulates socket, protocol reader/writer and buffers for a protocol
     connection via a socket. Checks the socket error status on each
-    get/put/commit request to detect a broken connection. A brocken connection
+    get/put/commit request to detect a broken connection. A broken connection
     is automatically disconnected; on next request reconnecting is tried.
+
+    The socket protocol class also encapsulates a Retry object, which can
+    (optionally) be used by external classes to repeatedly retry socket
+    operations, with a disconnection and reconnection after each failed attempt.
+
+    Note that using the retry member is left up to the user of the
+    SocketProtocol. It cannot be wrapped internally around every socket
+    operation, as only the end user can determine which operations are safe to
+    retry indefinitely.
     
+    Example usage:
+
+	---
+
+		scope socket = new SocketProtocol("192.168.2.25", 4712);
+		
+		// Write something to the socket.
+		socket.put("hello");
+		
+		// Get soemthing from the socket.
+		char[] read;
+		socket.get(read);
+
+		// Retry a group of operations with the socket.
+		socket.retry.loop({
+			socket.put("hello");
+			socket.get(read);
+		});
+
+	---
+		
  ******************************************************************************/
 
-module ocean.net.socket.SocketProtocol;
+module ocean.io.protocol.SocketProtocol;
 
 /******************************************************************************
 
     Imports
 
-*******************************************************************************/
+ ******************************************************************************/
 
-private     import      ocean.io.protocol.ListReader, ocean.io.protocol.ListWriter;
+private import ocean.io.protocol.ListReader;
+private import ocean.io.protocol.ListWriter;
 
-private     import      tango.net.device.Socket;
+private import tango.net.device.Socket;
+private import tango.net.device.Berkeley: IPv4Address;
 
-private     import      tango.net.device.Berkeley: IPv4Address;
+private import tango.io.Buffer;
 
-private     import      tango.io.Buffer;
+private import tango.util.log.Trace;
 
-private     import      ocean.io.Retry;
+private import ocean.io.Retry;
 
-debug 
-{
-    private     import      tango.util.log.Trace;
-}
 
-/******************************************************************************
 
-    SocketProtocol
+/*******************************************************************************
+
+	SocketProtocol class, derived from socket
 
 *******************************************************************************/
 
 class SocketProtocol : Socket
 {
-    
     /**************************************************************************
     
         Default initial read/write buffer size (bytes)
         
     **************************************************************************/
 
-    static                      const DefaultBufferSize = 0x800;
+    static const DefaultBufferSize = 0x800;
     
     /**************************************************************************
     
@@ -64,7 +92,7 @@ class SocketProtocol : Socket
         
     **************************************************************************/
 
-    alias                       typeof (this)           This;
+    alias typeof (this) This;
     
     /**************************************************************************
     
@@ -72,7 +100,7 @@ class SocketProtocol : Socket
         
     **************************************************************************/
 
-    private                     IPv4Address             address;
+    private IPv4Address address;
     
     /**************************************************************************
     
@@ -80,8 +108,8 @@ class SocketProtocol : Socket
         
     **************************************************************************/
 
-    private                     ListWriter              writer;
-    private                     ListReader              reader;
+    protected ListWriter writer;
+    protected ListReader reader;
     
     /**************************************************************************
     
@@ -89,18 +117,18 @@ class SocketProtocol : Socket
         
     **************************************************************************/
 
-    private                     bool                    connected = false;
-    
+    private bool connected = false;
+	
     /**************************************************************************
-    
-	    Retry instance for output retrying
+	    
+		Retry object
 	
 	 **************************************************************************/
+
+    public Retry retry;
+
 	
-	public                      Retry                   retry;
-
-
-    /**************************************************************************
+	/**************************************************************************
     
         Constructor
         
@@ -178,11 +206,11 @@ class SocketProtocol : Socket
         this.reader  = new ListReader((new Buffer(rbuf_size)).setConduit(super));
         this.writer  = new ListWriter((new Buffer(wbuf_size)).setConduit(super));
 
-        this.retry = new Retry();
-
         super.timeout(1000);
+
+        this.retry = new Retry(&this.retryReconnect);
     }
-    
+
     /**************************************************************************
     
         Connects to remote, or, if already connected, checks whether the socket
@@ -210,7 +238,8 @@ class SocketProtocol : Socket
         
         return this;
     }
-    
+
+
     /**************************************************************************
     
         Disconnects from remote if connected.
@@ -256,38 +285,14 @@ class SocketProtocol : Socket
             this instance
     
      **************************************************************************/
+
     public This get ( T ... ) ( out T items )
     {
-//        this.retry.loop(&this.tryGet!(T), &items);
-
-        bool again;
-    	this.retry.resetCounter();
-
-    	do try
-        {
-        	again = false;
-        	this.connect();
-            this.reader.get(items);
-        }
-        catch (Exception e)
-        {
-            again = this.retry(e.msg);
-            if ( !again )
-            {
-           		throw e;
-            }
-        }
-        while (again)
-
+       	this.connect();
+        this.reader.get(items);
     	return this;
     }
 
-//    void tryGet ( T ... ) ( out T items )
-//    {
-//debug Trace.formatln("SocketProtocol.get - try");
-//    	this.connect();
-//        this.reader.get(items);
-//    }
 
     /**************************************************************************
     
@@ -304,36 +309,12 @@ class SocketProtocol : Socket
 
     public This put ( T ... ) ( T items )
     {
-//    	this.retry.loop(&this.tryPut!(T), items);
-        bool again;
-    	this.retry.resetCounter();
-
-    	do try
-        {
-        	again = false;
-        	this.connect();
-            this.writer.put(items);
-        }
-        catch (Exception e)
-        {
-            again = this.retry(e.msg);
-            if ( !again )
-            {
-           		throw e;
-            }
-        }
-        while (again)
-
+    	this.connect();
+        this.writer.put(items);
         return this;
     }
 
-//    void tryPut ( T ... ) ( T items )
-//    {
-//debug Trace.formatln("SocketProtocol.put - try");
-//    	this.connect();
-//        this.writer.put(items);
-//    }
-
+    
     /**************************************************************************
     
         Clears received input data. 
@@ -354,55 +335,56 @@ class SocketProtocol : Socket
     
         Commits (flushes) sent output data. 
         
-        Note: This method must not be named "flush" because the Conduit 
-              abstract class, from which this class is indirectly derived, 
-              also implements flush() leading to crashes at runtime 
-              (segmentation fault or infinite loop).
-              Module tango.io.device.Conduit contains the Conduit class.
-        
-        
         Returns:
             this instance
     
      **************************************************************************/
     
-    public This commit ()
+    /*
+     * Note: This method must not be named "flush" because the Conduit abstract
+     *       class, from which this class is indirectly derived, also implements
+     *       flush() leading to crashes at runtime (segmentation fault or
+     *       infinite loop).
+     *       Module tango.io.device.Conduit contains the Conduit class.
+     */ 
+
+    public This commit ( )
     {
-        uint i = 0;
-        
-        bool again;
-        this.retry.resetCounter();
-        
-        this.connect();
-        
-        do try
-        {
-            if (again)  // If retrying, reconnect without
-            {
-                this.disconnect(false).connect(false); // clearing R/W buffers
-            }
-            
-            again = false;
-            this.writer.flush();
-        }
-        catch (Exception e)
-        {
-            again = this.retry(e.msg);
-            
-            debug
-            {
-                Trace.formatln("commit: {,2} {}", ++i, e.msg);
-            }
-            
-            if (!again)
-            {
-                throw e;
-            }
-        }
-        while (again)
-        
+    	this.connect();
+        this.writer.flush();
         return this;
     }
+
+    /***************************************************************************
+    
+		Reconnect method, used as the loop callback for the retry member to wait
+		for a time then try disconnecting and reconnecting the socket.
+
+		Params:
+			msg = message describing the action being retried
+
+    	Returns:
+        	true to try again
+
+    ***************************************************************************/
+
+    public bool retryReconnect ( char[] msg )
+	{
+		debug Trace.formatln("SocketProtocol, reconnecting");
+		bool again = this.retry.wait(msg);
+		if ( again )                                                          	// If retrying, reconnect without
+	    {                                                                   	// clearing R/W buffers
+			try
+			{
+				this.disconnect(false).connect(false);
+			}
+			catch ( Exception e )
+			{
+				debug Trace.formatln("Socket reconnection failed: {}", e.msg);
+			}
+	    }
+		return again;
+	}
 
     /**************************************************************************
         
@@ -475,7 +457,7 @@ class SocketProtocol : Socket
         Destructor
     
      **********************************************************************/
-    
+
     private ~this ( )
     {
         if (this.connected)
@@ -484,3 +466,35 @@ class SocketProtocol : Socket
         }
     }
 }
+
+
+/*
+class RetrySocketProtocol : SocketProtocol
+{
+	public Retry retry;
+
+	public this ( char[] address, ushort port )
+	{
+		super(address, port);
+        this.retry = new Retry(&this.reconnect);
+	}
+
+	public bool reconnect ( char[] msg )
+	{
+		debug Trace.formatln("RetrySocketProtocol, reconnecting");
+		bool again = this.retry.wait(msg);
+		if ( again )                                                          	// If retrying, reconnect without
+	    {                                                                   	// clearing R/W buffers
+			try
+			{
+				this.disconnect(false).connect(false);
+			}
+			catch ( Exception e )
+			{
+				debug Trace.formatln("Socket reconnection failed: {}", e.msg);
+			}
+	    }
+		return again;
+	}
+}
+*/
