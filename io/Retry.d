@@ -57,13 +57,8 @@
 
     For cases where you don't need to specifically handle different exception
     types, the Retry class includes a standard loop, which is passed a 
-    delegate for the action to repeatedly try / retry.
-    
-    BEWARE: the Retry.loop method is a template over the type of the delegate
-    (the method to retry) and the types of the delegate's arguments. As it's a
-    template it is NOT possible to specify the pass-type (ie in / out / ref) of
-    the delegate's arguments. This means that if the delegate needs to modify
-    any of the passed arguments, then you need to pass them as pointers.
+    block of code (a delegate - using D's lazy evaluation feature) for the
+    action to repeatedly try / retry.
     
     Example:
     
@@ -83,13 +78,9 @@
 
 			void doSomething ( int arg )
 			{
-				this.retry.loop(&this.trySomething, &arg);
-			}
-	        
-			void trySomething ( int* arg )
-			{
-				// code to do something with arg
-				*arg ++; // for example
+				this.retry.loop({
+					// do something with arg
+				});
 			}
 		}
 
@@ -282,7 +273,7 @@ class Retry
 	public Callback callback;
 
 
-    /***************************************************************************
+	/***************************************************************************
     
 	    Timeout struct. Holds the timeout method reference (either delegate or
 	    function, returning void and accepting no arguments).
@@ -439,7 +430,6 @@ class Retry
     public This setDefaultCallback ( )
     {
         this.opAssign(&this.wait);
-        
         return this;
     }
 
@@ -545,10 +535,10 @@ class Retry
             shall quit
 
     ***************************************************************************/
-    
+
     public bool wait ( char[] message )
     {
-    	this.trace("Retry {} ({})", this.n, message);
+    	this.debugTrace("Retry {} ({})", this.n, message);
     	
     	// Is retry enabled and are we below the retry limit or unlimited?
         bool retry = this.enabled && ((this.n < this.retries) || !this.retries);
@@ -562,6 +552,11 @@ class Retry
         else
         {
         	this.callTimeout();
+        }
+
+        if ( !retry )
+        {
+        	this.debugTrace("Decided not to try again");
         }
 
         return retry;
@@ -585,7 +580,7 @@ class Retry
     {
     	if ( !this.timeout.isNull() )
     	{
-       		this.trace("Calling timeout function");
+       		this.debugTrace("Calling timeout function");
             
         	this.resetCounter();
        		this.timeout();
@@ -609,12 +604,12 @@ class Retry
 		alternative of passing the variadic args to a method of type:
 			void formatln(char[] fmt, va_list args, TypeInfo[] arg_types)
 		in Trace isn't possible (as it doesn't expose such a method, and it's
-		impossible to extend Trace due to everything in it being decalred as
+		impossible to extend Trace due to everything in it being declared as
 		final - thanks Tango! ;)
 
 	***************************************************************************/
 
-    protected void trace ( T ... ) ( T t )
+    protected void debugTrace ( T ... ) ( T t )
     {
     	debug
     	{
@@ -654,23 +649,21 @@ class Retry
 		Standard try / catch / retry loop. Can be called from classes which use
 		this class.
 
-		Calls the passed delegate function, catches any exceptions, and retries
+		Calls the passed code block, catches any exceptions, and retries
 		the delegate according to the retry setup.
 
 		Note: If your class needs to explcitly handle any exceptions of other
 		types, it will need to implement its own version of this loop, adding
 		extra catch blocks.
 		
-		BEWARE: See note in the header comments about passing pointers as the
-		delegate's arguments.
-
 	    Params:
-	        dg = delegate to try
+	        code_block = code to try
 	        args = arguments of delegate
 
 	***************************************************************************/
-    
-    public void loop ( D, T ... ) ( D dg, T args )
+
+//    public void loop ( lazy void code_block )
+    public void loop (D) ( D code_block )
     {
     	bool again;
     	this.resetCounter();
@@ -678,7 +671,7 @@ class Retry
     	do try
         {
         	again = false;
-        	dg(args);
+        	code_block();
         }
         catch (Exception e)
         {
@@ -697,26 +690,24 @@ class Retry
 		try / catch / retry loop which creates and throws exceptions of a new
 		class on failure. Can be called from classes which use this class.
 	
-		Calls the passed delegate function, catches any exceptions, and retries
+		Calls the passed code block, catches any exceptions, and retries
 		the delegate according to the retry setup.
 	
 		Note: If your class needs to explcitly handle any exceptions of other
 		types, it will need to implement its own version of this loop, adding
 		extra catch blocks.
 
-		BEWARE: See note in the header comments about passing pointers as the
-		delegate's arguments.
-
 		Template params:
 			E = type of exceptions to rethrow on failure
 
 	    Params:
-	        dg = delegate to try
+	        code_block = code to try
 	        args = arguments of delegate
 	
 	***************************************************************************/
 
-    public void loop ( E : Exception, D, T ... ) ( D dg, T args )
+//    public void loop ( E ) ( lazy void code_block )
+    public void loop ( E : Exception, D ) ( D code_block )
     {
     	bool again;
     	this.resetCounter();
@@ -724,7 +715,7 @@ class Retry
     	do try
         {
         	again = false;
-        	dg(args);
+        	code_block();
         }
         catch (Exception e)
         {
