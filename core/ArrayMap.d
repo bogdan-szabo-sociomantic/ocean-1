@@ -67,7 +67,7 @@ private     import      ocean.io.digest.Fnv1;
 
 *********************************************************************************/
 
-struct ArrayMap (V)
+struct ArrayMap (V, K = hash_t)
 {
     
     /*******************************************************************************
@@ -78,7 +78,7 @@ struct ArrayMap (V)
     
     private struct ArrayElement
     {
-            hash_t key;
+            K key;
             V value;
     }
     
@@ -168,9 +168,9 @@ struct ArrayMap (V)
         
      *******************************************************************************/
     
-    hash_t toHash ( char[] key )
+    K toHash ( char[] key )
     {
-        return Fnv1Generic!(false, hash_t).fnv1(key);
+        return Fnv1Generic!(false, K).fnv1(key);
     }
     
     
@@ -186,7 +186,7 @@ struct ArrayMap (V)
         
      *******************************************************************************/
     
-    bool exists ( hash_t key )
+    bool exists ( K key )
     {
         return this.find(key) != null;
     }
@@ -205,14 +205,14 @@ struct ArrayMap (V)
         
      *******************************************************************************/
     
-    public void opIndexAssign ( V value, hash_t key )
+    public void opIndexAssign ( V value, K key )
     {
-        hash_t h = key % this.bucket_size;
-
         V* p = this.find(key);
         
         if ( p is null )
         {
+            K h = key % this.bucket_size;
+            
             this.hashmap[h] ~= ArrayElement(key, value);
             this.num_elements++;
         }
@@ -234,7 +234,7 @@ struct ArrayMap (V)
         
      *******************************************************************************/
     
-    public V opIndex( hash_t key )
+    public V opIndex( K key )
     {
         V* p = this.find(key);
         
@@ -258,7 +258,7 @@ struct ArrayMap (V)
     
     ************************************************************************/
     
-    public V* opIn_r ( hash_t key)
+    public V* opIn_r ( K key)
     {
         V* p = this.find(key);
         
@@ -282,7 +282,7 @@ struct ArrayMap (V)
     
     ************************************************************************/
 
-     final int opApply (int delegate(ref hash_t key, ref V value) dg)
+     final int opApply (int delegate(ref K key, ref V value) dg)
      {
          int result = 0;
          
@@ -330,11 +330,11 @@ struct ArrayMap (V)
         
      *******************************************************************************/
     
-    private V* find ( hash_t key )
+    private V* find ( K key )
     {
         if (num_elements)
         {
-            hash_t h = key % this.bucket_size;
+            K h = key % this.bucket_size;
             
             if ( this.hashmap[h] !is null  )
             {
