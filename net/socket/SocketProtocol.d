@@ -72,6 +72,68 @@ private import ocean.io.Retry;
 
 /*******************************************************************************
 
+	SocketRetry class, derived from Retry.
+	Only handles socket-based exceptions: SocketException & IOException.
+
+*******************************************************************************/
+
+class SocketRetry : Retry
+{
+	private import tango.core.Exception;
+
+    /***************************************************************************
+    
+		Constructor.
+	
+	    Params:
+	        delg = retry callback delegate
+
+	***************************************************************************/
+
+	public this ( CallbackDelg delg )
+    {
+    	super(delg);
+    }
+
+
+    /***************************************************************************
+    
+		Overloaded try / catch / retry loop which only catches exceptions of
+		type SocketException or IOException.
+	
+	    Params:
+	        code_block = code to try
+	
+	***************************************************************************/
+
+    public override void loop ( void delegate () code_block )
+    {
+    	bool again;
+    	super.resetCounter();
+
+    	do try
+        {
+    		again = false;
+        	code_block();
+        }
+        catch ( SocketException e )
+        {
+        	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
+        	super.handleException(e, again);
+        }
+        catch ( IOException e )
+        {
+        	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
+        	super.handleException(e, again);
+        }
+        while (again)
+    }
+}
+
+
+
+/*******************************************************************************
+
 	SocketProtocol class, derived from socket
 
 *******************************************************************************/
@@ -125,7 +187,7 @@ class SocketProtocol : Socket
 	
 	 **************************************************************************/
 
-    public Retry retry;
+    public SocketRetry retry;
 
 	
 	/**************************************************************************
@@ -208,7 +270,7 @@ class SocketProtocol : Socket
 
         super.timeout(1000);
 
-        this.retry = new Retry(&this.retryReconnect);
+        this.retry = new SocketRetry(&this.retryReconnect);
     }
 
     /**************************************************************************
@@ -451,6 +513,7 @@ class SocketProtocol : Socket
 				debug Trace.formatln("Socket reconnection failed: {}", e.msg);
 			}
 	    }
+		debug Trace.formatln("Try again? {}", again ? "yes" : "no");
 		return again;
 	}
 
