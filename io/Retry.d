@@ -57,8 +57,8 @@
 
     For cases where you don't need to specifically handle different exception
     types, the Retry class includes a standard loop, which is passed a 
-    block of code (a delegate - using D's lazy evaluation feature) for the
-    action to repeatedly try / retry.
+    block of code (usually an anonymous delegate) for the action to repeatedly
+    try / retry.
     
     Example:
     
