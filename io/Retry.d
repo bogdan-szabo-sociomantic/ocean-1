@@ -658,28 +658,23 @@ class Retry
 		
 	    Params:
 	        code_block = code to try
-	        args = arguments of delegate
 
 	***************************************************************************/
 
-//    public void loop ( lazy void code_block )
-    public void loop (D) ( D code_block )
+    public void loop ( void delegate () code_block )
     {
     	bool again;
     	this.resetCounter();
 
     	do try
         {
-        	again = false;
+    		again = false;
         	code_block();
         }
         catch (Exception e)
         {
-            again = this.callback(e.msg);
-            if ( !again )
-            {
-           		throw e;
-            }
+        	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
+            this.handleException(e, again);
         }
         while (again)
     }
@@ -702,12 +697,10 @@ class Retry
 
 	    Params:
 	        code_block = code to try
-	        args = arguments of delegate
 	
 	***************************************************************************/
 
-//    public void loop ( E ) ( lazy void code_block )
-    public void loop ( E : Exception, D ) ( D code_block )
+    public void loopRethrow ( E : Exception ) ( void delegate () code_block )
     {
     	bool again;
     	this.resetCounter();
@@ -719,13 +712,39 @@ class Retry
         }
         catch (Exception e)
         {
-            again = this.callback(e.msg);
-            if ( !again )
-            {
-           		throw new E(e.msg);
-            }
+        	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
+            this.handleException!(E)(e, again);
         }
         while (again)
     }
+
+
+    /***************************************************************************
+    
+		Retry loop exception handler. Rethrows the exception if the retry
+		callback says to not try again.
+		
+	    Params:
+	        e = exception receieved
+	        again = whether to try again or not
+	
+	***************************************************************************/
+	
+	protected void handleException ( E : Exception = Exception ) ( Exception e, ref bool again )
+	{
+		again = this.callback(e.msg); 
+	    if ( !again )
+	    {
+	    	static if ( is(E == Exception) )
+	    	{
+	    		throw e;
+	    	}
+	    	else
+	    	{
+	    		throw new E(e.msg);
+	    	}
+	    }
+	}
+
 }
 
