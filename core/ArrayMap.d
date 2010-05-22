@@ -57,7 +57,7 @@ private     import      ocean.io.digest.Fnv1;
     ---
     ArrayMap!(char[]) array;
     
-    array.buckets = 10_000; // set number of buckets !!! important
+    array.buckets(10_000, 5); // set number of buckets !!! important
     ---
     
     Add aa element
@@ -98,7 +98,7 @@ struct ArrayMap ( V, K = hash_t )
         
      *******************************************************************************/
     
-    private struct ArrayElement
+    private struct BucketElement
     {
             K key;
             V value;
@@ -106,19 +106,39 @@ struct ArrayMap ( V, K = hash_t )
     
     /*******************************************************************************
         
+        Array element (key/value)
+        
+     *******************************************************************************/
+    
+    private struct Bucket
+    {
+            size_t length = 0;
+            BucketElement[] elements;
+    }
+
+    /*******************************************************************************
+        
         Array hashmap
         
      *******************************************************************************/
     
-    private             ArrayElement[][]                hashmap;
-
+    private             Bucket[]                        hashmap;
+    
     /*******************************************************************************
         
         Number of hashmap buckets
         
      *******************************************************************************/
     
-    private             uint                            bucket_size = 10_000;
+    private             size_t                          num_buckets = 10_000;
+    
+    /*******************************************************************************
+        
+        Number of hashmap buckets
+        
+     *******************************************************************************/
+    
+    private             size_t                          bucket_size = 5;
     
     /*******************************************************************************
         
@@ -126,30 +146,35 @@ struct ArrayMap ( V, K = hash_t )
         
      *******************************************************************************/
     
-    private             uint                            num_elements = 0;
+    private             size_t                          num_elements = 0;
     
     /*******************************************************************************
         
         Sets number of buckets used
+
+        Example configuration for 1.000.000 array elements
+        ---
+        num_buckets = 100_000;
+        bucket_size = 10;
+        ---
         
-        TODO support hashmap resizing
-             http://en.wikipedia.org/wiki/Hash_table#Dynamic_resizing
-             
         Params:
-            bucket_size = number of buckets to use to build hashmap
-        
+            num_buckets = default number of allocated buckets
+            bucket_size = default number of allocated elements per bucket
+            
         Returns:
             void
             
      *******************************************************************************/
     
-    public void buckets ( uint bucket_size = 10_000 )
+    public void buckets ( size_t num_buckets = 10_000, size_t bucket_size = 5 )
     {
-        assert(this.bucket_size  >= 10, "min bucket size > 10");
+        assert(num_buckets  >= 10, "min bucket size > 10");
         assert(this.num_elements ==  0, "no resize supported; invoke free() first");
         
+        this.num_buckets    = num_buckets;
         this.bucket_size    = bucket_size;
-        this.hashmap.length = bucket_size;
+        this.hashmap.length = num_buckets;
     }
     
     /*******************************************************************************
@@ -161,7 +186,7 @@ struct ArrayMap ( V, K = hash_t )
         
      *******************************************************************************/
     
-    public uint length ()
+    public size_t length ()
     {
         return this.num_elements;
     }
@@ -179,7 +204,7 @@ struct ArrayMap ( V, K = hash_t )
     {
         this.num_elements   = 0;
         this.hashmap.length = 0;
-        this.hashmap.length = this.bucket_size;
+        this.hashmap.length = this.num_buckets;
     }
     
     /*******************************************************************************
@@ -202,7 +227,7 @@ struct ArrayMap ( V, K = hash_t )
         }
         else
         {
-            return Fnv1a64.fnv1(key);
+            return Fnv1a32.fnv1(key); // or Fnv1a64???
         }
     }
     
@@ -240,13 +265,18 @@ struct ArrayMap ( V, K = hash_t )
     
     public void opIndexAssign ( V value, K key )
     {
-        V* p = this.find(key);
+        hash_t h = (toHash(key) % this.num_buckets);
+        V* p = this.find(key, h);
         
         if ( p is null )
         {
-            hash_t h = toHash(key) % this.bucket_size;
+            if ( this.hashmap[h].length % this.bucket_size == 0 )
+                this.hashmap[h].elements.length = this.hashmap[h].length + 
+                                                  this.bucket_size;
             
-            this.hashmap[h] ~= ArrayElement(key, value);
+            this.hashmap[h].elements ~= BucketElement(key, value);
+            this.hashmap[h].length++;
+            
             this.num_elements++;
         }
         else
@@ -340,7 +370,7 @@ struct ArrayMap ( V, K = hash_t )
          int result = 0;
          
          foreach ( ref bucket; this.hashmap )
-             foreach ( ref element; bucket )
+             foreach ( ref element; bucket.elements )
                  if ((result = dg(element.key, element.value)) != 0)
                      break;
          
@@ -366,7 +396,7 @@ struct ArrayMap ( V, K = hash_t )
          int result = 0;
          
          foreach ( ref bucket; this.hashmap )
-             foreach ( ref element; bucket )
+             foreach ( ref element; bucket.elements )
                  if ((result = dg(element.value)) != 0)
                      break;
          
@@ -387,16 +417,29 @@ struct ArrayMap ( V, K = hash_t )
     
     private V* find ( K key )
     {
-        if (num_elements)
-        {
-            hash_t h = toHash(key) % this.bucket_size;
+        return this.find(key, (toHash(key) % this.num_buckets));
+    }
+    
+    /*******************************************************************************
+        
+        Returns pointer to array element associated with key from bucket h
+        
+        Params:
+            key = array key
+            h = bucket position
             
-            if ( this.hashmap[h] !is null  )
-            {
-                foreach ( ref element; this.hashmap[h] )
-                    if ( element.key == key )
-                        return &element.value;
-            }
+        Returns:
+            pointer to element value, or null if not found
+        
+     *******************************************************************************/
+    
+    private V* find ( K key, hash_t h )
+    {
+        if (this.hashmap[h].length)
+        {
+            foreach ( ref element; this.hashmap[h].elements )
+                if ( element.key == key )
+                    return &element.value;
         }
         
         return null;
@@ -410,17 +453,15 @@ struct ArrayMap ( V, K = hash_t )
         Enlarging the number of buckets requires the existing keys to be shifted 
         to their new bucket.
         
-        TODO needs to be implemented
+        TODO support hashmap resizing
+             http://en.wikipedia.org/wiki/Hash_table#Dynamic_resizing
         
         Returns:
             void
         
      *******************************************************************************/
     
-    private void resize ()
-    {
-        
-    }
+    private void resize () {}
     
 }
 
@@ -436,69 +477,61 @@ debug (OceanUnitTest)
     import tango.util.log.Trace;
     import tango.core.Memory;
     import tango.time.StopWatch;
-    import Integer = tango.text.convert.Integer : toString;
     
     unittest
     {
         Trace.formatln("ArrayMap unittest");
         
         StopWatch   w;
-        ArrayMap!(uint) arrayuint;
+        ArrayMap!(uint) array;
         
-        arrayuint.buckets = 1_000;
+        array.buckets(10_000);
         
-        arrayuint[1111] = 2;
-        arrayuint[2222] = 4;
+        array[1111] = 2;
+        array[2222] = 4;
         
-        assert(arrayuint[1111] == 2);
-        assert(arrayuint[2222] == 4);
-        assert(1111 in arrayuint);
-        assert(2222 in arrayuint);
+        assert(array[1111] == 2);
+        assert(array[2222] == 4);
+        assert(1111 in array);
+        assert(2222 in array);
+        assert(array.length == 2);
         
-        assert(arrayuint.length == 2);
+        array[1111] = 3;
         
-        arrayuint[1111] = 3;
-        
-        assert(arrayuint[1111] == 3);
+        assert(array[1111] == 3);
+        assert(array.length == 2);
 
-        assert(arrayuint.length == 2);
-        
-        ArrayMap!(char[]) array;
-        
-        array.buckets = 10_000;
-
-        w.start;
-        
-        for ( uint i = 0; i < 1_000_000; i++ )
+        for ( uint n = 0; n < 5; n++ )
         {
-            array[i] = Integer.toString(i);
+            array.free();
+            w.start;
+            
+            for ( uint i = 0; i < 1_000_000; i++ )
+            {
+                array[i] = i;
+            }
+            
+            Trace.formatln ("{} adds: {}/s", array.length, array.length/w.stop);
+            Trace.formatln ("memory usage = {} bytes", GC.stats["poolSize"]);
         }
         
-        Trace.formatln ("{} adds: {}/s", array.length, array.length/w.stop);
-        Trace.formatln ("memory usage = {} bytes", GC.stats["poolSize"]);
-        
-        char[] value;
-        
         w.start;
+        uint hits = 0;
+        uint* p;
         
-        for ( uint i = 0; i < 1_000_000; i++ )
+        for ( uint i=0; i <= 5_000_000; i++ )
         {
-            try
+            p = i in array;
+            
+            if ( p !is null )
             {
-                value = array[i];
-            }
-            catch ( Exception e )
-            {
-                Trace.formatln("!key = {}", i);
+                assert(i == *p);
+                hits++;
             }
         }
         
-        Trace.formatln ("{} gets: {}/s", array.length, array.length/w.stop);
-        Trace.formatln("memory usage {} byte", GC.stats["poolSize"]);
-        
-        foreach ( ref value; array)
-        {
-            assert(value);
-        }
+        Trace.formatln ("mem usage {} bytes", GC.stats["poolSize"]);
+        Trace.formatln ("array.length = {} gets = {}/s with {} hits", array.length, array.length/w.stop, hits);
+
     }
 }
