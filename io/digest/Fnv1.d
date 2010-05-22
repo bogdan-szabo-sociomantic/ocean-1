@@ -22,6 +22,20 @@ private import tango.io.digest.Digest;
 
 private import tango.core.ByteSwap;
 
+/******************************************************************************
+    
+    Convenience aliases for 32-bit and 64-bit Fnv1 class template 
+    instances.
+
+*******************************************************************************/
+
+alias Fnv1Generic!(false)         Fnv1;
+alias Fnv1Generic!(false, uint)   Fnv132;
+alias Fnv1Generic!(false, ulong)  Fnv164;
+alias Fnv1Generic!(true)          Fnv1a;
+alias Fnv1Generic!(true,  uint)   Fnv1a32;
+alias Fnv1Generic!(true,  ulong)  Fnv1a64;
+
 /*******************************************************************************
 
         Fowler / Noll / Vo (FNV) 1/1a Hash Module
@@ -121,28 +135,7 @@ private import tango.core.ByteSwap;
         http://www.team5150.com/~andrew/blog/2007/03/when_bad_hashing_means_good_caching.html
         http://www.azillionmonkeys.com/qed/hash.html
         
-        --
-        
-        NOTE: Fnv1, Fnv1a, Fnv132, Fnv164, Fnv1a32 and Fnv1a64 are defined as
-              aliases. Since the D language does not allow forward referencing,
-              these are defined AFTER the class definition near the end of this
-              document:
-        
-        ---
-        
-        alias Fnv1Generic!(false) Fnv132;
-        alias Fnv1Generic!(uint,  false) Fnv132;
-        
-        alias Fnv1Generic!(false, uint) Fnv132;
-        alias Fnv1Generic!(false, ulong) Fnv164;
-        
-        alias Fnv1aGeneric!(true, uint) Fnv1a32;
-        alias Fnv1aGeneric!(true, ulong) Fnv1a64;
-        
-        ---
-        
 *******************************************************************************/
-
 
 class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
 {
@@ -515,29 +508,7 @@ class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
             return (digest * PRIME) ^ d;
         }
     }
-} // Fnv
-
-
-/**************************************************************************
-
-    aliases
-
-**************************************************************************/
-
-
-/**
- * Convenience aliases for 32-bit and 64-bit Fnv1 class template instances.
- * The D language requires these aliases to occur _after_ the definition of the
- * class they refer to.
- * Usage as explained on the top of this module.
- */
-
-alias Fnv1Generic!(false)         Fnv1;
-alias Fnv1Generic!(false, uint)   Fnv132;
-alias Fnv1Generic!(false, ulong)  Fnv164;
-alias Fnv1Generic!(true)          Fnv1a;
-alias Fnv1Generic!(true,  uint)   Fnv1a32;
-alias Fnv1Generic!(true,  ulong)  Fnv1a64;
+}
 
 
 /**************************************************************************
