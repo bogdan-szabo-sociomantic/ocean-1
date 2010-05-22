@@ -254,6 +254,8 @@ struct ArrayMap ( V, K = hash_t )
         
         Set array element
         
+        Be aware not to use 0 as key!!!
+        
         Params:
             key = array key
             value = array value
