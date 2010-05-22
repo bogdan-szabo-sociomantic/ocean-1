@@ -111,7 +111,8 @@ struct ArrayMap (V, K = hash_t)
         Sets number of buckets used
         
         TODO support hashmap resizing
-        
+             http://en.wikipedia.org/wiki/Hash_table#Dynamic_resizing
+             
         Params:
             bucket_size = number of buckets to use to build hashmap
         
