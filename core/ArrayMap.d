@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    Associative Array Implementation
+    Associative array implementation
 
     Copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
@@ -22,18 +22,40 @@ private     import      ocean.io.digest.Fnv1;
 
 /*******************************************************************************  
 
-    Implements associative array with consistent hashing. Constisten hashing 
-    provides a performant way to add or remove array elements without 
-    significantly change the mapping of keys to buckets. By using consistent 
-    hashing, only K/n keys need to be remapped on average. K is the number of 
-    keys and n is the number of buckets.
+    Implements associative array with consistent hashing. 
     
-    1(O) performance = 1.2  mio inserts/sec
-                       3.1  mio lookups/sec
-      
+    Constisten hashing provides a performant way to add or remove array 
+    elements without significantly change the mapping of keys to buckets. 
+    By using consistent hashing, only k/n keys need to be remapped on 
+    average. k is the number of keys and n is the number of buckets.
+    
+    Performance is dependent on the number of n stored entries and the 
+    resulting load factor. The load factor is diretly influenced by n
+    and s, its bucket size
+    
+    Buckets size
+    
+    Load factor
+    
+    The load factor specifies the ratio between the number of buckets and 
+    the number of stored elements. A smaller load factor usually is better,
+    nevertheless its also influenced by the memory allocation overhead.
+    
+    100.000 keys / 10.000 buckets = load factor 10
+    
+    Overall performance
+    
+    The current implementation offers a good overall performance, an
+    array hashmap with 1.000.000 entries and 10_000 buckets shows the
+    following performance:
+    
+    1.2  mio inserts/sec
+    3.1  mio lookups/sec
+    
+    
     Assoc array usage example
     ---
-    AA!(char[]) array;
+    ArrayMap!(char[]) array;
     
     array.buckets = 10_000; // set number of buckets !!! important
     ---
@@ -67,7 +89,7 @@ private     import      ocean.io.digest.Fnv1;
 
 *********************************************************************************/
 
-struct ArrayMap (V, K = hash_t)
+struct ArrayMap ( V, K = hash_t )
 {
     
     /*******************************************************************************
@@ -123,8 +145,8 @@ struct ArrayMap (V, K = hash_t)
     
     public void buckets ( uint bucket_size = 10_000 )
     {
-        assert(this.bucket_size  >= 100, "min bucket size > 100");
-        assert(this.num_elements ==   0, "no resize supported; invoke free() first");
+        assert(this.bucket_size  >= 10, "min bucket size > 10");
+        assert(this.num_elements ==  0, "no resize supported; invoke free() first");
         
         this.bucket_size    = bucket_size;
         this.hashmap.length = bucket_size;
@@ -155,7 +177,7 @@ struct ArrayMap (V, K = hash_t)
     
     public void free ()
     {
-        this.num_elements = 0;
+        this.num_elements   = 0;
         this.hashmap.length = 0;
         this.hashmap.length = this.bucket_size;
     }
@@ -164,14 +186,24 @@ struct ArrayMap (V, K = hash_t)
         
         Returns hash for given string
         
+        Params:
+            key = key to return hash
+            
         Returns:
-            void
+            hash
         
      *******************************************************************************/
     
-    K toHash ( char[] key )
+    public hash_t toHash ( K key )
     {
-        return Fnv1Generic!(false, K).fnv1(key);
+        static if ( is(K : hash_t) )
+        {
+            return key;
+        }
+        else
+        {
+            return Fnv1a64.fnv1(key);
+        }
     }
     
     
@@ -212,7 +244,7 @@ struct ArrayMap (V, K = hash_t)
         
         if ( p is null )
         {
-            K h = key % this.bucket_size;
+            hash_t h = toHash(key) % this.bucket_size;
             
             this.hashmap[h] ~= ArrayElement(key, value);
             this.num_elements++;
@@ -251,6 +283,24 @@ struct ArrayMap (V, K = hash_t)
     
         Return the element associated with key
     
+        Usage example on efficient key search
+        ---
+        ArrayMap(char[]) array;
+        
+        array.bucket = 100;
+        ---
+        
+        Search for key
+        ---
+        char[]* v = key in array;
+            
+        if ( v !is null )
+        {
+            // do something with *v;
+            char[] value = *v
+        }
+        ---
+        
         Params:
             key = array key
         
@@ -275,6 +325,8 @@ struct ArrayMap (V, K = hash_t)
         
         Returns iterator with key and value as reference
     
+        Be aware that the returned list if unordered.
+        
         Params:
             dg = iterator delegate
         
@@ -299,6 +351,8 @@ struct ArrayMap (V, K = hash_t)
          
          Returns iterator with value as reference
      
+         Be aware that the returned list if unordered.
+         
          Params:
              dg = iterator delegate
          
@@ -335,7 +389,7 @@ struct ArrayMap (V, K = hash_t)
     {
         if (num_elements)
         {
-            K h = key % this.bucket_size;
+            hash_t h = toHash(key) % this.bucket_size;
             
             if ( this.hashmap[h] !is null  )
             {
@@ -346,6 +400,26 @@ struct ArrayMap (V, K = hash_t)
         }
         
         return null;
+    }
+    
+    /*******************************************************************************
+        
+        Resizes hash map for better performance
+        
+        In case the load factor because too large the hash map needs to be resized.
+        Enlarging the number of buckets requires the existing keys to be shifted 
+        to their new bucket.
+        
+        TODO needs to be implemented
+        
+        Returns:
+            void
+        
+     *******************************************************************************/
+    
+    private void resize ()
+    {
+        
     }
     
 }
