@@ -19,7 +19,7 @@ module ocean.core.ArrayMap;
 ********************************************************************************/
 
 private     import      ocean.io.digest.Fnv1;
-
+private import tango.util.log.Trace;
 /*******************************************************************************  
 
     Implements associative array with consistent hashing. 
@@ -373,8 +373,9 @@ struct ArrayMap ( V, K = hash_t )
          
          foreach ( ref bucket; this.hashmap )
              foreach ( ref element; bucket.elements )
-                 if ((result = dg(element.key, element.value)) != 0)
-                     break;
+                 if ( element.key )
+                     if ((result = dg(element.key, element.value)) != 0)
+                         break;
          
          return result;
      }
@@ -399,8 +400,9 @@ struct ArrayMap ( V, K = hash_t )
          
          foreach ( ref bucket; this.hashmap )
              foreach ( ref element; bucket.elements )
-                 if ((result = dg(element.value)) != 0)
-                     break;
+                 if ( element.key )
+                     if ((result = dg(element.value)) != 0)
+                         break;
          
          return result;
      }
