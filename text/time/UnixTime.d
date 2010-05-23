@@ -74,7 +74,7 @@ struct UnixTime
     
      **************************************************************************/
     
-    time_t fromTimeStamp ( ref char[] timestamp )
+    time_t fromTimeStamp ( char[] timestamp )
     {
         tm     datetime;
         time_t t;
@@ -117,7 +117,7 @@ struct UnixTime
     
      **************************************************************************/
 
-    time_t fromTimeStamp ( ref char[] timestamp, HexTime hex_time )
+    time_t fromTimeStamp ( char[] timestamp, HexTime hex_time )
     {
         return toHex(fromTimeStamp(timestamp), hex_time);
     }
@@ -170,7 +170,8 @@ struct UnixTime
         
      **************************************************************************/
     
-    time_t fromDateTime ( int year, int month = 1, int day = 1, int hour = 0, int minute = 0, int second = 0 )
+    time_t fromDateTime ( int year, int month = 1, int day = 1, int hour = 0, 
+                          int minute = 0, int second = 0 )
     {
         time_t result;
         
@@ -209,7 +210,9 @@ struct UnixTime
     
      **************************************************************************/
 
-    time_t fromDateTime ( HexTime hex_time, int year, int month = 1, int day = 1, int hour = 0, int minute = 0, int second = 0 )
+    time_t fromDateTime ( HexTime hex_time, int year, int month = 1, 
+                                            int day = 1, int hour = 0,
+                                            int minute = 0, int second = 0 )
     {
         return toHex(fromDateTime(year, month, day, hour, minute, second), hex_time);
     }
