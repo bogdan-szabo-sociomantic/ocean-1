@@ -64,11 +64,9 @@ private import tango.net.device.Berkeley: IPv4Address;
 
 private import tango.io.Buffer;
 
-private import tango.util.log.Trace;
-
 private import ocean.io.Retry;
 
-
+debug private import tango.util.log.Trace;
 
 /*******************************************************************************
 
@@ -461,10 +459,14 @@ class SocketProtocol : Socket
     public This commit ( )
     {
     	this.connect();
+        
+        scope (failure) this.disconnect(true);
+        
         this.writer.flush();
+        
         return this;
     }
-
+    
     /**************************************************************************
     
 	    Commits (flushes) sent output data. 
@@ -477,14 +479,16 @@ class SocketProtocol : Socket
 	
 	 **************************************************************************/
 	
-	public This commitRetry ( )
+    /// FIXME: causes Segmentation Fault
+    
+	version (None) public This commitRetry ( )
 	{
 		this.retry.loop({
 			this.commit();
 		});
 	    return this;
 	}
-
+    
     /***************************************************************************
     
 		Reconnect method, used as the loop callback for the retry member to wait
@@ -597,4 +601,3 @@ class SocketProtocol : Socket
         }
     }
 }
-
