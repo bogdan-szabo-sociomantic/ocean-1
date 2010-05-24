@@ -104,7 +104,7 @@ class SocketRetry : Retry
 	
 	***************************************************************************/
 
-    public override void loop ( void delegate () code_block )
+    deprecated public override void loop ( void delegate () code_block )
     {
     	bool again;
     	super.resetCounter();
@@ -268,7 +268,7 @@ class SocketProtocol : Socket
 
         super.timeout(1000);
 
-        this.retry = new SocketRetry(&this.retryReconnect);
+//        this.retry = new SocketRetry(&this.retryReconnect);
     }
 
     /**************************************************************************
@@ -295,7 +295,7 @@ class SocketProtocol : Socket
         {
             this.connect_();
         }
-        
+
         return this;
     }
 
@@ -316,11 +316,10 @@ class SocketProtocol : Socket
     {
         if (this.connected)
         {
-            super.shutdown();
-            
-            super.native.reopen();
-            
             this.connected = false;
+            
+            super.shutdown();
+            super.native.reopen();
             
             if (clear_buffers)
             {
@@ -348,6 +347,11 @@ class SocketProtocol : Socket
 
     public This get ( T ... ) ( out T items )
     {
+        scope (failure) 
+        {
+            this.disconnect(true);
+        }
+        
        	this.connect();
         this.reader.get(items);
     	return this;
@@ -369,59 +373,15 @@ class SocketProtocol : Socket
 
     public This put ( T ... ) ( T items )
     {
+        scope (failure) 
+        {
+            this.disconnect(true);
+        }
+        
     	this.connect();
         this.writer.put(items);
         return this;
-    }
-
-    
-    /**************************************************************************
-    
-	    Receives items in the order of being passed. Supports items of
-	    elementary type, arrays/strings and lists (arrays) of arrays/strings.
-
-	    Retries the get operation in accordance with the retry member's settings.
-
-	    Params:
-	        items = items to extract (variable argument list)
-	        
-	    Returns:
-	        this instance
-	
-	 **************************************************************************/
-	
-	public This getRetry ( T ... ) ( out T items )
-	{
-		this.retry.loop({
-			this.get(items);
-		});
-		return this;
-	}
-	
-	
-	/**************************************************************************
-	
-	    Sends items in the order of being passed. Supports items of elementary
-	    type, arrays/strings and lists (arrays) of arrays/strings.
-	    
-	    Retries the put operation in accordance with the retry member's settings.
-
-	    Params:
-	        items = items to extract (variable argument list)
-	        
-	    Returns:
-	        this instance
-	
-	 **************************************************************************/
-	
-	public This putRetry ( T ... ) ( T items )
-	{
-		this.retry.loop({
-			this.put(items);
-		});
-	    return this;
-	}
-	
+    }	
 
     /**************************************************************************
     
@@ -443,30 +403,34 @@ class SocketProtocol : Socket
     
         Commits (flushes) sent output data. 
         
+        Note: This method must not be named "flush" because the Conduit 
+        abstract class, from which this class is indirectly derived, also 
+        implements flush() leading to crashes at runtime (segmentation fault 
+        or infinite loop).  Module tango.io.device.Conduit contains the Conduit 
+        class.
+        
         Returns:
             this instance
     
      **************************************************************************/
     
-    /*
-     * Note: This method must not be named "flush" because the Conduit abstract
-     *       class, from which this class is indirectly derived, also implements
-     *       flush() leading to crashes at runtime (segmentation fault or
-     *       infinite loop).
-     *       Module tango.io.device.Conduit contains the Conduit class.
-     */ 
-
-    public This commit ( )
+    public This commit ()
     {
+        scope (failure) 
+        {
+            this.disconnect(true);
+        }
+        
     	this.connect();
-        
-        scope (failure) this.disconnect(true);
-        
         this.writer.flush();
         
         return this;
     }
+
+// FIXME: no yet tested! may fail!
     
+version (None) 
+{
     /**************************************************************************
     
 	    Commits (flushes) sent output data. 
@@ -481,7 +445,7 @@ class SocketProtocol : Socket
 	
     /// FIXME: causes Segmentation Fault
     
-	version (None) public This commitRetry ( )
+	deprecated public This commitRetry ( )
 	{
 		this.retry.loop({
 			this.commit();
@@ -489,6 +453,56 @@ class SocketProtocol : Socket
 	    return this;
 	}
     
+    /**************************************************************************
+        
+        Receives items in the order of being passed. Supports items of
+        elementary type, arrays/strings and lists (arrays) of arrays/strings.
+    
+        Retries the get operation in accordance with the retry member's settings.
+    
+        Params:
+            items = items to extract (variable argument list)
+            
+        Returns:
+            this instance
+    
+     **************************************************************************/
+    
+    deprecated public This getRetry ( T ... ) ( out T items )
+    {
+        this.retry.loop({
+            this.get(items);
+        });
+        return this;
+    }
+    
+    
+    /**************************************************************************
+    
+        Sends items in the order of being passed. Supports items of elementary
+        type, arrays/strings and lists (arrays) of arrays/strings.
+        
+        Retries the put operation in accordance with the retry member's settings.
+        
+        TODO 
+        
+        Params:
+            items = items to extract (variable argument list)
+            
+        Returns:
+            this instance
+    
+     **************************************************************************/
+    
+    deprecated public This putRetry ( T ... ) ( T items )
+    {
+        this.retry.loop({
+            this.put(items);
+        });
+        return this;
+    }
+
+
     /***************************************************************************
     
 		Reconnect method, used as the loop callback for the retry member to wait
@@ -502,7 +516,7 @@ class SocketProtocol : Socket
 
     ***************************************************************************/
 
-    public bool retryReconnect ( char[] msg )
+    deprecated public bool retryReconnect ( char[] msg )
 	{
 		debug Trace.formatln("SocketProtocol, reconnecting");
 		bool again = this.retry.wait(msg);
@@ -520,6 +534,7 @@ class SocketProtocol : Socket
 		debug Trace.formatln("Try again? {}", again ? "yes" : "no");
 		return again;
 	}
+}
 
     /**************************************************************************
         
@@ -582,6 +597,9 @@ class SocketProtocol : Socket
 
     private void connect_ ( )
     {
+        scope ( failure )
+            this.connected = false;
+
         super.connect(this.address);
         
         this.connected = true;
