@@ -19,8 +19,7 @@ module core.util.UnixTime;
 
 *******************************************************************************/
 
-private         import      tango.stdc.time : tm, time, mktime, localtime, 
-                            gmtime, time_t;
+private         import      tango.stdc.time : tm, localtime, time, gmtime, time_t;
  
 private         import      tango.stdc.stdio : sscanf;
 
@@ -30,9 +29,9 @@ private         import      ocean.text.util.StringSearch;
 
 extern (C)
 {
-    protected time_t timegm (tm *tm);
-    protected time_t timelocal (tm *tm);
-    extern int      daylight;
+    protected   time_t timegm (tm *tm);
+    protected   time_t timelocal (tm *tm);
+    extern      int    daylight;
 }
 
 /******************************************************************************
@@ -88,8 +87,6 @@ template UnixTime( bool GMT = true ) { struct UnixTime
     /**************************************************************************
         
         Return current timestamp in sec
-        
-        FIXME localtime problem with daylight savings; one hour is missing 
         
         Returns:
             current unix time
