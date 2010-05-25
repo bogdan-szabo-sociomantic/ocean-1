@@ -1,6 +1,6 @@
 /*******************************************************************************
     
-    Converts between time stamp and Unix time value 
+    Format Time String to Unix Timestamp
 
     copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
@@ -18,19 +18,19 @@ module core.util.UnixTime;
 
 *******************************************************************************/
 
-private         import      tango.stdc.time: tm, mktime, localtime, gmtime;
+private         import      tango.stdc.time : tm, mktime, localtime, gmtime;
 
-private         import      tango.stdc.time: time_t;
+private         import      tango.stdc.time : time_t;
+ 
+private         import      tango.stdc.stdio : sscanf;
 
-private         import      tango.stdc.stdio: sscanf;
-
-private         import      tango.stdc.ctype:    isxdigit, tolower;
+private         import      tango.stdc.ctype : isxdigit, tolower;
 
 private         import      ocean.text.util.StringSearch;
 
 /******************************************************************************
 
-    UnixTime structure
+    Unix Timestamp Formating
     
     Converts between a time stamp and an Unix time value.
     The beginning of the time stamp must accord to one of these schemes:
@@ -51,13 +51,18 @@ private         import      ocean.text.util.StringSearch;
     
 *******************************************************************************/
 
-struct UnixTime
+struct UnixTime ( bool GMT = true )
 {
+    
     static:
     
-    alias char[time_t.sizeof * 2] HexTime;
+    /**************************************************************************
+        
+        Hex alias
     
-    bool convert_to_gmt = true;
+     **************************************************************************/
+
+    public alias            char[time_t.sizeof * 2]             HexTime;
     
     /**************************************************************************
     
@@ -142,7 +147,7 @@ struct UnixTime
     {
         synchronized
         {
-            tm* datetime = this.convert_to_gmt? gmtime(&t) : localtime(&t);
+            tm* datetime = GMT ? gmtime(&t) : localtime(&t);
             
             year   = datetime.tm_year + 1900;
             month  = datetime.tm_mon  + 1;
