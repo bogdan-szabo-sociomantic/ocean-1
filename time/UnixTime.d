@@ -38,6 +38,8 @@ extern (C)
 
     Alias declaration
     
+    Use UnixTimeGMT for UTC time and UnixTimeLocal for local time
+    
 ********************************************************************************/
 
 alias                   UnixTime!(true)                UnixTimeGMT;
