@@ -29,9 +29,9 @@ private         import      ocean.text.util.StringSearch;
 
 extern (C)
 {
-    protected   time_t timegm (tm *tm);
-    protected   time_t timelocal (tm *tm);
-    extern      int    daylight;
+    protected   time_t  timegm (tm *tm);
+    protected   time_t  timelocal (tm *tm);
+    extern      int     daylight;
 }
 
 /******************************************************************************
