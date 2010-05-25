@@ -95,19 +95,6 @@ class TokyoCabinetException : Exception
     }
 }
 
-/******************************************************************************
-
-    PersistentQueueException
-
- ******************************************************************************/
-
-class PersistentQueueException : Exception
-{
-    this ( char[] msg ) { super(msg); }
-    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
-    static mixin ExceptionOpCalls!(typeof (this));
-}
 
 /******************************************************************************
 
@@ -125,33 +112,17 @@ class SphinxException : Exception
 
 /******************************************************************************
 
-    TokyoTyrantException
+    UrlException
 
  ******************************************************************************/
 
-class TokyoTyrantException : Exception
+class UrlException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
     
     static mixin ExceptionOpCalls!(typeof (this));
 }
-
-
-/******************************************************************************
-
-    HttpQueryParamsException
-
- ******************************************************************************/
-
-class HttpQueryParamsException : Exception
-{
-    this ( char[] msg ) { super(msg); }
-    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
-    static mixin ExceptionOpCalls!(typeof (this));
-}
-
 
 /******************************************************************************
 
@@ -167,7 +138,6 @@ class HttpResponseException : Exception
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
-
 /******************************************************************************
 
     HttpServerException
@@ -175,48 +145,6 @@ class HttpResponseException : Exception
  ******************************************************************************/
 
 class HttpServerException : Exception
-{
-    this ( char[] msg ) { super(msg); }
-    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
-    static mixin ExceptionOpCalls!(typeof (this));
-}
-
-/******************************************************************************
-
-    GoogleException
-
- ******************************************************************************/
-
-class GoogleException : Exception
-{
-    this ( char[] msg ) { super(msg); }
-    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
-    static mixin ExceptionOpCalls!(typeof (this));
-}
-
-/******************************************************************************
-
-    LiveException
-
- ******************************************************************************/
-
-class LiveException : Exception
-{
-    this ( char[] msg ) { super(msg); }
-    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
-    static mixin ExceptionOpCalls!(typeof (this));
-}
-
-/******************************************************************************
-
-    WikipediaCategorizerException
-
- ******************************************************************************/
-
-class WikipediaCategorizerException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
