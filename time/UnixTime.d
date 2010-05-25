@@ -19,6 +19,8 @@ module core.util.UnixTime;
 
 *******************************************************************************/
 
+public          import      tango.stdc.time : time_t;
+
 private         import      tango.stdc.time : tm, localtime, time, gmtime, time_t;
  
 private         import      tango.stdc.stdio : sscanf;
