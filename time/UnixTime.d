@@ -1,12 +1,13 @@
 /*******************************************************************************
     
-    Format Time String to Unix Timestamp
+    Unix Epoch Time Retrieval & ISO 8601/Unixtime Parser
 
-    copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
+    Copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
-    version:        March 2010: Initial release
-
-    author:         David Eckardt
+    Version:        March 2010: Initial release
+                    May 2010: Revised release
+                    
+    Author:         David Eckardt, Thomas Nicolai
     
 *******************************************************************************/
 
@@ -18,9 +19,8 @@ module core.util.UnixTime;
 
 *******************************************************************************/
 
-private         import      tango.stdc.time : tm, mktime, localtime, gmtime;
-
-private         import      tango.stdc.time : time_t;
+private         import      tango.stdc.time : tm, time, mktime, localtime, 
+                            gmtime, time_t;
  
 private         import      tango.stdc.stdio : sscanf;
 
@@ -28,12 +28,26 @@ private         import      tango.stdc.ctype : isxdigit, tolower;
 
 private         import      ocean.text.util.StringSearch;
 
+extern (C)
+{
+    protected time_t timegm (tm *tm);
+    protected time_t timelocal (tm *tm);
+    extern int      daylight;
+}
+
 /******************************************************************************
 
-    Unix Timestamp Formating
+    Alias declaration
     
-    Converts between a time stamp and an Unix time value.
-    The beginning of the time stamp must accord to one of these schemes:
+********************************************************************************/
+
+alias                   UnixTime!(true)                UnixTimeGMT;
+alias                   UnixTime!(false)               UnixTimeLocal;
+
+/******************************************************************************
+
+    Parses ISO 8601 time formated string to unix time. The input time string 
+    must accord to one of these schemes:
 
         "YYYY-MM-DDThh:mm:ss"
         "YYYY-MM-DDThh:mm"
@@ -49,11 +63,18 @@ private         import      ocean.text.util.StringSearch;
     matches; at this position parsing is stopped and the rest of the string
     ignored.
     
-*******************************************************************************/
-
-struct UnixTime ( bool GMT = true )
-{
+    Usage example on returning unix timestamp
+    ---
+    UnixTimeGMT gmt;
     
+    time_t = gmt.now;
+    ---
+    
+********************************************************************************/
+
+template UnixTime( bool GMT = true ) { struct UnixTime
+{
+
     static:
     
     /**************************************************************************
@@ -65,40 +86,61 @@ struct UnixTime ( bool GMT = true )
     public alias            char[time_t.sizeof * 2]             HexTime;
     
     /**************************************************************************
+        
+        Return current timestamp in sec
+        
+        FIXME localtime problem with daylight savings; one hour is missing 
+        
+        Returns:
+            current unix time
     
-        Converts timestamp to an integer UNIX time value.
+     ***************************************************************************/
+    
+    public time_t now ()
+    {
+        time_t t     = time(null);
+        
+        tm* datetime = GMT ? gmtime(&t) : localtime(&t);
+        
+        return timegm(datetime);
+    }
+    
+    /**************************************************************************
+    
+        Converts ISO 8601 timestamp to unix timestamp
         
         A trailing null termination character is appended to timestamp and
         removed at exit.
         
         Params:
-            timestamp = input time stamp
+            string = ISO 8601 input string
             
         Returns:
             integer UNIX time value of timestamp
     
-     **************************************************************************/
+     ***************************************************************************/
     
-    time_t fromTimeStamp ( char[] timestamp )
+    public time_t from ( in char[] string )
     {
         tm     datetime;
         time_t t;
         int    n;
         
-        StringSearch!().appendTerm(timestamp);
+        StringSearch!().appendTerm(string);
         
-        scope (exit) StringSearch!().stripTerm(timestamp);
+        scope (exit) StringSearch!().stripTerm(string);
         
-        n = sscanf(timestamp.ptr, "%d-%d-%dT%d:%d:%d", &datetime.tm_year,
-                                                       &datetime.tm_mon,
-                                                       &datetime.tm_mday,
-                                                       &datetime.tm_hour,
-                                                       &datetime.tm_min,
-                                                       &datetime.tm_sec);
+        n = sscanf(string.ptr, "%d-%d-%dT%d:%d:%d", &datetime.tm_year,
+                                                    &datetime.tm_mon,
+                                                    &datetime.tm_mday,
+                                                    &datetime.tm_hour,
+                                                    &datetime.tm_min,
+                                                    &datetime.tm_sec);
         datetime.tm_year -= 1900;
         datetime.tm_mon--;
+        datetime.tm_isdst = daylight;
         
-        t = mktime(&datetime);
+        t = GMT ? timegm(&datetime) : timelocal(&datetime);
         
         assert (((n == 6) || (n == 5) || (n == 3)) && (t >= 0), "invalid time stamp");
         
@@ -107,59 +149,28 @@ struct UnixTime ( bool GMT = true )
     
     /**************************************************************************
     
-        Converts timestamp to an integer UNIX time value and generates the
-        hexadecimal string representation.
+        Converts ISO 8601 timestamp to unix timestamp and returns the 
+        hexadecimal string representation too.
         
         A trailing null termination character is appended to timestamp and
         removed at exit.
         
         Params:
-            timestamp = input time stamp
-            hex_time  = hexadecimal string representation output
+            timestamp = ISO 8601 input string
+            hex_time  = hexadecimal string output
             
         Returns:
             integer UNIX time value of timestamp
     
-     **************************************************************************/
+     ***************************************************************************/
 
-    time_t fromTimeStamp ( char[] timestamp, HexTime hex_time )
+    public time_t from ( in char[] string, HexTime hex_time )
     {
-        return toHex(fromTimeStamp(timestamp), hex_time);
+        return toHex(from(string), hex_time);
     }
     
     /**************************************************************************
-    
-        Decomposes an integer UNIX time value.
         
-        Params:
-            time    = integer UNIX time value
-            year,
-            month,
-            day,
-            hour,
-            minute,
-            second  = time value components
-    
-     **************************************************************************/
-    
-    void toDateTime ( time_t t, out int year, out int month, out int day,
-                                out int hour, out int minute, out int second )
-    {
-        synchronized
-        {
-            tm* datetime = GMT ? gmtime(&t) : localtime(&t);
-            
-            year   = datetime.tm_year + 1900;
-            month  = datetime.tm_mon  + 1;
-            day    = datetime.tm_mday;
-            hour   = datetime.tm_hour;
-            minute = datetime.tm_min;
-            second = datetime.tm_sec;
-        }
-    }
-    
-    /**************************************************************************
-    
         Composes an integer UNIX time.
         
         Params:
@@ -171,29 +182,30 @@ struct UnixTime ( bool GMT = true )
             second  = time value components
         
         Returns:
-            UNIX time value
+            unix time value
         
-     **************************************************************************/
+     ***************************************************************************/
     
-    time_t fromDateTime ( int year, int month = 1, int day = 1, int hour = 0, 
-                          int minute = 0, int second = 0 )
+    public time_t from ( int year, int month = 1, int day = 1, int hour = 0, 
+                         int minute = 0, int second = 0 )
     {
-        time_t result;
+        time_t t;
         
         tm datetime;
         
-        datetime.tm_year = year - 1900;
-        datetime.tm_mon  = month - 1;
-        datetime.tm_mday = day;
-        datetime.tm_hour = hour;
-        datetime.tm_min  = minute;
-        datetime.tm_sec  = second;
+        datetime.tm_year  = year - 1900;
+        datetime.tm_mon   = month - 1;
+        datetime.tm_mday  = day;
+        datetime.tm_hour  = hour;
+        datetime.tm_min   = minute;
+        datetime.tm_sec   = second;
+        datetime.tm_isdst = daylight;
         
-        result = mktime(&datetime);
+        t = GMT ? timegm(&datetime) : timelocal(&datetime);
         
-        assert (result >= 0, "fromDateTime: invalid date/time");
+        assert (t >= 0, "from: invalid date/time");
         
-        return result;
+        return t;
     }
     
     /**************************************************************************
@@ -213,14 +225,49 @@ struct UnixTime ( bool GMT = true )
         Returns:
             UNIX time value
     
-     **************************************************************************/
-
-    time_t fromDateTime ( HexTime hex_time, int year, int month = 1, 
-                                            int day = 1, int hour = 0,
-                                            int minute = 0, int second = 0 )
+     ***************************************************************************/
+    
+    public time_t from ( HexTime hex_time, int year, int month = 1, int day = 1, 
+                         int hour = 0, int minute = 0, int second = 0 )
     {
-        return toHex(fromDateTime(year, month, day, hour, minute, second), hex_time);
+        return toHex(from(year, month, day, hour, minute, second), hex_time);
     }
+
+    /**************************************************************************
+    
+        Decomposes an integer UNIX time value.
+        
+        Params:
+            time    = integer UNIX time value
+            year,
+            month,
+            day,
+            hour,
+            minute,
+            second  = time value components
+        
+        Returns:
+            void
+            
+     ***************************************************************************/
+    
+    public void toDate ( in time_t t, out int year, out int month, out int day,
+                         out int hour, out int minute, out int second )
+    {
+        synchronized
+        {
+            tm* datetime = GMT ? gmtime(&t) : localtime(&t);
+            
+            year   = datetime.tm_year + 1900;
+            month  = datetime.tm_mon  + 1;
+            day    = datetime.tm_mday;
+            hour   = datetime.tm_hour;
+            minute = datetime.tm_min;
+            second = datetime.tm_sec;
+        }
+    }
+    
+
     
     /**************************************************************************
     
@@ -235,13 +282,17 @@ struct UnixTime ( bool GMT = true )
             hour,
             minute,
             second   = time value components
-    
+        
+        Returns:
+            void
+            
      **************************************************************************/
     
-    void toDateTime ( char[] hex_time, out int year, out int month, out int day,
-                                       out int hour, out int minute, out int second )
+    public void toDate ( in char[] hex_time, out int year, out int month, 
+                         out int day, out int hour, out int minute, 
+                         out int second )
     {
-        toDateTime(fromHex(hex_time), year, month, day, hour, minute, second);
+        toDate(fromHex(hex_time), year, month, day, hour, minute, second);
     }
     
     /**************************************************************************
@@ -257,7 +308,7 @@ struct UnixTime ( bool GMT = true )
         
      **************************************************************************/
     
-    time_t toHex ( time_t t, HexTime hex_time )
+    public time_t toHex ( time_t t, HexTime hex_time )
     {
         time_t time_bak = t;
         
@@ -283,7 +334,7 @@ struct UnixTime ( bool GMT = true )
         
      **************************************************************************/
 
-    time_t fromHex ( char[] hex_time )
+    public time_t fromHex ( char[] hex_time )
     {
         time_t t = 0;
         
@@ -323,7 +374,7 @@ struct UnixTime ( bool GMT = true )
         
      **************************************************************************/
 
-    bool isHex ( char[] str )
+    public bool isHex ( char[] str )
     {
         foreach (ref c; str)
         {
@@ -332,5 +383,73 @@ struct UnixTime ( bool GMT = true )
         
         return true;
     }
+    
+}}
+
+/*******************************************************************************
+
+    Unittest
+
+********************************************************************************/
+
+debug (OceanUnitTest)
+{
+    import tango.util.log.Trace;
+    import tango.core.Memory;
+    import tango.time.StopWatch;
+    import tango.core.Thread;
+    
+    unittest
+    {
+        Trace.formatln("Running ocean.time.Time unittest");
+        
+        UnixTimeGMT gmt;
+        UnixTimeLocal loc;
+        
+        assert(gmt.now + 7200 == loc.now); // test 2h time shift
+
+        assert(gmt.from("2010-05-25T14:00:03") == 1274796003);
+        assert(loc.from("2010-05-25T16:00:03") == 1274796003);
+        
+        assert(gmt.from(2010,5,25,14,0,3) == 1274796003);
+        assert(loc.from(2010,5,25,16,0,3) == 1274796003);
+        
+        UnixTimeGMT.HexTime h;
+        time_t t;
+        
+        t = gmt.from("2010-05-25T14:00:03", h);
+        
+        assert(t == 1274796003);
+        assert(h == `4bfbd7e3`);
+        
+        t = loc.from("2010-05-25T16:00:03", h);
+        
+        assert(t == 1274796003);
+        assert(h == `4bfbd7e3`);
+        
+        int year, month, day, hour, minute, second;
+        
+        gmt.toDate(1274796003, year, month, day, hour, minute, second);
+        
+        assert(year   == 2010);
+        assert(month  == 5);
+        assert(day    == 25);
+        assert(hour   == 14);
+        assert(minute == 0);
+        assert(second == 3);
+        
+        year = month = day = hour = minute = second = 0;
+        
+        loc.toDate(1274796003, year, month, day, hour, minute, second);
+        
+        assert(year   == 2010);
+        assert(month  == 5);
+        assert(day    == 25);
+        assert(hour   == 16);
+        assert(minute == 0);
+        assert(second == 3);
+        
+    }
 }
+
 
