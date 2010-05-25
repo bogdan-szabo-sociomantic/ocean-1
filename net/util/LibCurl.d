@@ -53,102 +53,6 @@ class LibCurl
 
     /***************************************************************************
         
-        Returns response code
-            
-     ***************************************************************************/
-        
-    public alias getInfo!(CURLINFO.CURLINFO_RESPONSE_CODE) getResponseCode;
-    
-    /***************************************************************************
-        
-        Returns amount of time spent on total operation
-            
-     ***************************************************************************/
-    
-    public alias getInfo!(CURLINFO.CURLINFO_TOTAL_TIME, double) getTotalTime;
-    
-    /***************************************************************************
-        
-        Returns amount of time take to connect
-            
-     ***************************************************************************/
-    
-    public alias getInfo!(CURLINFO.CURLINFO_CONNECT_TIME, double) getConnectTime;
-      
-    /***************************************************************************
-        
-        Returns amount of time take before data transer
-            
-     ***************************************************************************/
-    
-    public alias getInfo!(CURLINFO.CURLINFO_PRETRANSFER_TIME, double)
-                 getPretransferTime;
-    
-    /***************************************************************************
-        
-        Returns amount of time take before data transer
-            
-     ***************************************************************************/
-    
-    public alias getInfo!(CURLINFO.CURLINFO_STARTTRANSFER_TIME, double) 
-                 getStarttransferTime;
-    
-    
-    /***************************************************************************
-        
-        Returns amout of time spent on redirect
-            
-     **************************************************************************/
-    
-    public alias getInfo!(CURLINFO.CURLINFO_REDIRECT_TIME, double)      
-                 getRedirectTime;
-
-    /***************************************************************************
-    
-        Set User Agent
-            
-        Params:
-            value = user agent identifier string
-            
-     **************************************************************************/
-    
-    alias setOptionT!(CURLoption.USERAGENT, char[]) setUserAgent;
-    
-    /***************************************************************************
-    
-        Set Encoding 
-            
-        Params:
-            value = encoding type (identity|gzip|deflate)
-            
-     **************************************************************************/
-    
-    alias setOptionT!(CURLoption.ENCODING, char[]) setEncoding;
-    
-    /***************************************************************************
-    
-        Set request timeout
-            
-        Params:
-            value = request timeout
-            
-     **************************************************************************/
-    
-    alias setOptionT!(CURLoption.TIMEOUT, int) setTimeout;
-    
-    /***************************************************************************
-    
-        Set if the connection could be reused for another request
-            
-        Params:
-            value = true or false [0|1]
-            
-     **************************************************************************/
-    
-    alias setOptionT!(CURLoption.FORBID_REUSE, int) setForbidReuse;
-
-    /***************************************************************************
-        
         Curl handle
             
     ****************************************************************************/
@@ -258,6 +162,58 @@ class LibCurl
             return value;
         }
     }
+
+    /***************************************************************************
+    
+        Returns response code
+            
+     ***************************************************************************/
+        
+    public alias getInfo!(CURLINFO.CURLINFO_RESPONSE_CODE) getResponseCode;
+    
+    /***************************************************************************
+        
+        Returns amount of time spent on total operation
+            
+     ***************************************************************************/
+    
+    public alias getInfo!(CURLINFO.CURLINFO_TOTAL_TIME, double) getTotalTime;
+    
+    /***************************************************************************
+        
+        Returns amount of time take to connect
+            
+     ***************************************************************************/
+    
+    public alias getInfo!(CURLINFO.CURLINFO_CONNECT_TIME, double) getConnectTime;
+      
+    /***************************************************************************
+        
+        Returns amount of time take before data transer
+            
+     ***************************************************************************/
+    
+    public alias getInfo!(CURLINFO.CURLINFO_PRETRANSFER_TIME, double)
+                 getPretransferTime;
+    
+    /***************************************************************************
+        
+        Returns amount of time take before data transer
+            
+     ***************************************************************************/
+    
+    public alias getInfo!(CURLINFO.CURLINFO_STARTTRANSFER_TIME, double) 
+                 getStarttransferTime;
+    
+    
+    /***************************************************************************
+        
+        Returns amout of time spent on redirect
+            
+     **************************************************************************/
+    
+    public alias getInfo!(CURLINFO.CURLINFO_REDIRECT_TIME, double)      
+                 getRedirectTime;
 
     /***************************************************************************
         
@@ -374,6 +330,51 @@ class LibCurl
 	    
         return this.setOption(option, value);
 	}
+    
+    /***************************************************************************
+    
+        Set User Agent
+            
+        Params:
+            value = user agent identifier string
+            
+     **************************************************************************/
+    
+    alias setOptionT!(CURLoption.USERAGENT, char[]) setUserAgent;
+    
+    /***************************************************************************
+    
+        Set Encoding 
+            
+        Params:
+            value = encoding type (identity|gzip|deflate)
+            
+     **************************************************************************/
+    
+    alias setOptionT!(CURLoption.ENCODING, char[]) setEncoding;
+    
+    /***************************************************************************
+    
+        Set request timeout
+            
+        Params:
+            value = request timeout
+            
+     **************************************************************************/
+    
+    alias setOptionT!(CURLoption.TIMEOUT, int) setTimeout;
+    
+    /***************************************************************************
+    
+        Set if the connection could be reused for another request
+            
+        Params:
+            value = true or false [0|1]
+            
+     **************************************************************************/
+    
+    alias setOptionT!(CURLoption.FORBID_REUSE, int) setForbidReuse;
+
     
     /***************************************************************************
         
@@ -506,5 +507,5 @@ class LibCurl
             
             return size*nmemb;
         }
-    }    
+    }
 }
