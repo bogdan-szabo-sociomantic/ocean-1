@@ -57,7 +57,7 @@ struct UnixTime
     
     alias char[time_t.sizeof * 2] HexTime;
     
-    bool convert_to_gmt;
+    bool convert_to_gmt = true;
     
     /**************************************************************************
     
