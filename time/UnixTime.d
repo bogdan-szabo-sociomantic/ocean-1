@@ -446,6 +446,7 @@ debug (OceanUnitTest)
         assert(minute == 0);
         assert(second == 3);
         
+        Trace.formatln("done unittest");
     }
 }
 
