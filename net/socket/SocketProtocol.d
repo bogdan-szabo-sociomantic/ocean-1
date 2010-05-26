@@ -64,71 +64,10 @@ private import tango.net.device.Berkeley: IPv4Address;
 
 private import tango.io.Buffer;
 
-private import ocean.io.Retry;
-
-debug private import tango.util.log.Trace;
-
-/*******************************************************************************
-
-	SocketRetry class, derived from Retry.
-	Only handles socket-based exceptions: SocketException & IOException.
-
-*******************************************************************************/
-
-class SocketRetry : Retry
+debug 
 {
-	private import tango.core.Exception;
-
-    /***************************************************************************
-    
-		Constructor.
-	
-	    Params:
-	        delg = retry callback delegate
-
-	***************************************************************************/
-
-	public this ( CallbackDelg delg )
-    {
-    	super(delg);
-    }
-
-
-    /***************************************************************************
-    
-		Overloaded try / catch / retry loop which only catches exceptions of
-		type SocketException or IOException.
-	
-	    Params:
-	        code_block = code to try
-	
-	***************************************************************************/
-
-    deprecated public override void loop ( void delegate () code_block )
-    {
-    	bool again;
-    	super.resetCounter();
-
-    	do try
-        {
-    		again = false;
-        	code_block();
-        }
-        catch ( SocketException e )
-        {
-        	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
-        	super.handleException(e, again);
-        }
-        catch ( IOException e )
-        {
-        	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
-        	super.handleException(e, again);
-        }
-        while (again)
-    }
+	private import tango.util.log.Trace;
 }
-
-
 
 /*******************************************************************************
 
@@ -178,16 +117,7 @@ class SocketProtocol : Socket
     **************************************************************************/
 
     private bool connected = false;
-	
-    /**************************************************************************
-	    
-		Retry object
-	
-	 **************************************************************************/
 
-    public SocketRetry retry;
-
-	
 	/**************************************************************************
     
         Constructor
@@ -265,10 +195,6 @@ class SocketProtocol : Socket
 
         this.reader  = new ListReader((new Buffer(rbuf_size)).setConduit(super));
         this.writer  = new ListWriter((new Buffer(wbuf_size)).setConduit(super));
-
-        super.timeout(1000);
-
-//        this.retry = new SocketRetry(&this.retryReconnect);
     }
 
     /**************************************************************************
@@ -426,115 +352,6 @@ class SocketProtocol : Socket
         
         return this;
     }
-
-// FIXME: no yet tested! may fail!
-    
-version (None) 
-{
-    /**************************************************************************
-    
-	    Commits (flushes) sent output data. 
-	    
-	    Retries the commit operation in accordance with the retry member's
-	    settings.
-
-	    Returns:
-	        this instance
-	
-	 **************************************************************************/
-	
-    /// FIXME: causes Segmentation Fault
-    
-	deprecated public This commitRetry ( )
-	{
-		this.retry.loop({
-			this.commit();
-		});
-	    return this;
-	}
-    
-    /**************************************************************************
-        
-        Receives items in the order of being passed. Supports items of
-        elementary type, arrays/strings and lists (arrays) of arrays/strings.
-    
-        Retries the get operation in accordance with the retry member's settings.
-    
-        Params:
-            items = items to extract (variable argument list)
-            
-        Returns:
-            this instance
-    
-     **************************************************************************/
-    
-    deprecated public This getRetry ( T ... ) ( out T items )
-    {
-        this.retry.loop({
-            this.get(items);
-        });
-        return this;
-    }
-    
-    
-    /**************************************************************************
-    
-        Sends items in the order of being passed. Supports items of elementary
-        type, arrays/strings and lists (arrays) of arrays/strings.
-        
-        Retries the put operation in accordance with the retry member's settings.
-        
-        TODO 
-        
-        Params:
-            items = items to extract (variable argument list)
-            
-        Returns:
-            this instance
-    
-     **************************************************************************/
-    
-    deprecated public This putRetry ( T ... ) ( T items )
-    {
-        this.retry.loop({
-            this.put(items);
-        });
-        return this;
-    }
-
-
-    /***************************************************************************
-    
-		Reconnect method, used as the loop callback for the retry member to wait
-		for a time then try disconnecting and reconnecting the socket.
-
-		Params:
-			msg = message describing the action being retried
-
-    	Returns:
-        	true to try again
-
-    ***************************************************************************/
-
-    deprecated public bool retryReconnect ( char[] msg )
-	{
-		debug Trace.formatln("SocketProtocol, reconnecting");
-		bool again = this.retry.wait(msg);
-		if ( again )                                                          	// If retrying, reconnect without
-	    {                                                                   	// clearing R/W buffers
-			try
-			{
-				this.disconnect(false).connect(false);
-			}
-			catch ( Exception e )
-			{
-				debug Trace.formatln("Socket reconnection failed: {}", e.msg);
-			}
-	    }
-		debug Trace.formatln("Try again? {}", again ? "yes" : "no");
-		return again;
-	}
-}
 
     /**************************************************************************
         
