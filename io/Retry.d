@@ -724,6 +724,11 @@ class Retry
 		Retry loop exception handler. Rethrows the exception if the retry
 		callback says to not try again.
 		
+		Template params:
+			E = exception type to rethrow. Defaults to Exception (in which case
+				the exception passed is simply rethrown). If E is set to another
+				exception type, then a new exception is thrown.
+			
 	    Params:
 	        e = exception receieved
 	        again = whether to try again or not
