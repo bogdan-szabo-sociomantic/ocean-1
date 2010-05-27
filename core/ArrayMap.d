@@ -1,12 +1,12 @@
 /*******************************************************************************
 
-    Associative array implementation
+    Array HashMap
 
     Copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
     Version:        May 2010: Initial release
                     
-    Authors:        Lars Kirchhoff, Thomas Nicolai & David Eckhardt
+    Authors:        Thomas Nicolai
     
 ********************************************************************************/
 
@@ -20,7 +20,7 @@ module ocean.core.ArrayMap;
 
 private     import      ocean.io.digest.Fnv1;
 
-private     import      tango.core.sync.ReadWriteMutex;
+private     import      tango.stdc.posix.pthread;
 
 /*******************************************************************************
 
@@ -83,7 +83,7 @@ struct Mutex
     
     Usage example for array without thread support
     ---
-    ArrayMap!(char[]) array;
+    scope array = new ArrayMap!(char[])(10_000);
     
     array.buckets(20_000, 5); // set number of buckets!!! important
     ---
@@ -109,111 +109,179 @@ struct Mutex
 
 *********************************************************************************/
 
-struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
+class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 {
     
     /*******************************************************************************
         
-        Array element (key/value)
+        Hashmap bucket key element
+        
+        key = key of array element
+        pos = position of value in the value map
         
      *******************************************************************************/
     
-    private struct BucketElement
+    private struct KeyElement
     {
-            K key;
-            V value;
+            K  key;
+            uint pos;
     }
-    
+
     /*******************************************************************************
         
-        Array element (key/value)
+        Hashmap bucket
+        
+        length   = number of key elemens in bucket
+        elements = list of key elements
         
      *******************************************************************************/
     
     private struct Bucket
     {
-            size_t length = 0;
-            BucketElement[] elements;
+            uint length = 0;
+            KeyElement[] elements;
+            
+            static if (M) pthread_rwlock_t rwlock;
     }
+    
+    /*******************************************************************************
+        
+        Hashmap; storing the key indices
+        
+        Hashmap only stores the key indicies as well as the position of the value
+        inside the value map.
+        
+     *******************************************************************************/
+    
+    private             Bucket[]                        k_map;
+    
+    /*******************************************************************************
+        
+        ValueMap
+        
+        Value map stores keys and values to be able to find the key element once
+        a record gets deleted. otherwise removing a key would be very inefficient.
+        
+     *******************************************************************************/
+    
+    private             V[]                             v_map;
+    
+    /*******************************************************************************
+        
+        Number of buckets 
+        
+        Number of buckets is based on size of hashmap and the load factor. Usually
+        a loadfactor around 0.75 is perfect.
+        
+     *******************************************************************************/
+    
+    private             uint                            buckets_length;
+    
+    /*******************************************************************************
+        
+        Number of hashmap bucket elements allocated at once
+        
+        Allocating more than one element at a time improves performance a lot.
+        Nevertheless, allocating to much at once kills performance.
+        
+     *******************************************************************************/
+    
+    private             uint                            default_alloc_size = 1;
 
     /*******************************************************************************
         
-        Array hashmap
+        Default size of array map
         
      *******************************************************************************/
     
-    private             Bucket[]                        hashmap;
+    private             uint                            default_size = 1_000;
     
     /*******************************************************************************
         
-        Number of hashmap buckets
+        Number of array elements stored
         
      *******************************************************************************/
     
-    private             size_t                          num_buckets = 10_000;
-    
-    /*******************************************************************************
-        
-        Number of hashmap buckets
-        
-     *******************************************************************************/
-    
-    private             size_t                          bucket_size = 5;
-    
-    /*******************************************************************************
-        
-        Number of elements in array
-        
-     *******************************************************************************/
-    
-    private             size_t                          num_elements = 0;
-    
-    /*******************************************************************************
-        
-        Mutex & condition (multi-thread support)
-        
-     *******************************************************************************/
-    
-    static if (M)
-    {
-        private             ReadWriteMutex                  mutex;
-    }
+    private             uint                            len;
     
     /*******************************************************************************
         
         Sets number of buckets used
 
-        Example configuration for 1.000.000 array elements
+        Usage example
         ---
-        num_buckets = 100_000;
-        bucket_size = 10;
+        scope array = new ArrayMap (1_000_000, 0.75);
         ---
         
         Params:
-            num_buckets = default number of allocated buckets
-            bucket_size = default number of allocated elements per bucket
+            default_size = estimated number of elements to be stored
+            load_factor = determines the number of buckets used
             
         Returns:
             void
             
      *******************************************************************************/
     
-    public void buckets ( size_t num_buckets = 10_000, size_t bucket_size = 5 )
+    public this ( uint default_size = 10_000, float load_factor = 0.75 )
     {
-        assert(num_buckets  >= 10, "min bucket size > 10");
-        assert(this.num_elements ==  0, "no resize supported; invoke free() first");
+        this.v_map.length   = default_size;
+        this.default_size   = default_size;
+        this.buckets_length = cast(int) (default_size / load_factor);
+        this.k_map.length   = this.buckets_length;
         
-        this.num_buckets = num_buckets;
-        this.bucket_size = bucket_size;
+        this.setAllocSize(load_factor);
         
-        this.hashmap.length = num_buckets;
-        
-        static if (M) 
+        foreach ( ref bucket; this.k_map ) 
         {
-            this.mutex = new ReadWriteMutex(ReadWriteMutex.Policy.PREFER_READERS);
+            bucket.elements.length = this.default_alloc_size;
+            
+            static if (M) 
+            {
+                pthread_rwlock_init(&bucket.rwlock, null);
+            }
         }
     }
-     
+    
+    /*******************************************************************************
+        
+        Destructor; free memory used by hashmap
+            
+        Returns:
+            void
+            
+     *******************************************************************************/
+    
+    public ~this () 
+    {
+        static if (M)
+        {
+            foreach ( ref bucket; this.k_map) 
+                pthread_rwlock_destroy(&bucket.rwlock);
+        }
+        
+        this.clear();
+        this.free_();
+    }
+    
+    /*******************************************************************************
+        
+        Clear array map
+        
+        Returns:
+            void
+        
+     *******************************************************************************/
+    
+    public void clear ()
+    {
+        this.len = 0;
+        
+        foreach ( ref bucket; this.k_map ) 
+        {
+            this.writeLock ( &bucket, {bucket.length = 0;});
+        }
+    }
+    
     /*******************************************************************************
         
         Returns whether key exists or not
@@ -228,12 +296,15 @@ struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     bool exists ( K key )
     {   
-        return this.findSync(key) != null;
+        return this.findValueSync(key) != null;
     }
     
     /*******************************************************************************
         
-        Reset and free memory used by array map
+        Free memory allocated by array map
+        
+        Using free on an array map leads to freeing of any memory allocated. The
+        array map can't be reused anymore afterwards.
         
         Returns:
             void
@@ -242,37 +313,27 @@ struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     public void free ()
     {
-        static if (M) 
-        {
-            synchronized (this.mutex.writer) this.reset();
-        }
-        else
-        {
-            this.reset();
-        }
+        this.clear();
+        this.free_();
     }
     
     /*******************************************************************************
         
         Remove single key
         
+        Params:
+            key = key of element to remove
+            
         Returns:
-            true on success, false on failure
+            void
         
      *******************************************************************************/
     
-    public bool remove ( K key )
+    public void remove ( K key )
     {
-        hash_t h = (toHash(key) % this.num_buckets);
+        hash_t h = (toHash(key) % this.buckets_length);
 
-        static if (M) 
-        { 
-            synchronized (this.mutex.writer) return this.remove(h, key);
-        }
-        else 
-        {
-            return this.remove(h, key);
-        }
+        this.writeLock (&this.k_map[h], {this.remove_(h, key);});
     }
     
     /*******************************************************************************
@@ -284,9 +345,9 @@ struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    public size_t length ()
+    public uint length ()
     {
-        return this.num_elements;
+        return this.len;
     }
     
     /*******************************************************************************
@@ -304,17 +365,8 @@ struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     public void opIndexAssign ( V value, K key )
     {
-        static if (M)
-        {
-            synchronized (this.mutex.writer) this.set(key, value);
-        }
-        else
-        {
-            this.set(key, value);
-        }
+        this.set(key, value);
     }
-    
-
     
     /*******************************************************************************
         
@@ -330,13 +382,13 @@ struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     public V opIndex( K key )
     {
-        BucketElement* p = this.findSync(key);
+        V* v = this.findValueSync(key);
         
-        if ( p !is null )
+        if ( v !is null )
         {
-            return (*p).value;
+            return *v;
         }
-         
+        
         assert(false, "key doesn't exist");
     }
     
@@ -370,18 +422,29 @@ struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     ************************************************************************/
     
-    public V* opIn_r ( K key)
+    static if (M) public V* opIn_r ( K key )
     {
-        BucketElement* p = this.findSync(key);
+        V* v = this.findValueSync(key);
         
-        if ( p !is null )
+        if ( v !is null )
         {
-            return &(*p).value;
+            return v;
         }
         
         return null;
     }
-
+    else public bool opIn_r ( K key )
+    {
+        V* v = this.findValueSync(key);
+        
+        if ( v !is null )
+        {
+            return true;
+        }
+        
+        return false;
+    }
+    
     /***********************************************************************
         
         Returns iterator with key and value as reference
@@ -398,14 +461,7 @@ struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      public int opApply (int delegate(ref K key, ref V value) dg)
      {
-         static if (M) 
-         {
-             synchronized (this.mutex.reader) return this.iterate(dg);
-         }
-         else
-         {
-             return this.iterate(dg);
-         }
+         return this.iterate(dg);
      }
      
      /***********************************************************************
@@ -424,35 +480,38 @@ struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      public int opApply (int delegate(ref V value) dg)
      {
-         static if (M) 
-         {
-             synchronized (this.mutex.reader) return this.iterate(dg);
-         }
-         else
-         {
-             return this.iterate(dg);
-         }
+         return this.iterate(dg);
      }
      
      /*******************************************************************************
          
-         Resizes hash map for better performance
+         Rehash key map
          
-         In case the load factor because too large the hash map needs to be resized.
-         Enlarging the number of buckets requires the existing keys to be shifted 
-         to their new bucket.
+         Optimizes the key map map in case the load factor is larger than 0.75.
          
-         TODO support hashmap resizing
-              http://en.wikipedia.org/wiki/Hash_table#Dynamic_resizing
-         
+         Params:
+             key = key to return hash
+             
          Returns:
-             void
+             hash
          
       *******************************************************************************/
      
-     public void resize () 
+     public void rehash ()
      {
-         assert(false, `array map resize not yet supported`);
+         if ( this.len / this.buckets_length > 0.75 )
+         {
+             /*
+                 we need to have a new bucket_length set 
+                 and while resizing each lookup has to happen against the old
+                 and new position until the restructuration is done
+                 
+                 steps in between:
+                 
+                 * rearange keys by building new hash
+                 * build new hashes for each item
+             */
+         }
      }
      
      /*******************************************************************************
@@ -481,7 +540,7 @@ struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
      
     /*******************************************************************************
         
-        Returns pointer to array element associated with key
+        Returns pointer to array element value
         
         Params:
             key = array key
@@ -491,14 +550,14 @@ struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    private BucketElement* findSync ( K key )
+    private V* findValueSync ( K key )
     {
-        return this.findSync(key, (toHash(key) % this.num_buckets));
+        return this.findValueSync(key, (toHash(key) % this.buckets_length));
     }
     
     /*******************************************************************************
         
-        Returns pointer to array element associated with key from bucket h
+        Returns pointer to array element value
         
         Params:
             key = array key
@@ -509,21 +568,20 @@ struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    private BucketElement* findSync ( K key, hash_t h )
+    private V* findValueSync ( K key, hash_t h )
     {
-        static if (M)  
+        static if (M)
         {
-            synchronized (this.mutex.reader) return this.findNoSync(key, h);
+            pthread_rwlock_rdlock(&this.k_map[h].rwlock);
+            scope (failure) pthread_rwlock_unlock(&this.k_map[h].rwlock); 
         }
-        else
-        {
-            return this.findNoSync(key, h);
-        }
+        
+        return this.findValue(key, h);
     }
     
     /*******************************************************************************
         
-        Returns pointer to array element associated with key from bucket h
+        Returns pointer to array element value
         
         Params:
             key = array key
@@ -534,20 +592,48 @@ struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    private BucketElement* findNoSync ( K key, hash_t h )
+    private V* findValue ( K key, hash_t h )
     {
-        if (this.hashmap[h].length)
-            foreach ( ref element; this.hashmap[h].elements )
-                if ( element.key == key )
-                    return &element;
+        for ( uint i = 0; i < this.k_map[h].length; i++ )
+            if ( this.k_map[h].elements[i].key == key )
+                return &(this.v_map[this.k_map[h].elements[i].pos]);
         
         return null;
     }
     
     /*******************************************************************************
         
-        Set array element
+        Returns pointer to value bucket
         
+        Params:
+            key = array key
+            h = bucket position
+            k = key element pointer to be set to position of element found
+            v = value element pointer to be set to position of element found
+            
+        Returns:
+            pointer to value bucket, or null if not found
+        
+     *******************************************************************************/
+    
+    private void findBucket ( in K key, in hash_t h, out KeyElement* k, out V* v )
+    {
+        for ( uint i = 0; i < this.k_map[h].length; i++ )
+        {
+            if ( this.k_map[h].elements[i].key == key )
+            {
+                v = &this.v_map[this.k_map[h].elements[i].pos];
+                k = &this.k_map[h].elements[i];
+                
+                break;
+            }
+        }
+    }
+    
+    /*******************************************************************************
+        
+        Set array element
+
         Params:
             key = array key
             value = array value
@@ -557,28 +643,31 @@ struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    private void set ( K key, V value )
+    private void set ( in K key, in V value )
     {
-        hash_t h = (toHash(key) % this.num_buckets);
-        BucketElement* p = this.findNoSync(key, h);
+        hash_t h = (toHash(key) % this.buckets_length);
         
-        if ( p is null )
+        this.writeLock ( &this.k_map[h],
         {
-            if ( this.hashmap[h].length % this.bucket_size == 0 )
+            V* p = this.findValue(key, h);
+            
+            if ( p is null )
             {
-                 this.hashmap[h].elements.length = 
-                 this.hashmap[h].length + this.bucket_size;
+                    this.resizeBucket(h);
+                    this.resizeMap();
+
+                    this.v_map[this.len] = value;
+                    this.k_map[h].elements[this.k_map[h].length] = KeyElement(key, this.len);
+                
+                    this.k_map[h].length++;
+                    
+                    static if (M) this.length_(true); else this.len++;
             }
-            
-            this.hashmap[h].elements ~= BucketElement(key, value);
-            this.hashmap[h].length++;
-            
-            this.num_elements++;
-        }
-        else
-        {
-            (*p).value = value;
-        }
+            else
+            {
+                (*p) = value;
+            }
+        });
     }
     
     /*******************************************************************************
@@ -590,44 +679,127 @@ struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    private void reset ()
+    private void free_ ()
     {
-        this.num_elements   = 0;
-        this.hashmap.length = 0;
-        this.hashmap.length = this.num_buckets;
+        this.k_map.length = 0;
+        this.v_map.length = 0;
     }
     
     /*******************************************************************************
         
-        Remove single key
+        Resizes and allocates new memory in case the map runs out of memory
+        
+        Enlarges map by 10 percent. TODO Rehashing of key map still needs to be 
+        implemented in order to keep speed up with the resizing of the value map.
         
         Returns:
             true on success, false on failure
         
      *******************************************************************************/
     
-    private bool remove ( hash_t h, K key )
+    private void resizeMap ()
     {
-        BucketElement* p = this.findNoSync(key, h);
-
-        if ( p !is null )
+        if ( this.len && this.len % this.default_size == 0 )
         {
-            if ( this.hashmap[h].length == 1 )
+            synchronized
             {
-                this.hashmap[h].length = 0;
+                this.default_size = this.v_map.length + 
+                                    cast(uint)(this.default_size/10);
+                
+                this.v_map.length = this.default_size;
+            }
+        }
+    }
+    
+    /*******************************************************************************
+        
+        Resizes bucket
+        
+        Enlarges bucket length by certain amout of space by allocating a range of
+        memory instead of just allocating the next element.
+        
+        Returns:
+            void
+        
+     *******************************************************************************/
+    
+    private void resizeBucket ( hash_t h )
+    {
+        if ( this.k_map[h].length >= this.default_alloc_size && 
+             this.k_map[h].length % this.default_alloc_size == 0 )
+        {
+                this.k_map[h].elements.length = this.k_map[h].length + 
+                                                this.default_alloc_size;
+        } 
+    }
+    
+    /*******************************************************************************
+        
+        Remove single key
+        
+        Moves last key element to position of element to be removed if number 
+        of elements in bucket is larger than 1, otherwise the bucket length is 
+        set to 0. 
+        
+        Returns:
+            true on success, false on failure
+        
+     *******************************************************************************/
+    
+    private bool remove_ ( hash_t h, K key )
+    {
+        KeyElement* k;
+        V* v;
+        
+        this.findBucket(key, h, k, v);
+        
+        if ( k !is null && v !is null )
+        {
+            if ( this.k_map[h].length == 1 )
+            {
+                this.k_map[h].length = 0;
             }
             else
             {
-                *p = this.hashmap[h].elements[this.hashmap[h].length - 1];
-                this.hashmap[h].length = this.hashmap[h].length - 1;
+                *k = this.k_map[h].elements[this.k_map[h].length - 1];
+                this.k_map[h].length = this.k_map[h].length - 1;
             }
             
-            this.num_elements--;
+            if ( this.len == 1 )
+            {
+                this.v_map.length = 0;
+            }
+            else
+            {
+                *v = this.v_map[this.len-1];
+            }
             
+            static if (M) this.length_(false); else this.len--;
+
             return true;
         }
-
+        
         return false;
+    }
+    
+    /***********************************************************************
+        
+        Increases or decreases length
+        
+        The synchronization is necessary in case two threads changing
+        different buckets and therefore changing the overall length.
+        
+        Params:
+            bool = true to increment length, false to decrement length
+        
+        Returns:
+            array keys and values
+    
+    ************************************************************************/
+    
+    synchronized private void length_ ( bool inc = true )
+    {
+        inc ? this.len++ : this.len--;
     }
     
     /***********************************************************************
@@ -648,11 +820,21 @@ struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     {
         int result = 0;
         
-        foreach ( ref bucket; this.hashmap )
-            foreach ( ref element; bucket.elements )
-                if ( element.key )
-                    if ((result = dg(element.key, element.value)) != 0)
-                        break;
+        foreach ( ref bucket; this.k_map )
+        {
+            static if (M)
+            {
+                pthread_rwlock_rdlock(&bucket.rwlock);
+                scope (failure) pthread_rwlock_unlock(&bucket.rwlock); 
+            }
+            
+            for ( uint i = 0; i < bucket.length; i++ )
+                if ((result = dg(bucket.elements[i].key, 
+                        this.v_map[bucket.elements[i].pos])) != 0)
+                    break;
+            
+            static if (M) pthread_rwlock_unlock(&bucket.rwlock);
+        }
         
         return result;
     }
@@ -671,17 +853,79 @@ struct ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     ************************************************************************/
     
-    public int iterate (int delegate(ref V value) dg)
+    private int iterate (int delegate(ref V value) dg)
     {
         int result = 0;
         
-        foreach ( ref bucket; this.hashmap )
-            foreach ( ref element; bucket.elements )
-                if ( element.key )
-                    if ((result = dg(element.value)) != 0)
-                        break;
+        foreach ( ref bucket; this.k_map )
+        {
+            static if (M)
+            {
+                pthread_rwlock_rdlock(&bucket.rwlock);
+                scope (failure) pthread_rwlock_unlock(&bucket.rwlock); 
+            }
+            
+            for ( uint i = 0; i < bucket.length; i++ )
+                if ((result = dg(this.v_map[bucket.elements[i].pos])) != 0)
+                    break;
+            
+            static if (M) pthread_rwlock_unlock(&bucket.rwlock);
+        }
         
         return result;
+    }
+    
+    /***********************************************************************
+        
+        Set allocation size
+    
+        Default alloc size is based on the load factor but 5 it is usally 
+        best when the load factor gets larger than 2.
+        
+        Params:
+            dg = iterator delegate
+        
+        Returns:
+            array values
+    
+    ************************************************************************/
+
+    private void setAllocSize ( float load_factor )
+    {
+        if ( load_factor > 2 )
+        {
+            this.default_alloc_size = 5;
+        }
+        else 
+        {
+            this.default_alloc_size = 1;
+        }
+    }
+    
+    /***********************************************************************
+        
+        Locks code for write operation
+        
+        Only one write operation can happen at the same time
+        
+        Params:
+            dg = anonymus delegete (just some code section)
+            
+        Returns:
+            void
+        
+     ***********************************************************************/
+    
+    private void writeLock ( Bucket* bucket, void delegate() dg )
+    {
+        static if (M) 
+        {
+            pthread_rwlock_wrlock(&bucket.rwlock);
+            
+            scope (exit) pthread_rwlock_unlock(&bucket.rwlock);
+        }   
+        
+        dg();
     }
 }
 
@@ -703,28 +947,29 @@ debug (OceanUnitTest)
     {
         Trace.formatln("Running ocean.core.ArrayMap unittest");
         
-        const uint iterations  = 5;
-        const uint inserts     = 1_000_000;
-        const uint num_threads = 2;
+        const uint iterations  = 1000;
+        const uint inserts     = 1000000;
+        const uint num_threads = 5;
+
+        /***********************************************************************
+            
+            Assertion Test
+            
+         ***********************************************************************/
         
         StopWatch   w;
-        ArrayMap!(uint, hash_t, Mutex.Disable) array;
         
-        array.buckets(50_000, 5);
+        scope array = new ArrayMap!(uint, hash_t, Mutex.Disable)(1_000_000);
         
         array[1111] = 2;
         array[2222] = 4;
-        
+
         assert(array[1111] == 2);
+
         assert(array[2222] == 4);
         assert(1111 in array);
         assert(2222 in array);
         assert(array.length == 2);
-        
-        foreach ( key, value; array)
-        {
-            Trace.formatln("k = {}, v = {}", key, value);
-        }
         
         array[1111] = 3;
         
@@ -735,83 +980,93 @@ debug (OceanUnitTest)
         assert((1111 in array) == null);
         assert(array.length == 1);
         
+        /***********************************************************************
+            
+            Memory Test
+            
+         ***********************************************************************/
+        
         Trace.formatln("running mem test...");
         
         for ( uint r = 1; r <= iterations; r++ )
         {
-            array.free();
-            w.start;
+            array.clear();
             
-            for ( uint i = (r * inserts - inserts); i < (r * inserts); i++ )
+            w.start;
+
+            for ( uint i = ((inserts * r) - inserts); i < (inserts * r); i++ )
             {
                 array[i] = i;
             }
             
-            Trace.format  ("loop {}: {} adds with {}/s and ", r, array.length, array.length/w.stop);
-            Trace.formatln("{} bytes mem usage", GC.stats["poolSize"]);
+            Trace.formatln  ("[{}:{}-{}]\t{} adds with {}/s and {} bytes mem usage", 
+                    r, ((inserts * r) - inserts), (inserts * r), array.length, 
+                    array.length/w.stop, GC.stats["poolSize"]);
         }
-        Trace.formatln("array.length ======== {}", array.length);
+        
         w.start;
         uint hits = 0;
         uint* p;
         
-        for ( uint i = (iterations * inserts - inserts); i < (iterations * inserts); i++ )
+        for ( uint i = ((inserts * iterations) - inserts); i < (inserts * iterations); i++ )
         {
-            p = i in array;
-            
-            if ( p !is null )
-            {
-                assert(i == *p);
-                hits++;
-            }
+            if ( i in array ) hits++;
         }
-        
+        Trace.formatln("inserts = {}, hits = {}", inserts, hits);
         assert(inserts == hits);
         
         Trace.format  ("{}/{} gets/hits with {}/s and ", array.length, hits, array.length/w.stop);
         Trace.formatln("mem usage {} bytes", GC.stats["poolSize"]);
+        
+        Trace.formatln("freeing memory allocated");
+        Trace.formatln("");
+        
+        array.free;
 
-        Trace.formatln("running mutex thread test...");
+        Thread.sleep(2);
         
-        void readWrite ()
-        {
-            uint run;
-            Trace.formatln("readWrite thread started");
-            while ( run++ < iterations )
-            {
+        /***********************************************************************
+            
+            Thread hashmap test function
                 
-                for ( uint i = 0; i < inserts; i++ ) array.remove(i);
-                for ( uint i = 0; i < inserts; i++ ) array[i] = i;
-            }
-        }
+            Returns:
+                void
+            
+         ***********************************************************************/
         
-        void writeRead ()
+        scope arraym = new ArrayMap!(uint, hash_t, Mutex.Enable)(1_000_000);
+        scope group  = new ThreadGroup;
+        
+        void threadFunc ()
         {
-            uint run;
-            Trace.formatln("writeRead thread started");
-            while ( run++ < iterations )
+            StopWatch   s;
+            
+            for ( uint r = 1; r <= iterations; r++ )
             {
-                for ( uint i = 0; i < inserts; i++ ) array[i] = i;
-                for ( uint i = 0; i < inserts; i++ ) array.remove(i);
+                s.start;
+                
+                for ( uint i = 1; i <= inserts; i++ ) arraym[i] = i;
+                
+                Trace.formatln  ("loop {}: {} adds with {}/s and {} bytes mem usage", 
+                        r, arraym.length, arraym.length/s.stop, GC.stats["poolSize"]);
             }
         }
-        
-        scope group = new ThreadGroup;
-        
+    
+        Trace.formatln("running mutex thread test...");
+
         w.start;
         
         for( int i = 0; i < num_threads; ++i )
-            group.create( &readWrite );
+            group.create( &threadFunc );
         
-        for( int i = 0; i < num_threads; ++i )
-            group.create( &writeRead );
-        
-        Trace.formatln("waiting threads to be finished");
         group.joinAll();
-        
-        Trace.format  ("{} threads with {} iterations {}/s", num_threads, num_threads * iterations * inserts * 2, (num_threads * iterations * inserts * 2)/w.stop);
+
+        Trace.formatln  ("{} array elements found after thread iteration", arraym.length);
+        Trace.formatln  ("{} threads with {} iterations {}/s", num_threads, 
+                num_threads * iterations * inserts, (num_threads * iterations * inserts)/w.stop);
     
         Trace.formatln("done unittest");
         Trace.formatln("");
+
     }
 }
