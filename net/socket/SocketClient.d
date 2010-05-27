@@ -1,4 +1,29 @@
-// TODO: header
+/*******************************************************************************
+
+    Socket client
+    
+    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
+    
+    version:        May 2010: Initial release
+    
+    authors:        Gavin Norman
+
+	An abstract class containing the base implementation for a client to a
+	socket-based API server.
+
+	The main SocketClient class uses two helper classes:
+		SocketClientConst: defines the list of commands and status codes which
+		exist in the API. This is also an abstract class, and needs to be
+		implemented along with each class derived from SocketClient.
+
+		SocketRetry: Socket-specific retry class, which only catches exceptions
+		of type SocketException or IOException. This allows socket clients to
+		throw and handle their own exceptions (for example for fatal errors)
+		within retry loops. The retry callback method of SocketRetry is set (in
+		the SocketClient constructor) to a method which disconnects and
+		reconnects the socket on each iteration of the retry loop.
+
+*******************************************************************************/
 
 module net.socket.SocketClient;
 
@@ -25,177 +50,63 @@ debug
 
 /*******************************************************************************
 
-	SocketRetry class - derived from Retry.
-
-	Only handles socket-based exceptions: SocketException & IOException. This is
-	useful so that classes using SocketRetry can throw and handle their own
-	exceptions within retry loops.
-
-*******************************************************************************/
-
-class SocketRetry : Retry
-{
-	/***************************************************************************
-	
-		Constructor.
-	
-	    Params:
-	        delg = retry callback delegate
-	
-	***************************************************************************/
-	
-	public this ( CallbackDelg delg )
-	{
-		super(delg);
-	}
-	
-	
-	/***************************************************************************
-	
-		Overridden try / catch / retry loop which only catches exceptions of
-		type SocketException or IOException.
-	
-	    Params:
-	        code_block = code to try
-	
-	***************************************************************************/
-	
-	public override void loop ( void delegate () code_block )
-	{
-		bool again;
-		super.resetCounter();
-	
-		do try
-	    {
-			again = false;
-	    	code_block();
-	    }
-	    catch ( SocketException e )
-	    {
-	    	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
-	    	super.handleException(e, again);
-	    }
-	    catch ( IOException e )
-	    {
-	    	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
-	    	super.handleException(e, again);
-	    }
-	    while (again)
-	}
-}
-
-
-
-/*******************************************************************************
-
 	Abstract SocketClientConst class.
 	
-	Defines TODO
+	Defines the status and command codes used by a socket client implementation.
+
+	Each socket client class should also implement this class, which should
+	specify the commands which are valid for that API.
 
 *******************************************************************************/
 
 abstract class SocketClientConst
 {
-	public static:
-
-	/******************************************************************************
+	/***************************************************************************
 	
 	    Code Definition
 	    
 	    Code is the base type of command and status codes
 	
-	 ******************************************************************************/
+	***************************************************************************/
 	
-	alias uint Code;
-	
-	/******************************************************************************
+	public alias uint Code;
+
+
+	/***************************************************************************
 	
 	    Status codes definition
 	
-	 ******************************************************************************/
+	***************************************************************************/
 	
-	enum Status : Code
+	public enum Status : Code
 	{
 	    Ok            = 200,
 	    Error         = 500,
 	    PutOnReadOnly = 501
 	}
+
+
+	/***************************************************************************
 	
-	/******************************************************************************
-	
-	    Code structure
+	    Gets a code's description (used for error messages, etc).
 	    
-	    Contains the command/status as code and description string
+	    Deriving classes should override this method and add descriptions of
+	    their own command codes.
 	
-	 ******************************************************************************/
+	***************************************************************************/
 	
-	struct CodeDescr
+	public static char[] codeDescription ( Code code )
 	{
-	    Code code;
-	    char[]   description;  
+		switch ( code )
+		{
+			case Status.Ok:					return "OK";
+			case Status.Error:				return "Internal Error";
+			case Status.PutOnReadOnly:		return "Attempted to put on read-only server";
+		}
+		return invalid_code;
 	}
 
-
-	/******************************************************************************
-	
-	    Status Code
-	
-	 ******************************************************************************/
-	
-	struct StatusCode
-	{
-	    static const CodeDescr
-	    
-	        Ok           = {Status.Ok,    "OK"            },
-	        Error        = {Status.Error, "Internal Error"},
-	        PutOnReadOnly = {Status.PutOnReadOnly, "Attempted to put on read-only server"};
-	}
-}
-
-
-
-/*******************************************************************************
-
-	ApiClientException structure.
-	
-	Contains exception classes related to socket clients.
-
-	Template params:
-		Const = the set of constants used by the class, must be derived from
-			SocketClientConst.
-
-*******************************************************************************/
-
-struct SocketClientException ( Const : SocketClientConst )
-{
-	/**************************************************************************
-	
-	    ApiClientException.Generic class
-	    
-	    Generic ApiClient exception
-	    
-	 **************************************************************************/
-	
-	static class Generic : Exception
-	{
-	    this ( char[] msg ) { super(msg); }
-	}
-	
-	/**************************************************************************
-	
-	    ApiClientException.ReadOnly class
-	    
-	    ApiClient exception when attempted to write on read-only node
-	    
-	 **************************************************************************/
-	
-	static class ReadOnly : Generic
-	{
-	    this ( char[] msg  = Const.StatusCode.PutOnReadOnly.description )
-	    {
-	        super(msg);
-	    }
-	}
+	public static char[] invalid_code = "Invalid code";
 }
 
 
@@ -267,7 +178,7 @@ abstract class SocketClient ( Const : SocketClientConst )
 
 		***********************************************************************/
 
-		Const.CodeDescr command;
+		Const.Code command;
 
 
 		/***********************************************************************
@@ -448,7 +359,7 @@ abstract class SocketClient ( Const : SocketClientConst )
 
 	***************************************************************************/
 
-    public void get ( K, V ) ( Const.CodeDescr cmd, K key, out V value )
+    public void get ( K, V ) ( Const.Code cmd, K key, out V value )
     {
     	this.retry.loop({
         	this.sendRequestCommand(cmd, key);
@@ -481,7 +392,7 @@ abstract class SocketClient ( Const : SocketClientConst )
 
     ***************************************************************************/
 
-    public void get ( K, V ... ) ( Const.CodeDescr cmd, K key, out V values )
+    public void get ( K, V ... ) ( Const.Code cmd, K key, out V values )
     {
     	this.retry.loop({
         	this.sendRequestCommand(cmd, key);
@@ -507,11 +418,11 @@ abstract class SocketClient ( Const : SocketClientConst )
 	
 	***************************************************************************/
 
-    public void put ( K, V ... ) ( Const.CodeDescr cmd, K key, V values )
+    public void put ( K, V ... ) ( Const.Code cmd, K key, V values )
     {
     	this.retry.loop({
     		// Put request code, key & data
-        	this.socket.put(cmd.code, key, values).commit();
+        	this.socket.put(cmd, key, values).commit();
 
         	// Check status
         	Const.Code status;
@@ -544,7 +455,7 @@ abstract class SocketClient ( Const : SocketClientConst )
 
 	***************************************************************************/
 
-	public void getElementFromPairList ( K, V ) ( Const.CodeDescr cmd, K key, uint keep_element, out V[] list )
+	public void getElementFromPairList ( K, V ) ( Const.Code cmd, K key, uint keep_element, out V[] list )
 	{
 		assert(keep_element < 2, "Invalid pair element index");
 
@@ -560,7 +471,7 @@ abstract class SocketClient ( Const : SocketClientConst )
     
 		opApply overload which iterates over the keys in the server's database.
 
-		Uses the abstract method beginKeyIteration, which must be implemented by
+		Uses the method beginKeyIteration, which must be implemented by
 		any socket clients that support opApply key iteration. (It must be
 		abstract, as this abstract class doesn't know the correct command to
 		send to the individual servers.)
@@ -601,6 +512,9 @@ abstract class SocketClient ( Const : SocketClientConst )
 		key iterator, above. The opApply iterator keeps track of the last
 		successfully received key, and passes it to this function in the case of
 		having to restart the key iteration due to an exception.
+		
+		The base class implementation asserts. API clients which support key
+		iteration must override this method.
 
 		Params:
 			last_key = the last key which was successfully read during the
@@ -608,7 +522,10 @@ abstract class SocketClient ( Const : SocketClientConst )
 
 	***************************************************************************/
 	
-	abstract protected void beginKeyIteration ( char[] start_key );
+	protected void beginKeyIteration ( char[] start_key )
+	{
+		assert(false, "opApply key iteration not supported");
+	}
 	
 	
 	/***************************************************************************
@@ -625,10 +542,10 @@ abstract class SocketClient ( Const : SocketClientConst )
 			
 	***************************************************************************/
 
-	protected void sendRequestCommand ( D ... ) ( Const.CodeDescr cmd, D data )
+	protected void sendRequestCommand ( D ... ) ( Const.Code cmd, D data )
 	{
 		// Put request code & key
-	    this.socket.put(cmd.code, data).commit();
+	    this.socket.put(cmd, data).commit();
 
 	    // Check status
 	    Const.Code status;
@@ -649,7 +566,7 @@ abstract class SocketClient ( Const : SocketClientConst )
 	
 	***************************************************************************/
 
-	protected void checkStatus ( Const.CodeDescr cmd, Const.Code status )
+	protected void checkStatus ( Const.Code cmd, Const.Code status )
 	{
         switch ( status )
 		{
@@ -661,7 +578,7 @@ abstract class SocketClient ( Const : SocketClientConst )
 			break;
 
 			default:
-		    	throw new SocketException("error on " ~ cmd.description ~ " request");
+		    	throw new SocketException("error on " ~ Const.codeDescription(cmd) ~ " request");
 			break;
 		}
 	}
@@ -809,6 +726,129 @@ abstract class SocketClient ( Const : SocketClientConst )
 	    }
 		debug Trace.formatln("Try again? {}", again ? "yes" : "no");
 		return again;
+	}
+}
+
+
+
+/*******************************************************************************
+
+	SocketRetry class - derived from Retry.
+	
+	Only handles socket-based exceptions: SocketException & IOException. This is
+	useful so that classes using SocketRetry can throw and handle their own
+	exceptions within retry loops.
+	
+*******************************************************************************/
+	
+class SocketRetry : Retry
+{
+	/***************************************************************************
+	
+		Constructor.
+	
+	    Params:
+	        delg = retry callback delegate
+	
+	***************************************************************************/
+	
+	public this ( CallbackDelg delg )
+	{
+		super(delg);
+	}
+	
+	
+	/***************************************************************************
+	
+		Overridden try / catch / retry loop which only catches exceptions of
+		type SocketException or IOException.
+	
+	    Params:
+	        code_block = code to try
+	
+	***************************************************************************/
+	
+	public override void loop ( void delegate () code_block )
+	{
+		bool again;
+		super.resetCounter();
+	
+		do try
+	    {
+			again = false;
+	    	code_block();
+	    }
+	    catch ( SocketException e )
+	    {
+	    	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
+	    	super.handleException(e, again);
+	    }
+	    catch ( IOException e )
+	    {
+	    	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
+	    	super.handleException(e, again);
+	    }
+	    while (again)
+	}
+}
+
+
+
+/*******************************************************************************
+
+	ApiClientException structure.
+	
+	Contains exception classes related to socket clients.
+	
+	Template params:
+		Const = the set of constants used by the class, must be derived from
+			SocketClientConst.
+
+*******************************************************************************/
+
+struct SocketClientException ( Const : SocketClientConst )
+{
+	/**************************************************************************
+	
+	    ApiClientException.Generic class
+	    
+	    Generic ApiClient exception
+	    
+	 **************************************************************************/
+	
+	static class Generic : Exception
+	{
+	    this ( char[] msg ) { super(msg); }
+	}
+	
+	/**************************************************************************
+	
+	    ApiClientException.InvalidCode class
+	    
+	    Thrown when an attempt is made to get the description for an invalid
+	    code
+	    
+	 **************************************************************************/
+	
+	static class InvalidCode : Generic
+	{
+	    this ( char[] msg = "Invalid command or status code" ) { super(msg); }
+	}
+
+	/**************************************************************************
+	
+	    ApiClientException.ReadOnly class
+	    
+	    ApiClient exception when attempted to write on read-only node
+	    
+	 **************************************************************************/
+	
+	static class ReadOnly : Generic
+	{
+	    this ( char[] msg  = Const.codeDescription(Const.Status.PutOnReadOnly) )
+	    {
+	        super(msg);
+	    }
 	}
 }
 
