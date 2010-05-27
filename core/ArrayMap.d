@@ -422,18 +422,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     ************************************************************************/
     
-    static if (M) public V* opIn_r ( K key )
-    {
-        V* v = this.findValueSync(key);
-        
-        if ( v !is null )
-        {
-            return v;
-        }
-        
-        return null;
-    }
-    else public bool opIn_r ( K key )
+    static if (M) public bool opIn_r ( K key )
     {
         V* v = this.findValueSync(key);
         
@@ -443,6 +432,17 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         }
         
         return false;
+    }
+    else public V* opIn_r ( K key )
+    {
+        V* v = this.findValueSync(key);
+        
+        if ( v !is null )
+        {
+            return v;
+        }
+        
+        return null;
     }
     
     /***********************************************************************
