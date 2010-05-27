@@ -56,20 +56,68 @@ debug
 
 	Each socket client class should also implement this class, which should
 	specify the commands which are valid for that API.
+	
+	Derived classes should override the initCodeDescriptions method, and add the
+	appropriate command to the code_descriptions list. They should also
+	implement a constructor which either calls super() or manually calls the
+	initCodeLists method.
+	
+	Note that derived classes are required to implement a singleton pattern,
+	with an 'instance' method which returns a static global instance. This can
+	be easily achieved with the Singleton mixin defined in SocketClientConst.
 
 *******************************************************************************/
 
 abstract class SocketClientConst
 {
 	/***************************************************************************
+
+	    Singleton template, to be used as a mixin by classes which need
+	    singleton behaviour. Gives this class an instance() method which returns
+	    a static global instance.
+
+		(This is done as a template mixin as it's not possible to put static 
+		functionality in a base class which can then be overridden, but still
+		remain static, in deriving classes.
+
+	***************************************************************************/
+
+	template Singleton ( T )
+	{
+		static protected T global;
+		
+		public static T instance()
+		{
+			return global;
+		}
+		
+		static this ( )
+		{
+			global = new T;
+		}
+	}
+
+
+	/***************************************************************************
 	
-	    Code Definition
-	    
-	    Code is the base type of command and status codes
+	    Code Definition. Code is the base type of command and status codes.
 	
 	***************************************************************************/
 	
 	public alias uint Code;
+
+
+	/***************************************************************************
+	
+	    A description of a code - its value and a string describing it.
+	    
+	***************************************************************************/
+
+	public struct CodeDescr
+	{
+		Code code;
+		char[] description;
+	}
 
 
 	/***************************************************************************
@@ -87,26 +135,93 @@ abstract class SocketClientConst
 
 
 	/***************************************************************************
+
+    	List of valid codes & descriptions
+
+	 ***************************************************************************/
+
+	CodeDescr[] code_descriptions;
 	
-	    Gets a code's description (used for error messages, etc).
-	    
-	    Deriving classes should override this method and add descriptions of
-	    their own command codes.
+
+	/***************************************************************************
+	
+	    Associative array to lookup a code by its description
+	
+	***************************************************************************/
+
+	Code[char[]] codes_by_description;
+	
+
+	/***************************************************************************
+	
+	    Associative array to lookup a code's description
+	
+	***************************************************************************/
+
+	char[][Code] descriptions_by_code;
+
+
+	/***************************************************************************
+	
+		Initialises the list of command codes descriptions with the default
+		status codes for this base class.
+		
+		Derived classes should override this method, calling the base class
+		method and then appending their own code descriptions to the list.
+	
+	***************************************************************************/
+
+	protected void initCodeDescriptions ( )
+	{
+		this.code_descriptions = [
+ 			CodeDescr(Status.Ok,				"OK"),
+ 			CodeDescr(Status.Error,				"Internal Error"),
+ 			CodeDescr(Status.PutOnReadOnly,		"Attempted to put on read-only server")
+ 		];
+	}
+
+
+	/***************************************************************************
+	
+		Initialises the lookup lists of command codes & descriptions.
+		
+		Derived classes should override this method, calling the super class
+		and then appending their own code descriptions to the list.
+	
+	***************************************************************************/
+
+	protected void initCodeLists ( )
+	{
+		this.code_descriptions.sort;
+
+		foreach ( code_descr; this.code_descriptions )
+        {
+			this.descriptions_by_code[code_descr.code] = code_descr.description;
+			this.codes_by_description[code_descr.description] = code_descr.code;
+        }
+	}
+
+
+	/***************************************************************************
+	
+		Constructor.
+		Initialises the list of command codes descriptions.
 	
 	***************************************************************************/
 	
-	public static char[] codeDescription ( Code code )
+	public this ( )
 	{
-		switch ( code )
-		{
-			case Status.Ok:					return "OK";
-			case Status.Error:				return "Internal Error";
-			case Status.PutOnReadOnly:		return "Attempted to put on read-only server";
-		}
-		return invalid_code;
+		this.initCodeDescriptions();
+		this.initCodeLists();
 	}
 
-	public static char[] invalid_code = "Invalid code";
+	/***************************************************************************
+	
+		Abstract method to return the name of the api.
+	
+	***************************************************************************/
+
+	abstract public char[] apiName();
 }
 
 
@@ -126,6 +241,9 @@ abstract class SocketClientConst
 
 abstract class SocketClient ( Const : SocketClientConst )
 {
+	static assert ( is ( typeof (Const.instance) ), "Template argument Const must implement an 'instance' method" );
+
+
 	/***************************************************************************
     
 		Socket
@@ -143,7 +261,84 @@ abstract class SocketClient ( Const : SocketClientConst )
 	***************************************************************************/
 	
 	public SocketRetry retry;
+
+
+    /***************************************************************************
+    
+	    Static functions for looking up command & status code descriptions
 	
+	***************************************************************************/
+	
+	public struct Codes
+	{
+	    /**********************************************************************
+	    
+		    Code by description via indexing
+		
+		 **********************************************************************/
+		
+		static Const.Code opIndex ( char[] description )
+		{
+		    assert (description in Const.instance().codes_by_description, "Unknown API command description");
+		    
+		    return Const.instance().codes_by_description[description];
+		}
+		
+		
+		/**********************************************************************
+		
+		   Description by code via indexing
+		
+		 **********************************************************************/
+		
+		static char[] opIndex ( Const.Code code )
+		{
+		    assert (code in Const.instance().descriptions_by_code, "Unknown API command code");
+		    
+		    return Const.instance().descriptions_by_code[code];
+		}
+		
+		
+		/**********************************************************************
+		
+		    Tells whether description is a known command description via 'in'
+		
+		 **********************************************************************/
+		
+		static bool opIn_r ( char[] description )
+		{
+		    return !!(description in Const.instance().codes_by_description);
+		}
+		
+		
+		/**********************************************************************
+		
+		    Tells whether code is a known command code via 'in'
+		
+		 **********************************************************************/
+		
+		static bool opIn_r ( Const.Code code )
+		{
+		    return !!(code in Const.instance().descriptions_by_code);
+		}
+	
+	
+		/***********************************************************************
+		
+		    Outputs a list of all commands to Trace.
+		
+		***********************************************************************/
+	
+		debug static void list ( )
+		{
+			Trace.formatln("Valid {} command / status codes:", Const.instance().apiName());
+	        foreach ( code_descr; Const.instance().code_descriptions )
+	        {
+	            Trace.formatln("   {} = {}", code_descr.code, code_descr.description);
+	        }
+		}
+	}
+
 
 	/***************************************************************************
 
@@ -562,7 +757,7 @@ abstract class SocketClient ( Const : SocketClientConst )
 		
 		Params:
 			cmd = the command which has just been performed.
-			statuc = the status returned by the server.
+			status = the status returned by the server.
 	
 	***************************************************************************/
 
@@ -570,15 +765,15 @@ abstract class SocketClient ( Const : SocketClientConst )
 	{
         switch ( status )
 		{
-			case Const.Status.Ok:
+			case Const.instance().Status.Ok:
 			break;
 
-			case Const.Status.PutOnReadOnly:
+			case Const.instance().Status.PutOnReadOnly:
 	            throw new SocketClientException!(Const).ReadOnly;
 			break;
 
 			default:
-		    	throw new SocketException("error on " ~ Const.codeDescription(cmd) ~ " request");
+		    	throw new SocketException("error on " ~ Codes[cmd] ~ " request");
 			break;
 		}
 	}
@@ -842,13 +1037,10 @@ struct SocketClientException ( Const : SocketClientConst )
 	    ApiClient exception when attempted to write on read-only node
 	    
 	 **************************************************************************/
-	
+
 	static class ReadOnly : Generic
 	{
-	    this ( char[] msg  = Const.codeDescription(Const.Status.PutOnReadOnly) )
-	    {
-	        super(msg);
-	    }
+	    this ( char[] msg = "Attempted to put on read-only server" ) { super(msg); }
 	}
 }
 
