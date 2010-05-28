@@ -382,41 +382,40 @@ class Retry
         this = func;
     }
 
-
     /**************************************************************************
         
-        Calls the retry callback method.
+        If x is an exception, calls the retry callback method and rethrows x if
+        the callback indicates no retrying.
+        If x is a string, calls the retry callback method with this string.
         
         Params:
-            message = message regarding failed request
-             
+            x = exception or message string
+        
         Returns:
-            true to continue retrying or false to abort
-    
-     **************************************************************************/
-    
-    public bool opCall ( char[] message )
-    {
-    	return this.callback(message);
-    }
-
-
-    /**************************************************************************
+            true to continue or false to cancel retrying.
         
-        Calls the retry callback method and rethrows e if the callback indicates
-        no retrying.
-        
-        Params:
-            e = exception caught on previously failed operation
+    ***************************************************************************/
     
-    ****************************************************************/
-    
-    public void opCall ( Exception e )
+    public bool opCall ( T ) ( T x )
     {
-        bool retry = this.callback(e.msg);
-        if (!retry) throw (e);
+        bool retry;
+        
+        static if (is (T : Exception))
+        {
+            retry = this.callback(x.msg);
+            
+            if (!retry) throw (x);
+        }
+        else static if (is (T == char[]))
+        {
+            retry = this.callback(x);
+        }
+        else static assert (false, This.stringof ~ ".opCall: "
+                            "Exception and char[] supported, not " ~ T.stringof);
+        
+        return retry;
     }
-
+    
 
     /**************************************************************************
      
