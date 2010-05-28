@@ -22,12 +22,16 @@ module ocean.time.UnixTime;
 public          import      tango.stdc.time : time_t;
 
 private         import      tango.stdc.time : tm, localtime, time, gmtime;
+
+private         import      tango.stdc.posix.timer : timespec;
  
-private         import      tango.stdc.stdio : sscanf;
+private         import      tango.stdc.stdio : sscanf, snprintf;
 
 private         import      tango.stdc.ctype : isxdigit, tolower;
 
 private         import      ocean.text.util.StringSearch;
+
+private         import      tango.math.Math: max;
 
 extern (C)
 {
@@ -49,7 +53,7 @@ alias                   UnixTime!(false)               UnixTimeLocal;
 
 /******************************************************************************
 
-    Parses ISO 8601 time formated string to unix time. The input time string 
+    Parses ISO 8601 time formated timestamp to unix time. The input time timestamp 
     must accord to one of these schemes:
 
         "YYYY-MM-DDThh:mm:ss"
@@ -63,7 +67,7 @@ alias                   UnixTime!(false)               UnixTimeLocal;
     one digit instead of two as indicated by "...hh..." in the scheme.
     
     The time stamp is parsed as far as the most comprehensive time stamp scheme
-    matches; at this position parsing is stopped and the rest of the string
+    matches; at this position parsing is stopped and the rest of the timestamp
     ignored.
     
     Usage example on returning unix timestamp
@@ -73,9 +77,9 @@ alias                   UnixTime!(false)               UnixTimeLocal;
     time_t = gmt.now;
     ---
     
-********************************************************************************/
+ ******************************************************************************/
 
-template UnixTime( bool GMT = true ) { struct UnixTime
+struct UnixTime( bool GMT = true ) 
 {
 
     static:
@@ -95,7 +99,7 @@ template UnixTime( bool GMT = true ) { struct UnixTime
         Returns:
             current unix time
     
-     ***************************************************************************/
+     **************************************************************************/
     
     public time_t now ()
     {
@@ -108,66 +112,110 @@ template UnixTime( bool GMT = true ) { struct UnixTime
     
     /**************************************************************************
     
-        Converts ISO 8601 timestamp to unix timestamp
+        Converts an ISO 8601 timestamp to an Unix time value, truncating to
+        integer seconds.
         
         A trailing null termination character is appended to timestamp and
         removed at exit.
         
         Params:
-            string = ISO 8601 input string
+            timestamp = ISO 8601 input timestamp
             
         Returns:
             integer UNIX time value of timestamp
     
-     ***************************************************************************/
+     **************************************************************************/
     
-    public time_t from ( in char[] string )
+    public time_t from ( ref char[] timestamp )
     {
-        tm     datetime;
-        time_t t;
-        int    n;
-        
-        StringSearch!().appendTerm(string);
-        
-        scope (exit) StringSearch!().stripTerm(string);
-        
-        n = sscanf(string.ptr, "%d-%d-%dT%d:%d:%d", &datetime.tm_year,
-                                                    &datetime.tm_mon,
-                                                    &datetime.tm_mday,
-                                                    &datetime.tm_hour,
-                                                    &datetime.tm_min,
-                                                    &datetime.tm_sec);
-        datetime.tm_year -= 1900;
-        datetime.tm_mon--;
-        datetime.tm_isdst = daylight;
-        
-        t = GMT ? timegm(&datetime) : timelocal(&datetime);
-        
-        assert (((n == 6) || (n == 5) || (n == 3)) && (t >= 0), "invalid time stamp");
-        
-        return t;
+        return fromFrac(timestamp).tv_sec;
     }
     
     /**************************************************************************
     
-        Converts ISO 8601 timestamp to unix timestamp and returns the 
+        Converts an ISO 8601 timestamp to an Unix time value, including the
+        fractional part of seconds.
+        
+        A trailing null termination character is appended to timestamp and
+        removed at exit.
+        
+        Params:
+            timestamp = ISO 8601 input timestamp
+            
+        Returns:
+            timespec structure holding integer UNIX time value of timestamp as
+            member tv_sec and fractional seconds (ns) as tv_nsec
+    
+     **************************************************************************/
+
+    public timespec fromFrac ( ref char[] timestamp )
+    {
+        timespec ts;
+        tm       datetime;
+        int      n;
+        char     frac_sep;
+        
+        StringSearch!().appendTerm(timestamp);
+        
+        scope (exit) StringSearch!().stripTerm(timestamp);
+        
+        n = sscanf(timestamp.ptr, "%d-%d-%dT%d:%d:%d%c%d", &datetime.tm_year,
+                                                           &datetime.tm_mon,
+                                                           &datetime.tm_mday,
+                                                           &datetime.tm_hour,
+                                                           &datetime.tm_min,
+                                                           &datetime.tm_sec,
+                                                           &frac_sep,
+                                                           &ts.tv_nsec);
+        
+        datetime.tm_year -= 1900;
+        datetime.tm_mon--;
+        datetime.tm_isdst = daylight;
+        
+        ts.tv_sec = GMT ? timegm(&datetime) : timelocal(&datetime);
+        
+        auto ns = ts.tv_nsec;
+        
+        bool have_day              = n == 3,
+             have_daytime          = n == 5,
+             have_daytime_sec      = n == 6,
+             have_daytime_sec_frac = (n == 7 || n == 8);
+        
+        if (!(have_daytime_sec_frac && StringSearch!().containsChar(".,", frac_sep)))
+        {                                                                       // If no fractional seconds detected
+            ts.tv_nsec = 0;                                                     // or invalid fraction separator, set
+        }                                                                       // fractional seconds to 0.
+        else
+        {
+            ts.tv_nsec = padDecDigits(ts.tv_nsec, 9);
+        }
+        
+        assert ((ts.tv_sec >= 0) && (have_day || have_daytime || have_daytime_sec || have_daytime_sec_frac),
+                "invalid time stamp");
+        
+        return ts;
+    }
+    
+    /**************************************************************************
+    
+        Converts an ISO 8601 timestamp to an Unix time value and returns the 
         hexadecimal string representation too.
         
         A trailing null termination character is appended to timestamp and
         removed at exit.
         
         Params:
-            timestamp = ISO 8601 input string
-            hex_time  = hexadecimal string output
+            timestamp = ISO 8601 input timestamp
+            hex_time  = hexadecimal timestamp output
             
         Returns:
             integer UNIX time value of timestamp
     
      ***************************************************************************/
 
-    public time_t from ( in char[] string, HexTime hex_time )
+    public time_t from ( ref char[] timestamp, HexTime hex_time )
     {
-        return toHex(from(string), hex_time);
+        return toHex(from(timestamp), hex_time);
     }
     
     /**************************************************************************
@@ -262,7 +310,7 @@ template UnixTime( bool GMT = true ) { struct UnixTime
             year   = datetime.tm_year + 1900;
             month  = datetime.tm_mon  + 1;
             day    = datetime.tm_mday;
-            hour   = datetime.tm_hour;
+            hour   = datetime.tm_hour + !!datetime.tm_isdst;
             minute = datetime.tm_min;
             second = datetime.tm_sec;
         }
@@ -273,7 +321,7 @@ template UnixTime( bool GMT = true ) { struct UnixTime
     /**************************************************************************
     
         Decomposes an integer UNIX time value which is passed as a hexadecimal
-        string.
+        timestamp.
         
         Params:
             hex_time = integer UNIX time value hexadecimal string
@@ -302,7 +350,7 @@ template UnixTime( bool GMT = true ) { struct UnixTime
         
         Params:
             time     = time value
-            hex_time = hexadecimal string
+            hex_time = hexadecimal timestamp
         
         Returns
             time value
@@ -325,10 +373,118 @@ template UnixTime( bool GMT = true ) { struct UnixTime
     
     /**************************************************************************
     
+        Formats an ISO 8601 timestamp from timespec t.
+        
+        Params:
+            timestamp = timestamp string buffer
+            t         = time value
+        
+        Returns
+            resulting timestamp
+        
+     **************************************************************************/
+
+    public char[] toTimeStamp ( ref char[] timestamp, in timespec t )
+    {
+        int year, month, day, hour, minute, second;
+        
+        toDate(t.tv_sec,  year, month, day, hour, minute, second);
+        
+        return toTimeStamp(timestamp, year, month, day, hour, minute, second, t.tv_nsec);
+    }
+    
+    /**************************************************************************
+    
+        Formats an ISO 8601 timestamp from the hexadecimal Unix time t.
+        
+        Params:
+            timestamp = timestamp string buffer
+            t         = time value
+        
+        Returns
+            resulting timestamp
+        
+     **************************************************************************/
+
+    public char[] toTimeStamp ( ref char[] timestamp, in HexTime t )
+    {
+        int year, month, day, hour, minute, second;
+        
+        toDate(t,  year, month, day, hour, minute, second);
+        
+        return toTimeStamp(timestamp, year, month, day, hour, minute, second);
+    }
+    
+    /**************************************************************************
+    
+        Formats an ISO 8601 timestamp from the Unix time t.
+        
+        Params:
+            timestamp = timestamp string buffer
+            t         = time value
+        
+        Returns
+            resulting timestamp
+        
+     **************************************************************************/
+
+    public char[] toTimeStamp ( ref char[] timestamp, in time_t t )
+    {
+        int year, month, day, hour, minute, second;
+        
+        toDate(t,  year, month, day, hour, minute, second);
+        
+        return toTimeStamp(timestamp, year, month, day, hour, minute, second);
+    }
+    
+    /**************************************************************************
+    
+        Formats an ISO 8601 timestamp from the provided time.
+        
+        Params:
+            timestamp = timestamp string buffer
+            year,
+            month,
+            day,
+            hour,
+            minute,
+            second     = time components
+            ns         = second fraction (ns)
+        
+        Returns
+            resulting timestamp
+        
+     **************************************************************************/
+
+    public char[] toTimeStamp ( ref char[] timestamp,
+                                in int year, in int month,  in int day,
+                                in int hour, in int minute, in int second, 
+                                in long ns = 0 )
+    {
+        int n = 0;
+        
+        timestamp.length  = 0x20;
+        
+        if (ns)
+        {
+            n = snprintf(timestamp.ptr, timestamp.length, "%04d-%02d-%02dT%02d:%02d:%02d.%d", year, month, day, hour, minute, second, reduceDecDigits(ns));
+        }
+        else
+        {
+            n = snprintf(timestamp.ptr, timestamp.length, "%04d-%02d-%02dT%02d:%02d:%02d", year, month, day, hour, minute, second);
+        }
+        
+        timestamp.length = max(n, 0);
+        
+        return timestamp;
+    }
+    
+    /**************************************************************************
+    
         Converts a hexadecimal string into a time value.
         
         Params:
-            hex_time = hexadecimal string
+            hex_time = hexadecimal timestamp
         
         Returns
             time value
@@ -385,7 +541,76 @@ template UnixTime( bool GMT = true ) { struct UnixTime
         return true;
     }
     
-}}
+    
+    /**************************************************************************
+    
+        Returns the number of decimal digits of x.
+        
+        Params:
+            x = input value
+        
+        Returns
+            number of decimal digits of x
+        
+     **************************************************************************/
+
+    private uint decDigits ( T : long ) ( T x )
+    {
+        uint i;
+        
+        for (i = 0; x; i++)
+        {
+            x /= 10;
+        }
+        
+        return i;
+    }
+    
+    /**************************************************************************
+    
+        Divides x by the highest power of 10 it is dividable by.
+        
+        Params:
+            x = input value
+        
+        Returns
+            x divided by the highest power of 10 it is dividable by
+        
+     **************************************************************************/
+
+    private T reduceDecDigits ( T  : long ) ( T x )
+    {
+        while (x && !(x % 10))
+        {
+            x /= 10;
+        }
+        
+        return x;
+    }
+    
+    /**************************************************************************
+    
+        Multiplies x with a power of 10 so that the result has n decimal digits.
+        
+        Params:
+            x = input value
+        
+        Returns
+            x multiplied with a power of 10 so that the result has n decimal
+            digits
+        
+     **************************************************************************/
+
+    private T padDecDigits ( T : long ) ( T x, uint n )
+    {
+        for (uint j = decDigits(reduceDecDigits(x)); j < n; j++)
+        {
+            x *= 10;
+        }
+        
+        return x;
+    }
+}
 
 /*******************************************************************************
 
@@ -408,9 +633,12 @@ debug (OceanUnitTest)
         UnixTimeLocal loc;
         
         assert(gmt.now + 7200 == loc.now); // test 2h time shift
-
-        assert(gmt.from("2010-05-25T14:00:03") == 1274796003);
-        assert(loc.from("2010-05-25T16:00:03") == 1274796003);
+        
+        char[] timestamp14 = "2010-05-25T14:00:03".dup;
+        char[] timestamp16 = "2010-05-25T16:00:03".dup;
+        
+        assert(gmt.from(timestamp14) == 1274796003);
+        assert(loc.from(timestamp16) == 1274796003);
         
         assert(gmt.from(2010,5,25,14,0,3) == 1274796003);
         assert(loc.from(2010,5,25,16,0,3) == 1274796003);
@@ -418,12 +646,12 @@ debug (OceanUnitTest)
         UnixTimeGMT.HexTime h;
         time_t t;
         
-        t = gmt.from("2010-05-25T14:00:03", h);
+        t = gmt.from(timestamp14, h);
         
         assert(t == 1274796003);
         assert(h == `4bfbd7e3`);
         
-        t = loc.from("2010-05-25T16:00:03", h);
+        t = loc.from(timestamp14, h);
         
         assert(t == 1274796003);
         assert(h == `4bfbd7e3`);
