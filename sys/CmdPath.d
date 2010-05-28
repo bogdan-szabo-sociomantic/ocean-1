@@ -75,15 +75,17 @@ struct CmdPath
               base directory
              
      **************************************************************************/
-    
+
     public char[] set ( char[] exepath )
     {
-        scope path = new FilePath(exepath);
+    	scope path = new FilePath(exepath);
         
-        this.dir = PathUtil.normalize(path.absolute(Environment.cwd()).path());
+        path = PathUtil.normalize(path.folder);
         
+        this.dir = path.absolute(Environment.cwd()).toString();
+
         return this.get();
-    }
+}
     
     /**************************************************************************
     
