@@ -253,13 +253,14 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     public ~this () 
     {
-        static if (M)
-        {
-            foreach ( ref bucket; this.k_map) 
-                pthread_rwlock_destroy(&bucket.rwlock);
-        }
+        this.len = 0;
         
-        this.clear();
+        foreach ( ref bucket; this.k_map)
+        {
+            static if (M) pthread_rwlock_destroy(&bucket.rwlock);
+            bucket.length = 0;
+        }
+
         this.free_();
     }
     
