@@ -1040,7 +1040,8 @@ struct SocketClientException ( Const : SocketClientConst )
 
 	static class ReadOnly : Generic
 	{
-	    this ( char[] msg = "Attempted to put on read-only server" ) { super(msg); }
+    	static Const.Code code = Const.Status.PutOnReadOnly;
+        this ( ) { super(Const.instance().descriptions_by_code[code]); }
 	}
 }
 
