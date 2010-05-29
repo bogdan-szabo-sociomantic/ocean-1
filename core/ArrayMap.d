@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    Array HashMap
+    Hashtable based D Array Implementation with Multi-Thread Support
 
     Copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
@@ -37,9 +37,21 @@ struct Mutex
         const bool Disable = false;
 }
 
+/*******************************************************************************
+
+    Key/value bag for ArrayMapKV implementation
+
+*******************************************************************************/
+
+private struct KeyValueElement ( K, V )
+{
+        K key;
+        V value;
+}
+
 /*******************************************************************************  
 
-    Implements associative array with consistent hashing. 
+    Hashmap with consistent hashing and without key iteration.
     
     Consistent hashing provides a performant way to add or remove array 
     elements without significantly change the mapping of keys to buckets. By 
@@ -49,39 +61,38 @@ struct Mutex
     The load factor is diretly influenced by n and s, its bucket size.
     
     Multithread support
-    ---
+
     By providing the -version=Thread switch at compile time the array map
     can be used by multiple threads at the same time. Be aware that this 
     influcences the overall performance.
-    ---
     
     Load factor
-    ---
+
     The load factor specifies the ratio between the number of buckets and 
-    the number of stored elements. A smaller load factor usually is better,
-    nevertheless its also influenced by the memory allocation overhead.
-    
-    100.000 keys / 10.000 buckets = load factor 10
-    ---
+    the number of stored elements. A smaller load factor the better the 
+    performance but it should never be below zero. The optimal load factor
+    is said to 0.75.
     
     Performance
-    ---
-    The current implementation offers a good overall performance. An 
-    array hashmap with 1.000.000 uint elements and 20.000 buckets shows 
-    the following performance metrics:
+
+    The hashmap implementation offers a good overall performance. An array 
+    hashmap with 1.000.000 uint[uint] elements and 20.000 buckets shows the 
+    following performance metrics:
     
-    2.8 mio inserts/sec
-    5.2 mio lookups/sec
-    ---
+    ~ 20 mio inserts/sec
+    ~ 40 mio lookups/sec
     
-    Template Parameter
-    ---
-    V = type of value stored in array map
-    K = type of key stored in array map (must be of simple type)
-    M = enable/disable mutex
-    ---
+    Limitations
+
+    The hashmap does not support key, value iteration. Only value iteration
+    is supported.
     
-    Usage example for array without thread support
+    Template Params:
+        V = type of value stored in array map
+        K = type of key stored in array map (must be of simple type)
+        M = enable/disable mutex
+    
+    Usage example without thread support
     ---
     scope array = new ArrayMap!(char[])(10_000);
     
@@ -100,9 +111,9 @@ struct Mutex
     array.free();
     ---
     
-    Usage example for array without thread support
+    Usage example with thread support enabled
     ---
-    ArrayMap!(char[], hash_t, Mutex.Enable) array;
+    scope array = new ArrayMap!(char[], hash_t, Mutex.Enable) ;
     
     array.buckets(20_000, 5); // set number of buckets !!! important
     ---
@@ -143,28 +154,25 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             
             static if (M) pthread_rwlock_t rwlock;
     }
-    
+
     /*******************************************************************************
         
-        Hashmap; storing the key indices
+        Hashtable based key map
         
         Hashmap only stores the key indicies as well as the position of the value
         inside the value map.
         
      *******************************************************************************/
     
-    private             Bucket[]                        k_map;
+    final               Bucket[]                        k_map;
     
     /*******************************************************************************
         
-        ValueMap
-        
-        Value map stores keys and values to be able to find the key element once
-        a record gets deleted. otherwise removing a key would be very inefficient.
+        Value map
         
      *******************************************************************************/
     
-    private             V[]                             v_map;
+    final               V[]                             v_map;
     
     /*******************************************************************************
         
@@ -175,7 +183,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    private             uint                            buckets_length;
+    final               uint                            buckets_length;
     
     /*******************************************************************************
         
@@ -186,23 +194,31 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    private             uint                            default_alloc_size = 1;
+    final               uint                            default_alloc_size = 1;
 
     /*******************************************************************************
         
-        Default size of array map
+        Startup size of array map
         
      *******************************************************************************/
     
-    private             uint                            default_size = 1_000;
+    final               uint                            default_size;
     
+    /*******************************************************************************
+        
+        Load factor
+        
+     *******************************************************************************/
+    
+    final               float                           load_factor;
+
     /*******************************************************************************
         
         Number of array elements stored
         
      *******************************************************************************/
     
-    private             uint                            len;
+    final               uint                            len;
     
     /*******************************************************************************
         
@@ -224,27 +240,24 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     public this ( uint default_size = 10_000, float load_factor = 0.75 )
     {
-        this.v_map.length   = default_size;
-        this.default_size   = default_size;
-        this.buckets_length = cast(int) (default_size / load_factor);
-        this.k_map.length   = this.buckets_length;
+        this.default_size = default_size;
+        this.load_factor  = load_factor;
         
-        this.setAllocSize(load_factor);
+        this.buckets_length = cast(int) (default_size / load_factor);
+        
+        this.k_map.length   = this.buckets_length;
+        this.v_map.length   = default_size;
         
         foreach ( ref bucket; this.k_map ) 
         {
             bucket.elements.length = this.default_alloc_size;
-            
-            static if (M) 
-            {
-                pthread_rwlock_init(&bucket.rwlock, null);
-            }
+            static if (M) pthread_rwlock_init(&bucket.rwlock, null);
         }
     }
-    
+      
     /*******************************************************************************
         
-        Destructor; free memory used by hashmap
+        Destructor; free memory to gc
             
         Returns:
             void
@@ -266,6 +279,70 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     /*******************************************************************************
         
+        Put element to array map
+        
+        If the key does not yet exists the element is added otherwise the value of
+        the existing element matching the key is replaced by the new value.
+        
+        Params:
+            key = array key
+            value = array value
+        
+        Returns:
+            void
+        
+     *******************************************************************************/
+    
+    public void put ( K key, V value )
+    {
+        this.put_(key, value);
+    }
+
+    /*******************************************************************************
+        
+        Returns value associated with key
+        
+        Params:
+            key = array key
+            
+        Returns:
+            value of array key
+        
+     *******************************************************************************/
+    
+    public V get ( K key )
+    {
+        V* v = this.findValueSync(key);
+        
+        if ( v !is null )
+        {
+            return *v;
+        }
+        
+        assert(false, "key doesn't exist");
+    }
+
+    /*******************************************************************************
+        
+        Remove element from array map
+        
+        Params:
+            key = key of element to remove
+            
+        Returns:
+            void
+        
+     *******************************************************************************/
+    
+    public void remove ( K key )
+    {
+        hash_t h = (toHash(key) % this.buckets_length);
+
+        this.writeLock (&this.k_map[h], {this.remove_(h, key);});
+    }
+    
+    /*******************************************************************************
+        
         Clear array map
         
         Returns:
@@ -275,14 +352,37 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     public void clear ()
     {
-        this.len = 0;
-        
-        foreach ( ref bucket; this.k_map ) 
+        if ( this.len )
         {
-            this.writeLock ( &bucket, {bucket.length = 0;});
+            this.len = 0;
+            
+            foreach ( ref bucket; this.k_map ) 
+                this.writeLock ( &bucket, {bucket.length = 0;});
         }
     }
     
+    /*******************************************************************************
+        
+        Copies content of array map
+        
+        Params:
+            key = array key
+            
+        Returns:
+            true if key exists, false otherwise
+        
+     *******************************************************************************/
+    
+    public void copy ( ref ArrayMap dst )
+    {
+        if (this.len)
+        {
+            dst.v_map  = this.v_map.dup;
+            dst.k_map  = this.k_map.dup;
+            dst.length = this.length;
+        }
+    }
+
     /*******************************************************************************
         
         Returns whether key exists or not
@@ -320,26 +420,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     /*******************************************************************************
         
-        Remove single key
-        
-        Params:
-            key = key of element to remove
-            
-        Returns:
-            void
-        
-     *******************************************************************************/
-    
-    public void remove ( K key )
-    {
-        hash_t h = (toHash(key) % this.buckets_length);
-
-        this.writeLock (&this.k_map[h], {this.remove_(h, key);});
-    }
-    
-    /*******************************************************************************
-        
-        Return number of elements stored in hashmap
+        Return number of elements stored in array map
         
         Returns:
             number of elements
@@ -353,22 +434,21 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     /*******************************************************************************
         
-        Set array element
+        Set number of elements stored in array map
         
         Params:
-            key = array key
-            value = array value
+            number of elements
         
         Returns:
             void
         
      *******************************************************************************/
     
-    public void opIndexAssign ( V value, K key )
+    public void length ( uint length )
     {
-        this.set(key, value);
+        this.len = length;
     }
-    
+
     /*******************************************************************************
         
         Returns element value associated with key
@@ -381,7 +461,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    public V opIndex( K key )
+    public V opIndex ( K key )
     {
         V* v = this.findValueSync(key);
         
@@ -391,6 +471,27 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         }
         
         assert(false, "key doesn't exist");
+    }
+    
+    /*******************************************************************************
+        
+        Put element to array map
+        
+        If the key does not yet exists the element is added otherwise the value of
+        the existing element matching the key is replaced by the new value.
+        
+        Params:
+            key = array key
+            value = array value
+        
+        Returns:
+            void
+        
+     *******************************************************************************/
+    
+    public void opIndexAssign ( V value, K key )
+    {
+        this.put_(key, value);
     }
     
     /***********************************************************************
@@ -445,31 +546,14 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         return null;
     }
-    
-    /***********************************************************************
-        
-        Returns iterator with key and value as reference
-    
-        Be aware that the returned list if unordered.
-        
-        Params:
-            dg = iterator delegate
-        
-        Returns:
-            array keys and values
-    
-    ************************************************************************/
-
-     public int opApply (int delegate(ref K key, ref V value) dg)
-     {
-         return this.iterate(dg);
-     }
      
      /***********************************************************************
          
          Returns iterator with value as reference
      
-         Be aware that the returned list if unordered.
+         Be aware that the returned list is unordered and that the array map
+         does not support iteration over the key of the element is this 
+         would be very inefficent.
          
          Params:
              dg = iterator delegate
@@ -481,7 +565,13 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      public int opApply (int delegate(ref V value) dg)
      {
-         return this.iterate(dg);
+         int result = 0;
+         
+         for ( uint i; i < this.len; i++ )
+             if ((result = dg(this.v_map[i])) != 0)
+                 break;
+         
+         return result;
      }
      
      /*******************************************************************************
@@ -527,15 +617,27 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
          
       *******************************************************************************/
      
-     public hash_t toHash ( K key )
+     private uint toHash ( K key )
      {
-         static if ( is(K : hash_t) )
+         static if (
+                    is (K : hash_t)  || 
+                    is (K : int)     || 
+                    is (K : uint)    || 
+                    is (K : long)    || 
+                    is (K : ulong)   || 
+                    is (K : short)   || 
+                    is (K : ushort)  ||
+                    is (K : byte)    || 
+                    is (K : ubyte)   ||
+                    is (K : char)    || 
+                    is (K : wchar)   || 
+                    is (K : dchar))
          {
-             return key;
+                    return cast(hash_t) (key);
          }
          else
          {
-             return Fnv1a32.fnv1(key); // or Fnv1a64???
+            return (Fnv1a32.fnv1(key) & 0x7FFFFFFF);
          }
      }
      
@@ -595,9 +697,17 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     private V* findValue ( K key, hash_t h )
     {
-        for ( uint i = 0; i < this.k_map[h].length; i++ )
-            if ( this.k_map[h].elements[i].key == key )
-                return &(this.v_map[this.k_map[h].elements[i].pos]);
+//        for ( uint i = 0; i < this.k_map[h].length; i++ )
+//            if ( this.k_map[h].elements[i].key == key )
+//                return &(this.v_map[this.k_map[h].elements[i].pos]);
+        
+
+        uint length = this.k_map[h].length;
+        Bucket* bucket = &this.k_map[h];
+        
+        for ( uint i = 0; i < length; i++ )
+            if ( bucket.elements[i].key == key )
+                return &(this.v_map[bucket.elements[i].pos]);
         
         return null;
     }
@@ -633,7 +743,10 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     /*******************************************************************************
         
-        Set array element
+        Put array element
+
+        Adds element to array map in not yet existing otherwise the existing value
+        is replaced by the new value.
 
         Params:
             key = array key
@@ -641,10 +754,10 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         Returns:
             void
-        
+
      *******************************************************************************/
     
-    private void set ( in K key, in V value )
+    private void put_ ( in K key, in V value )
     {
         hash_t h = (toHash(key) % this.buckets_length);
         
@@ -661,7 +774,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
                     this.k_map[h].elements[this.k_map[h].length] = KeyElement(key, this.len);
                 
                     this.k_map[h].length++;
-                    
+
                     static if (M) this.length_(true); else this.len++;
             }
             else
@@ -766,14 +879,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
                 this.k_map[h].length = this.k_map[h].length - 1;
             }
             
-            if ( this.len == 1 )
-            {
-                this.v_map.length = 0;
-            }
-            else
-            {
-                *v = this.v_map[this.len-1];
-            }
+            if ( this.len > 1 ) *v = this.v_map[this.len - 1];
             
             static if (M) this.length_(false); else this.len--;
 
@@ -801,79 +907,6 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     synchronized private void length_ ( bool inc = true )
     {
         inc ? this.len++ : this.len--;
-    }
-    
-    /***********************************************************************
-        
-        Returns iterator with key and value as reference
-    
-        Be aware that the returned list if unordered.
-        
-        Params:
-            dg = iterator delegate
-        
-        Returns:
-            array keys and values
-    
-    ************************************************************************/
-    
-    private int iterate (int delegate(ref K key, ref V value) dg)
-    {
-        int result = 0;
-        
-        foreach ( ref bucket; this.k_map )
-        {
-            static if (M)
-            {
-                pthread_rwlock_rdlock(&bucket.rwlock);
-                scope (failure) pthread_rwlock_unlock(&bucket.rwlock); 
-            }
-            
-            for ( uint i = 0; i < bucket.length; i++ )
-                if ((result = dg(bucket.elements[i].key, 
-                        this.v_map[bucket.elements[i].pos])) != 0)
-                    break;
-            
-            static if (M) pthread_rwlock_unlock(&bucket.rwlock);
-        }
-        
-        return result;
-    }
-    
-    /***********************************************************************
-        
-        Returns iterator with value as reference
-    
-        Be aware that the returned list if unordered.
-        
-        Params:
-            dg = iterator delegate
-        
-        Returns:
-            array values
-    
-    ************************************************************************/
-    
-    private int iterate (int delegate(ref V value) dg)
-    {
-        int result = 0;
-        
-        foreach ( ref bucket; this.k_map )
-        {
-            static if (M)
-            {
-                pthread_rwlock_rdlock(&bucket.rwlock);
-                scope (failure) pthread_rwlock_unlock(&bucket.rwlock); 
-            }
-            
-            for ( uint i = 0; i < bucket.length; i++ )
-                if ((result = dg(this.v_map[bucket.elements[i].pos])) != 0)
-                    break;
-            
-            static if (M) pthread_rwlock_unlock(&bucket.rwlock);
-        }
-        
-        return result;
     }
     
     /***********************************************************************
@@ -930,6 +963,336 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     }
 }
 
+/*******************************************************************************  
+
+    Hashmap with consistent hashing and with key iteration.
+    
+    The ArraySet supports key/value iteration whereas the ArrayMap only 
+    supports value iteration. The price for having key/value iteration is 
+    having the key stored inside the key map as well as in the value map.
+    
+    Template Params:
+        V = type of value stored in array map
+        K = type of key stored in array map (must be of simple type)
+        M = enable/disable mutex
+    
+*********************************************************************************/
+
+class ArrayMapKV ( V, K = hash_t, bool M = Mutex.Disable )
+{
+    
+    /*******************************************************************************
+        
+        KeyValue element alias
+        
+     *******************************************************************************/
+    
+    private alias       KeyValueElement!(K, V)                  Element;
+    
+    /*******************************************************************************
+        
+        Map
+        
+     *******************************************************************************/
+    
+    final               ArrayMap!(KeyValueElement!(K, V), K)    map;
+
+    /*******************************************************************************
+        
+        Sets number of buckets used
+    
+        Usage example
+        ---
+        scope array = new ArrayMap (1_000_000, 0.75);
+        ---
+        
+        Params:
+            default_size = estimated number of elements to be stored
+            load_factor = determines the number of buckets used
+            
+        Returns:
+            void
+            
+     *******************************************************************************/
+    
+    public this ( uint default_size = 10_000, float load_factor = 0.75 )
+    {
+        map = new ArrayMap!(KeyValueElement!(K, V), K)(default_size, load_factor);
+    }
+    
+    /*******************************************************************************
+        
+        Destructor; free memory to gc
+            
+        Returns:
+            void
+            
+     *******************************************************************************/
+    
+    public ~this () 
+    {
+        delete map;
+    }
+
+    /*******************************************************************************
+        
+        Put element to array map
+        
+        If the key does not yet exists the element is added otherwise the value of
+        the existing element matching the key is replaced by the new value.
+        
+        Params:
+            key = array key
+            value = array value
+        
+        Returns:
+            void
+        
+     *******************************************************************************/
+    
+    public void put ( K key, V value )
+    {
+        map.put(key, Element(key, value));
+    }
+    
+    /*******************************************************************************
+        
+        Returns value associated with key
+        
+        Params:
+            key = array key
+            
+        Returns:
+            value of array key
+        
+     *******************************************************************************/
+    
+    public V get ( K key )
+    {
+        return (map.get(key)).value;
+    }
+
+    /*******************************************************************************
+        
+        Remove element from array map
+        
+        Params:
+            key = key of element to remove
+            
+        Returns:
+            void
+        
+     *******************************************************************************/
+    
+    public void remove ( K key )
+    {
+        map.remove(key);
+    }
+    
+    /*******************************************************************************
+        
+        Clear array map
+        
+        Returns:
+            void
+        
+     *******************************************************************************/
+    
+    public void clear ()
+    {
+        map.clear();
+    }
+    
+    /*******************************************************************************
+        
+        Returns whether key exists or not
+        
+        Params:
+            key = array key
+            
+        Returns:
+            true if key exists, false otherwise
+        
+     *******************************************************************************/
+    
+    public ArrayMapKV dup ()
+    {
+        auto clone = new ArrayMapKV!(V, K, M)(map.default_size, map.load_factor);
+        
+        map.copy(clone.map);
+        
+        return clone;
+    }
+    
+    /*******************************************************************************
+        
+        Returns whether key exists or not
+        
+        Params:
+            key = array key
+            
+        Returns:
+            true if key exists, false otherwise
+        
+     *******************************************************************************/
+    
+    bool exists ( K key )
+    {   
+        return map.exists(key);
+    }
+    
+    /*******************************************************************************
+        
+        Free memory allocated by array map
+        
+        Using free on an array map leads to freeing of any memory allocated. The
+        array map can't be reused anymore afterwards.
+        
+        Returns:
+            void
+        
+     *******************************************************************************/
+    
+    public void free ()
+    {
+        map.free;
+    }
+    
+    /*******************************************************************************
+        
+        Return number of elements stored in hashmap
+        
+        Returns:
+            number of elements
+        
+     *******************************************************************************/
+    
+    public uint length ()
+    {
+        return map.length;
+    }
+
+    /*******************************************************************************
+        
+        Returns element value associated with key
+        
+        Params:
+            key = array key
+            
+        Returns:
+            value of array key
+        
+     *******************************************************************************/
+    
+    public V opIndex ( K key )
+    {
+        return (map.get (key)).value;
+    }
+
+    /*******************************************************************************
+        
+        Put element to array map
+        
+        If the key does not yet exists the element is added otherwise the value of
+        the existing element matching the key is replaced by the new value.
+        
+        Params:
+            key = array key
+            value = array value
+        
+        Returns:
+            void
+        
+     *******************************************************************************/
+    
+    public void opIndexAssign ( V value, K key )
+    {
+        map.put(key, Element(key, value));
+    }
+    
+    /***********************************************************************
+        
+        Return value associated with key
+        
+        Params:
+            key = array key
+        
+        Returns:
+            a pointer to the located value, or null if not found
+    
+    ************************************************************************/
+    
+    static if (M) public bool opIn_r ( K key )
+    {
+        return key in map;
+    }
+    else public V* opIn_r ( K key )
+    {
+        Element* e = key in map;
+        
+        if ( e !is null )
+        {
+            return &(*e).value;
+        }
+        
+        return null;
+    }
+    
+    /***********************************************************************
+        
+        Returns iterator with value as reference
+    
+        Be aware that the returned list is unordered and that the array map
+        does not support iteration over the key of the element is this 
+        would be very inefficent.
+        
+        Params:
+            dg = delegate to pass values to
+        
+        Returns:
+            delegate result
+    
+    ************************************************************************/
+    
+    public int opApply (int delegate(ref V value) dg)
+    {
+        int result = 0;
+        
+        foreach ( element; map )
+            if ((result = dg(element.value)) != 0)
+                break;
+        
+        return result;
+    }
+    
+    /***********************************************************************
+        
+        Returns iterator with key and value as reference
+    
+        Be aware that the returned list is unordered and that the array map
+        does not support iteration over the key of the element is this 
+        would be very inefficent.
+        
+        Params:
+            dg = delegate to pass key & values to
+        
+        Returns:
+            delegate result
+    
+    ************************************************************************/
+    
+    public int opApply (int delegate(ref K key, ref V value) dg)
+    {
+        int result = 0;
+        
+        foreach ( element; map )
+            if ((result = dg(element.key, element.value)) != 0) 
+                break;
+        
+        return result;
+    }
+
+}
 
 /*******************************************************************************
 
@@ -943,24 +1306,53 @@ debug (OceanUnitTest)
     import tango.core.Memory;
     import tango.time.StopWatch;
     import tango.core.Thread;
+    import tango.util.container.HashMap;
     
     unittest
     {
         Trace.formatln("Running ocean.core.ArrayMap unittest");
         
-        const uint iterations  = 1000;
-        const uint inserts     = 1000000;
+        const uint iterations  = 5;
+        const uint inserts     = 1_000_000;
         const uint num_threads = 5;
-
+        
         /***********************************************************************
             
-            Assertion Test
+            ArrayMapKV Assertion Test
             
          ***********************************************************************/
         
         StopWatch   w;
         
-        scope array = new ArrayMap!(uint, hash_t, Mutex.Disable)(1_000_000);
+        scope map = new ArrayMapKV!(uint, hash_t, Mutex.Disable)(100);
+        
+        map.put(1,11111);
+        map.put(2,22222);
+    
+        assert(map[1] == 11111);
+        assert(map[2] == 22222);
+        
+        assert(1 in map);
+        assert(2 in map);
+        
+        assert(map.length == 2);
+        
+        map[3] = 33333;
+        
+        assert(map.length == 3);
+        assert(map.get(3) == 33333);
+        
+        map.remove(3);
+        assert((3 in map) == null);
+        assert(map.length == 2);
+        
+        /***********************************************************************
+            
+            ArrayMap Assertion Test
+            
+         ***********************************************************************/
+        
+        scope array = new ArrayMap!(uint, hash_t, Mutex.Disable)(inserts);
         
         array[1111] = 2;
         array[2222] = 4;
@@ -1025,13 +1417,10 @@ debug (OceanUnitTest)
         array.free;
 
         Thread.sleep(2);
-        
+    
         /***********************************************************************
             
-            Thread hashmap test function
-                
-            Returns:
-                void
+            MuliThread hashmap Test
             
          ***********************************************************************/
         
@@ -1063,9 +1452,9 @@ debug (OceanUnitTest)
         group.joinAll();
 
         Trace.formatln  ("{} array elements found after thread iteration", arraym.length);
-        Trace.formatln  ("{} threads with {} iterations {}/s", num_threads, 
+        Trace.formatln  ("{} threads with {} adds {}/s", num_threads, 
                 num_threads * iterations * inserts, (num_threads * iterations * inserts)/w.stop);
-    
+
         Trace.formatln("done unittest");
         Trace.formatln("");
 
