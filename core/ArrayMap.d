@@ -676,7 +676,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         static if (M)
         {
             pthread_rwlock_rdlock(&this.k_map[h].rwlock);
-            scope (failure) pthread_rwlock_unlock(&this.k_map[h].rwlock); 
+            scope (exit) pthread_rwlock_unlock(&this.k_map[h].rwlock); 
         }
         
         return this.findValue(key, h);
@@ -1314,7 +1314,7 @@ debug (OceanUnitTest)
         
         const uint iterations  = 5;
         const uint inserts     = 1_000_000;
-        const uint num_threads = 5;
+        const uint num_threads = 1;
         
         /***********************************************************************
             
@@ -1420,17 +1420,17 @@ debug (OceanUnitTest)
     
         /***********************************************************************
             
-            MuliThread hashmap Test
+            Muli-Threading Test
             
          ***********************************************************************/
         
         scope arraym = new ArrayMap!(uint, hash_t, Mutex.Enable)(1_000_000);
         scope group  = new ThreadGroup;
         
-        void threadFunc ()
+        void write ()
         {
             StopWatch   s;
-            
+
             for ( uint r = 1; r <= iterations; r++ )
             {
                 s.start;
@@ -1441,18 +1441,36 @@ debug (OceanUnitTest)
                         r, arraym.length, arraym.length/s.stop, GC.stats["poolSize"]);
             }
         }
-    
-        Trace.formatln("running mutex thread test...");
+        
+        void read ()
+        {
+            StopWatch   s;
+
+            for ( uint r = 1; r <= iterations; r++ )
+            {
+                s.start;
+                
+                for ( uint i = 1; i <= inserts; i++ ) i in arraym;
+                
+                Trace.formatln  ("loop {}: {} lookups with {}/s and {} bytes mem usage", 
+                        r, inserts, inserts/s.stop, GC.stats["poolSize"]);
+            }
+        }
+        
+        Trace.formatln("running mutex read/write thread test...");
 
         w.start;
         
         for( int i = 0; i < num_threads; ++i )
-            group.create( &threadFunc );
+            group.create( &write );
+        
+        for( int i = 0; i < num_threads; ++i )
+            group.create( &read );
         
         group.joinAll();
 
         Trace.formatln  ("{} array elements found after thread iteration", arraym.length);
-        Trace.formatln  ("{} threads with {} adds {}/s", num_threads, 
+        Trace.formatln  ("{} threads with {} adds/lookups {}/s", num_threads, 
                 num_threads * iterations * inserts, (num_threads * iterations * inserts)/w.stop);
 
         Trace.formatln("done unittest");
