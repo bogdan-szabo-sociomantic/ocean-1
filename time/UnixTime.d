@@ -126,7 +126,7 @@ struct UnixTime( bool GMT = true )
     
      **************************************************************************/
     
-    public time_t from ( ref char[] timestamp )
+    public time_t from ( char[] timestamp )
     {
         return fromFrac(timestamp).tv_sec;
     }
@@ -148,7 +148,7 @@ struct UnixTime( bool GMT = true )
     
      **************************************************************************/
 
-    public timespec fromFrac ( ref char[] timestamp )
+    public timespec fromFrac ( char[] timestamp )
     {
         timespec ts;
         tm       datetime;
@@ -213,7 +213,7 @@ struct UnixTime( bool GMT = true )
     
      ***************************************************************************/
 
-    public time_t from ( ref char[] timestamp, HexTime hex_time )
+    public time_t from ( char[] timestamp, HexTime hex_time )
     {
         return toHex(from(timestamp), hex_time);
     }
@@ -384,7 +384,7 @@ struct UnixTime( bool GMT = true )
         
      **************************************************************************/
 
-    public char[] toTimeStamp ( ref char[] timestamp, in timespec t )
+    public char[] toTimeStamp ( char[] timestamp, in timespec t )
     {
         int year, month, day, hour, minute, second;
         
@@ -406,7 +406,7 @@ struct UnixTime( bool GMT = true )
         
      **************************************************************************/
 
-    public char[] toTimeStamp ( ref char[] timestamp, in HexTime t )
+    public char[] toTimeStamp ( char[] timestamp, in HexTime t )
     {
         int year, month, day, hour, minute, second;
         
@@ -428,7 +428,7 @@ struct UnixTime( bool GMT = true )
         
      **************************************************************************/
 
-    public char[] toTimeStamp ( ref char[] timestamp, in time_t t )
+    public char[] toTimeStamp ( char[] timestamp, in time_t t )
     {
         int year, month, day, hour, minute, second;
         
@@ -456,7 +456,7 @@ struct UnixTime( bool GMT = true )
         
      **************************************************************************/
 
-    public char[] toTimeStamp ( ref char[] timestamp,
+    public char[] toTimeStamp ( char[] timestamp,
                                 in int year, in int month,  in int day,
                                 in int hour, in int minute, in int second, 
                                 in long ns = 0 )
