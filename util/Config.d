@@ -831,9 +831,9 @@ class Config
     
     struct Char
     {
-        public static char[] opIndex ( T = char ) (char[] category, char[] key)
+        public static T[] opIndex ( T = char ) (char[] category, char[] key)
         {
-            return Config.get!(char[])(category, key);
+            return Config.get!(T[])(category, key);
         }
     }
     
