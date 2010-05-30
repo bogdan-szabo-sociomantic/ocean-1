@@ -96,12 +96,15 @@ struct UnixTime( bool GMT = true )
         
         Return current timestamp in sec
         
+        !!!!Please favour to use the tango Clock.now.unix.seconds() method in 
+        order to retrieve the gmt timestamp as it is at least 2 times faster.
+        
         Returns:
             current unix time
     
      **************************************************************************/
     
-    public time_t now ()
+    deprecated public time_t now ()
     {
         time_t t     = time(null);
         
