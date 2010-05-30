@@ -96,8 +96,9 @@ struct UnixTime( bool GMT = true )
         
         Return current timestamp in sec
         
-        !!!!Please favour to use the tango Clock.now.unix.seconds() method in 
-        order to retrieve the gmt timestamp as it is at least 2 times faster.
+        FIXME Please favour to use the tango Clock.now.unix.seconds() method 
+        in order to retrieve the gmt timestamp as it is at least 2 times 
+        faster. We need to investigate why!
         
         Returns:
             current unix time
