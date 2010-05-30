@@ -172,7 +172,12 @@ class HttpServer
         [Open file limit]
         
         ulimit -n 8000
+        
+        For more information
+        
+        http://redmine.lighttpd.net/wiki/1/Docs:Performance
         ---
+        
         
         Params:
             threads = number of worker threads
