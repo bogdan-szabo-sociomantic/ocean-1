@@ -149,8 +149,33 @@ class HttpServer
         
         Constructor; creates http server socket
         
+        Performance tuning!!!
+        ---
+        The backlog determines the maximum number of connections queued. By default 
+        this parameter is limited to 128 on Linux. However, you can raise this limit.
+        Moreover, the tcp timeout, the keepalive and open file descriptor limit can
+        be raised too.
+        
+        [Backlog]
+        
+        echo 3000 > /proc/sys/net/core/netdev_max_backlog
+        echo 3000 > /proc/sys/net/core/somaxconn
+        
+        [Timeout]
+        
+        echo 30 > /proc/sys/net/ipv4/tcp_fin_timeout
+        
+        [Keepalive]
+        
+        echo 15 > /proc/sys/net/ipv4/tcp_keepalive_intvl
+        
+        [Open file limit]
+        
+        ulimit -n 8000
+        ---
+        
         Params:
-            number_threads = number of worker threads
+            threads = number of worker threads
             socket_port = server port
             backlog = size of backlog
             reuse = enable/disable socket reuse
@@ -242,7 +267,7 @@ class HttpServer
         this.selector = new EpollSelector(); 
         
         this.selector.open(500, 64);
-        this.selector.register(this.socket, Event.Read | Event.Hangup | 
+        this.selector.register(this.socket, Event.Read  | Event.Hangup | 
                                             Event.Error | Event.InvalidHandle);     
         
         scope(exit) 
