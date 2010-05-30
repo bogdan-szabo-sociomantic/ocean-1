@@ -157,7 +157,7 @@ class HttpServer
                 
      *******************************************************************************/
     
-    this ( uint threads = 1, uint port = 80, uint backlog = 128, bool reuse = true )
+    this ( uint threads = 1, uint port = 80, uint backlog = 1024, bool reuse = true )
     {
         this.number_threads = threads;
         this.child_id       = getpid();
@@ -310,7 +310,7 @@ class HttpServer
                             Trace.formatln("unknown socket error");
                         }
                     }
-                }  
+                }
             }
             else 
             {

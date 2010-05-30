@@ -19,7 +19,7 @@ module      ocean.net.http.HttpConstants;
 
 *******************************************************************************/
 
-import      tango.net.http.HttpConst;
+public  import      tango.net.http.HttpConst;
 
 
 /*******************************************************************************

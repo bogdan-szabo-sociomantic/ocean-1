@@ -561,10 +561,14 @@ class HttpRequest
         
         this.selector.open(this.selector_params.size, this.selector_params.max_events);
         
-        this.selector.register(socket, Event.Read);
+        this.selector.register(socket, Event.Read | Event.Hangup | 
+                                       Event.Error | Event.InvalidHandle );
         
         try while (!(this.finished_reading || this.invalid_request))
         {
+            
+//          FIXME SOMETHING IS WRONG AT SELECT IF SOCKET IS BROKEN!!!!!
+            
             int event_count = this.selector.select(this.selector_params.timeout);
             
             assertEx!(RequestException.Timeout)(event_count > 0);
@@ -573,14 +577,14 @@ class HttpRequest
             {
                 scope (exit) this.selector.unregister(key.conduit);
                 
-                assertEx!(SocketException)(!key.isError(),         "socket error");
-                assertEx!(SocketException)(!key.isHangup(),        "socket hung up");
-                assertEx!(SocketException)(!key.isInvalidHandle(), "socket: invalid handle");
-                
                 if (key.isReadable)
                 {
                     this.readInputChunk(cast (Socket) key.conduit);
                 }
+                
+                assertEx!(SocketException)(!key.isError(),         `socket error`);
+                assertEx!(SocketException)(!key.isHangup(),        `socket hung up`);
+                assertEx!(SocketException)(!key.isInvalidHandle(), `socket: invalid handle`);
             }
         }
         catch (RequestException e)
