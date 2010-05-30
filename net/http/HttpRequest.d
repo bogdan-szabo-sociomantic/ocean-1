@@ -204,7 +204,7 @@ class HttpRequest
 
      **************************************************************************/
 
-    alias bool delegate ( ref char[] chunk )    ReadBodyDg;
+    public  alias bool delegate ( ref char[] chunk )    ReadBodyDg;
     
     /**************************************************************************
 
@@ -229,7 +229,7 @@ class HttpRequest
     
      **************************************************************************/
 
-    static const size_t                         DefaultIoBufferSize = 0x200;
+    public              static const size_t     DefaultIoBufferSize = 0x200;
     
     /**************************************************************************
     
@@ -280,7 +280,7 @@ class HttpRequest
     
     /**************************************************************************
     
-        Message body length limit (bytes)
+        Message body length limit (default 2mb)
         
         May be changed at any time to fit your needs.
         
@@ -290,7 +290,7 @@ class HttpRequest
         
     ***************************************************************************/
 
-    public              size_t                  body_length_limit  = 0x20_0000; // (2 MB) max bytes post data
+    public              size_t                  body_length_limit  = 0x20_0000;
     
     /**************************************************************************
     
