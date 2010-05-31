@@ -655,6 +655,22 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     }
     
     
+    /**************************************************************************
+    
+        Compares two keys using comparison function currently used for the
+        B+tree. By default that is Tokyo Cabinet's built-in lexical order
+        comparison function, referred to as "tccmplexical".
+        
+        Params:
+            key1 = key to compare
+            key2 = reference key
+            
+        Returns:
+            A positive value for key1 > key2, a negative value for key1 < key2,
+            or 0 for key1 == key2.
+        
+    ***************************************************************************/
+
     public int compareKeys ( char[] key1, char[] key2 )
     {
         // int function (char* aptr, int asiz, char* bptr, int bsiz, void* op) TCCMP;
