@@ -318,7 +318,7 @@ struct Profiler
 			elapsed = duration of timed section (in microseconds)
 		
 		Returns:
-			
+			the new average time for the section, after updating
 		
 	***************************************************************************/
 
@@ -362,13 +362,12 @@ struct Profiler
 
 	/***************************************************************************
 
-		Times a section of code which is passed as the T template argument.
-		(Uses D's lazy evaluation feature so that the code section is executed
-		inside this function.) 
+		Times a section of code (usually an anonymous delegate) which is passed
+		as the template argument T.
 		
 		Params:
 			name = section name
-			T = section of code to be timed
+			section = section of code to be timed
 	
 	***************************************************************************/
 
