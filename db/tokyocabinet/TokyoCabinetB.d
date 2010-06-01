@@ -157,14 +157,20 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     
     /**************************************************************************
     
+        Cursor instance for getFirst()/getLast()
+    
+     **************************************************************************/
+    
+    private TokyoCabinetCursor cursor;
+
+    /**************************************************************************
+    
         Destructor check if called twice
     
      **************************************************************************/
     
     private bool            deleted         = false;
     
-    
-    private TokyoCabinetCursor cursor;
     
     /**************************************************************************
         
