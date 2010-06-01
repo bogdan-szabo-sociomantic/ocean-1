@@ -164,6 +164,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     private bool            deleted         = false;
     
     
+    private TokyoCabinetCursor cursor;
     
     /**************************************************************************
         
@@ -176,7 +177,9 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     
     public this ( ) 
     {
-        this.db = tcbdbnew();
+        super.db = tcbdbnew();
+        
+        this.cursor = new TokyoCabinetCursor(super.db);
     }
     
     
@@ -195,6 +198,8 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     {
         if (!this.deleted)
         {
+            delete this.cursor;
+            
             tcbdbdel(this.db);
             
             debug Trace.formatln(typeof (this).stringof ~ " deleted").flush();
@@ -421,10 +426,11 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
         Get record value
     
         Params:
-            key = record key
+            key   = record key
+            value = record value output
     
         Returns
-            value or empty string if record not existing
+            true on success or false if record not existing
             
     ***************************************************************************/
 
@@ -537,11 +543,69 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
             RangeIterator object providing 'foreach'/'foreach_reverse'
             iteration, retrieving one record per iteration cycle.
             
-    ***************************************************************************/
-
+     **************************************************************************/
+    
     public RangeIterator getRangeAlt ( char[] first, char[] last )
     {
         return RangeIterator(this, first, last);
+    }
+    
+    /**************************************************************************
+    
+        Gets the record with the first key according to the key order.
+        
+        Params:
+            key   = last key according to key order
+            value = record value corresponding to key
+
+     **************************************************************************/
+
+    public void getFirst ( out char[] key, out char[] value )
+    {
+        this.cursor.selectStart().get(key, value);
+    }
+    
+    /**************************************************************************
+    
+        Gets the record with the last key according to the key order.
+        
+        Params:
+            key   = last key according to key order
+            value = record value corresponding to key
+    
+     **************************************************************************/
+
+    public void getLast ( out char[] key, out char[] value )
+    {
+        this.cursor.selectEnd().get(key, value);
+    }
+    
+    /**************************************************************************
+    
+        Gets the first key according to the key order.
+        
+        Params:
+            key = last key according to key order
+    
+     **************************************************************************/
+
+    public void getFirst ( out char[] key )
+    {
+        this.cursor.selectStart().get(key);
+    }
+    
+    /**************************************************************************
+    
+        Gets the last key according to the key order.
+        
+        Params:
+            key = last key according to key order
+    
+     **************************************************************************/
+
+    public void getLast ( out char[] key )
+    {
+        this.cursor.selectEnd().get(key);
     }
     
     /**************************************************************************
@@ -905,7 +969,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
             }
         }
         
-    }
+    } // RangeIterator
     
     /+
     void testCmp ( )
