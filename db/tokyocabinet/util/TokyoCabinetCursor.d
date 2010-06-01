@@ -37,7 +37,8 @@ private import ocean.db.tokyocabinet.c.bdb.tcbdbcur: BDBCUR,
                                                      tcbdbcurjump,  tcbdbcurjumpback,
                                                      tcbdbcurprev,  tcbdbcurnext,
                                                      tcbdbcurout,   tcbdbcurrec,
-                                                     tcbdbcurkey;
+                                                     tcbdbcurkey3;
+
 private import ocean.db.tokyocabinet.c.tcbdb:        TCBDB;
 
 private import ocean.db.tokyocabinet.util.TokyoCabinetExtString;
@@ -242,7 +243,7 @@ class TokyoCabinetCursor
         Returns:
             this instance
         
-    ***************************************************************************/
+     ***************************************************************************/
     
     public This get ( out char[] key, out char[] val )
     {
@@ -252,7 +253,33 @@ class TokyoCabinetCursor
             val = this.xval.toString();
         }
         
-        return this.cursorAssert!(tcbdbcurrec, ".get")(this.xkey.getNative(), this.xval.getNative());
+        return this.cursorAssert!(tcbdbcurrec, "get")(this.xkey.getNative(), this.xval.getNative());
+    }
+    
+    /**************************************************************************
+    
+        Retrieves the key at current cursor position
+        
+        Params:
+            key = record key output
+            val = record value output
+        
+        Returns:
+            this instance
+        
+    ***************************************************************************/
+    
+    public This get ( out char[] key )
+    {
+        int len;
+        
+        char* key_ = cast (char*) tcbdbcurkey3(this.cursor, &len);
+        
+        assertEx!(TokyoCabinetException.Cursor)(!!key_, This.stringof ~ ".get: key not found");
+        
+        key = key_[0 .. len];
+        
+        return this;
     }
     
     /**************************************************************************
