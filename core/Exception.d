@@ -1,39 +1,52 @@
 /******************************************************************************
 
-    Ocean exception classes
+    Ocean Exceptions
 
     copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
     version:        March 2010: Initial release
 
-    authors:        David Eckardt
+    authors:        David Eckardt & Thomas Nicolai
     
     Notes: Each exception class is derived from D's Exception class.
     
-    Usage:
+    Usage example
+    ---
+    import $(TITLE): HttpServerException;
     
+    throw new HttpServerException("error");
+    throw new HttpServerException("error", "myprogram.d", 1234);
+    
+    // same effect as throw new HttpServerException(...)
+    HttpServerException("error");       
+    
+    // same effect as throw new HttpServerException(...)
+    HttpServerException("error", "myprogram.d", 1234);
     ---
     
-        import $(TITLE): HttpServerException;
-        
-        throw new HttpServerException("error");
-        throw new HttpServerException("error", "myprogram.d", 1234);
-        
-        HttpServerException("error");                       // same effect as 'throw new HttpServerException(...)' 
-        HttpServerException("error", "myprogram.d", 1234);  // same effect as 'throw new HttpServerException(...)' 
-    
-    ---
-    
- ******************************************************************************/
+*******************************************************************************/
 
 module ocean.core.Exception;
 
+/******************************************************************************
+
+    ArrayMapException
+
+******************************************************************************/
+
+class ArrayMapException : Exception
+{
+    this ( char[] msg ) { super(msg); }
+    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+    
+    static mixin ExceptionOpCalls!(typeof (this));
+}
 
 /******************************************************************************
 
     CompressException
 
- ******************************************************************************/
+*******************************************************************************/
 
 class CompressException : Exception
 {
@@ -47,7 +60,7 @@ class CompressException : Exception
 
     MySQLException
 
- ******************************************************************************/
+*******************************************************************************/
 
 class MySQLException : Exception
 {
@@ -57,13 +70,11 @@ class MySQLException : Exception
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
-
-
 /******************************************************************************
 
     SqliteException
 
- ******************************************************************************/
+*******************************************************************************/
 
 class SqliteException : Exception
 {
@@ -77,7 +88,7 @@ class SqliteException : Exception
 
     TokyoCabinetException
 
- ******************************************************************************/
+*******************************************************************************/
 
 class TokyoCabinetException : Exception
 {
@@ -95,12 +106,11 @@ class TokyoCabinetException : Exception
     }
 }
 
-
 /******************************************************************************
 
     SphinxException
 
- ******************************************************************************/
+*******************************************************************************/
 
 class SphinxException : Exception
 {
@@ -114,7 +124,7 @@ class SphinxException : Exception
 
     UrlException
 
- ******************************************************************************/
+*******************************************************************************/
 
 class UrlException : Exception
 {
@@ -128,7 +138,7 @@ class UrlException : Exception
 
     HttpResponseException
 
- ******************************************************************************/
+*******************************************************************************/
 
 class HttpResponseException : Exception
 {
@@ -142,7 +152,7 @@ class HttpResponseException : Exception
 
     HttpServerException
 
- ******************************************************************************/
+*******************************************************************************/
 
 class HttpServerException : Exception
 {
@@ -156,7 +166,7 @@ class HttpServerException : Exception
 
     CurlException
 
- ******************************************************************************/
+*******************************************************************************/
 
 class CurlException : Exception
 {
@@ -170,7 +180,7 @@ class CurlException : Exception
 
     NgramParserException
 
- ******************************************************************************/
+*******************************************************************************/
 
 class NgramParserException : Exception
 {
@@ -184,7 +194,7 @@ class NgramParserException : Exception
 
     PCREException
 
- ******************************************************************************/
+*******************************************************************************/
 
 class PCREException : Exception
 {
@@ -198,7 +208,7 @@ class PCREException : Exception
 
     ConfigException
 
- ******************************************************************************/
+*******************************************************************************/
 
 class ConfigException : Exception
 {
@@ -212,7 +222,7 @@ class ConfigException : Exception
 
 	IconvException
 
- ******************************************************************************/
+*******************************************************************************/
 
 class IconvException : Exception
 {
@@ -271,7 +281,7 @@ class IconvException : Exception
 
     opCall template for Exception classes
 
- ******************************************************************************/
+*******************************************************************************/
 
 template ExceptionOpCalls  ( E : Exception )
 {
@@ -295,7 +305,7 @@ template ExceptionOpCalls  ( E : Exception )
 		ok  = condition which must be true else an exception E is thrown
 		msg = exception message
 
- ******************************************************************************/
+*******************************************************************************/
 
 void assertEx ( E : Exception, T ) ( T ok, char[] msg )
 {
@@ -309,7 +319,7 @@ void assertEx ( E : Exception, T ) ( T ok, char[] msg )
 	Params:
 		ok  = condition which must be true else an exception E is thrown
 	
- ******************************************************************************/
+*******************************************************************************/
 
 void assertEx ( E : Exception, T ) ( T ok )
 {

@@ -18,6 +18,8 @@ module ocean.core.ArrayMap;
     
 ********************************************************************************/
 
+private     import      ocean.core.Exception: ArrayMapException;
+
 private     import      ocean.io.digest.Fnv1;
 
 private     import      tango.stdc.posix.pthread;
@@ -319,7 +321,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             return *v;
         }
         
-        assert(false, "key doesn't exist");
+        throw new ArrayMapException(`key doesn't exist`);
     }
 
     /*******************************************************************************
@@ -470,7 +472,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             return *v;
         }
         
-        assert(false, "key doesn't exist");
+        throw new ArrayMapException(`key doesn't exist`);
     }
     
     /*******************************************************************************
