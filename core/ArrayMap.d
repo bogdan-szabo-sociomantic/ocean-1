@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    Hashtable based D Array Implementation with Multi-Thread Support
+    Hashtable with Multi-Thread Support
 
     Copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
