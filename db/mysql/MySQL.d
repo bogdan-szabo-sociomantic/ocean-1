@@ -77,10 +77,10 @@ class MySQL
             this.connection[dbname] = new MysqlDatabase();
 
             this.connection[dbname].connect(
-                "host=" ~ Config.getChar("Database_" ~ dbname, "host") ~
-                ";dbname=" ~ Config.getChar("Database_" ~ dbname, "db"),
+                Config.getChar("Database_" ~ dbname, "db"),
                 Config.getChar("Database_" ~ dbname, "user"),
-                Config.getChar("Database_" ~ dbname, "passwd")
+                Config.getChar("Database_" ~ dbname, "passwd"),
+                ["host": Config.getChar("Database_" ~ dbname, "host")]
                 );
             Trace.formatln("new fresh mysql connection; done!");
             return this.connection[dbname];
