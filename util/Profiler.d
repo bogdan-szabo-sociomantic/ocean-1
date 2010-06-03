@@ -371,11 +371,21 @@ struct Profiler
 	
 	***************************************************************************/
 
-    void timeSection ( T ) ( char[] name, T section )
+    R timeSection ( R, T... ) ( char[] name, R delegate ( T ) section )
     {
-    	this.startSection(name);
-    	section();
-    	this.endSection(name);
+    	static if ( is ( R == void ) )
+    	{
+	    	this.startSection(name);
+	    	section();
+	    	this.endSection(name);
+    	}
+    	else
+    	{
+	    	this.startSection(name);
+	    	R r = section();
+	    	this.endSection(name);
+	    	return r;
+    	}
     }
 
 
