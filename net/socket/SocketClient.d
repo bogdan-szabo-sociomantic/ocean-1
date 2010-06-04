@@ -78,7 +78,7 @@ abstract class SocketClientConst
 
 		(This is done as a template mixin as it's not possible to put static 
 		functionality in a base class which can then be overridden, but still
-		remain static, in deriving classes.
+		remain static, in deriving classes.)
 
 	***************************************************************************/
 
