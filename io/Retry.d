@@ -6,7 +6,7 @@
     
     version:        November 2009: Initial release
     
-    authors:        David Eckardt
+    authors:        David Eckardt, Gavin Norman
     
     --
     
@@ -108,6 +108,7 @@ debug
 {
     private     import 			     tango.util.log.Trace;
 }
+
 
 
 /*******************************************************************************
@@ -306,7 +307,7 @@ class Retry
     public bool enabled = true;
     public uint ms      = 500;
     public uint retries = 0;
-    
+
     private uint n = 0;
 
 
@@ -524,20 +525,20 @@ class Retry
 
     /***************************************************************************
 
-        Default retry callback method for push/pop retries
+        Default retry callback method for retries
 
         Params:
             message = error message
 
         Returns:
-            true if the caller shall continue trying or false if the caller
-            shall quit
+            true if the caller should continue trying or false if the caller
+            should quit
 
     ***************************************************************************/
 
     public bool wait ( char[] message )
     {
-    	this.debugTrace("Retry {} ({})", this.n, message);
+    	debug Trace.formatln("Retry {} ({})", this.n, message);
     	
     	// Is retry enabled and are we below the retry limit or unlimited?
         bool retry = this.enabled && ((this.n < this.retries) || !this.retries);
@@ -555,7 +556,7 @@ class Retry
 
         if ( !retry )
         {
-        	this.debugTrace("Decided not to try again");
+        	debug Trace.formatln("Decided not to try again");
         }
 
         return retry;
@@ -579,40 +580,10 @@ class Retry
     {
     	if ( !this.timeout.isNull() )
     	{
-       		this.debugTrace("Calling timeout function");
+       		debug Trace.formatln("Calling timeout function");
             
         	this.resetCounter();
        		this.timeout();
-    	}
-    }
-
-
-    /***************************************************************************
-    
-	    Outputs a message to Trace if debug compiler switch is enabled.
-	
-	    Params:
-	        as Trace.formatln
-	
-	    Returns:
-	        void
-
-		Note: doing this as a template function isn't ideal, it'd be nicer to be
-		able to simply pass through the variadic args required for the format
-		function. Unfortunately there's no syntax for this in D, and the other
-		alternative of passing the variadic args to a method of type:
-			void formatln(char[] fmt, va_list args, TypeInfo[] arg_types)
-		in Trace isn't possible (as it doesn't expose such a method, and it's
-		impossible to extend Trace due to everything in it being declared as
-		final - thanks Tango! ;)
-
-	***************************************************************************/
-
-    protected void debugTrace ( T ... ) ( T t )
-    {
-    	debug
-    	{
-    		Trace.formatln(t);
     	}
     }
 
@@ -666,11 +637,11 @@ class Retry
     	this.resetCounter();
 
     	do try
-        {
+    	{
     		again = false;
-        	code_block();
-        }
-        catch (Exception e)
+    		code_block();
+    	}
+    	catch (Exception e)
         {
         	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
             this.handleException(e, again);
@@ -749,6 +720,125 @@ class Retry
 	    	}
 	    }
 	}
+}
 
+
+
+/*******************************************************************************
+
+	Unittest
+
+********************************************************************************/
+
+debug ( OceanUnitTest )
+{
+	private import tango.util.log.Trace;
+
+
+    class SpecialException : Exception
+    {
+    	public this ( char[] _msg )
+    	{
+    		super(_msg);
+    	}
+    }
+
+
+    unittest
+    {
+        Trace.formatln("Running ocean.io.Retry unittest");
+
+        const char[] fail_msg = "FAIL";
+        
+        const uint retry_times = 3;
+
+        uint count;
+
+        auto retry = new Retry;
+        retry.retries = retry_times;
+        retry.ms = 10;
+
+
+        /***********************************************************************
+        
+        	Loop test
+        
+        ***********************************************************************/
+
+        Trace.formatln("\nTesting retry loop...");
+
+        count = 0;
+        try
+        {
+	        retry.loop({
+	        	count++;
+	        	throw new Exception(fail_msg);
+	        });
+        }
+        catch ( Exception e )
+        {
+        	assert(e.msg == fail_msg, "Unexpected exception: " ~ e.msg);
+        }
+
+        assert(count == retry_times + 1, "Retry loop not executed the right number of times");
+
+
+        /***********************************************************************
+        
+    		Loop rethrow test
+    
+        ***********************************************************************/
+
+        Trace.formatln("\nTesting retry / rethrow loop...");
+
+        count = 0;
+        try
+        {
+	        retry.loopRethrow!(SpecialException)({
+	        	count++;
+	        	throw new Exception(fail_msg);
+	        });
+        }
+        catch ( SpecialException e )
+        {
+        	assert(e.msg == fail_msg, "Unexpected exception: " ~ e.msg);
+        }
+        catch ( Exception e )
+        {
+        	assert(false, "loopRethrow didn't work - should have caught a SpecialException, actually caught an Exception");
+        }
+
+        assert(count == retry_times + 1, "Retry loop not executed the right number of times");
+
+
+        /***********************************************************************
+
+			Timeout delegate test
+
+        ***********************************************************************/
+
+        Trace.formatln("\nTesting retry loop with timeout delegate...");
+
+        count = 0;
+        bool timeout_happened = false;
+        try
+        {
+	        retry.timeout = { timeout_happened = true; };
+	        retry.loop({
+	        	count++;
+	        	throw new Exception(fail_msg);
+	        });
+        }
+        catch ( Exception e )
+        {
+        	assert(e.msg == fail_msg, "Unexpected exception: " ~ e.msg);
+        }
+
+        assert(count == retry_times + 1, "Retry loop not executed the right number of times");
+
+        assert(timeout_happened, "Timeout delegate didn't get called");
+
+        Trace.formatln("\nDone unittest\n");
+    }
 }
 
