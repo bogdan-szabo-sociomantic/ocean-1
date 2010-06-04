@@ -96,6 +96,11 @@ private  import  Thread_ = tango.core.Thread: thread_joinAll;
 
 private  import  tango.core.Runtime;
 
+debug
+{
+	private import tango.util.log.Trace;
+}
+
 /******************************************************************************
 
     SocketThread
@@ -251,6 +256,7 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
                     
                     if (this.connections.pendingJobs < this.conn_queue_max)
                     {
+                    	debug Trace.formatln("Accepting new connection");
                         this.connections.append(socket);
                     }
                     else
