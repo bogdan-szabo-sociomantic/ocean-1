@@ -10,6 +10,9 @@
     code and display an output to Trace telling how long each recorded section
     took, and the total of all sections.
     
+    The output frequency of the profiler can be limited using the
+    setDisplayUpdateInterval method.
+
     Usage:
        
     ---
@@ -66,7 +69,9 @@ module ocean.util.Profiler;
 
 private import tango.util.log.Trace;
 
-private import tango.time.StopWatch;
+private import ocean.util.TraceProgress;
+
+private import Float = tango.text.convert.Float;
 
 private import tango.core.Memory;
 
@@ -123,35 +128,19 @@ struct Profiler
 
 	    /***********************************************************************
 
-			Outputs a time to Trace, followed by a newline.
+			Appends a time to a char[] buffer.
 			
 			Params:
 				name = operation being timed
 				time = time in microsecs
 				timemode = display mode to use
+				str = buffer to write into
 	
 	    ***********************************************************************/
 
-		static void traceTimeNl ( char[] name, float time, TimeMode timemode )
+		static void appendTime ( char[] name, float time, TimeMode timemode, ref char[] str )
     	{
-   			Trace.formatln("{}: {}{} ", name, time / this.div[timemode], this.name[timemode]);
-    	}
-
-
-	    /***********************************************************************
-
-			Outputs a time to Trace.
-			
-			Params:
-				name = operation being timed
-				time = time in microsecs
-				timemode = display mode to use
-	
-	    ***********************************************************************/
-
-		static void traceTime ( char[] name, float time, TimeMode timemode )
-    	{
-    		Trace.format("{}: {}{} ", name, time / this.div[timemode], this.name[timemode]);
+			str ~= name ~ ": " ~ Float.toString(time / this.div[timemode]) ~ this.name[timemode];
     	}
     }
 
@@ -167,13 +156,22 @@ struct Profiler
 
     /***************************************************************************
 
-		Timer, shared by all instances of this struct (there's only one time!)
+		Console tracer, including timer
 
 	***************************************************************************/
 
-    static StopWatch timer;
+    ConsoleTracer tracer;
 
     
+    /***************************************************************************
+
+		Display buffer, used repeatedly
+
+    ***************************************************************************/
+
+    char[] buf;
+
+
 	/***************************************************************************
 
 		List of section start times - associative array, indexed by section name
@@ -228,7 +226,7 @@ struct Profiler
     		this.section_start[name] = 0;
     	}
     	ulong* start = &this.section_start[name];
-		*start = timer.microsec();
+		*start = this.tracer.timer.microsec();
 	}
 
     
@@ -243,9 +241,15 @@ struct Profiler
 
     void endSection ( char[] name )
 	{
-    	ulong end = timer.microsec();
+    	ulong end = this.tracer.timer.microsec();
 		this.section_end[name] = end;
 	}
+
+
+    void setDisplayUpdateInterval ( ulong micro_secs )
+    {
+    	this.tracer.update_interval = micro_secs;
+    }
 
 
 	/***************************************************************************
@@ -255,26 +259,13 @@ struct Profiler
 		
 		Params:
 			time = display mode (secs, msecs, Usecs)
+			streaming = streaming display
 		
 	***************************************************************************/
 
-    void display ( Time time = Time.MSecs )
+    void display ( Time time = Time.MSecs, bool streaming = true )
     {
-//    	ulong mem_size = cast(ulong) GC.stats["poolSize"];
-
-		uint total;
-    	foreach ( name, start; this.section_start )
-    	{
-			ulong* end_ptr = name in this.section_end;
-			if ( end_ptr )
-    		{
-    			uint elapsed = *end_ptr - start;
-    			total += elapsed;
-    			TimeDisplay.traceTime(name, elapsed, time);
-    		}
-    	}
-		TimeDisplay.traceTimeNl("- Total", total, time);
-//		Trace.formatln("Allocated memory: {}bytes", mem_size);
+    	this._display!(uint)("", &this.getElapsed, time, streaming);
     }
 
 
@@ -286,29 +277,91 @@ struct Profiler
 		
 		Params:
 			time = display mode (secs, msecs, Usecs)
+			streaming = streaming display
 		
 	***************************************************************************/
 
-    void displayAverages ( Time time = Time.MSecs )
-	{
-    	Trace.format("[AVG] ");
-    	uint total;
-		foreach ( name, start; this.section_start )
-		{
-			ulong* end_ptr = name in this.section_end;
-			if ( end_ptr )
+    void displayAverages ( Time time = Time.MSecs, bool streaming = true )
+    {
+    	this._display!(float)("[AVG] ", &this.getAverage, time, streaming);
+    }
+
+
+	/***************************************************************************
+
+		If it's time to update the display, displays the times for all timed
+		sections.
+		
+		Params:
+			prefix = string displayed before the times list
+			dg = delegate to return the value to display for each individual
+				section's time
+			time = display mode (secs, msecs, Usecs)
+			streaming = streaming display
+		
+	***************************************************************************/
+
+    void _display ( T : real ) ( char[] prefix, T delegate ( char[], uint ) dg, Time time, bool streaming )
+    {
+    	if ( this.tracer.timeToUpdate() )
+    	{
+	//    	ulong mem_size = cast(ulong) GC.stats["poolSize"];
+    		this.buf.length = 0;
+    		this.buf ~= prefix;
+
+			T total = 0;
+	    	foreach ( name, start; this.section_start )
+	    	{
+				ulong* end_ptr = name in this.section_end;
+				if ( end_ptr )
+	    		{
+	    			uint elapsed = *end_ptr - start;
+	    			T display_time = dg(name, elapsed);
+	    			total += display_time;
+	    			TimeDisplay.appendTime(name, display_time, time, this.buf);
+	    			this.buf ~= ' ';
+	    		}
+	    	}
+			TimeDisplay.appendTime("| Total", total, time, this.buf);
+			if ( streaming )
 			{
-				uint elapsed = *end_ptr - start;
-				auto avg_time = this.updateAverageTime(name, elapsed);
-
-				total += avg_time;
-				TimeDisplay.traceTime(name, avg_time, time);
+				this.tracer.writeStreaming(this.buf);
 			}
-		}
-		TimeDisplay.traceTimeNl("- Total", total, time);
-	}
+			else
+			{
+				this.tracer.writeStatic(this.buf);
+			}
+	//		Trace.formatln("Allocated memory: {}bytes", mem_size);
+    	}
+    }
 
+
+	/***************************************************************************
+
+		Delegate used by _display (above) to return the elapsed time of a
+		section.
+		
+	***************************************************************************/
+
+    uint getElapsed ( char[] name, uint elapsed )
+    {
+    	return elapsed;
+    }
+
+
+	/***************************************************************************
+
+		Delegate used by _display (above) to return the average time of a
+		section.
+		
+	***************************************************************************/
+
+    float getAverage ( char[] name, uint elapsed )
+    {
+		return this.updateAverageTime(name, elapsed);
+    }
     
+
 	/***************************************************************************
 
 		Updates the average time for a timed section.
@@ -340,6 +393,7 @@ struct Profiler
 
 		return new_avg;
 	}
+
 
 	/***************************************************************************
 
@@ -408,17 +462,5 @@ struct Profiler
     {
     	return &static_instance;
     }
-
-
-	/***************************************************************************
-
-		Static constructor. Starts the internal timer.
-	
-	***************************************************************************/
-
-    static this ( )
-	{
-		timer.start();
-	}
 }
 
