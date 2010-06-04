@@ -8,7 +8,17 @@
 
 	authors:        Gavin Norman
 
-	Progress tracing class which send progress messages to Trace and TraceLog.
+	The file contains two structs:
+
+		ConsoleTracer: the basic struct for writing streaming / static strings
+			to the console (Trace output). Includes functionality for limiting
+			the frequency of display updates.
+
+		TraceProgress: Progress tracer, described fully below. Uses the Tracer
+			struct for its console output.
+
+
+	Progress tracing struct which send progress messages to Trace and TraceLog.
 	Progress can be displayed in terms of "iterations completed" or in terms of
 	"percentage completed", and can be displayed to either or both Trace &/
 	TraceLog.
@@ -115,6 +125,7 @@
 			progress.tick(bytes_processed);
 		}
 		progress.finished();
+
 		---
 
 *******************************************************************************/
@@ -142,14 +153,265 @@ private import tango.text.convert.Format;
 /*******************************************************************************
 
 	Tracer class.
+	
 
 *******************************************************************************/
 
-public struct Tracer
+struct ConsoleTracer
+{
+    /***************************************************************************
+
+		Timer, shared by all instances of this struct (there's only one time!)
+	
+	***************************************************************************/
+	
+	static StopWatch timer;
+
+
+	/***************************************************************************
+
+		A char buffer, used repeatedly for static display on the console
+	
+	***************************************************************************/
+	
+	static char[] buf;
+
+
+	/***************************************************************************
+
+		The maximum size of string displayed to the console so far. This is
+		recorded so that static displays can safely overwrite previous content.
+
+	***************************************************************************/
+
+	static uint max_strlen;
+
+
+	/***************************************************************************
+
+		Time of last update
+
+	***************************************************************************/
+
+	ulong last_update_time;
+
+	
+	/***************************************************************************
+
+		Time retrieved by last time update check
+
+	***************************************************************************/
+
+	ulong now;
+
+
+	/***************************************************************************
+
+		Minimum time between updates
+
+	***************************************************************************/
+
+	ulong update_interval;
+
+
+	/***************************************************************************
+
+		Checks if it's time to update the display.
+		
+		Returns:
+			true if the display update interval has passed
+	
+	***************************************************************************/
+
+	bool timeToUpdate ( )
+	{
+		this.now = timer.microsec();
+		return this.now > this.last_update_time + this.update_interval;
+	}
+
+
+	/***************************************************************************
+
+		Writes a list of strings to the console if the update interval has
+		passed. Static display.
+
+		Params:
+			strings = the list of strings to display
+
+	***************************************************************************/
+
+	void updateStatic ( char[] string )
+	{
+		this.updateStatic([string]);
+	}
+
+	void updateStatic ( char[][] strings )
+	{
+		if ( this.timeToUpdate() )
+		{
+			this.writeStatic(strings);
+		}
+	}
+
+
+	/***************************************************************************
+
+		Writes a list of strings to the console if the update interval has
+		passed. Streaming display.
+	
+		Params:
+			strings = the list of strings to display
+
+	***************************************************************************/
+
+	void updateStreaming ( char[] string )
+	{
+		this.updateStreaming([string]);
+	}
+
+	void updateStreaming ( char[][] strings )
+	{
+		if ( this.timeToUpdate() )
+		{
+			this.writeStreaming(strings);
+		}
+	}
+
+	
+	/***************************************************************************
+
+		Writes a list of strings to the console.
+	
+		The strings are written, followed by a string of equal length filled
+		with backspace characters, moving the console cursor back to the start
+		of the line.
+	
+		In streaming display mode the strings are written, followed by a
+		newline.
+	
+		Params:
+			strings = the list of strings to display
+	
+	***************************************************************************/
+
+	void writeStatic ( char[] string )
+	{
+		this.writeStatic([string]);
+	}
+
+	void writeStatic ( char[][] strings )
+	{
+		this.last_update_time = this.now;
+
+		// Work out the total length of all the strings
+		uint strings_length;
+		foreach ( string; strings )
+		{
+			strings_length += string.length;
+		}
+
+		// Pad out with extra spaces, if the current strings are shorter than
+		// the previous longest display
+		if ( strings_length < max_strlen )
+		{
+			buf.length = max_strlen - strings_length;
+			buf[0..$] = ' ';
+		}
+		else
+		{
+			max_strlen = strings_length;
+			buf.length = 0;
+		}
+
+		// Write the strings followed by a backspace string of equal length
+		char[][] all = strings ~ buf;
+		foreach ( string; all )
+		{
+			if ( string.length > 0 )
+			{
+				Trace.format(string);
+			}
+		}
+		this.formatBackspaceString(buf, max_strlen);
+		Trace.format(buf);
+		Trace.flush();
+	}
+
+
+	/***************************************************************************
+
+		Writes a list of strings to the console.
+	
+		The strings are written, followed by a newline.
+	
+		Params:
+			strings = the list of strings to display
+	
+	***************************************************************************/
+
+	void writeStreaming ( char[] string )
+	{
+		this.writeStreaming([string]);
+	}
+
+	void writeStreaming ( char[][] strings )
+	{
+		this.last_update_time = this.now;
+
+		for ( uint i = 0; i < strings.length - 1; i++ )
+		{
+			if ( strings[i].length > 0 )
+			{
+				Trace.format(strings[i]);
+			}
+		}
+		Trace.formatln(strings[$ - 1]);
+	}
+
+
+	/***************************************************************************
+	
+		Formats a string with a specified number of backspace '\b' characters.
+	
+		Params:
+			str = char buffer to be written into
+			
+			length = number of characters to write to the string
+	
+	***************************************************************************/
+	
+	protected void formatBackspaceString ( out char[] str, uint length )
+	{
+		str.length = length;
+		str[0..$] = '\b';
+	}
+
+
+	/***************************************************************************
+
+		Static constructor, starts the shared timer.
+
+	***************************************************************************/
+
+	static this ( )
+	{
+		timer.start();
+	}
+}
+
+
+
+/*******************************************************************************
+
+	Progress tracer class.
+
+*******************************************************************************/
+
+public struct TraceProgress
 {
 	/***************************************************************************
 
-		Struct representing a single quantity which the Tracer is counting.
+		Struct representing a single quantity which TraceProgress is counting.
 		
 		The template argument T is the type of the quantity being tracked.
 	
@@ -594,11 +856,11 @@ public struct Tracer
 
 	/***************************************************************************
 
-		Protected property : stopwatch used for time tracking
+		Protected property : Console tracer object, includes stopwatch
 	
 	***************************************************************************/
 
-	protected StopWatch timer;
+	protected ConsoleTracer console_trace;
 
 
 	/***************************************************************************
@@ -638,16 +900,6 @@ public struct Tracer
 	
 	protected char[] total_str;
 	
-
-	/***************************************************************************
-
-		Protected property : a char buffer, used for static display on the
-		console (filled with backspace characters)
-	
-	***************************************************************************/
-
-	protected char[] backspace_str;
-
 
 	/***************************************************************************
 
@@ -708,7 +960,7 @@ public struct Tracer
 
 	/***************************************************************************
 
-		Struct to pass a title into the Tracer's constructor.
+		Struct to pass a title into TraceProgress' constructor.
 	
 	***************************************************************************/
 	
@@ -721,7 +973,7 @@ public struct Tracer
 	/***************************************************************************
 	
 		Struct to pass an interval size (ie how many iterations between message
-		updates) into the Tracer's constructor.
+		updates) into TraceProgress' constructor.
 	
 	***************************************************************************/
 	
@@ -733,7 +985,7 @@ public struct Tracer
 	
 	/***************************************************************************
 
-		Enum to pass a console display mode into the Tracer's constructor.
+		Enum to pass a console display mode into TraceProgress' constructor.
 	
 	***************************************************************************/
 	
@@ -751,7 +1003,7 @@ public struct Tracer
 
 	/***************************************************************************
 
-		Enum to pass a log display mode into the Tracer's constructor.
+		Enum to pass a log display mode into TraceProgress' constructor.
 	
 	***************************************************************************/
 
@@ -766,7 +1018,7 @@ public struct Tracer
 
 	/***************************************************************************
 	
-		Enum to pass a time display mode into the Tracer's constructor.
+		Enum to pass a time display mode into TraceProgress' constructor.
 	
 	***************************************************************************/
 
@@ -781,7 +1033,7 @@ public struct Tracer
 
 	/***************************************************************************
 
-		Struct to specify percentage iterations display to the Tracer's
+		Struct to specify percentage iterations display to TraceProgress'
 		constructor.
 
 		The max_iteration property specifies the 100% value.
@@ -796,7 +1048,7 @@ public struct Tracer
 
 	/***************************************************************************
 	
-		Struct to pass work done setup info to the Tracer's constructor.
+		Struct to pass work done setup info to TraceProgress' constructor.
 		
 		The title property specifies the name of the work done quanityt being
 		tracked (for example, this might be "chars" or "Kb").
@@ -843,9 +1095,6 @@ public struct Tracer
 
 	public void initDisplay ( ... )
 	{
-		// Start the timer
-		this.timer.start();
-
 		// Always show the iteration counter
 		this.count.displayAsNormal();
 
@@ -885,8 +1134,8 @@ public struct Tracer
 			}
 			else
 			{
-				Trace.formatln("Invalid argument in Tracer constructor.");
-				assert(false, "Invalid argument in Tracer constructor.");
+				Trace.formatln("Invalid argument in TraceProgress constructor.");
+				assert(false, "Invalid argument in TraceProgress constructor.");
 			}
 		}
 	}
@@ -1172,7 +1421,8 @@ public struct Tracer
 	    	}
 	
 			this.updateDisplayStrings();
-			this.write(this.console_display, this.spinnerString(), "", &this.writeToConsole);
+			this.write(this.console_display, this.spinnerString(), "",
+					this.console_streaming ? &this.console_trace.writeStreaming : &this.console_trace.writeStatic);
 		}
 	}
 
@@ -1249,7 +1499,7 @@ public struct Tracer
 
 	/***************************************************************************
 
-		Sets the Tracer's title based on a Name argument from a variadic
+		Sets TraceProgress' title based on a Name argument from a variadic
 		arguments list.
 		
 		Params:
@@ -1273,7 +1523,7 @@ public struct Tracer
 
 	/***************************************************************************
 
-		Sets the Tracer's interval size based on an Interval argument from a
+		Sets TraceProgress' interval size based on an Interval argument from a
 		variadic arguments list.
 		
 		Params:
@@ -1297,7 +1547,7 @@ public struct Tracer
 	
 	/***************************************************************************
 
-		Sets the Tracer's console display mode based on a ConsoleDisplay
+		Sets TraceProgress' console display mode based on a ConsoleDisplay
 		argument from a variadic arguments list.
 		
 		Params:
@@ -1343,7 +1593,7 @@ public struct Tracer
 
 	/***************************************************************************
 
-		Sets the Tracer's log display mode based on a LogDisplay argument from a
+		Sets TraceProgress' log display mode based on a LogDisplay argument from a
 		variadic arguments list.
 		
 		Params:
@@ -1381,7 +1631,7 @@ public struct Tracer
 	
 	/***************************************************************************
 
-		Sets the Tracer's time display from a Time argument from a variadic
+		Sets TraceProgress' time display from a Time argument from a variadic
 		arguments list.
 		
 		Params:
@@ -1405,7 +1655,7 @@ public struct Tracer
 
 	/***************************************************************************
 
-		Sets the Tracer's iteration display to percentage mode, from a
+		Sets TraceProgress' iteration display to percentage mode, from a
 		Percentage argument from a variadic arguments list.
 		
 		Params:
@@ -1429,7 +1679,7 @@ public struct Tracer
 
 	/***************************************************************************
 
-		Sets the Tracer's work done display from a WorkDone argument from a
+		Sets TraceProgress' work done display from a WorkDone argument from a
 		variadic arguments list.
 		
 		Params:
@@ -1476,7 +1726,7 @@ public struct Tracer
 	
 		this.count.reset(0);
 	
-		this.time.reset(this.timer.microsec());
+		this.time.reset(this.console_trace.timer.microsec());
 	}
 	
 
@@ -1521,14 +1771,14 @@ public struct Tracer
 	protected void updateTimer ( )
 	{
 		if(this.time.isActive()) {
-			this.time.set(timer.microsec());
+			this.time.set(this.console_trace.timer.microsec());
 		}
 	}
 
 
 	/***************************************************************************
 
-		Displays the Tracer's progress message. First the per interval and total
+		Displays TraceProgress' progress message. First the per interval and total
 		messages are formatted. Then the messages are written to the console and
 		the log.
 
@@ -1544,7 +1794,8 @@ public struct Tracer
 	{
 		this.updateDisplayStrings();
 		
-		this.write(this.console_display, this.spinnerString(), append, &this.writeToConsole);
+		this.write(this.console_display, this.spinnerString(), append,
+				this.console_streaming ? &this.console_trace.writeStreaming : &this.console_trace.writeStatic);
 		this.write(this.log_display, "", append, &this.writeToLog);
 	}
 
@@ -1585,7 +1836,7 @@ public struct Tracer
 
 	/***************************************************************************
 
-		Writes the Tracer's progress message to a particular output. A list of
+		Writes TraceProgress' progress message to a particular output. A list of
 		strings is built up, depending on the display mode set. The strings are
 		written by a delegate which is passed as a parameter.
 	
@@ -1623,61 +1874,6 @@ public struct Tracer
 
 	/***************************************************************************
 
-		Writes a list of strings to the console.
-
-		In static display mode the strings are written, followed by a string of
-		equal length filled with backspace characters, moving the console cursor
-		back to the start of the line.
-
-		In streaming display mode the strings are written, followed by a
-		newline.
-
-		Params:
-			strings = the list of strings to display
-
-		Returns:
-			void
-
-	***************************************************************************/
-
-	protected void writeToConsole ( char[][] strings )
-	{
-		if ( this.console_streaming )
-		{
-			for ( uint i = 0; i < strings.length - 1; i++ )
-			{
-				if ( strings[i].length > 0 )
-				{
-					Trace.format(strings[i]);
-				}
-			}
-			Trace.formatln(strings[$ - 1]);
-		}
-		else
-		{
-			// Work out the total length of all the strings
-			uint strings_length;
-			foreach ( string; strings )
-			{
-				strings_length += string.length;
-			}
-
-			foreach ( string; strings )
-			{
-				if ( string.length > 0 )
-				{
-					Trace.format(string);
-				}
-			}
-			formatBackspaceString(this.backspace_str, strings_length);
-			Trace.format(this.backspace_str);
-			Trace.flush();
-		}
-	}
-
-
-	/***************************************************************************
-
 		Writes a list of strings to the trace log, followed by a newline.
 	
 		Params:
@@ -1704,27 +1900,6 @@ public struct Tracer
 			}
 			TraceLog.write("\n");
 		}
-	}
-
-
-	/***************************************************************************
-	
-		Formats a string with a specified number of backspace '\b' characters.
-	
-		Params:
-			str = char buffer to be written into
-			
-			length = number of characters to write to the string
-	
-		Returns:
-			void
-	
-	***************************************************************************/
-
-	protected void formatBackspaceString ( out char[] str, uint length )
-	{
-		str.length = length;
-		str[0..$] = '\b';
 	}
 
 
@@ -1776,12 +1951,12 @@ public struct Tracer
 	
 	***************************************************************************/
 
-	protected static Tracer static_instance;
+	protected static TraceProgress static_instance;
 
 
 	/***************************************************************************
 	
-		Static method: Gets the global Tracer instance
+		Static method: Gets the global TraceProgress instance
 
 		Params:
 			void
