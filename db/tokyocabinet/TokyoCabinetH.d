@@ -242,13 +242,6 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     
     public void open ( char[] dbfile )
     {   
-        super.tokyoAssert(tchdbtune(super.db,
-                                    this.tune.bnum,
-                                    this.tune.apow, 
-                                    this.tune.fpow,
-                                    this.tune.opts),
-                           "error setting tune options");
-        
         return this.openNonBlocking(dbfile, OpenStyle.WriteCreate);
     }
     
@@ -281,6 +274,13 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 
     public void open ( char[] dbfile, OpenStyle style )
     {
+        super.tokyoAssert(tchdbtune(super.db,
+                                    this.tune.bnum,
+                                    this.tune.apow, 
+                                    this.tune.fpow,
+                                    this.tune.opts),
+                           "error setting tune options");
+        
         super.tokyoAssert(tchdbopen(super.db, StringC.toCstring(dbfile), style), "Open error");
     }
     
@@ -387,9 +387,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     
     /**************************************************************************
         
-        Set number of elements in bucket array
-        
-        Set cache size of database before opening.
+        Set cache length of database before opening.
         
         Params:
             size = cache size in bytes
