@@ -14,8 +14,8 @@
 			to the console (Trace output). Includes functionality for limiting
 			the frequency of display updates.
 
-		TraceProgress: Progress tracer, described fully below. Uses the Tracer
-			struct for its console output.
+		TraceProgress: Progress tracer, described fully below. Uses the
+			ConsoleTracer struct for its console output.
 
 
 	Progress tracing struct which send progress messages to Trace and TraceLog.
@@ -37,7 +37,7 @@
 	The time (in seconds, milliseconds or microseconds) can	optionally be
 	displayed.
 
-	An optionl "work done" value can be displayed, which is passed to the Tracer
+	An optionl "work done" value can be displayed, which is passed to the TraceProgress
 	object each iteration. This value can be used to keep track of the amount of
 	work done per interval, in terms of quantities like chars, Kb, documents,
 	etc.
@@ -45,8 +45,8 @@
 	The default output is to the log file only, and shows the count of
 	iterations completed.
 
-	There's also a global instance of the Tracer, which can be accessed with the
-	Tracer.instance() static method. This is useful if multiple functions in a 
+	There's also a global instance of the TraceProgress, which can be accessed with the
+	TraceProgress() static method. This is useful if multiple functions in a 
 	program need to feed information into the tracer.
 
 	Example usage 1 - Displays progress to the log file as a percentage of the
@@ -55,8 +55,8 @@
 		---
 
 		uint max = 1000;
-		Tracer progress;
-		progress.initDisplay(Tracer.Name("test"), Tracer.Percentage(max));
+		TraceProgress progress;
+		progress.initDisplay(TraceProgress.Name("test"), TraceProgress.Percentage(max));
 		for ( int i = 0; i < max; i++ )
 		{
 			// Do stuff...
@@ -73,8 +73,8 @@
 
 		---
 
-		Tracer progress;
-		progress.initDisplay(Tracer.Name("test), Tracer.ConsoleDisplay.Static);
+		TraceProgress progress;
+		progress.initDisplay(TraceProgress.Name("test), TraceProgress.ConsoleDisplay.Static);
 		foreach ( val; data_source )
 		{
 			// Do stuff...
@@ -92,9 +92,9 @@
 
 		---
 
-		Tracer progress;
-		progress.initDisplay(Tracer.Name("test), Tracer.ConsoleDisplay.Static,
-			Tracer.Interval(1000), Tracer.Time.Secs);
+		TraceProgress progress;
+		progress.initDisplay(TraceProgress.Name("test), TraceProgress.ConsoleDisplay.Static,
+			TraceProgress.Interval(1000), TraceProgress.Time.Secs);
 		foreach ( val; data_source )
 		{
 			// Do stuff...
@@ -113,10 +113,10 @@
 
 		---
 
-		Tracer progress;
-		progress.initDisplay(Tracer.Name("test), Tracer.ConsoleDisplay.Streaming,
-			Tracer.ConsoleDisplay.PerInterval, Tracer.LogDisplay.PerInterval,
-			Tracer.Interval(1000), Tracer.Time.Secs, Tracer.WorkDone("bytes"));
+		TraceProgress progress;
+		progress.initDisplay(TraceProgress.Name("test), TraceProgress.ConsoleDisplay.Streaming,
+			TraceProgress.ConsoleDisplay.PerInterval, TraceProgress.LogDisplay.PerInterval,
+			TraceProgress.Interval(1000), TraceProgress.Time.Secs, TraceProgress.WorkDone("bytes"));
 		foreach ( val; data_source )
 		{
 			// Do stuff...
@@ -152,7 +152,7 @@ private import tango.text.convert.Format;
 
 /*******************************************************************************
 
-	Tracer class.
+	ConsoleTracer class.
 	
 
 *******************************************************************************/
