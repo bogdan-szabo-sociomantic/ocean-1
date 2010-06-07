@@ -623,12 +623,13 @@ class Retry
 		Standard try / catch / retry loop. Can be called from classes which use
 		this class.
 
-		Calls the passed code block, catches any exceptions, and retries
-		the delegate according to the retry setup.
-
-		Note: If your class needs to explcitly handle any exceptions of other
-		types, it will need to implement its own version of this loop, adding
-		extra catch blocks.
+		Can be optionally passed a template tuple consisting of exception
+		handling delegates, in which case a try-catch block is constructed with
+		a mixin template.
+		
+		In the case where no exception handlers are passed, the defaultLoop
+		method is called instead. (defautlLoop is a separate method so it can be
+		conveniently overridden if needes.)
 
 		Template params:
 			H = tuple of exception handling delegates
@@ -646,7 +647,7 @@ class Retry
     	{
 	    	this.again = false;
 	    	this.resetCounter();
-	
+
 //    	    pragma (msg, TryCatchCode!("code_block", "handlers", H));
     	    do mixin (TryCatchCode!("code_block", "handlers", H));
     	    while ( this.again )
@@ -654,24 +655,43 @@ class Retry
     	// Default exception handling
     	else
     	{
-	    	this.again = false;
-	    	this.resetCounter();
-	
-	    	do try
-	    	{
-	    		this.again = false;
-	    		code_block();
-	    	}
-	    	catch ( Exception e )
-	        {
-	            this.handleException(e);
-	        }
-	    	while ( this.again )
+    		this.defaultLoop(code_block);
     	}
     }
 
 
     /***************************************************************************
+    
+		Standard try / catch / retry loop. Can be overridden by classes derived
+		from Retry.
+	
+		Calls the passed code block, catches any exceptions, and retries
+		the delegate according to the retry setup.
+	
+	    Params:
+	        code_block = code to try
+	
+	***************************************************************************/
+
+    protected void defaultLoop ( void delegate ( ) code_block )
+    {
+		this.again = false;
+		this.resetCounter();
+	
+		do try
+		{
+			this.again = false;
+			code_block();
+		}
+		catch ( Exception e )
+	    {
+	        this.handleException(e);
+	    }
+		while ( this.again )
+	}
+
+
+	/***************************************************************************
     
 		Retry loop exception handler. Rethrows the exception if the retry
 		callback says to not try again.
@@ -684,13 +704,20 @@ class Retry
 	
 	***************************************************************************/
 	
-	public void handleException ( E : Exception = Exception ) ( E e )
+	public void handleException ( E : Exception = Exception ) ( Exception e )
 	{
     	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
 		this.again = this.callback(e.msg);
 	    if ( !this.again )
 	    {
-    		throw e;
+	    	static if ( is ( E == Exception ) )
+	    	{
+	    		throw e;
+	    	}
+	    	else
+	    	{
+	    		throw new E(e.msg);
+	    	}
 	    }
 	}
 
