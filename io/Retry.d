@@ -22,67 +22,50 @@
     
     Also optionally, a custom timeout method may be supplied, which is called by
     the built-in wait method after the specified number of retries has passed.
+
+    The class contains a built in retry loop method, which is passed a delegate
+    (usually a code block as an anonymous delegate) to be repeatedly retried on
+    exception (shown in the 1st example below).
     
+    For special cases, it's also possible to pass custom exception handling code
+    into the loop method (shown in the 2nd example below).
+
     --
     
-    Usage:
+    General usage:
     
     ---
     
         import $(TITLE);
-        
-        Retry retry = new Retry(250, 10); // Retry up to 10 times, wait 250 ms
-                                          // before each retry
-        
-        bool more;
-        
-        retry.resetCounter();
-        
-        do
-        {
-            try
-            {
-                more  = false;
-                
-                doSomeIoOperationWhichMayFail();
-            }
-            catch (Exception e)
-            {
-                more = retry(e);    // Retry up to 10 times, then rethrows e
-            }
-        }
-        while (more)
-        
+
+    	auto retry = new Retry(250, 10); // Retry up to 10 times, wait 250 ms
+                                             // before each retry
+
+		retry.loop({
+			// do something which you want to retry
+		});
+
     ---
 
-    For cases where you don't need to specifically handle different exception
-    types, the Retry class includes a standard loop, which is passed a 
-    block of code (usually an anonymous delegate) for the action to repeatedly
-    try / retry.
-    
-    Example:
+    Custom exception handling example:
     
     ---
 
         import $(TITLE);
 
-        class C
-        {
-        	Retry retry;
+    	auto retry = new Retry(250, 10); // Retry up to 10 times, wait 250 ms
+                                             // before each retry
 
-			this ( )
+		retry.loop(
 			{
-	        	this.retry = new Retry(250, 10); // Retry up to 10 times, wait 250 ms
-	                                             // before each retry
+				// do something which you want to retry
+			},
+			(SpecialException e)
+			{
+				// exception handling code for type SpecialException
 			}
+		);
 
-			void doSomething ( int arg )
-			{
-				this.retry.loop({
-					// do something with arg
-				});
-			}
-		}
 
     ---
     
