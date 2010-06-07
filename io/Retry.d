@@ -311,6 +311,16 @@ class Retry
     private uint n = 0;
 
 
+    /***************************************************************************
+    
+    	Should the retry loop again? Used by the loop and handleException
+    	methods.
+
+    ***************************************************************************/
+
+    public bool again;
+
+
     /**************************************************************************
     
         This alias for method chaining
@@ -568,12 +578,6 @@ class Retry
 	    Calls the custom timeout delegate / function (if set), and resets the
 	    internal counter.
 
-	    Params:
-	        void
-
-	    Returns:
-	        void
-
 	***************************************************************************/
 
     protected void callTimeout ( )
@@ -606,7 +610,7 @@ class Retry
     
     ***************************************************************************/
 
-    static void sleep ( time_t ms )
+    public static void sleep ( time_t ms )
     {
         auto ts = Ctimer.timespec(ms / 1_000, (ms % 1_000) * 1_000_000);
         
@@ -634,8 +638,6 @@ class Retry
 	        handlers = tuple of exception handling delegates
 
 	***************************************************************************/
-
-    public bool again;
 
     public void loop ( H ... ) ( void delegate ( ) code_block, H handlers )
     {
