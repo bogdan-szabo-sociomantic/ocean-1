@@ -625,67 +625,47 @@ class Retry
 		Note: If your class needs to explcitly handle any exceptions of other
 		types, it will need to implement its own version of this loop, adding
 		extra catch blocks.
-		
-	    Params:
-	        code_block = code to try
-
-	***************************************************************************/
-
-    public void loop ( void delegate () code_block )
-    {
-    	bool again;
-    	this.resetCounter();
-
-    	do try
-    	{
-    		again = false;
-    		code_block();
-    	}
-    	catch (Exception e)
-        {
-        	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
-            this.handleException(e, again);
-        }
-        while (again)
-    }
-
-
-    /***************************************************************************
-    
-		try / catch / retry loop which creates and throws exceptions of a new
-		class on failure. Can be called from classes which use this class.
-	
-		Calls the passed code block, catches any exceptions, and retries
-		the delegate according to the retry setup.
-	
-		Note: If your class needs to explcitly handle any exceptions of other
-		types, it will need to implement its own version of this loop, adding
-		extra catch blocks.
 
 		Template params:
-			E = type of exceptions to rethrow on failure
+			H = tuple of exception handling delegates
 
 	    Params:
 	        code_block = code to try
-	
+	        handlers = tuple of exception handling delegates
+
 	***************************************************************************/
 
-    public void loopRethrow ( E : Exception ) ( void delegate () code_block )
-    {
-    	bool again;
-    	this.resetCounter();
+    public bool again;
 
-    	do try
-        {
-        	again = false;
-        	code_block();
-        }
-        catch (Exception e)
-        {
-        	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
-            this.handleException!(E)(e, again);
-        }
-        while (again)
+    public void loop ( H ... ) ( void delegate ( ) code_block, H handlers )
+    {
+    	// End-user specified exception handling
+    	static if ( H.length )
+    	{
+	    	this.again = false;
+	    	this.resetCounter();
+	
+//    	    pragma (msg, TryCatchCode!("code_block", "handlers", H));
+    	    do mixin (TryCatchCode!("code_block", "handlers", H));
+    	    while ( this.again )
+    	}
+    	// Default exception handling
+    	else
+    	{
+	    	this.again = false;
+	    	this.resetCounter();
+	
+	    	do try
+	    	{
+	    		this.again = false;
+	    		code_block();
+	    	}
+	    	catch ( Exception e )
+	        {
+	            this.handleException(e);
+	        }
+	    	while ( this.again )
+    	}
     }
 
 
@@ -695,29 +675,60 @@ class Retry
 		callback says to not try again.
 		
 		Template params:
-			E = exception type to rethrow. Defaults to Exception (in which case
-				the exception passed is simply rethrown). If E is set to another
-				exception type, then a new exception is thrown.
+			E = exception type, defaults to Exception
 			
 	    Params:
 	        e = exception receieved
-	        again = whether to try again or not
 	
 	***************************************************************************/
 	
-	protected void handleException ( E : Exception = Exception ) ( Exception e, ref bool again )
+	public void handleException ( E : Exception = Exception ) ( E e )
 	{
-		again = this.callback(e.msg); 
-	    if ( !again )
+    	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
+		this.again = this.callback(e.msg);
+	    if ( !this.again )
 	    {
-	    	static if ( is(E == Exception) )
-	    	{
-	    		throw e;
-	    	}
-	    	else
-	    	{
-	    		throw new E(e.msg);
-	    	}
+    		throw e;
+	    }
+	}
+
+
+    /***************************************************************************
+    
+		Try catch mixin template. Creates the code for a try-catch block for a
+		retyr loop, trying the provided code block, and catching the specified
+		exception types.
+		
+	    Template params:
+	    	code_block = code to try
+	    	handlers = the name of a tuple of exception handlers
+	    	H = tuple of types of exception handlers
+	
+	***************************************************************************/
+
+	protected template TryCatchCode ( char[] code_block, char[] handlers, H ... )
+	{
+	    static if (H.length)
+	    {
+	        static if (is (H[$ - 1] Fn == delegate))
+	        {
+	            static if (is (Fn Args == function))
+	            {
+	                static assert (Args.length == 1, "Exception handler must take exactly one argument");
+	                static assert (is (Args[0] : Exception), "Exception handler must take 'Exception', not '" ~ Args[0].stringof ~ '\'');
+	                
+	                const TryCatchCode = TryCatchCode!(code_block, handlers, H[0 .. $ - 1]) ~
+	                                                   "catch (" ~ Args[0].stringof ~ " e) "
+	                                                   "{" ~
+	                                                       handlers ~ "[" ~ (H.length - 1).stringof ~ "](e);"
+	                                                   "}\n";
+	            }
+	        }
+	        else static assert (false, "'void delegate(Exception)' required, not '" ~ H.stringof ~ '\'');
+	    }
+	    else
+	    {
+	        const TryCatchCode = "try { this.again = false; " ~ code_block ~ "(); }\n";
 	    }
 	}
 }
@@ -785,19 +796,25 @@ debug ( OceanUnitTest )
 
         /***********************************************************************
         
-    		Loop rethrow test
+    		Loop exception handling test
     
         ***********************************************************************/
 
-        Trace.formatln("\nTesting retry / rethrow loop...");
+        Trace.formatln("\nTesting retry loop with custom exception handling...");
 
         count = 0;
         try
         {
-	        retry.loopRethrow!(SpecialException)({
-	        	count++;
-	        	throw new Exception(fail_msg);
-	        });
+	        retry.loop(
+        		{
+		        	count++;
+		        	throw new SpecialException(fail_msg);
+		        },
+		        (SpecialException e)
+		        {
+		        	retry.handleException(e);
+		        }
+	        );
         }
         catch ( SpecialException e )
         {
