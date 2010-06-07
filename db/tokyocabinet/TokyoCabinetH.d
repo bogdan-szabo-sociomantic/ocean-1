@@ -167,6 +167,13 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     
     private bool            deleted         = false;
     
+    /***************************************************************************
+    
+    	Name of databse file, stored for outputting in error messages
+
+    ***************************************************************************/
+
+    protected char[] db_name;
     
     
     /**************************************************************************
@@ -238,10 +245,11 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
         Params:
             dbfile = specifies the database file name
   
-     **************************************************************************/    
-    
+     **************************************************************************/
+
     public void open ( char[] dbfile )
     {   
+    	this.db_name = dbfile;
         return this.openNonBlocking(dbfile, OpenStyle.WriteCreate);
     }
     
@@ -701,14 +709,15 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
         if (!ok)
         {
             TCERRCODE errcode = tchdbecode(super.db);
-            
+
             foreach (ignore_core; ignore_codes)
             {
                 if (errcode == ignore_core) return; 
             }
             
             TokyoCabinetException(typeof (this).stringof ~ ": " ~
-                                  context ~ ": " ~ this.getTokyoErrMsg(errcode));
+                                  context ~ ": " ~ this.getTokyoErrMsg(errcode) ~
+                                  " (in database " ~ this.db_name ~ ")");
         }
     }
 }
