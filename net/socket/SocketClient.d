@@ -951,8 +951,8 @@ class SocketRetry : Retry
 	{
 		super(delg);
 	}
-	
-	
+
+
 	/***************************************************************************
 	
 		Overridden try / catch / retry loop which only catches exceptions of
@@ -962,28 +962,28 @@ class SocketRetry : Retry
 	        code_block = code to try
 	
 	***************************************************************************/
-	
-	public override void loop ( void delegate () code_block )
+
+	public override void defaultLoop ( void delegate () code_block )
 	{
-		bool again;
+    	super.again = false;
 		super.resetCounter();
 	
 		do try
 	    {
-			again = false;
+			super.again = false;
 	    	code_block();
 	    }
 	    catch ( SocketException e )
 	    {
 	    	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
-	    	super.handleException(e, again);
+	    	super.handleException!(SocketException)(e);
 	    }
 	    catch ( IOException e )
 	    {
 	    	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
-	    	super.handleException(e, again);
+	    	super.handleException!(IOException)(e);
 	    }
-	    while (again)
+	    while ( super.again )
 	}
 }
 
