@@ -839,15 +839,15 @@ abstract class SocketClient ( Const : SocketClientConst )
 		terminator from the server. Every value is checked for length > 0, and
 		array values are iterated into.
 
-		FIXME: arrays of arrays are not iterated into, if we ever need this
-		behaviour it'd have to be added here.
+		The data item is defined as a  list terminator iff its deepest level of
+		sub-values are all empty.
 
 		Template params:
 			T = types of values received
-			
+
 		Params:
 			values = data values to check
-		
+
 		Returns:
 			true if the received data represents a list terminator.
 	
@@ -862,10 +862,11 @@ abstract class SocketClient ( Const : SocketClientConst )
 				// Array of values
 		        static if (is (value U == U[]))
 		        {
+		        	// Recurse into each value in the array
 		        	foreach ( v; value )
 		        	{
-			        	if ( v.length )
-			        	{
+		        		if ( !isListTerminator(v) )
+		        		{
 			        		return false;
 			        	}
 		        	}
