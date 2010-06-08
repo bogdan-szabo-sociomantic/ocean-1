@@ -187,10 +187,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     
     public this ( ) 
     {
-        debug 
-        {
-            Trace.formatln(typeof (this).stringof ~ " created").flush();
-        }
+        debug Trace.formatln(typeof (this).stringof ~ " created").flush();
         
         super.db = tchdbnew();
     }
@@ -249,6 +246,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 
     public void open ( char[] dbfile )
     {   
+        debug Trace.formatln(typeof (this).stringof ~ " opened {}", dbfile).flush();
     	this.db_name = dbfile;
         return this.openNonBlocking(dbfile, OpenStyle.WriteCreate);
     }
