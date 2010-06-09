@@ -92,7 +92,11 @@ abstract class ITokyoCabinet ( TCDB, alias tcdbforeach )
     
     public int opApply ( TcIterator.KeyValIterDg delg )
     {
-        return TcIterator.tcdbopapply(this.db, delg);
+        int result;
+        
+        this.tokyoAssertStrict(TcIterator.tcdbopapply(this.db, delg, result), "key/value iteration");
+        
+        return result;
     }
     
     
@@ -105,7 +109,11 @@ abstract class ITokyoCabinet ( TCDB, alias tcdbforeach )
     
     public int opApply ( TcIterator.KeyIterDg delg )
     {
-        return TcIterator.tcdbopapply(this.db, delg);
+        int result;
+        
+        this.tokyoAssertStrict(TcIterator.tcdbopapply(this.db, delg, result), "key iteration");
+        
+        return result;
     }
 
     
@@ -264,10 +272,6 @@ abstract class ITokyoCabinet ( TCDB, alias tcdbforeach )
 	***************************************************************************/
 	
 	abstract protected void tokyoAssertStrict ( bool ok, TCERRCODE[] ignore_codes, char[] context = "Error" );
-    
-    
-
-
 }
 
 /******************************************************************************
@@ -294,10 +298,12 @@ abstract class ITokyoCabinet ( TCDB, alias tcdbforeach )
         TCDB        = Tokyo Cabinet reference type:
                             - TCHDB for TokyoCabinetH
                             - TDBDB for TokyoCabinetB
+                            - TDBDM for TokyoCabinetM
         
         tcdbforeach = Tokyo Cabinet 'foreach' function name:
                             - tchdbforeach for TokyoCabinetH
                             - tcbdbforeach for TokyoCabinetB
+                            - tcbdmforeach for TokyoCabinetM
     
     @see reference
     
@@ -318,7 +324,6 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
     public alias int delegate ( ref char[] key, ref char[] val ) KeyValIterDg;
     public alias int delegate ( ref char[] key                 ) KeyIterDg;
     
-    
     /**************************************************************************
     
         Definitions of argument structures passed to tcdbforeach() callback 
@@ -328,66 +333,71 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
     struct KeyValIterArgs
     {
         KeyValIterDg dg;
-        Exception    e = null;
+        int result;
     }
     
     struct KeyIterArgs
     {
         KeyIterDg dg;
-        Exception e = null;
+        int result;
     }
     
-    /**************************************************************************
-    
-        Invokes tchdbforeach() with the provided D 'foreach' delegate. Rethrows
-        an exception caught inside tchdbforeach().
+    static if (is (typeof (tcdbforeach) R == return))                           // tcdbopapply() clones the
+    {                                                                           // return type of tcdbforeach()
+        /**********************************************************************
         
-        Params:
-            db: TokyoCabinet database reference
-            dg: D 'foreach' delegate
+            Invokes tchdbforeach() with the provided D 'foreach' delegate.
             
-        Returns:
-            false on to continue or true to stop iteration, complying to the
-            return value mandated for a D 'foreach' delegate.
-          
-     **************************************************************************/
-    
-    public static int tcdbopapply ( TCDB* db, KeyValIterDg dg )
-    {
-        KeyValIterArgs args = KeyValIterArgs(dg, null);
+            Params:
+                db:     TokyoCabinet database reference
+                dg:     D 'foreach' opApply() delegate
+                result: return value of dg output
+                
+            Returns:
+                true on success or false on error. Halting iteration because
+                dg returned a value different from 0 is considered success.
+              
+         **********************************************************************/
         
-        scope (exit) if (!!args.e) throw args.e;
-        
-        return !tcdbforeach(db, &tciter_callback_keyval, &args);
-    }
-    
-    /**************************************************************************
-    
-        Invokes tchdbforeach() with the provided D 'foreach' delegate. Rethrows
-        an exception caught inside tchdbforeach().
-        
-        Params:
-            db: TokyoCabinet database reference
-            dg: D 'foreach' delegate
+        public static R tcdbopapply ( TCDB* db, KeyValIterDg dg, out int result )
+        {
+            KeyValIterArgs args = KeyValIterArgs(dg);
             
-        Returns:
-            false on to continue or true to stop iteration, complying to the
-            return value mandated for a D 'foreach' delegate.
-          
-     **************************************************************************/
-    
-    public static int tcdbopapply ( TCDB* db, KeyIterDg dg )
-    {
-        KeyIterArgs args = KeyIterArgs(dg, null);
+            scope (exit) result = args.result;
+            
+            return tcdbforeach(db, &tciter_callback_keyval, &args);
+        }
         
-        scope (exit) if (!!args.e) throw args.e;
+        /**********************************************************************
         
-        return !tcdbforeach(db, &tciter_callback_key, &args);
+            Invokes tchdbforeach() with the provided D 'foreach' delegate.
+            
+            Params:
+                db:     TokyoCabinet database reference
+                dg:     D 'foreach' opApply() delegate
+                result: return value of dg output
+                
+            Returns:
+                true on success or false on error. Halting iteration because
+                dg returned a value different from 0 is considered success.
+              
+         **********************************************************************/
+        
+        public static R tcdbopapply ( TCDB* db, KeyIterDg dg, out int result )
+        {
+            KeyIterArgs args = KeyIterArgs(dg);
+            
+            scope (exit) result = args.result;
+            
+            return tcdbforeach(db, &tciter_callback_key, &args);
+        }
     }
-    
+    else static assert (false, "'tcdbforeach' does not appear to be callable: "
+                               "type is '" ~ typeof (tcdbforeach).stringof ~ '\'');
+
     /**************************************************************************
      
-        tchdbforeach() callback function definitions
+        tcdbforeach() callback function definitions
      
      **************************************************************************/
     
@@ -398,24 +408,18 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
             tchdbforeach() callback function for key/value iteration
             
             Assumes that op is a pointer to a KeyValIterArgs structure and
-            invokes the delegate member KeyValIterArgs.dg (which likely
-            represents a 'foreach' loop body).
-            If an exception is thrown from inside dg, it is caught,
-            KeyValIterArgs.e is set to it and false is returned to stop
-            iteration.
+            invokes the delegate member KeyValIterArgs.dg.
             
             Params:
                 kbuf = key buffer
                 ksiz = key length (bytes)
                 vbuf = value buffer
                 ksiz = value length (bytes)
-                op   = custom reference; contains the value of the last
-                       tchdbforeach() argument "op". This must be a pointer to a
-                       KeyValIterArgs structure.
+                op   = custom reference; must be a pointer to a KeyValIterArgs
+                       structure.
                 
             Returns:
-                true to continue or false to stop iteration, complying to the
-                return value mandated for the tchdbforeach() callback function.
+                true to continue or false to stop iteration
               
          **********************************************************************/
         
@@ -426,41 +430,28 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
             
             KeyValIterArgs* args = cast (KeyValIterArgs*) op;
             
-            try
-            {
-                return !args.dg(key, val);
-            }
-            catch (Exception e)
-            {
-                args.e = e;
-                
-                return false;
-            }
+            args.result = args.dg(key, val);
+            
+            return !args.result;
         }
         
         /**********************************************************************
         
-            tchdbforeach() callback function for key/value iteration
+            tchdbforeach() callback function for key iteration
             
-            Assumes that op is a pointer to a KeyValIterArgs structure and
-            invokes the delegate member KeyValIterArgs.dg (which likely
-            represents a 'foreach' loop body).
-            If an exception is thrown from inside dg, it is caught,
-            KeyValIterArgs.e is set to it and false is returned to stop
-            iteration.
+            Assumes that op is a pointer to a KeyIterArgs structure and invokes
+            the delegate member KeyIterArgs.dg.
             
             Params:
                 kbuf = key buffer
                 ksiz = key length (bytes)
                 vbuf = value buffer
                 ksiz = value length (bytes)
-                op   = custom reference; contains the value of the last
-                       tchdbforeach() argument "op". This must be a pointer to a
-                       KeyValIterArgs structure.
+                op   = custom reference; must be a pointer to a KeyIterArgs
+                       structure.
                 
             Returns:
-                true to continue or false to stop iteration, complying to the
-                return value mandated for the tchdbforeach() callback function.
+                true to continue or false to stop iteration
               
          **********************************************************************/
         
@@ -470,16 +461,9 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
             
             KeyIterArgs* args = cast (KeyIterArgs*) op;
             
-            try
-            {
-                return !args.dg(key);
-            }
-            catch (Exception e)
-            {
-                args.e = e;
-                
-                return false;
-            }
+            args.result = args.dg(key);
+            
+            return !args.result;
         }
     }
 }
