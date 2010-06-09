@@ -44,13 +44,13 @@ private     import  ocean.db.tokyocabinet.c.tcmdb:
                         tcmdbnew,   tcmdbdel,
                         tcmdbput,   tcmdbputkeep,  tcmdbputcat,
                         tcmdbget,   tcmdbforeach,
-                        tcmdbout,   tcmdbrnum,     tcmdbvsiz;
+                        tcmdbout,   tcmdbrnum,     tcmdbmsiz,   tcmdbvsiz;
                         
 private     import  ocean.text.util.StringC;
 
 /*******************************************************************************
 
-    TokyoCabinetH class
+    TokyoCabinetM class
 
 *******************************************************************************/
 
@@ -231,7 +231,7 @@ class TokyoCabinetM
     
     /**************************************************************************
         
-        Returns number of records
+        Returns the number of records
         
         Returns: 
             number of records, or zero if none
@@ -243,6 +243,20 @@ class TokyoCabinetM
         return tcmdbrnum(this.db);
     }
     
+    /**************************************************************************
+    
+        Returns the total size of the database object in bytes
+        
+        Returns: 
+            total size of the database object in bytes
+        
+    ***************************************************************************/
+    
+    public ulong dbSize ()
+    {
+        return tcmdbmsiz(this.db);
+    }
+
     /**************************************************************************
     
         "foreach" iterator over key/value pairs of records in database. The
