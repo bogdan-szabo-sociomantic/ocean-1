@@ -48,7 +48,7 @@ protected   import 	ocean.core.Exception: TokyoCabinetException;
 private     import  ocean.db.tokyocabinet.model.ITokyoCabinet;
 
 private     import  ocean.db.tokyocabinet.c.tchdb:
-                        TCHDB,      HDBOPT,        HDBOMODE,      TCERRCODE,
+                        TCHDB,      HDBOPT,        HDBOMODE,
                         tchdbnew,   tchdbdel,      tchdbopen,     tchdbclose,
                         tchdbtune,  tchdbsetmutex, tchdbsetcache, tchdbsetxmsiz,
                         tchdbput,   tchdbputasync, tchdbputkeep,  tchdbputcat,
@@ -56,6 +56,8 @@ private     import  ocean.db.tokyocabinet.c.tchdb:
                         tchdbout,   tchdbrnum,     tchdbvsiz,     tchdbfsiz,
                         tchdbecode, tchdberrmsg;
                         
+private     import ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
+    
 private     import  ocean.text.util.StringC;
 
 
