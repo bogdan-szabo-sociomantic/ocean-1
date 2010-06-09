@@ -25,7 +25,7 @@
         db.setTuneOpts(TokyoCabinetB.TuneOpts.HDBTLARGE);
         db.setTuneBnum(20_000_000);
         db.enableAsync();
-        db.open("db.tch");
+        db.open("db.tcb");
         
         db.add("foo", "bar");
         
@@ -50,7 +50,7 @@ private     import  ocean.db.tokyocabinet.util.TokyoCabinetList;
 private     import  ocean.db.tokyocabinet.util.TokyoCabinetExtString;
 
 private     import  ocean.db.tokyocabinet.c.tcbdb:
-                        TCBDB,       BDBOPT,          BDBOMODE,      TCERRCODE,
+                        TCBDB,       BDBOPT,          BDBOMODE,
                         tcbdbnew,    tcbdbdel,        tcbdbopen,     tcbdbclose,
                         tcbdbtune,   tcbdbsetmutex,   tcbdbsetcache, tcbdbsetxmsiz,
                         tcbdbput,    tcbdbputkeep,    tcbdbputcat,
@@ -59,6 +59,8 @@ private     import  ocean.db.tokyocabinet.c.tcbdb:
                         tcbdbout,    tcbdbvsiz,       tcbdbvnum,     tcbdbrnum,
                         tcbdbfsiz,   tcbdbsync,       tcbdbecode,    tcbdberrmsg;
                         
+private     import  ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
+
 private     import  ocean.db.tokyocabinet.model.ITokyoCabinet;
 
 private     import  ocean.text.util.StringC;
