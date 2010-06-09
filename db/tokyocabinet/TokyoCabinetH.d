@@ -19,8 +19,8 @@
         
             import ocean.db.tokyocabinet.TokyoCabinetH;
             
-            auto db = new TokyoCabinetH();
-            db.enableTuneOption(TokyoCabinetH.TuneOpts.Large);
+            auto db = new TokyoCabinetH;
+            db.tune.opts |= TokyoCabinetH.TuneOpts.Large;
             db.setTuneBnum(20_000_000);
             db.enableAsync();
             db.open("db.tch");

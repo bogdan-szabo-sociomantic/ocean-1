@@ -21,15 +21,14 @@
         
         import ocean.db.tokyocabinet.TokyoCabinetB;
         
-        auto db = new TokyoCabinetB();
-        db.setTuneOpts(TokyoCabinetB.TuneOpts.HDBTLARGE);
+        scope db = new TokyoCabinetB;
+        db.tune.opts |= TokyoCabinetH.TuneOpts.Large;
         db.setTuneBnum(20_000_000);
-        db.enableAsync();
         db.open("db.tcb");
         
-        db.add("foo", "bar");
+        db.put("foo", "bar");
         
-        db.close;
+        db.close();
         
         ---
 
