@@ -617,7 +617,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     
     /**************************************************************************
         
-        Returns number of records
+        Returns the number of records
         
         Returns: 
             number of records, or zero if none
@@ -631,10 +631,10 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     
     /**************************************************************************
         
-        Returns number of records
+        Returns the database file size in bytes
         
         Returns: 
-            number of records, or zero if none
+            database file size in bytes, or zero if none
         
     ***************************************************************************/
     
