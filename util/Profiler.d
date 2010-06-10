@@ -54,6 +54,29 @@
 
     ---
 
+	Memory usage example:
+	
+	---
+
+        import ocean.util.Profiler;
+
+		// Check and display memory usage before & after a code section
+		MemProfiler.check("section1", {
+			// Code that does something
+		});
+	
+		// Check and display memory usage only if the memory usage has changed
+		// in a code section
+		MemProfiler.check("section1", {
+			// Code that does something
+		}, MemProfiler.Expect.NoChange);
+
+		// Assert that memory usage has not changed in a code section
+		MemProfiler.checkAssert("section1", {
+			// Code that does something
+		}, MemProfiler.Expect.NoChange);
+
+	---
 
 *******************************************************************************/
 
@@ -480,9 +503,10 @@ struct MemProfiler
 
 	enum Expect
 	{
-		NoChange,
-		MemGrow,
-		MemShrink
+		DontCare,	// always displays mem usage
+		NoChange,	// only displays mem usage if it's changed
+		MemGrow,	// only displays mem usage if it's not grown
+		MemShrink	// only displays mem usage if it's not shrunk
 	}
 
 
@@ -500,7 +524,7 @@ struct MemProfiler
 
 	***************************************************************************/
 
-	static R check ( R, T... ) ( char[] name, Expect expect, R delegate ( T ) section )
+	static R check ( R, T... ) ( char[] name, R delegate ( T ) section, Expect expect = Expect.DontCare )
 	{
 		static if ( is ( R == void ) )
 		{
@@ -536,7 +560,7 @@ struct MemProfiler
 	
 	***************************************************************************/
 
-	static R checkAssert ( R, T... ) ( char[] name, Expect expect, R delegate ( T ) section )
+	static R checkAssert ( R, T... ) ( char[] name, R delegate ( T ) section, Expect expect = Expect.DontCare  )
 	{
 		static if ( is ( R == void ) )
 		{
@@ -595,6 +619,9 @@ struct MemProfiler
 				}
 			break;
 			default:
+			case Expect.DontCare:
+				Trace.formatln("({}) mem usage: {} -> {} (changed by {})", name, before, after, after - before);
+			break;
 			break;
 		}
 	}
@@ -612,7 +639,7 @@ struct MemProfiler
 			after = mem usage after
 	
 	***************************************************************************/
-
+	
 	static void assertCondition ( char[] name, Expect expect, double before, double after )
 	{
 		switch ( expect )
@@ -627,7 +654,8 @@ struct MemProfiler
 				assert(before > after, name ~ " expected shrink in memory usage");
 			break;
 			default:
-				break;
+			case Expect.DontCare:
+			break;
 		}
 	}
 }
