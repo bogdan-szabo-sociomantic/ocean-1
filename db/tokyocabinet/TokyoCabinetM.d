@@ -46,8 +46,6 @@ private     import  ocean.db.tokyocabinet.c.tcmdb:
                         tcmdbget,   tcmdbforeach,
                         tcmdbout,   tcmdbrnum,     tcmdbmsiz,   tcmdbvsiz;
                         
-private     import  ocean.text.util.StringC;
-
 /*******************************************************************************
 
     TokyoCabinetM class
@@ -182,11 +180,11 @@ class TokyoCabinetM
         
         void* value_ = cast (void*) tcmdbget(this.db, key.ptr, key.length, &len); 
         
-        bool found = !!value;
+        bool found = !!value_;
         
         if (found)
         {
-            value = (cast (char*) value)[0 .. len];
+            value = (cast (char*) value_)[0 .. len];
         }
         
         return found;
