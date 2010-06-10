@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 
     Simple C/Posix Signals manager
 
@@ -6,7 +6,7 @@
     
     version:        Febrruary 2010: Initial release
     
-    authors:        David Eckardt
+    authors:        David Eckardt, Gavin Norman
     
     --
     
@@ -15,9 +15,41 @@
     Register signal handlers for C/Posix Signals and, as an option, reset to
     default signal handlers.
     
- ******************************************************************************/
+    The module also contains a class (TerminationSignal) for conveniently
+    assigning an arbitrary number of program-exit handlers. This class sets up a
+    handler for the SIGINT and SIGTERM signals, which are passed when a program
+    is interrupted with Ctrl-C. When the terminate signal handler is called, it
+    in turn calls all functions / delegates which were registered with it. This
+    class can be used to conveniently ensure that another class / struct
+    performs its required shutdown behaviour, even when the program is
+    interrupted.
+
+	TerminationSignal usage example:
+
+	---
+
+	private import ocean.sys.SignalHandler;
+
+	class MyClass
+	{
+		public this ( )
+		{
+			TerminationSignal.handle(&this.terminate);
+		}
+		
+		public void terminate ( int code )
+		{
+			// required shutdown behaviour for this class
+		}
+	}
+
+    ---
+    
+*******************************************************************************/
     
 module ocean.sys.SignalHandler;
+
+
 
 /******************************************************************************
  
@@ -25,14 +57,21 @@ module ocean.sys.SignalHandler;
  
  ******************************************************************************/
 
-private import tango.stdc.signal: signal, SIGABRT, SIGFPE,  SIGILL,
-                                          SIGINT,  SIGSEGV, SIGTERM;
+private import tango.stdc.signal: signal, raise, SIGABRT, SIGFPE,  SIGILL,
+                                          SIGINT,  SIGSEGV, SIGTERM, SIG_DFL;
 
 version (Posix) private import tango.stdc.posix.signal: SIGALRM, SIGBUS,  SIGCHLD,
                                                         SIGCONT, SIGHUP,  SIGKILL,
                                                         SIGPIPE, SIGQUIT, SIGSTOP,
                                                         SIGTSTP, SIGTTIN, SIGTTOU,
                                                         SIGUSR1, SIGUSR2, SIGURG;
+
+debug
+{
+	private import tango.util.log.Trace;
+}
+
+
 
 struct SignalHandler
 {
@@ -45,7 +84,8 @@ struct SignalHandler
      **************************************************************************/
 
     extern (C) alias void function ( int code ) SignalHandler;
-    
+
+
     /**************************************************************************
     
         Signal enumerator and identifier strings
@@ -219,7 +259,7 @@ struct SignalHandler
         }
     }
     
-    /**************************************************************************
+	/**************************************************************************
     
         Returns the codes for which signal handlers are registered.
         
@@ -249,3 +289,126 @@ struct SignalHandler
         return this.Ids[code];
     }
 }
+
+
+
+/*******************************************************************************
+
+	Class for convenient program termination handling
+
+*******************************************************************************/
+
+class TerminationSignal
+{
+	/***************************************************************************
+
+		Aliases for delegate and function termination handlers
+	
+	***************************************************************************/
+
+	public alias void delegate ( int ) DgHandler;
+	public alias void function ( int ) FnHandler;
+
+
+	/***************************************************************************
+
+		Lists of delegate and function termination handlers. Each will be called
+		on the receipt of a SIGINT or SIGTERM.
+
+	***************************************************************************/
+
+	protected static DgHandler[] delegates;
+	protected static FnHandler[] functions;
+
+
+	/***************************************************************************
+	
+	    Adds a delegate to the list of terminate handlers.
+	    
+	    Params:
+	    	dg = delegate to call on termination
+	
+	***************************************************************************/
+
+	public static void handle ( DgHandler dg )
+	{
+		delegates ~= dg;
+		activate();
+	}
+
+
+	/***************************************************************************
+	
+	    Adds a function to the list of terminate handlers.
+	    
+	    Params:
+	    	fn = function to call on termination
+	
+	***************************************************************************/
+
+	public static void handle ( FnHandler fn )
+	{
+		functions ~= fn;
+		activate();
+	}
+
+
+	/***************************************************************************
+	
+	    Redirects the terminate signal (Ctrl-C) to the terminate method below.
+	
+	***************************************************************************/
+
+	public static void activate ( )
+	{
+		SignalHandler.set([SIGTERM, SIGINT], &terminate);
+	}
+
+
+	/***************************************************************************
+	
+	    Sets terminate signal handling back to the default (ie not handled by
+	    this class).
+	
+	***************************************************************************/
+
+	public static void deactivate ( )
+	{
+		SignalHandler.reset([SIGTERM, SIGINT]);
+	}
+
+
+	/***************************************************************************
+
+		Termination handler. Receives a signal, calls all registered function &
+		delegate termination handlers, then passes the signal on to the default
+		handler.
+
+	    Params:
+	        code = signal code
+
+	***************************************************************************/
+
+	extern (C) protected static synchronized void terminate ( int code )
+	{
+		debug Trace.formatln(SignalHandler.getId(code) ~ " raised: terminating");
+
+		// Process delegates
+		foreach ( dg; delegates )
+		{
+			dg(code);
+		}
+
+		// Process functions
+		foreach ( fn; functions )
+		{
+			fn(code);
+		}
+
+		// Deactivate this signal handler and pass this signal on to the default
+		// handler
+		deactivate();
+		raise(code);
+	}
+}
+
