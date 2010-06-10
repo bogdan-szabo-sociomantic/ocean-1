@@ -74,7 +74,8 @@
 		---
 
 		TraceProgress progress;
-		progress.initDisplay(TraceProgress.Name("test), TraceProgress.ConsoleDisplay.Static);
+		progress.initDisplay(TraceProgress.Name("test), TraceProgress.ConsoleDisplay.Static,
+			TraceProgress.ConsoleDisplay.All);
 		foreach ( val; data_source )
 		{
 			// Do stuff...
@@ -94,7 +95,7 @@
 
 		TraceProgress progress;
 		progress.initDisplay(TraceProgress.Name("test), TraceProgress.ConsoleDisplay.Static,
-			TraceProgress.Interval(1000), TraceProgress.Time.Secs);
+			TraceProgress.ConsoleDisplay.All, TraceProgress.Interval(1000), TraceProgress.Time.Secs);
 		foreach ( val; data_source )
 		{
 			// Do stuff...
@@ -207,7 +208,7 @@ struct ConsoleTracer
 
 	/***************************************************************************
 
-		Minimum time between updates
+		Minimum time between updates (microsec)
 
 	***************************************************************************/
 
@@ -1095,6 +1096,8 @@ public struct TraceProgress
 
 	public void initDisplay ( ... )
 	{
+		this.console_trace.update_interval = 100000; // console update 10 times a second
+		
 		// Always show the iteration counter
 		this.count.displayAsNormal();
 
@@ -1422,7 +1425,7 @@ public struct TraceProgress
 	
 			this.updateDisplayStrings();
 			this.write(this.console_display, this.spinnerString(), "",
-					this.console_streaming ? &this.console_trace.writeStreaming : &this.console_trace.writeStatic);
+					this.console_streaming ? &this.console_trace.updateStreaming : &this.console_trace.updateStatic);
 		}
 	}
 
@@ -1793,9 +1796,8 @@ public struct TraceProgress
 	protected void display ( char[] append = "" )
 	{
 		this.updateDisplayStrings();
-		
 		this.write(this.console_display, this.spinnerString(), append,
-				this.console_streaming ? &this.console_trace.writeStreaming : &this.console_trace.writeStatic);
+				this.console_streaming ? &this.console_trace.updateStreaming : &this.console_trace.updateStatic);
 		this.write(this.log_display, "", append, &this.writeToLog);
 	}
 
