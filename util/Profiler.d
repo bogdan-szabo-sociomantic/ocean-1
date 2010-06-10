@@ -6,9 +6,9 @@
 
     author:         Gavin Norman
 
-    Provides a simple means of profiling the time taken to execute sections of
-    code and display an output to Trace telling how long each recorded section
-    took, and the total of all sections.
+    Provides a simple means of profiling the time and memory usage taken to
+    execute sections of code and display output to Trace telling how long each
+    recorded section took, and the total of all sections.
     
     The output frequency of the profiler can be limited using the
     setDisplayUpdateInterval method.
@@ -305,7 +305,6 @@ struct Profiler
     {
     	if ( this.tracer.timeToUpdate() )
     	{
-	//    	ulong mem_size = cast(ulong) GC.stats["poolSize"];
     		this.buf.length = 0;
     		this.buf ~= prefix;
 
@@ -331,7 +330,6 @@ struct Profiler
 			{
 				this.tracer.writeStatic(this.buf);
 			}
-	//		Trace.formatln("Allocated memory: {}bytes", mem_size);
     	}
     }
 
@@ -417,7 +415,7 @@ struct Profiler
 	/***************************************************************************
 
 		Times a section of code (usually an anonymous delegate) which is passed
-		as the template argument T.
+		as the parameter 'section'.
 		
 		Params:
 			name = section name
@@ -443,7 +441,7 @@ struct Profiler
     }
 
 
-	/***************************************************************************
+    /***************************************************************************
 
 		Shared instance of the Profiler.
 	
@@ -463,4 +461,175 @@ struct Profiler
     	return &static_instance;
     }
 }
+
+
+
+/*******************************************************************************
+
+	Memory profiler struct
+
+*******************************************************************************/
+
+struct MemProfiler
+{
+	/***************************************************************************
+
+		Enum of expected memory usage types. Used by the check methods, below.
+	
+	***************************************************************************/
+
+	enum Expect
+	{
+		NoChange,
+		MemGrow,
+		MemShrink
+	}
+
+
+	/***************************************************************************
+
+		Records the memory usage before and after a section of code (usually an
+		anonymous delegate) which is passed as the parameter 'section'.
+
+		Displays a message to Trace if the expected condition is not true.
+
+		Params:
+			name = section name
+			expect = expected memory usage (grow / shrink / no change)
+			section = section of code to be profiled
+
+	***************************************************************************/
+
+	static R check ( R, T... ) ( char[] name, Expect expect, R delegate ( T ) section )
+	{
+		static if ( is ( R == void ) )
+		{
+			auto before = GC.stats["poolSize"];
+			section();
+			auto after = GC.stats["poolSize"];
+			checkCondition(name, expect, before, after);
+			return;
+		}
+		else
+		{
+			auto before = GC.stats["poolSize"];
+			R r = section();
+			auto after = GC.stats["poolSize"];
+			checkCondition(name, expect, before, after);
+			return r;
+		}
+	}
+
+
+	/***************************************************************************
+
+		Records the memory usage before and after a section of code (usually an
+		anonymous delegate) which is passed as the parameter 'section'.
+	
+		Displays a message to Trace and asserts if the expected condition is not
+		true.
+	
+		Params:
+			name = section name
+			expect = expected memory usage (grow / shrink / no change)
+			section = section of code to be profiled
+	
+	***************************************************************************/
+
+	static R checkAssert ( R, T... ) ( char[] name, Expect expect, R delegate ( T ) section )
+	{
+		static if ( is ( R == void ) )
+		{
+			auto before = GC.stats["poolSize"];
+			section();
+			auto after = GC.stats["poolSize"];
+			checkCondition(name, expect, before, after);
+			assertCondition(name, expect, before, after);
+			return;
+		}
+		else
+		{
+			auto before = GC.stats["poolSize"];
+			R r = section();
+			auto after = GC.stats["poolSize"];
+			checkCondition(name, expect, before, after);
+			assertCondition(name, expect, before, after);
+			return r;
+		}
+	}
+
+
+	/***************************************************************************
+
+		Checks the memory usage before and after a section of code. Displays a
+		message to Trace if the expected condition is not true.
+	
+		Params:
+			name = section name
+			expect = expected memory usage (grow / shrink / no change)
+			before = mem usage before
+			after = mem usage after
+	
+	***************************************************************************/
+
+	static void checkCondition ( char[] name, Expect expect, double before, double after )
+	{
+		switch ( expect )
+		{
+			case Expect.NoChange:
+				if ( before != after )
+				{
+					Trace.formatln("({}) mem usage: {} -> {} (changed by {})", name, before, after, after - before);
+				}
+			break;
+			case Expect.MemGrow:
+				if ( before >= after )
+				{
+					Trace.formatln("({}) mem usage: {} -> {} (shrunk by {})", name, before, after, after - before);
+				}
+			break;
+			case Expect.MemShrink:
+				if ( before <= after )
+				{
+					Trace.formatln("({}) mem usage: {} -> {} (changed by {})", name, before, after, after - before);
+				}
+			break;
+			default:
+			break;
+		}
+	}
+
+
+	/***************************************************************************
+
+		Checks the memory usage before and after a section of code. Asserts if
+		the expected condition is not true.
+	
+		Params:
+			name = section name
+			expect = expected memory usage (grow / shrink / no change)
+			before = mem usage before
+			after = mem usage after
+	
+	***************************************************************************/
+
+	static void assertCondition ( char[] name, Expect expect, double before, double after )
+	{
+		switch ( expect )
+		{
+			case Expect.NoChange:
+				assert(before == after, name ~ " expected no change in memory usage");
+			break;
+			case Expect.MemGrow:
+				assert(before < after, name ~ " expected growth in memory usage");
+			break;
+			case Expect.MemShrink:
+				assert(before > after, name ~ " expected shrink in memory usage");
+			break;
+			default:
+				break;
+		}
+	}
+}
+
 
