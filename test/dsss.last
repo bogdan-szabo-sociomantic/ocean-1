@@ -1,6 +1,0 @@
-name=unittest
-
-[main.d]
-target=unittest
-buildflags=-Isrc -w -L/usr/local/tokyocabinet/lib/libtokyocabinet.so -debug=OceanUnitTest -debug -unittest
-
