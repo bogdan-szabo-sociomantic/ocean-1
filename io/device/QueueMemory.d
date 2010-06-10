@@ -39,8 +39,6 @@ private import ocean.io.device.Memory;
 
 private import tango.io.FilePath, tango.io.device.File;
 
-private import Csignal = tango.stdc.signal: signal, raise, SIGTERM, SIGINT, SIG_DFL;
-
 private import ocean.sys.SignalHandler;
 
 private import tango.util.log.Trace;
@@ -110,7 +108,8 @@ class QueueMemoryPersist : QueueMemory
 {
 	/***************************************************************************
 
-	    Constructor
+	    Constructor. Registers a termination handler for the class, so the
+	    queue's contents can be saved if the program is terminated.
 	    
 	    Params:
 	    	name = name of queue (for logging)
@@ -121,20 +120,8 @@ class QueueMemoryPersist : QueueMemory
 	public this ( char[] name, uint max )
 	{
 		super(name, max);
-		this.registerInstance();
+		TerminationSignal.handle(&this.terminate);
 		this.readFromFile();
-	}
-
-
-	/***************************************************************************
-
-    	Registers this instance of this class with the static instances list.
-	
-	***************************************************************************/
-
-	protected void registerInstance ( )
-	{
-		registerInstance(this);
 	}
 
 
@@ -151,24 +138,9 @@ class QueueMemoryPersist : QueueMemory
 	}
 
 
-	/***************************************************************************
-	
-	    Static constructor.
-	    Redirects the terminate signal (Ctrl-C) to the static terminate method
-	    below.
-
-	***************************************************************************/
-
-	static this ( )
-	{
-	    Csignal.signal(Csignal.SIGTERM, &terminate);
-	    Csignal.signal(Csignal.SIGINT,  &terminate);
-	}
-
-
     /***************************************************************************
 
-	    Static signal handler. Saves each instance of this class to a file
+	    Terminate signal handler. Saves this instance of the class to a file
 	    before termination.
 	    
 	    Params:
@@ -176,47 +148,96 @@ class QueueMemoryPersist : QueueMemory
 	    
 	***************************************************************************/
 	
-	extern (C) static protected synchronized void terminate ( int code )
+	protected void terminate ( int code )
 	{
-		char[] msg = SignalHandler.getId(code) ~ " raised: terminating";
-		Trace.formatln(msg);
+		this.stopIO();
 
-		foreach ( instance; instances )
-		{
-			Trace.formatln("Closing {} (saving {} entries to {})",
-					instance.getName(), instance.size(), instance.getName() ~ ".dump");
-			instance.log(msg);
-			instance.stopIO();
-			instance.dumpToFile();
-		}
-
-	    Csignal.signal(code, SIG_DFL);
-	    Csignal.raise(code);
-	}
-
-
-	/***************************************************************************
-	
-	    Static list of instances of this class
-	    
-	***************************************************************************/
-	
-	static protected QueueMemoryPersist[] instances;
-
-
-	/***************************************************************************
-	
-    	Registers an instance of this class with the static instances list.
-    	
-    	Params:
-    		instance = instance to register
-    
-	***************************************************************************/
-
-	static protected void registerInstance ( QueueMemoryPersist instance )
-	{
-		Trace.formatln("Adding {} to memory persist queue instances list", instance.getName());
-		instances ~= instance;
+		Trace.formatln("Closing {} (saving {} entries to {})",
+				this.getName(), this.size(), this.getName() ~ ".dump");
+		this.log(SignalHandler.getId(code) ~ " raised: terminating");
+		this.dumpToFile();
 	}
 }
+
+
+
+/*******************************************************************************
+
+	Unittest
+
+*******************************************************************************/
+
+debug (OceanUnitTest)
+{
+	import tango.util.log.Trace;
+	import tango.core.Memory;
+	import tango.time.StopWatch;
+	import tango.core.Thread;
+	import tango.text.convert.Integer;
+	import ocean.util.Profiler;
+	
+	import tango.stdc.string: memcpy;
+	import tango.stdc.stdio: snprintf;
+	
+	import tango.math.random.Random;
+
+	unittest
+	{
+	    Trace.formatln("Running ocean.io.device.QueueMemory unittest");
+
+	    char[] buf;
+
+
+	    /***********************************************************************
+
+			Queue test
+
+	    ***********************************************************************/
+
+	    const uint ITERATIONS = 50_000;
+
+	    const uint Q_SIZE = 1024 * 1024;
+
+	    auto q = new QueueMemory("test", Q_SIZE);
+
+	    Trace.formatln("Queue test: Initial mem usage = {} bytes", GC.stats["poolSize"]);
+
+	    scope random = new Random();
+
+	    for ( uint i = 0; i < ITERATIONS; i++ )
+	    {
+    		MemProfiler.check("queue push", MemProfiler.Expect.NoChange, {
+		    	// Add random length items to the queue until it's full
+	    		bool push_succeeded;
+	    		uint pushes;
+		    	do
+		    	{
+		    		uint len;
+		    		random(len);
+		    		len = 1 + (len % 25_000);
+		    		buf.length = len;
+		    		push_succeeded = q.push(buf);
+		    		if ( push_succeeded )
+		    		{
+		    			pushes++;
+		    		}
+		    	} while ( push_succeeded )
+	
+		    	// Remove items from the queue until it's empty
+		    	uint pops;
+		    	while ( !q.isEmpty() )
+		    	{
+	    			auto content = q.pop();
+	    			pops++;
+		    	}
+		    	assert(pops == pushes);
+		    	
+		    	if ( i % 1000 == 0 ) Trace.formatln("iteration {} / {}", i, ITERATIONS);
+    		});
+	    }
+
+	    Trace.formatln("Done unittest\n");
+	}
+}
+
 
