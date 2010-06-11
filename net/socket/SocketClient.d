@@ -128,9 +128,10 @@ abstract class SocketClientConst
 	
 	public enum Status : Code
 	{
-	    Ok            = 200,
-	    Error         = 500,
-	    PutOnReadOnly = 501
+	    Ok            	= 200,
+	    Error        	= 500,
+	    PutOnReadOnly	= 501,
+	    UnknownCommand	= 502
 	}
 
 
@@ -163,6 +164,21 @@ abstract class SocketClientConst
 
 	/***************************************************************************
 	
+	    Checks if a code is valid.
+	    
+	    Returns:
+	    	true if the code passed is valid
+	
+	***************************************************************************/
+
+	public bool isValidCode ( Code code)
+	{
+		return (code in this.descriptions_by_code) != null;
+	}
+
+
+	/***************************************************************************
+	
 		Initialises the list of command codes descriptions with the default
 		status codes for this base class.
 		
@@ -176,7 +192,8 @@ abstract class SocketClientConst
 		this.code_descriptions = [
  			CodeDescr(Status.Ok,				"OK"),
  			CodeDescr(Status.Error,				"Internal Error"),
- 			CodeDescr(Status.PutOnReadOnly,		"Attempted to put on read-only server")
+ 			CodeDescr(Status.PutOnReadOnly,		"Attempted to put on read-only server"),
+ 			CodeDescr(Status.UnknownCommand,	"Unknown command")
  		];
 	}
 
