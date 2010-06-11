@@ -41,7 +41,7 @@ private     import  ocean.db.tokyocabinet.model.ITokyoCabinet: TokyoCabinetItera
 
 private     import  ocean.db.tokyocabinet.c.tcmdb:
                         TCMDB,
-                        tcmdbnew,   tcmdbdel,
+                        tcmdbnew,   tcmdbnew2,     tcmdbvanish, tcmdbdel,
                         tcmdbput,   tcmdbputkeep,  tcmdbputcat,
                         tcmdbget,   tcmdbforeach,
                         tcmdbout,   tcmdbrnum,     tcmdbmsiz,   tcmdbvsiz;
@@ -75,6 +75,22 @@ class TokyoCabinetM
     public this ( ) 
     {
         this.db = tcmdbnew();
+    }
+    
+    
+    
+    /**************************************************************************
+        
+        Constructor
+        
+        Params:
+            bnum = number of buckets
+                             
+     **************************************************************************/
+    
+    public this ( uint bnum ) 
+    {
+        this.db = tcmdbnew2(bnum);
     }
     
     
@@ -257,6 +273,17 @@ class TokyoCabinetM
 
     /**************************************************************************
     
+        Clears the database
+        
+    ***************************************************************************/
+
+    public void clear ()
+    {
+        tcmdbvanish(this.db);
+    }
+    
+    /**************************************************************************
+    
         "foreach" iterator over key/value pairs of records in database. The
         "key" and "val" parameters of the delegate correspond to the iteration
         variables.
@@ -287,5 +314,123 @@ class TokyoCabinetM
         TcIterator.tcdbopapply(this.db, delg, result);
         
         return result;
+    }
+}
+
+
+/*******************************************************************************
+
+    Unittest
+
+********************************************************************************/
+
+debug (OceanUnitTest)
+{
+    import tango.util.log.Trace;
+    import tango.core.Memory;
+    import tango.time.StopWatch;
+    import tango.core.Thread;
+    import tango.util.container.HashMap;
+    
+    unittest
+    {
+        Trace.formatln("Running ocean.db.tokyocabinet.TokyoCabinetM unittest");
+        
+        const uint iterations  = 5;
+        const uint inserts     = 1_000_000;
+        const uint num_threads = 1;
+        
+        /***********************************************************************
+            
+            ArrayMapKV Assertion Test
+            
+         ***********************************************************************/
+        
+        StopWatch   w;
+        
+        scope value = new char[0x100];
+        
+        scope map = new TokyoCabinetM(1_250_000);
+        
+        map.put("1", "1111");
+        map.put("2", "2222");
+        
+        map.get("1", value);
+        assert(value == "1111");
+        
+        map.get("2", value);
+        assert(value == "2222");
+        
+        assert(map.exists("1"));
+        assert(map.exists("2"));
+        
+        assert(map.numRecords() == 2);
+        
+        map.put("3", "3333");
+        
+        assert(map.numRecords() == 3);
+        
+        map.get("3", value);
+        assert(value == "3333");
+        
+        map.remove("3");
+        assert(!map.exists("3"));
+        assert(map.numRecords() == 2);
+        
+        /***********************************************************************
+            
+            Memory Test
+            
+         ***********************************************************************/
+        
+        Trace.formatln("running mem test...");
+        
+        char[] toHex ( uint n, char[8] hex )
+        {
+            foreach_reverse (ref c; hex)
+            {
+                c = "0123456789abcdef"[n & 0xF];
+                
+                n >>= 4;
+            }
+            
+            return hex;
+        }
+
+        char[8] hex;
+        
+        for ( uint r = 1; r <= iterations; r++ )
+        {
+            map.clear();
+            
+            w.start;
+            
+            for ( uint i = ((inserts * r) - inserts); i < (inserts * r); i++ )
+            {
+                toHex(i, hex);
+                
+                map.put(hex, hex);
+            }
+            
+            Trace.formatln  ("[{}:{}-{}]\t{} adds with {}/s and {} bytes mem usage", 
+                    r, ((inserts * r) - inserts), (inserts * r), map.numRecords(), 
+                    map.numRecords()/w.stop, GC.stats["poolSize"]);
+        }
+        
+        w.start;
+        uint hits = 0;
+        uint* p;
+        
+        for ( uint i = ((inserts * iterations) - inserts); i < (inserts * iterations); i++ )
+        {
+            if ( map.exists(toHex(i, hex)) ) hits++;
+        }
+        Trace.formatln("inserts = {}, hits = {}", inserts, hits);
+        assert(inserts == hits);
+        
+        Trace.format  ("{}/{} gets/hits with {}/s and ", map.numRecords(), hits, map.numRecords()/w.stop);
+        Trace.formatln("mem usage {} bytes", GC.stats["poolSize"]);
+        
+        Trace.formatln("done unittest\n");
     }
 }
