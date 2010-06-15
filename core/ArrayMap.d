@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 
     Hashtable with Multi-Thread Support
 
@@ -6,17 +6,17 @@
 
     Version:        May 2010: Initial release
                     
-    Authors:        Thomas Nicolai, David Eckardt
+    Authors:        Thomas Nicolai
     
- ******************************************************************************/
+********************************************************************************/
 
 module ocean.core.ArrayMap;
 
-/******************************************************************************
+/*******************************************************************************
 
     Imports
     
- ******************************************************************************/
+********************************************************************************/
 
 private     import      ocean.core.Exception: ArrayMapException;
 
@@ -24,22 +24,34 @@ private     import      ocean.io.digest.Fnv1;
 
 private     import      tango.stdc.posix.pthread;
 
-/******************************************************************************
+/*******************************************************************************
 
     Mutex support for multithreading
     
     Enable  = enable multi thread support
     Disable = disable multi thread support (faster)
 
- ******************************************************************************/
+********************************************************************************/
 
 struct Mutex
 {
-    const bool Enable  = true;
-    const bool Disable = false;
+        const bool Enable  = true;
+        const bool Disable = false;
 }
 
-/******************************************************************************
+/*******************************************************************************
+
+    Key/value bag for ArrayMapKV implementation
+
+*******************************************************************************/
+
+private struct KeyValueElement ( K, V )
+{
+        K key;
+        V value;
+}
+
+/*******************************************************************************  
 
     Hashmap with consistent hashing and without key iteration.
     
@@ -108,7 +120,7 @@ struct Mutex
     array.buckets(20_000, 5); // set number of buckets !!! important
     ---
 
- *******************************************************************************/
+*********************************************************************************/
 
 class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 {
@@ -121,97 +133,92 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         const VisArray = false;
     }
     
-    
-    /**************************************************************************
+    /*******************************************************************************
         
         Hashmap bucket key element
         
         key = key of array element
         pos = position of value in the value map
         
-     **************************************************************************/
+     *******************************************************************************/
     
     private struct KeyElement
     {
-        K  key;
-        size_t pos;
+            K  key;
+            uint pos;
     }
 
-    /**************************************************************************
+    /*******************************************************************************
         
         Hashmap bucket
         
         length   = number of key elemens in bucket
         elements = list of key elements
         
-     **************************************************************************/
+     *******************************************************************************/
     
     private struct Bucket
     {
-        size_t length = 0;
-        KeyElement[] elements;
-        
-        static if (M)
-        {
-            pthread_rwlock_t rwlock;
-        }
+            uint length = 0;
+            KeyElement[] elements;
+            
+            static if (M) pthread_rwlock_t rwlock;
     }
 
-    /**************************************************************************
+    /*******************************************************************************
         
         Hashtable based key map
         
-        Hashmap only stores the key indicies as well as the position of the
-        value inside the value map.
+        Hashmap only stores the key indicies as well as the position of the value
+        inside the value map.
         
-     **************************************************************************/
+     *******************************************************************************/
     
     final               Bucket[]                        k_map;
     
-    /**************************************************************************
+    /*******************************************************************************
         
         Value map
         
-     **************************************************************************/
+     *******************************************************************************/
     
     final               V[]                             v_map;
     
-    /**************************************************************************
+    /*******************************************************************************
         
         Number of buckets 
         
-        Number of buckets is based on size of hashmap and the load factor.
-        Usually
-        a load factor around 0.75 is perfect.
+        Number of buckets is based on size of hashmap and the load factor. Usually
+        a loadfactor around 0.75 is perfect.
         
-     **************************************************************************/
+     *******************************************************************************/
     
-    final               size_t                            buckets_length;
+    final               uint                            buckets_length;
     
-    /**************************************************************************
+    /*******************************************************************************
         
         Number of hashmap bucket elements allocated at once
         
         Allocating more than one element at a time improves performance a lot.
         Nevertheless, allocating to much at once kills performance.
         
-     **************************************************************************/
+     *******************************************************************************/
     
-    final               size_t                            default_alloc_size = 1;
+    final               uint                            default_alloc_size = 1;
 
-    /**************************************************************************
+    /*******************************************************************************
         
         Startup size of array map
         
-     **************************************************************************/
+     *******************************************************************************/
     
-    final               size_t                            default_size;
+    final               uint                            default_size;
     
-    /**************************************************************************
+    /*******************************************************************************
         
         Load factor
         
-     **************************************************************************/
+     *******************************************************************************/
     
     final               float                           load_factor;
 
@@ -219,11 +226,11 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         Number of array elements stored
         
-     **************************************************************************/
+     *******************************************************************************/
     
-    final               size_t                            len;
+    final               uint                            len;
     
-    /**************************************************************************
+    /*******************************************************************************
         
         Sets number of buckets used
 
@@ -239,30 +246,48 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Returns:
             void
             
-     **************************************************************************/
+     *******************************************************************************/
     
-    public this ( in size_t default_size = 10_000, in float load_factor = 0.75 )
+    public this ( uint default_size = 10_000, float load_factor = 0.75 )
     {
         this.default_size = default_size;
         this.load_factor  = load_factor;
         
         this.buckets_length = cast(int) (default_size / load_factor);
         
-        this.k_map = new Bucket[this.buckets_length];
-        this.v_map = new V[default_size];
+        this.k_map.length   = this.buckets_length;
+        this.v_map.length   = default_size;
         
         foreach ( ref bucket; this.k_map ) 
         {
-            bucket.elements = new KeyElement[this.default_alloc_size];
-            
-            static if (M)
-            {
-                pthread_rwlock_init(&bucket.rwlock, null);
-            }
+            bucket.elements.length = this.default_alloc_size;
+            static if (M) pthread_rwlock_init(&bucket.rwlock, null);
         }
     }
       
-    /**************************************************************************
+    /*******************************************************************************
+        
+        Destructor; free memory to gc
+            
+        Returns:
+            void
+            
+     *******************************************************************************/
+    
+    public ~this () 
+    {
+        this.len = 0;
+        
+        foreach ( ref bucket; this.k_map)
+        {
+            static if (M) pthread_rwlock_destroy(&bucket.rwlock);
+            bucket.length = 0;
+        }
+
+        this.free_();
+    }
+    
+    /*******************************************************************************
         
         Put element to array map
         
@@ -273,14 +298,16 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             key = array key
             value = array value
         
-     **************************************************************************/
+        Returns:
+            void
+        
+     *******************************************************************************/
     
-    public void put (in  K key, in V value )
+    public void put ( K key, V value )
     {
         this.put_(key, value);
     }
 
-    
     /**************************************************************************
     
         Append element value to value of existing element in array map
@@ -293,13 +320,13 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             value = array value
         
      **************************************************************************/
-
-    static if (this.VisArray) public void putCat ( in K key, in V value )
+    
+    static if (this.VisArray) public void putcat ( in K key, in V value )
     {
         this.put_!(true)(key, value);
     }
-    
-    /**************************************************************************
+
+    /*******************************************************************************
         
         Returns value associated with key
         
@@ -309,9 +336,9 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Returns:
             value of array key
         
-     **************************************************************************/
+     *******************************************************************************/
     
-    public V get ( in K key )
+    public V get ( K key )
     {
         V* v = this.findValueSync(key);
         
@@ -322,8 +349,8 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         throw new ArrayMapException(`key doesn't exist`);
     }
-    
-    /**************************************************************************
+
+    /*******************************************************************************
         
         Remove element from array map
         
@@ -333,22 +360,24 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Returns:
             void
         
-     **************************************************************************/
+     *******************************************************************************/
     
-    public void remove ( in K key )
+    public void remove ( K key )
     {
-        this.remove_(key);
+        hash_t h = (toHash(key) % this.buckets_length);
+
+        this.writeLock (this.k_map.ptr + h, {this.remove_(h, key);});
     }
     
-    /**************************************************************************
+    /*******************************************************************************
         
         Clear array map
         
         Returns:
             void
         
-     **************************************************************************/
- 
+     *******************************************************************************/
+    
     public void clear ()
     {
         if ( this.len )
@@ -356,11 +385,11 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             this.len = 0;
             
             foreach ( ref bucket; this.k_map ) 
-                this.writeLock ( &bucket, (Bucket* b) {b.length = 0;});
+                this.writeLock ( &bucket, {bucket.length = 0;});
         }
     }
     
-    /**************************************************************************
+    /*******************************************************************************
         
         Copies content of array map
         
@@ -370,7 +399,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Returns:
             true if key exists, false otherwise
         
-     **************************************************************************/
+     *******************************************************************************/
     
     public void copy ( ref ArrayMap dst )
     {
@@ -382,7 +411,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         }
     }
 
-    /**************************************************************************
+    /*******************************************************************************
         
         Returns whether key exists or not
         
@@ -392,21 +421,24 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Returns:
             true if key exists, false otherwise
         
-     **************************************************************************/
+     *******************************************************************************/
     
-    bool exists ( in K key )
+    bool exists ( K key )
     {   
         return this.findValueSync(key) != null;
     }
     
-    /**************************************************************************
+    /*******************************************************************************
         
         Free memory allocated by array map
         
         Using free on an array map leads to freeing of any memory allocated. The
         array map can't be reused anymore afterwards.
         
-     **************************************************************************/
+        Returns:
+            void
+        
+     *******************************************************************************/
     
     public void free ()
     {
@@ -414,21 +446,21 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         this.free_();
     }
     
-    /**************************************************************************
+    /*******************************************************************************
         
         Return number of elements stored in array map
         
         Returns:
             number of elements
         
-     **************************************************************************/
+     *******************************************************************************/
     
-    public size_t length ()
+    public uint length ()
     {
         return this.len;
     }
     
-    /**************************************************************************
+    /*******************************************************************************
         
         Set number of elements stored in array map
         
@@ -438,14 +470,14 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Returns:
             void
         
-     **************************************************************************/
+     *******************************************************************************/
     
-    public void length ( in size_t length )
+    public void length ( uint length )
     {
         this.len = length;
     }
 
-    /**************************************************************************
+    /*******************************************************************************
         
         Returns element value associated with key
         
@@ -455,9 +487,9 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Returns:
             value of array key
         
-     **************************************************************************/
+     *******************************************************************************/
     
-    public V opIndex ( in K key )
+    public V opIndex ( K key )
     {
         V* v = this.findValueSync(key);
         
@@ -469,7 +501,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         throw new ArrayMapException(`key doesn't exist`);
     }
     
-    /**************************************************************************
+    /*******************************************************************************
         
         Put element to array map
         
@@ -483,14 +515,14 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Returns:
             void
         
-     **************************************************************************/
+     *******************************************************************************/
     
-    public void opIndexAssign ( in V value, in K key )
+    public void opIndexAssign ( V value, K key )
     {
         this.put_(key, value);
     }
     
-    /**************************************************************************
+    /***********************************************************************
     
         Return the element associated with key
     
@@ -518,82 +550,77 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Returns:
             a pointer to the located value, or null if not found
     
-    ***************************************************************************/
+    ************************************************************************/
     
-    static if (M)
+    static if (M) public bool opIn_r ( K key )
     {
-        alias exists opIn_r;
-    }
-    else
-    {
-        public V* opIn_r ( K key )
+        V* v = this.findValueSync(key);
+        
+        if ( v !is null )
         {
-            return this.findValueSync(key);
+            return true;
         }
+        
+        return false;
+    }
+    else public V* opIn_r ( K key )
+    {
+        V* v = this.findValueSync(key);
+        
+        if ( v !is null )
+        {
+            return v;
+        }
+        
+        return null;
     }
      
-     /*************************************************************************
+     /***********************************************************************
          
-         Note: Please iterate over v_map instead.
+         Returns iterator with value as reference
+     
+         Be aware that the returned list is unordered and that the array map
+         does not support iteration over the key of the element is this 
+         would be very inefficent.
          
-         'foreach' iteration over array values
+         Params:
+             dg = iterator delegate
+         
+         Returns:
+             array values
      
-         Be aware that the values are unordered.
-     
-     **************************************************************************/
+     ************************************************************************/
 
-     deprecated public int opApply ( int delegate ( ref V value ) dg )
+     public int opApply (int delegate(ref V value) dg)
      {
          int result = 0;
          
-         foreach (ref value; this.v_map)
+         foreach ( ref value; this.v_map[0 .. this.len] )
          {
              result = dg(value);
-             
              if (result) break;
          }
          
          return result;
      }
      
-     /*************************************************************************
-         
-         'foreach' iteration over array key/value pairs
-     
-         Be aware that the key/value pairs are unordered and that the key/value 
-         iteration is very inefficent. In order to have the best performance 
-         please consider using ArrayMapKV.
-     
-     **************************************************************************/
-     
-     public int opApply ( int delegate( ref K key, ref V value ) dg )
-     {
-         int result = 0;
-         
-         foreach (bucket; this.k_map)
-         {
-             foreach (ref element; bucket.elements[0 .. bucket.length])
-             {
-                 result = dg(element.key, this.v_map[element.pos]);
-                 
-                 if (result) break;
-             }
-         }
-         
-         return result;
-     }
- 
-     /*************************************************************************
+     /*******************************************************************************
          
          Rehash key map
          
          Optimizes the key map map in case the load factor is larger than 0.75.
          
-      *************************************************************************/
+         Params:
+             key = key to return hash
+             
+         Returns:
+             hash
+         
+      *******************************************************************************/
      
      public void rehash ()
      {
-         if ( cast (float) this.len / cast (float) this.buckets_length > 0.75f )
+         if ( this.len / this.buckets_length > 0.75 )
          {
              /*
                  we need to have a new bucket_length set 
@@ -608,21 +635,26 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
          }
      }
      
-     /*************************************************************************
-     
-         Generates the hash from to key. If key is compatible to hash_t, its
-         value is copied.
+     /*******************************************************************************
+         
+         Returns hash for given string
          
          Params:
-             key = key of bucket to pick
+             key = key to return hash
              
          Returns:
              hash
          
-      *************************************************************************/
+      *******************************************************************************/
      
-     public static hash_t toHash ( in K key )
+     private hash_t toHash ( K key )
      {
+         /* The following types are implicitely castable to hash_t:
+          * size_t, bool,  byte,   int,   long, 
+          *               ubyte,  uint,  ulong,
+          *                char, wchar,  dchar
+          */
+         
          static if (is (K : hash_t))
          {
              return key;
@@ -633,108 +665,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
          }
      }
      
-     /*************************************************************************
-     
-         Returns an array of values where each element corresponds to the number
-         of elements in a bucket.
-          
-         Returns:
-             array of usage values
-         
-      *************************************************************************/
-     
-     public size_t[] getBucketUsage ( )
-     {
-         auto usage = new size_t[this.k_map.length];
-         
-         this.getBucketUsage(usage);
-         
-         return usage;
-     }
-     
-     /*************************************************************************
-     
-         Fills usage so that each element corresponds to the number of elements
-         in a bucket.
-          
-         Params:
-             usage = output array of usage values
-         
-      *************************************************************************/
-     
-     public void getBucketUsage ( out size_t[] usage )
-     {
-         usage.length = this.k_map.length;
-         
-         foreach (i, bucket; this.k_map)
-         {
-             usage[i] = bucket.length;
-         }
-     }
-     
-     /*************************************************************************
-         
-         Picks the bucket which corresponds to key.
-         
-         Params:
-             key = key of bucket to pick
-             
-         Returns:
-             (pointer to) bucket
-         
-      *************************************************************************/
-     
-     private Bucket* getBucket ( in K key )
-     {
-         return this.k_map.ptr + (this.toHash(key) % this.buckets_length);
-     }
-     
-     /+
-     /*************************************************************************
-         
-         Returns hash for given string
-         
-         Params:
-             key = key to return hash
-             
-         Returns:
-             hash
-         
-      *************************************************************************/
-     
-     private uint toHash ( K key )
-     {
-         /*
-         is (K : hash_t)  || 
-         is (K : int)     || 
-         is (K : uint)    || 
-         is (K : long)    || 
-         is (K : ulong)   || 
-         is (K : short)   || 
-         is (K : ushort)  ||
-         is (K : byte)    || 
-         is (K : ubyte)   ||
-         is (K : char)    || 
-         is (K : wchar)   || 
-         is (K : dchar))
-      */
-         
-        static if (is (K : long))
-        {
-            pragma (msg, K.stringof ~ " : long");
-            
-            return cast (hash_t) (key);
-        }
-        else
-        {
-            pragma (msg, K.stringof ~ " !: long");
-            
-            return (Fnv1a32.fnv1(key) & 0x7FFFFFFF);
-        }
-     }
-     +/
-     
-    /*************************************************************************
+    /*******************************************************************************
         
         Returns pointer to array element value
         
@@ -744,138 +675,249 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Returns:
             pointer to element value, or null if not found
         
-     **************************************************************************/
+     *******************************************************************************/
     
-     private V* findValueSync ( in K key )
-     {
-         static if (M)
-         {
-             Bucket* bucket = this.getBucket(key);
-             
-                          pthread_rwlock_rdlock(&bucket.rwlock);
-             scope (exit) pthread_rwlock_unlock(&bucket.rwlock);
-             
-             return this.findValue(bucket, key);
-         }
-         else
-         {
-             return this.findValue(this.getBucket(key), key);
-         }
-     }
-     
-    /**************************************************************************
+    private V* findValueSync ( K key )
+    {
+        return this.findValueSync(key, (toHash(key) % this.buckets_length));
+    }
+    
+    /*******************************************************************************
         
-        Returns pointer to array element value.
-        
-        Note: The bucket corresponding to key can be retrieved by getBucket(). 
+        Returns pointer to array element value
         
         Params:
-            bucket = bucket corresponding to key 
-            key    = array key
+            key = array key
+            h = bucket position
             
         Returns:
             pointer to element value, or null if not found
         
-     **************************************************************************/
+     *******************************************************************************/
     
-     private V* findValue ( in Bucket* bucket, in K key )
-     {
-         foreach (element; bucket.elements[0 .. bucket.length])
-         {
-             if (element.key == key)
-             {
-                 return this.v_map.ptr + element.pos;
-             }
-         }
-         
-         return null;
-     }
+    private V* findValueSync ( K key, hash_t h )
+    {
+        static if (M)
+        {
+            pthread_rwlock_rdlock(&(this.k_map[h].rwlock));
+            scope (exit) pthread_rwlock_unlock(&(this.k_map[h].rwlock));
+            
+            return this.findValue(key, h);
+        }
+        else
+        {
+            return this.findValue(key, h);
+        }
+    }
+    
+    /*******************************************************************************
+        
+        Returns pointer to array element value
+        
+        Params:
+            key = array key
+            h = bucket position
+            
+        Returns:
+            pointer to element value, or null if not found
+        
+     *******************************************************************************/
+    
+    private V* findValue ( K key, hash_t h )
+    {
+        Bucket* bucket = this.k_map.ptr + h;
+        uint length    = bucket.length;
+        
+        for ( uint i = 0; i < length; i++ )
+        {
+            KeyElement* element = bucket.elements.ptr + i;
+            
+            if ( element.key == key )
+                return this.v_map.ptr + element.pos;
+        }
+        
+        return null;
+    }
+    
+    /*******************************************************************************
+        
+        Returns pointer to value bucket
+        
+        Params:
+            key = array key
+            h = bucket position
+            k = key element pointer to be set to position of element found
+            v = value element pointer to be set to position of element found
+            
+        Returns:
+            pointer to value bucket, or null if not found
+        
+     *******************************************************************************/
+    
+    private void findBucket ( in K key, in hash_t h, out KeyElement* k, out V* v )
+    {
+//        for ( uint i = 0; i < this.k_map[h].length; i++ )
+//        {
+//            if ( this.k_map[h].elements[i].key == key )
+//            {
+//                v = &this.v_map[this.k_map[h].elements[i].pos];
+//                k = &this.k_map[h].elements[i];
+//                
+//                break;
+//            }
+//        }
 
-    /**************************************************************************
+        Bucket* bucket = this.k_map.ptr + h;
+        
+        foreach ( ref element; bucket.elements[0 .. bucket.length] )
+        {
+            if ( element.key == key )
+            {
+                v = this.v_map.ptr + element.pos;
+                k = &element;
+                
+                break;
+            }
+        }
+    }
+    
+    /*******************************************************************************
         
         Put array element
-
+        
         Adds element to array map in not yet existing otherwise the existing value
         is replaced by the new value.
-
+        
+        TODO
+            1. Gain reentrance/thread-safety
+               There is a reentrance safety hole between picking the bucket and
+               invoking writeLock().
+            2. Possible optimization
+                a) Pick pointer to bucket initially instead of repeatedly
+                   indexing "this.k_map[h]".
+                b) Put everything that is done "if ( p is null )" into a
+                   separate private method, probably named add(), to decrease
+                   binary code size because if appending is supported, the code
+                   is currently generated twice (once for each template
+                   instance).
+        
         Params:
             key = array key
             value = array value
+        
+        Returns:
+            void
 
-     **************************************************************************/
+     *******************************************************************************/
     
     private void put_ ( bool append = false ) ( in K key, in V value )
     {
         static assert (!append || this.VisArray,
                        "appending only supported for array value type, not '" ~ V.stringof ~ '\'');
         
-        Bucket* bucket = this.getBucket(key);
+        hash_t h = (toHash(key) % this.buckets_length);
         
-        this.writeLock ( bucket, (Bucket* b)
+        this.writeLock ( &this.k_map[h],
         {
-            V* p = this.findValue(b, key);
+            V* p = this.findValue(key, h);
             
-            if (p)
+            if ( p is null )
             {
-                static if (append)
-                {
-                    *p ~= value;
-                }
-                else
-                {
-                    *p = value;
-                }
+                    this.resizeBucket(h);
+                    this.resizeMap();
+
+                    this.v_map[this.len] = value;
+                    this.k_map[h].elements[this.k_map[h].length] = KeyElement(key, this.len);
+                
+                    this.k_map[h].length++;
+
+                    static if (M)
+                    {
+                        this.length_(true);
+                    }
+                    else
+                    {
+                        this.len++;
+                    }
+            }
+            else static if (append)
+            {
+                (*p) ~= value;
             }
             else
             {
-                version (None) this.resizeBucket(b);                            // not really implemented yet
-                
-                this.resizeMap();
-
-                this.v_map[this.len] = value;
-                
-                b.elements[b.length] = KeyElement(key, this.len);
-            
-                b.length++;
-
-                static if (M)
-                {
-                    this.length_(true);
-                }
-                else
-                {
-                    this.len++;
-                }
+                (*p) = value;
             }
         });
     }
     
-    version (None)  // not really implemented yet:
-    {
-        /**********************************************************************
-            
-            Resizes bucket
-            
-            Enlarges bucket length by certain amout of space by allocating a range of
-            memory instead of just allocating the next element.
-            
-            Returns:
-                void
-            
-         **********************************************************************/
+    /*******************************************************************************
         
-        private void resizeBucket ( Bucket* bucket )
+        Reset and free memory used by array map
+        
+        Returns:
+            void
+        
+     *******************************************************************************/
+    
+    private void free_ ()
+    {
+        this.k_map.length = 0;
+        this.v_map.length = 0;
+    }
+    
+    /*******************************************************************************
+        
+        Resizes and allocates new memory in case the map runs out of memory
+        
+        Enlarges map by 10 percent. TODO Rehashing of key map still needs to be 
+        implemented in order to keep speed up with the resizing of the value map.
+        
+        Returns:
+            true on success, false on failure
+        
+     *******************************************************************************/
+    
+    private void resizeMap ()
+    {
+        if ( this.len && this.len % this.default_size == 0 )
         {
-            size_t len = bucket.length;
-            
-            if ( len >= this.default_alloc_size && len % this.default_alloc_size == 0 )
+            synchronized
             {
-                    bucket.elements.length = len + this.default_alloc_size;
-            } 
+                this.default_size = this.v_map.length + 
+                                    cast(uint)(this.default_size/10);
+                
+                this.v_map.length = this.default_size;
+            }
         }
     }
     
-    /**************************************************************************
+    /*******************************************************************************
+        
+        Resizes bucket
+        
+        Enlarges bucket length by certain amout of space by allocating a range of
+        memory instead of just allocating the next element.
+        
+        Returns:
+            void
+        
+     *******************************************************************************/
+    
+    private void resizeBucket ( hash_t h )
+    {
+        Bucket* bucket = this.k_map.ptr + h;
+        
+        uint length = bucket.length;
+        
+        if ( length >= this.default_alloc_size && 
+             length % this.default_alloc_size == 0 )
+        {
+             bucket.elements.length = length + this.default_alloc_size;
+        } 
+    }
+    
+    /*******************************************************************************
         
         Remove single key
         
@@ -883,36 +925,33 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         of elements in bucket is larger than 1, otherwise the bucket length is 
         set to 0. 
         
-        Params:
-            key = key to remove
-        
         Returns:
             true on success, false on failure
         
-     **************************************************************************/
+     *******************************************************************************/
     
-    private bool remove_ ( K key )
+    private bool remove_ ( hash_t h, K key )
     {
         KeyElement* k;
-        V*          v;
+        V* v;
         
-        Bucket* bucket = this.findBucketElement(key, k, v);
+        this.findBucket(key, h, k, v);
         
-        bool found = k && v;
-        
-        if ( found ) this.writeLock ( bucket, (Bucket* b)
+        if ( k !is null && v !is null )
         {
-            if ( b.length > 1 )
+            Bucket* bucket = this.k_map.ptr + h;
+            
+            if ( bucket.length == 1 )
             {
-                *k = b.elements[b.length - 1];
+                bucket.length = 0;
+            }
+            else
+            {
+                *k = bucket.elements[bucket.length - 1];
+                bucket.length = bucket.length - 1;
             }
             
-            b.length--;
-            
-            if ( this.len > 1 )
-            {
-                *v = this.v_map[this.len - 1];
-            }
+            if ( this.len > 1 ) *v = this.v_map[this.len - 1];
             
             static if (M)
             {
@@ -922,73 +961,15 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             {
                 this.len--;
             }
-        });
-        
-        return found;
-    }
-    
-    /**************************************************************************
-    
-        Picks the bucket corresponding to key and sets k and v point to the
-        location of key and value of the array map element corresponding to key.
-        If the key is not found, k and v remain null.
-        
-        Params:
-            key = array key
-            k = key element pointer to be set to position of element found
-            v = value element pointer to be set to position of element found
-            
-        Returns:
-            (pointer to) bucket
-        
-     **************************************************************************/
-    
-    private Bucket* findBucketElement ( in K key, out KeyElement* k, out V* v )
-    {
-        Bucket* bucket = this.getBucket(key);
-        
-        foreach (i, element; bucket.elements[0 .. bucket.length])
-        {
-            if (element.key == key)
-            {
-                v = this.v_map.ptr + element.pos;
-                k = bucket.elements.ptr + i;
-                
-                break;
-            }
-        }
-        
-        return bucket;
-    }
 
-    /**************************************************************************
-        
-        Locks code to reentrant/thread-safely perform operation on bucket.
-        
-        Params:
-            dg = delegate to be reentrant/thread-safely invoked (e.g. just some
-                 code section for anonymous delegate); bucket is passed to it 
-                 as argument
-                 
-     ***********************************************************************/
-    
-    private void writeLock ( Bucket* bucket, void delegate ( Bucket* ) dg )
-    {
-        static if (M)
-        {
-                         pthread_rwlock_wrlock(&bucket.rwlock);
-            scope (exit) pthread_rwlock_unlock(&bucket.rwlock);
-            
-            dg(bucket);
+            return true;
         }
-        else
-        {
-            dg(bucket);
-        }
+        
+        return false;
     }
     
-    /**************************************************************************
-    
+    /***********************************************************************
+        
         Increases or decreases length
         
         The synchronization is necessary in case two threads changing
@@ -996,6 +977,9 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         Params:
             bool = true to increment length, false to decrement length
+        
+        Returns:
+            array keys and values
     
     ************************************************************************/
     
@@ -1004,7 +988,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         inc ? this.len++ : this.len--;
     }
     
-    /**************************************************************************
+    /***********************************************************************
         
         Set allocation size
     
@@ -1012,10 +996,13 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         best when the load factor gets larger than 2.
         
         Params:
-            load_factor = load factor
+            dg = iterator delegate
+        
+        Returns:
+            array values
     
-    ***************************************************************************/
-    
+    ************************************************************************/
+
     private void setAllocSize ( float load_factor )
     {
         if ( load_factor > 2 )
@@ -1027,70 +1014,35 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             this.default_alloc_size = 1;
         }
     }
-
-    /**************************************************************************
-        
-        Resizes and allocates new memory in case the map runs out of memory
-        
-        Enlarges map by 10 percent. TODO Rehashing of key map still needs to be 
-        implemented in order to keep speed up with the resizing of the value
-        map.
-        
-     **************************************************************************/
     
-    private void resizeMap ()
+    /***********************************************************************
+        
+        Locks code for write operation
+        
+        Only one write operation can happen at the same time
+        
+        Params:
+            dg = anonymus delegete (just some code section)
+            
+        Returns:
+            void
+        
+     ***********************************************************************/
+    
+    private void writeLock ( Bucket* bucket, void delegate() dg )
     {
-        if ( this.len && this.len % this.default_size == 0 )
+        static if (M) 
         {
-            synchronized
-            {
-                this.default_size = this.v_map.length +  (this.default_size / 10);
-                
-                this.v_map.length = this.default_size;
-            }
-        }
-    }
-
-    /**************************************************************************
-    
-        Reset and free memory used by array map
+            pthread_rwlock_wrlock(&bucket.rwlock);
+            
+            scope (exit) pthread_rwlock_unlock(&bucket.rwlock);
+        }   
         
-     **************************************************************************/
-    
-    private void free_ ()
-    {
-        delete this.k_map;
-        delete this.v_map;
+        dg();
     }
-
-    /**************************************************************************
-    
-        Destructor; free memory to gc
-            
-     **************************************************************************/
-    
-    private ~this () 
-    {
-        this.len = 0;
-        
-        foreach ( ref bucket; this.k_map )
-        {
-            static if (M)
-            {
-                pthread_rwlock_destroy(&bucket.rwlock);
-            }
-            
-            bucket.length = 0;
-            
-            delete bucket.elements;
-        }
-    
-        this.free_();
-    }
-
 }
 
-/****************************************************************************** 
+/*******************************************************************************  
 
     Hashmap with consistent hashing and with key iteration.
     
@@ -1103,22 +1055,10 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         K = type of key stored in array map (must be of simple type)
         M = enable/disable mutex
     
- ******************************************************************************/
+*********************************************************************************/
 
 class ArrayMapKV ( V, K = hash_t, bool M = Mutex.Disable )
 {
-    /******************************************************************************
-
-        Key/value bag for ArrayMapKV implementation
-    
-     ******************************************************************************/
-    
-    private struct KeyValueElement ( K, V )
-    {
-            K key;
-            V value;
-    }
-
     
     /*******************************************************************************
         
@@ -1134,7 +1074,7 @@ class ArrayMapKV ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    final               ArrayMap!(KeyValueElement!(K, V), K, M)    map;
+    final               ArrayMap!(KeyValueElement!(K, V), K)    map;
 
     /*******************************************************************************
         
@@ -1154,9 +1094,9 @@ class ArrayMapKV ( V, K = hash_t, bool M = Mutex.Disable )
             
      *******************************************************************************/
     
-    public this ( size_t default_size = 10_000, float load_factor = 0.75 )
+    public this ( uint default_size = 10_000, float load_factor = 0.75 )
     {
-        map = new ArrayMap!(KeyValueElement!(K, V), K, M)(default_size, load_factor);
+        map = new ArrayMap!(KeyValueElement!(K, V), K)(default_size, load_factor);
     }
     
     /*******************************************************************************
@@ -1306,7 +1246,7 @@ class ArrayMapKV ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    public size_t length ()
+    public uint length ()
     {
         return map.length;
     }
@@ -1397,7 +1337,7 @@ class ArrayMapKV ( V, K = hash_t, bool M = Mutex.Disable )
     {
         int result = 0;
         
-        foreach ( element; map.v_map )
+        foreach ( element; map )
             if ((result = dg(element.value)) != 0)
                 break;
         
@@ -1420,11 +1360,11 @@ class ArrayMapKV ( V, K = hash_t, bool M = Mutex.Disable )
     
     ************************************************************************/
     
-    public int opApply (int delegate ( ref K key, ref V value ) dg)
+    public int opApply (int delegate(ref K key, ref V value) dg)
     {
         int result = 0;
         
-        foreach ( element; map.v_map )
+        foreach ( element; map )
             if ((result = dg(element.key, element.value)) != 0) 
                 break;
         
@@ -1438,7 +1378,6 @@ class ArrayMapKV ( V, K = hash_t, bool M = Mutex.Disable )
     Unittest
 
 ********************************************************************************/
-
 
 debug (OceanUnitTest)
 {
@@ -1560,7 +1499,7 @@ debug (OceanUnitTest)
     
         /***********************************************************************
             
-            Multi-Threading Test
+            Muli-Threading Test
             
          ***********************************************************************/
         
