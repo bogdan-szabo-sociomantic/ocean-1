@@ -25,7 +25,7 @@ module ocean.net.socket.model.IConnectionHandler;
 private     import      ocean.io.protocol.ListReader, 
                         ocean.io.protocol.ListWriter;
 
-private     import      tango.io.Buffer;
+private     import      tango.io.stream.Buffered;
 
 private     import      tango.io.model.IBuffer, tango.io.model.IConduit;
 
@@ -70,9 +70,10 @@ abstract class IConnectionHandler
     
      **************************************************************************/
     
-    private               IBuffer                         rbuffer, wbuffer;  
+    private BufferedInput rbuffer;
+    private BufferedOutput wbuffer;
     
-    private const         size_t                          DefaultBufferSize = 0x1_0000;
+    private const         size_t                          DefaultBufferSize = 0x10_000;
     
     /**************************************************************************
     
@@ -92,8 +93,10 @@ abstract class IConnectionHandler
     
     /**************************************************************************
         
-        Constructor
-    
+        Constructor. The ListReader/Writer are initialised without a buffer.
+		The buffer is attached in the run method, when we have a conduit to
+		properly attach everything to.
+
         Params:
             buffer_size = I/O buffer size
     
@@ -101,13 +104,13 @@ abstract class IConnectionHandler
     
     this ( size_t buffer_size )
     {
-        this.rbuffer    = new Buffer(buffer_size);
-        this.wbuffer    = new Buffer(buffer_size);
-        
-        this.reader    = new ListReader(rbuffer);
-        this.writer    = new ListWriter(wbuffer);
-    } 
-    
+        this.rbuffer    = new BufferedInput(null, buffer_size);
+        this.wbuffer    = new BufferedOutput(null, buffer_size);
+
+        this.reader    = new ListReader();
+        this.writer    = new ListWriter();
+    }
+
     /**************************************************************************
     
         Constructor; uses default I/O buffer size
@@ -135,14 +138,10 @@ abstract class IConnectionHandler
         if (this.terminated) return;
         
         this.finished = false;
-        
+
         try 
         {
-            this.rbuffer.clear();                                               // start with a clear conscience
-            this.wbuffer.clear();                                               // start with a clear conscience
-            
-            this.rbuffer.setConduit(conduit);
-            this.wbuffer.setConduit(conduit);
+        	this.attachConduit(conduit);
             
             this.rbuffer.slice(1, false);                                       // wait for something to arrive before we try/catch
               
@@ -174,11 +173,44 @@ abstract class IConnectionHandler
         }
         finally
         {
-            conduit.detach();
+        	this.detachConduit(conduit);
         }
     }
-    
-    
+
+    /***************************************************************************
+
+    	Connect the reader & writer, the in/out buffers and the passed conduit.
+		(Previous data in the buffers is flushed first by the called Reader /
+		Writer methods).
+
+	    Params:
+	        conduit = connection conduit (e.g. socket)
+
+    ***************************************************************************/
+
+    protected void attachConduit ( IConduit conduit )
+    {
+    	this.reader.connectBufferedInput(this.rbuffer, conduit);
+    	this.writer.connectBufferedOutput(this.wbuffer, conduit);
+    }
+
+    /***************************************************************************
+
+		Detach a conduit from the read & write buffers. Any data remaining in
+		the buffers is flushed by the called methods before disconnection.
+
+	    Params:
+	        conduit = connection conduit (e.g. socket)
+
+	***************************************************************************/
+
+    protected void detachConduit ( IConduit conduit )
+    {
+    	this.reader.disconnectBufferedInput();
+    	this.writer.disconnectBufferedOutput();
+        conduit.detach();
+    }
+
     /**************************************************************************
     
         Sets the termination flag for all instances of this class
