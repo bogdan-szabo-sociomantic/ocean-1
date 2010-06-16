@@ -62,7 +62,7 @@ private import ocean.io.protocol.ListWriter;
 private import tango.net.device.Socket;
 private import tango.net.device.Berkeley: IPv4Address;
 
-private import tango.io.Buffer;
+private import tango.io.stream.Buffered;
 
 debug 
 {
@@ -83,7 +83,7 @@ class SocketProtocol : Socket
         
     **************************************************************************/
 
-    static const DefaultBufferSize = 0x800;
+    static const DefaultBufferSize = 64 * 1024;
     
     /**************************************************************************
     
@@ -106,6 +106,15 @@ class SocketProtocol : Socket
         Protocol reader/writer
         
     **************************************************************************/
+
+    protected BufferedInput bin;
+    protected BufferedOutput bout;
+
+    /**************************************************************************
+    
+	    Buffered input / output
+	    
+	**************************************************************************/
 
     protected ListWriter writer;
     protected ListReader reader;
@@ -193,8 +202,10 @@ class SocketProtocol : Socket
 
         this.connect_();
 
-        this.reader  = new ListReader((new Buffer(rbuf_size)).setConduit(super));
-        this.writer  = new ListWriter((new Buffer(wbuf_size)).setConduit(super));
+        this.bin = new BufferedInput(super, this.DefaultBufferSize);
+        this.bout = new BufferedOutput(super, this.DefaultBufferSize);
+        this.reader  = new ListReader(this.bin);
+        this.writer  = new ListWriter(this.bout);
     }
 
     /**************************************************************************
@@ -231,7 +242,7 @@ class SocketProtocol : Socket
         Disconnects from remote if connected.
         
         Params:
-            clear_buffers = true: Clear read/write buffers after disconnecting.
+            clear_buffers = true: Clear read/write buffers before disconnecting.
         
         Returns:
             this instance
@@ -242,16 +253,16 @@ class SocketProtocol : Socket
     {
         if (this.connected)
         {
+            if (clear_buffers)
+            {
+                this.bin.clear();
+                this.bout.clear();
+            }
+
             this.connected = false;
             
             super.shutdown();
             super.native.reopen();
-            
-            if (clear_buffers)
-            {
-                this.reader.buffer().clear();
-                this.writer.buffer().clear();
-            }
         }
         
         return this;
@@ -320,7 +331,7 @@ class SocketProtocol : Socket
 
     public This clear ()
     {
-        this.reader.buffer().clear();
+        this.bin.clear();
         
         return this;
     }
