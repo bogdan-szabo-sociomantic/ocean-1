@@ -67,10 +67,10 @@ class Memory : Conduit, InputBuffer, OutputBuffer, Conduit.Seek
         protected size_t  index;                // current read / write position
         protected size_t  last_write_pos;		// maximum written position
 
-        protected static char[] overflow  = "output buffer is full";
-        protected static char[] underflow = "input buffer is empty";
-        protected static char[] eofRead   = "end-of-flow while reading";
-        protected static char[] eofWrite  = "end-of-flow while writing";
+        protected static char[] overflow  = "Memory: output buffer is full";
+        protected static char[] underflow = "Memory: input buffer is empty";
+        protected static char[] eofRead   = "Memory: end-of-flow while reading";
+        protected static char[] eofWrite  = "Memory: end-of-flow while writing";
 
 
         /***********************************************************************
@@ -484,7 +484,12 @@ class Memory : Conduit, InputBuffer, OutputBuffer, Conduit.Seek
 		        return this;
 		}
 
-        /***********************************************************************
+		public void[] buffer ( )
+		{
+			return this.data;
+		}
+
+		/***********************************************************************
 
                 Cast to a target type without invoking the wrath of the
                 runtime checks for misalignment. Instead, we truncate the
