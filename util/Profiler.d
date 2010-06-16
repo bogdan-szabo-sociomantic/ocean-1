@@ -512,6 +512,63 @@ struct MemProfiler
 
 	/***************************************************************************
 
+		Returns the current memory usage.
+	
+	***************************************************************************/
+
+	static double checkUsage ( )
+	{
+		return GC.stats["poolSize"];
+	}
+
+
+	/***************************************************************************
+
+		Checks the current memory usage and compares it to a previously recorded
+		value.
+
+		Displays a message to Trace if the expected memory usage condition is
+		not true.
+
+		Params:
+			name = section name
+			before = previous memory usage, to compare to current
+			expect = expected memory usage (grow / shrink / no change)
+
+	***************************************************************************/
+
+	static void checkSectionUsage ( char[] name, double before, Expect expect = Expect.DontCare )
+	{
+		auto after = GC.stats["poolSize"];
+		checkCondition(name, expect, before, after);
+	}
+
+
+	/***************************************************************************
+
+		Checks the current memory usage and compares it to a previously recorded
+		value.
+	
+		Displays a message to Trace and asserts if the expected memory usage
+		condition is not true.
+	
+		Params:
+			name = section name
+			before = previous memory usage, to compare to current
+			expect = expected memory usage (grow / shrink / no change)
+
+	***************************************************************************/
+	
+	static void assertSectionUsage ( char[] name, double before, Expect expect = Expect.DontCare )
+	{
+		auto after = GC.stats["poolSize"];
+		checkCondition(name, expect, before, after);
+		assertCondition(name, expect, before, after);
+	}
+	
+
+	/***************************************************************************
+
 		Records the memory usage before and after a section of code (usually an
 		anonymous delegate) which is passed as the parameter 'section'.
 
@@ -528,18 +585,16 @@ struct MemProfiler
 	{
 		static if ( is ( R == void ) )
 		{
-			auto before = GC.stats["poolSize"];
+			auto before = checkUsage();
 			section();
-			auto after = GC.stats["poolSize"];
-			checkCondition(name, expect, before, after);
+			checkSectionUsage(name, before, expect);
 			return;
 		}
 		else
 		{
-			auto before = GC.stats["poolSize"];
+			auto before = checkUsage();
 			R r = section();
-			auto after = GC.stats["poolSize"];
-			checkCondition(name, expect, before, after);
+			checkSectionUsage(name, before, expect);
 			return r;
 		}
 	}
@@ -564,20 +619,16 @@ struct MemProfiler
 	{
 		static if ( is ( R == void ) )
 		{
-			auto before = GC.stats["poolSize"];
+			auto before = checkUsage();
 			section();
-			auto after = GC.stats["poolSize"];
-			checkCondition(name, expect, before, after);
-			assertCondition(name, expect, before, after);
+			assertSectionUsage(name, before, expect);
 			return;
 		}
 		else
 		{
-			auto before = GC.stats["poolSize"];
+			auto before = checkUsage();
 			R r = section();
-			auto after = GC.stats["poolSize"];
-			checkCondition(name, expect, before, after);
-			assertCondition(name, expect, before, after);
+			assertSectionUsage(name, before, expect);
 			return r;
 		}
 	}
