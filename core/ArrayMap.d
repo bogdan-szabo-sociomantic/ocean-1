@@ -124,6 +124,12 @@ private struct KeyValueElement ( K, V )
 
 class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 {
+    /*******************************************************************************
+    
+        VisArray flag to indicate whether the value type V is an array
+        
+     *******************************************************************************/
+
     static if (is (V W == W[]))
     {
         const VisArray = true;
