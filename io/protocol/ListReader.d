@@ -14,7 +14,9 @@
 
 *******************************************************************************/
 
-module core.protocol.ListReader;
+module ocean.io.protocol.ListReader;
+
+
 
 /******************************************************************************
 
@@ -22,7 +24,18 @@ module core.protocol.ListReader;
 
 *******************************************************************************/
 
-private import tango.io.protocol.Reader;
+private import ocean.io.protocol.Reader;
+
+private import tango.io.stream.Buffered;
+
+//version = TRACE;
+
+version ( TRACE )
+{
+	private import tango.util.log.Trace;
+}
+
+
 
 /******************************************************************************
 
@@ -51,9 +64,64 @@ class ListReader : Reader
     
     public this ( InputStream stream )
     {
-        super(stream);
+   		super(stream);
     }
+
+    /***************************************************************************
     
+		Constructor without an input stream.
+		
+		This constructor used in the case where the input stream doesn't exist
+		at the point when the ListReader is constructed. An input stream can be
+		attached later using the connectBufferedInput method, below.
+
+    ***************************************************************************/
+
+    public this ( )
+    {
+   		super();
+    }
+
+
+    /***************************************************************************
+
+    	Connects a conduit to an input buffer, and attaches them to this
+    	ListReader.
+    	
+    	Any content in the buffer is flushed first.
+    	
+    	Params:
+    		bin = input buffer
+    		conduit = stream to read from
+	
+	***************************************************************************/
+
+    public void connectBufferedInput ( BufferedInput bin, IConduit conduit )
+    {
+    	if ( bin.input )
+    	{
+    		bin.flush();
+    	}
+
+    	bin.input = conduit;
+    	this.attachStream(bin);
+    }
+
+    /***************************************************************************
+
+		Disconnects the input buffer from this ListReader.
+		
+		Any content in the buffer is flushed first.
+		
+	***************************************************************************/
+
+    public void disconnectBufferedInput ( )
+    {
+    	assert(this.input, "ASSERT: ocean.io.protocol.ListReader - cannot disconnect input buffer, there's not one connected");
+    	this.input.flush();
+    	this.input = null;
+    }
+
     /**************************************************************************
     
         Extracts "items" from the current position in the order of being passed.
@@ -67,10 +135,14 @@ class ListReader : Reader
             this instance
     
      **************************************************************************/
-    
+
     public This get ( T ... ) ( out T items )
     {
-        static if (items.length)
+    	assert(this.input);
+    	assert(this.input.input);
+    	version ( TRACE ) Trace.formatln("ListReader.get");
+
+    	static if (items.length)
         {
             static if (is (T[0] U == U[][]))    // check whether the current
             {                                   // item is an array of arrays
@@ -80,6 +152,7 @@ class ListReader : Reader
             {
                 static if (is (T[0] EnumBase == enum))
                 {                           
+                	version ( TRACE ) Trace.formatln("ListReader.get - enum {}", EnumBase.stringof);
                     /* 
                      * For enums the base type must be used to avoid ambiguous
                      * matching of overloaded super.get().
@@ -88,11 +161,15 @@ class ListReader : Reader
                     
                     super.get(item);
 
-                    items[0] = cast (T[0]) item;
+                	items[0] = cast (T[0]) item;
+
+                	version ( TRACE ) Trace.formatln("  GOT {}", items[0]);
                 }
                 else
                 {
+                	version ( TRACE ) Trace.formatln("ListReader.get - single item {}", typeof(items[0]).stringof);
                     super.get(items[0]);
+                	version ( TRACE ) Trace.formatln("  GOT {}", items[0]);
                 }
             }
             
@@ -161,16 +238,20 @@ class ListReader : Reader
     
     public This getList ( T ) ( out T[][] list )
     {
+    	version ( TRACE ) Trace.formatln("ListReader.get - list {}[][]", T.stringof);
         T[] item;
         
         super.get(item);
         
         while (item.length)
         {
+            version ( TRACE ) Trace.formatln("    GOT {} ({})", item, item.length);
             list ~= item;
             
+        	version ( TRACE ) Trace.formatln("  ListReader.get - list item");
             super.get(item);
         }
+        version ( TRACE ) Trace.formatln("  ListReader.get - list terminator");
         
         return this;
     }

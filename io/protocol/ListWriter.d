@@ -14,7 +14,9 @@
 
 *******************************************************************************/
 
-module core.protocol.ListWriter;
+module ocean.io.protocol.ListWriter;
+
+
 
 /******************************************************************************
 
@@ -22,7 +24,18 @@ module core.protocol.ListWriter;
 
 *******************************************************************************/
 
-private import tango.io.protocol.Writer;
+private import ocean.io.protocol.Writer;
+
+private import tango.io.stream.Buffered;
+
+//version = TRACE;
+
+version ( TRACE )
+{
+	private import tango.util.log.Trace;
+}
+
+
 
 /******************************************************************************
 
@@ -51,9 +64,63 @@ class ListWriter : Writer
     
     public this ( OutputStream stream )
     {
-        super(stream);
+   		super(stream);
     }
     
+    /***************************************************************************
+    
+		Constructor without an output stream.
+		
+		This constructor used in the case where the output stream doesn't exist
+		at the point when the ListWriter is constructed. An output stream can be
+		attached later using the connectBufferedOutput method, below.
+	
+	***************************************************************************/
+
+    public this ( )
+    {
+   		super();
+    }
+
+    /***************************************************************************
+
+		Connects a conduit to an output buffer, and attaches them to this
+		ListWriter.
+		
+		Any content in the buffer is flushed first.
+		
+		Params:
+			bout = output buffer
+			conduit = stream to write to
+	
+	***************************************************************************/
+
+    public void connectBufferedOutput ( BufferedOutput bout, IConduit conduit )
+    {
+    	if ( bout.output )
+    	{
+    		bout.flush();
+    	}
+
+    	bout.output = conduit;
+    	this.attachStream(bout);
+    }
+
+    /***************************************************************************
+
+		Disconnects the output buffer from this ListWriter.
+		
+		Any content in the buffer is flushed first.
+		
+	***************************************************************************/
+
+    public void disconnectBufferedOutput ( )
+    {
+    	assert(this.output, "ASSERT: ocean.io.protocol.ListWriter - cannot disconnect output buffer, there's not one connected");
+    	this.output.flush();
+    	this.output = null;
+    }
+
     /**************************************************************************
     
         Writes "items" to the current position in the order of being passed.
@@ -67,10 +134,14 @@ class ListWriter : Writer
             this instance
     
      **************************************************************************/
-    
+
     public This put ( T ... ) ( T items )
     {
-        static if (items.length)
+    	assert(this.output);
+    	assert(this.output.output);
+    	version ( TRACE ) Trace.formatln("ListWriter.put");
+
+    	static if (items.length)
         {
             static if (is (T[0] U == U[][]))    // check whether the current
             {                                   // item is an array of arrays
@@ -84,11 +155,12 @@ class ListWriter : Writer
                      * For enums the base type must be used to avoid ambiguous
                      * matching of overloaded super.put().
                      */
-                    
+                	version ( TRACE ) Trace.formatln("ListWriter.put - enum {}", EnumBase.stringof);
                     super.put(cast (EnumBase) items[0]);
                 }
                 else
                 {
+                	version ( TRACE ) Trace.formatln("ListWriter.put - single item {}", typeof(items[0]).stringof);
                     super.put(items[0]);
                 }
             }
@@ -113,13 +185,16 @@ class ListWriter : Writer
     
     public This putList ( T ) ( T[][] items )
     {
+    	version ( TRACE ) Trace.formatln("ListWriter.put - list {}[][] ({})", T.stringof, items.length);
         const T[] TERM = [];
         
         foreach (item; items)
         {
+        	version ( TRACE ) Trace.formatln("  ListWriter.put - list item ({})", item.length);
             super.put(item);
         }
-        
+
+        version ( TRACE ) Trace.formatln("  ListWriter.put - list terminator");
         super.put(TERM);
         
         return this;
