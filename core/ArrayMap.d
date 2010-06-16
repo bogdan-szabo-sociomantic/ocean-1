@@ -825,7 +825,12 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             {
                     this.resizeBucket(h);
                     this.resizeMap();
-
+                    
+                    static if (this.VisArray)                                   // If the value type is an array,
+                    {                                                           // set element length before
+                        this.v_map[this.len].length = value.length;             // assigning, else the performance
+                    }                                                           // will decrease dramatically.
+                    
                     this.v_map[this.len] = value;
                     this.k_map[h].elements[this.k_map[h].length] = KeyElement(key, this.len);
                 
