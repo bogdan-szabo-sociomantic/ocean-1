@@ -86,14 +86,19 @@ class QueueMemory : ConduitQueue!(Memory)
 		Determines when the queue is ready to be remapped.
 
 		As remapping is very cheap with a memory queue, it decides to remap when
-		the space left to write into at the end of the queue is smaller than the
-		space at the beginning.
+		the difference between the space left to write into at the end of the
+		queue and the space at the beginning is > 0.5% of the total size of the
+		queue, or at least 2Kb.
 
     ***************************************************************************/
 
     public bool isDirty ( )
 	{
-    	return (this.limit - this.insert) < (this.first);
+    	const min_bytes = 2048;
+    	auto half_percent = (this.limit / 200);
+    	auto min_diff = half_percent > min_bytes ? half_percent : min_bytes;
+
+    	return (this.first) - (this.limit - this.insert) > min_diff;
 	}
 
     /***************************************************************************
