@@ -47,6 +47,18 @@ private import tango.util.log.Trace;
 
 /*******************************************************************************
 
+	C memcpy
+
+*******************************************************************************/
+
+extern (C)
+{
+    protected void * memcpy (void *dst, void *src, size_t);
+}
+
+
+/*******************************************************************************
+
     QueueMemory
 
 *******************************************************************************/
@@ -72,15 +84,16 @@ class QueueMemory : ConduitQueue!(Memory)
     /***************************************************************************
 
 		Determines when the queue is ready to be remapped.
-		
-		For a memory queue we can be pretty easy with this - remap it if the
-		read position is more than 10% or 512Kb from the beginning.
+
+		As remapping is very cheap with a memory queue, it decides to remap when
+		the space left to write into at the end of the queue is smaller than the
+		space at the beginning.
 
     ***************************************************************************/
 
     public bool isDirty ( )
 	{
-		return (this.first > this.limit / 10) || (this.first > 512 * 1024);
+    	return (this.limit - this.insert) < (this.first);
 	}
 
     /***************************************************************************
@@ -94,6 +107,38 @@ class QueueMemory : ConduitQueue!(Memory)
 		this.log("Initializing memory queue '{}' to {} KB", this.name, this.limit / 1024);
         this.conduit = new Memory(this.limit); // non-growing array
 	}
+
+    /***************************************************************************
+
+		Overridden remap method. Uses memcpy for greater speed.
+		
+		Returns:
+			true if remapped, false otherwise
+	
+	***************************************************************************/
+
+    override public synchronized bool remap ( )
+    {
+		if ( !this.isDirty() )
+		{
+			return false;
+		}
+
+		Trace.formatln("QueueMemory remapping");
+
+		// Move queue contents
+		void* buf_start = this.conduit.buffer.ptr;
+		memcpy(buf_start, buf_start + this.first, this.insert - this.first);
+
+		// Update seek positions
+		this.insert -= super.first;
+		this.first = 0;
+	
+	    // insert an empty record at the new insert position
+		this.eof();
+
+	    return true;
+    }
 }
 
 
@@ -206,7 +251,7 @@ debug (OceanUnitTest)
 
 	    for ( uint i = 0; i < ITERATIONS; i++ )
 	    {
-    		MemProfiler.check("queue push", MemProfiler.Expect.NoChange, {
+    		MemProfiler.check("queue push", {
 		    	// Add random length items to the queue until it's full
 	    		bool push_succeeded;
 	    		uint pushes;
@@ -233,7 +278,7 @@ debug (OceanUnitTest)
 		    	assert(pops == pushes);
 		    	
 		    	if ( i % 1000 == 0 ) Trace.formatln("iteration {} / {}", i, ITERATIONS);
-    		});
+    		}, MemProfiler.Expect.NoChange);
 	    }
 
 	    Trace.formatln("Done unittest\n");
