@@ -118,6 +118,23 @@ private import Integer = tango.text.convert.Integer;
 
 private import Float = tango.text.convert.Float;
 
+private import tango.core.Thread;
+
+
+
+/*******************************************************************************
+
+	Version for checking memory usage of various operations.
+
+*******************************************************************************/
+
+//version = MemCheck;
+
+version ( MemCheck )
+{
+	private import ocean.util.Profiler;
+}
+
 
 
 /*******************************************************************************
@@ -131,6 +148,8 @@ private import Float = tango.text.convert.Float;
 
 abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 {
+	debug const CHECK_MAX_ITEM_SIZE = 1024 * 1024;
+	
 	/***************************************************************************
 	
 	    Make sure the template parameter C is a type derived from Conduit
@@ -278,7 +297,7 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	protected Header	current;        // top-of-stack info
 	protected Logger	logger;            // logging target
 
-	protected static const uint BUFFER_SIZE = 1024 * 8; // default read buffer size
+	protected static const uint BUFFER_SIZE = 8 * 1024; // default read buffer size
 
 	protected bool allow_push_pop = true; // enable / disable push & pop operations 
 
@@ -490,6 +509,10 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 
 	public synchronized bool push ( void[] data )
 	{
+		debug assert(data.length < CHECK_MAX_ITEM_SIZE);
+
+		version ( MemCheck ) auto before = MemProfiler.checkUsage();
+
 		if(!this.allow_push_pop) return false;
 
 		if ( data.length is 0 )
@@ -506,7 +529,7 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	            return false;
 	        }
 	    }
-	
+
 		if ( this.willFit(data) )
 	    {
 		    // create a Header struct for the new data to be written
@@ -525,6 +548,8 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 		    // insert an empty record at the new insert position
 		    this.eof();
 	    }
+
+		version ( MemCheck ) MemProfiler.checkSectionUsage("push", before, MemProfiler.Expect.NoChange);
 
 		return true;
 	}
@@ -545,6 +570,8 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	{
 		if(!this.allow_push_pop) return null;
 
+		version ( MemCheck ) auto before = MemProfiler.checkUsage();
+
 		Header chunk;
 	    if ( this.insert )
 	    {
@@ -556,7 +583,9 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	           // reading header & data of chunk (queue front)
 	           this.read(&chunk, Header.sizeof);
 	           auto content = this.readItem(chunk);
-	
+
+	           debug assert(content.length < CHECK_MAX_ITEM_SIZE);
+
 	           if ( this.items > 1 )
 	           {
 	        	   // updating front seek position to next chunk
@@ -579,7 +608,10 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	    	   this.reset();
 	       }
 	    }
-	    return null;
+
+	    version ( MemCheck ) MemProfiler.checkSectionUsage("pop", before, MemProfiler.Expect.NoChange);
+
+	    return cast(void[])"";
 	}
 
 
@@ -616,17 +648,17 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 
 	synchronized public bool remap ( )
 	{
-	    this.log("Thinking about remapping queue '" ~ name ~ "'");
-	
+		version ( MemCheck ) auto before = MemProfiler.checkUsage();
+
+		this.log("Thinking about remapping queue '" ~ name ~ "'");
+
 	    uint bytes_read, bytes_written;
 	    long offset;
 		if ( !this.isDirty() )
 		{
 			return false;
 		}
-	
 	    this.logSeekPositions("Old seek positions");
-	    this.traceContents("Before remap");
 	            
 	    auto input = this.conduit.input;
 	    auto output = this.conduit.output;
@@ -665,9 +697,10 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	    this.eof();
 	
 	    this.logSeekPositions("Remapping done, new seek positions");
-	    this.traceContents("After remap");
 
-	    return true;
+	    version ( MemCheck ) MemProfiler.checkSectionUsage("remap", before, MemProfiler.Expect.NoChange);
+
+		return true;
 	}
 
 
@@ -884,6 +917,8 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 
 	protected void read ( void* data, uint len )
 	{
+		debug assert(len < CHECK_MAX_ITEM_SIZE);
+
 		scope ( failure )
 		{
 			Trace.formatln("Read error, trying to read {} bytes", len);
@@ -916,28 +951,23 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	
 	protected void write ( void* data, uint len )
 	{
-//		Trace.formatln("write {} ({})", len, this.limit - this.insert);
+		debug assert(len < CHECK_MAX_ITEM_SIZE);
+
 		scope ( failure )
 		{
-//			Trace.formatln("Write error");
-			Trace.formatln("Write error, trying to write {} bytes", len);
+			debug Trace.formatln("Write error, trying to write {} bytes", len);
 		}
 
 		auto output = this.conduit.output;
-	    
+
 	    for ( uint i; len > 0; len -= i, data += i )
 	    {
 	    	uint written = output.write(data[0..len]);
 	    	i = written;
 	        if ( written is conduit.Eof )
 	        {
-//	        	Trace.formatln("  EOF", written);
 	        	this.log("QueueConduit.write :: Eof while writing: {}:\n{}", len, (cast(char*)data)[0..len]);
 	        	this.conduit.error("QueueConduit.write :: Eof while writing");
-	        }
-	        else
-	        {
-//	        	Trace.formatln("  {}", written);
 	        }
 	    }
 	}
@@ -1048,14 +1078,6 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 		
 	***************************************************************************/
 
-	private import tango.time.StopWatch;
-	protected static StopWatch timer;
-
-	static this ()
-	{
-		timer.start();
-	}
-
 	synchronized public void traceContents ( char[] message = "", bool show_contents_size = false )
 	{
 		this.validateContents(true, message, show_contents_size);
@@ -1069,10 +1091,7 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 			Trace.formatln("EXCEPTION OCCURRED");
 
 			// Wait
-			ulong start = timer.microsec();
-			while ( timer.microsec() < start + 1000000)
-			{
-			}
+			Thread.sleep(2);
 		}
 
 		if ( show_summary )
@@ -1089,7 +1108,8 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 				this.conduit.seek(seek_pos);
 
 				this.read(&header, Header.sizeof);
-				
+
+				debug assert(header.size < CHECK_MAX_ITEM_SIZE);
 				if ( show_contents_size )
 				{
 					if ( show_summary )
@@ -1148,18 +1168,26 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 
 	***********************************************************************/
 
+	protected char[] format_buf;
+
 	public void formatSeekPositions ( ref char[] buf, bool show_pcnt, bool nl = true )
 	{
+		version ( MemCheck ) auto before = MemProfiler.checkUsage();
+
 		if ( show_pcnt )
 		{
-			float first_pcnt = 100.0 * (cast(float) this.first / cast(float) this.limit);
-			float insert_pcnt = 100.0 * (cast(float) this.insert / cast(float) this.limit);
+			double first_pcnt = 100.0 * (cast(double) this.first / cast(double) this.limit);
+			double insert_pcnt = 100.0 * (cast(double) this.insert / cast(double) this.limit);
 
-			buf ~= "[" ~ Float.toString(first_pcnt) ~ "%.." ~ Float.toString(insert_pcnt) ~ "%]";
+			this.format_buf.length = 20;
+			buf ~= "[" ~ Float.format(this.format_buf, first_pcnt) ~ "%..";
+			this.format_buf.length = 20;
+			buf ~= Float.format(this.format_buf, insert_pcnt) ~ "%]";
 		}
 		else
 		{
-			buf ~= "[" ~ Integer.toString(this.first) ~ ".." ~ Integer.toString(this.insert) ~ "]";
+			buf ~= "[" ~ Integer.format(this.format_buf, this.first) ~ ".."
+				~ Integer.format(this.format_buf, this.insert) ~ " / "~ Integer.format(this.format_buf, this.limit) ~ "]";
 		}
 
 		if ( this.isFull() )
@@ -1176,6 +1204,8 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 		{
 			buf ~= "\n";
 		}
+
+		version ( MemCheck ) MemProfiler.checkSectionUsage("format", before, MemProfiler.Expect.NoChange);
 	}
 }
 
