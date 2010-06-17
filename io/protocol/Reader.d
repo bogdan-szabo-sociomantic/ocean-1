@@ -631,16 +631,43 @@ class Reader : IReader
 
         private void[] readElement (void* dst, uint bytes, Protocol.Type type)
         {
-        	version ( TRACE ) Trace.formatln("Reader.readElement... (trying to read {} bytes)", bytes);
-            auto count = input.read (dst [0 .. bytes]);
-            version ( TRACE ) Trace.formatln("   read {} bytes", count);
+        	version ( TRACE ) Trace.formatln("Reader.readElement... (trying to read {} bytes from buffer pos {})", bytes, (cast(BufferedInput)input).position);
 
-            if ( count != bytes ) // == IOStream.Eof
-			{
-				input.conduit.error ("Reader - EOF while reading");
-			}
-			assert(count == bytes, "ASSERT: ocean.io.protocol.Reader.readElement - failed to read expected number of bytes");
-            return dst [0 .. bytes];
+        	auto content = dst[0 .. bytes];
+	        this.fill(content, true);
+
+	        version ( TRACE ) Trace.formatln("   read {} bytes", bytes);
+
+	        return content;
+        }
+
+        /***********************************************************************
+
+			Fills the provided array with data from the input buffer.
+
+			Copied from BufferedInput, as it's not accessible, but seems
+			necessary for the desired behaviour of the Reader.
+			
+        ***********************************************************************/
+
+        protected size_t fill ( void[] dst, bool exact = false )
+        {
+            size_t len = 0;
+
+            while ( len < dst.length )
+            {
+                size_t i = this.input.read (dst[len .. $]);
+                if ( i is IOStream.Eof )
+                {
+                	if ( exact && len < dst.length )
+                	{
+                		this.input.conduit.error("Reader - end of flow while reading");
+                	}
+                    return (len > 0) ? len : IOStream.Eof;
+                }
+                len += i;
+            }
+            return len;
         }
 
         /***********************************************************************
