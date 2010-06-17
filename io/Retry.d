@@ -87,9 +87,12 @@ private     import      Ctimer = tango.stdc.posix.timer:     timespec;
 
 private     import               tango.stdc.time:            time_t;
 
+
 debug
 {
-    private     import 			     tango.util.log.Trace;
+	private import Integer = tango.text.convert.Integer;
+	private import ocean.util.TraceProgress;
+    private import tango.util.log.Trace;
 }
 
 
@@ -241,6 +244,13 @@ struct DelgOrFunc ( R, T ... )
 
 class Retry
 {
+    debug
+    {
+	    protected ConsoleTracer trace;
+	
+	    protected char[] retry_count;
+    }
+
     /***************************************************************************
     
         Callback struct. Holds the callback method reference (either delegate or
@@ -531,7 +541,12 @@ class Retry
 
     public bool wait ( char[] message )
     {
-    	debug Trace.formatln("Retry {} ({})", this.n, message);
+    	debug
+    	{
+    		this.retry_count.length = 10; // uint.max fits in 10 characters
+    		this.retry_count = Integer.format(this.retry_count, this.n);
+        	this.trace.writeStatic("Retry " ~ this.retry_count ~ ": " ~ message);
+    	}
     	
     	// Is retry enabled and are we below the retry limit or unlimited?
         bool retry = this.enabled && ((this.n < this.retries) || !this.retries);
@@ -686,13 +701,20 @@ class Retry
 	        e = exception receieved
 	
 	***************************************************************************/
-	
-	public void handleException ( E : Exception = Exception ) ( Exception e )
+
+    public void handleException ( E : Exception = Exception ) ( Exception e, char[] e_type = "Exception" )
 	{
-    	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
-		this.again = this.callback(e.msg);
+		this.again = this.callback(e_type ~ ": " ~ e.msg);
 	    if ( !this.again )
 	    {
+	    	debug
+	    	{
+	        	if ( this.n == 0 )
+	        	{
+	        		Trace.formatln("");
+	        	}
+	    	}
+
 	    	static if ( is ( E == Exception ) )
 	    	{
 	    		throw e;
