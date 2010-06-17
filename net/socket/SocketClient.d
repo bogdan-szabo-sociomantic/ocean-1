@@ -923,7 +923,7 @@ abstract class SocketClient ( Const : SocketClientConst )
 	
 	public bool retryReconnect ( char[] msg )
 	{
-		debug Trace.formatln("SocketProtocol, reconnecting");
+		debug Trace.formatln("\nSocketProtocol, reconnecting");
 		bool again = this.retry.wait(msg);
 		if ( again )
 	    {
@@ -934,10 +934,9 @@ abstract class SocketClient ( Const : SocketClientConst )
 			}
 			catch ( Exception e )
 			{
-				debug Trace.formatln("Socket reconnection failed: {}", e.msg);
+				debug Trace.formatln("\nSocket reconnection failed: {}", e.msg);
 			}
 	    }
-		debug Trace.formatln("Try again? {}", again ? "yes" : "no");
 		return again;
 	}
 }
@@ -993,13 +992,11 @@ class SocketRetry : Retry
 	    }
 	    catch ( SocketException e )
 	    {
-	    	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
-	    	super.handleException!(SocketException)(e);
+	    	super.handleException!(SocketException)(e, typeof(e).stringof);
 	    }
 	    catch ( IOException e )
 	    {
-	    	debug Trace.formatln("caught {} {}", typeof(e).stringof, e.msg);
-	    	super.handleException!(IOException)(e);
+	    	super.handleException!(IOException)(e, typeof(e).stringof);
 	    }
 	    while ( super.again )
 	}
