@@ -8,13 +8,14 @@
 
     author:         Gavin Norman
 
-    QueueMemory implements the QueueConduit base class. It is a FIFO queue
-    based on the Memory Conduit (which is a non-growing memory buffer).
+    QueueMemory implements the PersistQueue base class. It is a FIFO queue
+    based on a void[] memory buffer, using memcpy for all write operations, and
+    array slicing for read operations.
 
-	Also in this module is QueueMemoryPersist, an extension of QueueMemory which
+	Also in this module is AutoSaveQueueMemory, an extension of QueueMemory which
 	loads itself from a dump file upon construction, and saves itself to a file
 	upon destruction. It handles the Ctrl-C terminate signal to ensure that the
-	state and content of all QueueMemoryPersist instances are saved if the
+	state and content of all AutoSaveQueueMemory instances are saved if the
 	program is terminated.
 
 *******************************************************************************/
@@ -29,13 +30,9 @@ module  ocean.io.device.QueueMemory;
 
 *******************************************************************************/
 
-private import ocean.io.device.model.IConduitQueue;
-
-private import tango.util.log.model.ILogger;
+private import ocean.io.device.model.IPersistQueue;
 
 private import tango.io.device.Conduit;
-
-private import ocean.io.device.Memory;
 
 private import tango.io.FilePath, tango.io.device.File;
 
@@ -57,14 +54,23 @@ extern (C)
 }
 
 
+
 /*******************************************************************************
 
     QueueMemory
 
 *******************************************************************************/
 
-class QueueMemory : ConduitQueue!(Memory)
+class QueueMemory : PersistQueue
 {
+	struct ItemHeader
+	{
+		uint size;
+	}
+
+	protected void[] data;
+
+
 	/***************************************************************************
 
 	    Constructor
@@ -95,10 +101,10 @@ class QueueMemory : ConduitQueue!(Memory)
     public bool isDirty ( )
 	{
     	const min_bytes = 2048;
-    	auto half_percent = (this.limit / 200);
+    	auto half_percent = (this.dimension / 200);
     	auto min_diff = half_percent > min_bytes ? half_percent : min_bytes;
 
-    	return (this.first) - (this.limit - this.insert) > min_diff;
+    	return (this.read_from) - (this.dimension - this.write_to) > min_diff;
 	}
 
     /***************************************************************************
@@ -109,20 +115,21 @@ class QueueMemory : ConduitQueue!(Memory)
 
     public void open ( char[] name )
 	{
-		this.log("Initializing memory queue '{}' to {} KB", this.name, this.limit / 1024);
-        this.conduit = new Memory(this.limit); // non-growing array
+		this.log("Initializing memory queue '{}' to {} KB", this.name, this.dimension / 1024);
+		this.data = new void[this.dimension];
 	}
+
 
     /***************************************************************************
 
-		Overridden remap method. Uses memcpy for greater speed.
+		Overridden cleanup method. Uses memcpy for greater speed.
 		
 		Returns:
 			true if remapped, false otherwise
 	
 	***************************************************************************/
 
-    override public synchronized bool remap ( )
+    override public synchronized bool cleanup ( )
     {
 		if ( !this.isDirty() )
 		{
@@ -132,29 +139,198 @@ class QueueMemory : ConduitQueue!(Memory)
 		Trace.formatln("QueueMemory remapping");
 
 		// Move queue contents
-		void* buf_start = this.conduit.buffer.ptr;
-		memcpy(buf_start, buf_start + this.first, this.insert - this.first);
+		void* buf_start = this.data.ptr;
+		memcpy(buf_start, buf_start + this.read_from, this.write_to - this.read_from);
 
 		// Update seek positions
-		this.insert -= super.first;
-		this.first = 0;
+		this.write_to -= this.read_from;
+		this.read_from = 0;
 	
-	    // insert an empty record at the new insert position
-		this.eof();
-
 	    return true;
     }
+
+
+	/***************************************************************************
+	
+	    Pushes an item into the queue.
+	
+	***************************************************************************/
+	
+	synchronized bool push ( void[] item )
+	{
+		if ( !this.willFit(item) )
+		{
+			return false;
+		}
+
+		// write item header
+		ItemHeader hdr;
+		hdr.size = item.length;
+		this.writeHeader(this.write_to, hdr);
+		this.write_to += ItemHeader.sizeof;
+		
+		// write item
+		memcpy(this.data.ptr + this.write_to, item.ptr, item.length);
+		this.write_to += item.length;
+
+		// update counter
+		this.items++;
+
+		return true;
+	}
+
+
+	/***************************************************************************
+
+		Calculates the amount of space a given data buffer would take up if
+		pushed into the queue.
+		
+		The space requirement is equal to the length of the data, plus the
+		length of its header (which is constant).
+		
+		Returns:
+			bytes size
+	        
+	***************************************************************************/
+	
+	protected uint pushSize ( void[] item )
+	{
+		return ItemHeader.sizeof + item.length;
+	}
+
+
+	/***************************************************************************
+	
+	    Pops an item from the queue.
+	
+	***************************************************************************/
+
+	synchronized void[] pop ( )
+	{
+		if ( !this.items )
+		{
+			return null;
+		}
+
+		// read item header
+		ItemHeader hdr;
+		this.readHeader(this.read_from, hdr);
+		this.read_from += ItemHeader.sizeof;
+
+		// get item slice
+		auto item_content = this.data[this.read_from .. this.read_from + hdr.size];
+		this.read_from += hdr.size;
+
+		// update counter
+		this.items--;
+		if ( this.items == 0 )
+		{
+			this.reset();
+		}
+		
+		return item_content;
+	}
+
+
+	/***************************************************************************
+	
+	    Removes all entries from the queue.
+	
+	***************************************************************************/
+	
+	public void flush ( )
+	{
+		this.reset();
+	}
+
+
+	debug synchronized public void validateContents ( bool show_summary, char[] message = "", bool show_contents_size = false )
+	{
+		// TODO
+	}
+
+	
+	/***************************************************************************
+	
+	    Writes a header into the queue at the specified offset.
+	    
+	    Params:
+	    	offset = offset from beginning of queue
+	    	header = header to write
+	
+	***************************************************************************/
+
+	protected void writeHeader ( uint offset, ref ItemHeader header )
+	in
+	{
+		assert(offset < dimension);
+	}
+	body
+	{
+		memcpy(this.data.ptr + offset, &header, header.sizeof);
+	}
+
+
+	/***************************************************************************
+	
+	    Reads a header from the queue at the specified offset.
+	    
+	    Params:
+	    	offset = offset from beginning of queue
+	    	header = header to read into
+	
+	***************************************************************************/
+
+	protected void readHeader ( uint offset, out ItemHeader header )
+	in
+	{
+		assert(offset < dimension);
+	}
+	body
+	{
+		memcpy(&header, this.data.ptr + offset, header.sizeof);
+	}
+	
+
+	/***************************************************************************
+	
+		Copies the contents of the queue to the passed conduit.
+		
+		Params:
+			conduit = conduit to write to
+	
+	***************************************************************************/
+	
+	protected void writeToConduit ( Conduit conduit )
+	{
+		conduit.write(this.data);
+	}
+	
+	
+	/***************************************************************************
+	
+		Copies the contents of the queue from the passed conduit.
+		
+		Params:
+			conduit = conduit to read from
+	
+	***************************************************************************/
+	
+	protected void readFromConduit ( Conduit conduit )
+	{
+		conduit.read(this.data);
+	}
 }
 
 
 
 /*******************************************************************************
 
-	QueueMemoryPersist
+	AutoSaveQueueMemory
 
 *******************************************************************************/
 
-class QueueMemoryPersist : QueueMemory
+class AutoSaveQueueMemory : QueueMemory
 {
 	/***************************************************************************
 
