@@ -8,7 +8,7 @@
 
     author:         Kris Bell / Thomas Nicolai / Gavin Norman
 
-	ConduitQueue implements the Queue interface. It implements a FIFO queue to
+	ConduitQueue implements the PersistQueue class. It implements a FIFO queue to
 	push and pop a large quantity of data to a Conduit. Each item in the queue
 	consists of the data itself and an automatically generated message header.
 
@@ -18,7 +18,7 @@
 	
 	It is assumed that the Conduit underlying the queue is of a fixed size.
 
-	Usage example, tests the derived classes QueueFile and QueueMemory:
+	Usage example, tests the derived classes QueueFile:
 
 	---
 	
@@ -43,8 +43,7 @@
 		log.add(appender);
 	
 		// Initialise the queue
-	//	auto q = new QueueFile ("test_file_queue", 256 * 1024 * 1024);
-		auto q = new QueueMemory ("test_memory_queue", 256 * 1024 * 1024);
+		auto q = new QueueFile ("test_file_queue", 256 * 1024 * 1024);
 		q.attachLogger(log);
 	
 		// Clear the queue before we test.
@@ -98,9 +97,7 @@ module io.device.model.IConduitQueue;
 
 *******************************************************************************/
 
-private import ocean.io.device.model.IQueue,
-	ocean.io.device.model.ISerializable,
-	ocean.io.device.model.ILoggable;
+private import ocean.io.device.model.IPersistQueue;
 
 private import tango.util.log.model.ILogger;
 
@@ -146,10 +143,10 @@ version ( MemCheck )
 
 *******************************************************************************/
 
-abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
+abstract class ConduitQueue ( C ) : PersistQueue
 {
 	debug const CHECK_MAX_ITEM_SIZE = 1024 * 1024;
-	
+
 	/***************************************************************************
 	
 	    Make sure the template parameter C is a type derived from Conduit
@@ -157,28 +154,6 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	***************************************************************************/
 
 	static assert ( is(C : Conduit), "use Conduit not '" ~ C.stringof ~ "'" );
-
-	
-	/***************************************************************************
-	
-	    Abstract method: Opens the queue given an identifying name. Should
-	    create the conduit member. This method is called by the ConduitQueue
-	    constructor.
-	
-	***************************************************************************/
-	
-	abstract public void open ( char[] name );
-
-	
-	/***************************************************************************
-
-	    Abstract method: Determines whether the queue is ready to be remapped.
-	    Each deriving class should implement this method with a heuristic which
-	    suits the Conduit which it is based in.
-    
-	***************************************************************************/
-
-	abstract public bool isDirty ( );
 
 
 	/***************************************************************************
@@ -283,23 +258,15 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	
 	
 	/***************************************************************************
-	
+
 	    Queue Implementation
-	
+
 	***************************************************************************/
-	
-	protected char[]	name;           // queue name (for logging)
-	protected long		limit,          // max size (bytes)
-	                    insert,         // rear insert position of queue (push)
-	                    first,          // front position of queue (pop)
-	                    items;          // number of items in the queue
+
 	protected void[]	buffer;         // read buffer
 	protected Header	current;        // top-of-stack info
-	protected Logger	logger;            // logging target
 
 	protected static const uint BUFFER_SIZE = 8 * 1024; // default read buffer size
-
-	protected bool allow_push_pop = true; // enable / disable push & pop operations 
 
 
 	/***************************************************************************
@@ -314,14 +281,14 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	    name, ip address, etc.
 	
 	***************************************************************************/
-	
+
 	public this ( char[] name, uint max )
 	{
-		this.setName(name);
-	    this.limit = max;
+		super(name, max);
 	    this.buffer = new void [this.BUFFER_SIZE];
-	    this.open(name);
 	}
+
+	abstract public void open ( char[] name );
 
 
 	/***************************************************************************
@@ -342,52 +309,6 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 
 
 	/***************************************************************************
-
-		Sets the logger output object.
-	
-	    Params:
-	    	logger = logger instance
-	
-	***************************************************************************/
-	
-	public void attachLogger ( Logger logger )
-	{
-		this.logger = logger;
-	}
-
-
-	/***************************************************************************
-	
-	    Gets the logger object associated with the queue.
-	
-	***************************************************************************/
-
-	public Logger getLogger ( )
-	{
-		return this.logger;
-	}
-
-
-	/***************************************************************************
-
-		Sends a message to the queue's logger.
-	
-	    Params:
-	    	fmt = format string
-	    	... = 
-
-	***************************************************************************/
-
-	public void log ( char[] fmt, ... )
-	{
-		if ( this.logger )
-		{
-			this.logger.format(ILogger.Level.Trace, fmt, _arguments, _argptr);
-		}
-	}
-
-
-	/***************************************************************************
 	
 	    Gets queue's conduit.
 	
@@ -396,99 +317,6 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	public Conduit getConduit()
 	{
 		return this.conduit;
-	}
-
-
-	/***************************************************************************
-	
-	    Sets the queue's name.
-	
-	***************************************************************************/
-	
-	public void setName ( char[] name )
-	{
-		this.name = name;
-	}
-
-
-	/***************************************************************************
-	
-	    Gets the queue's name.
-	
-	***************************************************************************/
-	
-	public char[] getName ( )
-	{
-		return this.name;
-	}
-	
-	
-	/**********************************************************************
-	
-	    Returns number of items in the queue
-	
-	**********************************************************************/
-	
-	public uint size ( )
-	{
-		return this.items;
-	}
-
-
-	/***************************************************************************
-
-		Determines whether a given data buffer will fit if pushed onto the
-		queue at the insert position.
-		
-		Returns:
-			true if item will fit
-	        
-	***************************************************************************/
-	
-	public bool willFit ( void[] data )
-	{
-		return this.pushSize(data) < this.freeSpace();
-	}
-	
-	
-	/***************************************************************************
-	
-		Gets the amount of free space at the end of the queue.
-		
-		Returns:
-			bytes free in queue
-	        
-	***************************************************************************/
-	
-	public uint freeSpace ( )
-	{
-		return this.limit - this.insert;
-	}
-	
-
-	/**********************************************************************
-	
-	    Returns true if queue is full (write position >= end of queue)
-
-		TODO: change to > 99% full? or < 1K free?
-		
-	**********************************************************************/
-	
-	public bool isFull ( )
-	{
-		return this.insert >= this.limit;
-	}
-
-
-	/**********************************************************************
-	
-	    Returns true if queue is empty
-	
-	**********************************************************************/
-	
-	public bool isEmpty ( )
-	{
-		return this.items == 0;
 	}
 
 
@@ -523,7 +351,7 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	    // check if queue is full and try to remap queue
 		if ( !this.willFit(data) )
 	    {
-	        if ( !this.remap() )
+	        if ( !this.cleanup() )
 	        {
 	            this.log("queue '{}' full with {} items", this.name, this.items);
 	            return false;
@@ -536,12 +364,12 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 		    Header chunk = void;
 		    chunk.init(this.current, data);
 
-		    this.conduit.seek(this.insert);
+		    this.conduit.seek(this.write_to);
 		    this.write(&chunk, Header.sizeof); // write queue message header
 		    this.write(data.ptr, chunk.size); // write data
 		
 		    // update refs
-		    this.insert = this.insert + Header.sizeof + chunk.size;
+		    this.write_to = this.write_to + Header.sizeof + chunk.size;
 		    this.current = chunk;
 		    ++this.items;
 		
@@ -573,12 +401,12 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 		version ( MemCheck ) auto before = MemProfiler.checkUsage();
 
 		Header chunk;
-	    if ( this.insert )
+	    if ( this.write_to )
 	    {
-	       if ( this.first < this.insert )
+	       if ( this.read_from < this.write_to )
 	       {
 	    	   // seek to front position of queue
-	    	   this.conduit.seek(this.first);
+	    	   this.conduit.seek(this.read_from);
 	
 	           // reading header & data of chunk (queue front)
 	           this.read(&chunk, Header.sizeof);
@@ -589,10 +417,10 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	           if ( this.items > 1 )
 	           {
 	        	   // updating front seek position to next chunk
-	               this.first += Header.sizeof + chunk.size;
+	               this.read_from += Header.sizeof + chunk.size;
 	
 	               // update next chunk prior size to zero
-	               this.setHeaderPriorSize(this.first, 0);
+	               this.setHeaderPriorSize(this.read_from, 0);
 	           }
 	           else if ( this.items == 1 )
 	           {
@@ -616,21 +444,6 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 
 
 	/***************************************************************************
-
-	    Removes all entries from the queue.
-	
-	***************************************************************************/
-
-	public void flush ( )
-	{
-		this.insert = 0;
-		this.first = 0;
-		this.items = 0;
-		this.eof();
-	}
-
-
-	/***************************************************************************
 	
 	    Remaps the queue conduit. If the insert position reaches the end of the
 	    conduit and the first chunk at the queue's front is not at seek position
@@ -646,7 +459,7 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	        
 	***************************************************************************/
 
-	synchronized public bool remap ( )
+	synchronized public bool cleanup ( )
 	{
 		version ( MemCheck ) auto before = MemProfiler.checkUsage();
 
@@ -665,15 +478,15 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	    
 	    long total_bytes_read;
 
-	    while ( (this.first + offset) < this.insert && bytes_read !is conduit.Eof)
+	    while ( (this.read_from + offset) < this.write_to && bytes_read !is conduit.Eof)
 	    {
 	        // seek to read position
-	    	this.conduit.seek(this.first + offset);
+	    	this.conduit.seek(this.read_from + offset);
 
 	    	uint bytes_to_read = this.BUFFER_SIZE;
-	    	if ( this.first + offset + bytes_to_read > this.insert )
+	    	if ( this.read_from + offset + bytes_to_read > this.write_to )
 	    	{
-	    		bytes_to_read = this.insert - (this.first + offset);
+	    		bytes_to_read = this.write_to - (this.read_from + offset);
 	    	}
 	    	this.buffer.length = bytes_to_read;
 	    	bytes_read = input.read(this.buffer);
@@ -690,8 +503,8 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	        }
 	    }
 	    
-	    this.insert -= this.first;
-	    this.first = 0;
+	    this.write_to -= this.read_from;
+	    this.read_from = 0;
 	
 	    // insert an empty record at the new insert position
 	    this.eof();
@@ -701,110 +514,6 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	    version ( MemCheck ) MemProfiler.checkSectionUsage("remap", before, MemProfiler.Expect.NoChange);
 
 		return true;
-	}
-
-
-	/***************************************************************************
-
-		Sets the allow_push_pop flag to false, which will deactivate any push
-		or pop operations which happen from now on.
-		
-		This function can be used if you want to shut down the queue at a
-		certain point and be sure that no other threads will subsequently read
-		from or write to the queue.
-
-	***************************************************************************/
-
-	public synchronized void stopIO ( )
-	{
-		this.allow_push_pop = false;
-	}
-
-
-	/***************************************************************************
-
-		Writes the queue's state and contents to a file with the queue's name
-		+ ".dump".
-	
-		If the file already exists it is overwritten.
-	
-	***************************************************************************/
-
-	public synchronized void dumpToFile ( )
-	{
-		this.log("Writing to file " ~ this.name ~ ".dump");
-		scope fp = new FilePath(this.name ~ ".dump");
-		if ( fp.exists() )
-		{
-			this.log("(File exists, deleting)");
-			fp.remove();
-		}
-	
-		scope file = new File(this.name ~ ".dump", File.WriteCreate);
-		this.serialize(file);
-		file.close();
-	}
-
-
-	/***************************************************************************
-	
-	    Reads the queue's state and contents from a file.
-	
-	***************************************************************************/
-	
-	public synchronized void readFromFile ( )
-	{
-		this.log("Loading from file {}", this.name ~ ".dump");
-		scope fp = new FilePath(this.name ~ ".dump");
-		if ( fp.exists() )
-		{
-			this.log("(File exists, loading)");
-			scope file = new File(this.name ~ ".dump", File.ReadExisting);
-	
-			this.deserialize(file);
-			file.close();
-		}
-		else
-		{
-			this.log("(File doesn't exist)");
-		}
-	}
-	
-	
-	/***************************************************************************
-	
-		Writes the queue's state and contents to the given conduit.
-		
-		Params:
-			conduit = conduit to write to
-	
-	***************************************************************************/
-	
-	public void serialize ( Conduit conduit )
-	{
-		this.writeState(conduit);
-		this.conduit.seek(0);
-		conduit.copy(this.conduit);
-	}
-	
-	
-	/***************************************************************************
-	
-	    Reads the queue's state and contents from the given conduit.
-	    For compatibility with any sort of Conduit, does not check that the size
-	    of the data in the conduit will actually fit in the queue. The conduit
-	    copy method will assert if it doesn't though.
-	
-		Params:
-			conduit = conduit to read from
-	
-	***************************************************************************/
-	
-	public void deserialize ( Conduit conduit )
-	{
-		this.readState(conduit);
-		this.conduit.seek(0);
-		this.conduit.copy(conduit);
 	}
 
 
@@ -861,10 +570,9 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	
 	***************************************************************************/
 	
-	protected void reset ( )
+	override protected void reset ( )
 	{
-		this.first = 0;
-		this.insert = 0;
+		super.reset();
 	
 	    // insert an empty record at the new insert position
 	    this.eof();
@@ -985,81 +693,40 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 	protected void eof ( )
 	{
 	    Header zero;
-	    this.conduit.seek(this.insert);
+	    this.conduit.seek(this.write_to);
 	    write(&zero, Header.sizeof);
 	}
 
 
 	/***************************************************************************
 	
-		Enum defining the order in which the queue's state longs are written to
-		/ read from a file.
-	
-	***************************************************************************/
-	
-	protected enum StateSerializeOrder
-	{
-		limit = 0,
-		insert,
-		first,
-		items
-	}
-	
-	
-	/***************************************************************************
-	
-		Writes the queue's state to a conduit. The queue's name is written,
-		followed by an array of longs describing its state.
-	
+		Copies the contents of the queue to the passed conduit.
+		
 		Params:
 			conduit = conduit to write to
-		
-		Returns:
-			number of bytes written
 	
 	***************************************************************************/
-	
-	protected synchronized long writeState ( Conduit conduit )
+
+	protected void writeToConduit ( Conduit conduit )
 	{
-		long[StateSerializeOrder.max + 1] longs;
-		
-		longs[StateSerializeOrder.limit] = this.limit;
-		longs[StateSerializeOrder.insert] = this.insert;
-		longs[StateSerializeOrder.first] = this.first;
-		longs[StateSerializeOrder.items] = this.items;
-	
-		long bytes_written = conduit.write(cast(void[]) this.name);
-		bytes_written += conduit.write(cast(void[]) longs);
-		return bytes_written;
+		this.conduit.seek(0);
+		conduit.copy(this.conduit);
 	}
-	
-	
+
+
 	/***************************************************************************
 	
-		Reads the queue's state from a conduit. The queue's name is read,
-		followed by an array of longs describing its state.
+		Copies the contents of the queue from the passed conduit.
 		
 		Params:
 			conduit = conduit to read from
-		
-		Returns:
-			number of bytes read
 	
 	***************************************************************************/
-	
-	protected synchronized long readState ( Conduit conduit )
+
+	protected void readFromConduit ( Conduit conduit )
 	{
-		long[StateSerializeOrder.max + 1] longs;
-	
-		long bytes_read = conduit.read(cast(void[]) this.name);
-		bytes_read += conduit.read(cast(void[]) longs);
-		
-		this.limit = longs[StateSerializeOrder.limit];
-		this.insert = longs[StateSerializeOrder.insert];
-		this.first = longs[StateSerializeOrder.first];
-		this.items = longs[StateSerializeOrder.items];
-	
-		return bytes_read;
+		this.conduit.seek(0);
+		this.conduit.copy(conduit);
 	}
 
 
@@ -1078,12 +745,6 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 		
 	***************************************************************************/
 
-	synchronized public void traceContents ( char[] message = "", bool show_contents_size = false )
-	{
-		this.validateContents(true, message, show_contents_size);
-	}
-
-
 	synchronized public void validateContents ( bool show_summary, char[] message = "", bool show_contents_size = false )
 	{
 		scope ( failure )
@@ -1099,11 +760,11 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 			Trace.format("{}: {}: ", this.name, message);
 		}
 		uint count = 0;
-		long seek_pos = this.first;
+		long seek_pos = this.read_from;
 		Header header;
 		do
 		{
-			if ( seek_pos < this.limit )
+			if ( seek_pos < this.dimension )
 			{
 				this.conduit.seek(seek_pos);
 
@@ -1133,79 +794,9 @@ abstract class ConduitQueue ( C ) : Queue, Serializable, Loggable
 		if ( show_summary )
 		{
 			bool valid = count - 1 == this.items;
-			Trace.formatln("({}) - ({}) ({} bytes free){}", count - 1, this.items, this.limit - this.insert,
+			Trace.formatln("({}) - ({}) ({} bytes free){}", count - 1, this.items, this.dimension - this.write_to,
 					valid ? "" : " # OF ITEMS INVALID");
 		}
-	}
-
-	
-	/***************************************************************************
-	
-		Outputs the queue's current seek positions to the log.
-	
-		If compiled as the QueueTrace version, also outputs a message to Trace.
-	
-		Params:
-			str = message to prepend to seek positions output 
-	
-	***************************************************************************/
-
-	public void logSeekPositions ( char[] str = "" )
-	{
-	    this.log("{} [ front = {} rear = {} ]", str, this.first, this.insert);
-	}
-
-
-	/***********************************************************************
-
-		Format a string with the queue's current start and end seek
-		positions.
-
-		Params:
-			buf = string buffer to be written into
-			show_pcnt = show seek positions as a % o the queue's total size
-			nl = write a newline after the seek positions info
-
-	***********************************************************************/
-
-	protected char[] format_buf;
-
-	public void formatSeekPositions ( ref char[] buf, bool show_pcnt, bool nl = true )
-	{
-		version ( MemCheck ) auto before = MemProfiler.checkUsage();
-
-		if ( show_pcnt )
-		{
-			double first_pcnt = 100.0 * (cast(double) this.first / cast(double) this.limit);
-			double insert_pcnt = 100.0 * (cast(double) this.insert / cast(double) this.limit);
-
-			this.format_buf.length = 20;
-			buf ~= "[" ~ Float.format(this.format_buf, first_pcnt) ~ "%..";
-			this.format_buf.length = 20;
-			buf ~= Float.format(this.format_buf, insert_pcnt) ~ "%]";
-		}
-		else
-		{
-			buf ~= "[" ~ Integer.format(this.format_buf, this.first) ~ ".."
-				~ Integer.format(this.format_buf, this.insert) ~ " / "~ Integer.format(this.format_buf, this.limit) ~ "]";
-		}
-
-		if ( this.isFull() )
-		{
-			buf ~= "F";
-		}
-
-		if ( this.isDirty() )
-		{
-			buf ~= "D";
-		}
-
-		if ( nl )
-		{
-			buf ~= "\n";
-		}
-
-		version ( MemCheck ) MemProfiler.checkSectionUsage("format", before, MemProfiler.Expect.NoChange);
 	}
 }
 
