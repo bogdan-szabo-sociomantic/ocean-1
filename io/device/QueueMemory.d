@@ -32,6 +32,8 @@ module  ocean.io.device.QueueMemory;
 
 private import ocean.io.device.model.IPersistQueue;
 
+private import ocean.io.device.Memory;
+
 private import tango.io.device.Conduit;
 
 private import tango.io.FilePath, tango.io.device.File;
@@ -246,7 +248,23 @@ class QueueMemory : PersistQueue
 
 	debug synchronized public void validateContents ( bool show_summary, char[] message = "", bool show_contents_size = false )
 	{
-		// TODO
+		long pos = this.read_from;
+		uint count;
+		
+		do
+		{
+			ItemHeader hdr;
+			this.readHeader(pos, hdr);
+			assert(hdr.size < 1024 * 1024);
+			count++;
+			
+			pos += ItemHeader.sizeof + hdr.size;
+		} while ( pos < this.write_to )
+
+		if ( show_summary )
+		{
+			Trace.formatln("{} - {} END OF QUEUE", this.getName(), count);
+		}
 	}
 
 	
@@ -303,10 +321,12 @@ class QueueMemory : PersistQueue
 	
 	protected void writeToConduit ( Conduit conduit )
 	{
-		conduit.write(this.data);
+		scope this_conduit = new Memory(this.data);
+		this_conduit.seek(0);
+		conduit.copy(this_conduit);
 	}
-	
-	
+
+
 	/***************************************************************************
 	
 		Copies the contents of the queue from the passed conduit.
@@ -318,10 +338,61 @@ class QueueMemory : PersistQueue
 	
 	protected void readFromConduit ( Conduit conduit )
 	{
-		conduit.read(this.data);
+		scope this_conduit = new Memory(this.data);
+		this_conduit.seek(0);
+		this_conduit.copy(conduit);
 	}
 }
 
+
+
+private import ocean.io.device.model.IConduitQueue;
+
+class OldQueueMemory : ConduitQueue!(Memory)
+{
+	this ( char[] name, uint max )
+	{
+		super(name, max);
+	}
+
+	public bool isDirty ( )
+	{
+    	const min_bytes = 2048;
+    	auto half_percent = (this.dimension / 200);
+    	auto min_diff = half_percent > min_bytes ? half_percent : min_bytes;
+
+    	return (this.read_from) - (this.dimension - this.write_to) > min_diff;
+	}
+
+    public void open ( char[] name )
+	{
+		this.log("Initializing memory queue '{}' to {} KB", this.name, this.dimension / 1024);
+        this.conduit = new Memory(this.dimension); // non-growing array
+	}
+
+    override public synchronized bool cleanup ( )
+    {
+		if ( !this.isDirty() )
+		{
+			return false;
+		}
+
+		Trace.formatln("QueueMemory remapping");
+
+		// Move queue contents
+		void* buf_start = this.conduit.buffer.ptr;
+		memcpy(buf_start, buf_start + this.read_from, this.write_to - this.read_from);
+
+		// Update seek positions
+		this.write_to -= this.read_from;
+		this.read_from = 0;
+	
+	    // insert an empty record at the new insert position
+		this.eof();
+
+	    return true;
+    }
+}
 
 
 /*******************************************************************************

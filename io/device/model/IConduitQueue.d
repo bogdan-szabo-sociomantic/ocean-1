@@ -749,7 +749,7 @@ abstract class ConduitQueue ( C ) : PersistQueue
 	{
 		scope ( failure )
 		{
-			Trace.formatln("EXCEPTION OCCURRED");
+			Trace.formatln("ConduitQueue.validateContents - EXCEPTION OCCURRED");
 
 			// Wait
 			Thread.sleep(2);
@@ -770,7 +770,6 @@ abstract class ConduitQueue ( C ) : PersistQueue
 
 				this.read(&header, Header.sizeof);
 
-				debug assert(header.size < CHECK_MAX_ITEM_SIZE);
 				if ( show_contents_size )
 				{
 					if ( show_summary )
@@ -779,6 +778,7 @@ abstract class ConduitQueue ( C ) : PersistQueue
 					}
 //					auto content = this.readItem(header);
 				}
+				debug assert(header.size < CHECK_MAX_ITEM_SIZE);
 
 				seek_pos += Header.sizeof + header.size;
 	

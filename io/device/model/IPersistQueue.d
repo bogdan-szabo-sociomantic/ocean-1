@@ -443,6 +443,8 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	{
 		this.readState(conduit);
 		this.readFromConduit(conduit);
+
+		Trace.formatln("Deserialized {}: {} items, {} read, {} write, {} dimension", this.name, this.items, this.read_from, this.write_to, this.dimension);
 	}
 
 
@@ -540,7 +542,8 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 		dimension = 0,
 		write_to,
 		read_from,
-		items
+		items,
+		name_length
 	}
 	
 	
@@ -561,13 +564,18 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	{
 		long[StateSerializeOrder.max + 1] longs;
 		
+		// Write longs
 		longs[StateSerializeOrder.dimension] = this.dimension;
 		longs[StateSerializeOrder.write_to] = this.write_to;
 		longs[StateSerializeOrder.read_from] = this.read_from;
 		longs[StateSerializeOrder.items] = this.items;
-	
-		long bytes_written = conduit.write(cast(void[]) this.name);
-		bytes_written += conduit.write(cast(void[]) longs);
+		longs[StateSerializeOrder.name_length] = this.name.length;
+
+		long bytes_written = conduit.write(cast(void[]) longs);
+
+		// Write name
+		bytes_written += conduit.write(cast(void[]) this.name);
+
 		return bytes_written;
 	}
 	
@@ -589,14 +597,18 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	{
 		long[StateSerializeOrder.max + 1] longs;
 	
-		long bytes_read = conduit.read(cast(void[]) this.name);
-		bytes_read += conduit.read(cast(void[]) longs);
-		
+		// Read longs
+		long bytes_read = conduit.read(cast(void[]) longs);
+
 		this.dimension = longs[StateSerializeOrder.dimension];
 		this.write_to = longs[StateSerializeOrder.write_to];
 		this.read_from = longs[StateSerializeOrder.read_from];
 		this.items = longs[StateSerializeOrder.items];
+		this.name.length = longs[StateSerializeOrder.name_length];
 	
+		// Read names
+		bytes_read += conduit.read(cast(void[]) this.name);
+
 		return bytes_read;
 	}
 }
