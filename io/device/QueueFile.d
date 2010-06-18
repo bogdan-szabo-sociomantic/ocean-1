@@ -87,7 +87,7 @@ class QueueFile : ConduitQueue!(File)
 
 	public bool isDirty ( )
 	{
-		return this.first > this.limit / 4;
+		return this.read_from > this.dimension / 4;
 	}
 
 	/***************************************************************************
@@ -114,7 +114,7 @@ class QueueFile : ConduitQueue!(File)
 		if (length is 0)
 		{
 			// initialize file with max length
-			uint buffers_to_write = (this.limit + this.buffer.length - 1) / this.buffer.length;
+			uint buffers_to_write = (this.dimension + this.buffer.length - 1) / this.buffer.length;
 
 			this.log("initializing file queue '{}' to {} KB", this.name,
 					(buffers_to_write * this.buffer.length) / 1024);
@@ -129,7 +129,7 @@ class QueueFile : ConduitQueue!(File)
 		else
 		{
 			// find front and rear position of queue
-			while ( this.insert < length )
+			while ( this.write_to < length )
 			{
 				// get a header
 				this.read(&chunk, Header.sizeof);
@@ -149,16 +149,16 @@ class QueueFile : ConduitQueue!(File)
 
 					if ( chunk.prior == 0 )
 					{
-						this.first = this.insert;
+						this.read_from = this.write_to;
 						this.items = 0;
 					}
 
 					++this.items;
                    
 					this.current = chunk;
-					this.insert = this.insert + chunk.size + Header.sizeof;
+					this.write_to = this.write_to + chunk.size + Header.sizeof;
 
-					this.conduit.seek(this.insert);
+					this.conduit.seek(this.write_to);
 				}
 				else
 				{
@@ -167,9 +167,9 @@ class QueueFile : ConduitQueue!(File)
 			}
 
 			this.log("initializing file queue '{}' [ queue front pos = {} queue rear pos = {} items = {}]",
-					this.name, this.first, this.insert, this.items);
+					this.name, this.read_from, this.write_to, this.items);
            
-			this.remap();
+			this.cleanup();
 		}
 	}
 }
