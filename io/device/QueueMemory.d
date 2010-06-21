@@ -131,13 +131,8 @@ class NewQueueMemory : PersistQueue
 	
 	***************************************************************************/
 
-    override public synchronized bool cleanup ( )
+    public void cleanupQueue ( )
     {
-		if ( !this.isDirty() )
-		{
-			return false;
-		}
-
 		Trace.formatln("QueueMemory remapping");
 
 		// Move queue contents
@@ -147,8 +142,6 @@ class NewQueueMemory : PersistQueue
 		// Update seek positions
 		this.write_to -= this.read_from;
 		this.read_from = 0;
-	
-	    return true;
     }
 
 
@@ -158,7 +151,7 @@ class NewQueueMemory : PersistQueue
 	
 	***************************************************************************/
 	
-	synchronized protected bool pushItem ( void[] item )
+	protected void pushItem ( void[] item )
 	{
 		// write item header
 		ItemHeader hdr;
@@ -172,8 +165,6 @@ class NewQueueMemory : PersistQueue
 
 		// update counter
 		this.items++;
-
-		return true;
 	}
 
 
@@ -202,7 +193,7 @@ class NewQueueMemory : PersistQueue
 	
 	***************************************************************************/
 
-	synchronized protected void[] popItem ( )
+	protected void[] popItem ( )
 	{
 		if ( !this.items )
 		{
@@ -240,25 +231,29 @@ class NewQueueMemory : PersistQueue
 		this.reset();
 	}
 
+	// TODO
 
-	debug synchronized public void validateContents ( bool show_summary, char[] message = "", bool show_contents_size = false )
+	debug public void validateContents ( bool show_summary, char[] message = "", bool show_contents_size = false )
 	{
-		long pos = this.read_from;
-		uint count;
-		
-		do
+		synchronized ( this )
 		{
-			ItemHeader hdr;
-			this.readHeader(pos, hdr);
-			assert(hdr.size < 1024 * 1024);
-			count++;
+			long pos = this.read_from;
+			uint count;
 			
-			pos += ItemHeader.sizeof + hdr.size;
-		} while ( pos < this.write_to )
-
-		if ( show_summary )
-		{
-			Trace.formatln("{} - {} END OF QUEUE", this.getName(), count);
+			do
+			{
+				ItemHeader hdr;
+				this.readHeader(pos, hdr);
+				assert(hdr.size < 1024 * 1024);
+				count++;
+				
+				pos += ItemHeader.sizeof + hdr.size;
+			} while ( pos < this.write_to )
+	
+			if ( show_summary )
+			{
+				Trace.formatln("{} - {} END OF QUEUE", this.getName(), count);
+			}
 		}
 	}
 
@@ -369,13 +364,8 @@ class QueueMemory : ConduitQueue!(Memory)
         this.conduit = new Memory(this.dimension); // non-growing array
 	}
 
-    override public synchronized bool cleanup ( )
+    override protected void cleanupQueue ( )
     {
-		if ( !this.isDirty() )
-		{
-			return false;
-		}
-
 		Trace.formatln("QueueMemory remapping");
 
 		// Move queue contents
@@ -388,8 +378,6 @@ class QueueMemory : ConduitQueue!(Memory)
 	
 	    // insert an empty record at the new insert position
 		this.eof();
-
-	    return true;
     }
 }
 
@@ -450,8 +438,6 @@ class AutoSaveQueueMemory : QueueMemory
 	
 	protected void terminate ( int code )
 	{
-		this.stopIO();
-
 		Trace.formatln("Closing {} (saving {} entries to {})",
 				this.getName(), this.size(), this.getName() ~ ".dump");
 		this.log(SignalHandler.getId(code) ~ " raised: terminating");

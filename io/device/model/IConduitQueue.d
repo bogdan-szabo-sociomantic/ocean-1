@@ -327,12 +327,9 @@ abstract class ConduitQueue ( C ) : PersistQueue
 		Params:
 			data = the item to be written
 			
-		Returns:
-			true if the item was pushed successfully, false otherwise
-		
 	***************************************************************************/
 
-	protected synchronized bool pushItem ( void[] data )
+	protected void pushItem ( void[] data )
 	{
 		debug assert(data.length < CHECK_MAX_ITEM_SIZE);
 
@@ -351,9 +348,8 @@ abstract class ConduitQueue ( C ) : PersistQueue
 	
 	    // insert an empty record at the new insert position
 	    this.eof();
-
-		return true;
 	}
+
 
 	/***************************************************************************
 	
@@ -367,7 +363,7 @@ abstract class ConduitQueue ( C ) : PersistQueue
 	        
 	***************************************************************************/
 
-	protected synchronized void[] popItem ( )
+	protected void[] popItem ( )
 	{
 		void[] ret = null;
 		Header chunk;
@@ -421,25 +417,14 @@ abstract class ConduitQueue ( C ) : PersistQueue
 	    way through the queue. (Otherwise the situation can arise that a full
 	    queue is remapped after every read.)
 	
-	    Returns:
-	    	true if remap could free some file space.
-	        
 	***************************************************************************/
 
-	synchronized public bool cleanup ( )
+	protected void cleanupQueue ( )
 	{
-		version ( MemCheck ) auto before = MemProfiler.checkUsage();
-
-		this.log("Thinking about remapping queue '" ~ name ~ "'");
-
 	    uint bytes_read, bytes_written;
 	    long offset;
-		if ( !this.isDirty() )
-		{
-			return false;
-		}
 	    this.logSeekPositions("Old seek positions");
-	            
+
 	    auto input = this.conduit.input;
 	    auto output = this.conduit.output;
 	    
@@ -477,10 +462,6 @@ abstract class ConduitQueue ( C ) : PersistQueue
 	    this.eof();
 	
 	    this.logSeekPositions("Remapping done, new seek positions");
-
-	    version ( MemCheck ) MemProfiler.checkSectionUsage("remap", before, MemProfiler.Expect.NoChange);
-
-		return true;
 	}
 
 

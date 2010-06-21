@@ -64,7 +64,7 @@ version ( MemCheck )
 
 /*******************************************************************************
 
-	Presists queue class
+	Persist queue class
 
 *******************************************************************************/
 
@@ -82,13 +82,37 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 
 
 	/***************************************************************************
+
+		Abstract method: Pushes a single item to the queue. This method should
+		not do any kind of checking whether the item will fit, this is done
+		previously by the push method (below).
+
+	***************************************************************************/
+
+	abstract protected void pushItem ( void[] item );
+
+
+	/***************************************************************************
+
+		Abstract method: Pops a single item from the queue. This method should
+		not do any kind of checking whether there are items to pop, this is done
+		previously by the pop method (below).
+
+	***************************************************************************/
+
+	abstract protected void[] popItem ( );
+
+
+	/***************************************************************************
 	
 	    Abstract method: Performs any cleanup operations needed for the queue's
-	    continual functioning.
+	    continual functioning. This method does not need to check whether the
+	    cleanup is required, this is done previously by the cleanup method
+	    (below).
 	
 	***************************************************************************/
 
-	abstract public bool cleanup ( );
+	abstract protected void cleanupQueue ( );
 
 
 	/***************************************************************************
@@ -112,7 +136,21 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 
 	abstract public uint pushSize ( void[] data );
 
+
+	/***************************************************************************
+
+		Abstract method: Writes the contents of the queue to the passed conduit.
+
+	***************************************************************************/
+
 	abstract protected void writeToConduit ( Conduit conduit );
+
+
+	/***************************************************************************
+
+		Abstract method: Reads the contents of the queue from the passed conduit.
+	
+	***************************************************************************/
 
 	abstract protected void readFromConduit ( Conduit conduit );
 
@@ -123,7 +161,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	***************************************************************************/
 
-	debug abstract synchronized public void validateContents
+	debug abstract public void validateContents
 		( bool show_summary, char[] message = "", bool show_contents_size = false );
 
 
@@ -132,7 +170,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	    Queue Implementation
 	
 	***************************************************************************/
-	
+
 	protected char[]	name;           // queue name (for logging)
 	protected long		dimension,      // max size (bytes)
 	                    write_to,       // rear insert position of queue (push)
@@ -140,8 +178,6 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	                    items;          // number of items in the queue
 
 	protected Logger	logger;         // logging target
-	
-	protected bool allow_push_pop = true; // enable / disable push & pop operations
 
 	protected char[] format_buf;		// buffer used for seek position formatting
 
@@ -168,7 +204,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 
 	/***************************************************************************
 
-		Pushes an item to the queue. The item is check for valid length (>0),
+		Pushes an item to the queue. The item is checked for valid length (>0),
 		and the queue checks if the item will fit. If there's not enough space
 		available the cleanup method is called in an attempt to make more space.
 		The push is then retried.
@@ -184,23 +220,24 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 			
 	***************************************************************************/
 
-	synchronized public bool push ( void[] item )
+	public bool push ( void[] item )
+	in
 	{
-		if ( !this.allow_push_pop )
+		assert(item.length !is 0, "PersistQueue.push - attempted to push zero length content");
+	}
+	body
+	{
+		scope ( exit )
 		{
-			return false;
+			version ( MemCheck ) MemProfiler.checkSectionUsage("push", before, MemProfiler.Expect.NoChange);
 		}
 
 		version ( MemCheck ) auto before = MemProfiler.checkUsage();
 
-		assert(item.length !is 0, "PersistQueue.push - attempted to push zero length content");
-
-	    // check if the item will fit, and if not cleanup then try again
+	    // check if the item will fit, and if it won't fit then cleanup and try again
 		if ( !this.willFit(item) )
 	    {
-			bool cleaned;
-			cleaned = this.cleanup();
-	        if ( !cleaned || !this.willFit(item) )
+	        if ( !this.cleanup() || !this.willFit(item) )
 	        {
 	            this.log("queue '{}' full with {} items", this.name, this.items);
 	            return false;
@@ -208,33 +245,73 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	    }
 
 		// Store item in queue
-		auto ret = this.pushItem(item);
-
-		version ( MemCheck ) MemProfiler.checkSectionUsage("push", before, MemProfiler.Expect.NoChange);
-
-		return ret;
+		synchronized ( this )
+		{
+			this.pushItem(item);
+			return true;
+		}
 	}
+
+
+	/***************************************************************************
+
+		Pops an item from the queue.
+	    
+		Returns:
+			the item popped, or null if the queue is empty
+	
+	***************************************************************************/
 
 	synchronized public void[] pop ( )
 	{
-		if ( !this.allow_push_pop || this.items == 0 )
+		scope ( exit)
 		{
-			return null;
+			version ( MemCheck ) MemProfiler.checkSectionUsage("pop", before, MemProfiler.Expect.NoChange);
 		}
 
 		version ( MemCheck ) auto before = MemProfiler.checkUsage();
 
-		auto ret = this.popItem();
+		if ( this.items == 0 )
+		{
+			return null;
+		}
 
-		version ( MemCheck ) MemProfiler.checkSectionUsage("pop", before, MemProfiler.Expect.NoChange);
-
-		return ret;
+		synchronized ( this )
+		{
+			return this.popItem();
+		}
 	}
-	
-	abstract synchronized protected bool pushItem ( void[] item );
 
-	abstract synchronized protected void[] popItem ( );
+
+	/***************************************************************************
 	
+		Cleans up the queue, if it's dirty.
+		
+		Returns:
+			true if cleanupQueue was called, false otherwise
+	
+	***************************************************************************/
+	
+	public bool cleanup ( )
+	{
+		scope ( exit )
+		{
+		    version ( MemCheck ) MemProfiler.checkSectionUsage("cleanup", before, MemProfiler.Expect.NoChange);
+		}
+
+		version ( MemCheck ) auto before = MemProfiler.checkUsage();
+
+		if ( !this.isDirty() )
+		{
+			return false;
+		}
+
+		synchronized ( this )
+		{
+			this.cleanupQueue();
+			return true;
+		}
+	}
 
 
 	/***************************************************************************
@@ -409,26 +486,9 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	    overridden by derived classes.
 	
 	***************************************************************************/
-	
+
 	public void close ( )
 	{
-	}
-	
-
-	/***************************************************************************
-
-		Sets the allow_push_pop flag to false, which will deactivate any push
-		or pop operations which happen from now on.
-		
-		This function can be used if you want to shut down the queue at a
-		certain point and be sure that no other threads will subsequently read
-		from or write to the queue.
-	
-	***************************************************************************/
-	
-	public synchronized void stopIO ( )
-	{
-		this.allow_push_pop = false;
 	}
 
 
@@ -441,7 +501,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	***************************************************************************/
 	
-	public synchronized void dumpToFile ( )
+	public void dumpToFile ( )
 	{
 		this.log("Writing to file " ~ this.name ~ ".dump");
 		scope fp = new FilePath(this.name ~ ".dump");
@@ -452,7 +512,12 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 		}
 	
 		scope file = new File(this.name ~ ".dump", File.WriteCreate);
-		this.serialize(file);
+
+		synchronized ( this )
+		{
+			this.serialize(file);
+		}
+
 		file.close();
 	}
 	
@@ -463,7 +528,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	***************************************************************************/
 	
-	public synchronized void readFromFile ( )
+	public void readFromFile ( )
 	{
 		this.log("Loading from file {}", this.name ~ ".dump");
 		scope fp = new FilePath(this.name ~ ".dump");
@@ -472,7 +537,11 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 			this.log("(File exists, loading)");
 			scope file = new File(this.name ~ ".dump", File.ReadExisting);
 	
-			this.deserialize(file);
+			synchronized ( this )
+			{
+				this.deserialize(file);
+			}
+
 			file.close();
 		}
 		else
@@ -631,7 +700,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	***************************************************************************/
 	
-	protected synchronized long writeState ( Conduit conduit )
+	protected long writeState ( Conduit conduit )
 	{
 		long[StateSerializeOrder.max + 1] longs;
 		
@@ -664,7 +733,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	***************************************************************************/
 	
-	protected synchronized long readState ( Conduit conduit )
+	protected long readState ( Conduit conduit )
 	{
 		long[StateSerializeOrder.max + 1] longs;
 	
