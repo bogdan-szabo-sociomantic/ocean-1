@@ -276,10 +276,10 @@ abstract class ConduitQueue ( C ) : PersistQueue
 		Params:
 	    	name = name of queue (for logging)
 	    	max = max queue size (bytes)
-	
+
 	    Note: the name parameter may be used be derived classes to denote a file
 	    name, ip address, etc.
-	
+
 	***************************************************************************/
 
 	public this ( char[] name, uint max )
@@ -287,8 +287,6 @@ abstract class ConduitQueue ( C ) : PersistQueue
 		super(name, max);
 	    this.buffer = new void [this.BUFFER_SIZE];
 	}
-
-	abstract public void open ( char[] name );
 
 
 	/***************************************************************************
@@ -381,7 +379,7 @@ abstract class ConduitQueue ( C ) : PersistQueue
 
 	           debug assert(ret.length < CHECK_MAX_ITEM_SIZE);
 
-	           --items;
+	           --this.items;
 
 	           if ( this.items > 0 )
 	           {

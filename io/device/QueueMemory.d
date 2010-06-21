@@ -8,9 +8,10 @@
 
     author:         Gavin Norman
 
-    QueueMemory implements the PersistQueue base class. It is a FIFO queue
-    based on a void[] memory buffer, using memcpy for all write operations, and
-    array slicing for read operations.
+    QueueMemory implements the ConduitQueue base class, based on the Memory
+    conduit (ocean.io.device.Memory). A few methods of ConduitQueue are
+    overridden to take advantage of our knowledge of the underlying Conduit
+    (ie that it's just a memory buffer). Thus memcpy and slicing can be used.
 
 	Also in this module is AutoSaveQueueMemory, an extension of QueueMemory which
 	loads itself from a dump file upon construction, and saves itself to a file
@@ -30,7 +31,7 @@ module  ocean.io.device.QueueMemory;
 
 *******************************************************************************/
 
-private import ocean.io.device.model.IPersistQueue;
+private import ocean.io.device.model.IConduitQueue;
 
 private import ocean.io.device.Memory;
 
@@ -63,291 +64,33 @@ extern (C)
 
 *******************************************************************************/
 
-class NewQueueMemory : PersistQueue
+class QueueMemory : ConduitQueue!(Memory)
 {
-	struct ItemHeader
-	{
-		uint size;
-	}
-
-	protected void[] data;
-
-
 	/***************************************************************************
 
 	    Constructor
-
+	
 	    Params:
 	    	name = name of queue (for logging)
 	    	max = max queue size (bytes)
 	
 	***************************************************************************/
 
-    this ( char[] name, uint max )
-    {
-    	super(name, max);
-    }
+	this ( char[] name, uint max )
+	{
+		super(name, max);
+	}
 
+	/***************************************************************************
 
-    /***************************************************************************
-
-		Determines when the queue is ready to be remapped.
+		Determines when the queue is ready to be cleaned up.
 
 		As remapping is very cheap with a memory queue, it decides to remap when
 		the difference between the space left to write into at the end of the
 		queue and the space at the beginning is > 0.5% of the total size of the
 		queue, or at least 2Kb.
-
-    ***************************************************************************/
-
-    public bool isDirty ( )
-	{
-    	const min_bytes = 2048;
-    	auto half_percent = (this.dimension / 200);
-    	auto min_diff = half_percent > min_bytes ? half_percent : min_bytes;
-
-    	return (this.read_from) - (this.dimension - this.write_to) > min_diff;
-	}
-
-    /***************************************************************************
-
-		Initialises the Array conduit with the size set in the constructor.
-	
-	***************************************************************************/
-
-    public void open ( char[] name )
-	{
-		this.log("Initializing memory queue '{}' to {} KB", this.name, this.dimension / 1024);
-		this.data = new void[this.dimension];
-	}
-
-
-    /***************************************************************************
-
-		Overridden cleanup method. Uses memcpy for greater speed.
-		
-		Returns:
-			true if remapped, false otherwise
-	
-	***************************************************************************/
-
-    public void cleanupQueue ( )
-    {
-		Trace.formatln("QueueMemory remapping");
-
-		// Move queue contents
-		void* buf_start = this.data.ptr;
-		memcpy(buf_start, buf_start + this.read_from, this.write_to - this.read_from);
-
-		// Update seek positions
-		this.write_to -= this.read_from;
-		this.read_from = 0;
-    }
-
-
-	/***************************************************************************
-	
-	    Pushes an item into the queue.
-	
-	***************************************************************************/
-	
-	protected void pushItem ( void[] item )
-	{
-		// write item header
-		ItemHeader hdr;
-		hdr.size = item.length;
-		this.writeHeader(this.write_to, hdr);
-		this.write_to += ItemHeader.sizeof;
-		
-		// write item
-		memcpy(this.data.ptr + this.write_to, item.ptr, item.length);
-		this.write_to += item.length;
-
-		// update counter
-		this.items++;
-	}
-
-
-	/***************************************************************************
-
-		Calculates the amount of space a given data buffer would take up if
-		pushed into the queue.
-		
-		The space requirement is equal to the length of the data, plus the
-		length of its header (which is constant).
-		
-		Returns:
-			bytes size
-	        
-	***************************************************************************/
-	
-	protected uint pushSize ( void[] item )
-	{
-		return ItemHeader.sizeof + item.length;
-	}
-
-
-	/***************************************************************************
-	
-	    Pops an item from the queue.
-	
-	***************************************************************************/
-
-	protected void[] popItem ( )
-	{
-		if ( !this.items )
-		{
-			return null;
-		}
-
-		// read item header
-		ItemHeader hdr;
-		this.readHeader(this.read_from, hdr);
-		this.read_from += ItemHeader.sizeof;
-
-		// get item slice
-		auto item_content = this.data[this.read_from .. this.read_from + hdr.size];
-		this.read_from += hdr.size;
-
-		// update counter
-		this.items--;
-		if ( this.items == 0 )
-		{
-			this.reset();
-		}
-		
-		return item_content;
-	}
-
-
-	/***************************************************************************
-	
-	    Removes all entries from the queue.
-	
-	***************************************************************************/
-	
-	public void flush ( )
-	{
-		this.reset();
-	}
-
-	// TODO
-
-	debug public void validateContents ( bool show_summary, char[] message = "", bool show_contents_size = false )
-	{
-		synchronized ( this )
-		{
-			long pos = this.read_from;
-			uint count;
-			
-			do
-			{
-				ItemHeader hdr;
-				this.readHeader(pos, hdr);
-				assert(hdr.size < 1024 * 1024);
-				count++;
-				
-				pos += ItemHeader.sizeof + hdr.size;
-			} while ( pos < this.write_to )
-	
-			if ( show_summary )
-			{
-				Trace.formatln("{} - {} END OF QUEUE", this.getName(), count);
-			}
-		}
-	}
-
-	
-	/***************************************************************************
-	
-	    Writes a header into the queue at the specified offset.
 	    
-	    Params:
-	    	offset = offset from beginning of queue
-	    	header = header to write
-	
 	***************************************************************************/
-
-	protected void writeHeader ( uint offset, ref ItemHeader header )
-	in
-	{
-		assert(offset < dimension);
-	}
-	body
-	{
-		memcpy(this.data.ptr + offset, &header, header.sizeof);
-	}
-
-
-	/***************************************************************************
-	
-	    Reads a header from the queue at the specified offset.
-	    
-	    Params:
-	    	offset = offset from beginning of queue
-	    	header = header to read into
-	
-	***************************************************************************/
-
-	protected void readHeader ( uint offset, out ItemHeader header )
-	in
-	{
-		assert(offset < dimension);
-	}
-	body
-	{
-		memcpy(&header, this.data.ptr + offset, header.sizeof);
-	}
-	
-
-	/***************************************************************************
-	
-		Copies the contents of the queue to the passed conduit.
-		
-		Params:
-			conduit = conduit to write to
-	
-	***************************************************************************/
-	
-	protected void writeToConduit ( Conduit conduit )
-	{
-		scope this_conduit = new Memory(this.data);
-		this_conduit.seek(0);
-		conduit.copy(this_conduit);
-	}
-
-
-	/***************************************************************************
-	
-		Copies the contents of the queue from the passed conduit.
-		
-		Params:
-			conduit = conduit to read from
-	
-	***************************************************************************/
-	
-	protected void readFromConduit ( Conduit conduit )
-	{
-		scope this_conduit = new Memory(this.data);
-		this_conduit.seek(0);
-		this_conduit.copy(conduit);
-	}
-}
-
-
-
-
-
-
-
-private import ocean.io.device.model.IConduitQueue;
-
-class QueueMemory : ConduitQueue!(Memory)
-{
-	this ( char[] name, uint max )
-	{
-		super(name, max);
-	}
 
 	public bool isDirty ( )
 	{
@@ -358,16 +101,31 @@ class QueueMemory : ConduitQueue!(Memory)
     	return (this.read_from) - (this.dimension - this.write_to) > min_diff;
 	}
 
-    public void open ( char[] name )
+
+	/***************************************************************************
+
+    	Opens the queue. Just creates the memory buffer.
+	    
+	    Params:
+	    	name = the queue's name
+
+	***************************************************************************/
+
+	public void open ( char[] name )
 	{
 		this.log("Initializing memory queue '{}' to {} KB", this.name, this.dimension / 1024);
         this.conduit = new Memory(this.dimension); // non-growing array
 	}
 
-    override protected void cleanupQueue ( )
-    {
-		Trace.formatln("QueueMemory remapping");
 
+	/***************************************************************************
+
+		Overridden cleanup method, making use of memcpy for gerater speed.
+	    
+	***************************************************************************/
+
+	override protected void cleanupQueue ( )
+    {
 		// Move queue contents
 		void* buf_start = this.conduit.buffer.ptr;
 		memcpy(buf_start, buf_start + this.read_from, this.write_to - this.read_from);
@@ -379,6 +137,19 @@ class QueueMemory : ConduitQueue!(Memory)
 	    // insert an empty record at the new insert position
 		this.eof();
     }
+
+
+	/***************************************************************************
+
+		Overridden readItem method, slices directly into the memory buffer, for
+		greater speed.
+    
+	***************************************************************************/
+	
+	override protected void[] readItem ( ref Header hdr)
+	{
+	    return this.conduit.slice(hdr.size);
+	}
 }
 
 
