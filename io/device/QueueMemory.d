@@ -63,7 +63,7 @@ extern (C)
 
 *******************************************************************************/
 
-class QueueMemory : PersistQueue
+class NewQueueMemory : PersistQueue
 {
 	struct ItemHeader
 	{
@@ -158,13 +158,8 @@ class QueueMemory : PersistQueue
 	
 	***************************************************************************/
 	
-	synchronized bool push ( void[] item )
+	synchronized protected bool pushItem ( void[] item )
 	{
-		if ( !this.willFit(item) )
-		{
-			return false;
-		}
-
 		// write item header
 		ItemHeader hdr;
 		hdr.size = item.length;
@@ -207,7 +202,7 @@ class QueueMemory : PersistQueue
 	
 	***************************************************************************/
 
-	synchronized void[] pop ( )
+	synchronized protected void[] popItem ( )
 	{
 		if ( !this.items )
 		{
@@ -343,6 +338,64 @@ class QueueMemory : PersistQueue
 		this_conduit.copy(conduit);
 	}
 }
+
+
+
+
+
+
+
+private import ocean.io.device.model.IConduitQueue;
+
+class QueueMemory : ConduitQueue!(Memory)
+{
+	this ( char[] name, uint max )
+	{
+		super(name, max);
+	}
+
+	public bool isDirty ( )
+	{
+    	const min_bytes = 2048;
+    	auto half_percent = (this.dimension / 200);
+    	auto min_diff = half_percent > min_bytes ? half_percent : min_bytes;
+
+    	return (this.read_from) - (this.dimension - this.write_to) > min_diff;
+	}
+
+    public void open ( char[] name )
+	{
+		this.log("Initializing memory queue '{}' to {} KB", this.name, this.dimension / 1024);
+        this.conduit = new Memory(this.dimension); // non-growing array
+	}
+
+    override public synchronized bool cleanup ( )
+    {
+		if ( !this.isDirty() )
+		{
+			return false;
+		}
+
+		Trace.formatln("QueueMemory remapping");
+
+		// Move queue contents
+		void* buf_start = this.conduit.buffer.ptr;
+		memcpy(buf_start, buf_start + this.read_from, this.write_to - this.read_from);
+
+		// Update seek positions
+		this.write_to -= this.read_from;
+		this.read_from = 0;
+	
+	    // insert an empty record at the new insert position
+		this.eof();
+
+	    return true;
+    }
+}
+
+
+
+
 
 
 /*******************************************************************************

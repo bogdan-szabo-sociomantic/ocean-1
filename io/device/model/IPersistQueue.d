@@ -168,6 +168,77 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 
 	/***************************************************************************
 
+		Pushes an item to the queue. The item is check for valid length (>0),
+		and the queue checks if the item will fit. If there's not enough space
+		available the cleanup method is called in an attempt to make more space.
+		The push is then retried.
+	    
+	    Params:
+	    	item = item to be pushed
+	
+		Returns:
+			true if the item was pushed to the queue
+
+		Throws:
+			asserts if the data to be pushed is 0 length
+			
+	***************************************************************************/
+
+	synchronized public bool push ( void[] item )
+	{
+		if ( !this.allow_push_pop )
+		{
+			return false;
+		}
+
+		version ( MemCheck ) auto before = MemProfiler.checkUsage();
+
+		assert(item.length !is 0, "PersistQueue.push - attempted to push zero length content");
+
+	    // check if the item will fit, and if not cleanup then try again
+		if ( !this.willFit(item) )
+	    {
+			bool cleaned;
+			cleaned = this.cleanup();
+	        if ( !cleaned || !this.willFit(item) )
+	        {
+	            this.log("queue '{}' full with {} items", this.name, this.items);
+	            return false;
+	        }
+	    }
+
+		// Store item in queue
+		auto ret = this.pushItem(item);
+
+		version ( MemCheck ) MemProfiler.checkSectionUsage("push", before, MemProfiler.Expect.NoChange);
+
+		return ret;
+	}
+
+	synchronized public void[] pop ( )
+	{
+		if ( !this.allow_push_pop || this.items == 0 )
+		{
+			return null;
+		}
+
+		version ( MemCheck ) auto before = MemProfiler.checkUsage();
+
+		auto ret = this.popItem();
+
+		version ( MemCheck ) MemProfiler.checkSectionUsage("pop", before, MemProfiler.Expect.NoChange);
+
+		return ret;
+	}
+	
+	abstract synchronized protected bool pushItem ( void[] item );
+
+	abstract synchronized protected void[] popItem ( );
+	
+
+
+	/***************************************************************************
+
 		Sets the logger output object.
 	
 	    Params:

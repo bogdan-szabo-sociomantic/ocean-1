@@ -330,54 +330,27 @@ abstract class ConduitQueue ( C ) : PersistQueue
 		Returns:
 			true if the item was pushed successfully, false otherwise
 		
-		Throws:
-			if the data to be pushed is 0 length
-	
 	***************************************************************************/
 
-	public synchronized bool push ( void[] data )
+	protected synchronized bool pushItem ( void[] data )
 	{
 		debug assert(data.length < CHECK_MAX_ITEM_SIZE);
 
-		version ( MemCheck ) auto before = MemProfiler.checkUsage();
+	    // create a Header struct for the new data to be written
+	    Header chunk = void;
+	    chunk.init(this.current, data);
 
-		if(!this.allow_push_pop) return false;
-
-		if ( data.length is 0 )
-	    {
-			this.conduit.error("invalid zero length content");
-	    }
-
-	    // check if queue is full and try to remap queue
-		if ( !this.willFit(data) )
-	    {
-	        if ( !this.cleanup() )
-	        {
-	            this.log("queue '{}' full with {} items", this.name, this.items);
-	            return false;
-	        }
-	    }
-
-		if ( this.willFit(data) )
-	    {
-		    // create a Header struct for the new data to be written
-		    Header chunk = void;
-		    chunk.init(this.current, data);
-
-		    this.conduit.seek(this.write_to);
-		    this.write(&chunk, Header.sizeof); // write queue message header
-		    this.write(data.ptr, chunk.size); // write data
-		
-		    // update refs
-		    this.write_to = this.write_to + Header.sizeof + chunk.size;
-		    this.current = chunk;
-		    ++this.items;
-		
-		    // insert an empty record at the new insert position
-		    this.eof();
-	    }
-
-		version ( MemCheck ) MemProfiler.checkSectionUsage("push", before, MemProfiler.Expect.NoChange);
+	    this.conduit.seek(this.write_to);
+	    this.write(&chunk, Header.sizeof); // write queue message header
+	    this.write(data.ptr, chunk.size); // write data
+	
+	    // update refs
+	    this.write_to = this.write_to + Header.sizeof + chunk.size;
+	    this.current = chunk;
+	    ++this.items;
+	
+	    // insert an empty record at the new insert position
+	    this.eof();
 
 		return true;
 	}
@@ -394,14 +367,12 @@ abstract class ConduitQueue ( C ) : PersistQueue
 	        
 	***************************************************************************/
 
-	public synchronized void[] pop ( )
+	protected synchronized void[] popItem ( )
 	{
-		if(!this.allow_push_pop) return null;
-
-		version ( MemCheck ) auto before = MemProfiler.checkUsage();
-
+		void[] ret = null;
 		Header chunk;
-	    if ( this.write_to )
+
+		if ( this.write_to )
 	    {
 	       if ( this.read_from < this.write_to )
 	       {
@@ -410,11 +381,13 @@ abstract class ConduitQueue ( C ) : PersistQueue
 	
 	           // reading header & data of chunk (queue front)
 	           this.read(&chunk, Header.sizeof);
-	           auto content = this.readItem(chunk);
+	           ret = this.readItem(chunk);
 
-	           debug assert(content.length < CHECK_MAX_ITEM_SIZE);
+	           debug assert(ret.length < CHECK_MAX_ITEM_SIZE);
 
-	           if ( this.items > 1 )
+	           --items;
+
+	           if ( this.items > 0 )
 	           {
 	        	   // updating front seek position to next chunk
 	               this.read_from += Header.sizeof + chunk.size;
@@ -422,14 +395,10 @@ abstract class ConduitQueue ( C ) : PersistQueue
 	               // update next chunk prior size to zero
 	               this.setHeaderPriorSize(this.read_from, 0);
 	           }
-	           else if ( this.items == 1 )
+	           else
 	           {
 	        	   this.reset();
 	           }
-	
-	           --items;
-
-	           return content;
 	       }
 	       else
 	       {
@@ -437,9 +406,7 @@ abstract class ConduitQueue ( C ) : PersistQueue
 	       }
 	    }
 
-	    version ( MemCheck ) MemProfiler.checkSectionUsage("pop", before, MemProfiler.Expect.NoChange);
-
-	    return cast(void[])"";
+	    return ret;
 	}
 
 
