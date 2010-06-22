@@ -18,11 +18,21 @@ module ocean.core.ArrayMap;
     
 ********************************************************************************/
 
-private     import      ocean.core.Exception: ArrayMapException;
+private     import      ocean.core.Exception: ArrayMapException, assertEx;
 
 private     import      ocean.io.digest.Fnv1;
 
-private     import      tango.stdc.posix.pthread;
+private     import      tango.io.model.IConduit:  InputStream,   OutputStream;
+
+private     import      tango.core.Exception: IOException;
+
+private     import      tango.stdc.posix.pthread: pthread_rwlock_t,
+                                                  pthread_rwlockattr_t,
+                                                  pthread_rwlock_init,
+                                                  pthread_rwlock_destroy,
+                                                  pthread_rwlock_rdlock,
+                                                  pthread_rwlock_wrlock,
+                                                  pthread_rwlock_unlock;
 
 /*******************************************************************************
 
@@ -63,17 +73,17 @@ private struct KeyValueElement ( K, V )
     The load factor is diretly influenced by n and s, its bucket size.
     
     Multithread support
-
-    By providing the -version=Thread switch at compile time the array map
-    can be used by multiple threads at the same time. Be aware that this 
-    influcences the overall performance.
+    
+    By using the MutexedArrayMap class template (or setting the respective
+    ArrayMap template parameter) the array map can be used by multiple threads
+    at the same time. Be aware that this influcences the overall performance.
     
     Load factor
 
     The load factor specifies the ratio between the number of buckets and 
-    the number of stored elements. A smaller load factor the better the 
-    performance but it should never be below zero. The optimal load factor
-    is said to 0.75.
+    the number of stored elements. The smaller the load factor the better the 
+    performance but it should never be below zero. The optimal load factor is
+    said to be about 0.75.
     
     Performance
 
@@ -88,6 +98,11 @@ private struct KeyValueElement ( K, V )
 
     The hashmap does not support key, value iteration. Only value iteration
     is supported.
+    
+    Data dumping and restoring
+
+    The internal data of an ArrayMap instance can be dumped to serialized data
+    which can be stored and later re-read to resume the array map instance.
     
     Template Params:
         V = type of value stored in array map
@@ -119,8 +134,35 @@ private struct KeyValueElement ( K, V )
     
     array.buckets(20_000, 5); // set number of buckets !!! important
     ---
-
+    
+    FIXME: Return values of the pthread_rwlock_* POSIX API functions are
+    currently ignored although they might indicate errors. However, according to
+    the specification of these functions,
+    
+        http://www.opengroup.org/onlinepubs/000095399/basedefs/pthread.h.html
+    
+    , they would indicate errors only in situations where the calling program
+    behaves erroneously (attempting to destroy a currently locked lock or wrong
+    locking/unlocking order, for example).
+    
 *********************************************************************************/
+
+/*******************************************************************************
+
+    Array map with mutexes enabled (reentrance/thread-safe) 
+
+ *******************************************************************************/
+
+template MutexedArrayMap ( V, K = hash_t )
+{
+    alias ArrayMap!(V, K, true) MutexedArrayMap;
+}
+
+/*******************************************************************************
+
+    Array map 
+
+*******************************************************************************/
 
 class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 {
@@ -151,7 +193,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     private struct KeyElement
     {
             K  key;
-            uint pos;
+            size_t pos;
     }
 
     /*******************************************************************************
@@ -165,10 +207,33 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     private struct Bucket
     {
-            uint length = 0;
+            size_t length = 0;
             KeyElement[] elements;
+    }
+    
+    
+    static if (M)
+    {
+        /**********************************************************************
+        
+            Read/write locks: Each element corresponds to the element of k_map
+            (bucket) with the same index.
             
-            static if (M) pthread_rwlock_t rwlock;
+         **********************************************************************/
+
+        private         pthread_rwlock_t[]              rwlocks;
+        
+        /**********************************************************************
+        
+            Consistency check between k_map length (number of buckets) and
+            number of read/write locks 
+            
+         **********************************************************************/
+
+        invariant ( )
+        {
+            assert (this.k_map.length == this.rwlocks.length, "rwlocks/k_map length mismatch");
+        }
     }
 
     /*******************************************************************************
@@ -199,7 +264,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    final               uint                            buckets_length;
+    final               size_t                            buckets_length;
     
     /*******************************************************************************
         
@@ -210,7 +275,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    final               uint                            default_alloc_size = 1;
+    final               size_t                            default_alloc_size = 1;
 
     /*******************************************************************************
         
@@ -218,7 +283,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    final               uint                            default_size;
+    final               size_t                            default_size;
     
     /*******************************************************************************
         
@@ -234,7 +299,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    final               uint                            len;
+    final               size_t                            len;
     
     /*******************************************************************************
         
@@ -247,52 +312,141 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         Params:
             default_size = estimated number of elements to be stored
-            load_factor = determines the number of buckets used
-            
-        Returns:
-            void
-            
+            load_factor  = Determines the ratio of default_size to the number of
+                           internal buckets. For example, 0.5 sets the number of
+                           buckets to the double of default_size; for 2 the
+                           number of buckets is the half of default_size.
+                           load_factor must be greater than 0.
+                           
      *******************************************************************************/
     
-    public this ( uint default_size = 10_000, float load_factor = 0.75 )
+    public this ( size_t default_size = 10_000, float load_factor = 0.75 )
     {
+        assertEx!(ArrayMapException)(default_size, "zero default size");
+        
+        float b_length = default_size / load_factor;
+        
+        assertEx!(ArrayMapException)(0 < b_length && default_size <= b_length, "invalid load factor");
+        
         this.default_size = default_size;
         this.load_factor  = load_factor;
         
-        this.buckets_length = cast(int) (default_size / load_factor);
+        this.buckets_length = cast (typeof (this.buckets_length)) b_length;
         
-        this.k_map.length   = this.buckets_length;
-        this.v_map.length   = default_size;
-        
-        foreach ( ref bucket; this.k_map ) 
+        static if (M)
         {
-            bucket.elements.length = this.default_alloc_size;
-            static if (M) pthread_rwlock_init(&bucket.rwlock, null);
+            this.rwlocks = new pthread_rwlock_t[this.buckets_length];
+        }
+        
+        this.k_map = new Bucket[this.buckets_length];
+        
+        this.v_map = new V[this.default_size];
+        
+        foreach (i, ref bucket; this.k_map) 
+        {
+            bucket.elements = new KeyElement[this.default_alloc_size];
+            
+            static if (M)
+            {
+                pthread_rwlock_init(this.rwlocks.ptr + i, null);
+            }
         }
     }
       
-    /*******************************************************************************
+    /**************************************************************************
+    
+        Constructor
+    
+        Loads the content previously produced by dump() from input as serial
+        data.
         
+        Loading the key map will only succeed if the value type is a value data
+        type. (Note: Structs are value data types.)
+        
+        If the value type is an array, the content of all value arrays is
+        restored.
+        Loading the value map will only succeed if the value type is a value
+        data type or an array (not an associative array). (Note: Structs are
+        value data types.)
+    
+        The imported data should have been produced by the same program in the
+        same environment, using the same class template instance. Data
+        interchangeability cannot be relied upon because data alignment, byte
+        order, native data word width (which determines the size of size_t) and
+        binary floating point number format must be the same when loading as it
+        was when dump()ing. 
+         
+        Params:
+            input = input stream to read data from
+         
+        Throws:
+            IOException on error
+         
+      **************************************************************************/
+     
+    public this ( InputStream input )
+    {
+        this.loadParams(input);
+        
+        this.loadKmap(input);
+        
+        assertEx!(ArrayMapException)(this.k_map.length == this.buckets_length, "invalid key map length");
+        
+        this.loadVmap(input);
+        
+        assertEx!(ArrayMapException)(this.v_map.length == this.default_size, "invalid value map length");
+        
+        static if (M)
+        {
+            this.rwlocks = new pthread_rwlock_t[this.buckets_length];
+            
+            for (size_t i = 0; i < this.rwlocks.length; i++)
+            {
+                pthread_rwlock_init(this.rwlocks.ptr + i, null);
+            }
+        }
+    }
+    
+    /**************************************************************************
+    
         Destructor; free memory to gc
             
-        Returns:
-            void
-            
-     *******************************************************************************/
+     **************************************************************************/
     
-    public ~this () 
+    ~this () 
     {
         this.len = 0;
         
-        foreach ( ref bucket; this.k_map)
+        delete this.v_map;
+        
+        foreach (i, ref bucket; this.k_map)
         {
-            static if (M) pthread_rwlock_destroy(&bucket.rwlock);
+            static if (M)
+            {
+                pthread_rwlock_destroy(this.rwlocks.ptr + i);
+            }
+            
             bucket.length = 0;
+            
+            delete bucket.elements;
         }
-
-        this.free_();
+        
+        static if (this.VisArray)
+        {
+            foreach (ref value; this.v_map)
+            {
+                delete value;
+            }
+        }
+        
+        delete this.k_map;
+        
+        static if (M)
+        {
+            delete this.rwlocks;
+        }
     }
-    
+
     /*******************************************************************************
         
         Put element to array map
@@ -304,14 +458,18 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             key = array key
             value = array value
         
-        Returns:
-            void
-        
      *******************************************************************************/
     
     public void put ( K key, V value )
     {
-        this.put_(key, value);
+        size_t p = this.getPutIndex(key);
+        
+        static if (this.VisArray)
+        {
+            this.v_map[p].length = value.length;
+        }
+        
+        this.v_map[p] = value;
     }
 
     /**************************************************************************
@@ -329,7 +487,9 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     static if (this.VisArray) public void putcat ( in K key, in V value )
     {
-        this.put_!(true)(key, value);
+        size_t p = this.getPutIndex(key);
+        
+        this.v_map[p] ~= value;
     }
 
     /*******************************************************************************
@@ -340,17 +500,17 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             key = array key
             
         Returns:
-            value of array key
+            value of array element
         
      *******************************************************************************/
     
     public V get ( K key )
     {
-        V* v = this.findValueSync(key);
+        size_t v = this.findValueSync(key);
         
-        if ( v !is null )
+        if ( v !is size_t.max )
         {
-            return *v;
+            return this.v_map[v];
         }
         
         throw new ArrayMapException(`key doesn't exist`);
@@ -360,11 +520,10 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         Remove element from array map
         
+        FIXME: Not reentrance/thread-safe with put() -- may cause wrong values.
+        
         Params:
             key = key of element to remove
-            
-        Returns:
-            void
         
      *******************************************************************************/
     
@@ -372,15 +531,12 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     {
         hash_t h = (toHash(key) % this.buckets_length);
 
-        this.writeLock (this.k_map.ptr + h, {this.remove_(h, key);});
+        this.writeLock(h, {this.remove_(h, key);});
     }
     
     /*******************************************************************************
         
         Clear array map
-        
-        Returns:
-            void
         
      *******************************************************************************/
     
@@ -390,33 +546,84 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         {
             this.len = 0;
             
-            foreach ( ref bucket; this.k_map ) 
-                this.writeLock ( &bucket, {bucket.length = 0;});
+            foreach ( h, ref bucket; this.k_map ) 
+                this.writeLock(h, {bucket.length = 0;});
         }
     }
     
     /*******************************************************************************
         
-        Copies content of array map
+        Copies content of this instance to dst
         
         Params:
-            key = array key
-            
-        Returns:
-            true if key exists, false otherwise
+            dst = destination ArrayMap instance
         
      *******************************************************************************/
     
-    public void copy ( ref ArrayMap dst )
+    public void copy ( ref typeof (this) dst )
     {
         if (this.len)
         {
-            dst.v_map  = this.v_map.dup;
-            dst.k_map  = this.k_map.dup;
-            dst.length = this.length;
+            dst.len                = this.len;
+            dst.buckets_length     = this.buckets_length;
+            dst.default_size       = this.default_size; 
+            dst.default_alloc_size = this.default_alloc_size;
+            dst.load_factor        = this.load_factor;
+            
+            dst.k_map = this.k_map.dup;
+            
+            foreach (i, bucket; this.k_map)
+            {
+                dst.k_map[i].elements = bucket.elements.dup;
+            }
+            
+            dst.v_map = this.v_map.dup;
+            
+            static if (this.VisArray)
+            {
+                foreach (i, value; this.v_map)
+                {
+                    dst.v_map[i] = value.dup;
+                }
+            }
+            
+            static if (M)
+            {
+                for (size_t i = dst.k_map.length; i < dst.rwlocks.length; i++)
+                {
+                    pthread_rwlock_destroy(dst.rwlocks.ptr + i);
+                }
+                
+                dst.rwlocks.length = dst.k_map.length;
+                
+                for (size_t i = dst.rwlocks.length; i < dst.k_map.length; i++)
+                {
+                    pthread_rwlock_init(dst.rwlocks.ptr + i, null);
+                }
+            }
         }
     }
 
+    /*******************************************************************************
+    
+        Copies content of this instance to dst
+        
+        If mutexes are enabled, dst.k_map.length must equal this.k_map.length.
+        
+        Params:
+            dst = destination ArrayMap instance
+        
+     *******************************************************************************/
+    
+    public typeof (this) dup ( )
+    {
+        auto array = new typeof (this)(1, 1);
+        
+        this.copy(array);
+        
+        return array;
+    }
+    
     /*******************************************************************************
         
         Returns whether key exists or not
@@ -431,7 +638,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     bool exists ( K key )
     {   
-        return this.findValueSync(key) != null;
+        return this.findValueSync(key) != size_t.max;
     }
     
     /*******************************************************************************
@@ -448,8 +655,24 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     public void free ()
     {
-        this.clear();
-        this.free_();
+        this.len = 0;
+        
+        foreach (h, ref bucket; this.k_map)
+        {
+            this.writeLock(h,
+            {
+                bucket.length = 0;
+                bucket.elements.length = 0;
+            });
+        }
+        
+        static if (this.VisArray)
+        {
+            foreach (ref value; this.v_map)
+            {
+                value.length = 0;
+            }
+        }
     }
     
     /*******************************************************************************
@@ -461,28 +684,11 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    public uint length ()
+    public size_t length ()
     {
         return this.len;
     }
     
-    /*******************************************************************************
-        
-        Set number of elements stored in array map
-        
-        Params:
-            number of elements
-        
-        Returns:
-            void
-        
-     *******************************************************************************/
-    
-    public void length ( uint length )
-    {
-        this.len = length;
-    }
-
     /*******************************************************************************
         
         Returns element value associated with key
@@ -495,17 +701,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    public V opIndex ( K key )
-    {
-        V* v = this.findValueSync(key);
-        
-        if ( v !is null )
-        {
-            return *v;
-        }
-        
-        throw new ArrayMapException(`key doesn't exist`);
-    }
+    alias get opIndex;
     
     /*******************************************************************************
         
@@ -518,14 +714,11 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             key = array key
             value = array value
         
-        Returns:
-            void
-        
      *******************************************************************************/
     
     public void opIndexAssign ( V value, K key )
     {
-        this.put_(key, value);
+        this.put(key, value);
     }
     
     /***********************************************************************
@@ -558,27 +751,15 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     ************************************************************************/
     
-    static if (M) public bool opIn_r ( K key )
+    static if (M)
     {
-        V* v = this.findValueSync(key);
-        
-        if ( v !is null )
-        {
-            return true;
-        }
-        
-        return false;
+        alias exists opIn_r;
     }
     else public V* opIn_r ( K key )
     {
-        V* v = this.findValueSync(key);
+        size_t v = this.findValueSync(key);
         
-        if ( v !is null )
-        {
-            return v;
-        }
-        
-        return null;
+        return (v == v.max)? null : this.v_map.ptr + v; 
     }
      
      /***********************************************************************
@@ -641,9 +822,65 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
          }
      }
      
+     /**************************************************************************
+     
+         Dumps the current content to output as serial data. The data can later
+         be used by load() to restore the content.
+         
+         Note that no key type introspection is done so the key type must be a
+         value data type. (Note: Structs are value data types.)
+         
+         If the value type is an array, the content of all value arrays is
+         dumped, too, so that restoring the content will restore the content of
+         all value arrays.
+         Note that no further value type introspection is done; the value type V
+         must be either a value data type or an array (not an associative array). 
+         (Note: Structs are value data types.) If, for example, the value type is
+         a struct containing an array, content of that array will be lost. The
+         same applies for arrays of arrays and associative arrays; their content
+         will also be lost.
+         
+         The produced data is intended to be reimported by the same program in
+         the same environment, using the same class template instance. Data
+         interchangeability cannot be relied upon because data alignment, byte
+         order, native data word width (which determines the size of size_t) and
+         binary floating point number format must be the same when load()ing as
+         it was when dump()ing. 
+         
+         Params:
+             output = output stream to write data to
+              
+         Returns:
+             number of bytes written to output
+          
+         Throws:
+             IOException on error
+          
+      **************************************************************************/
+      
+      public size_t dump ( OutputStream output )
+      {
+          size_t total = 0;
+          
+          total += this.dumpParams(output);
+          total += this.dumpKmap(output);
+          total += this.dumpVmap(output);
+          
+          return total;
+      }
+      
      /*******************************************************************************
          
-         Returns hash for given string
+         Returns hash for given key. If the key type can implicitly be casted to
+         hash_t, the original value of key is used.
+         
+         The following types are implicitly castable to hash_t:
+         
+         hash_t, size_t, bool, 
+         byte,   ubyte,  char,
+         short,  ushort, wchar,
+         int,    uint,   dchar,
+         long,   ulong         
          
          Params:
              key = key to return hash
@@ -653,14 +890,8 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
          
       *******************************************************************************/
      
-     private hash_t toHash ( K key )
+     public static hash_t toHash ( K key )
      {
-         /* The following types are implicitely castable to hash_t:
-          * size_t, bool,  byte,   int,   long, 
-          *               ubyte,  uint,  ulong,
-          *                char, wchar,  dchar
-          */
-         
          static if (is (K : hash_t))
          {
              return key;
@@ -673,40 +904,42 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
      
     /*******************************************************************************
         
-        Returns pointer to array element value
+        Returns array element value index
         
         Params:
             key = array key
             
         Returns:
-            pointer to element value, or null if not found
+            element value index in this.v_map, or size_t.max if not found
         
      *******************************************************************************/
     
-    private V* findValueSync ( K key )
+    private size_t findValueSync ( K key )
     {
         return this.findValueSync(key, (toHash(key) % this.buckets_length));
     }
     
     /*******************************************************************************
         
-        Returns pointer to array element value
+        Returns array element value index
         
         Params:
             key = array key
             h = bucket position
             
         Returns:
-            pointer to element value, or null if not found
+            element value index in this.v_map, or size_t.max if not found
         
      *******************************************************************************/
     
-    private V* findValueSync ( K key, hash_t h )
+    private size_t findValueSync ( K key, hash_t h )
     {
         static if (M)
         {
-            pthread_rwlock_rdlock(&(this.k_map[h].rwlock));
-            scope (exit) pthread_rwlock_unlock(&(this.k_map[h].rwlock));
+            pthread_rwlock_t* lock = this.rwlocks.ptr + h;
+            
+            pthread_rwlock_rdlock(lock);
+            scope (exit) pthread_rwlock_unlock(lock);
             
             return this.findValue(key, h);
         }
@@ -717,62 +950,65 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     }
     
     /*******************************************************************************
-        
-        Returns pointer to array element value
+    
+        Returns array element value index
         
         Params:
             key = array key
             h = bucket position
             
         Returns:
-            pointer to element value, or null if not found
+            element value index in this.v_map, or size_t.max if not found
         
      *******************************************************************************/
-    
-    private V* findValue ( K key, hash_t h )
+
+    private size_t findValue ( K key, hash_t h )
     {
-        Bucket* bucket = this.k_map.ptr + h;
-        uint length    = bucket.length;
-        
-        for ( uint i = 0; i < length; i++ )
-        {
-            KeyElement* element = bucket.elements.ptr + i;
-            
-            if ( element.key == key )
-                return this.v_map.ptr + element.pos;
-        }
-        
-        return null;
+        return this.findValue(key, this.k_map.ptr + h);
     }
     
     /*******************************************************************************
         
-        Returns pointer to value bucket
+        Returns pointer to array element value
+        
+        Params:
+            key    = array key
+            bucket = bucket
+            
+        Returns:
+            element value index in this.v_map, or size_t.max if not found
+        
+     *******************************************************************************/
+    
+    private size_t findValue ( K key, Bucket* bucket )
+    {
+        size_t length = bucket.length;
+        
+        for ( size_t i = 0; i < length; i++ )
+        {
+            KeyElement* element = bucket.elements.ptr + i;
+            
+            if ( element.key == key )
+                return element.pos;
+        }
+        
+        return size_t.max;
+    }
+    
+    /*******************************************************************************
+        
+        Looks up the bucket element which includes key.
         
         Params:
             key = array key
             h = bucket position
             k = key element pointer to be set to position of element found
             v = value element pointer to be set to position of element found
-            
-        Returns:
-            pointer to value bucket, or null if not found
         
      *******************************************************************************/
     
     private void findBucket ( in K key, in hash_t h, out KeyElement* k, out V* v )
     {
-//        for ( uint i = 0; i < this.k_map[h].length; i++ )
-//        {
-//            if ( this.k_map[h].elements[i].key == key )
-//            {
-//                v = &this.v_map[this.k_map[h].elements[i].pos];
-//                k = &this.k_map[h].elements[i];
-//                
-//                break;
-//            }
-//        }
-
         Bucket* bucket = this.k_map.ptr + h;
         
         foreach ( ref element; bucket.elements[0 .. bucket.length] )
@@ -789,119 +1025,136 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     /*******************************************************************************
         
-        Put array element
-        
-        Adds element to array map in not yet existing otherwise the existing value
-        is replaced by the new value.
-        
-        TODO
-            1. Gain reentrance/thread-safety
-               There is a reentrance safety hole between picking the bucket and
-               invoking writeLock().
-            2. Possible optimization
-                a) Pick pointer to bucket initially instead of repeatedly
-                   indexing "this.k_map[h]".
-                b) Put everything that is done "if ( p is null )" into a
-                   separate private method, probably named add(), to decrease
-                   binary code size because if appending is supported, the code
-                   is currently generated twice (once for each template
-                   instance).
+        Returns the value index of the element in this.v_map that corresponds to
+        key. Adds an element to array map if key does not yet exist.
         
         Params:
             key = array key
-            value = array value
         
         Returns:
-            void
+            value index of the element in this.v_map
 
      *******************************************************************************/
     
-    private void put_ ( bool append = false ) ( in K key, in V value )
+    private size_t getPutIndex ( in K key )
     {
-        static assert (!append || this.VisArray,
-                       "appending only supported for array value type, not '" ~ V.stringof ~ '\'');
-        
         hash_t h = (toHash(key) % this.buckets_length);
         
-        this.writeLock ( &this.k_map[h],
+        static if (M) 
         {
-            V* p = this.findValue(key, h);
+            pthread_rwlock_t* lock = this.rwlocks.ptr + h;
             
-            if ( p is null )
-            {
-                    this.resizeBucket(h);
-                    this.resizeMap();
-                    
-                    static if (this.VisArray)                                   // If the value type is an array,
-                    {                                                           // set element length before
-                        this.v_map[this.len].length = value.length;             // assigning, else the performance
-                    }                                                           // will decrease dramatically.
-                    
-                    this.v_map[this.len] = value;
-                    this.k_map[h].elements[this.k_map[h].length] = KeyElement(key, this.len);
-                
-                    this.k_map[h].length++;
-
-                    static if (M)
-                    {
-                        this.length_(true);
-                    }
-                    else
-                    {
-                        this.len++;
-                    }
-            }
-            else static if (append)
-            {
-                (*p) ~= value;
-            }
-            else
-            {
-                (*p) = value;
-            }
-        });
+            pthread_rwlock_wrlock(lock);
+            
+            scope (exit) pthread_rwlock_unlock(lock);
+        }   
+        
+        Bucket* bucket = this.k_map.ptr + h;
+        
+        size_t p = this.findValue(key, bucket);
+        
+        if ( p == size_t.max )
+        {
+            /*
+             * To avoid a race condition, use the return value of
+             * incrementVMap() rather than repeatedly querying this.len.
+             * incrementVMap() is synchronized, increments this.len and returns 
+             * the value of this.len before incrementation.
+             */
+            
+            p = this.incrementMap();
+            
+            this.resizeBucket(bucket);
+            
+            bucket.elements[bucket.length] = KeyElement(key, p);
+        
+            bucket.length++;
+        }
+        
+        return p;
     }
     
     /*******************************************************************************
         
         Reset and free memory used by array map
         
-        Returns:
-            void
-        
      *******************************************************************************/
     
     private void free_ ()
     {
+        static if (this.VisArray)
+        {
+            foreach (ref value; this.v_map)
+            {
+                value.length = 0;
+            }
+        }
+        
+        foreach (ref bucket; this.k_map)
+        {
+            bucket.elements.length = 0;
+        }
+        
         this.k_map.length = 0;
         this.v_map.length = 0;
+        
     }
     
-    /*******************************************************************************
-        
-        Resizes and allocates new memory in case the map runs out of memory
-        
-        Enlarges map by 10 percent. TODO Rehashing of key map still needs to be 
-        implemented in order to keep speed up with the resizing of the value map.
+    /**************************************************************************
+    
+        Increments the value map by one; resizes and allocates new memory in
+        case the map runs out of memory.
         
         Returns:
-            true on success, false on failure
+            length of array map before incrementation
         
-     *******************************************************************************/
+     **************************************************************************/
     
-    private void resizeMap ()
+    static if (M)
+    {
+        synchronized private size_t incrementMap ()
+        {
+            return this.incrementMap_();
+        }
+    }
+    else
+    {
+        private alias incrementMap_ incrementMap;
+    }
+    
+    /**************************************************************************
+    
+        Increments the value map by one; resizes and allocates new memory in
+        case the map runs out of memory.
+        
+        Enlarges map by 10 percent.
+        
+        TODO Rehashing of key map still needs to be implemented in order to keep
+        speed up with the resizing of the value map.
+        
+        FIXME: Resizing this.v_map may cause the memory manager to move its
+        memory location. If a concurrent thread accidently has a pointer to an
+        element of this.v_map at the same time, as it is returned by
+        this.findValue(), this pointer will become invalid, resulting in
+        corrupt value data or a Segmentation Fault.
+        
+        Returns:
+            length of array map before incrementation
+        
+     **************************************************************************/
+    
+    private size_t incrementMap_ ()
     {
         if ( this.len && this.len % this.default_size == 0 )
         {
-            synchronized
-            {
-                this.default_size = this.v_map.length + 
-                                    cast(uint)(this.default_size/10);
-                
-                this.v_map.length = this.default_size;
-            }
+            this.default_size = this.v_map.length + this.default_size / 10;
+            
+            this.v_map.length = this.default_size;
         }
+        
+        return this.len++;
     }
+
     
     /*******************************************************************************
         
@@ -910,19 +1163,16 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Enlarges bucket length by certain amout of space by allocating a range of
         memory instead of just allocating the next element.
         
-        Returns:
-            void
+        Params:
+            bucket = bucket to resize
         
      *******************************************************************************/
     
-    private void resizeBucket ( hash_t h )
+    private void resizeBucket ( Bucket* bucket )
     {
-        Bucket* bucket = this.k_map.ptr + h;
+        size_t length = bucket.length;
         
-        uint length = bucket.length;
-        
-        if ( length >= this.default_alloc_size && 
-             length % this.default_alloc_size == 0 )
+        if ( length >= this.default_alloc_size && length % this.default_alloc_size == 0 )
         {
              bucket.elements.length = length + this.default_alloc_size;
         } 
@@ -935,6 +1185,9 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Moves last key element to position of element to be removed if number 
         of elements in bucket is larger than 1, otherwise the bucket length is 
         set to 0. 
+        
+        FIXME: Not reentrant/thread-safe with put() -- may cause wrong values
+        in v_map.
         
         Returns:
             true on success, false on failure
@@ -964,9 +1217,9 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             
             if ( this.len > 1 ) *v = this.v_map[this.len - 1];
             
-            static if (M)
+            static if (M) synchronized
             {
-                this.length_(false);
+                this.len--;
             }
             else
             {
@@ -979,25 +1232,6 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         return false;
     }
     
-    /***********************************************************************
-        
-        Increases or decreases length
-        
-        The synchronization is necessary in case two threads changing
-        different buckets and therefore changing the overall length.
-        
-        Params:
-            bool = true to increment length, false to decrement length
-        
-        Returns:
-            array keys and values
-    
-    ************************************************************************/
-    
-    synchronized private void length_ ( bool inc = true )
-    {
-        inc ? this.len++ : this.len--;
-    }
     
     /***********************************************************************
         
@@ -1008,9 +1242,6 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         Params:
             dg = iterator delegate
-        
-        Returns:
-            array values
     
     ************************************************************************/
 
@@ -1026,6 +1257,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         }
     }
     
+    
     /***********************************************************************
         
         Locks code for write operation
@@ -1040,16 +1272,396 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      ***********************************************************************/
     
-    private void writeLock ( Bucket* bucket, void delegate() dg )
+    private void writeLock ( hash_t h, void delegate() dg )
     {
         static if (M) 
         {
-            pthread_rwlock_wrlock(&bucket.rwlock);
+            pthread_rwlock_wrlock(this.rwlocks.ptr + h);
             
-            scope (exit) pthread_rwlock_unlock(&bucket.rwlock);
+            scope (exit) pthread_rwlock_unlock(this.rwlocks.ptr + h);
         }   
         
         dg();
+    }
+    
+    /**************************************************************************
+    
+        Dumps the parameters.
+        
+        Params:
+            output = output stream to write data to
+            
+        Returns:
+            number of bytes written to output
+        
+        Throws:
+            IOException on error
+        
+     **************************************************************************/
+    
+    private size_t dumpParams ( OutputStream output )
+    {
+        return this.dumpItems(output,
+                              this.len,
+                              this.buckets_length,
+                              this.default_size, 
+                              this.default_alloc_size,
+                              this.load_factor);
+    }
+
+    /**************************************************************************
+    
+        Dumps the value map.
+        If the value type is an array, the content of all value arrays is
+        dumped, too, so that restoring the content will restore the content of
+        all value arrays.
+        Note that no further value type introspection is done; the value type V
+        must be either a value data type or an array (not an associative array). 
+        (Note: Structs are value data types.) If, for example, the value type is
+        a struct containing an array, content of that array will be lost. The
+        same applies for arrays of arrays and associative arrays; their content
+        will also be lost.
+        
+        Params:
+            output = output stream to write data to
+            
+        Returns:
+            number of bytes written to output
+        
+        Throws:
+            IOException on error
+        
+     **************************************************************************/
+    
+    private size_t dumpVmap ( OutputStream output )
+    {
+        size_t total = this.dumpItems(output, this.v_map);
+        
+        static if (this.VisArray)
+        {
+            foreach (value; this.v_map)
+            {
+                total += this.dumpItems(output, value);
+            }
+        }
+        
+        return total;
+    }
+    
+    /**************************************************************************
+    
+        Dumps the key map.
+        Note that no key type introspection is done so the key type must be a
+        value data type. (Note: Structs are value data types.)
+        
+        Params:
+            output = output stream to write data to
+            
+        Returns:
+            number of bytes written to output
+        
+        Throws:
+            IOException on error
+        
+     **************************************************************************/
+    
+    private size_t dumpKmap ( OutputStream output )
+    {
+        size_t total = this.dumpItems(output, this.k_map);
+        
+        foreach (bucket; this.k_map)
+        {
+            total += this.dumpItems(output, bucket, bucket.elements);
+        }
+        
+        return total;
+    }
+    
+    /**************************************************************************
+    
+        Loads the parameters.
+        
+        Params:
+            input = input stream to read data from
+            
+        Returns:
+            number of bytes read from input
+        
+        Throws:
+            IOException on error
+        
+     **************************************************************************/
+    
+    private size_t loadParams ( InputStream input )
+    {
+        return this.loadItems(input,
+                              this.len,
+                              this.buckets_length,
+                              this.default_size, 
+                              this.default_alloc_size,
+                              this.load_factor);
+    }
+    
+    /**************************************************************************
+    
+        Loads the value map.
+        If the value type is an array, the content of all value arrays is
+        restored.
+        Loading the value map will only succeed if the value type is a value
+        data type or an array (not an associative array). (Note: Structs are
+        value data types.)
+        
+        Params:
+            input = input stream to read data from
+            
+        Returns:
+            number of bytes read from input
+        
+        Throws:
+            IOException on error
+        
+     **************************************************************************/
+    
+    private size_t loadVmap ( InputStream input )
+    {
+        size_t total = this.loadItems(input, this.v_map);
+        
+        static if (this.VisArray)
+        {
+            foreach (ref value; this.v_map)
+            {
+                total += this.loadItems(input, value);
+            }
+        }
+        
+        return total;
+    }
+    
+    /**************************************************************************
+    
+        Loads the value map.
+        Loading the key map will only succeed if the value type is a value data
+        type. (Note: Structs are value data types.)
+        
+        Params:
+            input = input stream to read data from
+            
+        Returns:
+            number of bytes read from input
+        
+        Throws:
+            IOException on error
+        
+     **************************************************************************/
+    
+    private size_t loadKmap ( InputStream input )
+    {
+        size_t total = this.loadItems(input, this.k_map);
+        
+        foreach (ref bucket; this.k_map)
+        {
+            total += this.loadItems(input, bucket);
+            total += this.loadItems(input, bucket.elements);
+        }
+        
+        return total;
+    }
+    
+    static:
+    
+    /**************************************************************************
+    
+        Decomposes items to their raw data and writes that data to output.
+        If the type of an item is an array (not an associative array), its raw
+        data correspond to the raw data of the array content buffer, preceeded
+        by the array length given as size_t.
+        If the type of an item is a pointer, the object pointed at will be
+        dumped.
+        
+        Params:
+            output = output stream to write data to
+            items  = items to dump
+            
+        Returns:
+            number of bytes written to output
+        
+        Throws:
+            IOException on error
+        
+     **************************************************************************/
+        
+    private size_t dumpItems ( T ... ) ( OutputStream output, T items )
+    {
+        size_t total = 0;
+        
+        foreach (i, Type; T)
+        {
+            debug pragma (msg, "dump " ~ i.stringof ~ ": " ~ Type.stringof);
+            
+            total += write(output, items[i]);
+        }
+        
+        return total;
+    }
+    
+    
+    /**************************************************************************
+    
+        Decomposes item to its raw data and writes that data to output.
+        If the type of the item is an array (not an associative array), its raw
+        data correspond to the raw data of the array content buffer, preceeded
+        by the array length given as size_t.
+        If the type of the item is a pointer, the object pointed at will be
+        dumped.
+        
+        Params:
+            output = output stream to write data to
+            item   = item to dump
+            
+        Returns:
+            number of bytes written to output
+        
+        Throws:
+            IOException on error
+        
+     **************************************************************************/
+    
+    private size_t write ( T ) ( OutputStream output, T item )
+    {
+        static if (is (T U == U[]))
+        {
+            size_t written  = write(output, item.length);
+            
+            if (item.length)
+            {
+                written += output.write((cast (void*) item.ptr)[0 .. U.sizeof * item.length]);
+            }
+        }
+        else static if (is (T U == U*))
+        {
+            size_t written = output.write((cast (void*) item)[0 .. U.sizeof]);
+        }
+        else
+        {
+            size_t written = output.write((cast (void*) &item)[0 .. T.sizeof]);
+        }
+        
+        assertEx!(IOException)(written != output.Eof,
+                               typeof (this).stringof ~ ": end of flow whilst writing");
+        
+        return written;
+    }
+    
+    /**************************************************************************
+    
+        Composes items from their raw data which are read from input.
+        If the type of an item is an array (not an associative array), its raw
+        data correspond to the raw data of the array content buffer, preceeded
+        by the array length given as size_t.
+        
+        Params:
+            input = input stream to read data from
+            items = items to load
+            
+        Returns:
+            number of bytes read from input
+        
+        Throws:
+            IOException on error
+        
+     **************************************************************************/
+    
+    private size_t loadItems ( T ... ) ( InputStream input, out T items )
+    {
+        size_t total = 0;
+        
+        foreach (i, Type; T)
+        {
+            debug pragma (msg, "load: " ~ Type.stringof);
+            
+            total += readItem(input, items[i]);
+        }
+        
+        return total;
+    }
+    
+    /**************************************************************************
+    
+        Composes item from its raw data which are read from input.
+        If the type of the item is an array (not an associative array), its raw
+        data correspond to the raw data of the array content buffer, preceeded
+        by the array length given as size_t.
+        
+        Params:
+            input = input stream to read data from
+            item  = item to load
+            
+        Returns:
+            number of bytes read from input
+        
+        Throws:
+            IOException on error
+        
+     **************************************************************************/
+    
+    private size_t readItem ( T ) ( InputStream input, out T item )
+    {
+        size_t total = 0;
+        void[] data;
+        
+        static if (is (T U == U[]))
+        {
+            total += read(input, size_t.sizeof, data);
+            
+            item.length = *(cast (size_t*) data.ptr);
+            
+            total += read(input, U.sizeof * item.length, data);
+            
+            item = (cast (U*) data.ptr)[0 .. item.length].dup; 
+        }
+        else static if (is (T U == U*))
+        {
+            static assert (false, typeof (this).stringof ~ ": reading not supported for pointers");
+        }
+        else
+        {
+            total += read(input, T.sizeof, data);
+            
+            item = *(cast (T*) data.ptr);
+        }
+        
+        return total;
+    }
+    
+    /**************************************************************************
+    
+        Reads len bytes of _data from input and puts them to data.
+        
+        Params:
+            input = input stream to read data from
+            len   = number of bytes to read
+            data  = data output
+            
+        Returns:
+            number of bytes read from input
+        
+        Throws:
+            IOException on error, or, if the number of bytes returned by input
+            differs from the requested number
+        
+     **************************************************************************/
+    
+    private size_t read ( InputStream input, size_t len, out void[] data )
+    {
+        data = input.load(len);
+        
+        assertEx!(IOException)(!(data.length < len),
+                               typeof (this).stringof ~ ": end of flow whilst reading");
+        
+        assertEx!(IOException)(data.length == len,
+                               typeof (this).stringof ~ ": got too much data");
+        
+        return len;
     }
 }
 
@@ -1105,7 +1717,7 @@ class ArrayMapKV ( V, K = hash_t, bool M = Mutex.Disable )
             
      *******************************************************************************/
     
-    public this ( uint default_size = 10_000, float load_factor = 0.75 )
+    public this ( size_t default_size = 10_000, float load_factor = 0.75 )
     {
         map = new ArrayMap!(KeyValueElement!(K, V), K)(default_size, load_factor);
     }
@@ -1257,7 +1869,7 @@ class ArrayMapKV ( V, K = hash_t, bool M = Mutex.Disable )
         
      *******************************************************************************/
     
-    public uint length ()
+    public size_t length ()
     {
         return map.length;
     }
