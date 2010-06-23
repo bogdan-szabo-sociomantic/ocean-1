@@ -9,7 +9,7 @@
     author:         Kris Bell / Thomas Nicolai / Gavin Norman
 
 	PersistQueue is an abstract base class for a fixed-size serializable FIFO
-	queue.
+	queue, implementing the Queue, Loggable and Serializable interfaces.
 
 	See ocean.io.device.QueueFile and ocean.io.device.QueueMemory for
 	implementations of this class.
@@ -86,6 +86,8 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 		Abstract method: Pushes a single item to the queue. This method should
 		not do any kind of checking whether the item will fit, this is done
 		previously by the push method (below).
+		
+		Note that this method MUST update the item count and the write pointer.
 
 	***************************************************************************/
 
@@ -97,6 +99,8 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 		Abstract method: Pops a single item from the queue. This method should
 		not do any kind of checking whether there are items to pop, this is done
 		previously by the pop method (below).
+
+		Note that this method MUST update the item count and the read pointer.
 
 	***************************************************************************/
 
