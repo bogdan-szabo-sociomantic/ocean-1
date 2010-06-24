@@ -47,19 +47,6 @@ private import tango.util.log.Trace;
 
 /*******************************************************************************
 
-	C memcpy
-
-*******************************************************************************/
-
-extern (C)
-{
-    protected void * memcpy (void *dst, void *src, size_t);
-}
-
-
-
-/*******************************************************************************
-
     QueueMemory
 
 *******************************************************************************/
@@ -257,41 +244,52 @@ debug (OceanUnitTest)
 
 	    auto q = new QueueMemory("test", Q_SIZE);
 
-	    Trace.formatln("Queue test: Initial mem usage = {} bytes", GC.stats["poolSize"]);
+	    Trace.formatln("Queue test: Initial mem usage = {}Mb", MemProfiler.checkUsageMb());
 
 	    scope random = new Random();
 
+    	uint total_ops;
+    	auto before = MemProfiler.checkUsage();
 	    for ( uint i = 0; i < ITERATIONS; i++ )
 	    {
-    		MemProfiler.check("queue push", {
-		    	// Add random length items to the queue until it's full
-	    		bool push_succeeded;
-	    		uint pushes;
-		    	do
-		    	{
-		    		uint len;
-		    		random(len);
-		    		len = 1 + (len % 25_000);
-		    		buf.length = len;
-		    		push_succeeded = q.push(buf);
-		    		if ( push_succeeded )
-		    		{
-		    			pushes++;
-		    		}
-		    	} while ( push_succeeded )
-	
-		    	// Remove items from the queue until it's empty
-		    	uint pops;
-		    	while ( !q.isEmpty() )
-		    	{
-	    			auto content = q.pop();
-	    			pops++;
-		    	}
-		    	assert(pops == pushes);
-		    	
-		    	if ( i % 1000 == 0 ) Trace.formatln("iteration {} / {}", i, ITERATIONS);
-    		}, MemProfiler.Expect.NoChange);
+	    	// Add random length items to the queue until it's full
+    		bool push_succeeded;
+    		uint pushes;
+	    	do
+	    	{
+	    		uint len;
+	    		random(len);
+	    		len = 1 + (len % 25_000);
+	    		buf.length = len;
+	    		push_succeeded = q.push(buf);
+	    		if ( push_succeeded )
+	    		{
+	    			pushes++;
+	    		}
+	    	} while ( push_succeeded )
+
+	    	// Remove items from the queue until it's empty
+	    	uint pops;
+	    	while ( !q.isEmpty() )
+	    	{
+    			auto content = q.pop();
+    			pops++;
+	    	}
+	    	assert(pops == pushes);
+	    	total_ops += pushes;
+
+	    	if ( i % 1000 == 0 )
+	    	{
+	    		Trace.formatln("iteration {}, {}%, {} push/pops",
+	    				i, 100.0 * (cast(float)i / cast(float)ITERATIONS), total_ops);
+	    		total_ops = 0;
+
+	    		MemProfiler.checkSectionUsage("queue", before, MemProfiler.Expect.NoChange);
+	    		before = MemProfiler.checkUsage();
+	    	}
 	    }
+
+	    Trace.formatln("Queue test: Final mem usage = {}Mb", MemProfiler.checkUsageMb());
 
 	    Trace.formatln("Done unittest\n");
 	}
