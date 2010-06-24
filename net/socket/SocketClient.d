@@ -913,31 +913,21 @@ abstract class SocketClient ( Const : SocketClientConst )
 		Reconnect method, used as the loop callback for the retry member to wait
 		for a time then try disconnecting and reconnecting the socket.
 
-		Params:
-			msg = message describing the action being retried
-	
-		Returns:
-	    	true to try again
-	
 	***************************************************************************/
-	
-	public bool retryReconnect ( char[] msg )
+
+	public void retryReconnect ( )
 	{
 		debug Trace.formatln("\nSocketProtocol, reconnecting");
-		bool again = this.retry.wait(msg);
-		if ( again )
-	    {
-			try
-			{
-				// Reconnect without clearing the R/W buffers
-				this.socket.disconnect(false).connect(false);
-			}
-			catch ( Exception e )
-			{
-				debug Trace.formatln("\nSocket reconnection failed: {}", e.msg);
-			}
-	    }
-		return again;
+		this.retry.wait();
+		try
+		{
+			// Reconnect without clearing the R/W buffers
+			this.socket.disconnect(false).connect(false);
+		}
+		catch ( Exception e )
+		{
+			debug Trace.formatln("\nSocket reconnection failed: {}", e.msg);
+		}
 	}
 }
 
@@ -952,7 +942,7 @@ abstract class SocketClient ( Const : SocketClientConst )
 	exceptions within retry loops.
 	
 *******************************************************************************/
-	
+
 class SocketRetry : Retry
 {
 	/***************************************************************************
@@ -982,21 +972,17 @@ class SocketRetry : Retry
 
 	public override void defaultLoop ( void delegate () code_block )
 	{
-    	super.again = false;
-		super.resetCounter();
-	
 		do try
 	    {
-			super.again = false;
-	    	code_block();
+	    	super.tryBlock(code_block);
 	    }
 	    catch ( SocketException e )
 	    {
-	    	super.handleException!(SocketException)(e, typeof(e).stringof);
+	    	super.handleException(e);
 	    }
 	    catch ( IOException e )
 	    {
-	    	super.handleException!(IOException)(e, typeof(e).stringof);
+	    	super.handleException(e);
 	    }
 	    while ( super.again )
 	}
