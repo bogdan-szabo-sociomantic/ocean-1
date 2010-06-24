@@ -1,34 +1,44 @@
-/******************************************************************************
+/*******************************************************************************
 
     I/O wait and retry callback manager 
-    
-    copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
-    
-    version:        November 2009: Initial release
-    
-    authors:        David Eckardt, Gavin Norman
-    
-    --
-    
-    Description:
-    
-    Provides a callback method suitable for a wait and retry loop for I/O
-    operations. This callback method can be invoked if an I/O operation fails;
-    when invoked, it waits for a certain period of time, increments a counter
-    and tells by return value whether the counter has reached a certain level.
-    
-    As an option, a custom retry callback method (delegate or function
-    reference) may be supplied.
-    
-    Also optionally, a custom timeout method may be supplied, which is called by
-    the built-in wait method after the specified number of retries has passed.
 
-    The class contains a built in retry loop method, which is passed a delegate
+    copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
+
+    version:        November 2009: Initial release
+
+    authors:        David Eckardt, Gavin Norman
+
+    --
+
+    Description:
+
+    Provides a simple means for trying a block of code and retrying it if any
+    exceptions are caught within.
+
+    The class contains a built-in retry loop method, which is passed a delegate
     (usually a code block as an anonymous delegate) to be repeatedly retried on
-    exception (shown in the 1st example below).
-    
-    For special cases, it's also possible to pass custom exception handling code
-    into the loop method (shown in the 2nd example below).
+    exception.
+
+	A callback delegate can be set, which is called each time an exception is
+	caught inside the retry loop. The default callback delegate (Retry.wait)
+	simply waits a while.
+
+	The default loop catches any exception (Exception). If finer grained control
+	over exception handling is required, the class provides two possibilities:
+
+    	1: Deriving a new class from Retry, and overriding the protected
+    		defaultLoop method. Any exceptions can be handled in this way.
+
+    	2: Passing a list of (one or more) exception handling delegates to the
+    		loop method. Only exceptions from ocean.core.Exception and
+    		tango.core.Exception can be handled in this way, as the loop method
+    		uses a mixin to construct the try-catch blocks (and as the mixed-in
+    		code is in the scope of *this* file, it can only reference classes
+    		imported in *this* file).
+
+	The first option is also more useful if you need to use the retry loop in
+	multiple places throughout your code, rather than copying the exception
+	handling delegates around.
 
     --
     
@@ -47,8 +57,8 @@
 
     ---
 
-    Custom exception handling example:
-    
+	Exception handling delegates example:
+
     ---
 
         import $(TITLE);
@@ -60,16 +70,57 @@
 			{
 				// do something which you want to retry
 			},
-			(SpecialException e)
+			(SocketException e)
 			{
-				// exception handling code for type SpecialException
+				// exception handling code for type SocketException
+			}
+			(IOException e)
+			{
+				// exception handling code for type IOException
 			}
 		);
 
+    ---
+
+	Exception handling by overriding defaultLoop example:
+
+    ---
+
+        import $(TITLE);
+
+		class SpecialException : Exception
+		{
+			// ...
+		}
+
+		class SpecialRetry : Retry
+		{
+			override protected void defaultLoop ( void delegate ( ) code_block )
+		    {
+				do try
+				{
+					super.tryBlock(code_block);
+				}
+				catch ( SpecialException e )
+			    {
+					// exception handling code for type IOException
+					// for example:
+			        super.handleException(e);
+			    }
+				while ( super.again )
+			}
+		}
+
+    	auto retry = new SpecialRetry(250, 10); // Retry up to 10 times, wait 250 ms
+                                                // before each retry
+
+		retry.loop({
+				// do something which you want to retry
+		});
 
     ---
     
- ******************************************************************************/
+*******************************************************************************/
 
 module ocean.io.Retry;
 
@@ -87,11 +138,15 @@ private     import      Ctimer = tango.stdc.posix.timer:     timespec;
 
 private     import               tango.stdc.time:            time_t;
 
+private import ocean.core.Exception;
 
-debug
+private import tango.core.Exception;
+
+//version = TRACE;
+
+version ( TRACE )
 {
 	private import Integer = tango.text.convert.Integer;
-	private import ocean.util.TraceProgress;
     private import tango.util.log.Trace;
 }
 
@@ -246,41 +301,23 @@ class Retry
 {
     debug
     {
-	    protected ConsoleTracer trace;
-	
 	    protected char[] retry_count;
     }
 
     /***************************************************************************
     
         Callback struct. Holds the callback method reference (either delegate or
-        function, returning bool and acceptiong a char[]).
+        function, returning void and acceptiong no arguments).
         Also convenience aliases for the templated struct, and the delegate and
         function types.
       
     ***************************************************************************/
 
-	public alias DelgOrFunc!(bool, char[]) Callback;
+	public alias DelgOrFunc!(void) Callback;
 	public alias Callback.DelgType CallbackDelg;
 	public alias Callback.FuncType CallbackFunc;
 
 	public Callback callback;
-
-
-	/***************************************************************************
-    
-	    Timeout struct. Holds the timeout method reference (either delegate or
-	    function, returning void and accepting no arguments).
-	    Also convenience aliases for the templated struct, and the delegate and
-	    function types.
-	  
-	***************************************************************************/
-
-	public alias DelgOrFunc!(void) Timeout;
-	public alias Timeout.DelgType TimeoutDelg;
-	public alias Timeout.FuncType TimeoutFunc;
-
-	public Timeout timeout;
 
 
 	/***************************************************************************
@@ -527,96 +564,6 @@ class Retry
 
 
     /***************************************************************************
-
-        Default retry callback method for retries
-
-        Params:
-            message = error message
-
-        Returns:
-            true if the caller should continue trying or false if the caller
-            should quit
-
-    ***************************************************************************/
-
-    public bool wait ( char[] message )
-    {
-    	debug
-    	{
-    		this.retry_count.length = 10; // uint.max fits in 10 characters
-    		this.retry_count = Integer.format(this.retry_count, this.n);
-        	this.trace.writeStatic("Retry " ~ this.retry_count ~ ": " ~ message);
-    	}
-    	
-    	// Is retry enabled and are we below the retry limit or unlimited?
-        bool retry = this.enabled && ((this.n < this.retries) || !this.retries);
-
-        if (retry)
-        {
-            this.n++;
-            
-            this.sleep(this.ms);
-        }
-        else
-        {
-        	this.callTimeout();
-        }
-
-        if ( !retry )
-        {
-        	debug Trace.formatln("Decided not to try again");
-        }
-
-        return retry;
-    }
-
-
-    /***************************************************************************
-    
-	    Calls the custom timeout delegate / function (if set), and resets the
-	    internal counter.
-
-	***************************************************************************/
-
-    protected void callTimeout ( )
-    {
-    	if ( !this.timeout.isNull() )
-    	{
-       		debug Trace.formatln("Calling timeout function");
-            
-        	this.resetCounter();
-       		this.timeout();
-    	}
-    }
-
-
-    /***************************************************************************
-    
-        Sleep in a multi-thread compatible way.
-        sleep() in multiple threads is not trivial because when several threads
-        simultaneously sleep and the first wakes up, the others will instantly
-        wake up, too. See nanosleep() man page
-        
-        http://www.kernel.org/doc/man-pages/online/pages/man2/nanosleep.2.html
-        
-        or
-        
-        http://www.opengroup.org/onlinepubs/007908799/xsh/nanosleep.html
-        
-        Params:
-            ms = milliseconds to sleep
-    
-    ***************************************************************************/
-
-    public static void sleep ( time_t ms )
-    {
-        auto ts = Ctimer.timespec(ms / 1_000, (ms % 1_000) * 1_000_000);
-        
-        while (Ctime.nanosleep(&ts, &ts)) {}
-    }
-
-
-    /***************************************************************************
     
 		Standard try / catch / retry loop. Can be called from classes which use
 		this class.
@@ -640,13 +587,11 @@ class Retry
 
     public void loop ( H ... ) ( void delegate ( ) code_block, H handlers )
     {
+		this.resetCounter();
+
     	// End-user specified exception handling
     	static if ( H.length )
     	{
-	    	this.again = false;
-	    	this.resetCounter();
-
-//    	    pragma (msg, TryCatchCode!("code_block", "handlers", H));
     	    do mixin (TryCatchCode!("code_block", "handlers", H));
     	    while ( this.again )
     	}
@@ -655,6 +600,21 @@ class Retry
     	{
     		this.defaultLoop(code_block);
     	}
+    }
+
+
+    /***************************************************************************
+    
+		Runs a block of code. Called within a try block inside a retry loop.
+		This method exists so that defaultLoop (below) can be as simplfied as
+		possible, making it easy to override.
+
+	***************************************************************************/
+
+    public void tryBlock ( void delegate ( ) code_block )
+    {
+    	this.again = false;
+    	code_block();
     }
 
 
@@ -673,13 +633,9 @@ class Retry
 
     protected void defaultLoop ( void delegate ( ) code_block )
     {
-		this.again = false;
-		this.resetCounter();
-	
 		do try
 		{
-			this.again = false;
-			code_block();
+			this.tryBlock(code_block);
 		}
 		catch ( Exception e )
 	    {
@@ -691,29 +647,40 @@ class Retry
 
 	/***************************************************************************
     
-		Retry loop exception handler. Rethrows the exception if the retry
-		callback says to not try again.
+		Retry loop exception handler. Decides whether to try the loop again, and
+		if so calls the loop callback delegate. If not trying again, then the
+		caught exception is rethrown.
 		
 		Template params:
-			E = exception type, defaults to Exception
+			E = exception type, defaults to Exception. If the exception is
+			rethrown, it is thrown as this type.
 			
 	    Params:
 	        e = exception receieved
-	
+
 	***************************************************************************/
 
     public void handleException ( E : Exception = Exception ) ( Exception e, char[] e_type = "Exception" )
 	{
-		this.again = this.callback(e_type ~ ": " ~ e.msg);
-	    if ( !this.again )
-	    {
-	    	debug
-	    	{
-	        	if ( this.n == 0 )
-	        	{
-	        		Trace.formatln("");
-	        	}
-	    	}
+    	version ( TRACE )
+    	{
+    		this.retry_count.length = 10; // uint.max fits in 10 characters
+    		this.retry_count = Integer.format(this.retry_count, this.n);
+        	Trace.formatln("\nRetry " ~ this.retry_count ~ ": " ~ E.stringof ~ ": " ~ e.msg);
+    	}
+
+    	// Is retry enabled and are we below the retry limit or unlimited?
+    	this.again = this.enabled && ((this.n < this.retries) || !this.retries);
+
+        if (this.again)
+        {
+            this.n++;
+
+            this.callback();
+        }
+        else
+        {
+	    	version ( TRACE ) Trace.formatln("Decided not to try again");
 
 	    	static if ( is ( E == Exception ) )
 	    	{
@@ -724,6 +691,47 @@ class Retry
 	    		throw new E(e.msg);
 	    	}
 	    }
+	}
+
+
+    /***************************************************************************
+
+	    Default retry callback method for retries. Just sleeps a while.
+	
+	    Params:
+	        message = error message
+	
+	***************************************************************************/
+	
+	public void wait ( )
+	{
+		this.sleep(this.ms);
+	}
+	
+	
+	/***************************************************************************
+	
+	    Sleep in a multi-thread compatible way.
+	    sleep() in multiple threads is not trivial because when several threads
+	    simultaneously sleep and the first wakes up, the others will instantly
+	    wake up, too. See nanosleep() man page
+	    
+	    http://www.kernel.org/doc/man-pages/online/pages/man2/nanosleep.2.html
+	    
+	    or
+	    
+	    http://www.opengroup.org/onlinepubs/007908799/xsh/nanosleep.html
+	    
+	    Params:
+	        ms = milliseconds to sleep
+	
+	***************************************************************************/
+	
+	public static void sleep ( time_t ms )
+	{
+	    auto ts = Ctimer.timespec(ms / 1_000, (ms % 1_000) * 1_000_000);
+	    
+	    while (Ctime.nanosleep(&ts, &ts)) {}
 	}
 
 
@@ -762,7 +770,7 @@ class Retry
 	    }
 	    else
 	    {
-	        const TryCatchCode = "try { this.again = false; " ~ code_block ~ "(); }\n";
+	        const TryCatchCode = "try { this.tryBlock(" ~ code_block ~ "); }\n";
 	    }
 	}
 }
@@ -789,6 +797,23 @@ debug ( OceanUnitTest )
     }
 
 
+    class SpecialRetry : Retry
+    {
+    	override protected void defaultLoop ( void delegate ( ) code_block )
+    	{
+    		do try
+    		{
+    			this.tryBlock(code_block);
+    		}
+    		catch ( SpecialException e )
+    	    {
+    	        this.handleException(e);
+    	    }
+    		while ( this.again )
+    	}
+    }
+
+
     unittest
     {
         Trace.formatln("Running ocean.io.Retry unittest");
@@ -802,6 +827,10 @@ debug ( OceanUnitTest )
         auto retry = new Retry;
         retry.retries = retry_times;
         retry.ms = 10;
+
+        auto special_retry = new SpecialRetry;
+        special_retry.retries = retry_times;
+        special_retry.ms = 10;
 
 
         /***********************************************************************
@@ -842,21 +871,21 @@ debug ( OceanUnitTest )
 	        retry.loop(
         		{
 		        	count++;
-		        	throw new SpecialException(fail_msg);
+		        	throw new IOException(fail_msg);
 		        },
-		        (SpecialException e)
+		        (IOException e)
 		        {
 		        	retry.handleException(e);
 		        }
 	        );
         }
-        catch ( SpecialException e )
+        catch ( IOException e )
         {
         	assert(e.msg == fail_msg, "Unexpected exception: " ~ e.msg);
         }
         catch ( Exception e )
         {
-        	assert(false, "loopRethrow didn't work - should have caught a SpecialException, actually caught an Exception");
+        	assert(false, "loop didn't work - should have caught an IOException, actually caught an Exception");
         }
 
         assert(count == retry_times + 1, "Retry loop not executed the right number of times");
@@ -864,30 +893,30 @@ debug ( OceanUnitTest )
 
         /***********************************************************************
 
-			Timeout delegate test
+			Custom loop test
 
-        ***********************************************************************/
+	    ***********************************************************************/
 
-        Trace.formatln("\nTesting retry loop with timeout delegate...");
+	    Trace.formatln("\nTesting retry loop with custom loop...");
 
-        count = 0;
-        bool timeout_happened = false;
-        try
-        {
-	        retry.timeout = { timeout_happened = true; };
-	        retry.loop({
-	        	count++;
-	        	throw new Exception(fail_msg);
-	        });
-        }
-        catch ( Exception e )
-        {
-        	assert(e.msg == fail_msg, "Unexpected exception: " ~ e.msg);
-        }
-
-        assert(count == retry_times + 1, "Retry loop not executed the right number of times");
-
-        assert(timeout_happened, "Timeout delegate didn't get called");
+	    count = 0;
+	    try
+	    {
+	    	special_retry.loop({
+		        	count++;
+		        	throw new SpecialException(fail_msg);
+			});
+	    }
+	    catch ( SpecialException e )
+	    {
+	    	assert(e.msg == fail_msg, "Unexpected exception: " ~ e.msg);
+	    }
+	    catch ( Exception e )
+	    {
+	    	assert(false, "loop didn't work - should have caught a SpecialException, actually caught an Exception");
+	    }
+	
+	    assert(count == retry_times + 1, "Retry loop not executed the right number of times");
 
         Trace.formatln("\nDone unittest\n");
     }
