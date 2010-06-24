@@ -1423,7 +1423,6 @@ public struct TraceProgress
 	    		this.spinAntiClockwise();
 	    	}
 	
-			this.updateDisplayStrings();
 			this.write(this.console_display, this.spinnerString(), "",
 					this.console_streaming ? &this.console_trace.updateStreaming : &this.console_trace.updateStatic);
 		}
