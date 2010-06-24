@@ -512,13 +512,23 @@ struct MemProfiler
 
 	/***************************************************************************
 
-		Returns the current memory usage.
+		Returns the current memory usage in bytes, Kb or Mb.
 	
 	***************************************************************************/
 
 	static double checkUsage ( )
 	{
 		return GC.stats["poolSize"];
+	}
+
+	static double checkUsageKb ( )
+	{
+		return GC.stats["poolSize"] / 1024.0;
+	}
+
+	static double checkUsageMb ( )
+	{
+		return GC.stats["poolSize"] / (1024.0 * 1024.0);
 	}
 
 
