@@ -1496,7 +1496,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         foreach (i, Type; T)
         {
-            debug pragma (msg, "dump " ~ i.stringof ~ ": " ~ Type.stringof);
+            //debug pragma (msg, "dump " ~ i.stringof ~ ": " ~ Type.stringof);
             
             total += write(output, items[i]);
         }
@@ -1577,7 +1577,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         foreach (i, Type; T)
         {
-            debug pragma (msg, "load: " ~ Type.stringof);
+            //debug pragma (msg, "load: " ~ Type.stringof);
             
             total += readItem(input, items[i]);
         }
