@@ -651,7 +651,7 @@ struct StringSearch ( bool wide_char = false )
             }
         }
         
-        return "";
+        return "";                                                              
     }
     
     /**************************************************************************
@@ -926,7 +926,7 @@ struct StringSearch ( bool wide_char = false )
             slices ~= str[start .. $];                                          // append tail
         }
         
-        return slices;
+        return slices.dup;                                                      
     }
     
     /**************************************************************************
