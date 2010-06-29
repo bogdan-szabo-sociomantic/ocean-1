@@ -22,6 +22,12 @@ module      ocean.net.http.HttpServer;
 
 public      import      ocean.core.Exception: HttpServerException;
 
+public      import      ocean.core.Exception: assertEx;
+
+public      import      ocean.util.OceanException;
+
+private     import      tango.core.Exception: SocketException;
+
 private     import      tango.core.ThreadPool;
 
 private     import      tango.io.selector.EpollSelector;
@@ -34,7 +40,6 @@ debug
 {
     private     import      tango.util.log.Trace;
 }
-
 
 /*******************************************************************************
 
@@ -113,7 +118,7 @@ class HttpServer
 
     ********************************************************************************/
        
-    private             uint                            number_threads;
+    private             uint                                    number_threads;
     
     /*******************************************************************************
     
@@ -121,29 +126,41 @@ class HttpServer
     
      *******************************************************************************/
     
-    private             pid_t                           child_id;
+    private             pid_t                                   child_id;
+    
+    /*******************************************************************************
         
+        Socket connection delegate
+    
+     *******************************************************************************/
+    
+    private             alias int delegate(Socket conduit)      ThreadDl;
+    
     /*******************************************************************************
 
          Socket & EPoll
 
      *******************************************************************************/
     
-    private             ServerSocket                    socket;     
-    private             EpollSelector                   selector;
+    private             ServerSocket                            socket;     
+    private             EpollSelector                           epoll;
     
     /*******************************************************************************
     
-        Socket Connection Handler Thread
-            
-        thread_pool = thread pool managing socket connections
-        thread_func     delegate called to handle socket connections
+        Socket connection thread pool  
     
      *******************************************************************************/
     
-    private             ThreadPool!(Socket)             thread_pool;
-    private             int delegate(Socket)            thread_func;
+    private             alias ThreadPool!(Socket, ThreadDl)     SocketThreadPool;
+    private             SocketThreadPool                        thread_pool;
     
+    /*******************************************************************************
+        
+         Delegate to handle socket connections
+    
+     *******************************************************************************/
+    
+    private             ThreadDl                                thread_func;
     
     /*******************************************************************************
         
@@ -171,11 +188,28 @@ class HttpServer
         
         [Open file limit]
         
-        ulimit -n 8000
+        ulimit -n 8192
+        
+        [TIME-WAIT]
+        
+        echo 1 > /proc/sys/net/ipv4/tcp_tw_reuse
+        
+        [TCP-KEEPALIVE-PROBES]
+        
+        echo 5 > /proc/sys/net/ipv4/tcp_keepalive_probes
+        
+        [TCP-KEEPALIVE-INTERVAL]
+        
+        echo 30 > /proc/sys/net/ipv4/tcp_keepalive_intvl
+        
+        [TCP-FIN-TIMEOUT]
+        
+        echo 30 > /proc/sys/net/ipv4/tcp_fin_timeout
         
         For more information
         
         http://redmine.lighttpd.net/wiki/1/Docs:Performance
+        http://www.speedguide.net/read_articles.php?id=121
         ---
         
         
@@ -240,7 +274,7 @@ class HttpServer
         
      *******************************************************************************/
 
-    public void setThreadFunction ( int delegate(Socket conduit) thread_func_dg )
+    public void setThreadFunction ( ThreadDl thread_func_dg )
     {
         this.thread_func = thread_func_dg;
     }
@@ -262,33 +296,31 @@ class HttpServer
     
     public int start () 
     {   
-        int                 event_count;         
-        Socket              conduit;
-        int                 conduit_filehandle;
-        Socket[int]         connections;        // socket connection pool
+        int event_count;
         
         createThreadpool();
         
-        this.selector = new EpollSelector(); 
+        this.epoll = new EpollSelector(); 
         
-        this.selector.open(500, 64);
-        this.selector.register(this.socket, Event.Read  | Event.Hangup | 
-                                            Event.Error | Event.InvalidHandle);     
-        
+        this.epoll.open(100, 64);
+//        this.epoll.register(this.socket, Event.Read  | Event.Hangup | 
+//                                         Event.Error | Event.InvalidHandle);     
+        this.epoll.register(this.socket, Event.Read);     
+                
         scope(exit) 
         {
-            this.selector.close;
+            this.epoll.close;
             this.socket.shutdown;
             this.socket.close;
         }
         
         this.socket.socket.blocking(false);     //  set non-blocking
        
-        while(true)
+        while (true)
         {  
             try 
             {
-                event_count = this.selector.select(EPOLLWAIT_INFINITE);
+                event_count = this.epoll.select(EPOLLWAIT_INFINITE);
             }
             catch (Exception e) 
             {
@@ -299,47 +331,42 @@ class HttpServer
             } 
             
             if (event_count > 0) 
-            {   
-                foreach (SelectionKey key; this.selector.selectedSet())
+            {     
+                try
                 {
-                    // Check if key event conduit is a ServerSocket. If yes
-                    // accept socket connection and put socket conduit in 
-                    // socket conduit array for later usage.
-                    // Assign the new socket conduit to EPollSelector.
-                    if (key.conduit is socket) 
+                    foreach (SelectionKey key; this.epoll.selectedSet())
                     {
-                        conduit = (cast(ServerSocket) key.conduit).accept();
-                        
-                        conduit_filehandle              = conduit.fileHandle();
-                        connections[conduit_filehandle] = conduit; 
-
-                        // Run thread non blocking reading/writing is done in the 
-                        // HttpRequest/HttpResponse object
-                        //
-                        // TODO this is nuts! passing on the stuff to the thread
-                        //      makes the server stall. in case the server runs
-                        //      with 10 threads and 10 clients sending data
-                        //      the server can only handle 10 parallel request.
-                        //      the stuff should only be passed to a thread
-                        //      once the incoming data was read.
-                        this.runThread(connections[conduit_filehandle]);                        
-                    }
-                    else if (key.isError() || key.isHangup() || key.isInvalidHandle())
-                    {
-                        debug
+                        if ( key.isReadable && key.conduit is socket ) 
                         {
-                            Trace.formatln("socket error; unregister from selector");
+                            try
+                            {
+                                this.runThread((cast(ServerSocket) key.conduit).accept());
+                            }
+                            catch (Exception e)
+                            {
+                                assertEx!(SocketException)(false, `socket accept error`);
+                            }
                         }
-                        
-                        this.selector.unregister(key.conduit);                              
-                    }
-                    else
-                    {
-                        debug
+                        else if (key.isError() || key.isHangup() || key.isInvalidHandle())
                         {
-                            Trace.formatln("unknown socket error");
+                            debug
+                            {
+                                Trace.formatln(`key error`);
+                            }
+                        }
+                        else
+                        {
+                            debug
+                            {
+                                Trace.formatln("unknown socket error");
+                            }
                         }
                     }
+                
+                }
+                catch ( Exception e )
+                {
+                    OceanException.Warn(`socket accept error`, e.msg);
                 }
             }
             else 
@@ -350,8 +377,8 @@ class HttpServer
                 }
             }
             
-            selector.register(this.socket, Event.Read  | Event.Hangup | 
-                                           Event.Error | Event.InvalidHandle);
+            this.epoll.register(this.socket, Event.Read  | Event.Hangup | 
+                                             Event.Error | Event.InvalidHandle);
         }
         
         return 0;
@@ -389,7 +416,7 @@ class HttpServer
     
     private void createThreadpool ()
     {   
-        this.thread_pool = new ThreadPool!(Socket)(this.number_threads);                
+        this.thread_pool = new SocketThreadPool(this.number_threads);                
     }
     
     
@@ -414,9 +441,9 @@ class HttpServer
 
     private void runThread ( Socket socket ) 
     {   
-        thread_pool.assign(&this.threadAction, socket);
+        this.thread_pool.assign(&this.threadAction, socket, this.thread_func);
     }
-    
+
     
     /*******************************************************************************
         
@@ -426,32 +453,32 @@ class HttpServer
         serving the request.
             
         Params:
-            socket = socket connection
+            socket   = socket connection
+            selector = epoll selector
             
         Returns:
             void
                 
      *******************************************************************************/
 
-    private void threadAction ( Socket socket )
+    private void threadAction ( Socket socket, ThreadDl dg )
     {
-        assert(this.thread_func, "No thread delegate given!");
-        
-        this.thread_func(socket); // run func inside thread
-       
         try 
         {
-            if (socket)
+            if ( socket !is null )
             {
-                socket.shutdown();
-                socket.detach();
+                scope (exit)
+                {
+                    socket.shutdown();
+                    socket.detach();
+                }
                 
-                this.selector.unregister(socket);
+                dg(socket);
             }
         }
         catch (Exception e)
         {
-            throw new HttpServerException("HttpServer Error: " ~ e.msg);            
+            OceanException.Warn(`HttpServer Error: {}`, e.msg);           
         }
     }
     

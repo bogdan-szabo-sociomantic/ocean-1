@@ -12,24 +12,23 @@
 
 module ocean.net.http.HttpResponse;
 
-
 /*******************************************************************************
 
     Imports
 
 *******************************************************************************/
 
-private     import      ocean.net.http.HttpCookie;
+private     import      ocean.net.http.HttpCookie, ocean.net.http.HttpConstants, 
+                        ocean.net.http.HttpHeader;
 
-private     import      ocean.net.http.HttpConstants;
+private     import      ocean.util.OceanException;
 
 private     import      tango.net.http.HttpConst;
 
 private     import      tango.net.device.Socket: Socket;
 
-private     import      tango.io.model.IConduit: IConduit;
-
 private     import      tango.stdc.time:  tm, time_t, time, gmtime;
+
 private     import      tango.stdc.stdio: snprintf;
 
 private     import      Integer = tango.text.convert.Integer;
@@ -114,7 +113,7 @@ struct HttpResponse
     
      **************************************************************************/    
     
-    public              HttpVersionId           http_version = HttpVersion.v11;
+    private             char[]                  http_version = HttpVersion.v11;
     
     /**************************************************************************
     
@@ -122,7 +121,7 @@ struct HttpResponse
     
      **************************************************************************/    
 
-    public              HttpCookie              cookie;
+    private              HttpCookie              cookie;
     
     /**************************************************************************
     
@@ -130,7 +129,7 @@ struct HttpResponse
     
      **************************************************************************/    
 
-    public              bool                    send_date = true;
+    private              bool                    send_date = false;
     
     /**************************************************************************
     
@@ -139,16 +138,20 @@ struct HttpResponse
      **************************************************************************/    
 
    private              char[]                  cookie_header;
+   
+   private              char[]                  buf;
+   
+   /**************************************************************************
+       
+       Header values
+       
+       Contains the header names and corresponding values.
+       
+       (HeaderValues structure definition at the end of this class)
+       
+    ***************************************************************************/
     
-    /*******************************************************************************
-        
-        Response Header
-    
-     *******************************************************************************/    
-    
-    
-    private             char[][char[]]          response_header;
-    
+    private              HeaderValues            response_header;
     
     /**************************************************************************
     
@@ -253,11 +256,10 @@ struct HttpResponse
                 this.setHeaderValue(HttpHeader.SetCookie.value, this.cookie_header);
             }
             
-            this.sendHeader(socket, status, msg);
+            this.setHeader(status, msg);
+            this.setBody(data);
             
-            socket.write(HttpConst.Eol);
-            socket.write(data);
-            socket.flush();
+            this.write(socket);
         }
         catch (Exception e)
         {
@@ -266,12 +268,26 @@ struct HttpResponse
                 Trace.formatln("Error on response: {}", e.msg);
             }
             
+            OceanException.Warn(`Error on response: {}`, e.msg);
+            
             ok = false;
         }
         
         return ok;
     }
     
+    /**************************************************************************
+        
+        Reset response
+        
+     ***************************************************************************/
+    
+    public void reset ()
+    {
+        this.response_header.reset();
+        this.cookie_header.length = 
+        this.buf.length = 0;
+    }
     
     /**************************************************************************
      
@@ -283,11 +299,10 @@ struct HttpResponse
              
      **************************************************************************/
     
-    public void setHeaderValue ( char[] name, char[] value )
+    public void setHeaderValue ( in char[] name, in char[] value )
     {
-        this.response_header[name.dup] = value.dup;
+        this.response_header[name] = value;
     }
-    
     
     /**************************************************************************
      
@@ -299,11 +314,10 @@ struct HttpResponse
              
      **************************************************************************/
     
-    public void setHeaderValue ( char[] name, int value )
+    public void setHeaderValue ( in char[] name, int value )
     {
-        this.response_header[name.dup] = Integer.toString(value).dup;
+        this.response_header[name] = Integer.toString(value);
     }
-    
     
     /**************************************************************************
      
@@ -320,53 +334,81 @@ struct HttpResponse
         
         if ( !(HttpHeader.Connection.value in this.response_header) )
         {
-            this.response_header[HttpHeader.Connection.value] = "close";
+            this.response_header[HttpHeader.Connection.value] = `close`.dup;
         }
     }
-    
 
     /**************************************************************************
      
-        Send Response Header
+         Write response to socket
      
          Params:
-             conduit =  output conduit
-             status  = HTTP response status
-             msg     = additional status message
+             socket = output socket conduit
+             
+         Returns:
+             void
+         
+     **************************************************************************/
+
+    private void write (Socket socket)
+    {
+        socket.write(this.buf);
+        socket.flush();
+    }
+     
+    /**************************************************************************
+        
+        Set response body message
+     
+         Params:
+             data = body message payload
+         
+         Returns:
+             void
          
      **************************************************************************/
     
-    private void sendHeader ( IConduit conduit, HttpStatus status, 
-                              char[] msg = "" )
+    private void setBody ( in char[] data )
     {
-        conduit.write(this.http_version);
-        conduit.write(" ");
-        conduit.write(Integer.toString(status.code));
-        conduit.write(" ");
-        conduit.write(status.name);
+        this.buf ~= data;
+    }
+    
+    /**************************************************************************
         
-        if (msg.length)
+        Set response header
+     
+         Params:
+             conduit = output socket conduit
+             status  = HTTP response status
+             msg     = additional status message
+         
+         Returns:
+             void
+         
+     **************************************************************************/
+    
+    private void setHeader ( HttpStatus status, char[] msg = "" )
+    {
+        this.buf  = this.http_version 
+                  ~ ` `
+                  ~ Integer.toString(status.code)
+                  ~ ` `
+                  ~ status.name;
+        
+        if ( msg.length )
         {
-            conduit.write(": ");
-            conduit.write(msg);
+            this.buf ~= `: ` ~ msg;
         }
         
-        conduit.write(HttpConst.Eol);
+        this.buf ~= HttpConst.Eol;
         
         foreach (name, value; this.response_header)
         {
-            debug
-            {
-                Trace.formatln("[response header] {} {}", name, value);
-            }
-            
-            conduit.write(name);
-            conduit.write(" ");
-            conduit.write(value);
-            conduit.write(HttpConst.Eol);
+            this.buf ~= name ~ `: ` ~ value ~ HttpConst.Eol;
         }
+        
+        this.buf ~= HttpConst.Eol;
     }
-    
     
     /**************************************************************************
     
@@ -412,4 +454,6 @@ struct HttpResponse
         
         return result[0 .. n].dup;
     }
+    
+
 }

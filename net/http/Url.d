@@ -13,7 +13,6 @@
 
 module      ocean.net.http.Url;
 
-
 /*******************************************************************************
 
     Imports
@@ -29,7 +28,6 @@ private     import      tango.net.Uri;
 private     import      Unicode = tango.text.Unicode;
 
 private     import      TextUtil = tango.text.Util : split;
-
 
 /*******************************************************************************  
 
@@ -84,6 +82,14 @@ struct Url
     
     /*******************************************************************************
         
+        Uri Parser
+    
+     *******************************************************************************/
+    
+    private             Uri                             parser;
+    
+    /*******************************************************************************
+        
         Url string
         
      *******************************************************************************/                                                   
@@ -96,8 +102,9 @@ struct Url
     
      *******************************************************************************/
     
-    public              Host                            host;
-
+    //public              Host                            host;
+    public              char[]                          host;
+    
     /*******************************************************************************
         
         Path component
@@ -113,7 +120,6 @@ struct Url
      *******************************************************************************/
     
     public              Query                           query;
-    
     
     /*******************************************************************************
         
@@ -158,23 +164,31 @@ struct Url
             
      *******************************************************************************/
     
-    public void parse ( char[] url, bool tolower = true )
+    public void parse ( in char[] url, bool tolower = true )
     {
+        this.host.length = 0;
+        this.url.length = 0;
+        
+        assert(url.length, `parse error: url has zero length`);
+        
+        if ( parser is null )
+            this.parser = new Uri();
+        
         if (tolower)
+        {
             this.url = Unicode.toLower(url.dup);
+        }
+        else
+        {
+            this.url = url.dup;
+        }
         
-        scope uri = new Uri();
+        this.parser.parse(this.url.dup);
         
-        uri.parse(this.url.dup);
+        this.host = this.parser.host;
         
-        if (uri.host)
-            this.host.parse(uri.host);
-        
-        if (uri.path.length)
-            this.path.parse(uri.path);
-
-        if (uri.query.length)
-            this.query.parse(uri.query);
+        this.path.parse(this.parser.path);
+        this.query.parse(this.parser.query);
     }
     
     
@@ -183,7 +197,7 @@ struct Url
         Host
             
      *******************************************************************************/
-    
+    /+
     struct Host
     {
         
@@ -237,12 +251,12 @@ struct Url
             
          *******************************************************************************/
         
-        public void parse ( char[] host )
+        public void parse ( in char[] host )
         {
             this.host = host.dup;
         }
     }
-    
+    +/
     
     /*******************************************************************************
         
@@ -268,7 +282,7 @@ struct Url
          *******************************************************************************/                                                   
         
         private             char[][]                        segments;
-    
+        private             char[][]                        split;
     
         /*******************************************************************************
             
@@ -292,6 +306,18 @@ struct Url
             return null;
         }
         
+        /*******************************************************************************
+            
+            Resets path variables
+            
+         *******************************************************************************/
+        
+        public void reset ()
+        {
+            this.path.length = 0;
+            this.segments.length = 0;
+            this.split.length = 0;
+        }
         
         /*******************************************************************************
             
@@ -306,7 +332,6 @@ struct Url
         {
             return this.segments.length;        
         }
-
         
         /*******************************************************************************
             
@@ -321,7 +346,6 @@ struct Url
         {
             return this.path;
         }
-        
         
         /*******************************************************************************
             
@@ -348,18 +372,19 @@ struct Url
             
          *******************************************************************************/
         
-        public void parse ( char[] path )
+        public void parse ( in char[] path )
         {
+            this.reset;
+            
             this.path = path.dup;
-            this.segments.length = 0;
             
-            char[][] segments = TextUtil.split(path, UriDelim.QUERY_URL);        
+            this.split = TextUtil.split(this.path, UriDelim.QUERY_URL);        
             
-            for ( uint i = 0; i < segments.length; i++ )        
+            for ( uint i = 0; i < this.split.length; i++ )        
             {
-                if ( segments[i].length )
+                if ( this.split[i].length )
                 {
-                    this.segments ~= segments[i].dup;
+                    this.segments ~= this.split[i];
                 }
             }
         }
@@ -403,6 +428,14 @@ struct Url
 
         private             QueryPair[]                     pairs;
         
+        /*******************************************************************************
+            
+            Temporary split values
+            
+         *******************************************************************************/
+        
+        private             char[][]                        elements;
+        private             char[][]                        split;
         
         /*******************************************************************************
             
@@ -429,7 +462,6 @@ struct Url
             return null;
         }
         
-        
         /*******************************************************************************
             
             Returns number of query pairs
@@ -443,7 +475,6 @@ struct Url
         {
             return this.pairs.length;
         }
-        
         
         /*******************************************************************************
             
@@ -459,6 +490,19 @@ struct Url
             return this.query;
         }
         
+        /*******************************************************************************
+            
+            Resets path variables
+            
+         *******************************************************************************/
+        
+        public void reset ()
+        {
+            this.query.length =
+            this.elements.length =
+            this.pairs.length    =
+            this.split.length = 0;
+        }
         
         /*******************************************************************************
             
@@ -486,33 +530,27 @@ struct Url
             
          *******************************************************************************/
         
-        public void parse ( char[] query_string )
+        public void parse ( in char[] query_string )
         {
-            char[][] elements, split;
-            QueryPair pair;
+            this.reset;
             
-            this.pairs.length = 0;
-            this.query = query_string;
+            this.query = query_string.dup;
             
-            elements = TextUtil.split(query_string, UriDelim.PARAM);
+            this.elements = TextUtil.split(this.query, UriDelim.PARAM);
             
-            foreach ( element; elements )
+            foreach ( ref element; this.elements )
             {
                 if ( element.length && element != UriDelim.PARAM ) 
                 {
-                    split = TextUtil.split(element, UriDelim.KEY_VALUE);
+                    this.split = TextUtil.split(element, UriDelim.KEY_VALUE);
                     
-                    if ( split.length )
+                    if (this.split.length == 2)
                     {
-                        pair.key   = split[0].dup;
-                        pair.value = null;
-                        
-                        if (split.length == 2)
-                        {
-                            pair.value = split[1].dup;
-                        }
-    
-                        this.pairs ~= pair;
+                        this.pairs ~= QueryPair(this.split[0], this.split[1]);
+                    }
+                    else if (split.length == 1)
+                    {
+                        this.pairs ~= QueryPair(this.split[0], null);
                     }
                 }
             }
@@ -520,7 +558,6 @@ struct Url
         
     }
 
-    
 }
 
 /*******************************************************************************

@@ -5,13 +5,13 @@
     Copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
     
     Version:        Feb 2009: Initial release
-    
+                    Jun 2010: Revised release (multi-thread cleanup)
+                    
     Authors:        Lars Kirchhoff, Thomas Nicolai & David Eckardt      
     
 *******************************************************************************/
 
 module      ocean.net.http.HttpRequest;
-
 
 /*******************************************************************************
 
@@ -19,19 +19,17 @@ module      ocean.net.http.HttpRequest;
 
 ********************************************************************************/
 
-public      import      ocean.net.http.HttpResponse, 
-                        ocean.net.http.HttpConstants,
-                        ocean.net.http.Url;
-                        
-public      import      ocean.core.Exception: assertEx;
+private     import      ocean.net.http.Url, ocean.net.http.HttpResponse, 
+                        ocean.net.http.HttpHeader, ocean.net.http.HttpConstants;
+
+private     import      ocean.util.OceanException;
+
+private     import      ocean.core.Exception: assertEx;
 
 private     import      ocean.text.util.StringSearch;
-private     import      ocean.text.util.StringReplace;
-
-private     import      tango.io.selector.EpollSelector, 
-                        tango.io.model.IConduit: IConduit;
 
 private     import      tango.net.device.Socket;
+
 private     import      tango.net.http.HttpConst;
 
 private     import      Integer = tango.text.convert.Integer: toInt;
@@ -39,6 +37,8 @@ private     import      Integer = tango.text.convert.Integer: toInt;
 private     import      tango.math.Math: min;
 
 private     import      tango.core.Exception: SocketException;
+
+private     import      Util = tango.text.Util;
 
 debug
 {
@@ -224,6 +224,14 @@ class HttpRequest
                                                 ];
     
     /**************************************************************************
+    
+        Line break: split line by space or tab character
+    
+     **************************************************************************/
+    
+    public              static const char[]     token_delims =  [' ', '\t'];
+    
+    /**************************************************************************
 
         Default I/O buffer size (bytes)
     
@@ -243,26 +251,6 @@ class HttpRequest
     ***************************************************************************/    
     
     public              bool[char[]]            supported_methods;
-
-    /**************************************************************************
-
-        EPoll selector parameters
-        
-        May be changed at any time to fit your needs.
-        
-        Members:
-            size       = maximum amount of conduits that will be registered;
-                         it will grow dynamically if needed.
-            max_events = maximum amount of conduit events that will be
-                         returned in the selection set per call to select();
-                         this limit is enforced by this selector.
-            timeout  =   selector timeout in ms; -1 disables timeout
-            
-        (SelectorParams structure definition at the end of this class)
-    
-     **************************************************************************/
-
-    public              SelectorParams          selector_params;
     
     /**************************************************************************
     
@@ -355,15 +343,6 @@ class HttpRequest
     public              bool                    socket_error       = false;
     
     /**************************************************************************
-    
-        EPoll selector
-    
-     **************************************************************************/    
-
-
-    private             EpollSelector           selector;
-    
-    /**************************************************************************
         
         Input chunk buffer
         
@@ -386,15 +365,6 @@ class HttpRequest
     ***************************************************************************/     
 
     private             bool                    header_complete = false;
-
-    
-    /**************************************************************************
-    
-        Database of received header names/values
-    
-    ***************************************************************************/     
-
-    private             char[][char[]]          header_values_;
     
     /**************************************************************************
     
@@ -445,15 +415,6 @@ class HttpRequest
 
     private             bool                    finished_reading = false;
     
-    /***************************************************************************
-        
-        String replace instance
-    
-    ***************************************************************************/ 
-
-    private             StringReplace!()        strrep;
-    
-    
     /**************************************************************************
     
         Maximum length of citations of received data appended to log messages
@@ -461,7 +422,7 @@ class HttpRequest
     ***************************************************************************/
     
     private const       size_t                  LogStringMaxLength = 0x40;
-    
+        
     /***************************************************************************
     
         Constructor
@@ -489,16 +450,21 @@ class HttpRequest
     }
     body
     {
-        this.selector      = new EpollSelector;
-        this.input_chunk   = new char[iobuffer_size];
-        this.strrep        = new StringReplace!();
-        this.msg_body      = new char[0];
-        
-        this.header_values = HeaderValues(&this.header_values_);
+        this.input_chunk.length = iobuffer_size;
         
         this.setDefaultMethods();
     }
     
+    /**************************************************************************
+    
+        Destructor
+
+     **************************************************************************/
+     
+    ~this ( )
+    {
+        this.input_chunk.length = 0;
+    }
     
     /**************************************************************************
     
@@ -554,58 +520,35 @@ class HttpRequest
      **************************************************************************/
     
     public bool read ( Socket socket, ReadBodyDg read_body_dg = null )
-    {
+    {     
         this.resetState(read_body_dg);
         
-        socket.socket.blocking(false);                                          
-        
-        this.selector.open(this.selector_params.size, this.selector_params.max_events);
-        
-        this.selector.register(socket, Event.Read | Event.Hangup | 
-                                       Event.Error | Event.InvalidHandle );
-        
-        try while (!(this.finished_reading || this.invalid_request))
+        try
         {
-            
-//          FIXME SOMETHING IS WRONG AT SELECT IF SOCKET IS BROKEN!!!!!
-            
-            int event_count = this.selector.select(this.selector_params.timeout);
-            
-            assertEx!(RequestException.Timeout)(event_count > 0);
-            
-            foreach (key; this.selector.selectedSet())
-            {
-                scope (exit) this.selector.unregister(key.conduit);
-                
-                if (key.isReadable)
-                {
-                    this.readInputChunk(cast (Socket) key.conduit);
-                }
-                
-                assertEx!(SocketException)(!key.isError(),         `socket error`);
-                assertEx!(SocketException)(!key.isHangup(),        `socket hung up`);
-                assertEx!(SocketException)(!key.isInvalidHandle(), `socket: invalid handle`);
-            }
+            this.readInputChunk(socket);
         }
         catch (RequestException e)
         {
+            OceanException.Warn(`read request exception; {}`, e.msg);
+            
             this.reportErrorToClient(socket, e);
             this.invalid_request = true;
         }
-        catch (Exception e)
+        catch (SocketException)
         {
-            debug
-            {
-                Trace.formatln(e.msg);
-            }
+            this.socket_error = true;
+        }
+        catch (Exception e)
+        { 
+            OceanException.Warn(`read exception; {}`, e.msg);
             
             this.socket_error = true;
         }
         
         this.cleanupStatus();
-        this.selector.close();
         
         return !(this.socket_error || this.invalid_request);
+        
     }    
     
     
@@ -629,7 +572,8 @@ class HttpRequest
         this.header_data.length = 0;
         this.msg_body.length    = 0;
         this.body_length_read   = 0;
-        this.header_values_     = this.header_values_.init;
+        
+        this.header_values.reset();
     }
     
     /***************************************************************************
@@ -677,9 +621,9 @@ class HttpRequest
         {
             input_length = socket.read(this.input_chunk);
             
-            assert (input_length != 0, "connection closed");
-            assert (input_length >= 0, "connection reset by client");
-            assert (input_length <= this.input_chunk.length, "input chunk too long");
+            assertEx!(SocketException)(input_length != 0, `connection closed`);
+            assertEx!(SocketException)(input_length >= 0, `connection reset by client`);
+            assertEx!(SocketException)(input_length <= this.input_chunk.length,  `input chunk too long`);
             
             this.finished_reading = this.processInputChunk(this.input_chunk[0 .. input_length]);
         }
@@ -717,24 +661,58 @@ class HttpRequest
         
         assertEx!(RequestException.EntityTooLarge)
                  (this.header_data.length + chunk.length <= this.header_length_limit);
-        
-        if (!this.header_complete)
+        try
         {
-            this.header_data ~= chunk;
-            
-            this.header_complete = this.stripBodyStart(chunk);
-            
-            if (this.header_complete)
+            if (!this.header_complete)
             {
-                this.parseHeader();
+                this.header_data ~= chunk;
                 
-                this.getMessageBodyLength();
+                try
+                {
+                    this.header_complete = this.stripBodyStart(chunk);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception(`processInputChunk2: ` ~ e.msg);
+                }
+                
+                if (this.header_complete)
+                {
+                    try
+                    {
+                        this.parseHeader();
+                    }
+                    catch (Exception e)
+                    {
+                        throw new Exception(`processInputChunk1: ` ~ e.msg);
+                    }
+                    
+                    try
+                    {
+                        this.getMessageBodyLength();
+                    }
+                    catch (Exception e)
+                    {
+                        throw new Exception(`processInputChunk4: ` ~ e.msg);
+                    }
+                }
+            }
+            
+            try
+            {
+                if (this.header_complete)
+                {
+                    finished = this.msg_body_length? this.readMessageBodyChunk(chunk) : true;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(`processInputChunk3: ` ~ e.msg);
             }
         }
-        
-        if (this.header_complete)
+        catch (Exception e)
         {
-            finished = this.msg_body_length? this.readMessageBodyChunk(chunk) : true;
+            throw new Exception(`processInputChunk: ` ~ e.msg);
         }
         
         return finished;
@@ -766,24 +744,59 @@ class HttpRequest
 
     private bool stripBodyStart ( out char[] body_chunk )
     {
-        size_t end;
+        size_t end, test;
         bool   found;
-        
-        found = this.lookupEndOfHeader!(HttpConst.Eol ~ HttpConst.Eol)(this.header_data, end);
-        
-        if (!found)
-        {
-            found = this.lookupEndOfHeader!("\n\n")(this.header_data, end);
-        }
-        
-        if (found)
-        {
-            body_chunk = this.header_data[end .. $];
+
+            try
+            {
+                found = this.lookupEndOfHeader!(HttpConst.Eol ~ HttpConst.Eol)(this.header_data, end);
+                
+                if (!found)
+                {
+                    found = this.lookupEndOfHeader!("\n\n")(this.header_data, end);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(`stripBodyStart1: ` ~ e.msg);
+            }
             
-            this.header_data = this.header_data[0 .. end];
             
-            this.strrep.replacePattern(this.header_data, HttpConst.Eol, "\n");
-        }
+            if (found && end < this.header_data.length)
+            {
+                try
+                {
+                    body_chunk = this.header_data[end .. $];
+                }
+                catch (Exception e)
+                {
+                    throw new Exception(`stripBodyStart2: ` ~ e.msg);
+                }
+                
+                try
+                {
+                    this.header_data = this.header_data[0 .. end];
+                }
+                catch (Exception e)
+                {
+                    throw new Exception(`stripBodyStart3: ` ~ e.msg);
+                } 
+                
+                try
+                {
+                    if ( this.header_data.length )
+                    {
+                        //this.strrep.replacePattern(this.header_data, HttpConst.Eol, "\n");
+                        Util.substitute(this.header_data, HttpConst.Eol, `\n`.dup);
+                    }
+                }
+                catch (Exception e)
+                {
+                    OceanException.Warn(`stripBodyStart5: {}`, this.header_data.length);
+                    OceanException.Warn(`stripBodyStart6: {}`, test);
+                    throw new Exception(`stripBodyStart4: ` ~ e.msg);
+                } 
+            }
         
         return found;
     }
@@ -793,22 +806,58 @@ class HttpRequest
      
         Parses the HTTP message header according to RFC 2616
         
+        Note: HttpConst.Eol (['\r', '\n]) is replaced by '\n' in 
+              processInputChunk()
+
      **************************************************************************/
     
     private void parseHeader ()
     {   
-        char[][] lines = StringSearch!().splitCollapse(this.header_data, '\n'); // HttpConst.Eol (['\r', '\n]) has been
-                                                                                // replaced by '\n' in processInputChunk()
-        
-        assertEx!(RequestException.BadRequest)(lines.length);
-        
-        this.parseRequestLine(StringSearch!().trim(lines[0]));
-        
-        if (lines.length > 1)
+        if ( this.header_data.length )
         {
-            foreach (line; lines[1 .. $])
+            char[][] lines;
+            
+            try
             {
-                this.addHeaderParameter(StringSearch!().trim(line));            // Parse header key/value pairs like
+                lines = (Util.splitLines(this.header_data)).dup;
+            }
+            catch (Exception e)
+            {
+                throw new Exception (`parseHeader1; ` ~ e.msg ~ `#` ~ this.header_data ~ `#`);
+            }
+            
+            assertEx!(RequestException.BadRequest)(lines.length);
+            assertEx!(RequestException.BadRequest)(lines[0].length);
+            
+            try
+            {
+                this.parseRequestLine(Util.trim(lines[0]));
+            }
+            catch (Exception e)
+            {
+                throw new Exception (`parseHeader2; ` ~ e.msg ~ `+` ~ lines[0] ~ `+` ~ `#` ~ this.header_data ~ `#`);
+            }
+            
+            if (lines.length > 1)
+            {
+                try
+                {
+                    foreach (line; lines[1 .. $])
+                    {
+                        try
+                        {
+                            this.addHeaderParameter(Util.trim(line));            // Parse header key/value pairs like
+                        }
+                        catch (Exception e)
+                        {
+                            throw new Exception (`parseHeader3; ` ~ e.msg ~ `#` ~ this.header_data ~ `#`);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new Exception (`parseHeader4; ` ~ e.msg ~ `#` ~ this.header_data ~ `#`);
+                }
             }
         }
     }
@@ -827,31 +876,64 @@ class HttpRequest
     
     private void parseRequestLine ( char[] request_line )
     {
-        const char[] token_delims = [' ', '\t'];                                // split by space or tab character
-        
-        char[][] tokens = StringSearch!().splitCollapse(request_line, token_delims);
-        
-        assertEx!(RequestException.BadRequest)(tokens.length == 3,
-                                               "not exactly 3 tokens -- '" ~
-                                               this.toLogString(request_line) ~ '\'');
-        
-        this.method   = tokens[0].dup;
-        this.url.parse(tokens[1].dup);
-        this.ver = tokens[2].dup;
-        
-        assertEx!(RequestException.NotImplemented)
-                 (this.method in this.supported_methods);
-        
-        assertEx!(RequestException.BadRequest)
-                 (this.url.length, "empty url path in header");
-        
-        switch (this.ver)
+        if (request_line.length)
         {
-            default:
-                assertEx!(RequestException.VersionNotSupported)(false);
+            char[][] tokens;
             
-            case HttpVersion.v10:
-            case HttpVersion.v11:
+            try
+            {
+                //this.tokens = StringSearch!().splitCollapse(request_line, token_delims);
+                tokens = Util.split(request_line.dup, ` `);
+            }
+            catch (Exception e)
+            {
+                throw new Exception (`parseRequestLine1; ` ~ e.msg);
+            }
+        
+            assertEx!(RequestException.BadRequest)(tokens.length == 3,
+                                                   `not exactly 3 tokens: ` ~
+                                                   this.toLogString(request_line));
+            
+            try
+            {
+                assertEx!(RequestException.BadRequest)
+                         (tokens[1].length, `empty url path in header`);
+                
+                try
+                {
+                    this.url.parse(tokens[1].dup);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception (`url parse exception; ` ~ e.msg);
+                }
+                
+                try
+                {
+                    this.method = tokens[0].dup;
+                    this.ver    = tokens[2].dup;
+                }
+                catch ( Exception e )
+                {
+                    throw new Exception (`parseRequestLine3: ` ~ e.msg);
+                }
+                
+                assertEx!(RequestException.NotImplemented)
+                         (this.method in this.supported_methods);
+                
+                switch (this.ver)
+                {
+                    default:
+                        assertEx!(RequestException.VersionNotSupported)(false);
+                    
+                    case HttpVersion.v10:
+                    case HttpVersion.v11:
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception (`parseRequestLine2; ` ~ e.msg);
+            }
         }
     }
     
@@ -874,20 +956,20 @@ class HttpRequest
         char[] key, val;
         
         bool found = false;
-        
+
         if (line.length)
         {
             size_t n = StringSearch!().locateChar(line, ':');
             
             if (n < line.length)
             {
-                key = StringSearch!().trim(line[0 .. n]);
-                val = StringSearch!().trim(line[min(n + 1, $) .. $]);
+                key = Util.trim(line[0 .. n]);
+                val = Util.trim(line[min(n + 1, $) .. $]);
             }
             
             found = n < line.length;
             
-            if (found)
+            if (found && key)
             {
                 StringSearch!().strToLower(key);
                 
@@ -896,10 +978,10 @@ class HttpRequest
                     Trace.formatln("[request header] {} = {}", key, val);
                 }
                 
-                this.header_values_[key.dup] = val.dup;
+                this.header_values[key] = val;
             }
         }
-        
+
         return found;
     }
     
@@ -924,13 +1006,31 @@ class HttpRequest
     private void getMessageBodyLength ( )
     {
         this.msg_body_length = 0;
+        int blength;
         
-        int blength = Integer.toInt(this.header_values[HttpHeader.ContentLength.value]);
+        if ( HttpHeader.ContentLength.value in this.header_values )
+        {
+           try
+           {
+               blength = Integer.toInt(this.header_values[HttpHeader.ContentLength.value]);
+           }
+           catch (Exception e)
+           {
+               throw new Exception (`getMessageBodyLength1: ` ~ this.header_values[HttpHeader.ContentLength.value]);
+           }
+        }
         
         assertEx!(RequestException.BadRequest)
                  (blength >= 0, "negative message body length?!?");
         
-        this.msg_body_length = cast (uint) blength;
+        try
+        {
+            this.msg_body_length = cast (uint) blength;
+        }
+        catch (Exception e)
+        {
+            throw new Exception (`getMessageBodyLength2: `, ` `,  blength);
+        }
         
         if (this.msg_body_length)
         {
@@ -1023,14 +1123,17 @@ class HttpRequest
     private static bool lookupEndOfHeader ( char[] mark ) ( char[] header_data, out size_t end )
     {
         bool found;
-        
-        end = StringSearch!().locatePatternT!(mark)(header_data);
-        
-        found = end < header_data.length;
-        
-        if (found)
+
+        if (header_data.length)
         {
-            end += mark.length;
+            end = StringSearch!().locatePatternT!(mark)(header_data);
+            
+            found = end < header_data.length;
+            
+            if (found)
+            {
+                end += mark.length;
+            }
         }
         
         return found;
@@ -1095,135 +1198,6 @@ class HttpRequest
     {
         return str[0 .. min(str.length, this.LogStringMaxLength)];
     }
-
-
-    /**************************************************************************
-    
-        Destructor
-
-     **************************************************************************/
-     
-    private ~this ( )
-    {
-        delete this.selector;
-        
-        this.input_chunk.length = 0;
-    }
-    
-    
-    /**************************************************************************
-    
-        SelectorParams structure
-        
-        EPoll selector parameters
-        
-     **************************************************************************/
-     
-    struct SelectorParams
-    {
-        static int size        = EpollSelector.DefaultSize,
-                   max_events  = EpollSelector.DefaultMaxEvents,
-                   timeout     = 20;  // -1 = infinite
-    }
-
-    /**************************************************************************
-    
-        HeaderValues structure
-        
-        Keeps a pointer to an associative array of header names and their values
-        and provides read-only access to this array.
-        Header parameter names are case-insensitive; values are case-sensitive.  
-        
-     **************************************************************************/
-     
-    struct HeaderValues
-    {
-        /**********************************************************************
-         
-            Pointer to the header name/value associative array which will be
-            a HttpRequest property.
-         
-         **********************************************************************/
-        
-        private char[][char[]]* values;
-        
-        /**********************************************************************
-        
-            Temporary string buffer for case conversion
-     
-         **********************************************************************/
-        
-        private char[] tmp_buf;
-        
-        /**********************************************************************
-        
-            Pointer validity checking
-     
-         **********************************************************************/
-        
-        invariant
-        {
-            assert (this.values, typeof (*this).stringof ~ ": no values");
-        }
-        
-        /**********************************************************************
-        
-            Retrieves a header parameter value via indexing by name. If there
-            is no header parameter with the provided name, an empty string is
-            returned.
-     
-         **********************************************************************/
-        
-        char[] opIndex ( char[] name )
-        {
-            char[]* value = this.cleanHeaderName(name) in *(this.values);
-            
-            return value? *value : "";
-        }
-        
-        /**********************************************************************
-        
-            'in' tells whether there is a header parameter named name.
-     
-         **********************************************************************/
-        
-        bool opIn_r ( char[] name )
-        {
-            return !!(this.cleanHeaderName(name) in *(this.values));
-        }
-        
-        /**********************************************************************
-        
-            Strips a trailing ':' from name, trims off whitespace and converts
-            name to lower case.
-            ':' stripping is done since header name constants in HttpHeader in
-            tango.net.http.HttpConst have a trailing ':'.
-            
-            Params:
-                name = input header name
-                
-            Returns:
-                cleaned header name
-     
-         **********************************************************************/
-        
-        private char[] cleanHeaderName ( char[] name )
-        {
-            bool trailing_colon = false;
-            
-            if (name.length)
-            {
-                trailing_colon = name[$ - 1] == ':';
-            }
-            
-            this.tmp_buf = StringSearch!().trim(name[0 .. $ - trailing_colon]).dup;
-            
-            StringSearch!().strToLower(this.tmp_buf);
-            
-            return this.tmp_buf;
-        }
-    }
-    
     
     /**************************************************************************
     
