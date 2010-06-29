@@ -326,7 +326,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         float b_length = default_size / load_factor;
         
-        assertEx!(ArrayMapException)(0 < b_length && default_size <= b_length, "invalid load factor");
+        assertEx!(ArrayMapException)(0 < b_length, "load factor < 0");
         
         this.default_size = default_size;
         this.load_factor  = load_factor;
