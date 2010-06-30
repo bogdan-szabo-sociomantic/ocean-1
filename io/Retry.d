@@ -142,7 +142,7 @@ private import ocean.core.Exception;
 
 private import tango.core.Exception;
 
-//version = TRACE;
+version = TRACE;
 
 version ( TRACE )
 {
@@ -299,11 +299,6 @@ struct DelgOrFunc ( R, T ... )
 
 class Retry
 {
-    debug
-    {
-	    protected char[] retry_count;
-    }
-
     /***************************************************************************
     
         Callback struct. Holds the callback method reference (either delegate or
@@ -358,6 +353,18 @@ class Retry
      **************************************************************************/
     
     private alias typeof (this) This;
+
+    
+    /**************************************************************************
+    
+	    String buffer for outputting the count of retries to Trace
+	
+	 **************************************************************************/
+
+    version ( TRACE )
+    {
+    	protected char[] retry_count;
+    }
 
 
     /**************************************************************************
