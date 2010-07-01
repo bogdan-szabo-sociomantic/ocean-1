@@ -895,7 +895,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
          }
          else
          {
-             return Fnv1aGeneric.fnv1(key);
+             return Fnv1a.fnv1(key);
          }
      }
      
