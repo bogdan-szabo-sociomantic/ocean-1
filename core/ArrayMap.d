@@ -323,16 +323,13 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     public this ( size_t default_size = 10_000, float load_factor = 0.75 )
     {
         assertEx!(ArrayMapException)(default_size, "zero default size");
-        
-        float b_length = default_size / load_factor;
-        
-        assertEx!(ArrayMapException)(0 < b_length, "load factor < 0");
+        assertEx!(ArrayMapException)(0 <= load_factor, "load factor <= 0");
         
         this.default_size = default_size;
         this.load_factor  = load_factor;
         
-        this.buckets_length = cast (typeof (this.buckets_length)) b_length;
-        
+        this.buckets_length = cast (typeof (this.buckets_length)) (default_size / load_factor);
+                
         static if (M)
         {
             this.rwlocks = new pthread_rwlock_t[this.buckets_length];
