@@ -302,7 +302,16 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     
     public void close ()
     {
-        if (super.db)
+    	scope ( failure )
+    	{
+            debug Trace.formatln(typeof (this).stringof ~ " error closing {}", this.db_name).flush();
+    	}
+    	scope ( success )
+    	{
+            debug Trace.formatln(typeof (this).stringof ~ " closed {}", this.db_name).flush();
+    	}
+
+    	if (super.db)
         {
             super.tokyoAssert(tchdbclose(super.db), "close error");
         }
