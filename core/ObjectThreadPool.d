@@ -141,6 +141,9 @@ private import ocean.core.ObjectPool;
 
 private import tango.core.ThreadPool;
 
+
+private import tango.util.log.Trace;
+
 /******************************************************************************
 
     ObjectThreadPool class template
@@ -198,11 +201,11 @@ class ObjectThreadPool ( T, Args ... ) : ThreadPool!(RunArgTypes!(T))
     
     public this ( Args args, size_t workers, size_t q_size = 0 )
     {
-        super(workers, q_size);
+    	super(workers, q_size);
         
         this.pool = new OPool(args);
         
-        this.pool.setNumItems(workers);
+        this.pool.limit(workers);
     }
     
     /**************************************************************************
