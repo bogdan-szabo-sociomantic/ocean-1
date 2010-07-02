@@ -315,6 +315,28 @@ class ObjectPool ( T, A ... )
     
     /**************************************************************************
     
+	    Enables item count limitation, and sets the maximum number of items.
+	    
+	    Params:
+	        max_items = max items allowed in pool
+	    
+	    Returns:
+	        this instance
+	    
+	**************************************************************************/
+
+    public This limit ( size_t max_items )
+    {
+    	this.limited = true;
+    	this.max = max_items;
+
+    	this.checkLimit("too many items in pool");
+        
+        return this;
+    }
+    
+    /**************************************************************************
+    
         Sets the number of items in pool.
         
         To achieve this, as many items as required are created or removed.
