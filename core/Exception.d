@@ -272,9 +272,6 @@ class IconvException : Exception
 		
 		this ( ) { super(this.msg); }
 	}
-	
-	
-
 }
 
 /******************************************************************************
@@ -285,58 +282,26 @@ class IconvException : Exception
 
 template ExceptionOpCalls  ( E : Exception )
 {
-    void opCall ( char[] msg ) 
-    { 
-        throw new E(msg); 
-    }
-    
-    void opCall ( char[] msg, char[] file, long line )
+    void opCall ( Args ... ) ( Args args )
     {
-        throw new E(msg, file, line);
+        throw new E(args);
     }
+}
+
+
+/******************************************************************************
+
+    Throws exception E if ok is false or equal to 0 or a null object, reference
+    or pointer.
     
-}
-
-/******************************************************************************
-
-	Throws exception E if ok is false or equal to 0 or a null pointer.
-	
-	Params:
-		ok  = condition which must be true else an exception E is thrown
-		msg = exception message
-
- *******************************************************************************/
-
-void assertEx ( E : Exception, T ) ( T ok, char[] msg, char[] file, long line )
-{
-    if (!ok) throw new E(msg, file, line);
-}
-
-/******************************************************************************
-
-	Throws exception E if ok is false or equal to 0 or a null pointer.
-	
-	Params:
-		ok  = condition which must be true else an exception E is thrown
-		msg = exception message
+    Params:
+        ok   = condition which must be true else an exception E is thrown
+        args = exception arguments, depending on the particular exception
+               (usually at least a message)
 
 *******************************************************************************/
 
-void assertEx ( E : Exception, T ) ( T ok, char[] msg )
+void assertEx ( E : Exception, T, Args ... ) ( T ok, Args args )
 {
-	if (!ok) throw new E(msg);
-}
-
-/******************************************************************************
-
-	Throws exception E if ok is false or equal to 0 or a null pointer.
-	
-	Params:
-		ok  = condition which must be true else an exception E is thrown
-	
-*******************************************************************************/
-
-void assertEx ( E : Exception, T ) ( T ok )
-{
-	if (!ok) throw new E;
+    if (!ok) throw new E(args);
 }
