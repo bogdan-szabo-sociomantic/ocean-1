@@ -140,6 +140,8 @@ private     import               tango.stdc.time:            time_t;
 
 private import ocean.core.Exception;
 
+private import ocean.util.OceanException;
+
 private import tango.core.Exception;
 
 version = TRACE;
