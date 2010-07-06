@@ -77,6 +77,21 @@
 
 module ocean.core.ObjectPool;
 
+
+
+/*******************************************************************************
+
+	Imports
+
+*******************************************************************************/
+
+debug
+{
+	private import tango.util.log.Trace;
+}
+
+
+
 /******************************************************************************
   
     ObjectPool class template
@@ -573,7 +588,7 @@ class ObjectPool ( T, A ... )
     private PoolItem create ( A args, bool idle = false )
     {
         this.checkLimit("no more items available", true);
-        
+
         this.serial++;
         
         PoolItem item = new PoolItem(serial, &this._recycle, args);
