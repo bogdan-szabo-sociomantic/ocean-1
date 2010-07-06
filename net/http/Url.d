@@ -584,7 +584,7 @@ debug ( OceanUnitTest )
         
         assert(url.toString == url_string);
         
-        assert(url.host.toString  == "www.example.com");
+        assert(url.host == "www.example.com");
         
         assert(url.path.length  == 2);
         assert(url.path.toString  == "/path1/path2");
@@ -604,7 +604,7 @@ debug ( OceanUnitTest )
         {
             url.parse(url_string);
             
-            assert(url.host.toString  == "www.example.com");
+            assert(url.host == "www.example.com");
             assert(url.path.toString  == "/path1/path2");
             assert(url.query.toString  == "key1=value1&key2=value2");
             
