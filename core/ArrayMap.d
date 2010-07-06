@@ -365,6 +365,17 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Loading the value map will only succeed if the value type is a value
         data type or an array (not an associative array). (Note: Structs are
         value data types.)
+        
+        It is highly recommended to use a buffered input stream; a buffer size
+        of about 64 kB improves I/O performance a lot as trials have shown.
+        However, if using the BufferedInput class from
+        tango.io.stream.Buffered, make sure its load() method is patched to
+        return exactly as much data as requested. Ticket 1933 on the Tango web
+        site, currently available at
+        
+            http://dsource.org/projects/tango/ticket/1933
+         
+        , shows a patch code example.
     
         The imported data should have been produced by the same program in the
         same environment, using the same class template instance. Data
@@ -372,7 +383,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         order, native data word width (which determines the size of size_t) and
         binary floating point number format must be the same when loading as it
         was when dump()ing. 
-         
+        
         Params:
             input = input stream to read data from
          
@@ -837,6 +848,11 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
          same applies for arrays of arrays and associative arrays; their content
          will also be lost.
          
+         It is highly recommended to use a buffered output stream; a buffer size
+         of about 64 kB improves I/O performance a lot as trials have shown.
+         If using the BufferedOutput class from tango.io.stream.Buffered, do not
+         forget to flush() the buffer before closing the output device!
+                  
          The produced data is intended to be reimported by the same program in
          the same environment, using the same class template instance. Data
          interchangeability cannot be relied upon because data alignment, byte
