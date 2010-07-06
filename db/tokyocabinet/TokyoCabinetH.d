@@ -54,7 +54,7 @@ private     import  ocean.db.tokyocabinet.c.tchdb:
                         tchdbput,   tchdbputasync, tchdbputkeep,  tchdbputcat,
                         tchdbget,   tchdbget3,     tchdbforeach,  tchdbsync,
                         tchdbout,   tchdbrnum,     tchdbvsiz,     tchdbfsiz,
-                        tchdbecode, tchdberrmsg;
+                        tchdbecode, tchdberrmsg,   tchdbpath;
                         
 private     import ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
     
@@ -190,7 +190,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     public this ( ) 
     {
         debug Trace.formatln(typeof (this).stringof ~ " created").flush();
-        
+
         super.db = tchdbnew();
     }
     
@@ -267,7 +267,8 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     {
         return this.open(dbfile, style | OpenStyle.LockNonBlocking);
     }
-    
+
+
     /***************************************************************************
     
         Opens a database file. If the file is locked and style is not composed
@@ -282,7 +283,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 
     public void open ( char[] dbfile, OpenStyle style )
     {
-        super.tokyoAssert(tchdbtune(super.db,
+    	super.tokyoAssert(tchdbtune(super.db,
                                     this.tune.bnum,
                                     this.tune.apow, 
                                     this.tune.fpow,
@@ -291,7 +292,6 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
         
         super.tokyoAssert(tchdbopen(super.db, StringC.toCstring(dbfile), style), "Open error");
     }
-    
     
     
     /**************************************************************************
@@ -664,7 +664,47 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     {
         super.tokyoAssert(tchdbsync(this.db));
     }
+
+
+    /**************************************************************************
     
+	    Tells whether a database file is open.
+
+	    Returns:
+	    	true if a db file is open, false otherwise
+	    
+	***************************************************************************/
+
+    public bool isOpen ( )
+    {
+    	return this.path() != "";
+    }
+
+
+    /**************************************************************************
+    
+	    Gets the path of the currently open database file.
+	
+	    Returns:
+	    	path of open db file, or an empty string if no db file is open.
+	    
+	***************************************************************************/
+
+    public char[] path ( )
+    {
+    	char* path = tchdbpath(super.db);
+    	if ( path )
+    	{
+    		char* end = path;
+    		while ( *end != '\0' )
+    		{
+    			end++;
+    		}
+    		return path[0..end - path];
+    	}
+    	return "";
+    }
+
     /**************************************************************************
     
         Retrieves the current Tokyo Cabinet error message string.
