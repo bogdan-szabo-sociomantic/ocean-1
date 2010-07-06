@@ -115,8 +115,12 @@ class ListWriter : Writer
 	***************************************************************************/
 
     public void disconnectBufferedOutput ( )
+    in
     {
-    	assert(this.output, "ASSERT: ocean.io.protocol.ListWriter - cannot disconnect output buffer, there's not one connected");
+        assert(this.output, "ASSERT: ocean.io.protocol.ListWriter - cannot disconnect output buffer, there's not one connected");
+    }
+    body
+    {
     	this.output.flush();
     	this.output = null;
     }
@@ -136,9 +140,13 @@ class ListWriter : Writer
      **************************************************************************/
 
     public This put ( T ... ) ( T items )
+    in
     {
-    	assert(this.output);
-    	assert(this.output.output);
+        assert(this.output);
+        assert(this.output.output);
+    }
+    body
+    {
     	version ( TRACE ) Trace.formatln("ListWriter.put");
 
     	static if (items.length)

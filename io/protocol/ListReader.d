@@ -116,8 +116,12 @@ class ListReader : Reader
 	***************************************************************************/
 
     public void disconnectBufferedInput ( )
+    in
     {
-    	assert(this.input, "ASSERT: ocean.io.protocol.ListReader - cannot disconnect input buffer, there's not one connected");
+        assert(this.input, "ASSERT: ocean.io.protocol.ListReader - cannot disconnect input buffer, there's not one connected");
+    }
+    body
+    {
     	this.input.flush();
     	this.input = null;
     }
@@ -137,9 +141,13 @@ class ListReader : Reader
      **************************************************************************/
 
     public This get ( T ... ) ( out T items )
+    in
     {
-    	assert(this.input);
-    	assert(this.input.input);
+        assert(this.input);
+        assert(this.input.input);
+    }
+    body
+    {
     	version ( TRACE ) Trace.formatln("ListReader.get");
 
     	static if (items.length)
