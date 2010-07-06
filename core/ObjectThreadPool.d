@@ -131,18 +131,24 @@
 
 module ocean.core.ObjectThreadPool;
 
-/******************************************************************************
+
+
+/*******************************************************************************
 
     Imports
     
- ******************************************************************************/
+*******************************************************************************/
 
 private import ocean.core.ObjectPool;
 
 private import tango.core.ThreadPool;
 
+debug
+{
+	private import tango.util.log.Trace;
+}
 
-private import tango.util.log.Trace;
+
 
 /******************************************************************************
 
@@ -208,6 +214,24 @@ class ObjectThreadPool ( T, Args ... ) : ThreadPool!(RunArgTypes!(T))
         this.pool.limit(workers);
     }
     
+    
+    /**************************************************************************
+    
+	    Destructor.
+	    
+	    Waits for all active threads in the pool to finish, then deletes the
+	    object pool. (It's dangerous for this to happen the other way around!)
+	
+	**************************************************************************/
+
+    ~this ( )
+    {
+    	debug Trace.formatln("{}.~this - waiting for {} threads to finish", typeof(this).stringof, super.activeJobs());
+    	super.shutdown();
+    	delete this.pool;
+    }
+
+    
     /**************************************************************************
     
         Starts T.run() in an own thread, if an idle thread is available from
@@ -223,8 +247,8 @@ class ObjectThreadPool ( T, Args ... ) : ThreadPool!(RunArgTypes!(T))
     
     public This assign ( Rtypes args )
     {
-        super.assign(&this.runItem, args);
-        
+    	super.assign(&this.runItem, args);
+
         return this;
     }
     
@@ -278,11 +302,31 @@ class ObjectThreadPool ( T, Args ... ) : ThreadPool!(RunArgTypes!(T))
 
     private void runItem ( Rtypes args )
     {
-        OPool.PoolItem item = this.pool.get();
+    	OPool.PoolItem item;
+        synchronized ( this )
+        {
+        	item = this.pool.get();
+        }
         
-        item.run(args);
+        try
+        {
+        	item.run(args);
+        }
+        catch ( Exception e )
+        {
+        	debug Trace.formatln(typeof(this).stringof ~ ".runItem - caught Exception '" ~ e.msg ~ "' which wasn't handled by "
+        			~ T.stringof ~ " (maybe it should be?)");
+        }
+        catch ( Object e )
+        {
+        	debug Trace.formatln(typeof(this).stringof ~ ".runItem - caught Object which wasn't handled by "
+        			~ T.stringof ~ " (maybe it should be?)");
+        }
         
-        this.pool.recycle(item);
+        synchronized ( this )
+        {
+        	this.pool.recycle(item);
+        }
     }
     
     /**************************************************************************
@@ -320,3 +364,101 @@ private template RunArgTypes ( T )
         alias Types RunArgTypes;
     }
 }
+
+
+
+debug ( OceanUnitTest )
+{
+	private import tango.core.Thread;
+	private import tango.math.random.Random;
+	
+	const NUM_OBJECTS = 10;
+
+
+    /***************************************************************************
+
+		Object used by ObjectThreadPool.
+		
+		The run method randomly either throws an exception or sleeps for a very
+		short time.
+	
+	***************************************************************************/
+
+	class MyObject
+	{
+		
+		protected static uint obj_count;
+		protected static Random random;
+
+		public static bool destroyed;
+
+		public static this ( )
+		{
+			random = new Random();
+		}
+
+		protected synchronized static uint randomWait ( )
+		{
+			uint Usecs;
+			MyObject.random(Usecs);
+			Usecs %= 200;
+			return Usecs;
+		}
+		
+		protected uint obj_id;
+		protected uint count;
+
+		public this ( )
+		{
+			this.obj_id = obj_count++;
+			Trace.formatln("Constructed object {}", this.obj_id);
+			assert(this.obj_id < NUM_OBJECTS);
+		}
+		
+		public void run ( )
+		{
+			auto Usecs = MyObject.randomWait();
+			if ( Usecs == 0 )
+			{
+				throw new Exception("THIS IS SUPPOSED TO HAPPEN IN THIS UNITTEST");
+			}
+			else
+			{
+				double secs = cast(double)Usecs / 1_000_000;
+				Thread.sleep(secs);
+			}
+		}
+
+		~this ( )
+		{
+			MyObject.destroyed = true;
+		}
+	}
+
+
+	unittest
+	{
+        Trace.formatln("Running ocean.core.ObjectThreadPool unittest");
+
+        scope opool = new ObjectThreadPool!(MyObject)(NUM_OBJECTS);
+
+
+        /***********************************************************************
+
+			Object non-destruction and thread pool limit test
+	
+	    ***********************************************************************/
+
+        const ITERATIONS = 100_000;
+        uint count;
+        do
+        {
+            opool.assign();
+            assert(!MyObject.destroyed, "ObjectThreadPool unittest - MyObject destructor called during the main loop");
+            assert(opool.activeJobs() <= NUM_OBJECTS, "ObjectThreadPool unittest - object thread pool has too many active threads!");
+        } while ( ++count < ITERATIONS );
+
+        Trace.formatln("done unittest\n");
+	}
+}
+
