@@ -284,6 +284,9 @@ class HttpServer
         
         Start and listen to the server socket asynchronously.
         
+        TODO: solve problem with multi-thread socket problem
+        http://kerneltrap.org/mailarchive/linux-kernel/2010/3/3/4544339/thread
+        
         Method binds to the non-blocking server socket and creates an epoll event 
         listener for incoming socket requests. If an event is triggered the child
         socket is passed on to the delegete thread function set via the 
