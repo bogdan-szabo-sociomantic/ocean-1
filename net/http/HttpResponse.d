@@ -121,7 +121,7 @@ struct HttpResponse
     
      **************************************************************************/    
 
-    private              HttpCookie              cookie;
+    public              HttpCookie              cookie;
     
     /**************************************************************************
     
@@ -137,17 +137,19 @@ struct HttpResponse
     
      **************************************************************************/    
 
-   private              char[]                  cookie_header;
+   private              char[]                   cookie_header;
    
-   private              char[]                  buf;
+   /**************************************************************************
+       
+       Output buffer
+    
+    **************************************************************************/  
+   
+   private              char[]                   buf;
    
    /**************************************************************************
        
        Header values
-       
-       Contains the header names and corresponding values.
-       
-       (HeaderValues structure definition at the end of this class)
        
     ***************************************************************************/
     
@@ -189,9 +191,9 @@ struct HttpResponse
     **************************************************************************/
     
     public bool send ( Socket socket, HttpStatus status = HttpResponses.OK, 
-                       char[] msg = "" )
+                       char[] msg = `` )
     {
-        return this.send(socket, "", status, msg);
+        return this.send(socket, ``, status, msg);
     }
     
     
@@ -234,7 +236,7 @@ struct HttpResponse
      **************************************************************************/
     
     public bool send ( Socket socket, char[] data, 
-                       HttpStatus status = HttpResponses.OK, char[] msg = "" )
+                       HttpStatus status = HttpResponses.OK, char[] msg = `` )
     {
         bool ok = true;
         
@@ -265,7 +267,7 @@ struct HttpResponse
         {
             debug
             {
-                Trace.formatln("Error on response: {}", e.msg);
+                Trace.formatln(`Error on response: {}`, e.msg);
             }
             
             OceanException.Warn(`Error on response: {}`, e.msg);
@@ -284,7 +286,9 @@ struct HttpResponse
     
     public void reset ()
     {
+        this.cookie.reset();
         this.response_header.reset();
+        
         this.cookie_header.length = 
         this.buf.length = 0;
     }

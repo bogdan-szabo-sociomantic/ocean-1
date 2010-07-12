@@ -91,12 +91,12 @@ struct HttpCookieAttr
 {
     static const struct Name
     {
-        static const Comment  = "Comment",
-                     Domain   = "Domain",
-                     MaxAge   = "Max-Age",
-                     Path     = "Path",
-                     Secure   = "Secure",
-                     Version  = "Version";
+        static const Comment  = "comment",
+                     Domain   = "domain",
+                     Expires  = "expires", // max-age !is crossbrowser compatible
+                     Path     = "path",
+                     Secure   = "secure",
+                     Version  = "version";
     }
     
     static const struct Delim

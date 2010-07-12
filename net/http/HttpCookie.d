@@ -53,7 +53,7 @@ module ocean.net.http.HttpCookie;
  
  ******************************************************************************/
 
-private import ocean.net.http.HttpConstants:         HttpCookieAttr;
+private import ocean.net.http.HttpConstants: HttpCookieAttr;
 
 private import Integer = tango.text.convert.Integer: toString, toInt;
 
@@ -85,18 +85,17 @@ struct HttpCookie
     
      **************************************************************************/
 
-    char[] comment = "",
-           domain  = "",
-           path    = "";
-    
-    uint   max_age = uint.max;
+    char[] comment = ``,
+           expires = ``,
+           domain  = ``,
+           path    = ``;
     
     bool   secure  = false;
     
     /**************************************************************************
 
         Custom attributes
-    
+        
         Attribute values are optional; set to an empty string to indicate no
         value for a particular attribute.
     
@@ -137,11 +136,13 @@ struct HttpCookie
             }
             
             line ~= this.formatStdAttr(HttpCookieAttr.Name.Comment, this.comment);
-            line ~= this.formatStdAttr(HttpCookieAttr.Name.Domain,  this.domain);
+            line ~= this.formatStdAttr(HttpCookieAttr.Name.Expires, this.expires);
             line ~= this.formatStdAttr(HttpCookieAttr.Name.Path,    this.path);
-            line ~= this.formatStdAttr(HttpCookieAttr.Name.MaxAge,  this.formatMaxAge);
-            line ~= this.formatAttr(HttpCookieAttr.Name.Secure, "", !this.secure);
-            line ~= this.formatAttr(HttpCookieAttr.Name.Version, [this.Version]);
+            line ~= this.formatStdAttr(HttpCookieAttr.Name.Domain,  this.domain);
+            line ~= this.formatAttr(HttpCookieAttr.Name.Secure, ``, !this.secure);
+            //line ~= this.formatAttr(HttpCookieAttr.Name.Version, [this.Version]);
+            
+            line.length = line.length - 1; // removing the last ;
         }
         
         return is_set;
@@ -196,7 +197,7 @@ struct HttpCookie
      
      **************************************************************************/
     
-    bool isSet ( )
+    bool isSet ()
     {
         return !!this.attributes.length;
     }
@@ -207,13 +208,16 @@ struct HttpCookie
      
      **************************************************************************/
 
-    void reset ( )
+    void reset ()
     {
         this.attributes = this.attributes.init;
-        this.comment    = this.comment.init;
-        this.path       = this.path.init;
-        this.max_age    = this.max_age.init;
-        this.secure     = this.secure.init;
+        
+        this.comment.length    =
+        this.domain.length     =
+        this.path.length       = 
+        this.expires.length    = 0;
+            
+        this.secure = false;
     }
     
     /**************************************************************************
@@ -256,18 +260,5 @@ struct HttpCookie
     {
         return this.formatAttr(name, value, !value.length);
     }
-    
-    /**************************************************************************
-    
-        Formats the max_age attribute.
-        
-         Returns:
-             formatted name/value pair for max_age
-         
-     **************************************************************************/
 
-    private char[] formatMaxAge ( )
-    {
-        return (this.max_age != uint.max)? Integer.toString(this.max_age) : "";
-    }
 }
