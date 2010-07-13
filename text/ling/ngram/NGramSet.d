@@ -6,7 +6,7 @@
 	
 	authors:        Gavin Norman
 	
-	Class to contain and compare ngram analyses of texts.
+	Class to contain and compare sets of ngrams from analyses of texts.
 
 *******************************************************************************/
 
@@ -459,10 +459,10 @@ class NGramSet ( Char )
 		Prints the ngram set to Trace.
 	
 	***************************************************************************/
-	
-	debug public void traceDump ( )
+
+	debug public void traceDump ( uint num )
 	{
-		foreach ( ngram, freq; this.ngrams )
+		foreach ( ngram, freq; this.getHighest(num) )
 		{
 			Trace.formatln("{}: {}", ngram, freq);
 		}
