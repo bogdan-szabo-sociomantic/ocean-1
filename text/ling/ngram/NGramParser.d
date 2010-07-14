@@ -527,7 +527,7 @@ public class NGramParser
              */
             foreach (n_gram; word_n_grams)
             {   
-            	ngrams.incrementCount(n_gram);
+            	ngrams.addOccurrence(n_gram);
             }
         }
     }
