@@ -641,7 +641,7 @@ debug ( OceanUnitTest )
 		const char[] text2 = "hail not too big";
 		scope ngrams2 = new NGramSet();
 		NGramParser.parseText(ngrams, ngram_size, text);
-		assert(ngrams.distance(ngrams2) == 1.0, "NGramParser unittest: Error, ngram set does not match itself.");
+		assert(ngrams.distance(ngrams2) == 1.0, "NGramParser unittest: Error, ngram set comparison against a totally different ngram set didn't return total difference.");
 
 		Trace.formatln("\nDone unittest\n");
 	}
