@@ -8,6 +8,8 @@
 	
 	Class to contain and compare sets of ngrams from analyses of texts.
 
+	TODO: change from a D associative array to an ArrayMap?
+
 *******************************************************************************/
 
 module text.ling.ngram.NGramSet;
@@ -23,7 +25,7 @@ module text.ling.ngram.NGramSet;
 private	import tango.core.Array;
 private	import tango.core.BitArray;
 
-private	import tango.io.device.Conduit;
+private	import tango.io.model.IConduit;
 
 debug
 {
@@ -38,18 +40,8 @@ debug
 
 *******************************************************************************/
 
-class NGramSet ( Char )
+class NGramSet
 {
-	/***************************************************************************
-
-		Check that the template parameter is a character type.
-
-	***************************************************************************/
-
-	static assert ( is(Char == dchar) || is(Char == wchar) || is(Char == char),
-		"NGramSet: template paramater Char must be one of: {char, wchar, dchar}" );
-
-
 	/***************************************************************************
 
 		Alias for the associative array used to store the ngram -> frequency
@@ -57,16 +49,7 @@ class NGramSet ( Char )
 
 	***************************************************************************/
 
-	public alias uint[Char[]] NGramArray;
-
-
-	/***************************************************************************
-
-		Alias for the ngram iterator.
-	
-	***************************************************************************/
-
-	public alias NGramSetIterator!(Char) Iterator;
+	public alias uint[dchar[]] NGramArray;
 
 
 	/***************************************************************************
@@ -89,7 +72,7 @@ class NGramSet ( Char )
 	
 	***************************************************************************/
 	
-	protected Char[][] sorted_ngrams;
+	protected dchar[][] sorted_ngrams;
 	
 	
 	/***************************************************************************
@@ -115,7 +98,7 @@ class NGramSet ( Char )
 	
 	***************************************************************************/
 	
-	public void add ( Char[] ngram, uint freq )
+	public void add ( dchar[] ngram, uint freq )
 	{
 		this.ngrams[ngram] = freq;
 	}
@@ -130,7 +113,7 @@ class NGramSet ( Char )
 	
 	***************************************************************************/
 	
-	public void incrementCount ( Char[] ngram )
+	public void incrementCount ( dchar[] ngram )
 	{
 		this.ngrams[ngram]++;
 	}
@@ -181,7 +164,7 @@ class NGramSet ( Char )
 	
 	***************************************************************************/
 	
-	public int opApply ( int delegate ( ref Char[], ref uint ) dg )
+	public int opApply ( int delegate ( ref dchar[], ref uint ) dg )
 	{
 		this.ensureSorted(this.ngrams.length);
 	
@@ -232,7 +215,7 @@ class NGramSet ( Char )
 		while ( count < max_ngrams )
 		{
 	    	uint highest_freq, highest_index;
-	    	Char[] highest_ngram;
+	    	dchar[] highest_ngram;
 	    	uint index;
 	    	foreach ( ngram, freq; this.ngrams )
 	    	{
@@ -337,9 +320,9 @@ class NGramSet ( Char )
 	
 	***************************************************************************/
 
-	public Iterator getHighest ( uint num )
+	public NGramSetIterator getHighest ( uint num )
 	{
-		Iterator it;
+		NGramSetIterator it;
 		it.num = num;
 		it.ngrams = this;
 
@@ -360,7 +343,7 @@ class NGramSet ( Char )
 	
 	***************************************************************************/
 	
-	public uint nGramFreq ( Char[] ngram )
+	public uint nGramFreq ( dchar[] ngram )
 	{
 		return this.ngrams[ngram];
 	}
@@ -387,6 +370,11 @@ class NGramSet ( Char )
 	
 	public float distance ( NGramSet compare )
 	{
+		if ( compare.length == 0 )
+		{
+			return 1.0;
+		}
+
 		auto total_ngrams = this.nGramOccurrences();
 		auto comp_total_ngrams = compare.nGramOccurrences();
 	
@@ -410,7 +398,7 @@ class NGramSet ( Char )
 	
 			total_distance += ngram_distance;
 		}
-	
+
 		return total_distance / cast(float) compare.length;
 	}
 
@@ -430,7 +418,7 @@ class NGramSet ( Char )
 	
 	***************************************************************************/
 
-	public Char[] opIndex ( size_t i )
+	public dchar[] opIndex ( size_t i )
 	in
 	{
 		assert(i < this.ngrams.length, "TODO");
@@ -443,13 +431,13 @@ class NGramSet ( Char )
 
 
 	// TODO
-	public void serialize ( Conduit c )
+	public void serialize ( OutputStream c )
 	{
 	}
 
 
 	// TODO
-	public void deserialize ( Conduit c )
+	public void deserialize ( InputStream c )
 	{
 	}
 
@@ -514,18 +502,8 @@ class NGramSet ( Char )
 
 *******************************************************************************/
 
-struct NGramSetIterator ( Char )
+struct NGramSetIterator
 {
-	/***************************************************************************
-
-		Check that the template parameter is a character type.
-	
-	***************************************************************************/
-	
-	static assert ( is(Char == dchar) || is(Char == wchar) || is(Char == char),
-		"NGramSetIterator: template paramater Char must be one of: {char, wchar, dchar}" );
-
-
 	/***************************************************************************
 
 		Number of ngramsto iterate over (the n highest frequency).
@@ -541,7 +519,7 @@ struct NGramSetIterator ( Char )
 	
 	***************************************************************************/
 
-	public NGramSet!(Char) ngrams;
+	public NGramSet ngrams;
 	
 
 	/***************************************************************************
@@ -550,7 +528,7 @@ struct NGramSetIterator ( Char )
 	
 	***************************************************************************/
 
-	public int opApply ( int delegate ( ref Char[] ngram, ref uint freq ) dg )
+	public int opApply ( int delegate ( ref dchar[] ngram, ref uint freq ) dg )
 	{
 		this.ngrams.ensureWithinRange(this.num);
 		this.ngrams.ensureSorted(this.num);
@@ -569,5 +547,4 @@ struct NGramSetIterator ( Char )
 		return result;
 	}
 }
-
 

@@ -118,48 +118,34 @@ debug
 
     NGramParser class.
     
-    Template parameter:
-    	Char = character type used internally to store ngrams, texts & stopwords
-
 *******************************************************************************/
 
-public class NGramParser  ( Char )
+public class NGramParser
 {
-	/***************************************************************************
-	
-		Check that the template parameter is a character type.
-	
-	***************************************************************************/
-
-	static assert ( is(Char == dchar) || is(Char == wchar) || is(Char == char),
-			"NGramParser: template paramater Char must be one of: {char, wchar, dchar}" );
-
-
     /**
      * Ngram map alias
      */
-    public alias NGramSet!(Char) NGrams;
-    public alias NGrams.NGramArray NGramsArray;
+    public alias NGramSet.NGramArray NGramsArray;
 
     /**
      * Map with the ngrams of the text and the appropriate frequency
      */
-    private     NGrams                ngram_map;
+    private     NGramSet                ngram_map;
     
     /**
      * Text that should be analysed 
      */
-    private     Char[]                 text;
+    private     dchar[]                 text;
     
     /**
      * Internal array of all words in the text (slices into this.text)
      */
-    private     Char[][]               word_token;
+    private     dchar[][]               word_token;
 
     /**
      * Internal array with a list of stop words
      */
-    public     Char[][]               stopwords;
+    public     dchar[][]               stopwords;
 
     /**
      * Default ngram length
@@ -174,7 +160,7 @@ public class NGramParser  ( Char )
      */
     public this ()
     {
-    	this.ngram_map = new NGrams();
+    	this.ngram_map = new NGramSet();
     }
 
     /**
@@ -193,7 +179,7 @@ public class NGramParser  ( Char )
      * 		ngrams = ngrams set which the found ngrams will be added to
      */
 
-    public void parse ( NGrams ngrams )
+    public void parse ( NGramSet ngrams )
     {
         /**
          * Removes all unnecessary chars from the given text in order to 
@@ -226,19 +212,7 @@ public class NGramParser  ( Char )
     {
         try
         {
-        	static if ( is(Char == dchar) )
-        	{
-                this.text = Utf.toString32(text).dup;
-        	}
-        	else if ( is(Char == wchar) )
-        	{
-        		this.text = Utf.toString16(text).dup;
-        	}
-        	else if ( is(Char == char) )
-        	{
-        		this.text = text.dup;
-        	}
-
+        	this.text = Utf.toString32(text).dup;
             this.text = Unicode.toLower(this.text);
         }
         catch (Exception e)
@@ -255,7 +229,7 @@ public class NGramParser  ( Char )
      * Params:
      *     text = text to analyze
      */
-    public void setText ( Char[] text )
+    public void setText ( dchar[] text )
     {
         try
         {
@@ -275,7 +249,7 @@ public class NGramParser  ( Char )
      * Returns:
      *     text
      */
-    public Char[] getText ()
+    public dchar[] getText ()
     {
         return this.text;
     }
@@ -315,7 +289,7 @@ public class NGramParser  ( Char )
      * Params:
      *     stopwords = array with stop words
      */
-    public void setStopWords ( Char[][] stopwords )
+    public void setStopWords ( dchar[][] stopwords )
     {
         foreach (stopword; stopwords)
         {
@@ -353,9 +327,12 @@ public class NGramParser  ( Char )
             }            
         }
     }
-        
-       
-    
+
+    protected dchar[] toChar ( T ) ( T[] str )
+    {
+   		return Utf.toString32(str).dup;
+    }
+
     /**
      * Gets all the ngrams which have been analysed from a text.
      * 
@@ -394,10 +371,10 @@ public class NGramParser  ( Char )
      * Gets all the ngrams which have been analysed from a text.
      * 
      * Params:
-     *     map = NGramAnalysis!(Char) object to copy ngrams into
+     *     map = NGramSet object to copy ngrams into
      */
 
-    public void getNGramMap ( NGrams map )
+    public void getNGramMap ( NGramSet map )
     {
     	this.getNGramMap(map, this.ngram_map.length);
     }
@@ -414,7 +391,7 @@ public class NGramParser  ( Char )
      *     max_items = number of ngrams to copy
      */
 
-    public void getNGramMap ( NGrams map, uint max_items )
+    public void getNGramMap ( NGramSet map, uint max_items )
     {
     	map.clear();
 
@@ -438,7 +415,7 @@ public class NGramParser  ( Char )
      * 		iterator over the highest frequency ngrams in the set
      */
 
-    public NGrams.Iterator getNGramMap ( uint max_items )
+    public NGramSetIterator getNGramMap ( uint max_items )
     {
     	return this.ngram_map.getHighest(max_items);
     }
@@ -452,7 +429,7 @@ public class NGramParser  ( Char )
      * 		the ngram analysis of the last text parsed
      */
 
-    public NGrams getNGramMap ( )
+    public NGramSet getNGramMap ( )
     {
     	return this.ngram_map;
     }
@@ -483,7 +460,7 @@ public class NGramParser  ( Char )
      *     text = text to parse
      */
 
-    public static void parseText ( T ) ( NGrams out_ngrams, uint ngram_length, T[] text )
+    public static void parseText ( T ) ( NGramSet out_ngrams, uint ngram_length, T[] text )
     {
     	T[][] stopwords;
     	typeof(this).parseText(out_ngrams, ngram_length, text, stopwords);
@@ -502,7 +479,7 @@ public class NGramParser  ( Char )
      *     stopwords = list of words to ignore
      */
 
-    public static void parseText ( T, S ) ( NGrams out_ngrams, uint ngram_length, T[] text, S[][] stopwords )
+    public static void parseText ( T, S ) ( NGramSet out_ngrams, uint ngram_length, T[] text, S[][] stopwords )
     {
     	if ( !typeof(this).instance )
     	{
@@ -529,9 +506,9 @@ public class NGramParser  ( Char )
      * incremented for that ngram in the global ngram map.
      */
 
-    private void _createNGramMap ( NGrams ngrams )
+    private void _createNGramMap ( NGramSet ngrams )
     {
-    	Char[][] word_n_grams;
+    	dchar[][] word_n_grams;
 
     	ngrams.clear();
 
@@ -566,10 +543,10 @@ public class NGramParser  ( Char )
      * Returns:
      *     list of ngrams (slices into the passed word)
      */
-    private Char[][] _getWordNGrams ( Char[] word ) 
+    private dchar[][] _getWordNGrams ( dchar[] word ) 
     {
         uint       max_steps, i = 0;
-        Char[][]   ngrams;
+        dchar[][]   ngrams;
         
         /**
          * Slice through the word and add each ngram to the ngram array.
@@ -597,7 +574,7 @@ public class NGramParser  ( Char )
      */
     private void _removeUnwantedChars ( )
     {
-    	const Char[] unwanted = "0123456789-\n;&(){}[]<>/\\|.,;:!@#$%^&*_-+=`~?\"\'";
+    	const dchar[] unwanted = "0123456789-\n;&(){}[]<>/\\|.,;:!@#$%^&*_-+=`~?\"\'";
 
         foreach (ref c; this.text)
         {
@@ -620,7 +597,7 @@ public class NGramParser  ( Char )
     {
     	this.word_token.length = 0;
 
-    	foreach(word; TextUtil.split(this.text, cast(Char[])" "))
+    	foreach(word; TextUtil.split(this.text, " "d))
         {
     		auto NotStopWord = this.stopwords.length;
 
@@ -631,4 +608,42 @@ public class NGramParser  ( Char )
         }
     }
 } // NGramParser
+
+
+
+debug ( OceanUnitTest )
+{
+	import tango.core.Array;
+	import tango.util.log.Trace;
+
+	unittest
+	{
+        Trace.formatln("Running ocean.text.ling.ngram.NGramParser unittest");
+
+		const char[] text = "hello this is a test text";
+		const uint ngram_size = 3; // trigrams
+
+		scope ngrams = new NGramSet();
+		NGramParser.parseText(ngrams, ngram_size, text);
+
+		// Check that all the ngrams found actually exist in the source text
+		dchar[] unicode_text = Utf.toString32(text);
+		foreach ( ngram, freq; ngrams )
+		{
+			const size_t NotFound = text.length;
+			assert(unicode_text.find(ngram) != NotFound, "NGramParser unittest: Error, ngram not found in source text.");
+		}
+
+		// Check that the source text is an exact match of itself
+		assert(ngrams.distance(ngrams) == 0.0, "NGramParser unittest: Error, ngram set does not match itself.");
+
+		// Check that a text with no ngrams in common is completely different
+		const char[] text2 = "hail not too big";
+		scope ngrams2 = new NGramSet();
+		NGramParser.parseText(ngrams, ngram_size, text);
+		assert(ngrams.distance(ngrams2) == 1.0, "NGramParser unittest: Error, ngram set does not match itself.");
+
+		Trace.formatln("\nDone unittest\n");
+	}
+}
 
