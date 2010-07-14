@@ -725,7 +725,9 @@ debug ( OceanUnitTest )
 	
 	unittest
 	{
-		// Create an ngram set
+        Trace.formatln("Running ocean.text.ling.ngram.NGramSet unittest");
+
+        // Create an ngram set
 		scope ngramset = new NGramSet;
 
 		dchar[][] ngrams = ["hel", "ell", "llo", "hel"];
@@ -759,6 +761,8 @@ debug ( OceanUnitTest )
 		{
 			assert(ngramset.nGramFreq(ngram) == freq, "ocean.text.ling.ngram.NGramSet unittest - ngram in file read has wrong frequency");
 		}
+
+		Trace.formatln("\nDone unittest\n");
 	}
 }
 
