@@ -11,6 +11,7 @@ import ocean.io.device.QueueMemory;
 import ocean.net.http.Url;
 
 import ocean.text.ling.ngram.NGramParser;
+import ocean.text.ling.ngram.NGramSet;
 
 import ocean.time.UnixTime;
 
