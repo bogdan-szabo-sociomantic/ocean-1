@@ -22,6 +22,9 @@ module text.ling.ngram.NGramSet;
 
 *******************************************************************************/
 
+private	import ocean.io.protocol.Writer;
+private	import ocean.io.protocol.Reader;
+
 private	import tango.core.Array;
 private	import tango.core.BitArray;
 
@@ -30,6 +33,7 @@ private	import tango.io.model.IConduit;
 debug
 {
 	private import tango.util.log.Trace;
+	private import Utf = tango.text.convert.Utf;
 }
 
 
@@ -113,7 +117,7 @@ class NGramSet
 	
 	***************************************************************************/
 	
-	public void incrementCount ( dchar[] ngram )
+	public void addOccurrence ( dchar[] ngram )
 	{
 		this.ngrams[ngram]++;
 	}
@@ -144,7 +148,7 @@ class NGramSet
 	
 	***************************************************************************/
 	
-	public uint nGramOccurrences ( )
+	public uint countOccurrences ( )
 	{
 		uint total;
 		foreach ( ngram, freq; this.ngrams )
@@ -345,7 +349,14 @@ class NGramSet
 	
 	public uint nGramFreq ( dchar[] ngram )
 	{
-		return this.ngrams[ngram];
+		if ( ngram in this.ngrams )
+		{
+			return this.ngrams[ngram];
+		}
+		else
+		{
+			return 0;
+		}
 	}
 	
 	
@@ -375,8 +386,8 @@ class NGramSet
 			return 1.0;
 		}
 
-		auto total_ngrams = this.nGramOccurrences();
-		auto comp_total_ngrams = compare.nGramOccurrences();
+		auto total_ngrams = this.countOccurrences();
+		auto comp_total_ngrams = compare.countOccurrences();
 	
 		float total_distance = 0;
 		foreach ( comp_ngram, comp_freq; compare )
@@ -421,7 +432,7 @@ class NGramSet
 	public dchar[] opIndex ( size_t i )
 	in
 	{
-		assert(i < this.ngrams.length, "TODO");
+		assert(i < this.ngrams.length, typeof(this).stringof ~ "opIndex - index out of bounds");
 	}
 	body
 	{
@@ -430,15 +441,53 @@ class NGramSet
 	}
 
 
-	// TODO
-	public void serialize ( OutputStream c )
+	/***************************************************************************
+	
+		Writes this ngram set to the provided output stream.
+		
+		Params:
+			output = stream to write to
+			
+	***************************************************************************/
+
+	public void serialize ( OutputStream output )
 	{
+		this.write(this.ngrams.length, output);
+
+		foreach ( ngram, freq; this.ngrams )
+		{
+			this.write(ngram, output);
+			this.write(freq, output);
+		}
 	}
 
 
-	// TODO
-	public void deserialize ( InputStream c )
+	/***************************************************************************
+	
+		Reads this ngram set from the provided input stream.
+		
+		Params:
+			input = stream to read from
+			
+	***************************************************************************/
+
+	public void deserialize ( InputStream input )
 	{
+		this.clear();
+
+		size_t length;
+		this.read(length, input);
+
+		for ( uint i; i < length; i++ )
+		{
+			dchar[] ngram;
+			this.read(ngram, input);
+
+			uint freq;
+			this.read(freq, input);
+
+			this.add(ngram, freq);
+		}
 	}
 
 
@@ -448,6 +497,11 @@ class NGramSet
 	
 	***************************************************************************/
 
+	debug public void traceDump ( )
+	{
+		this.traceDump(this.length);
+	}
+
 	debug public void traceDump ( uint num )
 	{
 		foreach ( ngram, freq; this.getHighest(num) )
@@ -455,8 +509,8 @@ class NGramSet
 			Trace.formatln("{}: {}", ngram, freq);
 		}
 	}
-	
-	
+
+
 	/***************************************************************************
 	
 		Checks whether the sorted array has been generated for at leats the
@@ -475,6 +529,7 @@ class NGramSet
 		}
 	}
 
+
 	/***************************************************************************
 	
 		Checks whether the passed integer is within the range of the number of
@@ -491,6 +546,119 @@ class NGramSet
 		{
 			num = this.ngrams.length;
 		}
+	}
+
+
+	/***************************************************************************
+
+		Writes something to an output stream. Single elements are written
+		straight to the output stream, while array types have their length
+		written, followed by each element.
+
+		Template params:
+			T = type of data to write
+
+		Params:
+			data = data to write
+			output = output stream to write to
+		
+	***************************************************************************/
+
+	protected void write ( T ) ( T data, OutputStream output )
+	{
+		static if ( is ( T A == A[] ) )
+		{
+			this.write(data.length, output);
+
+			foreach ( d; data )
+			{
+				this.write(d, output);
+			}
+		}
+		else
+		{
+			this.writeData(&data, T.sizeof, output);
+		}
+	}
+
+
+	/***************************************************************************
+
+		Writes data to an output stream.
+	
+		Params:
+			data = pointer to data to write
+			bytes = length of data in bytes
+			output = output stream to write to
+		
+	***************************************************************************/
+
+	protected void writeData ( void* data, size_t bytes, OutputStream output )
+	{
+		do
+		{
+			auto ret = output.write(data[0..bytes]);
+			data += ret;
+			bytes -= ret;
+		} while ( bytes > 0 );
+	}
+
+
+	/***************************************************************************
+
+		Reads something from an input stream. Single elements are read straight
+		from the input stream, while array types have their length read,
+		followed by each element.
+	
+		Template params:
+			T = type of data to read
+	
+		Params:
+			data = data to read
+			input = input stream to read from
+		
+	***************************************************************************/
+
+	protected void read ( T ) ( out T data, InputStream input )
+	{
+		static if ( is ( T A == A[] ) )
+		{
+			size_t length;
+			this.read(length, input);
+			for ( uint i; i < length; i++ )
+			{
+				A d;
+				this.read(d, input);
+				data ~= d;
+			}
+		}
+		else
+		{
+			this.readData(&data, data.sizeof, input);
+		}
+	}
+
+
+	/***************************************************************************
+
+		Reads data from an input stream.
+	
+		Params:
+			data = pointer to data to read
+			bytes = length of data in bytes
+			input = input stream to read from
+		
+	***************************************************************************/
+
+	protected void readData ( void* data, size_t bytes, InputStream input)
+	{
+		size_t ret;
+		do
+		{
+			ret = input.read(data[0..bytes]);
+			data += ret;
+			bytes -= ret;
+		} while ( bytes > 0 && ret != IOStream.Eof );
 	}
 }
 
@@ -545,6 +713,52 @@ struct NGramSetIterator
 		}
 	
 		return result;
+	}
+}
+
+
+
+debug ( OceanUnitTest )
+{
+	import tango.util.log.Trace;
+	import tango.io.device.File;
+	
+	unittest
+	{
+		// Create an ngram set
+		scope ngramset = new NGramSet;
+
+		dchar[][] ngrams = ["hel", "ell", "llo", "hel"];
+		foreach ( n; ngrams )
+		{
+			ngramset.addOccurrence(n);
+		}
+		assert(ngramset.countOccurrences() == ngrams.length);
+		Trace.formatln("NGrams:");
+		ngramset.traceDump();
+
+		// Write the ngram set to a file
+		scope file = new File("test_file", File.WriteCreate);
+		scope ( exit ) file.close();
+
+		ngramset.serialize(file);
+		file.close;
+		
+		// Load the file into a new ngram set
+		scope ngramset2 = new NGramSet;
+		scope file2 = new File("test_file", File.ReadExisting);
+		scope ( exit ) file2.close();
+		ngramset2.deserialize(file2);
+
+		Trace.formatln("NGrams read from file:");
+		ngramset2.traceDump();
+
+		// Check that the file has been serialized correctly
+		assert(ngramset.length == ngramset2.length, "ocean.text.ling.ngram.NGramSet unittest - file read has wrong number of ngrams");
+		foreach ( ngram, freq; ngramset2 )
+		{
+			assert(ngramset.nGramFreq(ngram) == freq, "ocean.text.ling.ngram.NGramSet unittest - ngram in file read has wrong frequency");
+		}
 	}
 }
 
