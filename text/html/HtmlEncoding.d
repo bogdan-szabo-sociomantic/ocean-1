@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 
         D Module for UTF-8/HTML entitiy decoding
 
@@ -6,7 +6,8 @@
 
         version:        Jan 2009: Initial release
 
-        authors:        Lars Kirchhoff, Thomas Nicolai & David Eckardt
+        authors:        Lars Kirchhoff, Thomas Nicolai, David Eckardt,
+        				Gavin Norman
 
         --
 
@@ -44,7 +45,7 @@
         http://www.w3.org/TR/2002/REC-xhtml1-20020801/dtds.html#h-A2
 
 
- ******************************************************************************/
+*******************************************************************************/
 
 module ocean.text.html.HtmlEncoding;
 
@@ -55,9 +56,21 @@ module ocean.text.html.HtmlEncoding;
  ******************************************************************************/
 
 private import ocean.text.html.HtmlCharSets;
+private import ocean.text.html.HtmlDecoding;
+
+private import tango.core.Array;
 
 private import tango.stdc.stdio:  snprintf;
 private import tango.stdc.string: strlen;
+
+private import Utf = tango.text.convert.Utf;
+
+debug
+{
+	private import tango.util.log.Trace;
+}
+
+
 
 /******************************************************************************
 
@@ -65,56 +78,77 @@ private import tango.stdc.string: strlen;
 
  ******************************************************************************/
 
-class HtmlEncoding ( bool wide_char = false )
+class HtmlEncoding ( bool wide_char = false, bool basic_only = false )
 {
+    /***************************************************************************
+
+	    Entity decoder alias
+	
+	***************************************************************************/
+
+	alias HtmlDecoding!(wide_char, basic_only) HtmlDecoder;
+
+
     /**************************************************************************
 
         Template instance alias
     
      **************************************************************************/
     
-    alias HtmlEntity!()             HtmlEntity_;
-    
+    alias HtmlEntity!(wide_char) HtmlEntity_;
+
+
     /**************************************************************************
     
         Character type alias
     
      **************************************************************************/
     
-    alias HtmlEntity_.Char          Char;
-    
+    alias HtmlEntity_.Char Char;
+
+
+    /***************************************************************************
+
+	    This type alias
+	
+	***************************************************************************/
+
     private alias typeof (this) This;
-    
+
+
     /**************************************************************************
     
-        HTML character entities
+        HTML character entities which can be encoded
     
     ***************************************************************************/
     
     private static char[][Char] html_chars;
-    
-    
-    private Char[]        buf;
-    
+
+
     /**************************************************************************
     
-        Static constructor; fills the table
+        Static constructor; fills the character table
     
     ***************************************************************************/
     
     static this ( )
     {
-        foreach (html_char; HtmlCharSets!().ISO8859_1_15)
+    	static if ( basic_only )
+    	{
+    		auto char_set = HtmlCharSets!(wide_char).Basic;
+    	}
+    	else
+    	{
+    		auto char_set = HtmlCharSets!(wide_char).ISO8859_1_15;
+    	}
+
+    	foreach (html_char; char_set )
         {
             this.html_chars[html_char.code] = html_char.name;
         }
     }
-    
-    this ( )
-    {
-        this.buf = new Char[0x100];
-    }
-    
+
+
     /**************************************************************************
     
         Params:
@@ -133,6 +167,146 @@ class HtmlEncoding ( bool wide_char = false )
         return this;
     }
     +/
+
+
+    /***************************************************************************
+
+	    Checks whether the passed string contains any unencoded special
+	    characters, and creates a new string containing encoded versions of
+	    them.
+	
+		Params:
+			content = string to convert
+			replacement = output buffer for converted string
+		
+		Returns:
+			converted string
+	
+	***************************************************************************/
+	
+	public static Char[] encodeUnencodedSpecialCharacters ( Char[] content, out Char[] replacement )
+	{
+		size_t last_special_char;
+		foreach ( i, c; content )
+		{
+			if ( typeof(this).isUnencodedSpecialCharacter(content[i..$]) )
+			{
+				replacement ~= content[last_special_char..i];
+				static if ( wide_char )
+				{
+					replacement ~= Utf.toString32("&" ~ typeof(this).html_chars[c] ~ ";");
+				}
+				else
+				{
+					replacement ~= typeof(this).html_chars[c];
+				}
+				last_special_char = i + 1;
+			}
+		}
+	
+		replacement ~= content[last_special_char..$];
+		return replacement;
+	}
+
+
+    /***************************************************************************
+
+	    Checks whether the passed string contains any special characters. (This
+	    method does not take account of whether the characters are encoded or
+	    not, it just does a simple string scan.)
+
+		Params:
+			content = string to scan
+		
+		Returns:
+			true if the string contains any special characters, false otherwise
+	
+	***************************************************************************/
+
+    public static bool containsSpecialCharacters ( Char[] content )
+    {
+    	foreach ( c; content )
+    	{
+    		if ( c in this.html_chars )
+    		{
+    			return true;
+    		}
+    	}
+
+    	return false;
+    }
+
+
+    /***************************************************************************
+
+	    Checks whether the passed string contains any *unencoded* special
+	    characters.
+	
+		Params:
+			content = string to scan
+		
+		Returns:
+			true if the string contains any unencoded special characters, false
+			otherwise
+	
+	***************************************************************************/
+
+    public static bool containsUnencodedSpecialCharacters ( Char[] content )
+    {
+    	foreach ( i, c; content )
+    	{
+    		if ( typeof(this).isUnencodedSpecialCharacter(content[i..$]) )
+    		{
+    			return true;
+    		}
+    	}
+
+    	return false;
+    }
+
+
+    /***************************************************************************
+
+	    Checks whether the passed string starts with an unencoded special
+	    character.
+	
+		Params:
+			content = string to scan
+		
+		Returns:
+			true if the string starts with an unencoded special character, false
+			otherwise
+	
+	***************************************************************************/
+
+    public static bool isUnencodedSpecialCharacter ( Char[] content )
+    {
+    	if ( content[0] in typeof(this).html_chars )
+    	{
+        	if ( content[0] == '&' )
+        	{
+        		// The following characters must form a valid character code
+        		auto entity = HtmlDecoder.parseEncodedEntity(content);
+        		if ( entity.length )
+        		{
+        			auto decoded_entity = HtmlDecoder.decodeHtmlEntity(entity);
+	        		return decoded_entity == HtmlDecoder.zero_char;
+        		}
+        		else
+        		{
+        			return true;
+        		}
+        	}
+        	else
+        	{
+        		return true;
+        	}
+    	}
+
+    	return false;
+    }
+
+
     /**************************************************************************
     
         Returns the HTML character entity name of an UTF ISO-8859-1/-15
@@ -146,8 +320,7 @@ class HtmlEncoding ( bool wide_char = false )
     
      **************************************************************************/
     
-    
-    static char[] encodeEntity ( Char c )
+    public static char[] encodeCharacter ( Char c )
     {
         char[]* name = c in this.html_chars;
         
@@ -165,5 +338,5 @@ class HtmlEncoding ( bool wide_char = false )
         }
         
     }
-
 }
+
