@@ -144,9 +144,9 @@ private import ocean.util.OceanException;
 
 private import tango.core.Exception;
 
-version = TRACE;
+//version = RETRY_TRACE;
 
-version ( TRACE )
+version ( RETRY_TRACE )
 {
 	private import Integer = tango.text.convert.Integer;
     private import tango.util.log.Trace;
@@ -363,7 +363,7 @@ class Retry
 	
 	 **************************************************************************/
 
-    version ( TRACE )
+    version ( RETRY_TRACE )
     {
     	protected char[] retry_count;
     }
@@ -671,7 +671,7 @@ class Retry
 
     public void handleException ( E : Exception = Exception ) ( Exception e, char[] e_type = "Exception" )
 	{
-    	version ( TRACE )
+    	version ( RETRY_TRACE )
     	{
     		this.retry_count.length = 10; // uint.max fits in 10 characters
     		this.retry_count = Integer.format(this.retry_count, this.n);
@@ -689,7 +689,7 @@ class Retry
         }
         else
         {
-	    	version ( TRACE ) Trace.formatln("Decided not to try again");
+	    	version ( RETRY_TRACE ) Trace.formatln("Decided not to try again");
 
 	    	static if ( is ( E == Exception ) )
 	    	{
