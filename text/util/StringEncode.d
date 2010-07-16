@@ -127,10 +127,6 @@ public class StringEncode ( char[] fromcode, char[] tocode )
 			catch ( IconvException.TooBig )
 			{
 				output.length = output.length + input.length;
-				debug
-				{
-					Trace.formatln("StringEncode.convert : expanding output buffer to {} chars", output.length);
-				}
 			}
 		} while ( !succeeded )
 	}
