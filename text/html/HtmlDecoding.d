@@ -67,13 +67,17 @@ private import Math     = tango.math.Math:              min;
 
 private import tango.io.Stdout;
 
+private import tango.core.Array;
+
+
+
 /******************************************************************************
 
     HtmlEncoding class
 
  ******************************************************************************/
 
-class HtmlDecoding ( bool wide_char = false )
+class HtmlDecoding ( bool wide_char = false, bool basic_only = false )
 {
     /**************************************************************************
 
@@ -81,7 +85,7 @@ class HtmlDecoding ( bool wide_char = false )
     
      **************************************************************************/
     
-    alias HtmlEntity!()             HtmlEntity_;
+    alias HtmlEntity!(wide_char)             HtmlEntity_;
     
     /**************************************************************************
     
@@ -98,7 +102,7 @@ class HtmlDecoding ( bool wide_char = false )
      **************************************************************************/
 
     alias StringSearch_.Char        Char;
-    
+
     /**************************************************************************
     
         Character type alias for HTML entities; always wide character
@@ -139,7 +143,14 @@ class HtmlDecoding ( bool wide_char = false )
     
     static this ( )
     {
-        this.html_chars = HtmlCharSets!().ISO8859_1_15.sort;
+        static if ( basic_only )
+        {
+        	this.html_chars = HtmlCharSets!(wide_char).Basic.sort;
+        }
+        else
+        {
+        	this.html_chars = HtmlCharSets!(wide_char).ISO8859_1_15.sort;
+        }
     }
 
     /**************************************************************************
@@ -191,59 +202,114 @@ class HtmlDecoding ( bool wide_char = false )
         
         return this;
     }
-    
+
+
+    /***************************************************************************
+
+		Checks whether the passed string contains any encoded entities.
+
+	    Params:
+	        content = content to process
+	        
+	    Returns:
+	        true if any encoded entities are found, false otherwise
+	 
+	***************************************************************************/
+
+    public static bool containsEncodedEntities ( Char[] content )
+    {
+    	Char[] to_check = content;
+    	while ( to_check.length )
+    	{
+    		// Find an '&' which might be the start of an entity
+    		const Char[] ampersand = "&";
+    		auto StartNotFound = to_check.length;
+
+    		auto start_pos = to_check.find(ampersand);
+    		if ( start_pos != StartNotFound )
+    		{
+    			// See if a matching ';' exists
+    			auto entity = typeof(this).parseEncodedEntity(to_check[start_pos..$]);
+    			if ( entity.length )
+    			{
+    				// See if it is a valid entity
+    				return typeof(this).decodeHtmlEntity_(entity) != 0;
+    			}
+    		}
+    		else
+    		{
+    			return false;
+    		}
+
+    		to_check = to_check[start_pos + 1..$];
+    	}
+
+    	return false;
+    }
+
+
     /**************************************************************************
     
-        Checks if content contains a Unicode or named ISO8859-1/-15 HTML
-        character entity string starting at src_pos. If so, the corresponding
-        Unicode character is put to content[dst_pos].
-        
-        Params:
-            content = content to process
-            src_pos = start position (index) of the HTML character entity string
-            dst_pos = position (index) to put the resulting character
-            length  = number of characters put to content
-            
-        Returns:
-            number of characters replaced in content, which is the
-            entity length on success or 0 otherwise 
+	    Parses "entity" which is (hopefully) a HTML entity string. The criteria
+	    are:
+	    
+	     a) length of "entity" is at least 3,
+	     b) character 0 is '&',
+	     c) a ';' between characters 1 and 16,
+	     d) no white space character or '&' before the first ';'.
+	     e) first ';' is behind character 2
+	     
+	    If "entity" complies with all of these, slice until the ';' is returned,
+	    otherwise null.
+	    
+	    Params:
+	         entity = HTML entity string to parse
+	        
+	    Returns:
+	         The entity if parsing was successfull or null on failure.
+	         
+	 **************************************************************************/
+	
+	public static Char[] parseEncodedEntity ( Char[] entity )
+	{
+	    size_t semicolon = 0;
+	    
+	    if (entity.length <= 2)                         // a) criterium
+	    {
+	        return "";
+	    }
+	    
+	    if (entity[0] != '&')                           // b) criterium
+	    {
+	        return "";
+	    }
+	    
+	    foreach (i, c; entity[1 .. Math.min($, 0x10)])  // c) criterium
+	    {
+	        bool ko = false;
+	        
+	        if (c == ';')
+	        {
+	            semicolon = i + 1;
+	            
+	            break;
+	        }
+	        
+	        ko |= !!StringSearch_.isSpace(c);                 // d) criterium
+	        ko |= (c == '&');                           // d) criterium
+	        
+	        if (ko) break;
+	    }
+	    
+	    if (semicolon <= 2)                             // e) criterium
+	    {
+	        return "";
+	    }
+	    
+	    return entity[0 .. semicolon + 1];
+	}
 
-     **************************************************************************/
-    
-    private size_t decodeReplaceHtmlEntity ( Char[] content, out Char[] replacement )
-    {
-        Char[] entity = this.parseHtmlEntity(content);
-        
-        size_t replaced = 0;
-        
-        if (entity.length >= 4)
-        {
-            replaced = entity.length;
-            
-            static if (wide_char)
-            {
-                Char chr = this.decodeHtmlEntity(entity);
-                    
-                if (chr)
-                {
-                    replacement = [chr];
-                }
-            }
-            else
-            {
-                Char[] chr = this.decodeHtmlEntity(entity);
-                
-                if (chr.length && chr.length <= entity.length)
-                {
-                    replacement = chr;
-                }
-            }
-        }
-        
-        return replaced;
-    }
-    
-    
+
     static if (wide_char)
     {
         /**********************************************************************
@@ -266,6 +332,8 @@ class HtmlDecoding ( bool wide_char = false )
         {
             return decodeHtmlEntity_(entity);
         }
+
+        public static const Char zero_char = 0;
     }
     else
     {
@@ -289,8 +357,63 @@ class HtmlDecoding ( bool wide_char = false )
         {
             return GlibUnicode.toUtf8(decodeHtmlEntity_(entity));
         }
+
+        public static const Char[] zero_char = "\0";
     }
+
+
+    /**************************************************************************
     
+	    Checks if content contains a Unicode or named ISO8859-1/-15 HTML
+	    character entity string starting at src_pos. If so, the corresponding
+	    Unicode character is put to content[dst_pos].
+	    
+	    Params:
+	        content = content to process
+	        src_pos = start position (index) of the HTML character entity string
+	        dst_pos = position (index) to put the resulting character
+	        length  = number of characters put to content
+	        
+	    Returns:
+	        number of characters replaced in content, which is the
+	        entity length on success or 0 otherwise 
+	
+	 **************************************************************************/
+	
+	private size_t decodeReplaceHtmlEntity ( Char[] content, out Char[] replacement )
+	{
+	    Char[] entity = this.parseEncodedEntity(content);
+	    
+	    size_t replaced = 0;
+	    
+	    if (entity.length >= 4)
+	    {
+	        replaced = entity.length;
+	        
+	        static if (wide_char)
+	        {
+	            Char chr = this.decodeHtmlEntity(entity);
+	                
+	            if (chr)
+	            {
+	                replacement = [chr];
+	            }
+	        }
+	        else
+	        {
+	            Char[] chr = this.decodeHtmlEntity(entity);
+	            
+	            if (chr.length && chr.length <= entity.length)
+	            {
+	                replacement = chr;
+	            }
+	        }
+	    }
+	    
+	    return replaced;
+	}
+
+
     /**************************************************************************
     
         Converts a HTML character entity string to an Unicode character. The
@@ -404,71 +527,8 @@ class HtmlDecoding ( bool wide_char = false )
         
         return chr;
     }
-    
-    
-    
-    /**************************************************************************
-    
-        Parses "entity" which is (hopefully) a HTML entity string. The criteria
-        are:
-        
-         a) length of "entity" is at least 3,
-         b) character 0 is '&',
-         c) a ';' between characters 1 and 16,
-         d) no white space character or '&' before the first ';'.
-         e) first ';' is behind character 2
-         
-        If "entity" comlies with all of these, slice until the ';' is returned,
-        otherwise null.
-        
-        Params:
-             entity = HTML entity string to parse
-            
-        Returns:
-             The entity if parsing was successfull or null on failure.
-             
-     **************************************************************************/
-    
-    private Char[] parseHtmlEntity ( Char[] entity )
-    {
-        size_t semicolon = 0;
-        
-        if (entity.length <= 2)                         // a) criterium
-        {
-            return "";
-        }
-        
-        if (entity[0] != '&')                           // b) criterium
-        {
-            return "";
-        }
-        
-        foreach (i, c; entity[1 .. Math.min($, 0x10)])  // c) criterium
-        {
-            bool ko = false;
-            
-            if (c == ';')
-            {
-                semicolon = i + 1;
-                
-                break;
-            }
-            
-            ko |= !!StringSearch_.isSpace(c);                 // d) criterium
-            ko |= (c == '&');                           // d) criterium
-            
-            if (ko) break;
-        }
-        
-        if (semicolon <= 2)                             // e) criterium
-        {
-            return "";
-        }
-        
-        return entity[0 .. semicolon + 1];
-    }
-    
-    
+
+
     /**************************************************************************
     
         Returns the UTF value of the named HTML character "name" or 0 if the
@@ -482,7 +542,7 @@ class HtmlDecoding ( bool wide_char = false )
     
      **************************************************************************/
     
-    public static HtChar decodeEntity ( S ) ( S[] name )
+    private static HtChar decodeEntity ( S ) ( S[] name )
     {
         uint start;
         uint index;
