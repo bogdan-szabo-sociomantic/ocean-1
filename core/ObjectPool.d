@@ -77,20 +77,13 @@
 
 module ocean.core.ObjectPool;
 
-
-
 /*******************************************************************************
 
 	Imports
 
 *******************************************************************************/
 
-debug
-{
-	private import tango.util.log.Trace;
-}
-
-
+private import ocean.core.Exception: ObjectPoolException, assertEx;
 
 /******************************************************************************
   
@@ -174,7 +167,7 @@ class ObjectPool ( T, A ... )
     
      **************************************************************************/
     
-    private bool   limited;
+    private bool   limited_;
     
     /**************************************************************************
     
@@ -278,7 +271,7 @@ class ObjectPool ( T, A ... )
 
     public This recycle ( PoolItem item )
     {
-        this._recycle(item);
+        this.recycle_(item);
         
         return this;
     }
@@ -312,20 +305,34 @@ class ObjectPool ( T, A ... )
         Enables/disables limitation of number of items in pool.
         
         Params:
-            limited = true enables, false disables limitation
+            limited_ = true enables, false disables limitation
         
         Returns:
             this instance
         
     **************************************************************************/
     
-    public This limit ( bool limited )
+    public This limited ( bool limited_ )
     {
-        this.limited = limited;
+        this.limited_ = limited_;
         
         this.checkLimit("too many items in pool");
         
         return this;
+    }
+    
+    /**************************************************************************
+    
+        Returns limitation state.
+        
+        Returns:
+            true if limitation is enabled or false otherwise
+        
+    **************************************************************************/
+
+    public bool limited ( )
+    {
+        return this.limited_;
     }
     
     /**************************************************************************
@@ -341,13 +348,32 @@ class ObjectPool ( T, A ... )
 	**************************************************************************/
 
     public This limit ( size_t max_items )
+    in
     {
-    	this.limited = true;
+        assert (max_items, This.stringof ~ ".limit: limit set to 0");
+    }
+    body
+    {
+    	this.limited_ = true;
     	this.max = max_items;
 
     	this.checkLimit("too many items in pool");
         
         return this;
+    }
+    
+    /**************************************************************************
+    
+        Returns the limit of items in pool
+        
+        Returns:
+            limit of items in pool
+        
+    **************************************************************************/
+
+    public size_t limit ( )
+    {
+        return this.max;
     }
     
     /**************************************************************************
@@ -370,13 +396,13 @@ class ObjectPool ( T, A ... )
     **************************************************************************/
     
     /*
-     * Wrapping of _setNumItems is necessary to avoid compiler errors if "A" is
+     * Wrapping of setNumItems_ is necessary to avoid compiler errors if "A" is
      * empty.
      */
     
     public This setNumItems ( size_t n, A args )
     {
-        return this._setNumItems(n, args);
+        return this.setNumItems_(n, args);
     }
     
     /**************************************************************************
@@ -391,7 +417,7 @@ class ObjectPool ( T, A ... )
     {
         public This setNumItems ( size_t n )
         {
-            return this._setNumItems(n, this.args);
+            return this.setNumItems_(n, this.args);
         }
         
     }
@@ -489,14 +515,14 @@ class ObjectPool ( T, A ... )
      *  is void.
      */    
     
-    private This _setNumItems ( B ... ) ( size_t n, B args )
+    private This setNumItems_ ( B ... ) ( size_t n, B args )
     {
-        static assert (is (B == A), This.stringof ~ "._setNumItems(): "
+        static assert (is (B == A), This.stringof ~ ".setNumItems_(): "
                                     "must be called with arguments of types " ~
                                     typeof (this.args).stringof ~ " not " ~
                                     typeof (args).stringof);
         
-        if (this.limited && (n > this.max))
+        if (this.limited_ && (n > this.max))
         {
             n = this.max;
         }
@@ -515,7 +541,7 @@ class ObjectPool ( T, A ... )
                 }
             }
             
-            assert (!remaining, This.stringof ~ ": more pool items busy than requested number");
+            assertEx!(ObjectPoolException)(!remaining, This.stringof ~ ": more pool items busy than requested number");
         }
         else
         {
@@ -545,8 +571,8 @@ class ObjectPool ( T, A ... )
 
     private void checkLimit ( char[] msg, bool less = false )
     {
-        assert (this.items.length + less <= this.max || !this.limited,
-                This.stringof ~ ": " ~ msg);
+        assertEx!(ObjectPoolException)(this.items.length + less <= this.max || !this.limited_,
+                                       This.stringof ~ ": " ~ msg);
     }
     
     private void removeItem ( PoolItem item )
@@ -565,9 +591,9 @@ class ObjectPool ( T, A ... )
             
     **************************************************************************/
     
-    private void _recycle ( PoolItem item )
+    private void recycle_ ( PoolItem item )
     {
-        assert (item in this.items, this.CLASS_ID_STRING ~ ": recycled item not registered");
+        assertEx!(ObjectPoolException)(item in this.items, this.CLASS_ID_STRING ~ ": recycled item not registered");
         
         this.items[item].idle = true;
     }
@@ -591,7 +617,7 @@ class ObjectPool ( T, A ... )
 
         this.serial++;
         
-        PoolItem item = new PoolItem(serial, &this._recycle, args);
+        PoolItem item = new PoolItem(serial, &this.recycle_, args);
         
         this.items[item] = ItemInfo(idle);
         
@@ -642,7 +668,7 @@ class ObjectPool ( T, A ... )
         
         **********************************************************************/
         
-        private Recycler _recycle;
+        private Recycler recycle_;
         
         /**********************************************************************
         
@@ -686,7 +712,7 @@ class ObjectPool ( T, A ... )
             
             this.hash = hash;
             
-            this._recycle = recycle;
+            this.recycle_ = recycle;
         }
         
         
@@ -698,7 +724,7 @@ class ObjectPool ( T, A ... )
         
         void recycle ( )
         {
-            this._recycle(this);
+            this.recycle_(this);
         }
         
         /**********************************************************************

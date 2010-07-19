@@ -32,9 +32,23 @@ module ocean.core.Exception;
 
     ArrayMapException
 
-******************************************************************************/
+ ******************************************************************************/
 
 class ArrayMapException : Exception
+{
+    this ( char[] msg ) { super(msg); }
+    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+    
+    static mixin ExceptionOpCalls!(typeof (this));
+}
+
+/******************************************************************************
+
+    ObjectPoolException
+
+******************************************************************************/
+
+class ObjectPoolException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
