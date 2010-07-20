@@ -1705,12 +1705,20 @@ class ArrayMapKV ( V, K = hash_t, bool M = Mutex.Disable )
     private alias       KeyValueElement!(K, V)                  Element;
     
     /*******************************************************************************
+    
+	    Array map alias
+	    
+	 *******************************************************************************/
+
+    private alias       ArrayMap!(KeyValueElement!(K, V), K, M)	ArrayMapType;
+
+    /*******************************************************************************
         
         Map
         
      *******************************************************************************/
     
-    final               ArrayMap!(KeyValueElement!(K, V), K)    map;
+    final               ArrayMapType							map;
 
     /*******************************************************************************
         
@@ -1732,7 +1740,7 @@ class ArrayMapKV ( V, K = hash_t, bool M = Mutex.Disable )
     
     public this ( size_t default_size = 10_000, float load_factor = 0.75 )
     {
-        map = new ArrayMap!(KeyValueElement!(K, V), K)(default_size, load_factor);
+        map = new ArrayMapType(default_size, load_factor);
     }
     
     /*******************************************************************************
@@ -1936,7 +1944,7 @@ class ArrayMapKV ( V, K = hash_t, bool M = Mutex.Disable )
             a pointer to the located value, or null if not found
     
     ************************************************************************/
-    
+
     static if (M) public bool opIn_r ( K key )
     {
         return key in map;
