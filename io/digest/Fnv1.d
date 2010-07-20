@@ -22,6 +22,13 @@ private import tango.io.digest.Digest;
 
 private import tango.core.ByteSwap;
 
+debug
+{
+	private import tango.util.log.Trace;
+}
+
+
+
 /******************************************************************************
     
     Convenience aliases for 32-bit and 64-bit Fnv1 class template 
@@ -418,9 +425,15 @@ class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
         
         static if (is (U V : V[]))
         {
-            static assert (V.sizeof == 1, "Fnv1: supports only single-byte types, not '" ~ V.stringof ~ '\'');
-            
-            data_ = cast (ubyte[]) data;
+        	static if ( V.sizeof == 1 )
+        	{
+                data_ = cast (ubyte[]) data;
+        	}
+        	else
+        	{
+        		auto len = data.length * V.sizeof;
+        		data_ = cast(ubyte[])((cast(void*)data)[0..len]);
+        	}
         }
         else
         {
