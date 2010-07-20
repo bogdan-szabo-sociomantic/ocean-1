@@ -8,8 +8,6 @@
 	
 	Class to contain and compare sets of ngrams from analyses of texts.
 
-	TODO: change from a D associative array to an ArrayMap?
-
 *******************************************************************************/
 
 module text.ling.ngram.NGramSet;
@@ -22,10 +20,8 @@ module text.ling.ngram.NGramSet;
 
 *******************************************************************************/
 
-private	import ocean.io.protocol.Writer;
-private	import ocean.io.protocol.Reader;
+private	import ocean.core.ArrayMap;
 
-private	import tango.core.Array;
 private	import tango.core.BitArray;
 
 private	import tango.io.model.IConduit;
@@ -40,12 +36,37 @@ debug
 
 /*******************************************************************************
 
-	NGramSet class
+	Convenience aliases for the NGramSet template class.
+	
+*******************************************************************************/
+
+public alias NGramSet_!(false) NGramSet;
+public alias NGramSet_!(true) ThreadSafeNGramSet;
+
+
+
+/*******************************************************************************
+
+	NGramSet class template
+	
+	Template params:
+		ThreadSafe = sets up the internal ArrayMap to be thread safe. Set this
+			parameter to true if you need to access a single NGramSet from
+			multiple threads.
 
 *******************************************************************************/
 
-class NGramSet
+class NGramSet_ ( bool ThreadSafe = false )
 {
+	/***************************************************************************
+
+		This alias.
+
+	***************************************************************************/
+
+	public alias typeof(this) This;
+
+
 	/***************************************************************************
 
 		Alias for the associative array used to store the ngram -> frequency
@@ -53,7 +74,16 @@ class NGramSet
 
 	***************************************************************************/
 
-	public alias uint[dchar[]] NGramArray;
+	public alias ArrayMapKV!(uint, dchar[], ThreadSafe) NGramArray;
+
+
+	/***************************************************************************
+
+		Alias for the ngram set iterator.
+
+	***************************************************************************/
+
+	public alias NGramSetIterator_!(ThreadSafe) Iterator;
 
 
 	/***************************************************************************
@@ -63,6 +93,18 @@ class NGramSet
 	***************************************************************************/
 
 	protected NGramArray ngrams;
+
+
+	/***************************************************************************
+
+		Constructor. Initialises the internal array map.
+	
+	***************************************************************************/
+
+	public this ( )
+	{
+		this.ngrams = new NGramArray(1000);
+	}
 
 
 	/***************************************************************************
@@ -87,7 +129,7 @@ class NGramSet
 	
 	public void clear ( )
 	{
-		this.ngrams = this.ngrams.init;
+		this.ngrams.clear();
 		this.sorted_ngrams.length = 0;
 	}
 	
@@ -119,7 +161,15 @@ class NGramSet
 	
 	public void addOccurrence ( dchar[] ngram )
 	{
-		this.ngrams[ngram]++;
+		if ( ngram in this.ngrams )
+		{
+			auto freq = this.ngrams[ngram];
+			this.ngrams[ngram] = freq + 1;
+		}
+		else
+		{
+			this.ngrams[ngram] = 1;
+		}
 	}
 	
 	
@@ -158,8 +208,8 @@ class NGramSet
 	
 		return total;
 	}
-	
-	
+
+
 	/***************************************************************************
 	
 		foreach iterator over all the ngrams in the set. The iterator loops over
@@ -214,7 +264,7 @@ class NGramSet
 
 		BitArray ngram_copied;
 		ngram_copied.length = this.ngrams.length;
-		
+
 		uint count;
 		while ( count < max_ngrams )
 		{
@@ -250,7 +300,7 @@ class NGramSet
 	
 	***************************************************************************/
 	
-	public void copyHighest ( NGramSet copy_to, uint num )
+	public void copyHighest ( This copy_to, uint num )
 	{
 		this.ensureWithinRange(num);
 		this.ensureSorted(num);
@@ -324,9 +374,9 @@ class NGramSet
 	
 	***************************************************************************/
 
-	public NGramSetIterator getHighest ( uint num )
+	public Iterator getHighest ( uint num )
 	{
-		NGramSetIterator it;
+		Iterator it;
 		it.num = num;
 		it.ngrams = this;
 
@@ -379,7 +429,7 @@ class NGramSet
 	
 	***************************************************************************/
 	
-	public float distance ( NGramSet compare )
+	public float distance ( This compare )
 	{
 		if ( compare.length == 0 )
 		{
@@ -670,11 +720,11 @@ class NGramSet
 
 *******************************************************************************/
 
-struct NGramSetIterator
+struct NGramSetIterator_ ( bool ThreadSafe = false )
 {
 	/***************************************************************************
 
-		Number of ngramsto iterate over (the n highest frequency).
+		Number of ngrams to iterate over (the n highest frequency).
 	
 	***************************************************************************/
 
@@ -683,11 +733,11 @@ struct NGramSetIterator
 
 	/***************************************************************************
 
-		A reference to the NGramSet object to iteratoe over.
+		A reference to the NGramSet object to iterate over.
 	
 	***************************************************************************/
 
-	public NGramSet ngrams;
+	public NGramSet_!(ThreadSafe) ngrams;
 	
 
 	/***************************************************************************
