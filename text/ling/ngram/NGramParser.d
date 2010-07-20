@@ -101,10 +101,10 @@ private		import ocean.text.ling.ngram.NGramSet;
 
 public      import ocean.core.Exception: NgramParserException;
 
-
 private     import      TextUtil    = tango.text.Util:          contains, substitute, replace, split, trim;
 private     import      Utf         = tango.text.convert.Utf:   toString32;
 private     import      Unicode     = tango.text.Unicode:       toLower;
+
 private		import		tango.core.Array;
 
 debug
@@ -122,92 +122,119 @@ debug
 
 public class NGramParser
 {
-    /**
-     * Ngram map alias
-     */
-    public alias NGramSet.NGramArray NGramsArray;
+	/***************************************************************************
 
-    /**
-     * Map with the ngrams of the text and the appropriate frequency
-     */
+	    Ngram map alias
+	    
+	***************************************************************************/
+
+	public alias NGramSet.NGramArray NGramsArray;
+
+
+	/***************************************************************************
+
+	    Map with the ngrams of the text and the appropriate frequency
+	    
+	***************************************************************************/
+
     private     NGramSet                ngram_map;
+
     
-    /**
-     * Text that should be analysed 
-     */
+	/***************************************************************************
+
+	    Text that should be analysed
+	    
+	***************************************************************************/
+
     private     dchar[]                 text;
+
     
-    /**
-     * Internal array of all words in the text (slices into this.text)
-     */
+	/***************************************************************************
+
+	    Internal array of all words in the text (slices into this.text)
+	    
+	***************************************************************************/
+
     private     dchar[][]               word_token;
 
-    /**
-     * Internal array with a list of stop words
-     */
+
+    
+	/***************************************************************************
+
+	    Internal array with a list of stop words
+	    
+	***************************************************************************/
+
     public     dchar[][]               stopwords;
 
-    /**
-     * Default ngram length
-     */
+    
+	/***************************************************************************
+
+	    Default ngram length
+	    
+	***************************************************************************/
+
     private     uint                    ngram_len           = 4;
 
 
+	/***************************************************************************
 
-    /**
-     * Constructor
-     *
-     */
+	    Constructor
+	    
+	***************************************************************************/
+
     public this ()
     {
     	this.ngram_map = new NGramSet();
     }
 
-    /**
-     * Parse text and generate the according ngram map
-     *
-     */
+
+	/***************************************************************************
+
+	    Parse text and generate the according ngram map
+	    
+	***************************************************************************/
+
     public void parse ( )
     {
     	this.parse(this.ngram_map);
     }
 
-    /**
-     * Parse text and generate the according ngram map
-     *
-     * Params:
-     * 		ngrams = ngrams set which the found ngrams will be added to
-     */
+
+	/***************************************************************************
+
+		Parse text and generate the according ngram map
+
+     	Params:
+     		ngrams = ngrams set which the found ngrams will be added to
+
+    ***************************************************************************/
 
     public void parse ( NGramSet ngrams )
     {
-        /**
-         * Removes all unnecessary chars from the given text in order to 
-         * create good word matching ngrams.
-         */
+        // Removes all unnecessary chars from the given text in order to 
+        // create good word matching ngrams.
         this._removeUnwantedChars();
 
-        /**
-         * Split the text in separate words by using white spaces as a 
-         * delimiter.  
-         */
+        // Split the text in separate words by using white spaces as a 
+        // delimiter.  
         this._splitWords();
 
-        /**
-         * Generate the ngram for each word and count the occurrence of 
-         * each found ngram.
-         */
+        // Generate the ngram for each word and count the occurrence of 
+        // each found ngram.
         this._createNGramMap(ngrams);        
     }
 
 
+	/***************************************************************************
 
-    /**
-     * Set text to analyze
-     * 
-     * Params:
-     *     text = text to analyze
-     */
+	    Set text to analyze
+	
+	    Params:
+			text = text to analyze
+	    
+	***************************************************************************/
+
     public void setText ( char[] text )
     {
         try
@@ -222,13 +249,15 @@ public class NGramParser
     }
 
 
+	/***************************************************************************
 
-    /**
-     * Set text to analyze
-     * 
-     * Params:
-     *     text = text to analyze
-     */
+	    Set text to analyze
+	 
+	    Params:
+	        text = text to analyze
+	    
+	***************************************************************************/
+
     public void setText ( dchar[] text )
     {
         try
@@ -242,53 +271,61 @@ public class NGramParser
     }
 
 
+	/***************************************************************************
 
-    /**
-     * Return the text
-     * 
-     * Returns:
-     *     text
-     */
+	    Return the text
+	
+	    Returns:
+	        text
+	    
+	***************************************************************************/
+
     public dchar[] getText ()
     {
         return this.text;
     }
     
         
-    
-    /**
-     * Set the length of ngram  
-     * 
-     * Params:
-     *     ngram_len = length of the ngrams that should be returned
-     */
+	/***************************************************************************
+
+	    Set the length of ngram  
+	
+	    Params:
+	        ngram_len = length of the ngrams that should be returned
+	    
+	***************************************************************************/
+
     public void setNGramLength ( uint ngram_len )
     {
         this.ngram_len = ngram_len;
     }
 
 
+	/***************************************************************************
 
-    /**
-     * Returns the ngram length
-     * 
-     * Returns:
-     *     returns the ngram length that should be used to generate ngrams 
-     */
+	    Returns the ngram length
+	
+	    Returns:
+	        returns the ngram length that should be used to generate ngrams 
+	    
+	***************************************************************************/
+
     public uint getNGramLength ()
     {
         return this.ngram_len;
     }
     
     
-    
-    /**
-     * Sets the stop word array. The passed strings are copied into the
-     * this.stopwords array, and are converted to lower case.
-     * 
-     * Params:
-     *     stopwords = array with stop words
-     */
+	/***************************************************************************
+
+	    Sets the stop word array. The passed strings are copied into the
+	    this.stopwords array, and are converted to lower case.
+	
+	    Params:
+	        stopwords = array with stop words
+	    
+	***************************************************************************/
+
     public void setStopWords ( dchar[][] stopwords )
     {
         foreach (stopword; stopwords)
@@ -305,14 +342,16 @@ public class NGramParser
     }
 
 
+	/***************************************************************************
 
-    /**
-     * Sets the stop word array. The passed strings are copied into the
-     * this.stopwords array, and are converted to lower case.
-     * 
-     * Params:
-     *     stopwords = array with stop words
-     */
+	    Sets the stop word array. The passed strings are copied into the
+	    this.stopwords array, and are converted to lower case.
+	
+	    Params:
+	        stopwords = array with stop words
+    
+	***************************************************************************/
+
     public void setStopWords ( char[][] stopwords )
     {
         foreach (ref stopword; stopwords)
@@ -328,17 +367,15 @@ public class NGramParser
         }
     }
 
-    protected dchar[] toChar ( T ) ( T[] str )
-    {
-   		return Utf.toString32(str).dup;
-    }
 
-    /**
-     * Gets all the ngrams which have been analysed from a text.
-     * 
-     * Params:
-     *     map = associative array to copy ngrams into
-     */
+	/***************************************************************************
+
+	    Gets all the ngrams which have been analysed from a text.
+	
+	    Params:
+	        map = associative array to copy ngrams into
+	    
+	***************************************************************************/
 
     public void getNGramMap ( out NGramsArray map )
     {
@@ -346,16 +383,17 @@ public class NGramParser
     }
 
     
-    
-    /**
-     * Gets the specified number of ngrams which have been analysed from a text.
-     * The ngrams are copied, starting with the highest frequency, up to the 
-     * specified number.
-     * 
-     * Params:
-     *     map = associative array to copy ngrams into
-     *     max_items = number of ngrams to copy
-     */
+	/***************************************************************************
+
+	    Gets the specified number of ngrams which have been analysed from a text.
+	    The ngrams are copied, starting with the highest frequency, up to the 
+	    specified number.
+	
+	    Params:
+	        map = associative array to copy ngrams into
+	        max_items = number of ngrams to copy
+	    
+	***************************************************************************/
 
     public void getNGramMap ( out NGramsArray map, uint max_items )
     {
@@ -366,13 +404,14 @@ public class NGramParser
     }
 
 
+	/***************************************************************************
 
-    /**
-     * Gets all the ngrams which have been analysed from a text.
-     * 
-     * Params:
-     *     map = NGramSet object to copy ngrams into
-     */
+	    Gets all the ngrams which have been analysed from a text.
+	
+	    Params:
+	        map = NGramSet object to copy ngrams into
+	    
+	***************************************************************************/
 
     public void getNGramMap ( NGramSet map )
     {
@@ -380,16 +419,17 @@ public class NGramParser
     }
 
     
-    
-    /**
-     * Gets the specified number of ngrams which have been analysed from a text.
-     * The ngrams are copied, starting with the highest frequency, up to the 
-     * specified number.
-     * 
-     * Params:
-     *     map = NGramAnalysis!(Char) object to copy ngrams into
-     *     max_items = number of ngrams to copy
-     */
+	/***************************************************************************
+
+	    Gets the specified number of ngrams which have been analysed from a text.
+	    The ngrams are copied, starting with the highest frequency, up to the 
+	    specified number.
+	
+	    Params:
+	        map = NGramAnalysis!(Char) object to copy ngrams into
+	        max_items = number of ngrams to copy
+
+	***************************************************************************/
 
     public void getNGramMap ( NGramSet map, uint max_items )
     {
@@ -402,32 +442,34 @@ public class NGramParser
     }
 
 
+	/***************************************************************************
 
-    /**
-     * Gets an iterator over the highest frequency n ngrams in the set. The
-     * returned ngrams are *not* copied, an iterator struct is returned, which
-     * enables foreach iteration over the ngrams.
-     * 
-     * Params:
-     *     max_items = number of ngrams to return
-     *      
-     * Returns:
-     * 		iterator over the highest frequency ngrams in the set
-     */
+	    Gets an iterator over the highest frequency n ngrams in the set. The
+	    returned ngrams are *not* copied, an iterator struct is returned, which
+	    enables foreach iteration over the ngrams.
+	
+	    Params:
+	        max_items = number of ngrams to return
+	
+	    Returns:
+	   		iterator over the highest frequency ngrams in the set
+	    
+	***************************************************************************/
 
-    public NGramSetIterator getNGramMap ( uint max_items )
+    public NGramSet.Iterator getNGramMap ( uint max_items )
     {
     	return this.ngram_map.getHighest(max_items);
     }
 
 
+	/***************************************************************************
 
-    /**
-     * Gets the ngram analysis of the last text parsed.
-     * 
-     * Returns:
-     * 		the ngram analysis of the last text parsed
-     */
+	    Gets the ngram analysis of the last text parsed.
+	
+	    Returns:
+	    	the ngram analysis of the last text parsed
+	    
+	***************************************************************************/
 
     public NGramSet getNGramMap ( )
     {
@@ -435,30 +477,26 @@ public class NGramParser
     }
 
 
+	/***************************************************************************
 
-    /**************************************************************************
-    
-	    static functions
-	
-	**************************************************************************/ 
-
-    /**
-     * Static instance used by static functions
-     */
+    	Static instance used by static functions
+	    
+	***************************************************************************/
 
     protected static typeof(this) instance;
 
 
+	/***************************************************************************
 
-    /**
-     * Parses a text, and fills the passed ngrams set with the discovered
-     * ngrams.
-     * 
-     * Params:
-     *     out_ngrams = ngrams set to be filled
-     *     ngram_length = character length of ngrams
-     *     text = text to parse
-     */
+	    Parses a text, and fills the passed ngrams set with the discovered
+	    ngrams.
+	
+	    Params:
+	        out_ngrams = ngrams set to be filled
+	        ngram_length = character length of ngrams
+	        text = text to parse
+
+	***************************************************************************/
 
     public static void parseText ( T ) ( NGramSet out_ngrams, uint ngram_length, T[] text )
     {
@@ -467,17 +505,18 @@ public class NGramParser
     }
 
 
+	/***************************************************************************
 
-    /**
-     * Parses a text, and fills the passed ngrams set with the discovered
-     * ngrams.
-     * 
-     * Params:
-     *     out_ngrams = ngrams set to be filled
-     *     ngram_length = character length of ngrams
-     *     text = text to parse
-     *     stopwords = list of words to ignore
-     */
+	    Parses a text, and fills the passed ngrams set with the discovered
+	    ngrams.
+	
+	    Params:
+	        out_ngrams = ngrams set to be filled
+	        ngram_length = character length of ngrams
+	        text = text to parse
+	        stopwords = list of words to ignore
+
+	***************************************************************************/
 
     public static void parseText ( T, S ) ( NGramSet out_ngrams, uint ngram_length, T[] text, S[][] stopwords )
     {
@@ -493,18 +532,13 @@ public class NGramParser
     }
 
 
+	/***************************************************************************
 
-    /**************************************************************************
-    
-        private functions
-    
-    **************************************************************************/ 
-        
-    /**
-     * Create ngram map from the words in the text and saves the ngram in the 
-     * global ngram map. for each occurence in of a ngram the count is 
-     * incremented for that ngram in the global ngram map.
-     */
+	    Create ngram map from the words in the text and saves the ngram in the 
+	    global ngram map. for each occurence in of a ngram the count is 
+	    incremented for that ngram in the global ngram map.
+	    
+	***************************************************************************/
 
     private void _createNGramMap ( NGramSet ngrams )
     {
@@ -512,19 +546,13 @@ public class NGramParser
 
     	ngrams.clear();
 
-    	/** 
-         * Iterate through all words in the text.
-         */
+        // Iterate through all words in the text.
         foreach (word; this.word_token)
         {
-        	/**
-             * Get the ngrams for the word
-             */
+            // Get the ngrams for the word
             word_n_grams = this._getWordNGrams(word);
 
-            /**
-             * Add ngrams to the ngram map and count their occurrence
-             */
+            // Add ngrams to the ngram map and count their occurrence
             foreach (n_gram; word_n_grams)
             {   
             	ngrams.addOccurrence(n_gram);
@@ -533,31 +561,32 @@ public class NGramParser
     }
 
 
+	/***************************************************************************
 
-    /**
-     * Creates all possible ngrams for a word
-     *  
-     * Params:
-     *     word = word
-     *      
-     * Returns:
-     *     list of ngrams (slices into the passed word)
-     */
+	    Creates all possible ngrams for a word
+	
+	    Params:
+	        word = word
+	
+	    Returns:
+	        list of ngrams (slices into the passed word)
+
+	***************************************************************************/
+
     private dchar[][] _getWordNGrams ( dchar[] word ) 
     {
-        uint       max_steps, i = 0;
-        dchar[][]   ngrams;
+        uint i;
+        uint max_steps;
+        dchar[][] ngrams;
         
-        /**
-         * Slice through the word and add each ngram to the ngram array.
-         */
+        // Slice through the word and add each ngram to the ngram array.
         if (word.length >= this.ngram_len)
-        {   
-            max_steps = word.length - this.ngram_len;
+        {
+        	max_steps = (word.length - this.ngram_len) + 1;
             
             do 
             {                   
-                ngrams ~= word[i .. i + this.ngram_len];
+            	ngrams ~= word[i .. i + this.ngram_len];
                 i++;
             }
             while (i<max_steps)
@@ -567,11 +596,12 @@ public class NGramParser
     }
         
     
-    
-    /**
-     * Removes all unwanted characters from the text,
-     * e.g. ; ,& , etc.
-     */
+	/***************************************************************************
+
+	    Removes all unwanted characters from the text: digits, punctuation, etc.
+	    
+	***************************************************************************/
+
     private void _removeUnwantedChars ( )
     {
     	const dchar[] unwanted = "0123456789-\n;&(){}[]<>/\\|.,;:!@#$%^&*_-+=`~?\"\'";
@@ -586,12 +616,13 @@ public class NGramParser
     }
 
 
+	/***************************************************************************
 
-    /**
-     * Split text in separate words and stores them in global word token array.
-     * During the splitting of the words in the text, any words found which are
-     * in the stopwords array will not be added to the word list.
-     */
+	    Split text in separate words and stores them in global word token array.
+	    During the splitting of the words in the text, any words found which are
+	    in the stopwords array will not be added to the word list.
+
+	***************************************************************************/
 
     private void _splitWords ()
     {
