@@ -53,18 +53,27 @@ public class HtmlEntityCodec : MarkupEntityCodec!(HtmlEntitySet)
 	it's more convenient to use the normal HtmlEntityCodec, which can do both
 	encoding & decoding.)
 
+	Template params:
+		wide_char = switches between internal use of char & dchar
+
 *******************************************************************************/
 
-public class HtmlDecoding ( Char = char ) : HtmlEntityCodec
+public class HtmlDecoding ( bool wide_char = false ) : HtmlEntityCodec
 {
 	/***************************************************************************
 	
-	    Check the parameter type of this class.
+	    Alias for internal character type.
 	
 	***************************************************************************/
 	
-	static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
-			This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
+	static if ( wide_char )
+	{
+		public alias dchar Char;
+	}
+	else
+	{
+		public alias char Char;
+	}
 	
 	
 	/***************************************************************************
@@ -91,14 +100,7 @@ public class HtmlDecoding ( Char = char ) : HtmlEntityCodec
 	
 	***************************************************************************/
 	
-	static if ( is(Char == char) )
-	{
-		protected alias StringReplace!(false) StrRep;
-	}
-	else
-	{
-		protected alias StringReplace!(true) StrRep;
-	}
+	protected alias StringReplace!(wide_char) StrRep;
 	
 	protected StrRep string_replace;
 	
@@ -132,16 +134,7 @@ public class HtmlDecoding ( Char = char ) : HtmlEntityCodec
 	
 		if ( pre_convert_amp )
 		{
-			static if ( is(Char == wchar) )
-			{
-				// TODO: as StringReplace only takes dchar or char, wchars
-				// will need to be converted to dchar first, then processed.
-				static assert(false, This.stringof ~ ".opCall - sorry, this method can't handle wchars at the moment (TODO)");
-			}
-			else
-			{
-				this.string_replace.replacePattern(this.buf, "&amp;", "&");
-			}
+			this.string_replace.replacePattern(this.buf, "&amp;", "&");
 		}
 	
 		this.decode(text, this.buf);
@@ -158,21 +151,30 @@ public class HtmlDecoding ( Char = char ) : HtmlEntityCodec
 	(Designed as a direct replacement for the old HtmlEncoding class. Generally
 	it's more convenient to use the normal HtmlEntityCodec, which can do both
 	encoding & decoding.)
+	
+	Template params:
+		wide_char = switches between internal use of char & dchar
 
 *******************************************************************************/
 
-public class HtmlEncoding ( Char = char ) : HtmlEntityCodec
+public class HtmlEncoding ( bool wide_char = false ) : HtmlEntityCodec
 {
 	/***************************************************************************
 	
-	    Check the parameter type of this class.
+	    Alias for internal character type.
 	
 	***************************************************************************/
-	
-	static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
-			This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
-	
-	
+
+	static if ( wide_char )
+	{
+		public alias dchar Char;
+	}
+	else
+	{
+		public alias char Char;
+	}
+
+
 	/***************************************************************************
 	
 	    This alias.
