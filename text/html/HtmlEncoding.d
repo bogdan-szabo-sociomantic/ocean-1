@@ -78,7 +78,7 @@ debug
 
  ******************************************************************************/
 
-class HtmlEncoding ( bool wide_char = false, bool basic_only = false )
+deprecated class HtmlEncoding ( bool wide_char = false, bool basic_only = false )
 {
     /***************************************************************************
 

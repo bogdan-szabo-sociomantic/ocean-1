@@ -62,7 +62,6 @@ template HtmlCharSets ( bool wide_char = true )
     const HtmlEntity_[] Basic =
     [
         {"amp",    0x0026}, // '&'
-         
         {"quot",   0x0022}, // '"'
         {"lt",     0x003C}, // '<'
         {"gt",     0x003E}, // '>'

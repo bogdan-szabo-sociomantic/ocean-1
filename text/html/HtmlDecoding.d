@@ -77,7 +77,7 @@ private import tango.core.Array;
 
  ******************************************************************************/
 
-class HtmlDecoding ( bool wide_char = false, bool basic_only = false )
+deprecated class HtmlDecoding ( bool wide_char = false, bool basic_only = false )
 {
     /**************************************************************************
 
