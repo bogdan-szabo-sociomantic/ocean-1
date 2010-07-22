@@ -30,6 +30,8 @@ private import ocean.text.entities.model.MarkupEntityCodec;
 
 private import ocean.text.entities.HtmlEntitySet;
 
+private import ocean.text.util.StringReplace;
+
 
 
 /*******************************************************************************
