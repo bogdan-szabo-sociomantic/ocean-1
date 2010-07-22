@@ -27,7 +27,7 @@ module ocean.text.entities.model.IEntitySet;
 
 *******************************************************************************/
 
-private import ocean.text.utf.UtfString : InvalidUnicode;
+private import ocean.text.utf.UtfString : InvalidUnicode, utf_match;
 
 debug
 {
@@ -68,6 +68,15 @@ public abstract class IEntitySet
 
 	/***************************************************************************
 
+		Abstract method to get the encoded form of an entity.
+	
+	***************************************************************************/
+	
+	abstract public char[] getEncodedEntity ( dchar unicode );
+
+
+	/***************************************************************************
+
 		Gets the unicode character associated with the passed name.
 		
 		Template params:
@@ -86,7 +95,7 @@ public abstract class IEntitySet
 	{
 		foreach ( check_name, unicode; this )
 		{
-			if ( this.nameMatch(name, check_name) )
+			if ( utf_match(name, check_name) )
 			{
 				return unicode;
 			}
@@ -139,7 +148,7 @@ public abstract class IEntitySet
 	{
 		foreach ( ref entity; this.entities )
 		{
-			if ( this.nameMatch(name, entity.name) )
+			if ( utf_match(name, entity.name) )
 			{
 				return true;
 			}
@@ -165,7 +174,7 @@ public abstract class IEntitySet
 	{
 		foreach ( ref entity; this.entities )
 		{
-			if ( this.nameMatch(name, entity.name) )
+			if ( utf_match(name, entity.name) )
 			{
 				return true;
 			}
@@ -191,7 +200,7 @@ public abstract class IEntitySet
 	{
 		foreach ( ref entity; this.entities )
 		{
-			if ( this.nameMatch(name, entity.name) )
+			if ( utf_match(name, entity.name) )
 			{
 				return true;
 			}
@@ -287,35 +296,6 @@ public abstract class IEntitySet
 		}
 
 		return res;
-	}
-
-
-	/***************************************************************************
-
-		Do the two passed names match?
-		
-		Template params:
-			Char = character type of name
-	
-		Params:
-			name = name to check
-			entity_name = name of an entity
-	
-		Returns:
-			true if the names match
-	
-	***************************************************************************/
-	
-	protected bool nameMatch ( Char ) ( Char[] name, char[] entity_name )
-	{
-		foreach ( i, c; name )
-		{
-			if ( c != entity_name[i] )
-			{
-				return false;
-			}
-		}
-		return true;
 	}
 }
 
