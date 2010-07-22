@@ -49,7 +49,7 @@ debug ( OceanUnitTest )
 
 	void encodeTest ( Char ) ( XmlEntityCodec codec, Char[] string, Char[] expected_result )
 	{
-        char[] encoded;
+        Char[] encoded;
 
         if ( codec.containsUnencoded(string) )
         {
@@ -66,7 +66,7 @@ debug ( OceanUnitTest )
 	
 	void decodeTest ( Char ) ( XmlEntityCodec codec, Char[] string, Char[] expected_result )
 	{
-        char[] decoded;
+        Char[] decoded;
 
         if ( codec.containsEncoded(string) )
         {
@@ -83,32 +83,52 @@ debug ( OceanUnitTest )
 	// Perform tests for various char types
 	void test ( Char ) ( )
 	{
-        Trace.formatln("Testing {}s", Char.stringof);
+		struct Test
+		{
+			Char[] before;
+			Char[] after;
+		}
+
+		Trace.formatln("Testing {}s", Char.stringof);
 
         scope codec = new XmlEntityCodec;
 
         // Check encoding
-        encodeTest(codec, "", ""); // saftey check
-        encodeTest(codec, "&", "&amp;");
-        encodeTest(codec, "'", "&apos;");
-        encodeTest(codec, "\"", "&quot;");
-        encodeTest(codec, "<", "&lt;");
-        encodeTest(codec, ">", "&gt;");
-        encodeTest(codec, "©", "©"); // trick question
-        encodeTest(codec, "'hello'", "&apos;hello&apos;");
-        encodeTest(codec, "&amp;", "&amp;"); // already encoded
+		Test[] encode_tests = [
+	        Test("", "" ), // saftey check
+        	Test("&", "&amp;"),
+        	Test("'", "&apos;"),
+    		Test("\"", "&quot;"),
+    		Test("<", "&lt;"),
+			Test(">", "&gt;"),
+			Test("©", "©"), // trick question
+			Test("'hello'", "&apos;hello&apos;"),
+			Test("&amp;", "&amp;") // already encoded
+		];
+
+        foreach ( t; encode_tests )
+        {
+        	encodeTest!(Char)(codec, t.before, t.after);
+        }
 
         // Check decoding
-        decodeTest(codec, "", ""); // saftey check
-        decodeTest(codec, "&#80;", "P");
-        decodeTest(codec, "&#x50;", "P");
-        decodeTest(codec, "&amp;", "&");
-        decodeTest(codec, "&apos;", "'");
-        decodeTest(codec, "&quot;", "\"");
-        decodeTest(codec, "&lt;", "<");
-        decodeTest(codec, "&gt;", ">");
-        decodeTest(codec, "©", "©"); // trick question
-        decodeTest(codec, "&amp;#23;&#80;", "&#23;P"); // double encoding
+		Test[] decode_tests = [
+           Test("", ""), // saftey check
+           Test("&#80;", "P"),
+           Test("&#x50;", "P"),
+           Test("&amp;", "&"),
+           Test("&apos;", "'"),
+           Test("&quot;", "\""),
+           Test("&lt;", "<"),
+           Test("&gt;", ">"),
+           Test("©", "©"), // trick question
+           Test("&amp;#23;&#80;", "&#23;P") // double encoding
+   		];
+		
+        foreach ( t; decode_tests )
+        {
+        	decodeTest!(Char)(codec, t.before, t.after);
+        }
 	}
 	
 	unittest
