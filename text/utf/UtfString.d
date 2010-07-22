@@ -7,10 +7,17 @@
     author:         Gavin Norman
 
 	Struct template to iterate over strings in variable encoding format (utf8,
-	utf16, utf32), extracting one unicode character at a time.
+	utf16, utf32), extracting one unicode character at a time. Each unicode
+	character may be represented by one or more character in the input string,
+	depending on the encoding format.
 
-	The template also has static functions for extracting single characters from
-	a string of variable encoding.
+	The struct takes a template parameter (pull_dchars) which determines
+	whether its methods return unicode characters (utf32 - dchars) or characters
+	in the same format as the source string.
+
+	The template also has an index operator, to extract the nth unicode
+	character in the string, and static methods for extracting single characters
+	from a string of variable encoding.
 
 	Example usage:
 	
@@ -41,6 +48,11 @@ module ocean.text.utf.UtfString;
 *******************************************************************************/
 
 private import Utf = tango.text.convert.Utf;
+
+debug
+{
+	private import tango.util.log.Trace;
+}
 
 
 
@@ -225,8 +237,9 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 	    Params:
 	    	index = index of character to extract
 	    	
-	    Returns:
-	    	extracted character
+		Returns:
+			the extracted character, either as a dchar or a slice into the input
+			string (depending on the pull_dchars template parameter).
 	
 	***************************************************************************/
 	
@@ -258,6 +271,10 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 	    Params:
 	    	text = string to extract from
 	
+		Returns:
+			the extracted character, either as a dchar or a slice into the input
+			string (depending on the pull_dchars template parameter).
+
 	***************************************************************************/
 	
 	public static OutType extract ( Char[] text )
@@ -276,6 +293,10 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 	    	width = outputs the width (in terms of the number of characters in
 	    		the input string) of the extracted character
 	
+		Returns:
+			the extracted character, either as a dchar or a slice into the input
+			string (depending on the pull_dchars template parameter).
+
 	***************************************************************************/
 	
 	static if ( pull_dchars )
