@@ -600,6 +600,8 @@ debug ( OceanUnitTest )
         
         uint x = 0;
         
+        auto mem_before = GC.stats["poolSize"];
+
         for ( uint i=0; i <= 500_000; i++ )
         {
             url.parse(url_string);
@@ -610,10 +612,11 @@ debug ( OceanUnitTest )
             
             if ( x == 50_000 )
             {
-                Trace.formatln("finished 50000 calls: alloc mem {} b", 
-                        GC.stats["poolSize"]);
+            	auto mem_now = GC.stats["poolSize"];
+
+                Trace.formatln("finished 50000 calls: alloc mem {} b", mem_now);
                 
-                assert(GC.stats["poolSize"] < 2000000, "found memory leak");
+                assert(mem_now - mem_before > 0, "found memory leak");
                 
                 x = 0;
             }
