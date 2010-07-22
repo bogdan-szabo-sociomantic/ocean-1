@@ -66,7 +66,32 @@ public class XmlEntitySet : IEntitySet
 	{
 		return This.xml_entities;
 	}
+
+
+	/***************************************************************************
+
+		Gets the fully encoded form of an entity.
+		
+		Params:
+			unicode = unicode of entity to encode
+
+		Returns:
+			the fully encoded form of the entity, or "" if the unicode value
+			passed is not an encodable entity
+
+	***************************************************************************/
+	
+	public char[] getEncodedEntity ( dchar unicode )
+	{
+		auto name = this.getName(unicode);
+		if ( name.length )
+		{
+			return "&" ~ name  ~ ";";
+		}
+		else
+		{
+			return "";
+		}
+	}
 }
-
-
 
