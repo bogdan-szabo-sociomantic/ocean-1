@@ -80,6 +80,25 @@ debug ( OceanUnitTest )
         assert(decoded == expected_result);
 	}
 	
+	void decodeTest2Stage ( Char ) ( XmlEntityCodec codec, Char[] original, Char[] intermediate, Char[] expected_result )
+	{
+        Char[] decoded1, decoded2;
+
+        codec.decodeAmpersands(original, decoded1);
+        assert(decoded1 == intermediate);
+        
+        if ( codec.containsEncoded(decoded1) )
+        {
+            codec.decode(decoded1, decoded2);
+        }
+        else
+        {
+        	decoded2 = decoded1;
+        }
+
+        assert(decoded2 == expected_result);
+	}
+
 	// Perform tests for various char types
 	void test ( Char ) ( )
 	{
@@ -129,6 +148,12 @@ debug ( OceanUnitTest )
         {
         	decodeTest!(Char)(codec, t.before, t.after);
         }
+
+        // Check 2-stage decoding (ampersands first)
+        Char[] original = "&amp;#80;";
+        Char[] stage1 = "&#80;";
+        Char[] stage2 = "P";
+        decodeTest2Stage!(Char)(codec, original, stage1, stage2);
 	}
 	
 	unittest
