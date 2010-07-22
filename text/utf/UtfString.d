@@ -16,8 +16,8 @@
 	in the same format as the source string.
 
 	The template also has an index operator, to extract the nth unicode
-	character in the string, and static methods for extracting single characters
-	from a string of variable encoding.
+	character in the string, and methods and static methods for extracting
+	single characters from a string of variable encoding.
 
 	Example usage:
 	
@@ -33,6 +33,23 @@
 			Trace.formatln("Character {} is {} and it's {} wide", i, c, width);
 		}
 	
+	---
+
+	There is also a utf_match function in the module, which compares two strings
+	for equivalence, irrespective of whether they're in the same encoding or
+	not.
+
+	Example:
+
+	---
+
+		import ocean.text.utf.UtfString;
+		
+		char[] str1 = "hello world ®"; // utf8 encoding
+		dchar[] str2 = "hello world ®"; // utf32 encoding
+
+		assert(utf_match(str1, str2));
+
 	---
 
 *******************************************************************************/
@@ -56,13 +73,61 @@ debug
 
 
 
-/***************************************************************************
+/*******************************************************************************
 
 	Invalid unicode.
 
-***************************************************************************/
+*******************************************************************************/
 
-public static const dchar InvalidUnicode = cast(dchar)0xffffffff;
+public const dchar InvalidUnicode = cast(dchar)0xffffffff;
+
+
+
+/*******************************************************************************
+
+	Encoding agnostic string compare function.
+
+	Template params:
+		Char1 = character type of first string to compare
+		Char2 = character type of second string to compare
+
+	Params:
+		str1 = first string to compare
+		str2 = second string to compare
+
+	Returns:
+		true if the strings contain the same unicode characters
+
+*******************************************************************************/
+
+bool utf_match ( Char1, Char2 ) ( Char1[] str1, Char2[] str2 )
+{
+	static if ( is(Char1 == Char2) )
+	{
+		return str1 == str2;
+	}
+	else
+	{
+		if ( (str1.length == 0 || str2.length == 0) && str1.length != str2.length )
+		{
+			return false;
+		}
+		UtfString!(Char1, true) utf_str1 = { str1 };
+		UtfString!(Char2, true) utf_str2 = { str2 };
+		
+		foreach ( c1; utf_str1 )
+		{
+			auto c2 = utf_str2.extract(true);
+	
+			if ( c1 != c2 )
+			{
+				return false;
+			}
+		}
+	
+		return true;
+	}
+}
 
 
 
@@ -232,7 +297,7 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 
 	/***************************************************************************
 	
-	    opIndex. Extracts the nth unicode character from the input string.
+	    opIndex. Extracts the nth unicode character from the referenced string.
 	
 	    Params:
 	    	index = index of character to extract
@@ -266,6 +331,55 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 	
 	/***************************************************************************
 	
+	    Extract the next character from the referenced string.
+	
+	    Params:
+	    	consume = if true, the extracted characters are removed from the
+	    		string (the start of the slice is advanced)
+	
+		Returns:
+			the extracted character, either as a dchar or a slice into the input
+			string (depending on the pull_dchars template parameter).
+	
+	***************************************************************************/
+	
+	public OutType extract ( bool consume = false )
+	{
+		size_t width;
+		return this.extract(width, consume);
+	}
+
+
+	/***************************************************************************
+	
+	    Extract the next character from the referenced string.
+	
+	    Params:
+	    	width = outputs the width (in terms of the number of characters in
+	    		the input string) of the extracted character
+	    	consume = if true, the extracted characters are removed from the
+	    		string (the start of the slice is advanced)
+	
+		Returns:
+			the extracted character, either as a dchar or a slice into the input
+			string (depending on the pull_dchars template parameter).
+	
+	***************************************************************************/
+
+	public OutType extract ( out size_t width, bool consume = false )
+	{
+		auto extracted = This.extract(this.string, width);
+		if ( consume )
+		{
+			this.string = this.string[width..$];
+		}
+
+		return extracted;
+	}
+
+
+	/***************************************************************************
+	
 	    Static method to extract the next character from the passed string.
 	
 	    Params:
@@ -276,7 +390,7 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 			string (depending on the pull_dchars template parameter).
 
 	***************************************************************************/
-	
+
 	public static OutType extract ( Char[] text )
 	{
 		size_t width;
@@ -340,6 +454,24 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 				return text[0..width];
 			}
 		}
+	}
+}
+
+
+
+debug ( OceanUnitTest )
+{
+	// TODO: only a very simple unittest for now!
+	unittest
+	{
+        Trace.formatln("Running ocean.text.utf.UtfString unittest");
+
+		char[] str1 = "hello world ®"; // utf8 encoding
+		dchar[] str2 = "hello world ®"; // utf32 encoding
+	
+		assert(utf_match(str1, str2));
+
+        Trace.formatln("\nDone unittest\n");
 	}
 }
 
