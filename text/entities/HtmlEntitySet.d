@@ -6,7 +6,7 @@
 
     author:         David Eckardt, Gavin Norman
 
-	Html entities.
+	Html entities. Built on the basis of the xml entities.
 
 *******************************************************************************/
 
@@ -27,11 +27,11 @@ private import ocean.text.entities.XmlEntitySet;
 
 /*******************************************************************************
 
-	Html entity set class
+	Html entity set class - extends XmlEntitySet
 
 *******************************************************************************/
 
-public class HtmlEntitySet : IEntitySet
+public class HtmlEntitySet : XmlEntitySet
 {
     /***************************************************************************
 
@@ -49,7 +49,7 @@ public class HtmlEntitySet : IEntitySet
 
 	***************************************************************************/
 
-	protected static const Entity[] ISO8859_1 = XmlEntitySet.xml_entities ~ ISO8859_1_extra;
+	protected static const Entity[] ISO8859_1 = xml_entities ~ ISO8859_1_extra;
 
 
 	/***************************************************************************
