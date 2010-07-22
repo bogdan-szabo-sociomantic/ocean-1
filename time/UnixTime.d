@@ -79,7 +79,7 @@ alias                   UnixTime!(false)               UnixTimeLocal;
     
  ******************************************************************************/
 
-struct UnixTime( bool GMT = true ) 
+deprecated struct UnixTime( bool GMT = true ) 
 {
 
     static:
