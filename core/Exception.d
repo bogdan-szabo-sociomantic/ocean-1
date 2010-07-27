@@ -315,7 +315,7 @@ template ExceptionOpCalls  ( E : Exception )
 
 *******************************************************************************/
 
-void assertEx ( E : Exception, T, Args ... ) ( T ok, Args args )
+void assertEx ( E : Exception = Exception, T, Args ... ) ( T ok, Args args )
 {
     if (!ok) throw new E(args);
 }
