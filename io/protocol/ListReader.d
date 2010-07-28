@@ -148,11 +148,11 @@ class ListReader : Reader
     }
     body
     {
-    	version ( TRACE ) Trace.formatln("ListReader.get");
-
     	static if (items.length)
         {
-            static if (is (T[0] U == U[][]))    // check whether the current
+        	version ( TRACE ) Trace.formatln("ListReader.get - {}", T[0].stringof);
+
+        	static if (is (T[0] U == U[][]))    // check whether the current
             {                                   // item is an array of arrays
                 this.getList(items[0]);
             }
@@ -175,15 +175,30 @@ class ListReader : Reader
                 }
                 else
                 {
-                	version ( TRACE ) Trace.formatln("ListReader.get - single item {}", typeof(items[0]).stringof);
+                	static if ( is(typeof(items[0]) U == U[]) )
+                	{
+                		version ( TRACE ) Trace.formatln("ListReader.get - single array item {} ({})", typeof(items[0]).stringof, items[0].length);
+                	}
+                	else
+                	{
+                		version ( TRACE ) Trace.formatln("ListReader.get - single item {}", typeof(items[0]).stringof);
+                	}
                     super.get(items[0]);
                 	version ( TRACE ) Trace.formatln("  GOT {}", items[0]);
                 }
             }
-            
-            this.get(items[1 .. $]);
+
+        	static if ( items.length > 1)
+        	{
+        		this.get(items[1 .. $]);
+        	}
         }
-        
+    	else
+    	{
+        	version ( TRACE ) Trace.formatln("ListReader.get - empty");
+    	}
+
+    	version ( TRACE ) Trace.formatln("ListReader.get - DONE");
         return this;
     }
     

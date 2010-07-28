@@ -170,6 +170,7 @@ class ListWriter : Writer
                 {
                 	version ( TRACE ) Trace.formatln("ListWriter.put - single item {}", typeof(items[0]).stringof);
                     super.put(items[0]);
+                	version ( TRACE ) Trace.formatln("  PUT {}", items[0]);
                 }
             }
             
