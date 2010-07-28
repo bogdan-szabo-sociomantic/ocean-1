@@ -474,6 +474,21 @@ class ObjectPool ( T, A ... )
     
     /**************************************************************************
     
+	    Returns the number of items available from pool. This is a reasonable
+	    value only if the total number of pool items is limited.
+	    
+	    Returns:
+	        the number of items available from pool
+	    
+	 **************************************************************************/
+	
+	public size_t getNumAvailableItems ( )
+	{
+	    return this.limited? this.max - this.getNumBusyItems() : size_t.max;
+	}
+
+	/**************************************************************************
+    
         Sets the default constructor arguments for item creation.
         
         Params:
