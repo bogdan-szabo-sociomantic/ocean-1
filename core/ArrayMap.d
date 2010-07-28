@@ -112,8 +112,6 @@ private struct KeyValueElement ( K, V )
     Usage example without thread support
     ---
     scope array = new ArrayMap!(char[])(10_000);
-    
-    array.buckets(20_000, 5); // set number of buckets!!! important
     ---
     
     Add & get an element
@@ -131,8 +129,6 @@ private struct KeyValueElement ( K, V )
     Usage example with thread support enabled
     ---
     scope array = new ArrayMap!(char[], hash_t, Mutex.Enable) ;
-    
-    array.buckets(20_000, 5); // set number of buckets !!! important
     ---
     
     FIXME: Return values of the pthread_rwlock_* POSIX API functions are
