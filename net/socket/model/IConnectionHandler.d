@@ -70,11 +70,19 @@ abstract class IConnectionHandler
     
      **************************************************************************/
     
-    private BufferedInput rbuffer;
-    private BufferedOutput wbuffer;
+    protected BufferedInput rbuffer;
+    protected BufferedOutput wbuffer;
     
     private const         size_t                          DefaultBufferSize = 0x10_000;
     
+    /**************************************************************************
+    
+        Conduit to client
+    
+     **************************************************************************/
+
+    protected IConduit conduit;
+
     /**************************************************************************
     
         Termination flag
@@ -147,7 +155,7 @@ abstract class IConnectionHandler
               
             while (!this.terminated && !this.finished)
             {
-                this.dispatch();
+            	this.dispatch();
                 
                 this.wbuffer.flush();                                           // send response back to client
             }
@@ -187,11 +195,12 @@ abstract class IConnectionHandler
 	        conduit = connection conduit (e.g. socket)
 
     ***************************************************************************/
-
+    
     protected void attachConduit ( IConduit conduit )
     {
     	this.reader.connectBufferedInput(this.rbuffer, conduit);
     	this.writer.connectBufferedOutput(this.wbuffer, conduit);
+    	this.conduit = conduit;
     }
 
     /***************************************************************************
@@ -209,6 +218,7 @@ abstract class IConnectionHandler
     	this.reader.disconnectBufferedInput();
     	this.writer.disconnectBufferedOutput();
         conduit.detach();
+        this.conduit = null;
     }
 
     /**************************************************************************
