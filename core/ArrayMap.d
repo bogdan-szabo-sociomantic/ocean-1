@@ -306,6 +306,9 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         scope array = new ArrayMap (1_000_000, 0.75);
         ---
         
+        TODO find way to avoid pre-allocation as this leads to a pretty bad
+             performance while dealing with a lot of small array maps
+        
         Params:
             default_size = estimated number of elements to be stored
             load_factor  = Determines the ratio of default_size to the number of
