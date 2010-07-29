@@ -18,10 +18,11 @@
         Header data layout:
             chunk[0  ..  4] - length of chunk[4 .. $] (or compressed data length
                               + header length - 4)
-            chunk[4  ..  9] - algorithm identifier, e.g. "LZO1X"
-            chunk[9  .. 13] - length of uncompressed data
-            chunk[13 .. 17] - 32-bit CRC value of compressed data, calculated
-                              using lzo_crc32()
+            chunk[4 ..   8] - 32-bit CRC value of following header elements and
+                              compressed data (chunk[8 .. $]), calculated using
+                              lzo_crc32()
+            chunk[8  .. 13] - algorithm identifier, e.g. "LZO1X"
+            chunk[13 .. 17] - length of uncompressed data
             
  ******************************************************************************/
 
@@ -36,6 +37,8 @@ module ocean.io.compress.minilzo.LzoChunk;
 private import ocean.io.compress.minilzo.MiniLzo;
 
 private import ocean.core.Exception: CompressException, assertEx;
+
+private import tango.util.log.Trace;
 
 /******************************************************************************
 
@@ -174,6 +177,14 @@ class LzoChunk
         
         /**********************************************************************
         
+            CRC32 of compressed data
+             
+         **********************************************************************/
+        
+        uint crc32;
+        
+        /**********************************************************************
+        
             Algorithm identifier. AlgoId is defined below
              
          **********************************************************************/
@@ -187,14 +198,6 @@ class LzoChunk
          **********************************************************************/
         
         size_t uncompressed_length;
-        
-        /**********************************************************************
-        
-            CRC32 of compressed data
-             
-         **********************************************************************/
-        
-        uint crc32;
         
         /**********************************************************************
         
@@ -239,7 +242,7 @@ class LzoChunk
             
             this.uncompressed_length = uncompressed_length;
             
-            this.crc32 = MiniLzo.crc32(compressed);
+            this.crc32 = MiniLzo.crc32(this.crc32OfElements(), compressed);
             
             return this;
         }
@@ -322,13 +325,17 @@ class LzoChunk
 
         void[] check ( void[] compressed )
         {
-            assertEx(compressed.length == this.chunk_length - this.length + typeof (this.chunk_length).sizeof, "LZO chunk size mismatch");
+            assertEx!(CompressException)(compressed.length == this.chunk_length - this.length + typeof (this.chunk_length).sizeof,
+                                         "LZO chunk size mismatch");
             
-            assertEx!(CompressException)(this.algo_id == this.AlgoId, "Wrong algorithm in LZO chunk header");
+            assertEx!(CompressException)(this.algo_id == this.AlgoId,
+                                         "Wrong algorithm in LZO chunk header");
             
-            assertEx!(CompressException)(this.uncompressed_length <= MiniLzo.maxCompressedLength(compressed.length), "LZO compressed data too long");
+            assertEx!(CompressException)(this.uncompressed_length <= MiniLzo.maxCompressedLength(compressed.length),
+                                         "LZO compressed data too long");
             
-            assertEx!(CompressException)(this.crc32 == MiniLzo.crc32(compressed), "LZO chunk data corrupted (CRC32 mismatch)");
+            assertEx!(CompressException)(this.crc32 == MiniLzo.crc32(this.crc32OfElements(), compressed),
+                                         "LZO chunk data corrupted (CRC32 mismatch)");
             
             return compressed;
         }
@@ -352,7 +359,7 @@ class LzoChunk
              
          **********************************************************************/
 
-       static void[] write ( void[] chunk, size_t uncompressed_length )
+        static void[] write ( void[] chunk, size_t uncompressed_length )
         {
             typeof (*this) header;
             
@@ -392,6 +399,17 @@ class LzoChunk
             scope (success) uncompressed_length = header.uncompressed_length;
             
             return header.read(chunk).check(chunk[this.length .. $]);
+        }
+        
+        /**********************************************************************
+        
+            Calculates the CRC32 value of the header elements after crc32. 
+                
+         **********************************************************************/
+
+        uint crc32OfElements ( )
+        {
+            return MiniLzo.crc32((cast (void*) this)[this.crc32.offsetof + this.crc32.sizeof .. this.length]);
         }
     }
 }
