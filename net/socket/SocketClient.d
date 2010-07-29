@@ -429,54 +429,22 @@ abstract class SocketClient ( Const : SocketClientConst )
 	    	KeyType key;
 		    ValueType value;
 
+	    	bool end_of_list;
 		    int result;
 		    this.client.retry.loop({
 		    	this.client.sendRequestCommand(command, request);
 
-		    	this.receiveItem(key, value);
-
-		        while ( !SocketClient.isListTerminator(key, value) && !result )
+		        do
 		        {
-		        	result = dg(key, value);
-		
-			    	this.receiveItem(key, value);
-		        }
+		        	end_of_list = this.client.getTuple(key, value);
+			    	if ( !end_of_list )
+			    	{
+			    		result = dg(key, value);
+			    	}
+		        } while ( !end_of_list && !result );
 		    });
 
 		    return result;
-	    }
-
-
-		/***********************************************************************
-
-			Receives a single item as part of a batch operation.
-			
-			Params:
-				key = key to be received
-				value = value to be received
-
-			Note: If the value type is a list of pairs (T[2][]), then the
-			standard ListWriter.get read process will not work. It expects a
-			single empty value as a representation of EOF, but in the case of
-			value pairs, we're actually receiving *2* values, both of which must
-			be empty to signify an EOF. Therefore this function has special
-			behaviour for pair value types. (If support for receiving triples or
-			N-tuples were ever needed, then new behaviour would have to be
-			implemented here.)
-			
-		***********************************************************************/
-
-		void receiveItem ( out KeyType key, out ValueType value )
-	    {
-	    	static if ( is ( ValueType T == T[2][] ) )
-	    	{
-    			this.client.socket.get(key);
-    	        this.client.getPairList(value);
-	    	}
-	    	else
-	    	{
-    			this.client.socket.get(key, value);
-	    	}
 	    }
 	}
 
@@ -497,7 +465,11 @@ abstract class SocketClient ( Const : SocketClientConst )
 
 	***************************************************************************/
 
-	public alias BatchReceiver!(char[][], char[], char[][]) ListReceiver;
+	// TODO: OldListReceiver is only needed as long as all the API servers
+	// aren't converted to the async dht client.
+	public alias BatchReceiver!(char[][], char[], char[]) OldListReceiver;
+
+	public alias BatchReceiver!(char[][], hash_t, char[]) ListReceiver;
 
 	public alias BatchReceiver!(char[][], char[], char[][2][]) PairListReceiver;
 
@@ -634,8 +606,8 @@ abstract class SocketClient ( Const : SocketClientConst )
     {
     	this.retry.loop({
     		// Put request code, key & data
-        	this.socket.put(cmd, key, values).commit();
-
+			this.socket.put(cmd, key, values).commit();
+			
         	// Check status
         	Const.Code status;
     		this.socket.get(status);
@@ -798,26 +770,96 @@ abstract class SocketClient ( Const : SocketClientConst )
 
 	/***************************************************************************
 
-		Receives a list of pair values from the server.
+		Receives a tuple of values from the server.
+	
+		Template params:
+			T = template tuple of types of the values to receive
+	
+		Params:
+			items = variables to receive the values from the server
+
+		Returns:
+			true if the received tuple represented an "end of list" (the first
+			element received is a list terminator)
+
+	***************************************************************************/
+
+	protected bool getTuple ( T... ) ( out T items )
+	{
+		static if ( items.length )
+		{
+			this.getItem(items[0]);
+	        if ( !this.isListTerminator(items[0]) )
+	        {
+	        	foreach ( i, item; items[1..$] )
+	        	{
+	        		this.getItem(items[i + 1]);
+	        	}
+	        	return false;
+	        }
+
+	        return true;
+		}
+		else
+		{
+			return true;
+		}
+	}
+
+
+	/***************************************************************************
+
+		Receives a single value from the server.
 		
+		If the type of the value to receive is a list of pairs (T[2][]), then
+		the getPairList method is called. Otherwise the value is simply read
+		from the socket.
+
+		Template params:
+			T = type of value to receive
+
+		Params:
+			item = variable to receive the value from the server
+
+	***************************************************************************/
+
+	protected void getItem ( T ) ( out T item )
+	{
+    	static if ( is ( T U == U[2][] ) )
+    	{
+	        this.getPairList(item);
+    	}
+    	else
+    	{
+			this.socket.get(item);
+    	}
+	}
+
+
+	/***************************************************************************
+
+		Receives a list of pair values from the server.
+
 		Template params:
 			T = type of the pairs in the list
-			
+
 		Params:
 			pair_list = array to receive the pairs from the server
 	
 	***************************************************************************/
-
+	
 	protected void getPairList ( T ) ( out T[2][] pair_list )
 	{
-        T[2] pair;
-
-        this.socket.get(pair[0], pair[1]);
-	    while ( !isListTerminator(pair) )
+	    T[2] pair;
+	    bool end;
+	    do
 	    {
-	    	pair_list ~= pair;
-	        this.socket.get(pair[0], pair[1]);
-	    }
+	    	end = this.getTuple(pair[0], pair[1]);
+	    	if ( !end )
+	    	{
+		    	pair_list ~= pair;
+	    	}
+	    } while ( !end );
 	}
 
 
@@ -835,76 +877,55 @@ abstract class SocketClient ( Const : SocketClientConst )
 	
 	***************************************************************************/
 
-	protected void getElementFromPairList ( T ) ( uint keep_element, out T[] list )
+	protected void getElementFromPairList ( T ) ( size_t keep_element, out T[] list )
 	{
 		assert(keep_element < 2, "Invalid pair element index");
 
 		T[2] pair;
+		bool end;
 
-        this.socket.get(pair[0], pair[1]);
-	    while ( !isListTerminator(pair) )
-	    {
-	    	list ~= pair[keep_element];
-	        this.socket.get(pair[0], pair[1]);
-	    }
+		do
+		{
+			end = this.getTuple(pair[0], pair[1]);
+		    if ( !end )
+		    {
+		    	list ~= pair[keep_element];
+		    }
+		} while ( !end );
 	}
 
 
 	/***************************************************************************
 
 		Determines whether a received data item indicates an end-of-list
-		terminator from the server. Every value is checked for length > 0, and
-		array values are iterated into.
-
-		The data item is defined as a  list terminator iff its deepest level of
-		sub-values are all empty.
+		terminator from the server. It is a list terminator if:
+		
+			An array value is a list terminator if it has 0 length.
+			A single value is a list terminator if it == 0.
 
 		Template params:
-			T = types of values received
+			T = type of value received
 
 		Params:
-			values = data values to check
+			value = data value to check
 
 		Returns:
-			true if the received data represents a list terminator.
+			true if the received data item represents a list terminator.
 	
 	***************************************************************************/
 
-	protected static bool isListTerminator ( T ... ) ( T values )
+	protected static bool isListTerminator ( T ) ( T value )
 	{
-		static if ( values.length )
-		{
-			foreach ( value; values )
-			{
-				// Array of values
-		        static if (is (value U == U[]))
-		        {
-		        	// Recurse into each value in the array
-		        	foreach ( v; value )
-		        	{
-		        		if ( !isListTerminator(v) )
-		        		{
-			        		return false;
-			        	}
-		        	}
-	    			return true;
-		        }
-		        // Single value
-		        else
-		        {
-		        	if ( value.length )
-		        	{
-		        		return false;
-		        	}
-		        }
-			}
-
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		// Array of values
+        static if ( is(T U == U[]) )
+        {
+        	return value.length == 0;
+        }
+        // Single value
+        else
+        {
+        	return value == 0;
+        }
 	}
 
 
