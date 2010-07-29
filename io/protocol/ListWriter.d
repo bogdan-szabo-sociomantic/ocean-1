@@ -147,11 +147,11 @@ class ListWriter : Writer
     }
     body
     {
-    	version ( TRACE ) Trace.formatln("ListWriter.put");
-
     	static if (items.length)
         {
-            static if (is (T[0] U == U[][]))    // check whether the current
+        	version ( TRACE ) Trace.formatln("ListWriter.put");
+
+        	static if (is (T[0] U == U[][]))    // check whether the current
             {                                   // item is an array of arrays
                 this.putList(items[0]);
             }
@@ -174,8 +174,15 @@ class ListWriter : Writer
                 }
             }
             
-            this.put(items[1 .. $]);
+        	static if ( items.length > 1 )
+        	{
+        		this.put(items[1 .. $]);
+        	}
         }
+    	else
+    	{
+        	version ( TRACE ) Trace.formatln("ListWriter.get - empty");
+    	}
         
         return this;
     }
