@@ -66,12 +66,12 @@ abstract class IConnectionHandler
     
     /**************************************************************************
         
-        Buffer
+        Buffers
     
      **************************************************************************/
     
-    protected BufferedInput rbuffer;
-    protected BufferedOutput wbuffer;
+    public BufferedInput rbuffer;
+    public BufferedOutput wbuffer;
     
     private const         size_t                          DefaultBufferSize = 0x10_000;
     
