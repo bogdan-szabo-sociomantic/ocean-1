@@ -21,10 +21,13 @@ module ocean.core.Array;
 
 /*******************************************************************************
 
-	Concatenates a list of arrays into a destination array. The destination
-	array is passed as a reference, so its length can be modified in-place as
-	required. This avoids any per-element memory allocation, which the normal ~
-	operator suffers from.
+	Concatenates a list of arrays into a destination array. The function results
+	in at most a single memory allocation, if the destination array is too small
+	to contain the concatenation results.
+	
+	The destination array is passed as a reference, so its length can be
+	modified in-place as required. This avoids any per-element memory
+	allocation, which the normal ~ operator suffers from.
 
 	Params:
 		dest = reference to the destination array
@@ -32,6 +35,12 @@ module ocean.core.Array;
 
 	Returns:
 		the length of the concatenated arrays
+
+	Usage:
+	---
+		char[] dest;
+		concat(dest, "hello ", "world);
+	---
 
 *******************************************************************************/
 
