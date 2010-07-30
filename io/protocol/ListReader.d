@@ -140,7 +140,7 @@ class ListReader : Reader
     
      **************************************************************************/
 
-    public This get ( T ... ) ( out T items )
+    public This get ( T ... ) ( ref T items )
     in
     {
         assert(this.input);
@@ -259,12 +259,14 @@ class ListReader : Reader
     
      **************************************************************************/
     
-    public This getList ( T ) ( out T[][] list )
+    public This getList ( T ) ( ref T[][] list )
     {
     	version ( TRACE ) Trace.formatln("ListReader.get - list {}[][]", T.stringof);
         T[] item;
         
         super.get(item);
+        
+        list.length = 0;
         
         while (item.length)
         {
