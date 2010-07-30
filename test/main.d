@@ -2,6 +2,7 @@ module ocean.test.main;
 
 
 
+import ocean.core.Array;
 import ocean.core.ArrayMap;
 import ocean.core.ObjectThreadPool;
 
