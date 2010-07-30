@@ -24,5 +24,8 @@ import ocean.text.ling.ngram.NGramSet;
 
 void main ()
 {
+	// 200 million bytes of memory is allocated to ensure that any performance
+	// checks in unittests are operating under a normal / stressed condition.
+	scope dummy = new char[200_000_000]; 
 }
 
