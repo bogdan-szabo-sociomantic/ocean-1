@@ -617,12 +617,12 @@ class Reader : IReader
         }
         
         /***********************************************************************
-
+            
         ***********************************************************************/
 
         private void[] allocate (Protocol.Reader reader, uint bytes, Protocol.Type type)
         {
-                return reader ((new void[bytes]).ptr, bytes, type);
+                return reader ((new void[bytes]).ptr, bytes, type);              
         }
 
         /***********************************************************************
@@ -671,7 +671,7 @@ class Reader : IReader
         }
 
         /***********************************************************************
-
+            
         ***********************************************************************/
 
         private void[] readArray (void* dst, uint bytes, Protocol.Type type, Protocol.Allocator alloc)
@@ -680,6 +680,8 @@ class Reader : IReader
             readElement (&bytes, bytes.sizeof, Protocol.Type.UInt);
             if ( bytes )
             {
+                // TODO: Reuse dst rather than calling alloc() everytime
+                
             	auto ret = alloc (&readElement, bytes, type);
             	version ( TRACE ) Trace.formatln("Reader.readArray DONE - {}", ret.length);
             	return ret;
