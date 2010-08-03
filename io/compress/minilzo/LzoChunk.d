@@ -9,11 +9,11 @@
     
     authors:        David Eckardt
     
-    LZO chunk data layout if size_t has a width of 32-bit:
+    Chunk data layout if size_t has a width of 32-bit:
         void[] chunk
         
-        chunk[0 .. 17] - header
-        chunk[17 .. $] - compressed data
+        chunk[0 .. 16] - header
+        chunk[16 .. $] - compressed data
         
         Header data layout:
             chunk[0  ..  4] - length of chunk[4 .. $] (or compressed data length
@@ -21,8 +21,8 @@
             chunk[4 ..   8] - 32-bit CRC value of following header elements and
                               compressed data (chunk[8 .. $]), calculated using
                               lzo_crc32()
-            chunk[8  .. 13] - algorithm identifier, e.g. "LZO1X"
-            chunk[13 .. 17] - length of uncompressed data
+            chunk[8  .. 12] - chunk/compression type code (signed 32-bit integer)
+            chunk[12 .. 16] - length of uncompressed data
             
  ******************************************************************************/
 
