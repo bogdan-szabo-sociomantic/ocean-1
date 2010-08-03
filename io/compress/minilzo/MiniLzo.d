@@ -20,8 +20,10 @@ module ocean.io.compress.minilzo.MiniLzo;
 
 private import ocean.io.compress.minilzo.c.minilzo : lzo1x_1_compress,
                                                      lzo1x_decompress, lzo1x_decompress_safe,
-                                                     lzo1x_max_compressed_length, lzo_init, lzo_crc32, lzo_crc32_init,
+                                                     lzo1x_max_compressed_length, lzo_init,
                                                      Lzo1x1WorkmemSize, LzoStatus;
+
+private import ocean.io.compress.minilzo.LzoCrc;
 
 private import ocean.core.Exception: CompressException, assertEx;
 
@@ -33,6 +35,8 @@ private import ocean.core.Exception: CompressException, assertEx;
 
 class MiniLzo
 {
+    alias LzoCrc.crc32 crc32;
+    
     /**************************************************************************
 
         Working memory buffer for lzo1x_1_compress()
@@ -169,41 +173,6 @@ class MiniLzo
     static size_t maxCompressedLength ( size_t uncompressed_length )
     {
         return lzo1x_max_compressed_length(uncompressed_length);
-    }
-    
-    /**************************************************************************
-    
-        Calculates a 32-bit CRC value from data.
-        
-        Params:
-            crc32_in = initial 32-bit CRC value (for iteration)
-            data     = data to calculate 32-bit CRC value of
-            
-        Returns:
-            resulting 32-bit CRC value
-    
-     **************************************************************************/
-
-    static uint crc32 ( uint crc32_in, void[] data )
-    {
-        return lzo_crc32(crc32_in, cast (ubyte*) data.ptr, data.length);
-    }
-    
-    /**************************************************************************
-    
-        Calculates a 32-bit CRC value from data.
-        
-        Params:
-            data = data to calculate 32-bit CRC value of
-            
-        Returns:
-            resulting 32-bit CRC value
-    
-     **************************************************************************/
-
-    static uint crc32 ( void[] data )
-    {
-        return crc32(lzo_crc32_init(), data);
     }
     
     /**************************************************************************
