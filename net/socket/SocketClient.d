@@ -372,7 +372,7 @@ abstract class SocketClient ( Const : SocketClientConst )
 	
 	***************************************************************************/
 
-	struct BatchReceiver ( RequestType, KeyType, ValueType )
+	struct BatchReceiverKV ( RequestType, KeyType, ValueType )
 	{
 		/***********************************************************************
 
@@ -380,7 +380,7 @@ abstract class SocketClient ( Const : SocketClientConst )
 
 		***********************************************************************/
 
-		alias int delegate ( ref KeyType, ref ValueType item ) ProcessDg;
+		alias int delegate ( ref KeyType key, ref ValueType item ) ProcessDg;
 
 
 		/***********************************************************************
@@ -391,16 +391,6 @@ abstract class SocketClient ( Const : SocketClientConst )
 		***********************************************************************/
 
 		Const.Code command;
-
-
-		/***********************************************************************
-
-			The data to be sent to the server along with the command, defining
-			the batch operation. (Usually a list of keys.)
-
-		***********************************************************************/
-
-		RequestType request;
 
 
 		/***********************************************************************
@@ -417,6 +407,16 @@ abstract class SocketClient ( Const : SocketClientConst )
 
 		/***********************************************************************
 
+			The data to be sent to the server along with the command, defining
+			the batch operation. (Usually a list of keys.)
+	
+		***********************************************************************/
+
+		RequestType request;
+	
+
+		/***********************************************************************
+
 			opApply method. Initiates the batch operation and passes the
 			received key/value pairs to the opApply delegate.
 
@@ -424,7 +424,7 @@ abstract class SocketClient ( Const : SocketClientConst )
 
 		int opApply ( ProcessDg dg )
 	    {
-	    	assert(client, "SocketClient not set");
+	    	assert(this.client, "SocketClient not set");
 
 	    	KeyType key;
 		    ValueType value;
@@ -440,6 +440,106 @@ abstract class SocketClient ( Const : SocketClientConst )
 			    	if ( !end_of_list )
 			    	{
 			    		result = dg(key, value);
+			    	}
+		        } while ( !end_of_list && !result );
+		    });
+
+		    return result;
+	    }
+	}
+
+
+	/***************************************************************************
+
+	    Batch receiver structure template for iteration over a bulk request
+	    result list.
+	    
+	    The iteration this struct provides is over key only data.
+	    
+	    Template params:
+	    	RequestType = the type of the data sent to initiate the request
+	    		(usually keys)
+	    	KeyType = the data type of the keys which will be received
+	
+	***************************************************************************/
+
+	struct BatchReceiverK ( RequestType, KeyType )
+	{
+		/***********************************************************************
+
+			Alias for the type of the opApply delegate
+
+		***********************************************************************/
+
+		alias int delegate ( ref KeyType key ) ProcessDg;
+
+
+		/***********************************************************************
+
+			The command to be sent to the server to initiate the batch
+			operation.
+
+		***********************************************************************/
+
+		Const.Code command;
+
+
+		/***********************************************************************
+
+			A reference to the SocketClient object which is to receive data sent
+			from the server by the batch operation. (This reference is needed as
+			the socket client contains the methods which do the actual reading
+			and writing to the socket.)
+
+		***********************************************************************/
+
+		SocketClient client;
+
+
+		/***********************************************************************
+
+			The data to be sent to the server along with the command, defining
+			the batch operation. (Usually a list of keys.)
+	
+		***********************************************************************/
+
+		static if ( !is(RequestType == void) )
+		{
+			RequestType request;
+		}
+	
+
+		/***********************************************************************
+
+			opApply method. Initiates the batch operation and passes the
+			received key/value pairs to the opApply delegate.
+
+		***********************************************************************/
+
+		int opApply ( ProcessDg dg )
+	    {
+	    	assert(this.client, "SocketClient not set");
+
+	    	KeyType key;
+
+	    	bool end_of_list;
+		    int result;
+		    this.client.retry.loop({
+				static if ( is(RequestType == void) )
+				{
+			    	this.client.sendRequestCommand(command);
+				}
+				else
+				{
+			    	this.client.sendRequestCommand(command, request);
+				}
+
+		        do
+		        {
+		        	end_of_list = this.client.getTuple(key);
+		        	if ( !end_of_list )
+			    	{
+			    		result = dg(key);
 			    	}
 		        } while ( !end_of_list && !result );
 		    });
@@ -467,11 +567,13 @@ abstract class SocketClient ( Const : SocketClientConst )
 
 	// TODO: OldListReceiver is only needed as long as all the API servers
 	// aren't converted to the async dht client.
-	public alias BatchReceiver!(char[][], char[], char[]) OldListReceiver;
+	public alias BatchReceiverKV!(char[][], char[], char[]) OldListReceiver;
 
-	public alias BatchReceiver!(char[][], hash_t, char[]) ListReceiver;
+	public alias BatchReceiverKV!(char[][], hash_t, char[]) ListReceiver;
 
-	public alias BatchReceiver!(char[][], char[], char[][2][]) PairListReceiver;
+	public alias BatchReceiverKV!(char[][], char[], char[][2][]) PairListReceiver;
+
+	public alias BatchReceiverK!(void, char[]) AllKeysListReceiver;
 
 
     /***************************************************************************
@@ -651,67 +753,6 @@ abstract class SocketClient ( Const : SocketClientConst )
 	}
 
 
-    /***************************************************************************
-    
-		opApply overload which iterates over the keys in the server's database.
-
-		Uses the method beginKeyIteration, which must be implemented by
-		any socket clients that support opApply key iteration. (It must be
-		abstract, as this abstract class doesn't know the correct command to
-		send to the individual servers.)
-
-	***************************************************************************/
-	
-	public int opApply ( int delegate ( ref char[] key ) dg )
-	{
-		char[] key, last_key;
-	
-	    int result = 0;
-		this.retry.loop({
-			this.beginKeyIteration(last_key);
-	
-	    	this.socket.get(key);
-	
-	    	while (key.length && !result)
-	        {
-	            result = dg(key);
-	
-		    	last_key = key.dup;
-	        	this.socket.get(key);
-	
-	        	if ( result )
-	            {
-	            	break;
-	            }
-	        }
-		});
-	
-	    return result;
-	}
-
-
-	/***************************************************************************
-
-		Sends the command to begin iteration over all keys. Used by the opApply
-		key iterator, above. The opApply iterator keeps track of the last
-		successfully received key, and passes it to this function in the case of
-		having to restart the key iteration due to an exception.
-		
-		The base class implementation asserts. API clients which support key
-		iteration must override this method.
-
-		Params:
-			last_key = the last key which was successfully read during the
-				iteration.
-
-	***************************************************************************/
-	
-	protected void beginKeyIteration ( char[] start_key )
-	{
-		assert(false, "opApply key iteration not supported");
-	}
-	
-	
 	/***************************************************************************
 
 		Sends a request command and checks the status response from the server.
@@ -825,7 +866,12 @@ abstract class SocketClient ( Const : SocketClientConst )
 
 	protected void getItem ( T ) ( out T item )
 	{
-    	static if ( is ( T U == U[2][] ) )
+		static if ( is(T == void) )
+		{
+			return;
+		}
+
+		static if ( is ( T U == U[2][] ) )
     	{
 	        this.getPairList(item);
     	}
