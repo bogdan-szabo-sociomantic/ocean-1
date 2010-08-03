@@ -152,8 +152,11 @@ abstract class ITokyoCabinet ( TCDB, alias tcdbforeach )
     }
     body
     {
-        this.tokyoAssert(put_func(this.db, key.ptr, key.length, value.ptr, value.length),
-                         ignore_errcodes, "Error on " ~ description);
+//        TODO: this causes a lot of memory allocation!!! TO BE FIXED!!!!
+//        this.tokyoAssert(put_func(this.db, key.ptr, key.length, value.ptr, value.length),
+//                         ignore_errcodes, "Error on " ~ description);
+        this.tokyoAssertStrict(put_func(this.db, key.ptr, key.length, value.ptr, value.length),
+              ignore_errcodes);
     }
 	/**************************************************************************
     

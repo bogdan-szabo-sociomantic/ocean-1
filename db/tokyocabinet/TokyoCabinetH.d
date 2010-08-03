@@ -446,7 +446,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
             
     ***************************************************************************/
     
-    public void put ( ref char[] key, ref char[] value )
+    public void put ( char[] key, char[] value )
     {
         super.tcPut(key, value, this.async? &tchdbputasync : &tchdbput, "tchdbput");
     }
