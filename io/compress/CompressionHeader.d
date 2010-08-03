@@ -1,3 +1,27 @@
+/******************************************************************************
+
+    Generates and reads headers of chunks of compressed data, containing the
+    data length, compression type and checksum 
+
+    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
+    
+    version:        July 2010: Initial release
+    
+    authors:        David Eckardt
+    
+    CompressionHeader data layout if size_t has a width of 32-bit:
+        void[16] header
+        
+            header[0  ..  4] - length of chunk[4 .. $] (or compressed data
+                               length + header length - 4)
+            header[4 ..   8] - 32-bit CRC value of following header elements and
+                               compressed data (chunk[8 .. $]), calculated using
+                               lzo_crc32()
+            header[8  .. 12] - chunk/compression type code (signed integer)
+            header[12 .. 16] - length of uncompressed data (may be 0)
+            
+ ******************************************************************************/
+
 module ocean.io.compress.CompressionHeader;
 
 private import ocean.io.compress.minilzo.LzoCrc;
@@ -95,7 +119,7 @@ align (1) struct CompressionHeader
         Writes the header to chunk[0 .. this.length].
         
         Params:
-            chunk = LZO chunk without header
+            chunk = chunk without header
          
         Returns:
             chunk (passed through)
@@ -113,19 +137,31 @@ align (1) struct CompressionHeader
         assertEx!(CompressException)(chunk.length >= this.length,
                                      this.ErrMsgSource ~ ": Chunk too short to write header");
         
-//        this.crc32 = LzoCrc.crc32(this.crc32OfElements(), this.strip(chunk));
-        
         this.chunk_length = chunk.length - this.chunk_length.sizeof;
         
         this.crc32_ = this.crc32(this.strip(chunk));
-        
-//        Trace.formatln("write:\n\tchunk.length = {}\n\tthis.chunk_length = {}", this.chunk_length, this.uncompressed_length);
         
         *(cast (typeof (this)) chunk.ptr) = *this; 
         
         return chunk;
     }
     
+    /**************************************************************************
+    
+        Sets this instance to create a header for a chunk containing
+        uncompressed data. Compression method is set to None.
+        
+        Params:
+            payload = data to create header for
+         
+        Returns:
+            header data
+         
+        Throws:
+            CompressException if chunk is shorter than this.length
+         
+     **************************************************************************/
+
     void[] uncompressed ( void[] payload )
     {
         this.type = this.type.None;
@@ -139,6 +175,20 @@ align (1) struct CompressionHeader
         return this.data;
     }
     
+    /**************************************************************************
+    
+        Sets this instance to create a Start header. Since a Start chunk has no
+        payload, the returned data are a full Start chunk.
+        
+        Params:
+            total_uncompressed_length = total uncompressed length of data
+                                        contained in the following chunks
+         
+        Returns:
+            Start header/chunk data
+         
+     **************************************************************************/
+
     void[] start ( size_t total_uncompressed_length )
     {
         *this = typeof (*this).init;
@@ -152,6 +202,16 @@ align (1) struct CompressionHeader
         return this.data;
     }
     
+    /**************************************************************************
+    
+        Sets this instance to create a Stop header. Since a Stop chunk has no
+        payload, the returned data are a full Start chunk.
+        
+        Returns:
+            Stop header/chunk data
+         
+     **************************************************************************/
+
     void[] stop ( )
     {
         *this = typeof (*this).init;
@@ -163,9 +223,33 @@ align (1) struct CompressionHeader
         return this.data;
     }
     
+    /**************************************************************************
+        
+        Returns the header data of this instance.
+        
+        Returns:
+            header data of this instance
+         
+     **************************************************************************/
+    
     void[] data ( )
     {
         return (cast (void*) this)[0 .. this.length];
+    }
+    
+    /**************************************************************************
+        
+        Returns the header data of tihs instance without the leading chunk
+        length value.
+        
+        Returns:
+            header data of tihs instance without the leading chunk length value
+         
+     **************************************************************************/
+
+    void[] data_without_length ( )
+    {
+        return (cast (void*) this)[size_t.sizeof .. this.length];
     }
     
     /**************************************************************************
