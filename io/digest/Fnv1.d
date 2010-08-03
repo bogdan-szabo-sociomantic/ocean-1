@@ -440,7 +440,7 @@ class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
             data_ = cast (ubyte[]) [data];
         }
         
-        foreach (d; data_)
+        foreach (ref d; data_)
         {
             digest = fnv1_core(d, digest);
         }
