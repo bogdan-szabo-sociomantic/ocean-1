@@ -221,24 +221,28 @@ class ListWriter : Writer
     
     /**************************************************************************
     
-        Writes array/string raw data. The array data must have the prepended
-        byte length value of the array content.
+        Writes raw data.
         
         Params:
-            array = array/string raw data
+            data = data to write
     
         Returns:
             this instance
     
      **************************************************************************/
 
-    public This putArrayRawData ( void[] array )
+    public This putRawData ( void[] data )
     {
-        assertEx!(IOException)(array.length >= size_t.sizeof, "Array data too short for a leading byte length value");
-        assertEx!(IOException)(array.length - size_t.sizeof == *cast (size_t*) array.ptr,
-                               "Array data byte length mismatch");
+        size_t sent = 0;
         
-        super.output.write(array);
+        while (sent < data.length)
+        {
+            size_t len = super.output.write(data);
+            
+            assertEx!(IOException)(len != super.output.Eof, typeof (this).stringof ~ ": End of flow whilst writing");
+            
+            sent += len;
+        }
         
         return this;
     }
