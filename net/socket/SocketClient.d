@@ -128,10 +128,9 @@ abstract class SocketClientConst
 	
 	public enum Status : Code
 	{
-	    Ok            	= 200,
-	    Error        	= 500,
-	    PutOnReadOnly	= 501,
-	    UnknownCommand	= 502
+	    Ok            			= 200,
+	    Error        			= 500,
+	    PutOnReadOnly			= 501,
 	}
 
 
@@ -192,8 +191,7 @@ abstract class SocketClientConst
 		this.code_descriptions = [
  			CodeDescr(Status.Ok,				"OK"),
  			CodeDescr(Status.Error,				"Internal Error"),
- 			CodeDescr(Status.PutOnReadOnly,		"Attempted to put on read-only server"),
- 			CodeDescr(Status.UnknownCommand,	"Unknown command")
+ 			CodeDescr(Status.PutOnReadOnly,		"Attempted to put on read-only server")
  		];
 	}
 
@@ -709,8 +707,8 @@ abstract class SocketClient ( Const : SocketClientConst )
     	this.retry.loop({
     		// Put request code, key & data
 			this.socket.put(cmd, key, values).commit();
-			
-        	// Check status
+
+			// Check status
         	Const.Code status;
     		this.socket.get(status);
     	    this.checkStatus(cmd, status);
@@ -798,12 +796,14 @@ abstract class SocketClient ( Const : SocketClientConst )
 			case Const.instance().Status.Ok:
 			break;
 
+			// TODO: do we really need to make this distinction?
 			case Const.instance().Status.PutOnReadOnly:
 	            throw new SocketClientException!(Const).ReadOnly;
 			break;
 
+			case Const.instance().Status.Error:
 			default:
-		    	throw new SocketException("error on " ~ Codes[cmd] ~ " request");
+	            throw new SocketClientException!(Const).Generic("error on " ~ Codes[cmd] ~ " request");
 			break;
 		}
 	}
@@ -811,7 +811,9 @@ abstract class SocketClient ( Const : SocketClientConst )
 
 	/***************************************************************************
 
-		Receives a tuple of values from the server.
+		Receives a tuple of values from the server. The first element of the
+		tuple is read and checked for being a list terminator. If it isn't a
+		list terminator then the remaining tuple elements are read.
 	
 		Template params:
 			T = template tuple of types of the values to receive
@@ -1081,7 +1083,7 @@ struct SocketClientException ( Const : SocketClientConst )
 	
 	static class Generic : Exception
 	{
-	    this ( char[] msg ) { super(msg); }
+	    this ( char[] msg = "Error" ) { super(msg); }
 	}
 	
 	/**************************************************************************
