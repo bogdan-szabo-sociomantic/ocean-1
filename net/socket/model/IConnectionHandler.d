@@ -143,32 +143,28 @@ abstract class IConnectionHandler
     
     public void run ( IConduit conduit )
     {
-        if (this.terminated) return;
+    	if (this.terminated) return;
         
         this.finished = false;
 
         try 
         {
         	this.attachConduit(conduit);
-            
-            this.rbuffer.slice(1, false);                                       // wait for something to arrive before we try/catch
-              
+
+            this.rbuffer.slice(1, false);                                       // wait for something to arrive
+
             while (!this.terminated && !this.finished)
             {
             	this.dispatch();
-                
                 this.wbuffer.flush();                                           // send response back to client
             }
-        } 
+        }
         catch (IOException e)
         {
-            if (!Runtime.isHalting())
+        	debug if (!Runtime.isHalting())
             {
-                debug
-                {
-                    TraceLog.write("socket exception '{}'", e.msg);
-                    Trace.formatln("socket exception '{}'", e.msg);
-                }
+        		TraceLog.write("socket exception '{}'", e.msg);
+        		Trace.formatln("socket exception '{}'", e.msg);
             }
         }
         catch (Exception e)
@@ -219,7 +215,7 @@ abstract class IConnectionHandler
     	this.writer.disconnectBufferedOutput();
         conduit.detach();
         this.conduit = null;
-    }
+   	}
 
     /**************************************************************************
     
@@ -240,7 +236,7 @@ abstract class IConnectionHandler
         
      **************************************************************************/
     
-    abstract protected void dispatch ( ) ;
+    abstract protected void dispatch ( );
 
     /**************************************************************************
     
@@ -257,3 +253,4 @@ abstract class IConnectionHandler
         delete this.wbuffer;
     }
 }
+
