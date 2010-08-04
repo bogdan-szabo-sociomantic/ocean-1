@@ -280,4 +280,37 @@ class ListReader : Reader
         
         return this;
     }
+    
+    
+    /**************************************************************************
+    
+        Extracts the raw data of one array/string, including the leading byte
+        length value.
+        
+        Params:
+            array = destination array buffer; will be resized to the length of
+                    the received array + size_t.sizeof for the leading byte
+                    length value
+            
+        Returns:
+            this instance
+    
+     **************************************************************************/
+
+    public This getArrayRawData ( ref void[] data )
+    {
+        ubyte[] data_;
+        
+        super.get(data_);
+        
+        data.length = data_.length + size_t.sizeof;
+        
+        size_t len = data.length - size_t.sizeof;
+        
+        *cast (size_t*) data.ptr = len;
+        
+        data[size_t.sizeof .. $] = data_[0 .. $];
+        
+        return this;
+    }
 }

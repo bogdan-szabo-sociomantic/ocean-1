@@ -28,6 +28,9 @@ private import ocean.io.protocol.Writer;
 
 private import tango.io.stream.Buffered;
 
+private import tango.core.Exception: IOException;
+private import ocean.core.Exception: assertEx;
+
 //version = TRACE;
 
 version ( TRACE )
@@ -212,6 +215,30 @@ class ListWriter : Writer
 
         version ( TRACE ) Trace.formatln("  ListWriter.put - list terminator");
         super.put(TERM);
+        
+        return this;
+    }
+    
+    /**************************************************************************
+    
+        Writes array/string raw data. The array data must have the prepended
+        byte length value of the array content.
+        
+        Params:
+            array = array/string raw data
+    
+        Returns:
+            this instance
+    
+     **************************************************************************/
+
+    public This putArrayRawData ( void[] array )
+    {
+        assertEx!(IOException)(array.length >= size_t.sizeof, "Array data too short for a leading byte length value");
+        assertEx!(IOException)(array.length - size_t.sizeof == *cast (size_t*) array.ptr,
+                               "Array data byte length mismatch");
+        
+        super.output.write(array);
         
         return this;
     }
