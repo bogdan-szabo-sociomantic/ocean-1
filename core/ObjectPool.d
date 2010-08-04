@@ -85,6 +85,10 @@ module ocean.core.ObjectPool;
 
 private import ocean.core.Exception: ObjectPoolException, assertEx;
 
+debug private import tango.util.log.Trace;
+
+
+
 /******************************************************************************
   
     ObjectPool class template
