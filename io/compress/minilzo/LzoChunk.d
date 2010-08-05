@@ -50,8 +50,6 @@ private import tango.util.log.Trace;
 
 class LzoChunk
 {
-    alias MiniLzo.maxCompressedLength maxCompressedLength;
-    
     /**************************************************************************
     
         MiniLzo instance
@@ -115,20 +113,6 @@ class LzoChunk
         return header.write(this.data);
     }
     
-    public size_t compress ( void[] uncompressed, void[] chunk )
-    {
-        CompressionHeader header;
-        
-        size_t end = header.length + this.lzo.compress(uncompressed, header.strip(chunk));
-        
-        header.uncompressed_length = uncompressed.length;
-        header.type                = header.type.LZO1X;
-        
-        header.write(chunk[0 .. end]);
-        
-        return end;
-    }
-    
     /**************************************************************************
     
         Uncompresses a LZO chunk 
@@ -156,9 +140,14 @@ class LzoChunk
         return this.data;
     }
     
-    /+
     /******************************************************************************
-
+    
+        Static method alias, to be used as
+        
+                                                                             ---
+        static size_t maxCompressedLength ( site_t uncompressed_length );
+                                                                             ---
+        
         Calculates the maximum compressed length of data which has a length of
         uncompressed_length.
         
@@ -173,11 +162,7 @@ class LzoChunk
     
      ******************************************************************************/
     
-    static size_t maxCompressedLength ( size_t uncompressed_length )
-    {
-        return MiniL(uncompressed_length);
-    }
-    +/
+    alias MiniLzo.maxCompressedLength maxCompressedLength;
 
     /**************************************************************************
     
