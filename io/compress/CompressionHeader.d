@@ -39,6 +39,8 @@ private import ocean.io.compress.minilzo.LzoCrc;
 
 private import ocean.core.Exception: CompressException, assertEx;
 
+debug private import tango.util.log.Trace;
+
 /******************************************************************************
 
     CompressionHeader structure
@@ -123,7 +125,7 @@ align (1) struct CompressionHeader
     
     const length = SizeofTuple!(typeof (this.tupleof));
     
-    pragma (msg, length.stringof);
+    debug pragma (msg, typeof (*this).stringof ~ ".length = " ~ length.stringof);
     
     /**************************************************************************
     
@@ -238,8 +240,6 @@ align (1) struct CompressionHeader
     
         Reads chunk which is expected to be a Start chunk or a Null chunk.
     
-        Sets this instance to create a Start header. Since a Start chunk has no
-        payload, the returned data are a full Start chunk.
         After chunk has been read, this.type is either set to Start, if the
         provided chunk was a start chunk, or to Stop for a Null chunk.
         this.uncompressed_size reflects the total uncompressed size of the data
@@ -250,20 +250,66 @@ align (1) struct CompressionHeader
          
         Throws:
             CompressException if chunk is neither a Start chunk, as expected,
-            nor a Null chunk.
+            nor a Null chunk
          
      **************************************************************************/
     
     typeof (this) readStart ( void[] chunk )
     {
-        this.read(data);
+        this.read(chunk);
         
         assertEx!(CompressException)(this.type == Type.Start || this.type == Type.Stop,
                                      this.ErrMsgSource ~ ": Not a Start header as expected");
         
         return this;
     }
+    
+    /**************************************************************************
+    
+        Reads chunk which is expected to be a Start chunk or a Null chunk; does
+        not throw an exception if the chunk header is invalid or not Start or 
+        Null but returns false instead.
+    
+        After chunk has been read, this.type is either set to Start, if the
+        provided chunk was a start chunk, or to Stop for a Null chunk.
+        this.uncompressed_size reflects the total uncompressed size of the data
+        in the chunks that will follow.
+        
+        Params:
+            chunk = input chunk
+         
+         Returns:
+            true if chunk is a Start chunk, as expected, or a Null chunk, or
+            false otherwise
+         
+     **************************************************************************/
 
+    bool tryReadStart ( void[] chunk )
+    {
+        bool validated = false;
+        
+        if (this.isNullChunk(chunk))
+        {
+            this.stop();
+            
+            validated = true;
+        }
+        else if (chunk.length == this.length)
+        {
+            *this = *cast (typeof (this)) chunk.ptr;
+            
+            if (this.type == Type.Start)
+            {
+                if (chunk.length == this.chunk_length + this.chunk_length.sizeof)
+                {
+                    validated = this.crc32_ == this.crc32;
+                }
+            }
+        }
+        
+        return validated;
+    }
+    
     /**************************************************************************
         
         Returns the header data of this instance.
@@ -319,9 +365,9 @@ align (1) struct CompressionHeader
         }
         else
         {
-            payload = this.strip(chunk);
+            *this = *cast (typeof (this)) chunk.ptr;
             
-            *this = *(cast (typeof (this)) chunk.ptr);
+            payload = this.strip(chunk);
             
             assertEx!(CompressException)(chunk.length == this.chunk_length + this.chunk_length.sizeof,
                                          this.ErrMsgSource ~ ": Chunk length mismatch");
