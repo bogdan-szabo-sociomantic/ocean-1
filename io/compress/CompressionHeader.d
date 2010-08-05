@@ -9,6 +9,10 @@
     
     authors:        David Eckardt
     
+    There are two header versions:
+        1. the regular CompressionHeader,
+        2. the Null header which has the same meaning as a Stop header.
+    
     CompressionHeader data layout if size_t has a width of 32-bit:
         void[16] header
         
@@ -19,7 +23,14 @@
                                lzo_crc32()
             header[8  .. 12] - chunk/compression type code (signed integer)
             header[12 .. 16] - length of uncompressed data (may be 0)
+    
+    
+    Null header data layout if size_t has a width of 32-bit:
+        void[4] null_header
+        
+            header[0  ..  4] - all bytes set to value 0
             
+    
  ******************************************************************************/
 
 module ocean.io.compress.CompressionHeader;
@@ -27,8 +38,6 @@ module ocean.io.compress.CompressionHeader;
 private import ocean.io.compress.minilzo.LzoCrc;
 
 private import ocean.core.Exception: CompressException, assertEx;
-
-//private import tango.util.log.Trace;
 
 /******************************************************************************
 
@@ -90,11 +99,13 @@ align (1) struct CompressionHeader
     
     enum Type : int
     {
-        None = 0,
+        Stop  = 0,
+        
+        None,
         LZO1X,
         
         Start = -1,
-        Stop  = -2
+        
     }
 
     /**************************************************************************
@@ -155,14 +166,14 @@ align (1) struct CompressionHeader
             payload = data to create header for
          
         Returns:
-            header data
+            this instance
          
         Throws:
             CompressException if chunk is shorter than this.length
          
      **************************************************************************/
 
-    void[] uncompressed ( void[] payload )
+    typeof (this) uncompressed ( void[] payload )
     {
         this.type = this.type.None;
         
@@ -172,7 +183,7 @@ align (1) struct CompressionHeader
         
         this.crc32_ = this.crc32(payload);
         
-        return this.data;
+        return this;
     }
     
     /**************************************************************************
@@ -185,11 +196,11 @@ align (1) struct CompressionHeader
                                         contained in the following chunks
          
         Returns:
-            Start header/chunk data
+            this instance
          
      **************************************************************************/
 
-    void[] start ( size_t total_uncompressed_length )
+    typeof (this) start ( size_t total_uncompressed_length )
     {
         *this = typeof (*this).init;
         
@@ -199,7 +210,7 @@ align (1) struct CompressionHeader
         
         this.crc32_ = this.crc32();
         
-        return this.data;
+        return this;
     }
     
     /**************************************************************************
@@ -208,11 +219,11 @@ align (1) struct CompressionHeader
         payload, the returned data are a full Start chunk.
         
         Returns:
-            Stop header/chunk data
+            this instance
          
      **************************************************************************/
 
-    void[] stop ( )
+    typeof (this) stop ( )
     {
         *this = typeof (*this).init;
         
@@ -220,9 +231,39 @@ align (1) struct CompressionHeader
         
         this.crc32_ = this.crc32();
         
-        return this.data;
+        return this;
     }
     
+    /**************************************************************************
+    
+        Reads chunk which is expected to be a Start chunk or a Null chunk.
+    
+        Sets this instance to create a Start header. Since a Start chunk has no
+        payload, the returned data are a full Start chunk.
+        After chunk has been read, this.type is either set to Start, if the
+        provided chunk was a start chunk, or to Stop for a Null chunk.
+        this.uncompressed_size reflects the total uncompressed size of the data
+        in the chunks that will follow.
+        
+        Params:
+            chunk = input chunk
+         
+        Throws:
+            CompressException if chunk is neither a Start chunk, as expected,
+            nor a Null chunk.
+         
+     **************************************************************************/
+    
+    typeof (this) readStart ( void[] chunk )
+    {
+        this.read(data);
+        
+        assertEx!(CompressException)(this.type == Type.Start || this.type == Type.Stop,
+                                     this.ErrMsgSource ~ ": Not a Start header as expected");
+        
+        return this;
+    }
+
     /**************************************************************************
         
         Returns the header data of this instance.
@@ -258,7 +299,7 @@ align (1) struct CompressionHeader
         the values contained in the header.
         
         Params:
-            chunk = LZO chunk with header
+            chunk = chunk with header (or Null chunk)
          
         Returns:
             this instance
@@ -270,15 +311,24 @@ align (1) struct CompressionHeader
     
     void[] read ( void[] chunk )
     {
-        void[] payload = this.strip(chunk);
+        void[] payload = [];
         
-        *this = *(cast (typeof (this)) chunk.ptr);
-        
-        assertEx!(CompressException)(chunk.length == this.chunk_length + this.chunk_length.sizeof,
-                                     this.ErrMsgSource ~ ": Chunk length mismatch");
-        
-        assertEx!(CompressException)(this.crc32_ == this.crc32(payload),
-                                     this.ErrMsgSource ~ ": Chunk data corrupted (CRC32 mismatch)");
+        if (this.isNullChunk(chunk))
+        {
+            this.stop();
+        }
+        else
+        {
+            payload = this.strip(chunk);
+            
+            *this = *(cast (typeof (this)) chunk.ptr);
+            
+            assertEx!(CompressException)(chunk.length == this.chunk_length + this.chunk_length.sizeof,
+                                         this.ErrMsgSource ~ ": Chunk length mismatch");
+            
+            assertEx!(CompressException)(this.crc32_ == this.crc32(payload),
+                                         this.ErrMsgSource ~ ": Chunk data corrupted (CRC32 mismatch)");
+        }
         
         return payload;
     }
@@ -306,10 +356,14 @@ align (1) struct CompressionHeader
         Strips the header from chunk
         
         Params:
-            chunk: chunk with header
+            chunk: chunk with header (must not be a Null chunk)
         
         Returns:
-            chunk data after header (slice to chunk)
+            chunk payload, that is, the chunk data without header (slice)
+        
+        Throws:
+            CompressException if chunk.length is shorter than CompressionHeader
+            data
         
      **************************************************************************/
 
@@ -319,6 +373,31 @@ align (1) struct CompressionHeader
                                      this.ErrMsgSource ~ ": Chunk too short to strip header");
         
         return chunk[this.length .. $];
+    }
+    
+    /**************************************************************************
+    
+        Checks whether chunk is a Null chunk, that is, it has a Null header. A
+        Null header is defined as
+                                                                             ---
+            void[size_t.sizeof] null_header;
+            null_header[] = 0;
+                                                                             ---
+        
+        Since no payload can be follow a Null header, a Null header is a
+        complete chunk on itself, that is the Null chunk.
+        
+        Params:
+            chunk: input chunk
+        
+        Returns:
+            true if chunk is a Null chunk or false otherwise.
+        
+     **************************************************************************/
+
+    static bool isNullChunk ( void[] chunk )
+    {
+        return (chunk.length == size_t.sizeof)? !*cast (size_t*) chunk.ptr : false;
     }
 }
 
