@@ -8,10 +8,6 @@
     
     authors:        David Eckardt
     
-    Abstract class for a connection handler invoked by ServerSocketThread. A 
-    subclass must implement dispatch(). For conduit (socket) I/O the
-    reader/writer class properties are available to the subclass.
-    
 *******************************************************************************/
 
 module ocean.net.socket.model.IConnectionHandler;
@@ -41,19 +37,24 @@ debug
 
 /******************************************************************************
 
-    ConnectionHandlery
+    Connection Handler
     
+    Abstract class for a connection handler invoked by ServerSocketThread. A 
+    subclass must implement dispatch(). For conduit (socket) I/O the
+    reader/writer class properties are available to the subclass.
+       
 *******************************************************************************/
 
 abstract class IConnectionHandler
 {
+    
     /**************************************************************************
     
         Hash type alias
         
      **************************************************************************/
 
-    alias               typeof (this)                   This;
+    alias               typeof (this)               This;
     
     /**************************************************************************
         
@@ -61,8 +62,8 @@ abstract class IConnectionHandler
     
      **************************************************************************/
     
-    protected             ListWriter                      writer;
-    protected             ListReader                      reader;
+    protected           ListWriter                  writer;
+    protected           ListReader                  reader;
     
     /**************************************************************************
         
@@ -70,10 +71,16 @@ abstract class IConnectionHandler
     
      **************************************************************************/
     
-    protected BufferedInput rbuffer;
-    protected BufferedOutput wbuffer;
+    protected           BufferedInput               rbuffer;
+    protected           BufferedOutput              wbuffer;
     
-    private const         size_t                          DefaultBufferSize = 0x10_000;
+    /**************************************************************************
+        
+        Default buffer size
+    
+     **************************************************************************/
+    
+    private const       size_t                      DefaultBufferSize = 0x10_000;
     
     /**************************************************************************
     
@@ -81,7 +88,7 @@ abstract class IConnectionHandler
     
      **************************************************************************/
 
-    protected IConduit conduit;
+    protected           IConduit                    conduit;
 
     /**************************************************************************
     
@@ -89,7 +96,7 @@ abstract class IConnectionHandler
     
      **************************************************************************/
 
-    protected static      bool                            terminated = false;
+    protected           static bool                 terminated = false;
     
     /**************************************************************************
     
@@ -97,7 +104,7 @@ abstract class IConnectionHandler
     
      **************************************************************************/
 
-    protected             bool                            finished;
+    protected           bool                        finished;
     
     /**************************************************************************
         
@@ -110,7 +117,7 @@ abstract class IConnectionHandler
     
      **************************************************************************/
     
-    this ( size_t buffer_size )
+    public this ( size_t buffer_size )
     {
         this.rbuffer    = new BufferedInput(null, buffer_size);
         this.wbuffer    = new BufferedOutput(null, buffer_size);
@@ -125,11 +132,26 @@ abstract class IConnectionHandler
     
      **************************************************************************/
 
-    this ( )
+    public this ( )
     {
         this(this.DefaultBufferSize);
     }
     
+    /**************************************************************************
+        
+        Destructor
+        
+     **************************************************************************/
+    
+    public ~this ( )
+    {
+        delete this.reader;
+        delete this.writer;
+        
+        delete this.rbuffer;
+        delete this.wbuffer;
+    }
+
     /**************************************************************************
         
         Handles a client connection. Stops when the "finished" (for temporary
@@ -156,6 +178,7 @@ abstract class IConnectionHandler
             while (!this.terminated && !this.finished)
             {
             	this.dispatch();
+                
                 this.wbuffer.flush();                                           // send response back to client
             }
         }
@@ -194,9 +217,10 @@ abstract class IConnectionHandler
     
     protected void attachConduit ( IConduit conduit )
     {
-    	this.reader.connectBufferedInput(this.rbuffer, conduit);
-    	this.writer.connectBufferedOutput(this.wbuffer, conduit);
-    	this.conduit = conduit;
+        this.conduit = conduit;
+        
+    	this.reader.connectBufferedInput(this.rbuffer, this.conduit);
+    	this.writer.connectBufferedOutput(this.wbuffer, this.conduit);
     }
 
     /***************************************************************************
@@ -213,7 +237,9 @@ abstract class IConnectionHandler
     {
     	this.reader.disconnectBufferedInput();
     	this.writer.disconnectBufferedOutput();
+        
         conduit.detach();
+        
         this.conduit = null;
    	}
 
@@ -223,7 +249,7 @@ abstract class IConnectionHandler
             
      **************************************************************************/
 
-    static void terminate ( )
+    static void terminate ()
     {
         this.terminated = true;
     }
@@ -232,25 +258,12 @@ abstract class IConnectionHandler
     
         Dispatch connection
         
-        This method is invoked when data have arrived.
+        This method is invoked when data has arrived. Needs to be implemented
+        by derived classes.
         
      **************************************************************************/
     
     abstract protected void dispatch ( );
 
-    /**************************************************************************
-    
-        Destructor
-        
-     **************************************************************************/
-    
-    private ~this ( )
-    {
-        delete this.reader;
-        delete this.writer;
-        
-        delete this.rbuffer;
-        delete this.wbuffer;
-    }
 }
 
