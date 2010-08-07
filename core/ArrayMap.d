@@ -143,25 +143,9 @@ private struct KeyValueElement ( K, V )
     
 *********************************************************************************/
 
-/*******************************************************************************
-
-    Array map with mutexes enabled (reentrance/thread-safe) 
-
- *******************************************************************************/
-
-template MutexedArrayMap ( V, K = hash_t )
-{
-    alias ArrayMap!(V, K, true) MutexedArrayMap;
-}
-
-/*******************************************************************************
-
-    Array map 
-
-*******************************************************************************/
-
 class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 {
+    
     /*******************************************************************************
     
         VisArray flag to indicate whether the value type V is an array
