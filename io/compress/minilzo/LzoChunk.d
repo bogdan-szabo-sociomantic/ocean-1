@@ -8,23 +8,8 @@
     version:        July 2010: Initial release
     
     authors:        David Eckardt
-    
-    Chunk data layout if size_t has a width of 32-bit:
-        void[] chunk
-        
-        chunk[0 .. 16] - header
-        chunk[16 .. $] - compressed data
-        
-        Header data layout:
-            chunk[0  ..  4] - length of chunk[4 .. $] (or compressed data length
-                              + header length - 4)
-            chunk[4 ..   8] - 32-bit CRC value of following header elements and
-                              compressed data (chunk[8 .. $]), calculated using
-                              lzo_crc32()
-            chunk[8  .. 12] - chunk/compression type code (signed 32-bit integer)
-            chunk[12 .. 16] - length of uncompressed data
             
- ******************************************************************************/
+*******************************************************************************/
 
 module ocean.io.compress.minilzo.LzoChunk;
 
@@ -34,37 +19,58 @@ module ocean.io.compress.minilzo.LzoChunk;
     
 ******************************************************************************/
 
-private import ocean.io.compress.minilzo.MiniLzo;
+private     import      ocean.io.compress.minilzo.MiniLzo;
 
-private import ocean.io.compress.CompressionHeader;
+private     import      ocean.io.compress.CompressionHeader;
 
-private import ocean.core.Exception: CompressException, assertEx;
+private     import      ocean.core.Exception: CompressException, assertEx;
 
-private import tango.util.log.Trace;
+private     import      tango.util.log.Trace;
 
 /******************************************************************************
 
-    LzoChunk class
-
- ******************************************************************************/
+    LzoChunk compressor/decompressor
+    
+    Chunk data layout if size_t has a width of 32-bit
+    ---
+    void[] chunk
+    
+    chunk[0 .. 16] - header
+    chunk[16 .. $] - compressed data
+    ---
+    
+    Header data layout
+    --
+    chunk[0  ..  4] - length of chunk[4 .. $] (or compressed data length
+                      + header length - 4)
+    chunk[4 ..   8] - 32-bit CRC value of following header elements and
+                      compressed data (chunk[8 .. $]), calculated using
+                      lzo_crc32()
+    chunk[8  .. 12] - chunk/compression type code (signed 32-bit integer)
+    chunk[12 .. 16] - length of uncompressed data
+    ---
+    
+*******************************************************************************/
 
 class LzoChunk
 {
+    
     /**************************************************************************
     
         MiniLzo instance
          
      **************************************************************************/
 
-    private MiniLzo lzo;
+    private             MiniLzo                     lzo;
     
     /**************************************************************************
     
-        Data buffer
+        Input/output buffer
          
      **************************************************************************/
 
-    private void[] data;
+    private             void[]                      input;
+    private             void[]                      output;
     
     /**************************************************************************
     
@@ -78,11 +84,25 @@ class LzoChunk
 
     public this ( size_t data_size = 0 )
     {
-        this.lzo = new MiniLzo;
+        this.lzo   = new MiniLzo;
         
-        this.data = new void[CompressionHeader.length + this.maxCompressedLength(data_size)];
+        this.input = new void[CompressionHeader.length + 
+                     this.maxCompressedLength(data_size)];
     }
     
+    /**************************************************************************
+        
+        Destructor
+         
+     **************************************************************************/
+    
+    ~this ( )
+    {
+        delete this.lzo;
+        delete this.input;
+        delete this.output;
+    }
+
     /**************************************************************************
     
         Compresses a data chunk 
@@ -104,13 +124,13 @@ class LzoChunk
         header.uncompressed_length = uncompressed.length;
         header.type                = header.type.LZO1X;
         
-        this.data.length = header.length + this.maxCompressedLength(uncompressed.length);
+        this.input.length = header.length + this.maxCompressedLength(uncompressed.length);
         
-        end = header.length + this.lzo.compress(uncompressed, header.strip(this.data));
+        end = header.length + this.lzo.compress(uncompressed, header.strip(this.input));
         
-        this.data.length = end;
+        this.input.length = end;
         
-        return header.write(this.data);
+        return header.write(this.input);
     }
     
     /**************************************************************************
@@ -131,13 +151,13 @@ class LzoChunk
         
         void[] compressed = header.read(chunk);
         
-        this.data.length = header.uncompressed_length;
-        
+        this.output.length = header.uncompressed_length;
+
         assertEx!(CompressException)(header.type == header.type.LZO1X, "Not LZO1X");
         
-        this.lzo.decompress(compressed, this.data);
-        
-        return this.data;
+        this.lzo.decompress(compressed, this.output);
+
+        return this.output;
     }
     
     /******************************************************************************
@@ -164,15 +184,5 @@ class LzoChunk
     
     alias MiniLzo.maxCompressedLength maxCompressedLength;
 
-    /**************************************************************************
-    
-        Destructor
-         
-     **************************************************************************/
 
-    ~this ( )
-    {
-        delete this.lzo;
-        delete this.data;
-    }
 }

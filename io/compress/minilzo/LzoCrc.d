@@ -28,6 +28,7 @@ private import ocean.io.compress.minilzo.c.lzo_crc: lzo_crc32, lzo_crc32_init;
 
 struct LzoCrc
 {
+    
     static:
     
     /**************************************************************************
@@ -43,7 +44,7 @@ struct LzoCrc
     
     **************************************************************************/
     
-    uint crc32 ( uint crc32_in, void[] data )
+    public uint crc32 ( uint crc32_in, void[] data )
     {
         return lzo_crc32(crc32_in, cast (ubyte*) data.ptr, data.length);
     }
@@ -60,7 +61,7 @@ struct LzoCrc
     
     **************************************************************************/
     
-    uint crc32 ( void[] data )
+    public uint crc32 ( void[] data )
     {
         return crc32(lzo_crc32_init(), data);
     }

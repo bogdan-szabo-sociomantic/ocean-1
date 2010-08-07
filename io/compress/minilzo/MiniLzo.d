@@ -90,6 +90,7 @@ class MiniLzo
     size_t compress ( void[] src, void[] dst )
     in
     {
+        assert (src.length, `compression error: no data given`);
         assert (dst.length >= this.maxCompressedLength(src.length), typeof (this).stringof ~ ".compress: dst buffer too short");
     }
     body
