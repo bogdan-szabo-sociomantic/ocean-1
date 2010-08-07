@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-        Tokyo Cabinet On-Memory Hash Database
+        Tokyo Cabinet In-Memory Hash Database
 
         copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
@@ -10,32 +10,15 @@
                         
         author:         Thomas Nicolai, Lars Kirchhoff, David Eckardt
         
-        Description:
-
-        Very fast and lightweight database with 10K to 200K inserts per second.
-        
-        ---
-        
-            import ocean.db.tokyocabinet.TokyoCabinetM;
-            
-            scope db = new TokyoCabinetM;
-            
-            db.put("foo", "bar");
-            
-            db.close();
-        
-        ---
-        
- ******************************************************************************/
+*******************************************************************************/
 
 module ocean.db.tokyocabinet.TokyoCabinetM;
-
 
 /*******************************************************************************
 
     Imports
 
- ******************************************************************************/
+********************************************************************************/
 
 private     import  ocean.db.tokyocabinet.model.ITokyoCabinet: TokyoCabinetIterator;
 
@@ -48,12 +31,34 @@ private     import  ocean.db.tokyocabinet.c.tcmdb:
                         
 /*******************************************************************************
 
-    TokyoCabinetM class
-
-*******************************************************************************/
+    TokyoCabinetM
+    
+    Very fast and lightweight database with 10K to 200K inserts per second.
+    
+    Usage Example: pushing item to db
+    ---
+    
+    import ocean.db.tokyocabinet.TokyoCabinetM;
+    
+    scope db = new TokyoCabinetM;
+    
+    db.put("foo", "bar");
+    
+    db.close();
+    
+    ---
+        
+********************************************************************************/
 
 class TokyoCabinetM
 {
+    
+    /**************************************************************************
+        
+        Iterator alias definition
+    
+     **************************************************************************/
+    
     private alias TokyoCabinetIterator!(TCMDB, tcmdbforeach) TcIterator;
     
     /**************************************************************************
@@ -62,13 +67,20 @@ class TokyoCabinetM
 
      **************************************************************************/
     
-    private bool            deleted         = false;
-    
-    private TCMDB*          db;
+    private                 bool                    deleted = false;
     
     /**************************************************************************
         
-        Constructor    
+        Tokyo cabinet database instance
+    
+     **************************************************************************/
+    
+    private                 TCMDB*                  db;
+    
+    
+    /**************************************************************************
+        
+        Constructor; creates new in memory database instance   
                              
      **************************************************************************/
     
@@ -76,8 +88,6 @@ class TokyoCabinetM
     {
         this.db = tcmdbnew();
     }
-    
-    
     
     /**************************************************************************
         
@@ -92,8 +102,6 @@ class TokyoCabinetM
     {
         this.db = tcmdbnew2(bnum);
     }
-    
-    
     
     /**************************************************************************
     
@@ -113,8 +121,6 @@ class TokyoCabinetM
         this.deleted = true;
     }
     
-    
-    
     /**************************************************************************
         
         Invariant: called every time a public class method is called
@@ -125,8 +131,6 @@ class TokyoCabinetM
     {
         assert (this.db, typeof (this).stringof ~ ": invalid TokyoCabinet Hash core object");
     }
-    
-    
     
     /**************************************************************************
      
@@ -142,8 +146,7 @@ class TokyoCabinetM
     {
         tcmdbput(this.db, key.ptr, key.length, value.ptr, value.length);
     }
-    
-    
+
     /**************************************************************************
     
         Puts a record to database; does not ooverwrite an existing record
@@ -158,8 +161,6 @@ class TokyoCabinetM
     {
         tcmdbputkeep(this.db, key.ptr, key.length, value.ptr, value.length);
     }
-    
-    
     
     /**************************************************************************
         
@@ -206,8 +207,6 @@ class TokyoCabinetM
         return found;
     }
     
-    
-    
     /**************************************************************************
     
         Tells whether a record exists
@@ -241,8 +240,7 @@ class TokyoCabinetM
     {
         return tcmdbout(this.db, key.ptr, key.length);
     }
-    
-    
+
     /**************************************************************************
         
         Returns the number of records
@@ -298,8 +296,7 @@ class TokyoCabinetM
         
         return result;
     }
-    
-    
+
     /**************************************************************************
     
         "foreach" iterator over keys of records in database. The "key"
