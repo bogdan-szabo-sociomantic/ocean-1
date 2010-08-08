@@ -369,8 +369,10 @@ private template RunArgTypes ( T )
 
 debug ( OceanUnitTest )
 {
-	private import tango.core.Thread;
-	private import tango.math.random.Random;
+	private import 	tango.core.Thread;
+	private import 	tango.math.random.Random;
+	private	import	tango.time.StopWatch;
+	private	import  tango.core.Memory;
 	
 	const NUM_OBJECTS = 10;
 
@@ -382,7 +384,7 @@ debug ( OceanUnitTest )
 		The run method randomly either throws an exception or sleeps for a very
 		short time.
 	
-	***************************************************************************/
+	 **************************************************************************/
 
 	class MyObject
 	{
@@ -417,16 +419,16 @@ debug ( OceanUnitTest )
 		
 		public void run ( )
 		{
-			auto Usecs = MyObject.randomWait();
-			if ( Usecs == 0 )
-			{
-				throw new Exception("THIS IS SUPPOSED TO HAPPEN IN THIS UNITTEST");
-			}
-			else
-			{
-				double secs = cast(double)Usecs / 1_000_000;
-				Thread.sleep(secs);
-			}
+//			auto Usecs = MyObject.randomWait();
+//			if ( Usecs == 0 )
+//			{
+////				throw new Exception("THIS IS SUPPOSED TO HAPPEN IN THIS UNITTEST");
+//			}
+//			else
+//			{
+//				double secs = cast(double)Usecs / 1_000_000;
+//				Thread.sleep(secs);
+//			}
 		}
 
 		~this ( )
@@ -440,8 +442,9 @@ debug ( OceanUnitTest )
 	{
         Trace.formatln("Running ocean.core.ObjectThreadPool unittest");
 
+        StopWatch sw;
+        
         scope opool = new ObjectThreadPool!(MyObject)(NUM_OBJECTS);
-
 
         /***********************************************************************
 
@@ -450,14 +453,38 @@ debug ( OceanUnitTest )
 	    ***********************************************************************/
 
         const ITERATIONS = 100_000;
+        
         uint count;
+        
         do
         {
             opool.assign();
+            
             assert(!MyObject.destroyed, "ObjectThreadPool unittest - MyObject destructor called during the main loop");
             assert(opool.activeJobs() <= NUM_OBJECTS, "ObjectThreadPool unittest - object thread pool has too many active threads!");
-        } while ( ++count < ITERATIONS );
+        } 
+        while (++count < ITERATIONS);
 
+        Trace.formatln("Running performance tests");
+        
+        for (uint i=0; i<5; i++)
+        {
+        	count = 0;
+        	
+        	sw.start();
+        	
+        	do
+            {
+                opool.assign();
+                
+                assert(!MyObject.destroyed, "ObjectThreadPool unittest - MyObject destructor called during the main loop");
+                assert(opool.activeJobs() <= NUM_OBJECTS, "ObjectThreadPool unittest - object thread pool has too many active threads!");
+            } 
+            while (++count < ITERATIONS);
+        	
+        	Trace.formatln("Iteration: {}\t ObjectPool assignes/s: {}\t Memory: {}", i, count/sw.stop(), GC.stats["poolSize"]).flush();
+        }
+        
         Trace.formatln("done unittest\n");
 	}
 }
