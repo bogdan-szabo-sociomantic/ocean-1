@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 
     LZO1X-1 (Mini LZO) compressor/uncompressor generating/accepting chunks of
     compressed data with a length and checksum header 
@@ -9,15 +9,15 @@
     
     authors:        David Eckardt
             
-*******************************************************************************/
+ ******************************************************************************/
 
 module ocean.io.compress.minilzo.LzoChunk;
 
-/******************************************************************************
+/*******************************************************************************
 
     Imports
     
-******************************************************************************/
+ ******************************************************************************/
 
 private     import      ocean.io.compress.minilzo.MiniLzo;
 
@@ -27,7 +27,7 @@ private     import      ocean.core.Exception: CompressException, assertEx;
 
 private     import      tango.util.log.Trace;
 
-/******************************************************************************
+/*******************************************************************************
 
     LzoChunk compressor/decompressor
     
@@ -50,12 +50,12 @@ private     import      tango.util.log.Trace;
     chunk[12 .. 16] - length of uncompressed data
     ---
     
-*******************************************************************************/
+ ******************************************************************************/
 
 class LzoChunk
 {
     
-    /**************************************************************************
+    /***************************************************************************
     
         MiniLzo instance
          
@@ -63,7 +63,7 @@ class LzoChunk
 
     private             MiniLzo                     lzo;
     
-    /**************************************************************************
+    /***************************************************************************
     
         Input/output buffer
          
@@ -72,7 +72,7 @@ class LzoChunk
     private             void[]                      input;
     private             void[]                      output;
     
-    /**************************************************************************
+    /***************************************************************************
     
         Constructor
         
@@ -90,7 +90,7 @@ class LzoChunk
                      this.maxCompressedLength(data_size)];
     }
     
-    /**************************************************************************
+    /***************************************************************************
         
         Destructor
          
@@ -103,7 +103,7 @@ class LzoChunk
         delete this.output;
     }
 
-    /**************************************************************************
+    /***************************************************************************
     
         Compresses a data chunk 
         
@@ -133,7 +133,7 @@ class LzoChunk
         return header.write(this.input);
     }
     
-    /**************************************************************************
+    /***************************************************************************
     
         Uncompresses a LZO chunk 
         
@@ -149,18 +149,23 @@ class LzoChunk
     {
         CompressionHeader header;
         
-        void[] compressed = header.read(chunk);
+        this.output.length = 0;
         
-        this.output.length = header.uncompressed_length;
-
-        assertEx!(CompressException)(header.type == header.type.LZO1X, "Not LZO1X");
+        if (chunk.length)
+        {
+	        void[] compressed = header.read(chunk);
+	        
+	        this.output.length = header.uncompressed_length;
+	
+	        assertEx!(CompressException)(header.type == header.type.LZO1X, "Not LZO1X");
+	        
+	        this.lzo.decompress(compressed, this.output);
+        }
         
-        this.lzo.decompress(compressed, this.output);
-
         return this.output;
     }
     
-    /******************************************************************************
+    /***************************************************************************
     
         Static method alias, to be used as
         
@@ -180,9 +185,7 @@ class LzoChunk
         Returns:
             maximum compressed length of data
     
-     ******************************************************************************/
+     **************************************************************************/
     
     alias MiniLzo.maxCompressedLength maxCompressedLength;
-
-
 }
