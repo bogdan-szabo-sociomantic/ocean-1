@@ -8,26 +8,26 @@
     
     authors:        David Eckardt
     
-*******************************************************************************/
+ ******************************************************************************/
 
 module ocean.net.socket.model.IConnectionHandler;
 
-/******************************************************************************
+/*******************************************************************************
 
-    Imports
+	Imports
     
-*******************************************************************************/
+ ******************************************************************************/
 
-private     import      ocean.io.protocol.ListReader, 
-                        ocean.io.protocol.ListWriter;
+private	import	ocean.io.protocol.ListReader, 
+                ocean.io.protocol.ListWriter;
 
-private     import      tango.io.stream.Buffered;
+private import  tango.io.stream.Buffered;
 
-private     import      tango.io.model.IBuffer, tango.io.model.IConduit;
+private import  tango.io.model.IBuffer, tango.io.model.IConduit;
 
-private     import      tango.core.Runtime;
+private import  tango.core.Runtime;
 
-private     import      tango.core.Exception: IOException;
+private import  tango.core.Exception: IOException;
 
 debug 
 {
@@ -35,7 +35,7 @@ debug
     private import tango.util.log.Trace;
 }
 
-/******************************************************************************
+/*******************************************************************************
 
     Connection Handler
     
@@ -43,70 +43,70 @@ debug
     subclass must implement dispatch(). For conduit (socket) I/O the
     reader/writer class properties are available to the subclass.
        
-*******************************************************************************/
+ ******************************************************************************/
 
 abstract class IConnectionHandler
 {
     
-    /**************************************************************************
+    /***************************************************************************
     
         Hash type alias
         
      **************************************************************************/
 
-    alias               typeof (this)               This;
+    alias               typeof (this)		This;
     
-    /**************************************************************************
+    /***************************************************************************
         
         Protocol reader & writer
     
      **************************************************************************/
     
-    protected           ListWriter                  writer;
-    protected           ListReader                  reader;
+    protected           ListWriter          writer;
+    protected           ListReader          reader;
     
-    /**************************************************************************
+    /***************************************************************************
         
         Buffers
     
      **************************************************************************/
     
-    protected           BufferedInput               rbuffer;
-    protected           BufferedOutput              wbuffer;
+    protected           BufferedInput       rbuffer;
+    protected           BufferedOutput      wbuffer;
     
-    /**************************************************************************
+    /***************************************************************************
         
         Default buffer size
     
      **************************************************************************/
     
-    private const       size_t                      DefaultBufferSize = 0x10_000;
+    private const       size_t              DefaultBufferSize = 0x10_000;
     
-    /**************************************************************************
+    /***************************************************************************
     
         Conduit to client
     
      **************************************************************************/
 
-    protected           IConduit                    conduit;
+    protected           IConduit            conduit;
 
-    /**************************************************************************
+    /***************************************************************************
     
         Termination flag
     
      **************************************************************************/
 
-    protected           static bool                 terminated = false;
+    protected           static bool         terminated = false;
     
-    /**************************************************************************
+    /***************************************************************************
     
         Finished flag for run()
     
      **************************************************************************/
 
-    protected           bool                        finished;
+    protected           bool                finished;
     
-    /**************************************************************************
+    /***************************************************************************
         
         Constructor. The ListReader/Writer are initialised without a buffer.
 		The buffer is attached in the run method, when we have a conduit to
@@ -126,7 +126,7 @@ abstract class IConnectionHandler
         this.writer    = new ListWriter();
     }
 
-    /**************************************************************************
+    /***************************************************************************
     
         Constructor; uses default I/O buffer size
     
@@ -137,7 +137,7 @@ abstract class IConnectionHandler
         this(this.DefaultBufferSize);
     }
     
-    /**************************************************************************
+    /***************************************************************************
         
         Destructor
         
@@ -152,7 +152,7 @@ abstract class IConnectionHandler
         delete this.wbuffer;
     }
 
-    /**************************************************************************
+    /***************************************************************************
         
         Handles a client connection. Stops when the "finished" (for temporary
         connections) or the "terminate" flag (for persistent connections) is set
@@ -214,7 +214,7 @@ abstract class IConnectionHandler
 	    Params:
 	        conduit = connection conduit (e.g. socket)
 
-    ***************************************************************************/
+     **************************************************************************/
     
     protected void attachConduit ( IConduit conduit )
     {
@@ -232,7 +232,7 @@ abstract class IConnectionHandler
 	    Params:
 	        conduit = connection conduit (e.g. socket)
 
-	***************************************************************************/
+	 **************************************************************************/
 
     protected void detachConduit ( IConduit conduit )
     {
@@ -244,7 +244,7 @@ abstract class IConnectionHandler
         this.conduit = null;
    	}
 
-    /**************************************************************************
+    /***************************************************************************
     
         Sets the termination flag for all instances of this class
             
@@ -255,7 +255,7 @@ abstract class IConnectionHandler
         this.terminated = true;
     }
     
-    /**************************************************************************
+    /***************************************************************************
     
         Dispatch connection
         
@@ -265,6 +265,5 @@ abstract class IConnectionHandler
      **************************************************************************/
     
     abstract protected void dispatch ( );
-
 }
 
