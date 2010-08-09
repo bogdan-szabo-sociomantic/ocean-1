@@ -101,15 +101,15 @@ debug
 	private import tango.util.log.Trace;
 }
 
-/******************************************************************************
+/*******************************************************************************
 
     SocketThread
     
- *****************************************************************************/
+ ******************************************************************************/
 
 class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : Thread
 {
-    /**************************************************************************
+    /***************************************************************************
     
         Call joinAll() like a static method do wait for all threads to finish.
         
@@ -117,16 +117,17 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
 
     public alias        Thread_.thread_joinAll          joinAll;
     
-    /**************************************************************************
+    /***************************************************************************
     
-        Default timeout of 1 minute, set by constructor.
-        A subclass may change the timeout calling this.server_socket.timeout().
+        Default timeout of -1 for infinite connection timeout        
+        Please do not modify this value. Timeouts should always be handled 
+        in the client not by the server. 
         
      **************************************************************************/
 
-    public const        uint                            Timeout        = 60_000;
+    public const        uint                            Timeout        = -1;
     
-    /**************************************************************************
+    /***************************************************************************
     
         Maximum number of accepted pending connections
         
@@ -134,7 +135,7 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
     
     public              uint                            conn_queue_max = 100;
     
-    /**************************************************************************
+    /***************************************************************************
         
         Server socket
         
@@ -142,7 +143,7 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
     
     protected           ServerSocket                    server_socket;
     
-    /**************************************************************************
+    /***************************************************************************
     
         Termination flag for listener loop
         
@@ -150,7 +151,7 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
 
     private           bool                            terminated = false;
     
-    /**************************************************************************
+    /***************************************************************************
     
         Connection pool
         
@@ -158,7 +159,7 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
 
     private             ObjectThreadPool!(ConnectionHandler, Args) connections;
     
-    /**************************************************************************
+    /***************************************************************************
         
         Constructor
         
@@ -179,7 +180,7 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
         super(&this.listen);
     }
     
-    /**************************************************************************
+    /***************************************************************************
     
         Constructor
         
@@ -197,7 +198,7 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
         this(new ServerSocket(address, backlog, reuse), args, n_conn_threads);
     }
     
-    /**************************************************************************
+    /***************************************************************************
     
         Constructor
         
@@ -216,7 +217,7 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
         this(new ServerSocket(new InternetAddress(address, port), backlog, reuse), args, n_conn_threads);
     }
     
-    /**************************************************************************
+    /***************************************************************************
     
         Shuts down the server
         
@@ -232,7 +233,7 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
         this.server_socket.detach();
     }
 
-    /**************************************************************************
+    /***************************************************************************
         
         Listens to socket; starts a connection handler on incoming connection
         
@@ -256,11 +257,12 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
                     
                     if (this.connections.pendingJobs < this.conn_queue_max)
                     {
-                    	debug Trace.formatln("Accepting new connection");
+                    	debug Trace.formatln("Accepting new connection").flush();                    	
                         this.connections.append(socket);
                     }
                     else
                     {
+                    	debug Trace.formatln("Max connection queue number reached... ").flush();
                         socket.shutdown();
                         socket.detach();
                     }
@@ -272,9 +274,8 @@ class ServerSocketThread ( ConnectionHandler : IConnectionHandler, Args ... ) : 
            }
            catch (Exception e)
            {
-               TraceLog.write("IOException: " ~ e.msg);
+               TraceLog.write("Exception: " ~ e.msg);
            }
         }
-    }
-    
+    }    
 }
