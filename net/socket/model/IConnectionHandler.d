@@ -187,7 +187,7 @@ abstract class IConnectionHandler
         	debug if (!Runtime.isHalting())
             {
         		TraceLog.write("socket exception '{}'", e.msg);
-        		Trace.formatln("socket exception '{}'", e.msg);
+        		Trace.formatln("socket exception '{}'", e.msg).flush();
             }
         }
         catch (Exception e)
@@ -195,11 +195,12 @@ abstract class IConnectionHandler
             debug
             {
                 TraceLog.write("runtime exception '{}'", e.msg);
-                Trace.formatln("runtime exception '{}'", e.msg);
+                Trace.formatln("runtime exception '{}'", e.msg).flush();
             }
         }
         finally
         {
+        	Trace.formatln("Detach conduit..").flush();
         	this.detachConduit(conduit);
         }
     }
