@@ -62,6 +62,55 @@ size_t concat ( T ) ( ref T[] dest, T[][] arrays ... )
 	return total_len;
 }
 
+
+/*******************************************************************************
+
+	Appends a list of arrays to a destination array. The function results
+	in at most a single memory allocation, as the destination array needs to be
+	expanded to contain the concatenated list of arrays.
+	
+	The destination array is passed as a reference, so its length can be
+	modified in-place as required. This avoids any per-element memory
+	allocation, which the normal ~ operator suffers from.
+	
+	Params:
+		dest = reference to the destination array
+		arrays = variadic list of arrays to append
+	
+	Returns:
+		the new length of the destination array
+	
+	Usage:
+	---
+		char[] dest = "hello";
+		append(dest, " world", ", what a beautiful day!);
+	---
+
+*******************************************************************************/
+
+size_t append ( T ) ( ref T[] dest, T[][] arrays ... )
+{
+	size_t total_len;
+	foreach ( array; arrays )
+	{
+		total_len += array.length;
+	}
+
+	auto old_len = dest.length;
+	dest.length = old_len + total_len;
+
+	auto write_slice = dest[old_len..$];
+	foreach ( array; arrays )
+	{
+		write_slice[0..array.length] = array;
+		write_slice = write_slice[array.length .. $];
+	}
+
+	return old_len + total_len;
+}
+
+
+
 /*******************************************************************************
 
     Unittest
