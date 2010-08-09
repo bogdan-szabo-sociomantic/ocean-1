@@ -112,6 +112,8 @@ class LzoChunk
             
         Returns:
             LZO chunk containing compressed data
+            
+       	FIXME: move return parameter to ref (out) parameter
          
      **************************************************************************/
 
@@ -133,6 +135,30 @@ class LzoChunk
         return header.write(this.input);
     }
     
+    public void compress ( void[] uncompressed, ref char[] output )
+    {
+        CompressionHeader header;
+        
+        size_t end;
+        
+        this.input.length = 0;
+        
+        char[] tmp;
+             
+        header.uncompressed_length = uncompressed.length;
+        header.type                = header.type.LZO1X;
+        
+        this.input.length = header.length + this.maxCompressedLength(uncompressed.length);
+        
+        end = header.length + this.lzo.compress(uncompressed, header.strip(this.input));
+        
+        this.input.length = end;
+        
+        tmp = cast (char[]) header.write(this.input);
+        
+        output = tmp.dup;        
+    }
+    
     /***************************************************************************
     
         Uncompresses a LZO chunk 
@@ -142,6 +168,10 @@ class LzoChunk
             
         Returns:
             uncompressed data chunk
+            
+		FIXME: 	- move return parameter to ref (out) parameter
+				- Add assertion for chunk length 
+				- same method names in minilzo and lzochunk 
          
      **************************************************************************/
 
@@ -149,18 +179,13 @@ class LzoChunk
     {
         CompressionHeader header;
         
-        this.output.length = 0;
-        
-        if (chunk.length)
-        {
-	        void[] compressed = header.read(chunk);
+        void[] compressed = header.read(chunk);
 	        
-	        this.output.length = header.uncompressed_length;
+	    this.output.length = header.uncompressed_length;
 	
-	        assertEx!(CompressException)(header.type == header.type.LZO1X, "Not LZO1X");
+	    assertEx!(CompressException)(header.type == header.type.LZO1X, "Not LZO1X");
 	        
-	        this.lzo.decompress(compressed, this.output);
-        }
+	    this.lzo.decompress(compressed, this.output);
         
         return this.output;
     }
