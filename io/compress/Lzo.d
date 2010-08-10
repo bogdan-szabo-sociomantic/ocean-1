@@ -235,6 +235,16 @@ class Lzo
     }
 }
 
+/******************************************************************************
+
+    Unit test
+    
+    Note: The unit test requires a file named "lzotest.dat" in the current
+    working directory at runtime. This file provides the data to be compressed
+    for testing and performance measurement.
+
+ ******************************************************************************/
+
 debug (LzoUnitTest):
 
 import tango.util.log.Trace;
@@ -296,9 +306,9 @@ unittest
     
     ulong crc_us = swatch.microsec;
     
-    assert (uncompr_len == data.length,            "uncompressed/original data length mismatch");
-    assert (uncompressed == data,                  "uncompressed/original data mismatch");
-    assert (lzo.crc32(uncompressed) == crc32_data, "uncompressed/original data CRC-32 mismatch");
+    assert (uncompr_len == data.length,            "uncompressed data length mismatch");
+    assert (uncompressed == data,                  "uncompressed data mismatch");
+    assert (lzo.crc32(uncompressed) == crc32_data, "uncompressed data CRC-32 mismatch");
     
     crc_us    -= uncomp_us;
     uncomp_us -= compr_us;
