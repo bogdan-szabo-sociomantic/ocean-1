@@ -200,7 +200,6 @@ abstract class IConnectionHandler
         }
         finally
         {
-        	Trace.formatln("Detach conduit..").flush();
         	this.detachConduit(conduit);
         }
     }
