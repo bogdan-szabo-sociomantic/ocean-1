@@ -47,7 +47,7 @@ debug private import tango.util.log.Trace;
  
  ******************************************************************************/
 
-align (1) struct CompressionHeader
+align (1) struct CompressionHeader ( bool LengthInline = true )
 {
     /**************************************************************************
         
@@ -119,17 +119,28 @@ align (1) struct CompressionHeader
         elements, "length" must equal "sizeof" in order to generate the
         correct LZO chunk header by serializing an instance of this
         structure. Hence "length == sizeof" is checked at ccompile-time
-        in write(). 
+        in write().
+        
+        TODO: read_length
          
      **************************************************************************/
-    
+
     const length = SizeofTuple!(typeof (this.tupleof));
+
+    static if ( LengthInline )
+    {
+        const read_length = length;
+    }
+    else
+    {
+        const read_length = length - size_t.sizeof;
+    }
     
     debug pragma (msg, typeof (*this).stringof ~ ".length = " ~ length.stringof);
     
     /**************************************************************************
     
-        Writes the header to chunk[0 .. this.length].
+        Writes the header to chunk[0 .. this.read_length].
         
         Params:
             chunk = chunk without header
@@ -138,16 +149,16 @@ align (1) struct CompressionHeader
             chunk (passed through)
          
         Throws:
-            CompressException if chunk is shorter than this.length
+            CompressException if chunk is shorter than this.read_length
          
      **************************************************************************/
     
     void[] write ( void[] chunk )
     {
-        static assert ((*this).sizeof == this.length,
+        static assert ((*this).sizeof == SizeofTuple!(typeof (this.tupleof)),
                        this.ErrMsgSource ~ ": Bad data alignment");
         
-        assertEx!(CompressException)(chunk.length >= this.length,
+        assertEx!(CompressException)(chunk.length >= this.read_length,
                                      this.ErrMsgSource ~ ": Chunk too short to write header");
         
         this.chunk_length = chunk.length - this.chunk_length.sizeof;
@@ -171,7 +182,7 @@ align (1) struct CompressionHeader
             this instance
          
         Throws:
-            CompressException if chunk is shorter than this.length
+            CompressException if chunk is shorter than this.read_length
          
      **************************************************************************/
 
@@ -264,6 +275,13 @@ align (1) struct CompressionHeader
         return this;
     }
     
+    bool isStop ( void[] chunk )
+    {
+        this.read(chunk);
+        
+        return this.type == Type.Stop || typeof(this).isNullChunk(chunk);
+    }
+    
     /**************************************************************************
     
         Reads chunk which is expected to be a Start chunk or a Null chunk; does
@@ -294,13 +312,22 @@ align (1) struct CompressionHeader
             
             validated = true;
         }
-        else if (chunk.length == this.length)
+        else if (chunk.length == this.read_length)
         {
-            *this = *cast (typeof (this)) chunk.ptr;
+            this.setHeader(chunk);
+            
+            Trace.formatln("Not NULL, len={}, crc={}, type={}, uncompressed len={}", this.chunk_length, this.crc32_, this.type, this.uncompressed_length);
             
             if (this.type == Type.Start)
             {
-                if (chunk.length == this.chunk_length + this.chunk_length.sizeof)
+                static if ( LengthInline )
+                {
+                    if (chunk.length == this.chunk_length + this.chunk_length.sizeof)
+                    {
+                        validated = this.crc32_ == this.crc32;
+                    }
+                }
+                else
                 {
                     validated = this.crc32_ == this.crc32;
                 }
@@ -309,7 +336,7 @@ align (1) struct CompressionHeader
         
         return validated;
     }
-    
+
     /**************************************************************************
         
         Returns the header data of this instance.
@@ -321,7 +348,7 @@ align (1) struct CompressionHeader
     
     void[] data ( )
     {
-        return (cast (void*) this)[0 .. this.length];
+        return (cast (void*) this)[0 .. this.read_length];
     }
     
     /**************************************************************************
@@ -336,7 +363,7 @@ align (1) struct CompressionHeader
 
     void[] data_without_length ( )
     {
-        return (cast (void*) this)[size_t.sizeof .. this.length];
+        return (cast (void*) this)[size_t.sizeof .. this.read_length];
     }
     
     /**************************************************************************
@@ -348,10 +375,10 @@ align (1) struct CompressionHeader
             chunk = chunk with header (or Null chunk)
          
         Returns:
-            this instance
+            payload from chunk (with header data stripped)
          
         Throws:
-            CompressException if chunk is shorter than this.length
+            CompressException if chunk is shorter than this.read_length
             
      **************************************************************************/
     
@@ -365,18 +392,59 @@ align (1) struct CompressionHeader
         }
         else
         {
-            *this = *cast (typeof (this)) chunk.ptr;
+            this.setHeader(chunk);
             
             payload = this.strip(chunk);
-            
-            assertEx!(CompressException)(chunk.length == this.chunk_length + this.chunk_length.sizeof,
+
+            static if ( LengthInline )
+            {
+                assertEx!(CompressException)(chunk.length == this.chunk_length + this.chunk_length.sizeof,
                                          this.ErrMsgSource ~ ": Chunk length mismatch");
-            
+            }
+            else
+            {
+                assertEx!(CompressException)(chunk.length == this.chunk_length,
+                                             this.ErrMsgSource ~ ": Chunk length mismatch");
+            }
+
             assertEx!(CompressException)(this.crc32_ == this.crc32(payload),
                                          this.ErrMsgSource ~ ": Chunk data corrupted (CRC32 mismatch)");
         }
-        
+
         return payload;
+    }
+
+    /**************************************************************************
+    
+         Sets the internal data members from the given chunk.
+         
+         Params:
+             chunk = data to read from
+
+        Returns:
+            this
+            
+     **************************************************************************/
+
+    typeof(this) setHeader ( void[] chunk )
+    {
+        static if ( LengthInline )
+        {
+            *this = *cast (typeof (this)) chunk.ptr;
+        }
+        else
+        {
+            this.chunk_length = chunk.length;
+
+            void* read_ptr = chunk.ptr;
+            this.crc32_ = *(cast(typeof(this.crc32_)*) read_ptr);
+            read_ptr += this.crc32_.sizeof;
+            this.type = *(cast(typeof(this.type)*) read_ptr);
+            read_ptr += this.type.sizeof;
+            this.uncompressed_length = *(cast(typeof(this.uncompressed_length)*) read_ptr);
+        }
+
+        return this;
     }
     
     /**************************************************************************
@@ -415,10 +483,10 @@ align (1) struct CompressionHeader
 
     static void[] strip ( void[] chunk )
     {
-        assertEx!(CompressException)(chunk.length >= this.length,
+        assertEx!(CompressException)(chunk.length >= this.read_length,
                                      this.ErrMsgSource ~ ": Chunk too short to strip header");
         
-        return chunk[this.length .. $];
+        return chunk[this.read_length .. $];
     }
     
     /**************************************************************************
@@ -443,7 +511,14 @@ align (1) struct CompressionHeader
 
     static bool isNullChunk ( void[] chunk )
     {
-        return (chunk.length == size_t.sizeof)? !*cast (size_t*) chunk.ptr : false;
+        static if ( LengthInline )
+        {
+            return (chunk.length == size_t.sizeof)? !*cast (size_t*) chunk.ptr : false;
+        }
+        else
+        {
+            return chunk.length == 0;
+        }
     }
 }
 
