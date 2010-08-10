@@ -33,6 +33,9 @@
         6. Link the compiled MiniLZO (minilzo.o) and lzo_crc.o to the library
            binary with the type of your choice (static, dynamic, shared ...).
         
+    As an alternative, lzo_crc.o can also be used as a stand-alone CRC-32
+    calculator library.
+        
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     ============================================================================
