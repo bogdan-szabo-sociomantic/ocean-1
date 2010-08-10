@@ -18,12 +18,12 @@ module ocean.io.compress.minilzo.Lzo;
 
  ******************************************************************************/
 
-private import ocean.io.compress.minilzo.c.minilzo : lzo1x_1_compress,
+private import ocean.io.compress.lzochunk.c.minilzo: lzo1x_1_compress,
                                                      lzo1x_decompress, lzo1x_decompress_safe,
                                                      lzo1x_max_compressed_length, lzo_init,
                                                      Lzo1x1WorkmemSize, LzoStatus;
 
-private import ocean.io.compress.minilzo.LzoCrc;
+private import ocean.io.compress.lzochunk.LzoCrc;
 
 private import ocean.core.Exception: CompressException, assertEx;
 
