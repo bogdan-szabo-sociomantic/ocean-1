@@ -86,7 +86,7 @@ class LzoChunk
     {
         this.lzo   = new Lzo;
         
-        this.input = new void[CompressionHeader.length + 
+        this.input = new void[CompressionHeader!().length + 
                      this.maxCompressedLength(data_size)];
     }
     
@@ -119,7 +119,7 @@ class LzoChunk
 
     public void[] compress ( void[] uncompressed )
     {
-        CompressionHeader header;
+        CompressionHeader!() header;
         
         size_t end;
         
@@ -132,12 +132,12 @@ class LzoChunk
         
         this.input.length = end;
         
-        return header.write(this.input);
+        return header.write(this.input); 
     }
     
     public void compress ( void[] uncompressed, ref char[] output )
     {
-        CompressionHeader header;
+        CompressionHeader!() header;
         
         size_t end;
         
@@ -177,7 +177,7 @@ class LzoChunk
 
     public void[] uncompress ( void[] chunk )
     {
-        CompressionHeader header;
+        CompressionHeader!() header;
         
         void[] compressed = header.read(chunk);
 	        
@@ -205,7 +205,7 @@ class LzoChunk
     
     public void uncompress ( void[] chunk, ref void[] output )
     {
-        CompressionHeader header;
+        CompressionHeader!() header;
         
         void[] compressed = header.read(chunk);
             
