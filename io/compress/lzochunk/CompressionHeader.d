@@ -316,7 +316,7 @@ align (1) struct CompressionHeader ( bool LengthInline = true )
         {
             this.setHeader(chunk);
             
-            Trace.formatln("Not NULL, len={}, crc={}, type={}, uncompressed len={}", this.chunk_length, this.crc32_, this.type, this.uncompressed_length);
+            debug Trace.formatln("Not NULL, len={}, crc={}, type={}, uncompressed len={}", this.chunk_length, this.crc32_, this.type, this.uncompressed_length);
             
             if (this.type == Type.Start)
             {
