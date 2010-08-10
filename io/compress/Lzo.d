@@ -323,7 +323,7 @@ unittest
     Trace.formatln("LZO unittest results:\n\t"
                    "uncompressed length: {} {}B\t({} bytes)\n\t"
                    "compressed length:   {} {}B\t({} bytes)\n\t"
-                   "ratio:               {}%\n\t"
+                   "compression ratio:   {}%\n\t"
                    "compression time:    {} {}s\t({} µs)\n\t"
                    "uncompression time:  {} {}s\t({} µs)\n\t"
                    "CRC-32 time:         {} {}s\t({} µs)\n\t"
