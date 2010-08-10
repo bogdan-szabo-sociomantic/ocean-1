@@ -192,6 +192,34 @@ class LzoChunk
     
     /***************************************************************************
     
+        Uncompresses a LZO chunk 
+        
+        Params:
+            chunk = LZO chunk to uncompress            
+            output = output parameter for the uncompressed result
+            
+        Returns:
+            void
+        
+     **************************************************************************/
+    
+    public void uncompress ( void[] chunk, ref void[] output )
+    {
+        CompressionHeader header;
+        
+        void[] compressed = header.read(chunk);
+            
+        this.output.length = header.uncompressed_length;
+    
+        assertEx!(CompressException)(header.type == header.type.LZO1X, "Not LZO1X");
+            
+        this.lzo.decompress(compressed, this.output);
+        
+        output = this.output;
+    }
+    
+    /***************************************************************************
+    
         Static method alias, to be used as
         
                                                                              ---
