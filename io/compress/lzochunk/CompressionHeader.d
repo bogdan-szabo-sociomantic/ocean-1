@@ -275,68 +275,42 @@ align (1) struct CompressionHeader ( bool LengthInline = true )
         return this;
     }
     
-    bool isStop ( void[] chunk )
-    {
-        this.read(chunk);
-        
-        return this.type == Type.Stop || typeof(this).isNullChunk(chunk);
-    }
-    
     /**************************************************************************
-    
-        Reads chunk which is expected to be a Start chunk or a Null chunk; does
-        not throw an exception if the chunk header is invalid or not Start or 
-        Null but returns false instead.
-    
-        After chunk has been read, this.type is either set to Start, if the
-        provided chunk was a start chunk, or to Stop for a Null chunk.
-        this.uncompressed_size reflects the total uncompressed size of the data
-        in the chunks that will follow.
+
+        Checks whether chunk is a Stop / Null chunk. This data members are set
+        from the chunk provided.
         
         Params:
             chunk = input chunk
          
          Returns:
-            true if chunk is a Start chunk, as expected, or a Null chunk, or
-            false otherwise
+            true if chunk is a Stop or Null chunk
+         
+     **************************************************************************/
+
+    bool tryReadStop ( void[] chunk )
+    {
+        return tryReadType(chunk, Type.Stop, true);
+    }
+
+    /**************************************************************************
+
+        Checks whether chunk is a Start / Null chunk. This data members are set
+        from the chunk provided.
+        
+        Params:
+            chunk = input chunk
+         
+         Returns:
+            true if chunk is a Start or Null chunk
          
      **************************************************************************/
 
     bool tryReadStart ( void[] chunk )
     {
-        bool validated = false;
-        
-        if (this.isNullChunk(chunk))
-        {
-            this.stop();
-            
-            validated = true;
-        }
-        else if (chunk.length == this.read_length)
-        {
-            this.setHeader(chunk);
-            
-//            debug Trace.formatln("Not NULL, len={}, crc={}, type={}, uncompressed len={}", this.chunk_length, this.crc32_, this.type, this.uncompressed_length);
-            
-            if (this.type == Type.Start)
-            {
-                static if ( LengthInline )
-                {
-                    if (chunk.length == this.chunk_length + this.chunk_length.sizeof)
-                    {
-                        validated = this.crc32_ == this.crc32;
-                    }
-                }
-                else
-                {
-                    validated = this.crc32_ == this.crc32;
-                }
-            }
-        }
-        
-        return validated;
+        return tryReadType(chunk, Type.Start, true);
     }
-
+    
     /**************************************************************************
         
         Returns the header data of this instance.
@@ -465,6 +439,61 @@ align (1) struct CompressionHeader ( bool LengthInline = true )
         return crc32;
     }
     
+    /**************************************************************************
+    
+        Reads chunk which is expected to be of the specified type, or optionally
+        a Null chunk; does not throw an exception if the chunk header is invalid
+        or not of the specified types but returns false instead.
+    
+        After chunk has been read, this.type is either set to the specified
+        type, if the provided chunk was of that type, or to Stop for a Null
+        chunk.
+    
+        this.uncompressed_size reflects the total uncompressed size of the data
+        in the chunks that will follow.
+        
+        Params:
+            chunk = input chunk
+         
+         Returns:
+            true if chunk is of the specified type, as expected, or a Null
+            chunk, or false otherwise
+         
+     **************************************************************************/
+    
+    private bool tryReadType ( void[] chunk, Type check_type, bool allow_null )
+    {
+        bool validated = false;
+    
+        if (allow_null && this.isNullChunk(chunk))
+        {
+            this.stop();
+            
+            validated = true;
+        }
+        else if (chunk.length == this.read_length)
+        {
+            this.setHeader(chunk);
+    
+            if (this.type == check_type)
+            {
+                static if ( LengthInline )
+                {
+                    if (chunk.length == this.chunk_length + this.chunk_length.sizeof)
+                    {
+                        validated = this.crc32_ == this.crc32;
+                    }
+                }
+                else
+                {
+                    validated = this.crc32_ == this.crc32;
+                }
+            }
+        }
+
+        return validated;
+    }
+
     /**************************************************************************
     
         Strips the header from chunk
