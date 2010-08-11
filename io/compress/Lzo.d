@@ -120,7 +120,7 @@ class Lzo
             
      **************************************************************************/
 
-    size_t decompress ( void[] src, void[] dst )
+    size_t uncompress ( void[] src, void[] dst )
     {
         size_t len;
         
@@ -248,7 +248,7 @@ class Lzo
 
  ******************************************************************************/
 
-debug (LzoUnitTest):
+debug (LzoUnitTest) private:
 
 import tango.util.log.Trace;
 import tango.io.device.File;
@@ -257,6 +257,8 @@ import tango.time.StopWatch;
 debug (GcDisabled) import tango.core.internal.gcInterface: gc_disable;
 
 import ocean.text.util.MetricPrefix;
+
+import tango.stdc.signal: signal, SIGINT;
 
 /******************************************************************************
 
@@ -271,6 +273,36 @@ import ocean.text.util.MetricPrefix;
  ******************************************************************************/
 
 extern (C) int lrintf ( float x );
+
+/******************************************************************************
+
+    Terminator structure
+
+ ******************************************************************************/
+
+struct Terminator
+{
+    static:
+        
+    /**************************************************************************
+    
+        Termination flag
+    
+     **************************************************************************/
+    
+    bool terminated = false;
+    
+    /**************************************************************************
+    
+        Signal handler; raises the termination flag
+    
+     **************************************************************************/
+    
+    extern (C) void terminate ( int code )
+    {
+        this.terminated = true;
+    }
+}
 
 unittest
 {
@@ -291,15 +323,14 @@ unittest
     
     scope data         = new void[file.length];
     scope uncompressed = new void[file.length];
+    scope compressed   = new void[Lzo.maxCompressedLength(data.length)];
+    scope lzo          = new Lzo;
     
     file.read(data);
     
     file.close();
     
-    Trace.formatln("LZO unittest: loaded {} bytes of test data, compressing...", uncompressed.length);
-    
-    scope lzo        = new Lzo;
-    scope compressed = new void[lzo.maxCompressedLength(uncompressed.length)];
+    Trace.formatln("LZO unittest: loaded {} bytes of test data, compressing...", data.length);
     
     swatch.start();
     
@@ -307,7 +338,7 @@ unittest
     
     ulong compr_us = swatch.microsec;
     
-    size_t uncompr_len = lzo.decompress(compressed, uncompressed);
+    size_t uncompr_len = lzo.uncompress(compressed, uncompressed);
     
     ulong uncomp_us = swatch.microsec;
     
@@ -336,7 +367,10 @@ unittest
                    "compression time:    {} {}s\t({} µs)\n\t"
                    "uncompression time:  {} {}s\t({} µs)\n\t"
                    "CRC-32 time:         {} {}s\t({} µs)\n\t"
-                   "CRC-32 (uncompr'd):  0x{:X8}\n",
+                   "CRC-32 (uncompr'd):  0x{:X8}\n"
+                   "\n"
+                   "LZO unittest: Looping for memory leak detection; "
+                   "watch memory usage and press Ctrl+C to quit",
                    pre_uncomp_sz.scaled, pre_uncomp_sz.prefix, uncompressed.length,
                    pre_comp_sz.scaled, pre_comp_sz.prefix, compressed.length,
                    lrintf((compressed.length * 100.f) / uncompressed.length),
@@ -344,4 +378,19 @@ unittest
                    pre_uncomp_tm.scaled, pre_uncomp_tm.prefix, uncomp_us,
                    pre_crc_tm.scaled, pre_crc_tm.prefix, crc_us,
                    crc32_data);
+    
+    auto prev_sigint_handler = signal(SIGINT, &Terminator.terminate);
+    
+    scope (exit) signal(SIGINT, prev_sigint_handler);
+    
+    while (!Terminator.terminated)
+    {
+        compressed.length = Lzo.maxCompressedLength(data.length);
+        
+        compressed.length =  lzo.compress(data, compressed);
+        
+        lzo.uncompress(compressed, uncompressed);
+    }
+    
+    Trace.formatln("\n\nLZO unittest finished\n");
 }
