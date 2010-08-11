@@ -239,6 +239,9 @@ class Lzo
 
     Unit test
     
+    Add -debug=GcDisabled to the compiler command line to disable the garbage
+    collector.
+    
     Note: The unit test requires a file named "lzotest.dat" in the current
     working directory at runtime. This file provides the data to be compressed
     for testing and performance measurement.
@@ -250,6 +253,8 @@ debug (LzoUnitTest):
 import tango.util.log.Trace;
 import tango.io.device.File;
 import tango.time.StopWatch;
+
+debug (GcDisabled) import tango.core.internal.gcInterface: gc_disable;
 
 import ocean.text.util.MetricPrefix;
 
@@ -269,12 +274,18 @@ extern (C) int lrintf ( float x );
 
 unittest
 {
+    debug (GcDisabled)
+    {
+        pragma (msg, "LZO unittest: garbage collector disabled");
+        gc_disable();
+    }
+    
     StopWatch swatch;
     
     MetricPrefix pre_comp_sz, pre_uncomp_sz,
                  pre_comp_tm, pre_uncomp_tm, pre_crc_tm;
     
-    Trace.formatln("LZO unittest: loading lzotest.dat");
+    Trace.formatln("LZO unittest: loading test data from file \"lzotest.dat\"");
     
     scope file = new File("lzotest.dat");
     
@@ -285,7 +296,7 @@ unittest
     
     file.close();
     
-    Trace.formatln("LZO unittest: loaded {} bytes from lzotest.dat, compressing...", uncompressed.length);
+    Trace.formatln("LZO unittest: loaded {} bytes of test data, compressing...", uncompressed.length);
     
     scope lzo        = new Lzo;
     scope compressed = new void[lzo.maxCompressedLength(uncompressed.length)];
