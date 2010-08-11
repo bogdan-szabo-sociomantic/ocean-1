@@ -40,7 +40,8 @@ private     import      tango.util.log.Trace;
     ---
     
     Header data layout
-    --
+    
+    ---
     chunk[0  ..  4] - length of chunk[4 .. $] (or compressed data length
                       + header length - 4)
     chunk[4 ..   8] - 32-bit CRC value of following header elements and
@@ -89,16 +90,16 @@ class LzoChunk ( bool LengthInline = true )
         Compresses a data chunk 
         
         Params:
-            uncompressed = data chunk to compress
+            data = data to compress
+            compressed = LZO compressed data chunk with header 
+                         (output ref parameter)
             
         Returns:
-            LZO chunk containing compressed data
-            
-       	FIXME: move return parameter to ref (out) parameter
+            this instance 
          
      **************************************************************************/
     
-    public typeof (this) compress ( void[] data, ref void[] chunk )
+    public typeof (this) compress ( void[] data, ref void[] compressed )
     {
         CompressionHeader!(LengthInline) header;
         
@@ -107,13 +108,13 @@ class LzoChunk ( bool LengthInline = true )
         header.uncompressed_length = data.length;
         header.type                = header.type.LZO1X;
         
-        chunk.length = this.maxChunkLength(data.length);
+        compressed.length = this.maxChunkLength(data.length);
         
-        end = header.length + this.lzo.compress(data, header.strip(chunk));
+        end = header.length + this.lzo.compress(data, header.strip(compressed));
         
-        chunk.length = end;
+        compressed.length = end;
         
-        header.write(chunk);
+        header.write(compressed);
         
         return this;
     }
@@ -123,27 +124,27 @@ class LzoChunk ( bool LengthInline = true )
         Uncompresses a LZO chunk 
         
         Params:
-            chunk = LZO chunk to uncompress
+            compressed = LZO compressed data chunk to uncompress
+            data = uncompressed data (output ref parameter)
             
         Returns:
-            uncompressed data chunk
+            this instance
             
-		FIXME: 	- move return parameter to ref (out) parameter
-				- Add assertion for chunk length 
+		FIXME: - Add assertion for chunk length 
          
      **************************************************************************/
     
-    public typeof (this) uncompress ( void[] chunk, ref void[] data )
+    public typeof (this) uncompress ( void[] compressed, ref void[] data )
     {
         CompressionHeader!(LengthInline) header;
         
-        void[] compressed = header.read(chunk);
+        void[] buf = header.read(compressed);
             
         data.length = header.uncompressed_length;
     
         assertEx!(CompressException)(header.type == header.type.LZO1X, "Not LZO1X");
             
-        this.lzo.uncompress(compressed, data);
+        this.lzo.uncompress(buf, data);
         
         return this;
     }
@@ -196,7 +197,7 @@ class LzoChunk ( bool LengthInline = true )
 
 debug (LzoChunkUnitTest) private:
 
-/******************************************************************************
+/*******************************************************************************
 
     Unit test
     
@@ -207,7 +208,7 @@ debug (LzoChunkUnitTest) private:
     working directory at runtime. This file provides the data to be compressed
     for testing and performance measurement.
 
-******************************************************************************/
+ ******************************************************************************/
 
 import tango.util.log.Trace;
 import tango.io.device.File;
@@ -219,7 +220,7 @@ import ocean.text.util.MetricPrefix;
 
 import tango.stdc.signal: signal, SIGINT;
 
-/******************************************************************************
+/*******************************************************************************
 
     Rounds x to the nearest integer value
     
@@ -229,11 +230,11 @@ import tango.stdc.signal: signal, SIGINT;
     Returns:
         nearest integer value of x
 
-******************************************************************************/
+ ******************************************************************************/
 
 extern (C) int lrintf ( float x );
 
-/******************************************************************************
+/*******************************************************************************
 
     Terminator structure
 
@@ -243,7 +244,7 @@ struct Terminator
 {
     static:
         
-    /**************************************************************************
+    /***************************************************************************
     
         Termination flag
     
@@ -251,7 +252,7 @@ struct Terminator
     
     bool terminated = false;
     
-    /**************************************************************************
+    /***************************************************************************
     
         Signal handler; raises the termination flag
     
