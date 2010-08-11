@@ -49,10 +49,10 @@ private     import      tango.util.log.Trace;
     chunk[8  .. 12] - chunk/compression type code (signed 32-bit integer)
     chunk[12 .. 16] - length of uncompressed data
     ---
-    
- ******************************************************************************/
 
-class LzoChunk
+******************************************************************************/
+
+class LzoChunk ( bool LengthInline = true )
 {
     
     /***************************************************************************
@@ -60,7 +60,7 @@ class LzoChunk
         Lzo instance
          
      **************************************************************************/
-
+    
     private             Lzo                     lzo;
     
     /***************************************************************************
@@ -68,7 +68,7 @@ class LzoChunk
         Input/output buffer
          
      **************************************************************************/
-
+    
     private             void[]                      input;
     private             void[]                      output;
     
@@ -81,12 +81,11 @@ class LzoChunk
                         preallocation)
          
      **************************************************************************/
-
+    
     public this ( size_t data_size = 0 )
     {
         this.lzo   = new Lzo;
-        
-        this.input = new void[CompressionHeader!().length + 
+        this.input = new void[CompressionHeader!(LengthInline).length + 
                      this.maxCompressedLength(data_size)];
     }
     
@@ -102,7 +101,7 @@ class LzoChunk
         delete this.input;
         delete this.output;
     }
-
+    
     /***************************************************************************
     
         Compresses a data chunk 
@@ -113,13 +112,13 @@ class LzoChunk
         Returns:
             LZO chunk containing compressed data
             
-       	FIXME: move return parameter to ref (out) parameter
+        FIXME: move return parameter to ref (out) parameter
          
      **************************************************************************/
-
+    
     public void[] compress ( void[] uncompressed )
     {
-        CompressionHeader!() header;
+        CompressionHeader!(LengthInline) header;
         
         size_t end;
         
@@ -137,7 +136,7 @@ class LzoChunk
     
     public void compress ( void[] uncompressed, ref char[] output )
     {
-        CompressionHeader!() header;
+        CompressionHeader!(LengthInline) header;
         
         size_t end;
         
@@ -169,23 +168,23 @@ class LzoChunk
         Returns:
             uncompressed data chunk
             
-		FIXME: 	- move return parameter to ref (out) parameter
-				- Add assertion for chunk length 
-				- same method names in minilzo and lzochunk 
+        FIXME:  - move return parameter to ref (out) parameter
+                - Add assertion for chunk length 
+                - same method names in minilzo and lzochunk 
          
      **************************************************************************/
-
+    
     public void[] uncompress ( void[] chunk )
     {
-        CompressionHeader!() header;
+        CompressionHeader!(LengthInline) header;
         
         void[] compressed = header.read(chunk);
-	        
-	    this.output.length = header.uncompressed_length;
-	
-	    assertEx!(CompressException)(header.type == header.type.LZO1X, "Not LZO1X");
-	        
-	    this.lzo.decompress(compressed, this.output);
+            
+        this.output.length = header.uncompressed_length;
+    
+        assertEx!(CompressException)(header.type == header.type.LZO1X, "Not LZO1X");
+            
+        this.lzo.decompress(compressed, this.output);
         
         return this.output;
     }
@@ -242,3 +241,4 @@ class LzoChunk
     
     alias Lzo.maxCompressedLength maxCompressedLength;
 }
+
