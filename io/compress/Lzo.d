@@ -253,8 +253,6 @@ import tango.time.StopWatch;
 
 import ocean.text.util.MetricPrefix;
 
-import tango.stdc.posix.unistd: usleep;
-
 /******************************************************************************
 
     Rounds x to the nearest integer value
