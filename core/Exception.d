@@ -330,8 +330,8 @@ void assertEx ( E : Exception = Exception, T ) ( T ok )
     Params:
         ok   = condition which must be true else an exception E is thrown
         msg  = message to pass to exception constructor
-        args = exception arguments, depending on the particular exception
-               (usually at least a message)
+        args = additional exception arguments, depending on the particular
+               exception
 
 *******************************************************************************/
 
