@@ -579,7 +579,7 @@ template SizeofTuple ( T ... )
  ******************************************************************************/
 
 
-debug (CompressionHeaderUnitTest):
+debug (CompressionHeaderUnitTest) private:
     
 import tango.util.log.Trace;
 
@@ -588,6 +588,38 @@ import tango.time.StopWatch;
 import ocean.text.util.MetricPrefix;
 
 debug (GcDisabled) import tango.core.internal.gcInterface: gc_disable;
+
+import tango.stdc.signal: signal, SIGINT;
+
+/******************************************************************************
+
+Terminator structure
+
+******************************************************************************/
+
+struct Terminator
+{
+    static:
+        
+    /**************************************************************************
+    
+        Termination flag
+    
+     **************************************************************************/
+    
+    bool terminated = false;
+    
+    /**************************************************************************
+    
+        Signal handler; raises the termination flag
+    
+     **************************************************************************/
+    
+    extern (C) void terminate ( int code )
+    {
+        this.terminated = true;
+    }
+}
 
 unittest
 {
@@ -720,7 +752,10 @@ unittest
                    "\n\t"
                    "read():  10 chunks of  4 kB each read    within {} ms\n\t"
                    "read():  10 chunks of 64 kB each read    within {} ms\n\t"
-                   "read():  10 chunks of  1 MB each read    within {} ms\n",
+                   "read():  10 chunks of  1 MB each read    within {} ms\n"
+                   "\n"
+                   "CompressionHeader unittest: Looping for memory leak detection; "
+                   "watch memory usage and press Ctrl+C to quit",
                    us_start          / 1000.f,
                    us_stop           / 1000.f,
                    us_try_read_start / 1000.f,
@@ -731,4 +766,33 @@ unittest
                    us_read4k         / 1000.f, 
                    us_read64k        / 1000.f,
                    us_read1M         / 1000.f);
+    
+    auto prev_sigint_handler = signal(SIGINT, &Terminator.terminate);
+    
+    scope (exit) signal(SIGINT, prev_sigint_handler);
+    
+    while (!Terminator.terminated)
+    {
+        for (uint i = 0; i < N; i++)
+        {
+            start_header_data[i][] = cast (ubyte[]) header.start(0x1000).data;
+            stop_header_data[i][] = cast (ubyte[]) header.stop().data;
+            
+            header.tryReadStart(start_header_data[i]);
+            header.readStart(start_header_data[i]);
+        }
+        
+        for (uint i = 0; i < C; i++)
+        {
+            header.write(chunks4k[i]);
+            header.write(chunks64k[i]);
+            header.write(chunks1M[i]);
+            
+            header.read(chunks4k[i]);
+            header.read(chunks64k[i]);
+            header.read(chunks1M[i]);
+        }
+    }
+    
+    Trace.formatln("\n\nCompressionHeader unittest finished\n");
 }
