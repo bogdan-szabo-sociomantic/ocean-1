@@ -8,7 +8,39 @@
     version:        July 2010: Initial release
     
     authors:        David Eckardt
+    
+    Usage example:
+    
+                                                                             ---
+        import $(TITLE);
+    
+        void[] lzo_chunk;
+        void[] uncompressed_chunk;
+        
+        void run ( )
+        {
+            scope lzo = new LzoChunk;
             
+            // preallocate lzo_chunk and uncompressed_chunk (optional)
+            
+            lzo_chunk = new void[LzoChunk.maxChunkLength(0x1000)];
+            
+            uncompressed_chunk  = new void[0x1000];
+            
+            char[] data;
+            
+            // populate data with data to compress...
+            
+            lzo.compress(data, lzo_chunk);
+            
+            // lzo_chunk now holds an LZO chunk with compressed data
+            
+            lzo.uncompress(lzo_chunk, uncompressed); 
+            
+            // uncompressed_chunk now holds data, restored from lzo_chunk
+        }
+                                                                             ---
+    
  ******************************************************************************/
 
 module ocean.io.compress.lzochunk.LzoChunk;
@@ -31,25 +63,26 @@ private     import      tango.util.log.Trace;
 
     LzoChunk compressor/decompressor
     
-    Chunk data layout if size_t has a width of 32-bit
-    ---
-    void[] chunk
+    Chunk data layout if size_t has a width of 32-bit:
     
-    chunk[0 .. 16] - header
-    chunk[16 .. $] - compressed data
-    ---
+                                                                             ---
+        void[] chunk
+        
+        chunk[0 .. 16] // header
+        chunk[16 .. $] // compressed data
+                                                                             ---
     
     Header data layout
     
-    ---
-    chunk[0  ..  4] - length of chunk[4 .. $] (or compressed data length
-                      + header length - 4)
-    chunk[4 ..   8] - 32-bit CRC value of following header elements and
-                      compressed data (chunk[8 .. $]), calculated using
-                      lzo_crc32()
-    chunk[8  .. 12] - chunk/compression type code (signed 32-bit integer)
-    chunk[12 .. 16] - length of uncompressed data
-    ---
+                                                                             ---
+        chunk[0  ..  4] // length of chunk[4 .. $] (or compressed data length
+                        // + header length - 4)
+        chunk[4 ..   8] // 32-bit CRC value of following header elements and
+                        // compressed data (chunk[8 .. $]), calculated using
+                        //  lzo_crc32()
+        chunk[8  .. 12] // chunk/compression type code (signed 32-bit integer)
+        chunk[12 .. 16] // length of uncompressed data
+                                                                             ---
     
  ******************************************************************************/
 
