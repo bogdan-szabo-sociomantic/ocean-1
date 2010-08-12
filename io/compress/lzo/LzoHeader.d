@@ -628,7 +628,7 @@ template SizeofTuple ( T ... )
  ******************************************************************************/
 
 
-debug (CompressionHeaderUnitTest) private:
+debug (OceanUnitTest) private:
     
 import tango.util.log.Trace;
 

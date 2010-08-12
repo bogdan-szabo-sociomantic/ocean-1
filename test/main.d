@@ -28,6 +28,9 @@ private import 	ocean.io.digest.Fnv1;
 private import 	ocean.io.Retry;
 private import 	ocean.io.device.QueueMemory;
 
+import ocean.io.compress.Lzo;
+import ocean.io.compress.lzo.LzoChunk;
+import ocean.io.compress.lzo.LzoHeader;
 
 private import 	ocean.net.http.Url;
 

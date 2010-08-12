@@ -248,7 +248,7 @@ class Lzo
 
  ******************************************************************************/
 
-debug (LzoUnitTest) private:
+debug (OceanUnitTest) private:
 
 import tango.util.log.Trace;
 import tango.io.device.File;

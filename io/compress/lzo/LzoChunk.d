@@ -228,7 +228,7 @@ class LzoChunk ( bool LengthInline = true )
     }
 }
 
-debug (LzoChunkUnitTest) private:
+debug (OceanUnitTest) private:
 
 /*******************************************************************************
 
