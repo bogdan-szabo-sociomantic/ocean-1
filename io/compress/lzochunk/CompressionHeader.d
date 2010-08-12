@@ -274,7 +274,40 @@ align (1) struct CompressionHeader ( bool LengthInline = true )
         
         return this;
     }
+
+    /**************************************************************************
     
+        Checks whather chunk is valid or not. If it is valid this object's data
+        members are initialised with the chunk header info.
+    
+        Params:
+            chunk = input chunk
+
+        Returns:
+            true if the chunk is valid
+         
+     **************************************************************************/
+
+    bool tryRead ( void[] chunk )
+    {
+        if ( chunk.length >= this.read_length )
+        {
+            if (this.isNullChunk(chunk))
+            {
+                this.stop();
+                return true;
+            }
+            else
+            {
+                this.setHeader(chunk);
+                auto payload = this.strip(chunk);
+                return this.crc32_ == this.crc32(payload);
+            }
+        }
+
+        return false;
+    }
+
     /**************************************************************************
 
         Checks whether chunk is a Stop / Null chunk. This data members are set
@@ -370,22 +403,38 @@ align (1) struct CompressionHeader ( bool LengthInline = true )
             
             payload = this.strip(chunk);
 
-            static if ( LengthInline )
-            {
-                assertEx!(CompressException)(chunk.length == this.chunk_length + this.chunk_length.sizeof,
-                                         this.ErrMsgSource ~ ": Chunk length mismatch");
-            }
-            else
-            {
-                assertEx!(CompressException)(chunk.length == this.chunk_length,
-                                             this.ErrMsgSource ~ ": Chunk length mismatch");
-            }
+            assertEx!(CompressException)(this.lengthValid(chunk),
+                                     this.ErrMsgSource ~ ": Chunk length mismatch");
 
             assertEx!(CompressException)(this.crc32_ == this.crc32(payload),
                                          this.ErrMsgSource ~ ": Chunk data corrupted (CRC32 mismatch)");
         }
 
         return payload;
+    }
+
+    /**************************************************************************
+
+        Checks whether the chunk_length member is correct for the given chunk.
+        
+        Params:
+            chunk = chunk to check (with header)
+        
+        Returns:
+            true if the length of chunk corresponds to the chunk_length member
+         
+     **************************************************************************/
+
+    size_t lengthValid ( void[] chunk )
+    {
+        static if ( LengthInline )
+        {
+            return chunk.length == this.chunk_length + this.chunk_length.sizeof;
+        }
+        else
+        {
+            return chunk.length == this.chunk_length;
+        }
     }
 
     /**************************************************************************
