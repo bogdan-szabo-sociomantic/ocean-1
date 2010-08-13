@@ -8,7 +8,7 @@
     
     authors:        David Eckardt
     
- ******************************************************************************/
+********************************************************************************/
 
 module ocean.net.socket.model.IConnectionHandler;
 
@@ -16,7 +16,7 @@ module ocean.net.socket.model.IConnectionHandler;
 
 	Imports
     
- ******************************************************************************/
+********************************************************************************/
 
 private	import	ocean.io.protocol.ListReader, 
                 ocean.io.protocol.ListWriter;
@@ -31,7 +31,6 @@ private import  tango.core.Exception: IOException;
 
 debug 
 {
-    private import ocean.util.TraceLog;
     private import tango.util.log.Trace;
 }
 
@@ -43,7 +42,7 @@ debug
     subclass must implement dispatch(). For conduit (socket) I/O the
     reader/writer class properties are available to the subclass.
        
- ******************************************************************************/
+********************************************************************************/
 
 abstract class IConnectionHandler
 {
@@ -186,16 +185,14 @@ abstract class IConnectionHandler
         {
         	debug if (!Runtime.isHalting())
             {
-        		TraceLog.write("socket exception '{}'", e.msg);
-        		Trace.formatln("socket exception '{}'", e.msg).flush();
+        		Trace.formatln("socket exception '{}'", e.msg);
             }
         }
         catch (Exception e)
         {
             debug
             {
-                TraceLog.write("runtime exception '{}'", e.msg);
-                Trace.formatln("runtime exception '{}'", e.msg).flush();
+                Trace.formatln("runtime exception '{}'", e.msg);
             }
         }
         finally
