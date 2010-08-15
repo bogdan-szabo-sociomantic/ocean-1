@@ -132,8 +132,10 @@ class LzoChunk ( bool LengthInline = true )
          
      **************************************************************************/
     
-    public typeof (this) compress ( void[] data, ref void[] compressed )
+    public typeof (this) compress ( T ) ( void[] data, ref T[] compressed )
     {
+        static assert (T.sizeof == 1);
+        
         LzoHeader!(LengthInline) header;
         
         size_t end;
@@ -167,8 +169,10 @@ class LzoChunk ( bool LengthInline = true )
          
      **************************************************************************/
     
-    public typeof (this) uncompress ( void[] compressed, ref void[] data )
+    public typeof (this) uncompress ( T ) ( void[] compressed, ref T[] data )
     {
+        static assert (T.sizeof == 1);
+        
         LzoHeader!(LengthInline) header;
         
         void[] buf = header.read(compressed);
