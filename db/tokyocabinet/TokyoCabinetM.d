@@ -28,7 +28,9 @@ private     import  ocean.db.tokyocabinet.c.tcmdb:
                         tcmdbput,   tcmdbputkeep,  tcmdbputcat,
                         tcmdbget,   tcmdbforeach,
                         tcmdbout,   tcmdbrnum,     tcmdbmsiz,   tcmdbvsiz;
-                        
+
+private     import  tango.stdc.stdlib: free;
+
 /*******************************************************************************
 
     TokyoCabinetM
@@ -191,7 +193,7 @@ class TokyoCabinetM
             
     ***************************************************************************/
 
-    public bool get ( char[] key, out char[] value )
+    public bool get ( char[] key, ref char[] value )
     {
         int len;
         
@@ -201,7 +203,9 @@ class TokyoCabinetM
         
         if (found)
         {
-            value = (cast (char*) value_)[0 .. len];
+            value = (cast (char*) value_)[0 .. len].dup;
+            
+            free(value_);
         }
         
         return found;
