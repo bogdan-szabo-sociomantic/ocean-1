@@ -117,11 +117,15 @@ struct StructSerializer
         
      **************************************************************************/
 
-    void dump ( S ) ( S* s, ref void[] data )
+    void dump ( S, D ) ( S* s, ref D[] data )
     {
+        static assert (D.sizeof == 1, typeof (*this).stringof ~ ".dump: only "
+                                      "single-byte element arrays supported, "
+                                      "not '" ~ D.stringof ~ "[]'");
+        
         data.length = 0;
         
-        dump(s, (void[] chunk) { data ~= chunk; });
+        dump(s, (void[] chunk) { data ~= cast (D[]) chunk; });
     }
     
     /**************************************************************************
@@ -170,17 +174,21 @@ struct StructSerializer
         
      **************************************************************************/
 
-    size_t load ( S ) ( S* s, void[] data )
+    size_t load ( S, D ) ( S* s, D[] data )
     {
+        static assert (D.sizeof == 1, typeof (*this).stringof ~ ".load: only "
+                       "single-byte element arrays supported, "
+                       "not '" ~ D.stringof ~ "[]'");
+
         size_t start = 0;
         
-        load(s, ( void[] chunk )
+        load(s, (void[] chunk)
         {
             size_t end = start + chunk.length;
             
             assertEx(end <= data.length, typeof (*this).stringof ~ " input data too short");
             
-            chunk[] = data[start .. end];
+            chunk[] = (cast (void[]) data)[start .. end];
             
             start = end;
         });
