@@ -410,6 +410,15 @@ struct ConsoleTracer
 
 public struct TraceProgress
 {
+    
+    /***************************************************************************
+     
+        Default console update interval in microseconds. Default is 100ms
+     
+     **************************************************************************/
+    
+    private     const uint      DisplayUpdateInterval = 100000;
+    
 	/***************************************************************************
 
 		Struct representing a single quantity which TraceProgress is counting.
@@ -1096,7 +1105,7 @@ public struct TraceProgress
 
 	public void initDisplay ( ... )
 	{
-		this.console_trace.update_interval = 100000; // console update 10 times a second
+		this.console_trace.update_interval = this.DisplayUpdateInterval; // console update 10 times a second
 		
 		// Always show the iteration counter
 		this.count.displayAsNormal();
@@ -1487,15 +1496,20 @@ public struct TraceProgress
 
 	public void finished ( )
 	{
+        this.console_trace.update_interval = 0;
+        
 		this.updateTimer();
 
 		this.display("finished");
+
 		if ( this. console_display != DisplayMode.Off && !this.console_streaming )
 		{
 			Trace.format("\n");
 		}
 		
 		this.resetCounters();
+        
+        this.console_trace.update_interval = this.DisplayUpdateInterval;
 	}
 
 
