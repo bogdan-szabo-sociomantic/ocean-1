@@ -732,6 +732,11 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
         B+tree. By default that is Tokyo Cabinet's built-in lexical order
         comparison function, referred to as "tccmplexical".
         
+        The comparison function is defined as:
+                                                                             ---
+      int function (char* aptr, int asiz, char* bptr, int bsiz, void* op) TCCMP;                                                                             
+                                                                             ---
+        
         Params:
             key1 = key to compare
             key2 = reference key
@@ -743,11 +748,12 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     ***************************************************************************/
 
     public int compareKeys ( char[] key1, char[] key2 )
+    in
     {
-        // int function (char* aptr, int asiz, char* bptr, int bsiz, void* op) TCCMP;
-        
         assert (!!this.db.cmp, typeof (this).stringof ~ ": no comparison function");
-        
+    }
+    body
+    {
         return this.db.cmp(key1.ptr, key1.length, key2.ptr, key2.length, this.db.cmpop);
     }
 
