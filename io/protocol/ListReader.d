@@ -88,8 +88,6 @@ class ListReader : Reader
     	Connects a conduit to an input buffer, and attaches them to this
     	ListReader.
     	
-    	Any content in the buffer is flushed first.
-    	
     	Params:
     		bin = input buffer
     		conduit = stream to read from
@@ -98,11 +96,6 @@ class ListReader : Reader
 
     public void connectBufferedInput ( BufferedInput bin, IConduit conduit )
     {
-    	if ( bin.input )
-    	{
-    		bin.flush();
-    	}
-
     	bin.input = conduit;
     	this.attachStream(bin);
     }
@@ -111,18 +104,25 @@ class ListReader : Reader
 
 		Disconnects the input buffer from this ListReader.
 		
-		Any content in the buffer is flushed first.
+		Any content in the buffer is optionally flushed first.
+
+        Params:
+            flush = whether to flush the input buffer before disconnecting it
 		
 	***************************************************************************/
 
-    public void disconnectBufferedInput ( )
+    public void disconnectBufferedInput ( bool flush )
     in
     {
         assert(this.input, "ASSERT: ocean.io.protocol.ListReader - cannot disconnect input buffer, there's not one connected");
     }
     body
     {
-    	this.input.flush();
+        if ( flush )
+        {
+            this.input.flush();
+        }
+
     	this.input = null;
     }
 

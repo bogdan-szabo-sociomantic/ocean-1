@@ -164,11 +164,13 @@ abstract class IConnectionHandler
     
     public void run ( IConduit conduit )
     {
-    	if (this.terminated) return;
+        bool error;
+        
+        if (this.terminated) return;
         
         this.finished = false;
 
-        try 
+        try
         {
         	this.attachConduit(conduit);
 
@@ -183,21 +185,23 @@ abstract class IConnectionHandler
         }
         catch (IOException e)
         {
-        	debug if (!Runtime.isHalting())
+            error = true;
+            debug if (!Runtime.isHalting())
             {
-        		Trace.formatln("socket exception '{}'", e.msg);
+        		Trace.formatln("IConnectionHandler socket exception '{}'", e.msg);
             }
         }
         catch (Exception e)
         {
+            error = true;
             debug
             {
-                Trace.formatln("runtime exception '{}'", e.msg);
+                Trace.formatln("IConnectionHandler runtime exception '{}'", e.msg);
             }
         }
         finally
         {
-        	this.detachConduit(conduit);
+        	this.detachConduit(conduit, !error);
         }
     }
 
@@ -216,26 +220,34 @@ abstract class IConnectionHandler
     {
         this.conduit = conduit;
         
-    	this.reader.connectBufferedInput(this.rbuffer, this.conduit);
-    	this.writer.connectBufferedOutput(this.wbuffer, this.conduit);
+        this.reader.connectBufferedInput(this.rbuffer, this.conduit);
+        this.writer.connectBufferedOutput(this.wbuffer, this.conduit);
     }
 
     /***************************************************************************
 
 		Detach a conduit from the read & write buffers. Any data remaining in
-		the buffers is flushed by the called methods before disconnection.
+		the buffers is optionally flushed by the called methods before
+        disconnection.
+        
+        After the conduit is detached, the read & write buffers are cleared.
 
 	    Params:
 	        conduit = connection conduit (e.g. socket)
+            flush_buffers = whether to flush the read & write buffers before
+                detaching the conduit
 
 	 **************************************************************************/
 
-    protected void detachConduit ( IConduit conduit )
+    protected void detachConduit ( IConduit conduit, bool flush_buffers )
     {
-    	this.reader.disconnectBufferedInput();
-    	this.writer.disconnectBufferedOutput();
+        this.reader.disconnectBufferedInput(flush_buffers);
+        this.writer.disconnectBufferedOutput(flush_buffers);
         
         conduit.detach();
+
+        this.rbuffer.clear();
+        this.wbuffer.clear();
         
         this.conduit = null;
    	}

@@ -90,8 +90,6 @@ class ListWriter : Writer
 		Connects a conduit to an output buffer, and attaches them to this
 		ListWriter.
 		
-		Any content in the buffer is flushed first.
-		
 		Params:
 			bout = output buffer
 			conduit = stream to write to
@@ -100,11 +98,6 @@ class ListWriter : Writer
 
     public void connectBufferedOutput ( BufferedOutput bout, IConduit conduit )
     {
-    	if ( bout.output )
-    	{
-    		bout.flush();
-    	}
-
     	bout.output = conduit;
     	this.attachStream(bout);
     }
@@ -113,19 +106,26 @@ class ListWriter : Writer
 
 		Disconnects the output buffer from this ListWriter.
 		
-		Any content in the buffer is flushed first.
+		Any content in the buffer is optionally flushed first.
 		
+        Params:
+            flush = whether to flush the output buffer before disconnecting it
+
 	***************************************************************************/
 
-    public void disconnectBufferedOutput ( )
+    public void disconnectBufferedOutput ( bool flush )
     in
     {
         assert(this.output, "ASSERT: ocean.io.protocol.ListWriter - cannot disconnect output buffer, there's not one connected");
     }
     body
     {
-    	this.output.flush();
-    	this.output = null;
+        if ( flush )
+        {
+            this.output.flush();
+        }
+
+        this.output = null;
     }
 
     /**************************************************************************
