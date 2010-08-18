@@ -405,6 +405,8 @@ struct StructSerializer
         Returns:
             passes through return value of send
         
+        TODO: array needs to be duped
+        
      **************************************************************************/
     
     void transmitArray ( bool receive, T ) ( T[]* array, void delegate ( void[] data ) transmit )
@@ -416,6 +418,7 @@ struct StructSerializer
             transmit((cast (void*) &len)[0 .. len.sizeof]);
             
             array.length = len;
+//            *array = new T[len];
         }
         else
         {
