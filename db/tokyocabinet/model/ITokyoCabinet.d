@@ -337,15 +337,17 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
     {
         KeyValIterDg dg;
         int result;
+        Exception exception;
     }
     
     struct KeyIterArgs
     {
         KeyIterDg dg;
         int result;
+        Exception exception;
     }
     
-    static if (is (typeof (tcdbforeach) R == return))                           // tcdbopapply() clones the
+    static if (is (typeof (tcdbforeach) R == return) )                          // tcdbopapply() clones the
     {                                                                           // return type of tcdbforeach()
         /**********************************************************************
         
@@ -367,8 +369,8 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
             KeyValIterArgs args = KeyValIterArgs(dg);
             
             scope (exit) result = args.result;
-            
-            return tcdbforeach(db, &tciter_callback_keyval, &args);
+
+            return handleExceptions(args, tcdbforeach(db, &tciter_callback_keyval, &args));
         }
         
         /**********************************************************************
@@ -391,11 +393,63 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
             KeyIterArgs args = KeyIterArgs(dg);
             
             scope (exit) result = args.result;
-            
-            return tcdbforeach(db, &tciter_callback_key, &args);
+
+            return handleExceptions(args, tcdbforeach(db, &tciter_callback_key, &args));
         }
+
+        /**********************************************************************
+
+            Safely catches and handles any exceptions which the are thrown
+            inside the iteration delegate.
+            
+            Exceptions within the iteration delegate are caught by the tokyo
+            cabinet callback functions (see tciter_callback_keyval and
+            tciter_callback_key, below). As exceptions cannot safely be thrown
+            at that point, while inside tokyo cabinet, any exceptions are stored
+            in the args structure, and are rethrown at this point, outside of
+            the C code.
+
+            Template params:
+                A = type of args struct
+                R = return type of iteration delegate
+                
+            Params:
+                args = args structure (see KeyValIterArgs and KeyIterArgs,
+                       above)
+                dg = iteration delegate
+                
+            Returns:
+                passes through iteration delegate's return value
+
+            Throws:
+                rethrows any exceptions which occurred inside the iteration
+                delegate
+              
+         **********************************************************************/
+
+        private static R handleExceptions ( A, R ) ( ref A args, lazy R dg )
+        {
+            static if ( is(R == void) )
+            {
+                dg();
+                if ( args.exception )
+                {
+                    throw args.exception;
+                }
+            }
+            else
+            {
+                R ret = dg();
+                if ( args.exception )
+                {
+                    throw args.exception;
+                }
+                return ret;
+            }
+        }
+    
     }
-    else static assert (false, "'tcdbforeach' does not appear to be callable: "
+    else static assert (false, "'tcdbforeach' does not appear to be callable, or returns void: "
                                "type is '" ~ typeof (tcdbforeach).stringof ~ '\'');
 
     /**************************************************************************
@@ -433,7 +487,15 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
             
             KeyValIterArgs* args = cast (KeyValIterArgs*) op;
             
-            args.result = args.dg(key, val);
+            try
+            {
+                args.result = args.dg(key, val);
+            }
+            catch ( Exception e )
+            {
+                args.exception = e;
+                return false;
+            }
             
             return !args.result;
         }
@@ -463,8 +525,16 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
             char[] key = cast (char[]) kbuf[0 .. ksiz];
             
             KeyIterArgs* args = cast (KeyIterArgs*) op;
-            
-            args.result = args.dg(key);
+
+            try
+            {
+                args.result = args.dg(key);
+            }
+            catch ( Exception e )
+            {
+                args.exception = e;
+                return false;
+            }
             
             return !args.result;
         }
