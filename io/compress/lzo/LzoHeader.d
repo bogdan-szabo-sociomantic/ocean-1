@@ -136,8 +136,6 @@ align (1) struct LzoHeader ( bool LengthInline = true )
         const read_length = length - size_t.sizeof;
     }
     
-    debug pragma (msg, typeof (*this).stringof ~ ".length = " ~ length.stringof);
-    
     /**************************************************************************
     
         Writes the header to chunk[0 .. this.read_length].
