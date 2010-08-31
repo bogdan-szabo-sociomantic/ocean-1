@@ -320,7 +320,7 @@ class HttpRequest
         
     ***************************************************************************/
     
-    public              HeaderValues            header_values;
+    public              HeaderValues            header;
 
     /**************************************************************************
     
@@ -573,7 +573,7 @@ class HttpRequest
         this.msg_body.length    = 0;
         this.body_length_read   = 0;
         
-        this.header_values.reset();
+        this.header.reset();
     }
     
     /***************************************************************************
@@ -941,7 +941,7 @@ class HttpRequest
     /**************************************************************************
     
         Parses a HTTP header line and adds the contained header parameter to
-        this.header_values_, if found.
+        this.header_, if found.
          
         Params:
             line = HTTP header line
@@ -978,7 +978,7 @@ class HttpRequest
                     Trace.formatln("[request header] {} = {}", key, val);
                 }
                 
-                this.header_values[key] = val;
+                this.header[key] = val;
             }
         }
 
@@ -1008,15 +1008,15 @@ class HttpRequest
         this.msg_body_length = 0;
         int blength;
         
-        if ( HttpHeader.ContentLength.value in this.header_values )
+        if ( HttpHeader.ContentLength.value in this.header )
         {
            try
            {
-               blength = Integer.toInt(this.header_values[HttpHeader.ContentLength.value]);
+               blength = Integer.toInt(this.header[HttpHeader.ContentLength.value]);
            }
            catch (Exception e)
            {
-               throw new Exception (`getMessageBodyLength1: ` ~ this.header_values[HttpHeader.ContentLength.value]);
+               throw new Exception (`getMessageBodyLength1: ` ~ this.header[HttpHeader.ContentLength.value]);
            }
         }
         
@@ -1046,7 +1046,7 @@ class HttpRequest
         }
         
         assertEx!(RequestException.NotImplemented)                              // Transfer-Encoding handling not implemented
-                 (!(HttpHeader.TransferEncoding.value in this.header_values));
+                 (!(HttpHeader.TransferEncoding.value in this.header));
     }
     
     
@@ -1172,7 +1172,8 @@ class HttpRequest
         
         auto status = e.getStatus();
         
-        response.send(socket, status, e.msg);
+        response.setSocket(socket);
+        response.send(status, e.msg);
         
         debug
         {
@@ -1255,20 +1256,6 @@ class HttpRequest
         
         /**********************************************************************
         
-            RequestException subclass template
-            
-         **********************************************************************/
-
-        private abstract class RequestExceptionT ( alias Status ) : This
-        {
-            this ( char[] msg ) { super(msg); }
-            this (            ) { super(""); }
-            
-            HttpStatus getStatus ( ) { return Status; }
-        }
-        
-        /**********************************************************************
-        
             BadRequest RequestException subclass
             
             Corresponds to 400 "Bad Request" status
@@ -1277,10 +1264,12 @@ class HttpRequest
             
          **********************************************************************/
 
-        class BadRequest : RequestExceptionT!(HttpResponses.BadRequest)
+        class BadRequest : This
         {
             this ( char[] msg ) { super(msg); }
-            this (            ) { super(); }
+            this (            ) { super(""); }
+            
+            HttpStatus getStatus ( ) { return HttpResponses.BadRequest; }
         }
         
         /**********************************************************************
@@ -1291,7 +1280,13 @@ class HttpRequest
             
          **********************************************************************/
 
-        class Timeout             : RequestExceptionT!(HttpResponses.RequestTimeout)        { }
+        class Timeout : This
+        {
+            this ( char[] msg ) { super(msg); }
+            this (            ) { super(""); }
+            
+            HttpStatus getStatus ( ) { return HttpResponses.RequestTimeout; }
+        }
 
         /**********************************************************************
         
@@ -1301,8 +1296,13 @@ class HttpRequest
             
          **********************************************************************/
 
-        class EntityTooLarge      : RequestExceptionT!(HttpResponses.RequestEntityTooLarge) { }
-        
+        class EntityTooLarge : This
+        {
+            this ( char[] msg ) { super(msg); }
+            this (            ) { super(""); }
+            
+            HttpStatus getStatus ( ) { return HttpResponses.RequestEntityTooLarge; }
+        }
         
         /**********************************************************************
         
@@ -1312,7 +1312,13 @@ class HttpRequest
             
          **********************************************************************/
 
-        class InternalError       : RequestExceptionT!(HttpResponses.InternalServerError)   { }
+        class InternalError : This
+        {
+            this ( char[] msg ) { super(msg); }
+            this (            ) { super(""); }
+            
+            HttpStatus getStatus ( ) { return HttpResponses.InternalServerError; }
+        }
         
         /**********************************************************************
         
@@ -1324,10 +1330,12 @@ class HttpRequest
             
          **********************************************************************/
     
-        class NotImplemented      : RequestExceptionT!(HttpResponses.NotImplemented)
+        class NotImplemented : This
         {
             this ( char[] msg ) { super(msg); }
-            this (            ) { super(); }
+            this (            ) { super(""); }
+            
+            HttpStatus getStatus ( ) { return HttpResponses.NotImplemented; }
         }
         
         /**********************************************************************
@@ -1338,6 +1346,12 @@ class HttpRequest
             
          **********************************************************************/
 
-        class VersionNotSupported : RequestExceptionT!(HttpResponses.VersionNotSupported)   { }
+        class VersionNotSupported : This
+        {
+            this ( char[] msg ) { super(msg); }
+            this (            ) { super(""); }
+            
+            HttpStatus getStatus ( ) { return HttpResponses.VersionNotSupported; }
+        }
     }
 }
