@@ -2,10 +2,12 @@
 
     HTTP Response Handler
 
-    Copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
+    Copyright:      Copyright (c) 2009-2010 sociomantic labs. All rights 
+                    reserved
 
     Version:        Mar 2009: Initial release
-
+                    Aug 2010: Revised version (socket method)
+                    
     Authors:        Lars Kirchhoff, Thomas Nicolai & David Eckardt
     
 *******************************************************************************/
@@ -45,22 +47,24 @@ debug
     
     Usage example
     ---
-        import tango.net.http.HttpConst;
+    import tango.net.http.HttpConst;
         
-        SocketConduit socket  = ServerSocket.accept();
-        HttpResponse response = new HttpResponse(socket);
+    HttpResponse response;
+    SocketConduit socket  = ServerSocket.accept();
+    
+    response.setSocket(socket);
     ---
     
     Sending a cookie in the header
     ---
-        response.cookie.attributes["spam"] = "sausage";
-        response.cookie.domain             = "www.example.net";
+    response.cookie.attributes[`spam`] = `sausage`;
+    response.cookie.domain             = `www.example.net`;
     ---
     
     Sending response wit a body message
     ---
-    response.send(someData);
-    ---
+    char[] message = `hello world`;
+    response.send(message);
     ---
     
     
@@ -69,8 +73,7 @@ debug
     -- 
     extern (C)  
     {
-        size_t sendfile(int out_fd, int in_fd, off_t *offset, 
-            size_t count);
+        size_t sendfile(int out_fd, int in_fd, off_t *offset, size_t count);
     }
     
     off_t offset = 0;
@@ -82,8 +85,7 @@ debug
     
     int sock_handle = SocketConduit.fileHandle();
     
-    int out_size = sendfile (sock_handle, file_handle, 
-                             &offset, file_length);
+    int out_size = sendfile (sock_handle, file_handle, &offset, file_length);
     
     fi.close ();
     
@@ -108,20 +110,20 @@ struct HttpResponse
 {
     
     /**************************************************************************
-        
-        HTTP version
-    
-     **************************************************************************/    
-    
-    private             char[]                  http_version = HttpVersion.v11;
-    
-    /**************************************************************************
     
         Cookie
     
      **************************************************************************/    
 
-    public              HttpCookie              cookie;
+    public              HttpCookie                  cookie;
+    
+    /**************************************************************************
+        
+        HTTP version
+    
+     **************************************************************************/    
+    
+    private             char[]                      http_version = HttpVersion.v11;
     
     /**************************************************************************
     
@@ -129,7 +131,7 @@ struct HttpResponse
     
      **************************************************************************/    
 
-    private              bool                    send_date = false;
+    private              bool                       send_date = false;
     
     /**************************************************************************
     
@@ -137,25 +139,50 @@ struct HttpResponse
     
      **************************************************************************/    
 
-   private              char[]                   cookie_header;
+   private              char[]                      cookie_header;
    
-   /**************************************************************************
+   /***************************************************************************
        
        Output buffer
     
-    **************************************************************************/  
+    ***************************************************************************/  
    
-   private              char[]                   buf;
+   private              char[]                      buf;
    
-   /**************************************************************************
+   /***************************************************************************
        
-       Header values
+       Response header
        
     ***************************************************************************/
     
-    private              HeaderValues            response_header;
+    private             HeaderValues                header;
     
-    /**************************************************************************
+    /***************************************************************************
+        
+        Socket connection
+        
+     ***************************************************************************/
+     
+     private             Socket                     socket;
+ 
+     /**************************************************************************
+         
+          Set Default Header
+      
+          Params:
+             socket  = output conduit (socket)
+          
+          Returns:
+              void
+              
+      **************************************************************************/
+     
+    public void setSocket ( Socket socket )
+    {
+        this.socket = socket;
+    }
+    
+    /***************************************************************************
     
         Sends a HTTP response (without message body).
         
@@ -181,7 +208,6 @@ struct HttpResponse
          = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
          
         Params:
-            socket	= output conduit (socket)
             status  = response code
             msg     = optional response code message, e.g. error message
             
@@ -190,10 +216,9 @@ struct HttpResponse
          
     **************************************************************************/
     
-    public bool send ( Socket socket, HttpStatus status = HttpResponses.OK, 
-                       char[] msg = `` )
+    public bool send ( HttpStatus status = HttpResponses.OK, char[] msg = `` )
     {
-        return this.send(socket, ``, status, msg);
+        return this.send(``, status, msg);
     }
     
     
@@ -225,7 +250,6 @@ struct HttpResponse
          = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
          
          Params:
-              socket = output conduit (socket)
               data   = message body data, may be empty
               status = response code
               msg    = optional response code mesage, e.g. error message
@@ -235,24 +259,29 @@ struct HttpResponse
 
      **************************************************************************/
     
-    public bool send ( Socket socket, char[] data, 
-                       HttpStatus status = HttpResponses.OK, char[] msg = `` )
+    public bool send ( char[] data, HttpStatus status = HttpResponses.OK, 
+                       char[] msg = `` )
+    in
+    {
+        assert(this.socket, `http response error: invalid socket given`);
+    }
+    body
     {
         bool ok = true;
         
         try 
         {
-            socket.checkError();
+            this.socket.checkError();
             
             this.setDefaultHeader();
             this.setHeaderValue(HttpHeader.ContentLength.value, data.length);
             
-            if (this.send_date)
+            if ( this.send_date )
             {
                 this.setHeaderValue(HttpHeader.Date.value, this.formatTime());
             }
             
-            if (this.cookie.isSet())
+            if ( this.cookie.isSet() )
             {
                 this.cookie.write(this.cookie_header);
                 this.setHeaderValue(HttpHeader.SetCookie.value, this.cookie_header);
@@ -261,7 +290,7 @@ struct HttpResponse
             this.setHeader(status, msg);
             this.setBody(data);
             
-            this.write(socket);
+            this.write();
         }
         catch (Exception e)
         {
@@ -278,16 +307,18 @@ struct HttpResponse
         return ok;
     }
     
-    /**************************************************************************
+    /***************************************************************************
         
         Reset response
+        
+        Note: Method should be called on reuse of the struct
         
      ***************************************************************************/
     
     public void reset ()
     {
         this.cookie.reset();
-        this.response_header.reset();
+        this.header.reset();
         
         this.cookie_header.length = 
         this.buf.length = 0;
@@ -305,7 +336,7 @@ struct HttpResponse
     
     public void setHeaderValue ( in char[] name, in char[] value )
     {
-        this.response_header[name] = value;
+        this.header[name] = value;
     }
     
     /**************************************************************************
@@ -320,7 +351,7 @@ struct HttpResponse
     
     public void setHeaderValue ( in char[] name, int value )
     {
-        this.response_header[name] = Integer.toString(value);
+        this.header[name] = Integer.toString(value);
     }
     
     /**************************************************************************
@@ -331,14 +362,14 @@ struct HttpResponse
     
     private void setDefaultHeader ()
     {
-        if ( !(HttpHeader.ContentType.value in this.response_header) )
+        if ( !(HttpHeader.ContentType.value in this.header) )
         {
-            this.response_header[HttpHeader.ContentType.value] = HttpHeader.TextHtml.value;
+            this.header[HttpHeader.ContentType.value] = HttpHeader.TextHtml.value;
         }
         
-        if ( !(HttpHeader.Connection.value in this.response_header) )
+        if ( !(HttpHeader.Connection.value in this.header) )
         {
-            this.response_header[HttpHeader.Connection.value] = `close`.dup;
+            this.header[HttpHeader.Connection.value] = `close`.dup;
         }
     }
 
@@ -354,10 +385,10 @@ struct HttpResponse
          
      **************************************************************************/
 
-    private void write (Socket socket)
+    private void write ()
     {
-        socket.write(this.buf);
-        socket.flush();
+        this.socket.write(this.buf);
+        this.socket.flush();
     }
      
     /**************************************************************************
@@ -391,7 +422,7 @@ struct HttpResponse
          
      **************************************************************************/
     
-    private void setHeader ( HttpStatus status, char[] msg = "" )
+    private void setHeader ( HttpStatus status, char[] msg = `` )
     {
         this.buf  = this.http_version 
                   ~ ` `
@@ -406,7 +437,7 @@ struct HttpResponse
         
         this.buf ~= HttpConst.Eol;
         
-        foreach (name, value; this.response_header)
+        foreach (name, value; this.header)
         {
             this.buf ~= name ~ `: ` ~ value ~ HttpConst.Eol;
         }
@@ -430,9 +461,9 @@ struct HttpResponse
 
     private char[] formatTime ()
     {
-        const char[3][] Weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        const char[3][] Months   = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const char[3][] Weekdays = [`Sun`, `Mon`, `Tue`, `Wed`, `Thu`, `Fri`, `Sat`];
+        const char[3][] Months   = [`Jan`, `Feb`, `Mar`, `Apr`, `May`, `Jun`,
+                                    `Jul`, `Aug`, `Sep`, `Oct`, `Nov`, `Dec`];
         
         char[0x20] result;
         
@@ -443,17 +474,17 @@ struct HttpResponse
             time_t  t        = time(null);
             tm*     datetime = gmtime(&t);
             
-            assert (datetime.tm_wday < Weekdays.length, "formatTime: invalid weekday");
-            assert (datetime.tm_mon  < Months.length,   "formatTime: invalid month");
+            assert (datetime.tm_wday < Weekdays.length, `formatTime: invalid weekday`);
+            assert (datetime.tm_mon  < Months.length,   `formatTime: invalid month`);
             
-            char[] fmt = Weekdays[datetime.tm_wday] ~ ", %02d " ~
-                         Months[datetime.tm_mon]    ~ " %04d %02d:%02d:%02d GMT" ~ '\0';
+            char[] fmt = Weekdays[datetime.tm_wday] ~ `, %02d ` ~
+                         Months[datetime.tm_mon]    ~ ` %04d %02d:%02d:%02d GMT` ~ '\0';
             
             n = snprintf(result.ptr, result.length, fmt.ptr,
                          datetime.tm_mday, datetime.tm_year + 1900,
                          datetime.tm_hour, datetime.tm_min, datetime.tm_sec);
             
-            assert (n >= 0, "error formatting time");
+            assert (n >= 0, `error formatting time`);
         }
         
         return result[0 .. n].dup;
