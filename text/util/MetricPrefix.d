@@ -92,8 +92,6 @@ struct MetricPrefix
         
         static if (is (T : long))
         {
-            pragma (msg, typeof (*this).stringof ~ ": " ~ T.stringof ~ " : long");
-            
             for (i = 0; (n > 0x400) && (i < P.length); i++)
             {
                 n >>= 10;
@@ -101,8 +99,6 @@ struct MetricPrefix
         }
         else
         {
-            pragma (msg, typeof (*this).stringof ~ ": " ~ T.stringof ~ " !: long");
-            
             frexpf(n, &i);
             i /= 10;
         }
