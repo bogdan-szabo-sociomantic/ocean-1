@@ -27,6 +27,7 @@ module ocean.text.util.MetricPrefix;
  ******************************************************************************/
 
 extern (C) float ldexpf(float x, int e);
+extern (C) float frexpf(float x, int* e);
 
 /******************************************************************************/
 
@@ -63,7 +64,7 @@ struct MetricPrefix
 
     **************************************************************************/
 
-    typeof (this) bin ( ulong n )
+    typeof (this) bin ( T : float ) ( T n )
     {
         const P = [' ', 'k', 'M', 'G', 'T'];
         
@@ -71,9 +72,21 @@ struct MetricPrefix
         
         int i;
         
-        for (i = 0; (n > 0x400) && (i < P.length); i++)
+        static if (is (T : long))
         {
-            n >>= 10;
+            pragma (msg, typeof (*this).stringof ~ ": " ~ T.stringof ~ " : long");
+            
+            for (i = 0; (n > 0x400) && (i < P.length); i++)
+            {
+                n >>= 10;
+            }
+        }
+        else
+        {
+            pragma (msg, typeof (*this).stringof ~ ": " ~ T.stringof ~ " !: long");
+            
+            frexpf(n, &i);
+            i /= 10;
         }
         
         this.scaled = ldexpf(this.scaled, i * -10);
@@ -100,7 +113,7 @@ struct MetricPrefix
 
     **************************************************************************/
 
-    typeof (this) dec ( long n, int e = 0 )
+    typeof (this) dec ( T : float ) ( T n, int e = 0 )
     in
     {
         assert (-5 < e && e < 5);
