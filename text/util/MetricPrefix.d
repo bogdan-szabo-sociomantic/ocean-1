@@ -13,21 +13,39 @@
 
 module ocean.text.util.MetricPrefix;
 
-/******************************************************************************
+extern (C)
+{
+    /**************************************************************************
 
-    Returns x * 2 ^ e.
-    
-    Params:
-        x = value to scale by binary power of e
-        e = binary exponent
+        Returns x * 2 ^ e.
         
-    Returns:
-        x * 2 ^ e
+        Params:
+            x = value to scale by binary power of e
+            e = binary exponent
+            
+        Returns:
+            x * 2 ^ e
+    
+     **************************************************************************/
 
- ******************************************************************************/
+    float ldexpf(float x, int e);
+    
+    /**************************************************************************
 
-extern (C) float ldexpf(float x, int e);
-extern (C) float frexpf(float x, int* e);
+        Decomposes x into binary mantissa and exponent.
+        
+        Params:
+            x = value to decompose
+            e = binary exponent of e (output)
+            
+        Returns:
+            binary mantissa of e
+    
+     **************************************************************************/
+
+    float frexpf(float x, int* e);
+}
+
 
 /******************************************************************************/
 
