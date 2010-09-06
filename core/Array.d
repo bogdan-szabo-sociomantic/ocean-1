@@ -7,7 +7,22 @@
 	authors:        Gavin Norman
 
 	Array manipulation functions.
-	
+
+	It's often convenient to use these functions with D's 'function as array
+    property' sytnax, so:
+    
+    ---
+        char[] dest;
+        concat(dest, "hello ", "world");
+    ---
+    
+    could also be written as:
+
+    ---
+        char[] dest;
+        dest.concat("hello ", "world");
+    ---
+    
 	Note: the functions in this file aren't inside a class / struct, so it's
 	normally best to import the module with a name:
 	
@@ -37,7 +52,7 @@ module ocean.core.Array;
 	Usage:
 	---
 		char[] dest;
-		concat(dest, "hello ", "world);
+		concat(dest, "hello ", "world");
 	---
 
 ********************************************************************************/
@@ -83,7 +98,7 @@ size_t concat ( T ) ( ref T[] dest, T[][] arrays ... )
 	Usage:
 	---
 		char[] dest = "hello";
-		append(dest, " world", ", what a beautiful day!);
+		append(dest, " world", ", what a beautiful day!");
 	---
 
 *******************************************************************************/
@@ -107,6 +122,61 @@ size_t append ( T ) ( ref T[] dest, T[][] arrays ... )
 	}
 
 	return old_len + total_len;
+}
+
+
+/*******************************************************************************
+
+    Copies the contents of one array to another, setting the length of the
+    destination array first.
+    
+    This function is provided as a shorthand for this common operation.
+    
+    Params:
+        dest = reference to the destination array
+        array = array to copy
+    
+    Usage:
+    ---
+        char[] dest;
+        char[] src = "hello";
+        copy(dest, src);
+    ---
+
+*******************************************************************************/
+
+void copy ( T ) ( ref T[] dest, T[] src )
+{
+    dest.length = src.length;
+    dest[] = src[];
+}
+
+
+/*******************************************************************************
+
+    Appends an element to a list of arrays, and copies the contents of the
+    passed source array into the new element, setting the length of the
+    destination array first.
+    
+    This function is provided as a shorthand for this common operation.
+    
+    Params:
+        dest = reference to the destination array list
+        array = array to copy
+    
+    Usage:
+    ---
+        char[][] dest;
+        char[] src = "hello";
+        copy(dest, src);
+    ---
+
+*******************************************************************************/
+
+void appendCopy ( T ) ( ref T[][] dest, T[] src )
+{
+    dest.length = dest.length + 1;
+    dest[$ - 1].copy(src);
 }
 
 
