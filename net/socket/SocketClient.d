@@ -41,10 +41,7 @@ private import tango.core.Exception;
 
 private import ocean.io.Retry;
 
-debug
-{
-	private import tango.util.log.Trace;
-}
+debug private import tango.util.log.Trace;
 
 
 
@@ -70,32 +67,88 @@ debug
 
 abstract class SocketClientConst
 {
-	/***************************************************************************
 
-	    Singleton template, to be used as a mixin by classes which need
-	    singleton behaviour. Gives this class an instance() method which returns
-	    a static global instance.
+    /***************************************************************************
+    
+        Initialises the list of command codes descriptions with extra codes
+        needed by a dervied class.
+        
+    ***************************************************************************/
+
+    abstract protected void initCodeDescriptions ( );
+
+
+    /***************************************************************************
+    
+        Abstract method to return the name of the api.
+    
+    ***************************************************************************/
+
+    abstract public char[] apiName ( );
+
+
+    /***************************************************************************
+
+	    Singleton template, to be used as a mixin by derived classes, which need
+	    singleton behaviour so that the constants can be accessed without an
+        object reference.
 
 		(This is done as a template mixin as it's not possible to put static 
 		functionality in a base class which can then be overridden, but still
-		remain static, in deriving classes.)
+		remain static, in deriving classes. If these members were simply static
+        members of the base class, then there'd only be a single gloabl instance
+        shared by all derived classes - which isn't what we want here.)
 
 	***************************************************************************/
 
 	template Singleton ( T )
 	{
-		static protected T global;
-		
-		public static T instance()
+        static protected T global;
+
+
+        /***************************************************************************
+        
+            Creates the static instance of this class.
+        
+        ***************************************************************************/
+    
+        static this ( )
+        {
+            global = new T;
+        }
+
+
+        /***************************************************************************
+        
+            Returns:
+                static instance of this class.
+        
+        ***************************************************************************/
+        
+        static public T instance()
 		{
 			return global;
 		}
-		
-		static this ( )
-		{
-			global = new T;
-		}
-	}
+
+
+        /***************************************************************************
+        
+            Outputs the list of command descriptions to Trace.
+        
+        ***************************************************************************/
+
+        static public void traceCommands ( )
+        {
+            Trace.formatln("{} command descriptions:", T.instance().apiName());
+            foreach ( code_descr; T.instance().code_descriptions )
+            {
+                if ( code_descr.type == CodeType.CommandCode )
+                {
+                    Trace.formatln("  {}", code_descr.description);
+                }
+            }
+        }
+    }
 
 
 	/***************************************************************************
@@ -107,9 +160,22 @@ abstract class SocketClientConst
 	public alias uint Code;
 
 
+    /***************************************************************************
+    
+        Code types enum. Defines the different types of codes.
+    
+    ***************************************************************************/
+
+    enum CodeType : ubyte
+    {
+        CommandCode = 0, // default value
+        StatusCode
+    }
+
+
 	/***************************************************************************
 	
-	    A description of a code - its value and a string describing it.
+	    A description of a code - its value, type, and a string describing it.
 	    
 	***************************************************************************/
 
@@ -117,6 +183,7 @@ abstract class SocketClientConst
 	{
 		Code code;
 		char[] description;
+        CodeType type;
 	}
 
 
@@ -176,24 +243,21 @@ abstract class SocketClientConst
 	}
 
 
-	/***************************************************************************
-	
-		Initialises the list of command codes descriptions with the default
-		status codes for this base class.
-		
-		Derived classes should override this method, calling the base class
-		method and then appending their own code descriptions to the list.
-	
-	***************************************************************************/
+    /***************************************************************************
+    
+        Initialises the list of command codes descriptions with the default
+        status codes for this base class.
+        
+    ***************************************************************************/
 
-	protected void initCodeDescriptions ( )
-	{
-		this.code_descriptions = [
- 			CodeDescr(Status.Ok,				"OK"),
- 			CodeDescr(Status.Error,				"Internal Error"),
- 			CodeDescr(Status.PutOnReadOnly,		"Attempted to put on read-only server")
- 		];
-	}
+    protected void appendBaseCodeDescriptions ( )
+    {
+        this.code_descriptions ~= [
+            CodeDescr(Status.Ok,                "OK",                                   CodeType.StatusCode),
+            CodeDescr(Status.Error,             "Internal Error",                       CodeType.StatusCode),
+            CodeDescr(Status.PutOnReadOnly,     "Attempted to put on read-only server", CodeType.StatusCode)
+        ];
+    }
 
 
 	/***************************************************************************
@@ -226,17 +290,10 @@ abstract class SocketClientConst
 	
 	public this ( )
 	{
-		this.initCodeDescriptions();
+        this.initCodeDescriptions();
+        this.appendBaseCodeDescriptions();
 		this.initCodeLists();
 	}
-
-	/***************************************************************************
-	
-		Abstract method to return the name of the api.
-	
-	***************************************************************************/
-
-	abstract public char[] apiName();
 }
 
 
@@ -549,29 +606,35 @@ abstract class SocketClient ( Const : SocketClientConst )
 
     /***************************************************************************
     
-		Convenience aliases for the most common types of batch receivers.
+		Convenience aliases for some commonly used batch receivers.
 
 		ListReceiver:
 			Sends a command with data as a list of strings (char[][]).
-			Receives responses with string (char[]) keys and values as lists of
-				strings (char[][]).
+			Receives responses with hash_t keys and values as strings (char[]).
+
+        ListListReceiver:
+            Sends a command with data as a list of strings (char[][]).
+            Receives responses with hash_t keys and values as lists of
+                strings (char[][]).
 
 		PairListReceiver:
 			Sends a command with data as a list of strings (char[][]).
 			Receives responses with string (char[]) keys and values as lists of
 				string pairs (char[][2][]).
 
+        AllKeysListReceiver:
+            Sends a command without data.
+            Receives responses with string (char[]) keys.
+
 	***************************************************************************/
 
-	// TODO: OldListReceiver is only needed as long as all the API servers
-	// aren't converted to the async dht client.
-	public alias BatchReceiverKV!(char[][], char[], char[]) OldListReceiver;
+	public alias BatchReceiverKV!(char[][], char[], char[]) ListReceiver;
 
-	public alias BatchReceiverKV!(char[][], hash_t, char[]) ListReceiver;
+    public alias BatchReceiverKV!(char[][], char[], char[][]) ListListReceiver;
 
-	public alias BatchReceiverKV!(char[][], char[], char[][2][]) PairListReceiver;
+    public alias BatchReceiverKV!(char[][], char[], char[][2][]) PairListReceiver;
 
-	public alias BatchReceiverK!(void, char[]) AllKeysListReceiver;
+    public alias BatchReceiverK!(void, char[]) AllKeysListReceiver;
 
 
     /***************************************************************************
