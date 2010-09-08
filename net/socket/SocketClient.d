@@ -35,6 +35,8 @@ module net.socket.SocketClient;
 
 *******************************************************************************/
 
+private import ocean.core.StringEnum;
+
 private import ocean.net.socket.SocketProtocol;
 
 private import tango.core.Exception;
@@ -53,31 +55,28 @@ debug private import tango.util.log.Trace;
 
 	Each socket client class should also implement this class, which should
 	specify the commands which are valid for that API.
-	
-	Derived classes should override the initCodeDescriptions method, and add the
-	appropriate command to the code_descriptions list. They should also
-	implement a constructor which either calls super() or manually calls the
-	initCodeLists method.
-	
-	Note that derived classes are required to implement a singleton pattern,
-	with an 'instance' method which returns a static global instance. This can
-	be easily achieved with the Singleton mixin defined in SocketClientConst.
+
+    The class is designed so that everything remains static (ie the class never
+    need be instantiated). This is slightly tricky, as it also needs the
+    capability for derived classes to add to the list of command codes (as each
+    API has its own set of commands). This problem is solved by having a
+    singleton (static) instance of the derived class, and a set of static
+    methods in the base class, which call abstract methods implemented in the
+    singleton instance. That way everything remains static, but derived classes
+    can implement different behaviour.
+    
+    For convenience, the following template mixins are provided:
+
+        1. Create a singleton (static) instance of the class which is then
+            called by the base class.
+
+        2. Provide implementations of various abstract methods required by the
+            base class.
 
 *******************************************************************************/
 
 abstract class SocketClientConst
 {
-
-    /***************************************************************************
-    
-        Initialises the list of command codes descriptions with extra codes
-        needed by a dervied class.
-        
-    ***************************************************************************/
-
-    abstract protected void initCodeDescriptions ( );
-
-
     /***************************************************************************
     
         Abstract method to return the name of the api.
@@ -101,57 +100,91 @@ abstract class SocketClientConst
 
 	***************************************************************************/
 
-	template Singleton ( T )
-	{
-        static protected T global;
+    static private typeof(this) instance;
 
-
-        /***************************************************************************
+    template Singleton ( T )
+    {
+        /***********************************************************************
         
             Creates the static instance of this class.
         
-        ***************************************************************************/
+        ***********************************************************************/
     
         static this ( )
         {
-            global = new T;
+            instance = new T;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Template to be used as a mixin by derived classes to implement the three
+        abstract methods - isValidCode_, codeDescription_ and traceCommands_.
+
+        (This is done as a template mixin as it's not possible to put static 
+        functionality in a base class which can then be overridden, but still
+        remain static, in deriving classes. If these members were simply static
+        members of the base class, then there'd only be a single gloabl instance
+        shared by all derived classes - which isn't what we want here.)
+    
+    ***************************************************************************/
+
+    template CommandCodes ( Commands )
+    {
+        /***********************************************************************
+        
+            Tells whether the given code is valid.
+            
+            Params:
+                code = code to check
+        
+            Returns:
+                true if code is valid
+        
+        ***********************************************************************/
+        
+        public bool isValidCode_ ( Code code )
+        {
+            return code in Commands;
         }
 
 
-        /***************************************************************************
+        /***********************************************************************
+        
+            Gets the description for the given code.
+            
+            Params:
+                code = code to get description for
         
             Returns:
-                static instance of this class.
+                code's description
         
-        ***************************************************************************/
-        
-        static public T instance()
-		{
-			return global;
-		}
+        ***********************************************************************/
 
-
-        /***************************************************************************
-        
-            Outputs the list of command descriptions to Trace.
-        
-        ***************************************************************************/
-
-        static public void traceCommands ( )
+        public char[] codeDescription_ ( Code code )
         {
-            Trace.formatln("{} command descriptions:", T.instance().apiName());
-            foreach ( code_descr; T.instance().code_descriptions )
+            return Commands.description(code);
+        }
+
+
+        /***********************************************************************
+        
+            Outputs the names of all commands to Trace.
+            
+        ***********************************************************************/
+
+        public void traceCommands_ ( )
+        {
+            foreach ( cmd, descr; Commands )
             {
-                if ( code_descr.type == CodeType.CommandCode )
-                {
-                    Trace.formatln("  {}", code_descr.description);
-                }
+                Trace.formatln("  {}", descr);
             }
         }
     }
 
 
-	/***************************************************************************
+    /***************************************************************************
 	
 	    Code Definition. Code is the base type of command and status codes.
 	
@@ -159,32 +192,7 @@ abstract class SocketClientConst
 	
 	public alias uint Code;
 
-
-    /***************************************************************************
-    
-        Code types enum. Defines the different types of codes.
-    
-    ***************************************************************************/
-
-    enum CodeType : ubyte
-    {
-        CommandCode = 0, // default value
-        StatusCode
-    }
-
-
-	/***************************************************************************
-	
-	    A description of a code - its value, type, and a string describing it.
-	    
-	***************************************************************************/
-
-	public struct CodeDescr
-	{
-		Code code;
-		char[] description;
-        CodeType type;
-	}
+    public alias StringEnumValue!(Code) CodeDesc;
 
 
 	/***************************************************************************
@@ -192,108 +200,75 @@ abstract class SocketClientConst
 	    Status codes definition
 	
 	***************************************************************************/
-	
-	public enum Status : Code
-	{
-	    Ok            			= 200,
-	    Error        			= 500,
-	    PutOnReadOnly			= 501,
-	}
 
-
-	/***************************************************************************
-
-    	List of valid codes & descriptions
-
-	 ***************************************************************************/
-
-	CodeDescr[] code_descriptions;
-	
-
-	/***************************************************************************
-	
-	    Associative array to lookup a code by its description
-	
-	***************************************************************************/
-
-	Code[char[]] codes_by_description;
-	
-
-	/***************************************************************************
-	
-	    Associative array to lookup a code's description
-	
-	***************************************************************************/
-
-	char[][Code] descriptions_by_code;
+    static public StringEnum!(Code,
+            CodeDesc("Ok", 200),
+            CodeDesc("Error", 500),
+            CodeDesc("PutOnReadOnly", 501)
+        ) Status;
 
 
 	/***************************************************************************
 	
-	    Checks if a code is valid.
+	    Checks if a code is valid. Ie either a Status code or a code defined in
+        the implementing (derived) class.
+        
+        Params:
+            code = code to check
 	    
 	    Returns:
 	    	true if the code passed is valid
 	
 	***************************************************************************/
 
-	public bool isValidCode ( Code code)
+	static public bool isValidCode ( Code code)
 	{
-		return (code in this.descriptions_by_code) != null;
+        return code in Status || instance.isValidCode_(code);
 	}
+
+    abstract public bool isValidCode_ ( Code code );
 
 
     /***************************************************************************
     
-        Initialises the list of command codes descriptions with the default
-        status codes for this base class.
-        
+        Gets the text description for a code.
+
+        Params:
+            code = code to get description for
+
+        Returns:
+            code's description
+    
     ***************************************************************************/
 
-    protected void appendBaseCodeDescriptions ( )
+    static public char[] codeDescription ( Code code )
     {
-        this.code_descriptions ~= [
-            CodeDescr(Status.Ok,                "OK",                                   CodeType.StatusCode),
-            CodeDescr(Status.Error,             "Internal Error",                       CodeType.StatusCode),
-            CodeDescr(Status.PutOnReadOnly,     "Attempted to put on read-only server", CodeType.StatusCode)
-        ];
+        if ( code in Status )
+        {
+            return Status.description(code);
+        }
+        else
+        {
+            return instance.codeDescription_(code);
+        }
     }
 
-
-	/***************************************************************************
-	
-		Initialises the lookup lists of command codes & descriptions.
-		
-		Derived classes should override this method, calling the super class
-		and then appending their own code descriptions to the list.
-	
-	***************************************************************************/
-
-	protected void initCodeLists ( )
-	{
-		this.code_descriptions.sort;
-
-		foreach ( code_descr; this.code_descriptions )
-        {
-			this.descriptions_by_code[code_descr.code] = code_descr.description;
-			this.codes_by_description[code_descr.description] = code_descr.code;
-        }
-	}
+    abstract public char[] codeDescription_ ( Code code );
 
 
-	/***************************************************************************
-	
-		Constructor.
-		Initialises the list of command codes descriptions.
-	
-	***************************************************************************/
-	
-	public this ( )
-	{
-        this.initCodeDescriptions();
-        this.appendBaseCodeDescriptions();
-		this.initCodeLists();
-	}
+    /***********************************************************************
+    
+        Outputs the names of all commands to Trace.
+        
+    ***********************************************************************/
+
+    static public void traceCommands ( )
+    {
+        Trace.formatln("{} commands:", instance.apiName());
+        instance.traceCommands_();
+    }
+
+    abstract public void traceCommands_ ( );
 }
 
 
@@ -313,7 +288,7 @@ abstract class SocketClientConst
 
 abstract class SocketClient ( Const : SocketClientConst )
 {
-	static assert ( is ( typeof (Const.instance) ), "Template argument Const must implement an 'instance' method" );
+//	static assert ( is ( typeof (Const.instance) ), "Template argument Const must implement an 'instance' method" );
 
 
 	/***************************************************************************
@@ -340,7 +315,8 @@ abstract class SocketClient ( Const : SocketClientConst )
 	    Static functions for looking up command & status code descriptions
 	
 	***************************************************************************/
-	
+
+    /+
 	public struct Codes
 	{
 	    /**********************************************************************
@@ -410,7 +386,7 @@ abstract class SocketClient ( Const : SocketClientConst )
 	        }
 		}
 	}
-
++/
 
 	/***************************************************************************
 
@@ -856,17 +832,17 @@ abstract class SocketClient ( Const : SocketClientConst )
 	{
         switch ( status )
 		{
-			case Const.instance().Status.Ok:
+			case Const.Status.Ok:
 			break;
 
 			// TODO: do we really need to make this distinction?
-			case Const.instance().Status.PutOnReadOnly:
+			case Const.Status.PutOnReadOnly:
 	            throw new SocketClientException!(Const).ReadOnly;
 			break;
 
-			case Const.instance().Status.Error:
+			case Const.Status.Error:
 			default:
-	            throw new SocketClientException!(Const).Generic("error on " ~ Codes[cmd] ~ " request");
+	            throw new SocketClientException!(Const).Generic("error on " ~ Const.codeDescription(cmd) ~ " request");
 			break;
 		}
 	}
@@ -1173,8 +1149,7 @@ struct SocketClientException ( Const : SocketClientConst )
 
 	static class ReadOnly : Generic
 	{
-    	static Const.Code code = Const.Status.PutOnReadOnly;
-        this ( ) { super(Const.instance().descriptions_by_code[code]); }
+        this ( ) { super(Const.Status.description(Const.Status.PutOnReadOnly)); }
 	}
 }
 
