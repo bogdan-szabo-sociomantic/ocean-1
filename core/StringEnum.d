@@ -10,14 +10,26 @@
     authors:        Gavin Norman
 
     This template creates classes which contain a real (anonymous) enum, and an
-    associative array mapping from the enum values to their string descriptions.
-    The classes also implement a foreach iterator over the values of the enum.
+    associative array mapping from the enum values to their string descriptions,
+    allowing two-way lookup between codes <-> descriptions, and an
+    implementation of the 'in' operator to tell if a code or description is
+    valid.
 
     This is especially useful for "Const" classes which define a list of command
     or status codes where a kind of reverse lookup is needed, going from a code
     to it's name / description (or vice versa).
 
-    Usage:
+    The classes also implement a foreach iterator over the values of the enum.
+
+    The class template takes two parameters:
+
+        1. The base type of the enum - must be an integral type (see
+        http://www.digitalmars.com/d/1.0/enum.html).
+
+        2. A variadic list of StringEnumValue structs, specifying the names and
+        values of the enum's members.
+
+    Usage example:
 
     ---
 
