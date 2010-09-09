@@ -288,9 +288,6 @@ abstract class SocketClientConst
 
 abstract class SocketClient ( Const : SocketClientConst )
 {
-//	static assert ( is ( typeof (Const.instance) ), "Template argument Const must implement an 'instance' method" );
-
-
 	/***************************************************************************
     
 		Socket
@@ -309,84 +306,6 @@ abstract class SocketClient ( Const : SocketClientConst )
 	
 	public SocketRetry retry;
 
-
-    /***************************************************************************
-    
-	    Static functions for looking up command & status code descriptions
-	
-	***************************************************************************/
-
-    /+
-	public struct Codes
-	{
-	    /**********************************************************************
-	    
-		    Code by description via indexing
-		
-		 **********************************************************************/
-		
-		static Const.Code opIndex ( char[] description )
-		{
-		    assert (description in Const.instance().codes_by_description, "Unknown API command description");
-		    
-		    return Const.instance().codes_by_description[description];
-		}
-		
-		
-		/**********************************************************************
-		
-		   Description by code via indexing
-		
-		 **********************************************************************/
-		
-		static char[] opIndex ( Const.Code code )
-		{
-		    assert (code in Const.instance().descriptions_by_code, "Unknown API command code");
-		    
-		    return Const.instance().descriptions_by_code[code];
-		}
-		
-		
-		/**********************************************************************
-		
-		    Tells whether description is a known command description via 'in'
-		
-		 **********************************************************************/
-		
-		static bool opIn_r ( char[] description )
-		{
-		    return !!(description in Const.instance().codes_by_description);
-		}
-		
-		
-		/**********************************************************************
-		
-		    Tells whether code is a known command code via 'in'
-		
-		 **********************************************************************/
-		
-		static bool opIn_r ( Const.Code code )
-		{
-		    return !!(code in Const.instance().descriptions_by_code);
-		}
-	
-	
-		/***********************************************************************
-		
-		    Outputs a list of all commands to Trace.
-		
-		***********************************************************************/
-	
-		debug static void list ( )
-		{
-			Trace.formatln("Valid {} command / status codes:", Const.instance().apiName());
-	        foreach ( code_descr; Const.instance().code_descriptions )
-	        {
-	            Trace.formatln("   {} = {}", code_descr.code, code_descr.description);
-	        }
-		}
-	}
-+/
 
 	/***************************************************************************
 
