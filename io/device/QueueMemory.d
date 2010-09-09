@@ -51,7 +51,7 @@ private import tango.util.log.Trace;
 
 *******************************************************************************/
 
-class QueueMemory : ConduitQueue!(Memory)
+deprecated class QueueMemory : ConduitQueue!(Memory)
 {
 	/***************************************************************************
 

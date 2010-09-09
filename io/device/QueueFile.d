@@ -55,7 +55,7 @@ private import  tango.io.FilePath, tango.io.device.File;
 
 *******************************************************************************/
 
-class QueueFile : ConduitQueue!(File)
+deprecated class QueueFile : ConduitQueue!(File)
 {
 	/***************************************************************************
 	

@@ -143,7 +143,7 @@ version ( MemCheck )
 
 *******************************************************************************/
 
-abstract class ConduitQueue ( C ) : PersistQueue
+deprecated abstract class ConduitQueue ( C ) : PersistQueue
 {
 	debug const CHECK_MAX_ITEM_SIZE = 1024 * 1024;
 

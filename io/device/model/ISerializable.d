@@ -27,7 +27,7 @@ private import tango.io.device.Conduit;
 
 
 
-interface Serializable
+deprecated interface Serializable
 {
 	/***************************************************************************
 

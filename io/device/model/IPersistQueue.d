@@ -68,7 +68,7 @@ version ( MemCheck )
 
 *******************************************************************************/
 
-abstract class PersistQueue : Queue, Serializable, Loggable
+deprecated abstract class PersistQueue : Queue, Serializable, Loggable
 {
 	/***************************************************************************
 	

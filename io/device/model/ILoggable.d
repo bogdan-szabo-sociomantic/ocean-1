@@ -26,7 +26,7 @@ private import tango.util.log.Log;
 
 
 
-interface Loggable
+deprecated interface Loggable
 {
 	/***************************************************************************
 
