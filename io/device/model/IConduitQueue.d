@@ -605,7 +605,7 @@ abstract class ConduitQueue ( C ) : PersistQueue
 	
 	protected void write ( void* data, uint len )
 	{
-		debug assert(len < CHECK_MAX_ITEM_SIZE);
+		debug assert(len < CHECK_MAX_ITEM_SIZE,"Element length > max size");
 
 		scope ( failure )
 		{
