@@ -252,6 +252,10 @@ class Memory : Conduit, InputBuffer, OutputBuffer, Conduit.Seek
 		
 		public void detach ()
 		{
+            this.index = 0;
+            delete this.data;
+            this.data = null;
+            
 		}
 
 		/***********************************************************************

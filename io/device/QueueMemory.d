@@ -105,6 +105,11 @@ class QueueMemory : ConduitQueue!(Memory)
 	}
 
 
+    ~this()
+    {
+        delete this.conduit;
+    }
+    
 	/***************************************************************************
 
 		Overridden cleanup method, making use of memcpy for gerater speed.
@@ -210,7 +215,7 @@ class AutoSaveQueueMemory : QueueMemory
 	Unittest
 
 *******************************************************************************/
-
+debug = OceanUnitTest;
 debug (OceanUnitTest)
 {
 	import tango.util.log.Trace;
@@ -227,9 +232,83 @@ debug (OceanUnitTest)
 
 	unittest
 	{
-	    Trace.formatln("Running ocean.io.device.QueueMemory unittest");
+        /***********************************************************************
+        
+            Performance and Memory Test
 
-	    char[] buf;
+        ***********************************************************************/
+        {
+            Trace.formatln("\nRunning ocean.io.device.QueueMemory memory & performance test");
+            const uint QueueSize = 1024*1024*100;
+            const Iterations = 500;
+            uint it = 0;
+            void[] buf = new void[QueueSize];
+            ulong average=0;
+            ulong allBytes;
+
+            while(it++ < Iterations)
+            {
+                scope random = new Random();
+
+                // Pre-generate the values //
+
+                int[] elements;
+
+                long bytesLeft=QueueSize;
+                // fill 'elements' with random lengths.
+                while(bytesLeft > 0)
+                {
+                    uint el;
+                    random(el);
+                    el%=1024*1024; //el+=1;
+                    if(bytesLeft-el <= 0)
+                    {
+                        elements~=bytesLeft;
+                        break;
+                    }
+                    elements~= el;
+                    bytesLeft -= el;
+                }
+                uint start=void; random(start);
+                start %= QueueSize;
+                // set it to start reading from .. anywhere.
+
+                uint pos=0;            
+
+                auto before = MemProfiler.checkUsageMb();                        
+
+                scope q = new QueueMemory("hello",QueueSize);
+                q.write_to = q.read_from = start;
+
+                StopWatch watch;
+                watch.start;
+                uint i;
+                foreach(el ; elements)
+                {
+                    if(!q.push(buf[pos..pos+el]))
+                    {
+                        //   Trace.formatln("Failed to push data of length {}", el);                    
+                        break;
+                    }
+                    pos+=el;
+                    ++i;
+                }
+
+                while(q.pop) {}
+
+                   if(it%(Iterations*.1) == 0)
+                Trace.formatln("Iteration {}: Started at byte {}\t{} Items and\t{} MB in\t{} ms. Memory: Before\t{} MB, after:\t{}MB, Diff:\t{}",it,start,i,pos/1024.0/1024,watch.microsec(),before,MemProfiler.checkUsageMb,(MemProfiler.checkUsageMb-before));
+                allBytes+=pos;
+                average+=watch.microsec();
+                
+            }
+            Trace.formatln("Average time for 100mb: {}",QueueSize*average/allBytes);
+        }
+
+
+        Trace.formatln("Running ocean.io.device.QueueMemory unittest");
+
+        char[] buf;
 
 
 	    /***********************************************************************
@@ -238,7 +317,7 @@ debug (OceanUnitTest)
 
 	    ***********************************************************************/
 
-	    const uint ITERATIONS = 50_000;
+	    const uint ITERATIONS = 0; //50_000;
 
 	    const uint Q_SIZE = 1024 * 1024;
 
