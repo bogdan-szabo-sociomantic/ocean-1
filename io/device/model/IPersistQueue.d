@@ -372,7 +372,9 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	public void setName ( char[] name )
 	{
-		this.name = name;
+        this.name.length = name.length;
+        this.name[0..$] = name[0..$];
+        
 	}
 	
 	
@@ -736,14 +738,14 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 			number of bytes read
 	
 	***************************************************************************/
-	
+     
 	protected long readState ( Conduit conduit )
 	{
 		long[StateSerializeOrder.max + 1] longs;
-	
-		// Read longs
-		long bytes_read = conduit.read(cast(void[]) longs);
-
+        
+		// Read longs        
+        long bytes_read = conduit.read((cast(void*) longs.ptr)[0..long.sizeof*longs.length]);
+        
 		this.dimension = longs[StateSerializeOrder.dimension];
 		this.write_to = longs[StateSerializeOrder.write_to];
 		this.read_from = longs[StateSerializeOrder.read_from];
