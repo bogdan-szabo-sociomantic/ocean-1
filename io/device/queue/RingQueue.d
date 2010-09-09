@@ -28,8 +28,13 @@ private import ocean.io.device.queue.storage.Memory;
 
 private import tango.io.device.Conduit;
 
+private import ocean.sys.SignalHandler;
 
-final class RingQueue : PersistQueue
+private import tango.util.log.Trace;
+
+
+
+class RingQueue : PersistQueue
 {
     private IStorageEngine storageEngine;
     
@@ -83,6 +88,7 @@ final class RingQueue : PersistQueue
     public this ( char[] name, IStorageEngine storage )
     {
         this.storageEngine = storage;
+        TerminationSignal.handle(&this.terminate);
         super(name,storage.size);
         this.gap = storage.size;
     }
@@ -106,6 +112,7 @@ final class RingQueue : PersistQueue
     {
         assert(flag == EngineFlag.Memory,"Only memory implemented so far");
         this.storageEngine = new Memory(max); 
+        TerminationSignal.handle(&this.terminate);
         super(name,max);    
         this.gap = max;    
         
@@ -129,8 +136,16 @@ final class RingQueue : PersistQueue
     {        
         return Header.sizeof+data.length;
     }
-    
-    ~this()
+
+    /***************************************************************************
+
+        Destructor. Deletes the storageEngine 
+        so that the memory is available again       
+        
+    ***************************************************************************/
+
+   
+    public ~this()
     {
         delete this.storageEngine;
     }
@@ -291,7 +306,6 @@ final class RingQueue : PersistQueue
 
     ***************************************************************************/
     
-     
     public bool willFit ( void[] data )
     {
       //  debug Stdout("called willfit").newline;
@@ -329,8 +343,26 @@ final class RingQueue : PersistQueue
                 
         assert(false,"Not considered case happened");                
     }
-    
-    
+
+
+    /**************************************************************************
+
+        Terminate signal handler. Saves this instance of the class to a file
+        before termination.
+
+        Params:
+            code = signal code
+
+    ***************************************************************************/
+
+    protected void terminate ( int code )
+    {
+        Trace.formatln("Closing {} (saving {} entries to {})",
+                this.getName(), this.size(), this.getName() ~ ".dump");
+        this.log(SignalHandler.getId(code) ~ " raised: terminating");
+        this.dumpToFile();
+    } 
+
     /***************************************************************************
     
         Opens the queue given an identifying name. Should
@@ -436,11 +468,9 @@ final class RingQueue : PersistQueue
     
 }
 
-debug = OceanUnitTest;
 
 debug(OceanUnitTest)
 {
-    import tango.util.log.Trace;
     import tango.math.random.Random;
     import tango.time.StopWatch;
     import tango.core.Memory;
