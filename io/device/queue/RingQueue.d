@@ -1,3 +1,15 @@
+/******************************************************************************
+
+    Provides a ring buffer implementation of a persistent queue
+
+    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
+
+    version:        Sep 2010: Initial release
+
+    authors:        Mathias Baumann
+
+*******************************************************************************/
+
 module io.device.queue.RingQueue;
 
 
@@ -15,8 +27,6 @@ private import ocean.io.device.queue.storage.model.IStorageEngine;
 private import ocean.io.device.queue.storage.Memory;
 
 private import tango.io.device.Conduit;
-
-debug private import tango.io.Stdout;
 
 
 final class RingQueue : PersistQueue
@@ -46,11 +56,12 @@ final class RingQueue : PersistQueue
     
     struct Header
     {
-        static Header header(size_t length)
+        static Header header ( size_t length )
         {
             Header h; h.length = length; 
             return h;
         }
+        
         size_t length;
     };  
     
@@ -69,10 +80,10 @@ final class RingQueue : PersistQueue
 
     ***************************************************************************/
         
-    public this(char[] name, IStorageEngine storage)
+    public this ( char[] name, IStorageEngine storage )
     {
-        super(name,storage.size);
         this.storageEngine = storage;
+        super(name,storage.size);
         this.gap = storage.size;
     }
     
@@ -91,11 +102,11 @@ final class RingQueue : PersistQueue
 
     ***************************************************************************/
         
-    public this(char[] name, uint max,EngineFlag flag=EngineFlag.Memory)
+    public this ( char[] name, uint max,EngineFlag flag=EngineFlag.Memory )
     {
-        super(name,max);    
         assert(flag == EngineFlag.Memory,"Only memory implemented so far");
         this.storageEngine = new Memory(max); 
+        super(name,max);    
         this.gap = max;    
         
     }
@@ -119,6 +130,12 @@ final class RingQueue : PersistQueue
         return Header.sizeof+data.length;
     }
     
+    ~this()
+    {
+        delete this.storageEngine;
+    }
+    
+    
     /***************************************************************************
 
         Pushes a single item to the queue. 
@@ -130,15 +147,16 @@ final class RingQueue : PersistQueue
 
     protected void pushItem ( void[] item )
     {        
-        debug Stdout.format("pushing {} now",cast(char[])item).newline;
+       
         if(this.needsWrapping(item))
         {   // writing to the beginning of our storage
             // the calling function made sure it will fit.
             this.gap = super.write_to;
             super.write_to = 0;
             
-            debug Stdout("wrapping!");
+
         }
+        
         with(this.storageEngine)
         {
             seek(super.write_to);
@@ -150,7 +168,7 @@ final class RingQueue : PersistQueue
         this.write_to+=this.pushSize(item);
         ++super.items;         
         
-        debug Stdout.format("Items now {}",super.items).newline;
+
     }
     
     /***************************************************************************
@@ -162,12 +180,13 @@ final class RingQueue : PersistQueue
             
     ***************************************************************************/
         
-    public uint usedSpace()
+    public uint usedSpace ( )
     {
         if(items == 0)
         {
             return 0;
         }
+        
         if(super.write_to > super.read_from)
         {
             return super.usedSpace();
@@ -177,7 +196,7 @@ final class RingQueue : PersistQueue
         
     }
     
-    /**********************************************************************
+    /**************************************************************************
         
         Returns true if queue is full (write position >= end of queue)
     
@@ -186,9 +205,9 @@ final class RingQueue : PersistQueue
         Returns:
             true when there is no free space left
         
-    **********************************************************************/
+    ***************************************************************************/
 
-    public bool isFull()
+    public bool isFull ( )
     {
         return this.freeSpace() == 0;
     }
@@ -202,7 +221,7 @@ final class RingQueue : PersistQueue
             
     ***************************************************************************/
         
-    public uint freeSpace()
+    public uint freeSpace ( )
     {
         return super.dimension - this.usedSpace; 
     }
@@ -236,6 +255,7 @@ final class RingQueue : PersistQueue
         {
             super.read_from = 0;
         }
+        
         --super.items;
         
         return data;
@@ -253,7 +273,7 @@ final class RingQueue : PersistQueue
 
     ***************************************************************************/
 
-    private bool needsWrapping(void[] data)
+    private bool needsWrapping ( void[] data )
     {
         return this.pushSize(data)+super.write_to > super.dimension;           
     }
@@ -272,33 +292,35 @@ final class RingQueue : PersistQueue
     ***************************************************************************/
     
      
-    public bool willFit ( void[] data)
+    public bool willFit ( void[] data )
     {
       //  debug Stdout("called willfit").newline;
 
         // check if the dimension is big enough when it's empty
         if(super.items == 0 && super.dimension >= this.pushSize(data))
-        {
-            debug Stdout("called willfit1").newline;
+        {         
             return true;
         }
+        
         if(this.needsWrapping(data))
         {
-            debug Stdout.format("called willfit2, writeto: {}, pushsize {}",write_to,pushSize(data)).newline;
+          
             // check if there is enough space at the beginning
             return super.read_from >= this.pushSize(data);
         }
         if(super.read_from < super.write_to)
         {
-            debug Stdout("called willfit4").newline;
+        
             return super.dimension-super.write_to >= this.pushSize(data);
         }
+        
         // check if there is enough space between the new and old data
         if(super.read_from > super.write_to)
         {
-            debug Stdout("called willfit3").newline;
+         
             return super.read_from-super.write_to >= this.pushSize(data);
         }
+        
         if(super.read_from == super.write_to && super.items != 0)
         {
             return false;
@@ -332,7 +354,7 @@ final class RingQueue : PersistQueue
     
     ***************************************************************************/
     
-    public void cleanupQueue()
+    public void cleanupQueue ( )
     {
         return;
     }
@@ -366,7 +388,7 @@ final class RingQueue : PersistQueue
     }
     /***************************************************************************
     
-        Dumps the data in an linar way to the conduit
+        Dumps the data in an linear way to the conduit
     
         Params:
             conduit = conduit to write to
@@ -375,10 +397,34 @@ final class RingQueue : PersistQueue
 
     protected void writeToConduit ( Conduit conduit )
     {
-        assert(false,"Not yet implemented");
+     /*   if(super.items > 0)
+        {
+            if(super.read_from > super.write_to)
+            {   // [###__###]
+            
+                // read from read_from till the end of data
+                this.storageEngine.seek(super.read_from);
+                auto part1 = this.storageEngine.read(this.gap - super.read_from);
+                // read from 0 to write_to
+                this.storageEngine.seek(0);
+                auto part2 = this.storageEngine.read(super.write_to);
+
+                for(size_t bytes=0; (bytes=conduit.write(part1[bytes..$])) > 0;) {}
+                for(size_t bytes=0; (bytes=conduit.write(part2[bytes..$])) > 0;) {}
+            }
+            else if(super.read_from < super.write_to)
+            {   // [__###__]
+            */
+                this.storageEngine.seek(0);
+                auto part = this.storageEngine.read(super.dimension);
+
+                for(size_t bytes=0; (bytes=conduit.write(part[bytes..$])) > 0;) {}
+/*            }
+
+        }*/
     }
 
-    
+
     debug public void validateContents
       (bool show_summary, char[] message = "", bool show_contents_size = false )
     {
@@ -390,10 +436,235 @@ final class RingQueue : PersistQueue
     
 }
 
-debug( OceanUnitTest)
+debug = OceanUnitTest;
+
+debug(OceanUnitTest)
 {
+    import tango.util.log.Trace;
+    import tango.math.random.Random;
+    import tango.time.StopWatch;
+    import tango.core.Memory;
+    import ocean.util.Profiler;
+    import tango.io.FilePath; 
+    
     unittest
     {
+
+         scope random = new Random();
+
+
+
+        /***********************************************************************
+            
+            Test for empty queue
+        
+        ***********************************************************************/
+        {
+            scope queue = new RingQueue("test",0);
+            assert(queue.isFull());
+            assert(queue.isEmpty());
+            assert(!queue.push("stuff"));
+        }
+        /***********************************************************************
+            
+            Test wrapping
+        
+        ***********************************************************************/        
+        Trace.formatln("\nRunning ocean.io.device.queue.RingQueue wrapping stability test");
+        {
+            scope queue = new RingQueue("test",(1+RingQueue.Header.sizeof)*3);
+            // [___] r=0 w=0
+            assert(queue.push("1"));
+            
+            // [#__] r=0 w=5
+            assert(queue.push("2"));
+            
+            // [##_] r=0 w=10
+            assert(queue.push("3"));
+            
+            // [###] r=0 w=15
+            assert(!queue.push("4"));
+            assert(queue.isFull);
+            assert(queue.pop() == "1");
+                       
+            // [_##] r=5 w=15
+            assert(queue.freeSpace() == 1+RingQueue.Header.sizeof);
+            assert(queue.pop() == "2");
+            
+            // [__#] r=10 w=15
+            assert(queue.freeSpace() == (1+RingQueue.Header.sizeof)*2);
+            assert(queue.write_to == queue.dimension);
+            assert(queue.push("1"));
+            
+            // [#_#] r=10 w=5
+            assert(queue.freeSpace() == 1+RingQueue.Header.sizeof);
+            assert(queue.write_to == queue.pushSize("2"));
+            assert(queue.push("2"));
+           // Trace.formatln("gap is {}, free is {}, write is {}", queue.gap, queue.freeSpace(),queue.write_to);
+           
+            
+            // [###] r=10 w=10
+            assert(queue.isFull);
+            assert(queue.pop() == "3");
+                        
+            // [##_] r=15 w=10
+            assert(queue.freeSpace() == (1+RingQueue.Header.sizeof)*1);
+            assert(queue.pop() == "1");         
+            
+            // [_#_] r=5 w=10
+            assert(queue.pop() == "2");
+            
+            // [__] r=10 w=10
+            assert(queue.isEmpty);
+            assert(queue.push("1"));
+            
+            // [__#] r=10 w=15
+            assert(queue.push("2#"));            
+            
+            // [$_#] r=10 w=6 ($ = 2 bytes)
+            assert(queue.pop() == "1");           
+            
+            // [$__] r=15 w=6
+            assert(queue.push("1"));             
+            
+            // [$#_] r=15 w=11
+            assert(!queue.push("2"));
+            assert(queue.pop() == "2#");
+            
+            // [_#_] r=6 w=11
+            assert(queue.push("2")); // this needs to be wrapped now
+            
+            // [##_] r=6 w=5            
+            assert(queue.gap == RingQueue.Header.sizeof + queue.read_from + 1);
+          
+            
+            
+        }
+         
+        /***********************************************************************
+        
+            Read/Write from/to File Test
+    
+        ***********************************************************************/
+        Trace.formatln("\nRunning ocean.io.device.queue.RingQueue file reading/writing test");
+        {
+            const QueueSize = 1024*1024*10; // 10 MB
+            const Iterations = 50;
+
+            void[] buffer = new void[1024*1024];
+           
+            void rmFile()
+            { 
+                scope file = new FilePath("fileQueue.dump");
+                if(file.exists())
+                {
+                    file.remove();
+                }
+            }
+
+            rmFile();
+            auto fq = new RingQueue("fileQueue",QueueSize);
+
+
+
+            int pushlen;
+            do
+            {
+                random(pushlen);
+                pushlen %= buffer.length;                
+            }
+            while(fq.push(buffer[0..pushlen]));
+
+            auto sizeBefore = fq.usedSpace;
+            auto itemsBefore = fq.items;
+
+            fq.dumpToFile();
+
+            delete fq;
+            
+            fq = new RingQueue("fileQueue",QueueSize);
+            rmFile();
+
+            assert(fq.usedSpace ==sizeBefore);
+            assert(itemsBefore == fq.items);
+        }
+
+        /***********************************************************************
+        
+            Performance and Memory Test
+    
+        ***********************************************************************/
+        {
+            Trace.formatln("\nRunning ocean.io.device.queue.RingQueue memory & performance test");
+            const uint QueueSize = 1024*1024*100;
+            const Iterations = 500;
+            uint it = 0;
+            void[] buf = new void[QueueSize];
+            ulong average,allBytes;
+
+
+            while(it++ < Iterations)
+            {
+
+                // Pre-generate the values //
+
+                int[] elements;
+
+                long bytesLeft=QueueSize;
+                // fill 'elements' with random lengths.
+                while(bytesLeft > 0)
+                {
+                    uint el;
+                    random(el);
+                    el%=1024*1024; //el+=1;
+                    if(bytesLeft-el <= 0)
+                    {
+                        elements~=bytesLeft;
+                        break;
+                    }
+                    elements~= el;
+                    bytesLeft -= el;
+                }
+                uint start=void; random(start);
+                start %= QueueSize;
+                // set it to start reading from .. anywhere.
+
+                uint pos=0;            
+
+
+                auto before = MemProfiler.checkUsageMb();                         
+
+                scope q = new RingQueue("hello",QueueSize);
+                q.write_to = q.read_from = start; StopWatch watch; watch.start;
+                uint i;
+
+                foreach(el ; elements)
+                {
+                    if(!q.push(buf[pos..pos+el]))
+                    {
+                        //   Trace.formatln("Failed to push data of length {}", el);                    
+                        break;
+                    }
+                    pos+=el;
+                    ++i;
+                }
+
+                while(q.pop) {}
+
+                if(it%(Iterations*.1) == 0)
+                Trace.formatln("Iteration {}: Started at byte {}\t{} Items and\t{} MB in\t{} ms. Memory: Before\t{} MB, after:\t{}MB, Diff:\t{}",it,start,i,pos/1024.0/1024,watch.microsec(),before,MemProfiler.checkUsageMb,(MemProfiler.checkUsageMb-before));
+                allBytes+=pos;
+                average+=watch.microsec();
+
+            }
+            Trace.formatln("Average time for 100mb: {}",QueueSize*average/allBytes);
+
+        }
+        
+        
+        
+        
+        
         scope queue = new RingQueue("test1",(9+RingQueue.Header.sizeof)*10);
         assert(!queue.isFull);
         assert(queue.isEmpty);
@@ -424,12 +695,7 @@ debug( OceanUnitTest)
         assert(queue.size() == 10);
         
         
-        /*********************************
-        Testing state
-           
-           [ ### ]
-          
-        *********************************/
+
         
         scope middle = new RingQueue("test2",5*5);        
         middle.push("1");        
@@ -444,4 +710,30 @@ debug( OceanUnitTest)
         assert(middle.push("6"));
         assert(middle.freeSpace() == 0);
     }
+    
+
+
+    /*******************************************************************************
+
+        Unittest
+
+    ****************************************************************************
+
+    import tango.util.log.Trace;
+    import tango.core.Memory;
+    import tango.time.StopWatch;
+    import tango.core.Thread;
+    import tango.text.convert.Integer;
+    import ocean.util.Profiler;
+    
+    import tango.stdc.string: memcpy;
+    import tango.stdc.stdio: snprintf;
+    
+    import tango.math.random.Random;
+
+
+***/
+
+    
+    
 }

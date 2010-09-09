@@ -1,8 +1,27 @@
+/******************************************************************************
+
+    Provides a in-memory StorageEngine implementation
+
+    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
+
+    version:        Sep 2010: Initial release
+
+    authors:        Mathias Baumann
+
+*******************************************************************************/
+
 module io.device.queue.storage.Memory;
 
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
 
 private import ocean.io.device.queue.storage.model.IStorageEngine;
+
 private import tango.core.Exception;
+
 private import tango.io.device.Conduit;
 
 
@@ -10,6 +29,7 @@ class Memory : IStorageEngine
 {
     private void[] data;
     private size_t position;
+    
     /***************************************************************************
         
         Constructs a Memory object
@@ -19,22 +39,28 @@ class Memory : IStorageEngine
             
     ***************************************************************************/
 
-    this(size_t size)
+    public this ( size_t size )
     {
         this.init(size);
     }
         
+    
+    ~this()
+    {
+        delete data;
+    }
+    
     /***************************************************************************
     
         Resets the size of the memory object. 
-        Warning! You loose all data.
+        Warning! You lose all data.
         
         Params:
             size = new size of the memory object
             
     ***************************************************************************/
         
-    final void init(size_t size)
+    public final void init(size_t size)
     {
         this.data.length = size;
     }
@@ -48,12 +74,13 @@ class Memory : IStorageEngine
             conduit = the conduit to read from
             
     ***************************************************************************/
-    
-    void readFromConduit ( Conduit conduit )
+
+    public void readFromConduit ( Conduit conduit )
     {        
-        if(auto len = conduit.read(this.data) != Conduit.Eof)
+        auto len = conduit.read(this.data);
+        if(len != this.data.length)
         {
-           assert(false,"buffer size to small");
+            assert(false,"buffer size to small");
         }
             
     }
@@ -67,9 +94,11 @@ class Memory : IStorageEngine
             
     ***************************************************************************/
     
-    void writeToConduit(Conduit conduit)
+    public void writeToConduit ( Conduit conduit )
     {
-        
+        size_t bytes=0;
+        while((bytes = conduit.write(data[bytes..$])) > 0 ) {}
+            
     }
     
     /***************************************************************************
@@ -84,7 +113,7 @@ class Memory : IStorageEngine
             
     ***************************************************************************/
     
-    final public size_t write(void[] data)
+    final public size_t write ( void[] data )
     {
         if(data.length <= this.data.length-this.position)
         {
@@ -96,6 +125,7 @@ class Memory : IStorageEngine
         return this.data.length-this.position;        
         
     }
+    
     /***************************************************************************
         
         Reads data from the memory object
@@ -108,12 +138,13 @@ class Memory : IStorageEngine
             
     ***************************************************************************/
     
-    final public void[] read(size_t amount)
+    final public void[] read ( size_t amount )
     {
         if(amount > this.data.length-this.position)
         {
             return this.data[this.position..$];
         }
+        
         return this.data[this.position..this.position+amount];    
     }
 
@@ -129,7 +160,7 @@ class Memory : IStorageEngine
             
     ***************************************************************************/
     
-    final public size_t seek(size_t offset)
+    final public size_t seek ( size_t offset )
     {
         if(offset > this.data.length)
         {
@@ -152,7 +183,7 @@ class Memory : IStorageEngine
             
     ***************************************************************************/
     
-    final public size_t size()
+    final public size_t size ( )
     {
         return data.length;    
     }
