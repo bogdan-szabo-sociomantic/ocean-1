@@ -84,6 +84,15 @@ class QueueFile : ConduitQueue!(File)
 	{
 		super(name, max);
 	}
+    
+    /***************************************************************************
+        
+         Determines whether the queue is in need of cleanup.
+         
+         Returns:
+             true if the queue is in the need of a clean up.
+    
+    ***************************************************************************/
 
 	public bool isDirty ( )
 	{
