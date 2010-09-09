@@ -20,7 +20,7 @@ module io.device.queue.RingQueue;
 
 *******************************************************************************/
 
-private import ocean.io.device.model.IPersistQueue;
+private import ocean.io.device.queue.model.IPersistQueue;
 
 private import ocean.io.device.queue.storage.model.IStorageEngine;
 
@@ -35,7 +35,13 @@ private import tango.util.log.Trace;
 
 
 class RingQueue : PersistQueue
-{
+{    
+    /***************************************************************************
+    
+        The storage Engine
+
+    ***************************************************************************/    
+
     private IStorageEngine storageEngine;
     
     /***************************************************************************
@@ -363,45 +369,6 @@ class RingQueue : PersistQueue
         this.dumpToFile();
     } 
 
-    /***************************************************************************
-    
-        Opens the queue given an identifying name. Should
-        create any data containers needed. This method is called by the
-        PersistQueue constructor.
-            
-        Params:
-            name = name of the queue to open
-
-    ***************************************************************************/
-
-    public void open ( char[] name )
-    {
-        super.setName=name;
-        super.readFromFile();
-    }
-    
-    /***************************************************************************
-    
-        this method is not needed.
-    
-    ***************************************************************************/
-    
-    public void cleanupQueue ( )
-    {
-        return;
-    }
-        
-    /***************************************************************************
-    
-        This method is not needed.
-    
-    ***************************************************************************/
-
-    public bool isDirty ( ) 
-    { 
-        return false; 
-    }
-    
     
     /***************************************************************************
     

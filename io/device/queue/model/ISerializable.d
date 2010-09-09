@@ -13,7 +13,7 @@
 
 *******************************************************************************/
 
-module io.device.model.ISerializable;
+module io.device.queue.model.ISerializable;
 
 
 

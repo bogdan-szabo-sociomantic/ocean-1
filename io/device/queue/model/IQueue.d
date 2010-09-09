@@ -12,7 +12,7 @@
 
 *******************************************************************************/
 
-module io.device.model.IQueue;
+module io.device.queue.model.IQueue;
 
 
 

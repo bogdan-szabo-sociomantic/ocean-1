@@ -16,7 +16,7 @@
 	
 *******************************************************************************/
 
-module io.device.model.IPersistQueue;
+module io.device.model.queue.IPersistQueue;
 
 
 /*******************************************************************************
@@ -25,9 +25,9 @@ module io.device.model.IPersistQueue;
 
 *******************************************************************************/
 
-private import ocean.io.device.model.IQueue,
-				ocean.io.device.model.ISerializable,
-				ocean.io.device.model.ILoggable;
+private import ocean.io.device.queue.model.IQueue,
+				ocean.io.device.queue.model.ISerializable,
+				ocean.io.device.queue.model.ILoggable;
 
 private import tango.io.device.Conduit;
 
@@ -70,16 +70,6 @@ version ( MemCheck )
 
 abstract class PersistQueue : Queue, Serializable, Loggable
 {
-	/***************************************************************************
-	
-	    Abstract method: Opens the queue given an identifying name. Should
-	    create any data containers needed. This method is called by the
-	    PersistQueue constructor.
-	
-	***************************************************************************/
-	
-	abstract public void open ( char[] name );
-
 
 	/***************************************************************************
 
@@ -105,29 +95,6 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	***************************************************************************/
 
 	abstract protected void[] popItem ( );
-
-
-	/***************************************************************************
-	
-	    Abstract method: Performs any cleanup operations needed for the queue's
-	    continual functioning. This method does not need to check whether the
-	    cleanup is required, this is done previously by the cleanup method
-	    (below).
-	
-	***************************************************************************/
-
-	abstract protected void cleanupQueue ( );
-
-
-	/***************************************************************************
-	
-	    Abstract method: Determines whether the queue is in need of cleanup.
-	    Each deriving class should implement this method with a heuristic which
-	    suits the data container which it is based on.
-	
-	***************************************************************************/
-	
-	abstract public bool isDirty ( );
 
 
 	/***************************************************************************
@@ -202,7 +169,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	{
 		this.setName(name);
 	    this.dimension = max;
-		this.open(name);
+		this.readFromFile();
 	}
 
 
@@ -241,11 +208,8 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	    // check if the item will fit, and if it won't fit then cleanup and try again
 		if ( !this.willFit(item) )
 	    {
-	        if ( !this.cleanup() || !this.willFit(item) )
-	        {
-	            this.log("queue '{}' full with {} items", this.name, this.items);
-	            return false;
-	        }
+            this.log("queue '{}' full with {} items", this.name, this.items);
+            return false;	        
 	    }
 
 		// Store item in queue
@@ -283,37 +247,6 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 		synchronized ( this )
 		{
 			return this.popItem();
-		}
-	}
-
-
-	/***************************************************************************
-	
-		Cleans up the queue, if it's dirty.
-		
-		Returns:
-			true if cleanupQueue was called, false otherwise
-	
-	***************************************************************************/
-	
-	public bool cleanup ( )
-	{
-		scope ( exit )
-		{
-		    version ( MemCheck ) MemProfiler.checkSectionUsage("cleanup", before, MemProfiler.Expect.NoChange);
-		}
-
-		version ( MemCheck ) auto before = MemProfiler.checkUsage();
-
-		if ( !this.isDirty() )
-		{
-			return false;
-		}
-
-		synchronized ( this )
-		{
-			this.cleanupQueue();
-			return true;
 		}
 	}
 
@@ -486,18 +419,6 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 
 
 	/***************************************************************************
-	
-	    Closes the queue's data container. Base class does nothing, but may be
-	    overridden by derived classes.
-	
-	***************************************************************************/
-
-	public void close ( )
-	{
-	}
-
-
-	/***************************************************************************
 
 		Writes the queue's state and contents to a file with the queue's name
 		+ ".dump".
@@ -646,12 +567,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 		{
 			buf ~= "F";
 		}
-	
-		if ( this.isDirty() )
-		{
-			buf ~= "D";
-		}
-	
+		
 		if ( nl )
 		{
 			buf ~= "\n";
@@ -743,10 +659,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 		long[StateSerializeOrder.max + 1] longs;
 	
 		// Read longs
-		//long bytes_read = conduit.read(cast(void[]) longs);
-        Trace.formatln("ptr: {} , len: {}",longs.ptr,longs.length);
-        Trace.flush;
-//		long bytes_read = conduit.read((cast(void*) longs.ptr)[0..long.sizeof*longs.length]);
+		long bytes_read = conduit.read((cast(void*) longs.ptr)[0..long.sizeof*longs.length]);
 
 		this.dimension = longs[StateSerializeOrder.dimension];
 		this.write_to = longs[StateSerializeOrder.write_to];

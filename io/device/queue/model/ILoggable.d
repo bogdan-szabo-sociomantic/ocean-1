@@ -12,7 +12,7 @@
 
 *******************************************************************************/
 
-module io.device.model.ILoggable;
+module io.device.queue.model.ILoggable;
 
 
 
