@@ -270,7 +270,7 @@ class StringEnum ( T, V ... )
         }
         else
         {
-            return "INVALID " ~ typeof(this).stringof ~ "CODE";
+            return "INVALID CODE";
         }
     }
 
