@@ -1644,7 +1644,10 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Throws:
             IOException on error, or, if the number of bytes returned by input
             differs from the requested number
-        
+
+        FIXME: InputStream.load creates a new buffer each time it's called
+               out void[] data should be ref
+
      **************************************************************************/
     
     private size_t read ( InputStream input, size_t len, out void[] data )
