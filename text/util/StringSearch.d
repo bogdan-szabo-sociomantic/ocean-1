@@ -785,9 +785,37 @@ struct StringSearch ( bool wide_char = false )
     
      **************************************************************************/
 
-    Char[][] split ( Char[] str, Char delim, uint n = 0, bool collapse = false )
+    void split ( ref Char[][] slices, Char[] str, Char delim, uint n = 0, bool collapse = false )
     {
-        return split_!(Char)(str, delim, &locateChar, n, collapse);
+        split_!(Char)(slices, str, delim, &locateChar, n, collapse);
+    }
+    
+    /**************************************************************************
+    
+        ditto
+        
+        Deprecated because it creates a new destination array of slices instead
+        of taking an existing one.
+        
+        Params:
+             str      = input string
+             delim    = delimiter character
+             n        = maximum number of slices; set to 0 to indicate no limit
+             collapse = set to true to collapse consecutive occurrences to
+                        prevent producing empty "slices"
+            
+        Returns:
+             the resulting slices
+    
+     **************************************************************************/
+
+    deprecated Char[][] split ( Char[] str, Char delim, uint n = 0, bool collapse = false )
+    {
+        Char[][] slices;
+        
+        split_!(Char)(slices, str, delim, &locateChar, n, collapse);
+        
+        return slices;
     }
     
     /**************************************************************************
@@ -806,7 +834,29 @@ struct StringSearch ( bool wide_char = false )
      
      **************************************************************************/
     
-    Char[][] splitCollapse ( Char[] str, Char delim, uint n = 0 )
+    void splitCollapse ( ref Char[][] slices, Char[] str, Char delim, uint n = 0 )
+    {
+        split(slices,  str, delim, n, true);
+    }
+    
+    /**************************************************************************
+    
+        ditto
+        
+        Deprecated because it creates a new destination array of slices instead
+        of taking an existing one.
+        
+        Params:
+             str      = input string
+             delim    = delimiter character
+             n        = maximum number of slices; set to 0 to indicate no limit
+            
+        Returns:
+             the resulting slices
+    
+     **************************************************************************/
+
+    deprecated Char[][] splitCollapse ( Char[] str, Char delim, uint n = 0 )
     {
         return split(str, delim, n, true);
     }
@@ -816,6 +866,28 @@ struct StringSearch ( bool wide_char = false )
         Splits str into at most n slices on each occurrence of any character in
         delims. collapse indicates whether to collapse consecutive occurrences
         to a single one to prevent producing empty slices.
+        
+        Params:
+             slices   = destination array of slices
+             str      = input string
+             delim    = delimiter character
+             n        = maximum number of slices; set to 0 to indicate no limit
+             collapse = set to true to collapse consecutive occurrences to
+                        prevent producing empty "slices"
+    
+     **************************************************************************/
+
+    void split ( ref Char[][] slices, Char[] str, Char[] delims, uint n = 0, bool collapse = false )
+    {
+        return split_!(Char[])(slices, str, delims, &locateCharSet, n, collapse);
+    }
+    
+    /**************************************************************************
+    
+        ditto
+        
+        Deprecated because it creates a new destination array of slices instead
+        of taking an existing one.
         
         Params:
              str      = input string
@@ -829,9 +901,13 @@ struct StringSearch ( bool wide_char = false )
     
      **************************************************************************/
 
-    Char[][] split ( Char[] str, Char[] delims, uint n = 0, bool collapse = false )
+    deprecated Char[][] split ( Char[] str, Char[] delims, uint n = 0, bool collapse = false )
     {
-        return split_!(Char[])(str, delims, &locateCharSet, n, collapse);
+        Char[][] slices;
+        
+        split_!(Char[])(slices, str, delims, &locateCharSet, n, collapse);
+        
+        return slices.dup;
     }
     
     /**************************************************************************
@@ -851,7 +927,29 @@ struct StringSearch ( bool wide_char = false )
      
      **************************************************************************/
     
-    Char[][] splitCollapse ( Char[] str, Char[] delim, uint n = 0 )
+    void splitCollapse ( ref Char[][] slices, Char[] str, Char[] delim, uint n = 0 )
+    {
+        return split(slices, str, delim, n, true);
+    }
+    
+    /**************************************************************************
+    
+        ditto
+        
+        Deprecated because it creates a new destination array of slices instead
+        of taking an existing one.
+        
+        Params:
+             str      = input string
+             delim    = delimiter character
+             n        = maximum number of slices; set to 0 to indicate no limit
+            
+        Returns:
+             the resulting slices
+    
+     **************************************************************************/
+
+    deprecated Char[][] splitCollapse ( Char[] str, Char[] delim, uint n = 0 )
     {
         return split(str, delim, n, true);
     }
@@ -884,6 +982,7 @@ struct StringSearch ( bool wide_char = false )
         occurrences to a single one to prevent producing empty slices.
         
         Params:
+             slices      = destination array of slices
              str         = input string
              delim       = delimiter(s), depending on locateDelim
              locateDelim = callback function which shall locate the 
@@ -891,21 +990,18 @@ struct StringSearch ( bool wide_char = false )
                            
              collapse = set to true to collapse consecutive occurrences to
                         prevent producing empty "slices"
-            
-        Returns:
-             the resulting slices
      
      **************************************************************************/
 
-    private Char[][] split_  ( T ) ( Char[] str, T delim, LocateDelimDg!(T) locateDelim, uint n, bool collapse )
+    private void split_  ( T ) ( ref Char[][] slices, Char[] str, T delim, LocateDelimDg!(T) locateDelim, uint n, bool collapse )
     {
-        Char[][] slices;
-        
         uint   i     = 0;
         
         size_t start = collapse? skipLeadingDelims(str, delim) : 0;
         
         size_t pos   = locateDelim(str, delim, start);
+        
+        slices.length = 0;
         
         while ((pos < str.length) && (!n || (i < n)))
         {
@@ -925,8 +1021,6 @@ struct StringSearch ( bool wide_char = false )
         {
             slices ~= str[start .. $];                                          // append tail
         }
-        
-        return slices.dup;                                                      
     }
     
     /**************************************************************************
