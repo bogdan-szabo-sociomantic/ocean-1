@@ -128,16 +128,6 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 
 	/***************************************************************************
 	
-	    Abstract method: Debug method to validate the queue's contents.
-	
-	***************************************************************************/
-
-	debug abstract public void validateContents
-		( bool show_summary, char[] message = "", bool show_contents_size = false );
-
-
-	/***************************************************************************
-	
 	    Queue Implementation
 	
 	***************************************************************************/

@@ -12,6 +12,7 @@
 
 module io.device.queue.storage.Memory;
 
+
 /*******************************************************************************
 
     Imports
@@ -25,10 +26,31 @@ private import tango.core.Exception;
 private import tango.io.device.Conduit;
 
 
+/*******************************************************************************
+    
+    Memory based StorageEngine.       
+
+*******************************************************************************/
+
 class Memory : IStorageEngine
 {
+    /***************************************************************************
+    
+        The actual data that the engine holds        
+        
+    ***************************************************************************/
+
     private void[] data;
+    
+    
+    /***************************************************************************
+
+        The current seek position       
+    
+    ***************************************************************************/
+    
     private size_t position;
+    
     
     /***************************************************************************
         
@@ -45,10 +67,17 @@ class Memory : IStorageEngine
     }
         
     
+    /***************************************************************************
+
+        Destructor. Deletes the allocated memory     
+        
+    ***************************************************************************/
+
     ~this()
     {
         delete data;
     }
+    
     
     /***************************************************************************
     
@@ -64,6 +93,7 @@ class Memory : IStorageEngine
     {
         this.data.length = size;
     }
+    
     
     /***************************************************************************
     
@@ -85,6 +115,7 @@ class Memory : IStorageEngine
             
     }
     
+    
     /***************************************************************************
         
         Writes the content of this memory object to the provided conduit
@@ -101,6 +132,7 @@ class Memory : IStorageEngine
             
     }
     
+    
     /***************************************************************************
     
         Writes data to the memory object
@@ -115,13 +147,13 @@ class Memory : IStorageEngine
     
     final public size_t write ( void[] data )
     {
-        if(data.length <= this.data.length-this.position)
+        if(data.length <= this.data.length - this.position)
         {
             this.data[this.position..this.position+data.length] = data;
             return data.length;
         }
                 
-        this.data[this.position..$] = data[0..this.data.length-this.position];
+        this.data[this.position..$] = data[0..this.data.length - this.position];
         return this.data.length-this.position;        
         
     }
@@ -140,13 +172,14 @@ class Memory : IStorageEngine
     
     final public void[] read ( size_t amount )
     {
-        if(amount > this.data.length-this.position)
+        if( amount > this.data.length-this.position )
         {
             return this.data[this.position..$];
         }
         
-        return this.data[this.position..this.position+amount];    
+        return this.data[this.position..this.position + amount];    
     }
+    
 
     /***************************************************************************
         
@@ -162,7 +195,7 @@ class Memory : IStorageEngine
     
     final public size_t seek ( size_t offset )
     {
-        if(offset > this.data.length)
+        if( offset > this.data.length )
         {
             this.position = this.data.length;
         }
@@ -173,6 +206,7 @@ class Memory : IStorageEngine
         
         return this.position; 
     }
+    
     
     /***************************************************************************
     
@@ -188,6 +222,13 @@ class Memory : IStorageEngine
         return data.length;    
     }
 
+    
+    /***************************************************************************
+    
+        Unittest            
+            
+    ***************************************************************************/
+    
     unittest
     {
         scope storage = new Memory(5);
