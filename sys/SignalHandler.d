@@ -331,11 +331,69 @@ class TerminationSignal
 	***************************************************************************/
 
 	public static void handle ( DgHandler dg )
-	{
+	in
+    {
+	    foreach(d ; delegates)
+        {
+	        assert(d != dg);
+        }
+    }
+    body
+    {
 		delegates ~= dg;
 		activate();
 	}
 
+
+    /***************************************************************************
+    
+        Removes a handler from the list
+        
+        Params:
+            dg = delegate to remove
+    
+    ***************************************************************************/
+    
+    public static void unregister ( DgHandler dg)
+    {
+        foreach(i, d ; this.delegates)
+        {
+            if(d == dg)
+            {                
+                this.delegates[i] = this.delegates[$-1];
+                this.delegates.length = this.delegates.length - 1;
+                return;
+            }            
+        }
+        
+        assert(false);
+    }
+
+    
+    /***************************************************************************
+    
+        Removes a handler from the list
+        
+        Params:
+            fn = function to remove
+    
+    ***************************************************************************/
+    
+    public static void unregister ( FnHandler fn)
+    {
+        foreach(i, d ; this.functions)
+        {
+            if(d == fn)
+            {                
+                this.functions[i] = this.functions[$-1];
+                this.functions.length = this.functions.length - 1;
+                return;
+            }            
+        }
+        
+        assert(false);
+    }
+    
 
 	/***************************************************************************
 	
@@ -345,8 +403,16 @@ class TerminationSignal
 	    	fn = function to call on termination
 	
 	***************************************************************************/
-
-	public static void handle ( FnHandler fn )
+    
+    public static void handle ( FnHandler fn )
+    in
+    {
+        foreach(d ; functions)
+        {
+            assert(d != fn);
+        }
+    }
+    body
 	{
 		functions ~= fn;
 		activate();
