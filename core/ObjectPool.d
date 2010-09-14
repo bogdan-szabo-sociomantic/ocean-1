@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 
     Manages a pool of objects
 
@@ -73,7 +73,7 @@
     
     ---
    
- ******************************************************************************/
+*******************************************************************************/
 
 module ocean.core.ObjectPool;
 
@@ -85,11 +85,24 @@ module ocean.core.ObjectPool;
 
 private import ocean.core.Exception: ObjectPoolException, assertEx;
 
+private import tango.core.Tuple;
+
 debug private import tango.util.log.Trace;
 
 
+/*******************************************************************************
 
-/******************************************************************************
+	Interface for pool items that offer a reset method
+
+*******************************************************************************/
+
+public interface Resettable
+{
+    void reset ( );
+}
+
+
+/*******************************************************************************
   
     ObjectPool class template
     
@@ -97,7 +110,7 @@ debug private import tango.util.log.Trace;
         T = type of items in pool; must be a class
         A = types of constructor arguments of class T
    
- ******************************************************************************/
+*******************************************************************************/
 
 class ObjectPool ( T, A ... )
 {
@@ -194,7 +207,7 @@ class ObjectPool ( T, A ... )
     {
         this.serial = cast (hash_t) &this;
         
-        this.setArgs(args);
+        static if (A.length) this.args = args; 
     }
     
     
@@ -214,6 +227,7 @@ class ObjectPool ( T, A ... )
     {
         return new This(args);
     }
+
     
     /**************************************************************************
         
@@ -228,7 +242,7 @@ class ObjectPool ( T, A ... )
         
     **************************************************************************/
 
-    public PoolItem get ( A args )
+    public PoolItem get ( )
     {
         foreach (item, ref info; this.items)
         {
@@ -242,24 +256,9 @@ class ObjectPool ( T, A ... )
             }
         }
         
-        return this.create(args);
+        return this.create(this.args);
     }
-    
-    /**************************************************************************
-    
-        ditto
-        
-     **************************************************************************/
-    
-     // "static if" avoids collision of overloaded method in case of empty "A".
-    
-    static if (A.length)
-    {
-        public PoolItem get ()
-        {
-            return this.get(this.args);
-        }
-    }
+
     
     /**************************************************************************
     
@@ -358,11 +357,11 @@ class ObjectPool ( T, A ... )
     }
     body
     {
-    	this.limited_ = true;
-    	this.max = max_items;
-
-    	this.checkLimit("too many items in pool");
+        assertEx!(ObjectPoolException)(this.items.length <= max_items,
+                                       This.stringof ~ ": " ~ "too many items in pool");
         
+        this.limited_ = true;
+    	this.max = max_items;
         return this;
     }
     
@@ -378,52 +377,6 @@ class ObjectPool ( T, A ... )
     public size_t limit ( )
     {
         return this.max;
-    }
-    
-    /**************************************************************************
-    
-        Sets the number of items in pool.
-        
-        To achieve this, as many items as required are created or removed.
-        If more items are busy than required to be removed, all idle items are
-        removed and an exception is thrown.
-        If the requested number of items exceeds the limit, the number of items
-        is set to the limit and an exception is thrown.
-        
-        Params:
-            n    = nominate number of values
-            args = arguments to pass to constructor on pool item creation 
-        
-        Returns:
-            this instance
-        
-    **************************************************************************/
-    
-    /*
-     * Wrapping of setNumItems_ is necessary to avoid compiler errors if "A" is
-     * empty.
-     */
-    
-    public This setNumItems ( size_t n, A args )
-    {
-        return this.setNumItems_(n, args);
-    }
-    
-    /**************************************************************************
-    
-        ditto
-        
-     **************************************************************************/
-    
-    // "static if" avoids collision of overloaded method in case of empty "A".
-    
-    static if (A.length)
-    {
-        public This setNumItems ( size_t n )
-        {
-            return this.setNumItems_(n, this.args);
-        }
-        
     }
     
     /**************************************************************************
@@ -488,27 +441,9 @@ class ObjectPool ( T, A ... )
 	
 	public size_t getNumAvailableItems ( )
 	{
-	    return this.limited? this.max - this.getNumBusyItems() : size_t.max;
+	    return this.limited ? this.max - this.getNumBusyItems() : size_t.max;
 	}
 
-	/**************************************************************************
-    
-        Sets the default constructor arguments for item creation.
-        
-        Params:
-            args = default constructor arguments for item creation
-        
-        Returns:
-            this instance
-        
-     **************************************************************************/
-
-    public This setArgs ( A args )
-    {
-        static if (A.length) this.args = args;
-        
-        return this;
-    }
     
     /**************************************************************************
     
@@ -517,35 +452,21 @@ class ObjectPool ( T, A ... )
         To achieve this, as many items as required are created or removed.
         If more items are busy than required to be removed, all idle items are
         removed and an exception is thrown.
-        If the requested number of items exceeds the limit, the number of items
-        is set to the limit and an exception is thrown.
+        If the requested number of items exceeds the limit an exception is thrown.
         
         Params:
             n    = nominate number of values
-            args = arguments to pass to constructor on pool item creation 
-        
+            
         Returns:
             this instance
         
     **************************************************************************/
     
-    /*
-     *  "B" is required in order to work if "A" is empty and therefore "args"
-     *  is void.
-     */    
-    
-    private This setNumItems_ ( B ... ) ( size_t n, B args )
-    {
-        static assert (is (B == A), This.stringof ~ ".setNumItems_(): "
-                                    "must be called with arguments of types " ~
-                                    typeof (this.args).stringof ~ " not " ~
-                                    typeof (args).stringof);
-        
-        if (this.limited_ && (n > this.max))
-        {
-            n = this.max;
-        }
-        
+    public This setNumItems ( size_t n )
+    {        
+        assertEx!(ObjectPoolException)(n <= this.max || !this.limited_,
+                                       This.stringof ~ ": " ~ "requested number of items exceeds limit");
+                
         if (n < this.items.length)
         {
             size_t remaining = this.items.length - n;
@@ -566,7 +487,7 @@ class ObjectPool ( T, A ... )
         {
             for (size_t i = this.items.length; i < n; i++)
             {
-                this.create(args, true);
+                this.create(this.args, true);
             }
         }
         
@@ -574,6 +495,8 @@ class ObjectPool ( T, A ... )
         
         return this;
     }
+    
+    
     /**************************************************************************
     
         Checks whether the number of items in pool is less or equal
@@ -594,16 +517,26 @@ class ObjectPool ( T, A ... )
                                        This.stringof ~ ": " ~ msg);
     }
     
-    private void removeItem ( PoolItem item )
-    {
-        delete item;
+    /**************************************************************************
+    
+        Removes item from pool and deletes it.
         
+        Params:
+            item = item remove
+        
+    **************************************************************************/
+
+    private void removeItem ( PoolItem item )
+    {   
         this.items.remove(item);
+        
+        delete item;
     }
     
     /**************************************************************************
     
-        Puts item back to the pool.
+        Puts item back to the pool. Calls reset method if Resettable interface
+		was implemented.
         
         Params:
             item = item to put back
@@ -612,9 +545,16 @@ class ObjectPool ( T, A ... )
     
     private void recycle_ ( PoolItem item )
     {
-        assertEx!(ObjectPoolException)(item in this.items, this.CLASS_ID_STRING ~ ": recycled item not registered");
+        auto info = item in this.items;                                         
         
-        this.items[item].idle = true;
+        assertEx!(ObjectPoolException)(info, this.CLASS_ID_STRING ~ ": recycled item not registered");
+        
+        static if(is(T:Resettable))
+        {
+            item.reset();         
+        }
+        
+        info.idle = true;
     }
 
     /**************************************************************************
@@ -655,7 +595,7 @@ class ObjectPool ( T, A ... )
         {
             delete item;
         }
-        
+
         this.items = this.items.init;
     }
 
@@ -738,6 +678,8 @@ class ObjectPool ( T, A ... )
         /**********************************************************************
         
             Puts this instance back into the pool it was taken from.
+            Calls objects reset method if the Resettable interface
+			is implemented.
         
         **********************************************************************/
         
@@ -803,3 +745,244 @@ class ObjectPool ( T, A ... )
         }
     } // PoolItem
 }
+
+
+/*******************************************************************************
+
+    UnitTest
+
+*******************************************************************************/
+
+debug ( OceanUnitTest )
+{
+    class MyClass : Resettable
+    {
+        private char[] name;
+        private void delegate() callOnDeath,callOnReset;   
+        
+        
+        public this ( char[] name, void delegate() death, void delegate() reset )
+        {
+            this.name = name;
+            this.callOnDeath = death;
+            this.callOnReset = reset;
+
+        }
+        
+        public this()
+        {
+            this.name = "default";
+            this.callOnDeath = null;
+
+        }
+        
+        protected void reset()
+        {
+
+            if(callOnReset)
+                callOnReset();
+        }
+
+        public ~this ( )
+        {
+            if(callOnDeath)
+                callOnDeath();
+        }
+    }
+        
+    import tango.math.random.Random;
+    import tango.time.StopWatch;
+    import tango.core.Memory;
+    import ocean.util.Profiler;
+    import tango.io.FilePath; 
+    
+    unittest
+    { 
+        /***********************************************************************
+            
+            General testing of most functions and behavior
+            
+        ***********************************************************************/   
+        
+        {   
+            
+            bool reset=false,death = false;
+            void resetFunc() 
+            {
+                reset = true;
+            }
+            void deathFunc() 
+            {
+                death = true;
+            }
+            
+            
+            {
+                scope tmp = ObjectPool!(MyClass).newPool();
+                auto a = tmp.get();
+                assert(tmp.getNumItems == 1);
+            }
+            
+            scope pool1 = new ObjectPool!(MyClass, char[], 
+                                          void delegate(),void delegate())
+                                          ("one" , &deathFunc,&resetFunc);
+            
+            
+            // Test limit related query/set functions
+            assert(pool1.limited == false);
+            
+            pool1.limited(true);                 
+            assert(pool1.limited == true);
+            
+            pool1.limited(false);
+            assert(pool1.limited == false);
+            
+            pool1.limit(5);
+            assert(pool1.limited);
+            assert(pool1.limit == 5);            
+            
+            auto a = pool1.get();
+            
+            auto b = pool1.get();            
+            b.recycle();
+            assert(pool1.getNumIdleItems == 1);   
+            assert(pool1.getNumItems == 2);
+            
+            auto c = pool1.get();            
+            pool1.recycle(cast(MyClass)c);            
+            assert(pool1.getNumItems == 2);            
+            
+            auto d = pool1.get();            
+            {
+                reset = death = false;
+                
+                pool1.remove(d);
+                
+                assert(death,"Death should be set");                
+                assert(reset,"Reset should be set");
+                assert(pool1.getNumItems == 1);
+                
+                death = reset = false;
+            }
+            
+            assert(pool1.limit == 5);
+            
+            d = pool1.get();
+            assert(pool1.getNumItems == 2);
+            
+            auto e = pool1.get();
+            
+            // Test setting a to small limit
+            {
+                auto catched = false;
+                
+                try pool1.limit(1);
+                catch (ObjectPoolException e) catched = true;
+                
+                assert(catched);
+            }
+            
+            assert(pool1.limit == 5);
+            
+            // Test requesting to much items
+            {
+                auto catched = false;
+                
+                try pool1.setNumItems(6);
+                catch (ObjectPoolException e) catched = true;
+                
+                assert(catched);
+            }     
+            
+            assert(pool1.limit == 5);
+           
+            
+            pool1.setNumItems(5);
+            
+            assert(pool1.getNumItems == 5);
+            
+            c = pool1.get();
+            d = pool1.get();
+  
+            assert (pool1.getNumItems == 5);
+            
+            
+            // Test limit            
+            {
+                auto catched = false;
+                
+                try
+                {
+                    auto fail = pool1.get();
+                }
+                catch (ObjectPoolException e)
+                {
+                    catched = true;
+                }
+                
+                assert (catched);
+                
+            }
+            
+            pool1.limit(6);
+            assert(pool1.limit ==6 && pool1.max == 6);
+            auto f = pool1.get();
+            
+            assert (pool1.getNumItems == 6);
+            assert (pool1.getNumIdleItems == 0);
+            assert (pool1.getNumBusyItems == 6);
+            assert (pool1.getNumAvailableItems == 0);                       
+            
+            pool1.recycle(a);
+
+            assert (pool1.getNumItems == 6);
+            assert (pool1.getNumIdleItems == 1);
+            assert (pool1.getNumBusyItems == 5);
+            assert (pool1.getNumAvailableItems == 1);
+            
+            pool1.setNumItems(5);
+            
+            assert (pool1.getNumItems == 5);
+            assert (pool1.getNumIdleItems == 0);
+            assert (pool1.getNumBusyItems == 5);
+            assert (pool1.getNumAvailableItems == 1);
+            
+            assert(c==c);
+            assert(c<d);
+            
+            class Tmp {};
+            scope bigger = new Tmp();
+            assert(c<bigger);  
+        } 
+    }    
+}
+    
+/*******************************************************************************
+    
+    Constructs a new pool, takes the first c'tor automatically.    
+    
+        Template Params:
+            T = type of object to construct
+            A = (optional) list of argument types for the c'tor. If non-type
+                values will be passed, takes the default constructor
+                
+         Params:
+             args = arguments for the constructor of the newly created object
+    
+*******************************************************************************/
+     
+version (none) public ObjectPool!(T,A) newAutoPool(T, A ...) ( A args )
+{
+    static if(A.length == 0)
+    {
+        alias ParameterTupleOf!(typeof(&T._ctor)) A;
+    }
+    else static if(!is(A))        
+    {        
+        alias Tuple!() A;
+    }
+    return new ObjectPool!(T,A)(args);
+} 
+     
+    
+    
