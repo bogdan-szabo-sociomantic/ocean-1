@@ -130,8 +130,19 @@ debug
 
 public class NGramParser
 {
-    static:
+    /***************************************************************************
+
+        Private constructor to prevent instantiation.
+    
+    ***************************************************************************/
+
+    private this ( )
+    {
         
+    }
+
+    static:
+
     /***************************************************************************
 
         Characters which are ignored during ngram parsing.
