@@ -1,3 +1,15 @@
+/******************************************************************************
+
+    Interface for StorageEngines
+
+    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
+
+    version:        Sep 2010: Initial release
+
+    authors:        Mathias Baumann
+
+*******************************************************************************/
+
 module io.device.queue.storage.model.IStorageEngine;
 
 
@@ -8,6 +20,16 @@ module io.device.queue.storage.model.IStorageEngine;
 *******************************************************************************/
 
 private import tango.io.device.Conduit;
+
+
+/*******************************************************************************
+
+    Interface for StorageEngines. 
+    Provides methods for reading, writing, seeking, 
+    querying of information and reading/writing from/to conduits
+    of the underlying storage.
+
+*******************************************************************************/
 
 interface IStorageEngine
 {

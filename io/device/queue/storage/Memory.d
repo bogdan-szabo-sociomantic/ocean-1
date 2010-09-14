@@ -89,7 +89,7 @@ class Memory : IStorageEngine
             
     ***************************************************************************/
         
-    public final void init(size_t size)
+    public final void init ( size_t size )
     {
         this.data.length = size;
     }
@@ -108,6 +108,7 @@ class Memory : IStorageEngine
     public void readFromConduit ( Conduit conduit )
     {        
         auto len = conduit.read(this.data);
+        
         if(len != this.data.length)
         {
             assert(false,"buffer size to small");
@@ -126,10 +127,8 @@ class Memory : IStorageEngine
     ***************************************************************************/
     
     public void writeToConduit ( Conduit conduit )
-    {
-        size_t bytes=0;
-        while((bytes = conduit.write(data[bytes..$])) > 0 ) {}
-            
+    {        
+        for (size_t bytes=0;(bytes = conduit.write(data[bytes .. $])) > 0 ;) {}            
     }
     
     
@@ -147,13 +146,15 @@ class Memory : IStorageEngine
     
     final public size_t write ( void[] data )
     {
-        if(data.length <= this.data.length - this.position)
+        if (data.length <= this.data.length - this.position)
         {
-            this.data[this.position..this.position+data.length] = data;
+            this.data[this.position .. this.position+data.length] = data;
+            
             return data.length;
         }
                 
-        this.data[this.position..$] = data[0..this.data.length - this.position];
+        this.data[this.position .. $] = data[0 .. this.data.length - this.position];
+        
         return this.data.length-this.position;        
         
     }
@@ -172,9 +173,9 @@ class Memory : IStorageEngine
     
     final public void[] read ( size_t amount )
     {
-        if( amount > this.data.length-this.position )
+        if (amount > this.data.length-this.position)
         {
-            return this.data[this.position..$];
+            return this.data[this.position .. $];
         }
         
         return this.data[this.position..this.position + amount];    
@@ -195,7 +196,7 @@ class Memory : IStorageEngine
     
     final public size_t seek ( size_t offset )
     {
-        if( offset > this.data.length )
+        if (offset > this.data.length)
         {
             this.position = this.data.length;
         }
@@ -221,21 +222,21 @@ class Memory : IStorageEngine
     {
         return data.length;    
     }
+}
 
+/*******************************************************************************
     
-    /***************************************************************************
-    
-        Unittest            
+    Unittest            
             
-    ***************************************************************************/
-    
+*******************************************************************************/
+
+debug ( OceanUnitTest )  
+{
     unittest
     {
         scope storage = new Memory(5);
         assert(storage.size == 5);
         storage.write("12345");
-        assert(storage.read(5) == "12345");
-    
+        assert(storage.read(5) == "12345");    
     }
 }
-

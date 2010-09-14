@@ -53,8 +53,6 @@ private import tango.core.Thread;
 
 *******************************************************************************/
 
-//version = MemCheck;
-
 version ( MemCheck )
 {
 	private import ocean.util.Profiler;
@@ -643,7 +641,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 			number of bytes read
 	
 	***************************************************************************/
-    import tango.util.log.Trace;	
+    
 	protected long readState ( Conduit conduit )
 	{
 		long[StateSerializeOrder.max + 1] longs;
