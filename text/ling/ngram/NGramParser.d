@@ -12,6 +12,11 @@
 
     TODO: update description, usage & unittest
 
+    TODO: support for split word processing including inter-word boundary ngrams
+    is complicated by the fact that the NGramSet just stores its ngrams as
+    slices into the source text. To support this feature we'd need to be able to
+    add ngrams *outside* of the source text...
+
     Description:
 
     The ngram parser creates all ngrams for a given text and returns the ngrams 
@@ -138,7 +143,6 @@ public class NGramParser
 
     private this ( )
     {
-        
     }
 
     static:
@@ -149,59 +153,98 @@ public class NGramParser
 
     ***************************************************************************/
 
-    public const dchar[] ignored_chars = "0123456789-\n;&(){}[]<>/\\|.,;:!@#$%^&*_-+=`~?\"\'";
+    public const dchar[] ignored_chars = "0123456789-\n;&(){}[]<>/\\|.,;:!@#$%^&*_-+=`~?\"\'\n\t";
 
 
-	/***************************************************************************
+    /***************************************************************************
 
-	    Parses a text, and fills the passed ngrams set with the discovered
-	    ngrams.
-	
-	    Params:
-	        out_ngrams = ngrams set to be filled
-	        ngram_length = character length of ngrams
-	        text = text to parse
-            words = list of arrays used to split the text into words
-
-	***************************************************************************/
-
-    public void parseText ( NGramSet out_ngrams, uint ngram_length, dchar[] text, ref dchar[][] words )
-    {
-        dchar [][] stopwords;
-        parseText(out_ngrams, ngram_length, text, words, stopwords);
-    }
-
-
-	/***************************************************************************
-
-	    Parses a text, and fills the passed ngrams set with the discovered
-	    ngrams.
-	
-	    Params:
-	        out_ngrams = ngrams set to be filled
-	        ngram_length = character length of ngrams
-	        text = text to parse
-            words = list of arrays used to split the text into words
-	        stopwords = list of words to ignore
-
+        Split text into separate words and stores them in the output words
+        array. During the splitting of the words in the text, any words found
+        which are in the (optional) stopwords array will not be added to the
+        word list.
+    
+        Params:
+            text = text to split
+            words = output array of words (slices into text)
+            stopwords = words to ignore
+    
         Throws:
-            asserts that the passed text and stopwords array have both been
-            normalized (see the normalizeText methods)
+            asserts that the passed text has been normalized (see the
+            normalizeText methods)
 
-	***************************************************************************/
+    ***************************************************************************/
 
-    public void parseText ( NGramSet out_ngrams, uint ngram_length, dchar[] text, ref dchar[][] words, dchar [][] stopwords )
+    public void splitWords ( dchar[] text, ref dchar[][] words, dchar[][] stopwords = [] )
     in
     {
-        assert(isNormalized(text), typeof(this).stringof ~ ".parseText - text isn't normalized");
-        assert(isNormalized(stopwords), typeof(this).stringof ~ ".parseText - stopwords aren't normalized");
+        assert(isNormalized(text), typeof(this).stringof ~ ".splitWords - text isn't normalized");
     }
     body
     {
-        splitWords(text, words, stopwords);
+        auto check_stopwords = stopwords.length > 0;
 
+        words.length = 0;
+
+        foreach ( word; TextUtil.split(text, " "d) )
+        {
+            if ( word != "" )
+            {
+                auto NotStopWord = stopwords.length;
+                if ( !check_stopwords || (check_stopwords && stopwords.find(word) == NotStopWord) )
+                {
+                    words.length = words.length + 1;
+                    words[$ - 1] = TextUtil.trim(word);
+                }
+            }
+        }
+    }
+
+
+	/***************************************************************************
+
+	    Parses a text, and fills the passed ngrams set with the discovered
+	    ngrams.
+	
+	    Params:
+	        out_ngrams = ngrams set to be filled
+	        ngram_length = character length of ngrams
+	        text = text to parse
+            words = list of arrays used to split the text into words
+
+	***************************************************************************/
+
+    public void parseText ( NGramSet out_ngrams, uint ngram_length, dchar[] text )
+    {
+        parseText(out_ngrams, ngram_length, [text]);
+    }
+
+
+	/***************************************************************************
+
+	    Parses a list of texts, and fills the passed ngrams set with the
+        discovered ngrams.
+	
+	    Params:
+	        out_ngrams = ngrams set to be filled
+	        ngram_length = character length of ngrams
+	        texts = texts to parse
+
+        Throws:
+            asserts that the passed texts have been normalized (see the
+            normalizeText methods)
+
+	***************************************************************************/
+
+    public void parseText ( NGramSet out_ngrams, uint ngram_length, dchar[][] texts )
+    in
+    {
+        assert(ngram_length >= 1, typeof(this).stringof ~ ".parseText - ngram_length == 0 !?");
+        assert(isNormalized(texts), typeof(this).stringof ~ ".parseText - text isn't normalized");
+    }
+    body
+    {
         out_ngrams.clear();
-        getNGrams(out_ngrams, ngram_length, words);        
+        getNGrams(out_ngrams, ngram_length, texts);
     }
 
 
@@ -262,8 +305,8 @@ public class NGramParser
     /***************************************************************************
 
         Normalizes text for ngram parsing. Text is converted to dchar, ignored
-        characters are removed, and upper case characters are converted to lower
-        case.
+        characters are removed, upper case characters are converted to lower
+        case, and consecutive whitespace characters are skipped.
 
         Template params:
             T = type of input array element
@@ -280,6 +323,7 @@ public class NGramParser
         typeof(this).convertToDChar(input, working);
 
         size_t write_pos;
+        bool skip_whitespace;
 
         output.length = working.length; // good guess
 
@@ -298,16 +342,23 @@ public class NGramParser
                 converted = unicodeToLower(c);
             }
 
-            // make sure there's space in output
-            auto need_space = write_pos + converted.length - output.length;
-            if ( need_space > 0 )
-            {
-                output.length = output.length + need_space;
-            }
-
             // write character(s)
-            output[write_pos .. write_pos + converted.length] = converted[];
-            write_pos += converted.length;
+            auto is_whitespace = isWhitespace(converted);
+
+            if ( !(is_whitespace && skip_whitespace) )
+            {
+                // make sure there's space in output
+                auto expand = write_pos + converted.length - output.length;
+                if ( expand > 0 )
+                {
+                    output.length = output.length + expand;
+                }
+
+                output[write_pos .. write_pos + converted.length] = converted[];
+                write_pos += converted.length;
+
+                skip_whitespace = is_whitespace;
+            }
         }
     }
 
@@ -409,42 +460,6 @@ public class NGramParser
 
     /***************************************************************************
 
-        Split text into separate words and stores them in the output words
-        array. During the splitting of the words in the text, any words found
-        which are in the (optional) stopwords array will not be added to the
-        word list.
-
-        Params:
-            text = text to split
-            words = output array of words (slices into text)
-            stopwords = words to ignore
-    
-    ***************************************************************************/
-    
-    private void splitWords ( dchar[] text, ref dchar[][] words, dchar[][] stopwords )
-    {
-        auto check_stopwords = stopwords.length > 0;
-    
-        words.length = 0;
-    
-        foreach ( word; TextUtil.split(text, " "d) )
-        {
-    
-            if ( word != "" )
-            {
-                auto NotStopWord = stopwords.length;
-                if ( !check_stopwords || (check_stopwords && stopwords.find(word) == NotStopWord) )
-                {
-                    words.length = words.length + 1;
-                    words[$ - 1] = TextUtil.trim(word);
-                }
-            }
-        }
-    }
-
-
-    /***************************************************************************
-
         Processes a list of texts, extracting ngrams from each.
         
         Params:
@@ -474,15 +489,11 @@ public class NGramParser
         
     ***************************************************************************/
 
-    private void getNGrams ( NGramSet ngrams, uint ngram_length, dchar[] text ) 
+    private void getNGrams ( NGramSet ngrams, uint ngram_length, dchar[] text )
     {
-        // TODO: word start/end modes
-
-        uint i;
-        
-        // Slice through the word and add each ngram to the ngram array.
         if ( text.length >= ngram_length )
         {
+            uint i;
         	uint max_steps = (text.length - ngram_length) + 1;
             
             do 
@@ -493,6 +504,31 @@ public class NGramParser
             }
             while ( i < max_steps );
         }    
+    }
+
+
+    /***************************************************************************
+
+        Checks whether a string contains only unicode whitespace characters.
+        
+        Params:
+            text = text to check
+        
+        Returns:
+            true if the string contains only unicode whitespace characters
+        
+    ***************************************************************************/
+
+    private bool isWhitespace ( dchar[] text )
+    {
+        foreach ( c; text )
+        {
+            if ( !Unicode.isWhitespace(c) )
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }
 
