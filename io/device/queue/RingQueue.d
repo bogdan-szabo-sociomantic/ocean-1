@@ -210,6 +210,8 @@ class RingQueue : PersistQueue
 
     public ~this()
     {
+        Trace.formatln("They killed me");
+        TerminationSignal.unregister(&this.terminate);
         delete this.storageEngine;
     }
     
@@ -420,7 +422,7 @@ class RingQueue : PersistQueue
     {
         Trace.formatln("Closing {} (saving {} entries to {})",
                 this.getName(), this.size(), this.getName() ~ ".dump");
-        this.log(SignalHandler.getId(code) ~ " raised: terminating");
+        this.log(SignalHandler.getId(code) ~ " raised: terminating .. at least trying to");
         
         this.dumpToFile();
     } 
