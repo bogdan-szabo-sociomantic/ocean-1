@@ -48,9 +48,9 @@
     because the constructor of MyClass takes the int argument 'ham' and the
     char[] argument 'eggs'.
     
-    The constructor of ObjectThreadPool the arguments for the constructor of
-    MyClass, followed by the number of worker threads (size_t workers) and an
-    optional queue size parameter (size_t q_size).
+    The constructor of ObjectThreadPool expects the arguments for the 
+    constructor of MyClass, followed by the number of worker threads 
+    (size_t workers) and an optional queue size parameter (size_t q_size).
     
     Hence, an ObjectThreadPool instance for MyClass as defined above is created
     by
@@ -139,9 +139,12 @@ module ocean.core.ObjectThreadPool;
     
 *******************************************************************************/
 
+private import ocean.core.Exception;
+
 private import ocean.core.ObjectPool;
 
 private import tango.core.ThreadPool;
+
 
 debug
 {
@@ -230,7 +233,7 @@ class ObjectThreadPool ( T, Args ... ) : ThreadPool!(RunArgTypes!(T))
     	super.shutdown();
     	delete this.pool;
     }
-
+    
     
     /**************************************************************************
     
@@ -365,7 +368,11 @@ private template RunArgTypes ( T )
     }
 }
 
+/*******************************************************************************
 
+	Unittests
+
+*******************************************************************************/
 
 debug ( OceanUnitTest )
 {
@@ -387,8 +394,7 @@ debug ( OceanUnitTest )
 	 **************************************************************************/
 
 	class MyObject
-	{
-		
+	{		
 		protected static uint obj_count;
 		protected static Random random;
 
@@ -415,20 +421,24 @@ debug ( OceanUnitTest )
 			this.obj_id = obj_count++;
 			Trace.formatln("Constructed object {}", this.obj_id);
 			assert(this.obj_id < NUM_OBJECTS);
+            this.destroyed = false;
 		}
 		
-		public void run ( )
+		public void run ( bool bad )
 		{
-//			auto Usecs = MyObject.randomWait();
-//			if ( Usecs == 0 )
-//			{
-////				throw new Exception("THIS IS SUPPOSED TO HAPPEN IN THIS UNITTEST");
-//			}
-//			else
-//			{
-//				double secs = cast(double)Usecs / 1_000_000;
-//				Thread.sleep(secs);
-//			}
+            if(bad)
+            {
+                auto Usecs = MyObject.randomWait();
+                if (Usecs == 0)
+                {
+                    throw new Exception("THIS IS SUPPOSED TO HAPPEN IN THIS UNITTEST");
+                }
+                else
+                {
+                    double secs = cast (double) Usecs / 1_000_000;
+                    Thread.sleep(secs);
+                }
+            }
 		}
 
 		~this ( )
@@ -436,56 +446,164 @@ debug ( OceanUnitTest )
 			MyObject.destroyed = true;
 		}
 	}
-
-
+    
+    
+    class Empty
+    {   
+        void delegate() r;
+        this(void delegate() d)
+        {
+            r=d;
+        }
+        void run(int p,char[] o)
+        {           
+            r();
+            if(p==10)
+                throw new Exception("catch me if you can");
+            else if(p==11)
+                throw new Object();
+        }
+        ~this()
+        {            
+        }
+    }
+    
+    
+    
+    
 	unittest
 	{
-        Trace.formatln("Running ocean.core.ObjectThreadPool unittest");
-
-        StopWatch sw;
+        Trace.formatln("ObjectThreadPool: Running general unittest");
+        byte ran = 0;
+        void setRun() {  ran += 1; }
         
-        scope opool = new ObjectThreadPool!(MyObject)(NUM_OBJECTS);
-
         /***********************************************************************
-
-			Object non-destruction and thread pool limit test
-	
-	    ***********************************************************************/
-
-        const ITERATIONS = 100_000;
-        
-        uint count;
-        
-        do
-        {
-            opool.assign();
+         
+            Tests finish, tryAssign, activeJobs, 
+            throwing of assign and append when no workers are available
             
-            assert(!MyObject.destroyed, "ObjectThreadPool unittest - MyObject destructor called during the main loop");
-            assert(opool.activeJobs() <= NUM_OBJECTS, "ObjectThreadPool unittest - object thread pool has too many active threads!");
-        } 
-        while (++count < ITERATIONS);
-
-        Trace.formatln("Running performance tests");
+        ***********************************************************************/
         
-        for (uint i=0; i<5; i++)
+        {   
+            scope pool = new ObjectThreadPool!(Empty,void delegate())(&setRun,1);
+            
+            assert(pool.tryAssign(4,"hi"));            
+            pool.finish();      
+            
+            assert(ran);  ran = 0;            
+                       
+            assert(pool.activeJobs == 0);   
+            assert(pool.pool.getNumItems == 1);
+                        
+            bool catched = false;
+            try pool.assign(3,"ho");
+            catch (Exception e) catched = true;
+            assert(catched);    catched = false;
+                        
+            pool.finish();
+            
+            try pool.append(5,"oh");
+            catch (Exception e) catched = true;
+            assert(catched);
+        }       
+        for(auto i=0;i<200;++i)
         {
-        	count = 0;
-        	
-        	sw.start();
-        	
-        	do
-            {
-                opool.assign();
-                
-                assert(!MyObject.destroyed, "ObjectThreadPool unittest - MyObject destructor called during the main loop");
-                assert(opool.activeJobs() <= NUM_OBJECTS, "ObjectThreadPool unittest - object thread pool has too many active threads!");
-            } 
-            while (++count < ITERATIONS);
-        	
-        	Trace.formatln("Iteration: {}\t ObjectPool assignes/s: {}\t Memory: {}", i, count/sw.stop(), GC.stats["poolSize"]).flush();
+            Trace.formatln("\nRunning iteration {}",i);
+            ran = 0; 
+            scope pool = ObjectThreadPool!(Empty,void delegate()).newPool(&setRun,1);
+ 
+            pool.append(3,"iy");   
+            pool.assign(2,"2");
+
+            pool.wait();
+            assert(ran == 2); ran = 0;
+            
+            // Test if Exceptions/Objects are being catched
+            
+            
+            pool.assign(10,"throw");
+                      
+            pool.assign(11,"throw");
+            
+            pool.wait();
+            
+            assert(ran == 2); ran = 0;            
+            
+            
         }
         
-        Trace.formatln("done unittest\n");
-	}
-}
+        {
+            Trace.formatln("Running ocean.core.ObjectThreadPool Exception safety test");
+            StopWatch sw;
+            scope opool = new ObjectThreadPool!(MyObject)(NUM_OBJECTS);
+            /***********************************************************************
 
+             Object non-destruction and thread pool limit test
+             
+             ***********************************************************************/
+            const ITERATIONS = 100_000;
+            uint count;
+            do
+            {
+                opool.assign(true);
+                assert (!MyObject.destroyed, "ObjectThreadPool unittest - MyObject destructor called during the main loop");
+                assert (opool.activeJobs() <= NUM_OBJECTS, "ObjectThreadPool unittest - object thread pool has too many active threads!");
+            }
+            while (++count < ITERATIONS);
+            for (uint i = 0; i < 5; i++)
+            {
+                count = 0;
+                sw.start();
+                do
+                {
+                    opool.assign(true);
+                    assert (!MyObject.destroyed, "ObjectThreadPool unittest - MyObject destructor called during the main loop");
+                    assert (opool.activeJobs() <= NUM_OBJECTS, "ObjectThreadPool unittest - object thread pool has too many active threads!");
+                }
+                while (++count < ITERATIONS);
+                Trace.formatln(
+                               "Iteration: {}\t ObjectPool assignes/s: {}\t Memory: {}",
+                               i, count / sw.stop(), GC.stats["poolSize"]).flush();
+            }
+            Trace.formatln("done unittest\n");
+        }
+        {
+            Trace.formatln("Running ocean.core.ObjectThreadPool performance test");
+            StopWatch sw;
+            scope opool = new ObjectThreadPool!(MyObject)(NUM_OBJECTS);
+            
+            /***********************************************************************
+
+             Object non-destruction and thread pool limit test
+             
+             ***********************************************************************/
+            const ITERATIONS = 100_000;
+            uint count;
+            do
+            {
+                opool.assign(false);
+                assert (!MyObject.destroyed, "ObjectThreadPool unittest - MyObject destructor called during the main loop");
+                assert (opool.activeJobs() <= NUM_OBJECTS, "ObjectThreadPool unittest - object thread pool has too many active threads!");
+            }
+            while (++count < ITERATIONS);
+            
+            for (uint i = 0; i < 5; i++)
+            {
+                count = 0;
+                sw.start();
+                do
+                {
+                    opool.assign(false);
+                    assert (!MyObject.destroyed, "ObjectThreadPool unittest - MyObject destructor called during the main loop");
+                    assert (opool.activeJobs() <= NUM_OBJECTS, "ObjectThreadPool unittest - object thread pool has too many active threads!");
+                }
+                while (++count < ITERATIONS);
+                Trace.formatln(
+                               "Iteration: {}\t ObjectPool assignes/s: {}\t Memory: {}",
+                               i, count / sw.stop(), GC.stats["poolSize"]).flush();
+            }
+            Trace.formatln("done unittest\n");
+        }
+    }
+    
+}

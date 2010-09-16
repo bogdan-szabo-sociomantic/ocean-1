@@ -805,7 +805,7 @@ debug ( OceanUnitTest )
         ***********************************************************************/   
         
         {   
-            
+            Trace.formatln("ObjectPool: Running general unittest");
             bool reset=false,death = false;
             void resetFunc() 
             {
@@ -954,6 +954,7 @@ debug ( OceanUnitTest )
             scope bigger = new Tmp();
             assert(c<bigger);  
         } 
+        Trace.formatln("Test finished");
     }    
 }
     
