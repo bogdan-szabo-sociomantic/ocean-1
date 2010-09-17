@@ -113,6 +113,14 @@ struct HttpCookie
     
     /**************************************************************************
 
+        Temporary split buffer
+    
+     **************************************************************************/
+    
+    private char[][] slices;
+
+    /**************************************************************************
+
         Writes the cookie header line and formats the attributes into it.
         
         Params:
@@ -170,7 +178,9 @@ struct HttpCookie
         
         if (line.length)
         {
-            foreach (item; StringSearch!().split(line, HttpCookieAttr.Delim.Attributes))
+            StringSearch!().split(this.slices, line, HttpCookieAttr.Delim.Attributes);
+            
+            foreach (item; this.slices)
             {
                 this.tmp = StringSearch!().trim(item).dup;
                 
