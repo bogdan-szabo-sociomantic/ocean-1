@@ -145,7 +145,15 @@ private struct KeyValueElement ( K, V )
 
 class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 {
+    /***************************************************************************
     
+        Aliases for key & value types, so they can be accessed externally.
+        
+     **************************************************************************/
+
+    public alias V ValueType;
+    public alias K KeyType;
+
     /***************************************************************************
     
         VisArray flag to indicate whether the value type V is an array
