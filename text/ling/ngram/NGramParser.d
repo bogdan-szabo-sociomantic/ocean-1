@@ -94,7 +94,7 @@
 
 *******************************************************************************/
 
-module      ocean.text.ngram.NGramParser;
+module      ocean.text.ling.ngram.NGramParser;
 
 
 
@@ -111,6 +111,8 @@ public import ocean.core.Exception: NgramParserException;
 private import TextUtil = tango.text.Util: contains, substitute, replace, split, trim;
 
 private import Unicode = tango.text.Unicode: toLower;
+
+private import Utf = tango.text.convert.Utf;
 
 private import tango.core.Array;
 
@@ -129,7 +131,7 @@ debug
 
 /*******************************************************************************
 
-    NGramParser class.
+    NGramParser class - just a namespace, all methods are static.
     
 *******************************************************************************/
 
@@ -153,20 +155,26 @@ public class NGramParser
 
     ***************************************************************************/
 
-    public const dchar[] ignored_chars = "0123456789-\n;&(){}[]<>/\\|.,;:!@#$%^&*_-+=`~?\"\'\n\t";
+    public const dchar[] ignored_chars = "0123456789-–;&(){}[]<>/\\|.,;:!@#$%£^&*_-+=~?\"\n\t”“„«»";
+
+
+    /***************************************************************************
+
+        Apostrophe characters, which are converted to ' during processing.
+    
+    ***************************************************************************/
+
+    public const dchar[] apostrophes = "‘’`";
 
 
     /***************************************************************************
 
         Split text into separate words and stores them in the output words
-        array. During the splitting of the words in the text, any words found
-        which are in the (optional) stopwords array will not be added to the
-        word list.
-    
+        array.
+
         Params:
             text = text to split
             words = output array of words (slices into text)
-            stopwords = words to ignore
     
         Throws:
             asserts that the passed text has been normalized (see the
@@ -174,7 +182,7 @@ public class NGramParser
 
     ***************************************************************************/
 
-    public void splitWords ( dchar[] text, ref dchar[][] words, dchar[][] stopwords = [] )
+    public void splitWords ( dchar[] text, ref dchar[][] words, dchar[][] stopwords )
     in
     {
         assert(isNormalized(text), typeof(this).stringof ~ ".splitWords - text isn't normalized");
@@ -306,7 +314,8 @@ public class NGramParser
 
         Normalizes text for ngram parsing. Text is converted to dchar, ignored
         characters are removed, upper case characters are converted to lower
-        case, and consecutive whitespace characters are skipped.
+        case, and consecutive whitespace characters are skipped. Stopwords are
+        also removed.
 
         Template params:
             T = type of input array element
@@ -315,49 +324,88 @@ public class NGramParser
             input = text to normalize
             output = output for normalized text
             working = required intermediary buffer
+            stopwords = list of stopwords to remove
     
     ***************************************************************************/
 
-    public void normalizeText ( T ) ( T[] input, ref dchar[] output, ref dchar[] working )
+    public void normalizeText ( T ) ( T[] input, ref dchar[] output, ref dchar[] working, dchar[][] stopwords = [[]] )
     {
-        typeof(this).convertToDChar(input, working);
+        convertToDChar(input, working);
+
+        normalizeCharacters(working, output);
+
+        removeStopWords(output, working, stopwords);
+
+        compressWhitespace(working, output);
+    }
+
+
+    /***************************************************************************
+
+        Processes an input text, normalizing each character in turn and writing
+        the result to the output text buffer.
+
+        Params:
+            input = text to process
+            output = output for processed text
+    
+    ***************************************************************************/
+
+    private void normalizeCharacters ( dchar[] input, ref dchar[] output )
+    {
+        output.length = input.length; // good guess
 
         size_t write_pos;
-        bool skip_whitespace;
-
-        output.length = working.length; // good guess
-
-        foreach ( c; working )
+        foreach ( c; input )
         {
-            dchar[] converted;
+            appendToString(output, normalizeCharacter(c), write_pos);
+        }
+    }
 
-            // replace ignored characters with a space
-            if ( TextUtil.contains(ignored_chars, c) )
+
+    /***************************************************************************
+
+        Processes an input text, removing consecutive whitespace characters and
+        writing the result to the output text buffer.
+    
+        Params:
+            input = text to process
+            output = output for processed text
+    
+    ***************************************************************************/
+
+    private void compressWhitespace ( dchar[] input, ref dchar[] output )
+    {
+        output.length = input.length; // good guess
+
+        size_t read_pos, write_pos;
+
+        while ( read_pos < input.length - 1 )
+        {
+            // skip whitespace characters
+            bool got_whitespace;
+            while ( Unicode.isWhitespace(input[read_pos]) )
             {
-                converted = " "d;
+                got_whitespace = true;
+                read_pos++;
             }
-            else
+
+            // replace them all with a single space
+            if ( got_whitespace )
             {
-                // convert to lower case
-                converted = unicodeToLower(c);
+                appendToString(output, " "d, write_pos);
             }
 
-            // write character(s)
-            auto is_whitespace = isWhitespace(converted);
-
-            if ( !(is_whitespace && skip_whitespace) )
+            // copy non-whitespace characters
+            size_t word_start = read_pos;
+            while ( !Unicode.isWhitespace(input[read_pos]) )
             {
-                // make sure there's space in output
-                auto expand = write_pos + converted.length - output.length;
-                if ( expand > 0 )
-                {
-                    output.length = output.length + expand;
-                }
+                read_pos++;
+            }
 
-                output[write_pos .. write_pos + converted.length] = converted[];
-                write_pos += converted.length;
-
-                skip_whitespace = is_whitespace;
+            if ( read_pos - word_start > 0 )
+            {
+                appendToString(output, input[word_start .. read_pos], write_pos);
             }
         }
     }
@@ -365,26 +413,28 @@ public class NGramParser
 
     /***************************************************************************
 
-        Normalizes a list of texts for ngram parsing.
-    
-        Template params:
-            T = type of input list array element
-    
+        Copies a source string into a destination string, writing at the
+        specified write position. The destination string is expanded as
+        necessary.
+
         Params:
-            input = texts to normalize
-            output = output for normalized texts
-            working = required intermediary buffer
+            dest = string to write to
+            src = string to copy
+            write_pos = position to write to
     
     ***************************************************************************/
 
-    public void normalizeText ( T ) ( T[][] input, ref dchar[][] output, ref dchar[] working )
+    private void appendToString ( ref dchar[] dest, dchar[] src, ref size_t write_pos )
     {
-        output.length = input.length;
-    
-        foreach ( i, str; input )
+        // make sure there's space in output
+        auto expand = write_pos + src.length - dest.length;
+        if ( expand > 0 )
         {
-            normalizeText(str, output[i]);
+            dest.length = dest.length + expand;
         }
+
+        dest[write_pos .. write_pos + src.length] = src[];
+        write_pos += src.length;
     }
 
 
@@ -415,6 +465,47 @@ public class NGramParser
         }
     }
     
+
+    /***************************************************************************
+
+        Normalizes a character for ngram parsing. Ignored characters are
+        converted to a single space, weird apostrophes are converted to ', and
+        upper case characters are converted to lower case.
+
+        Params:
+            c = character to normalize
+        
+        Returns:
+            string containing normalized character (will always be a slice into
+            a constant string)
+    
+        Note: this methods returns a string (rather than a single dchar) as in
+        some rare cases a single upper case character can convert to more than
+        one lower case character.
+    
+        Note: the apostrophe normalization takes place for the benefit of
+        stopwording in languages like english and french where many common words
+        (ie stopwords) contain apostrophes which must be successfully matched.
+        (For example: "don't", "isn't", etc in english.)
+
+    ***************************************************************************/
+    
+    private dchar[] normalizeCharacter ( dchar c )
+    {
+        if ( TextUtil.contains(ignored_chars, c) )
+        {
+            return " "d;
+        }
+        else if ( TextUtil.contains(apostrophes, c) )
+        {
+            return "'"d;
+        }
+        else
+        {
+            return unicodeToLower(c);
+        }
+    }
+
 
     /***************************************************************************
 
@@ -460,6 +551,41 @@ public class NGramParser
 
     /***************************************************************************
 
+        Processes a text, splitting it into words (by space characters), then
+        copying any non-stopwords into the output buffer.
+
+        Params:
+            input = text to process
+            output = output for processed text
+            stopwords = list of words to remove from input text
+    
+    ***************************************************************************/
+
+    private void removeStopWords ( dchar[] input, ref dchar[] output, ref dchar[][] stopwords )
+    {
+        output.length = 0;
+
+        debug uint count, stop;
+        foreach ( word; TextUtil.split(input, " "d) )
+        {
+            if ( word.length )
+            {
+                debug count++;
+                auto NotStopWord = stopwords.length;
+                if ( stopwords.find(word) == NotStopWord )
+                {
+                    output.append(word, " "d);
+                }
+                else debug stop++;
+            }
+        }
+
+        debug Trace.formatln("Stopwording reduced word count from {} to {} ({}% of original)", count, count - stop, (cast(float)stop / cast(float)count) * 100);
+    }
+
+
+    /***************************************************************************
+
         Processes a list of texts, extracting ngrams from each.
         
         Params:
@@ -500,10 +626,11 @@ public class NGramParser
             {
                 auto ngram = text[i .. i + ngram_length];
                 ngrams.addOccurrence(ngram);
+
                 i++;
             }
             while ( i < max_steps );
-        }    
+        }
     }
 
 
@@ -570,50 +697,4 @@ debug ( OceanUnitTest )
 	}
 }
 
-
-
-
-/+
-class Categorizer
-{
-    NGramSet training_docs;
-
-    /* Train:
-
-        For each document:
-           1. Split into words (?) - does this step add anything apart from processing complexity?
-           2. Split into ngrams
-           3. Count frequency of each ngram
-
-        For all docs:
-           1. Calculate the IDF for each ngram in all docs
-               inverse document frequency = number of docs in which ngram occurs / total number of docs
-           2. Remove ngrams for which IDF > X
-              (X = magic value, 0.5 perhaps? = an ngram which appears in less than half the docs
-              = ngrams which significantly identify the doc)
-     */
-
-    void train ( char[][] files )
-    {
-        this.training_docs.length = files.length;
-        foreach ( i, file; files )
-        {
-            char[] file_content;
-            // load file content into file_content
-            this.training_docs[i].parse(file_content);
-        }
-
-        // Select the most significant ngrams in each training doc
-        // Remove non-significant ngrams
-    }
-    
-    uint categorize ( char[] text )
-    {
-        foreach ( training_doc; this.training_docs )
-        {
-            
-        }
-    }
-}
-+/
 

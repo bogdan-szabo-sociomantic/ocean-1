@@ -8,6 +8,12 @@
 	
 	Class to contain and compare sets of ngrams from analyses of texts.
 
+    TODO: usage example
+
+    Note: the ngrams in the set are stored as *slices* into the original text.
+    So make sure the original text is still in memory, otherwise the slices will
+    be invalid.
+
 *******************************************************************************/
 
 module text.ling.ngram.NGramSet;
@@ -20,11 +26,15 @@ module text.ling.ngram.NGramSet;
 
 *******************************************************************************/
 
-private	import ocean.core.ArrayMap;
+private import ocean.core.ArrayMap;
 
 private	import tango.core.BitArray;
 
 private	import tango.io.model.IConduit;
+
+private import tango.math.Math : abs;
+
+private import ocean.io.digest.Fnv1;
 
 debug
 {
@@ -74,38 +84,29 @@ class NGramSet_ ( bool ThreadSafe = false )
 
 	***************************************************************************/
 
-	public alias ArrayMapKV!(uint, dchar[], ThreadSafe) NGramArray;
+    public alias ArrayMap!(uint, dchar[], ThreadSafe) NGramCountArray;
+    public alias ArrayMap!(float, dchar[], ThreadSafe) NGramRelFreqArray;
 
 
 	/***************************************************************************
 
-		Alias for the ngram set iterator.
+		The array mapping from ngram -> count / frequency.
 
 	***************************************************************************/
 
-	public alias NGramSetIterator_!(ThreadSafe) Iterator;
+    private NGramCountArray ngrams;
+    private NGramRelFreqArray ngrams_rel_freq;
 
+    
+    /***************************************************************************
 
-	/***************************************************************************
+        Flag which is set to true when the relative frequencies array is out of
+        date.
 
-		The array mapping from ngram -> frequency.
+    ***************************************************************************/
 
-	***************************************************************************/
-
-	protected NGramArray ngrams;
-
-
-	/***************************************************************************
-
-		Constructor. Initialises the internal array map.
-	
-	***************************************************************************/
-
-	public this ( )
-	{
-		this.ngrams = new NGramArray(1000);
-	}
-
+    private bool rel_freq_invalid;
+    
 
 	/***************************************************************************
 	
@@ -118,9 +119,31 @@ class NGramSet_ ( bool ThreadSafe = false )
 	
 	***************************************************************************/
 	
-	protected dchar[][] sorted_ngrams;
+	private dchar[][] sorted_ngrams;
+
+
+    /***************************************************************************
+
+        List of ngrams to be removed - used internally by keepHighestCount().
+    
+    ***************************************************************************/
+
+    private dchar[][] remove_list;
+
 	
-	
+    /***************************************************************************
+
+        Constructor. Initialises the internal array map.
+    
+    ***************************************************************************/
+    
+    public this ( )
+    {
+        this.ngrams = new NGramCountArray(1000);
+        this.ngrams_rel_freq = new NGramRelFreqArray(1000);
+    }
+
+
 	/***************************************************************************
 	
 		Clears all ngrams from this set.
@@ -129,7 +152,10 @@ class NGramSet_ ( bool ThreadSafe = false )
 	
 	public void clear ( )
 	{
-		this.ngrams.clear();
+        this.ngrams.clear();
+        this.ngrams_rel_freq.clear();
+
+        this.rel_freq_invalid = false;
 		this.sorted_ngrams.length = 0;
 	}
 	
@@ -147,6 +173,7 @@ class NGramSet_ ( bool ThreadSafe = false )
 	public void add ( dchar[] ngram, uint freq )
 	{
 		this.ngrams[ngram] = freq;
+        this.rel_freq_invalid = true;
 	}
 	
 	
@@ -158,19 +185,20 @@ class NGramSet_ ( bool ThreadSafe = false )
 			ngram = ngram string to increment
 	
 	***************************************************************************/
-	
-	public void addOccurrence ( dchar[] ngram )
+
+    public void addOccurrence ( dchar[] ngram, uint occurrences = 1 )
 	{
 		if ( ngram in this.ngrams )
 		{
 			auto freq = this.ngrams[ngram];
-			this.ngrams[ngram] = freq + 1;
+			this.ngrams[ngram] = freq + occurrences;
 		}
 		else
 		{
-			this.ngrams[ngram] = 1;
+			this.ngrams[ngram] = occurrences;
 		}
-	}
+        this.rel_freq_invalid = true;
+    }
 	
 	
 	/***************************************************************************
@@ -201,9 +229,9 @@ class NGramSet_ ( bool ThreadSafe = false )
 	public uint countOccurrences ( )
 	{
 		uint total;
-		foreach ( ngram, freq; this.ngrams )
+		foreach ( ngram, count; this.ngrams )
 		{
-			total += freq;
+			total += count;
 		}
 	
 		return total;
@@ -212,204 +240,179 @@ class NGramSet_ ( bool ThreadSafe = false )
 
 	/***************************************************************************
 	
-		foreach iterator over all the ngrams in the set. The iterator loops over
-		the *sorted* list of ngrams, returning them in order of descending
-		frequency.
+		foreach iterator over all the ngrams in the set.
+	
+	***************************************************************************/
+
+    public int opApply ( int delegate ( ref dchar[], ref uint ) dg )
+    {
+        int result;
+        foreach ( ngram, count; this.ngrams )
+        {
+            result = dg(ngram, count);
+            if ( result )
+            {
+                break;
+            }
+        }
+    
+        return result;
+    }
+
+
+    /***************************************************************************
+	
+		Generates the sorted list of ngrams, by count (highest first).
 	
 	***************************************************************************/
 	
-	public int opApply ( int delegate ( ref dchar[], ref uint ) dg )
+	public void sortByCount ( )
 	{
-		this.ensureSorted(this.ngrams.length);
-	
-		int result;
-		foreach ( ngram; this.sorted_ngrams )
-		{
-			auto freq = this.ngrams[ngram];
-			result = dg(ngram, freq);
-			if ( result )
-			{
-				break;
-			}
-		}
-	
-		return result;
+        this.sort_(this.ngrams.length, this.ngrams);
 	}
-	
-	
-	/***************************************************************************
-	
-		Generates the sorted list of ngrams, by frequency (highest first).
-	
-	***************************************************************************/
-	
-	public void sort ( )
-	{
-		this.sort(this.ngrams.length);
-	}
-	
+
 	
 	/***************************************************************************
 
-		Generates the sorted list of ngrams, by frequency (highest first).
+		Generates the sorted list of ngrams, by count (highest first).
 
 		Params:
 			max_ngrams = maximum number of ngrams to include in the sorted array
 
 	***************************************************************************/
 
-	public void sort ( uint max_ngrams )
+	public void sortByCount ( uint max_ngrams )
 	{
-		this.sorted_ngrams.length = 0;
-
-		BitArray ngram_copied;
-		ngram_copied.length = this.ngrams.length;
-
-		uint count;
-		while ( count < max_ngrams )
-		{
-	    	uint highest_freq, highest_index;
-	    	dchar[] highest_ngram;
-	    	uint index;
-	    	foreach ( ngram, freq; this.ngrams )
-	    	{
-	    		if ( freq > highest_freq && !ngram_copied[index] )
-	    		{
-	    			highest_ngram = ngram;
-	    			highest_freq = freq;
-	    			highest_index = index;
-	    		}
-
-	    		index++;
-	    	}
-
-	    	this.sorted_ngrams ~= highest_ngram;
-	    	ngram_copied[highest_index] = true;
-	    	count++;
-		}
+        this.sort_(max_ngrams, this.ngrams);
 	}
+
+
+    /***************************************************************************
+    
+        Generates the sorted list of ngrams, by relative frequency (highest
+        first).
+    
+    ***************************************************************************/
+
+    public void sortByRelFreq ( )
+    {
+        this.updateRelFreqs();
+        this.sort_(this.ngrams.length, this.ngrams_rel_freq);
+    }
+
+
+    /***************************************************************************
+
+        Generates the sorted list of ngrams, by relative frequency (highest
+        first).
+    
+        Params:
+            max_ngrams = maximum number of ngrams to include in the sorted array
+    
+    ***************************************************************************/
+
+    public void sortByRelFreq ( uint max_ngrams )
+    {
+        this.updateRelFreqs();
+        this.sort_(max_ngrams, this.ngrams_rel_freq);
+    }
+
+
+    /***************************************************************************
+    
+        Returns:
+            the list of sorted ngrams
+
+        Throws:
+            asserts that the list of sorted ngrams list has been generated
+    
+    ***************************************************************************/
+    
+    public dchar[][] getSorted ( )
+    in
+    {
+        assert(this.sorted_ngrams.length, typeof(this).stringof ~ ".sorted - ngram set has not been sorted");
+    }
+    body
+    {
+        return this.sorted_ngrams;
+    }
 
 
 	/***************************************************************************
 	
-		Copies the highest frequency ngrams in the set into another set.
-		
-		Params:
-			copy_to = set to copy into
-			num = maximum number of ngrams to copy
-	
-	***************************************************************************/
-	
-	public void copyHighest ( This copy_to, uint num )
-	{
-		this.ensureWithinRange(num);
-		this.ensureSorted(num);
-	
-		for ( uint i; i < num; i++ )
-		{
-			auto ngram = this.sorted_ngrams[i];
-			auto freq = this.ngrams[ngram];
-			copy_to.ngrams[ngram.dup] = freq;
-		}
-	}
-	
-	
-	/***************************************************************************
-	
-		Copies the highest frequency ngrams in the set into an associative
-		array.
-		
-		Params:
-			copy_to = array to copy into
-			num = maximum number of ngrams to copy
-	
-	***************************************************************************/
-	
-	public void copyHighest ( out NGramArray copy_to, uint num )
-	{
-		this.ensureWithinRange(num);
-		this.ensureSorted(num);
-	
-		for ( uint i; i < num; i++ )
-		{
-			auto ngram = this.sorted_ngrams[i];
-			auto freq = this.ngrams[ngram];
-			copy_to[ngram.dup] = freq;
-		}
-	}
-
-
-	/***************************************************************************
-	
-		Reduces the size of the ngram set to just the highest frequency n.
+		Reduces the size of the ngram set to just the highest count n.
 		
 		Params:
 			num = maximum number of ngrams to keep
 	
 	***************************************************************************/
 
-	public void cropToHighest ( uint num )
-	{
-		this.ensureWithinRange(num);
-		this.ensureSorted(this.ngrams.length);
+    public void keepHighestCount ( uint num )
+    {
+        this.ensureWithinRange(num);
 
-		foreach ( ngram; this.sorted_ngrams[num..$] )
-		{
-			this.ngrams.remove(ngram);
-		}
+        BitArray keep;
+        this.findHighestCount(num, keep);
 
-		this.sorted_ngrams.length = num;
-	}
+        size_t index;
+        this.remove_list.length = 0;
+        foreach ( ngram, count; this.ngrams )
+        {
+            if ( !keep[index] )
+            {
+                this.remove_list.length = this.remove_list.length + 1;
+                this.remove_list[$ - 1] = ngram;
+            }
+            index++;
+        }
 
-	
-	/***************************************************************************
-	
-		Returns an iterator over the highest frequency n ngrams in the set.
-		
-		Params:
-			num = maximum number of ngrams to iterator over
+        foreach ( ngram; this.remove_list )
+        {
+            this.ngrams.remove(ngram);
+        }
+        this.remove_list.length = 0;
 
-		Returns:
-			an iterator over the ngrams in the range specified
-	
-	***************************************************************************/
+        this.sorted_ngrams.length = 0;
 
-	public Iterator getHighest ( uint num )
-	{
-		Iterator it;
-		it.num = num;
-		it.ngrams = this;
-
-		return it;
-	}
+        this.rel_freq_invalid = true;
+    }
 
 
-	
-	/***************************************************************************
-	
-		Gets the number of times an ngram has occurred.
-		
-		Params:
-			ngram = ngram string to check
-		
-		Returns:
-			frequency of occurrence
-	
-	***************************************************************************/
-	
-	public uint nGramFreq ( dchar[] ngram )
-	{
-		if ( ngram in this.ngrams )
-		{
-			return this.ngrams[ngram];
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	
-	
+    /***************************************************************************
+    
+        Reduces the size of the ngram set by the provided filtering delegate.
+        The delegate is passed each ngram and its count in turn, and should
+        return true if the ngram should be filtered (removed from the set).
+        
+        Params:
+            filter_dg = filtering delegate
+    
+    ***************************************************************************/
+
+    public void filter ( bool delegate ( dchar[], uint ) filter_dg )
+    {
+    	this.remove_list.length = 0;
+
+    	foreach ( ngram, count; this.ngrams )
+        {
+            if ( filter_dg(ngram, count) )
+            {
+                this.remove_list.length = this.remove_list.length + 1;
+                this.remove_list[$ - 1] = ngram;
+            }
+        }
+
+        foreach ( ngram; this.remove_list )
+        {
+            this.ngrams.remove(ngram);
+        }
+        this.remove_list.length = 0;
+
+        this.rel_freq_invalid = true;
+    }
+
+
 	/***************************************************************************
 	
 		Compares another ngram set to this one, and works out the distance
@@ -426,69 +429,134 @@ class NGramSet_ ( bool ThreadSafe = false )
 			distance between sets:
 				0.0 = totally similar
 				1.0 = totally different
-	
-	***************************************************************************/
-	
-	public float distance ( This compare )
-	{
-		if ( compare.length == 0 )
-		{
-			return 1.0;
-		}
 
-		auto total_ngrams = this.countOccurrences();
-		auto comp_total_ngrams = compare.countOccurrences();
-	
-		float total_distance = 0;
-		foreach ( comp_ngram, comp_freq; compare )
-		{
-			if ( !(comp_ngram in this.ngrams) )
-			{
-				total_distance += 1;
-				continue;
-			}
-	
-			float comp_rel_freq = cast(float) comp_freq / cast(float) comp_total_ngrams;
-			float rel_freq = cast(float) this.nGramFreq(comp_ngram) / cast(float) total_ngrams;
-			float ngram_distance = comp_rel_freq - rel_freq;
-
-			if ( ngram_distance < 0 )
-			{
-				ngram_distance = -ngram_distance;
-			}
-	
-			total_distance += ngram_distance;
-		}
-
-		return total_distance / cast(float) compare.length;
-	}
-
-
-	/***************************************************************************
-	
-		Gets an ngram referenced by its index in the sorted list.
-		
-		Params:
-			i = index
-			
-		Returns:
-			the ngram string at the given index
-
-		Throws:
-			asserts that the index is within range
-	
 	***************************************************************************/
 
-	public dchar[] opIndex ( size_t i )
-	in
-	{
-		assert(i < this.ngrams.length, typeof(this).stringof ~ "opIndex - index out of bounds");
-	}
-	body
-	{
-		this.ensureSorted(i);
-		return this.sorted_ngrams[i];
-	}
+    public float distance ( This compare )
+    {
+        if ( compare.length == 0 )
+        {
+            return 1.0;
+        }
+
+        float total_distance = 0;
+
+        foreach ( ngram, count; compare )
+        {
+            if ( !(ngram in this.ngrams) )
+            {
+                total_distance += 1;
+                continue;
+            }
+
+            float ngram_distance = abs(compare.getRelFreq(ngram) - this.getRelFreq(ngram));
+
+            total_distance += ngram_distance;
+
+//            debug Trace.format("'{}' ({}% / {}%): {}%,  ", ngram, this.getRelFreq(ngram) * 100, compare.getRelFreq(ngram) * 100, ngram_distance * 100);
+        }
+
+        return total_distance / cast(float) compare.length;
+    }
+
+    // TODO
+    public float distance ( This compare, dchar[][] ngrams )
+    {
+        if ( ngrams.length == 0 )
+        {
+            return 1.0;
+        }
+
+        float total_distance = 0;
+
+        foreach ( ngram; ngrams )
+        {
+            if ( !(ngram in this.ngrams) )
+            {
+                total_distance += 1;
+                continue;
+            }
+
+            float ngram_distance = abs(compare.getRelFreq(ngram) - this.getRelFreq(ngram));
+
+            total_distance += ngram_distance;
+
+//            debug Trace.format("'{}' ({}% / {}%): {}%,  ", ngram, this.getRelFreq(ngram) * 100, compare.getRelFreq(ngram) * 100, ngram_distance * 100);
+        }
+
+        return total_distance / cast(float) ngrams.length;
+    }
+
+
+    /***************************************************************************
+    
+        Tells if the given ngram is in this set.
+        
+        Params:
+            ngram = ngram to test
+            
+        Returns:
+            true if the ngram is in this set
+    
+    ***************************************************************************/
+
+    public bool opIn_r ( dchar[] ngram )
+    {
+        return !!(ngram in this.ngrams);
+    }
+    
+    
+    /***************************************************************************
+    
+        Gets the number of times an ngram has occurred.
+        
+        Params:
+            ngram = ngram string to check
+        
+        Returns:
+            frequency of occurrence
+    
+    ***************************************************************************/
+
+    public uint getCount ( dchar[] ngram )
+    {
+        if ( ngram in this.ngrams )
+        {
+            return this.ngrams[ngram];
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+
+    /***************************************************************************
+    
+        Gets the relative frequency of an ngram. The relative frequencies are
+        updated if they're out of date.
+        
+        Params:
+            ngram = ngram to test
+            
+        Returns:
+            the ngram's relative frequency
+    
+    ***************************************************************************/
+    
+    public float getRelFreq ( dchar[] ngram )
+    {
+        this.updateRelFreqs();
+    
+        if ( ngram in this.ngrams_rel_freq )
+        {
+            return this.ngrams_rel_freq[ngram];
+        }
+        else
+        {
+            return 0.0;
+        }
+    }
 
 
 	/***************************************************************************
@@ -536,29 +604,98 @@ class NGramSet_ ( bool ThreadSafe = false )
 			uint freq;
 			this.read(freq, input);
 
+            // TODO: pretty sure this needs a dup here?
+            // It's a shame, when an ngram set is parsed straight from a source
+            // text, all the ngrams are just slices into that text.
+            // But when a set is deserialized like this, they're all individual
+            // strings, which doesn't take advantage of their overlapping.
 			this.add(ngram, freq);
 		}
 	}
 
 
-	/***************************************************************************
-	
-		Prints the ngram set to Trace.
-	
-	***************************************************************************/
+	debug
+    {
+        /***********************************************************************
 
-	debug public void traceDump ( )
-	{
-		this.traceDump(this.length);
-	}
+            Prints the ngram set to Trace.
+        
+        ***********************************************************************/
 
-	debug public void traceDump ( uint num )
-	{
-		foreach ( ngram, freq; this.getHighest(num) )
-		{
-			Trace.formatln("{}: {}", ngram, freq);
-		}
-	}
+        public void traceDump ( )
+    	{
+            foreach ( ngram, count; this.ngrams )
+    		{
+    			Trace.format("'{}': {},  ", ngram, count);
+    		}
+            Trace.formatln("");
+    	}
+
+        /***********************************************************************
+
+            Prints the sorted ngram set to Trace.
+        
+        ***********************************************************************/
+    
+        public void traceDumpSorted ( )
+        {
+            this.ensureSorted(this.ngrams.length);
+
+            foreach ( ngram; this.sorted_ngrams )
+            {
+                Trace.format("'{}': {},  ", ngram, this.ngrams[ngram]);
+            }
+            Trace.formatln("");
+        }
+    }
+
+
+    /***************************************************************************
+
+        Generates the sorted list of ngrams, by relative frequency (highest
+        first).
+    
+        Params:
+            max_ngrams = maximum number of ngrams to include in the sorted array
+    
+    ***************************************************************************/
+
+    private void sort_ ( N ) ( uint max_ngrams, N ngrams )
+    {
+        this.sorted_ngrams.length = 0;
+    
+        if ( max_ngrams > this.ngrams.length )
+        {
+            max_ngrams = this.ngrams.length;
+        }
+
+        BitArray ngram_copied;
+        ngram_copied.length = ngrams.length;
+    
+        uint count;
+        while ( count < max_ngrams )
+        {
+            size_t highest_index;
+            N.ValueType highest_value;
+            dchar[] highest_ngram;
+            size_t index;
+            foreach ( ngram, value; ngrams )
+            {
+                if ( value > highest_value && !ngram_copied[index] )
+                {
+                    highest_ngram = ngram;
+                    highest_value = value;
+                    highest_index = index;
+                }
+    
+                index++;
+            }
+    
+            this.sorted_ngrams ~= highest_ngram;
+            ngram_copied[highest_index] = true;
+            count++;
+        }
+    }
 
 
 	/***************************************************************************
@@ -571,11 +708,11 @@ class NGramSet_ ( bool ThreadSafe = false )
 		
 	***************************************************************************/
 
-	protected void ensureSorted ( uint max_items )
+    private void ensureSorted ( uint max_items )
 	{
 		if ( this.ngrams.length && this.sorted_ngrams.length < max_items )
 		{
-			this.sort();
+			this.sortByCount(max_items);
 		}
 	}
 
@@ -590,13 +727,95 @@ class NGramSet_ ( bool ThreadSafe = false )
 		
 	***************************************************************************/
 
-	protected void ensureWithinRange ( ref uint num )
+    private void ensureWithinRange ( ref uint num )
 	{
 		if ( num > this.ngrams.length )
 		{
 			num = this.ngrams.length;
 		}
 	}
+
+
+    /***************************************************************************
+    
+        Computes the relative frequencies of the ngrams in the set, if the
+        currently computed relative frequencies are out of date.
+        
+    ***************************************************************************/
+
+    private void updateRelFreqs ( )
+    {
+        if ( this.rel_freq_invalid )
+        {
+            auto total_ngrams = this.countOccurrences();
+
+            foreach ( ngram, count; this.ngrams )
+            {
+                float rel_freq = cast(float) count / cast(float) total_ngrams;
+                this.ngrams_rel_freq[ngram] = rel_freq;
+            }
+
+            this.rel_freq_invalid = false;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Finds the n ngrams with the highest occurrence count.
+        
+        Params:
+            max_ngrams = number to find
+            already_included = bit array, where the value of bit[i] represents
+                whether this.ngrams[i] is included in the highest number.
+
+    ***************************************************************************/
+
+    private void findHighestCount ( uint max_ngrams, ref BitArray already_included )
+    {
+        already_included.length = this.ngrams.length;
+
+        uint count;
+        while ( count < max_ngrams )
+        {
+            auto highest_index = findHighestCount(already_included);
+            already_included[highest_index] = true;
+            count++;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Finds the next highest count ngram.
+        
+        Params:
+            already_included = bit array, where the value of bit[i] represents
+                whether this.ngrams[i] is included in the highest number.
+
+        Returns:
+            highest ngram (string)
+
+    ***************************************************************************/
+
+    private size_t findHighestCount ( ref BitArray already_included )
+    {
+        size_t highest_index;
+        uint highest_value;
+        size_t index;
+        foreach ( ngram, value; this.ngrams )
+        {
+            if ( value > highest_value && !already_included[index] )
+            {
+                highest_value = value;
+                highest_index = index;
+            }
+
+            index++;
+        }
+
+        return highest_index;
+    }
 
 
 	/***************************************************************************
@@ -614,7 +833,7 @@ class NGramSet_ ( bool ThreadSafe = false )
 		
 	***************************************************************************/
 
-	protected void write ( T ) ( T data, OutputStream output )
+    private void write ( T ) ( T data, OutputStream output )
 	{
 		static if ( is ( T A == A[] ) )
 		{
@@ -643,7 +862,7 @@ class NGramSet_ ( bool ThreadSafe = false )
 		
 	***************************************************************************/
 
-	protected void writeData ( void* data, size_t bytes, OutputStream output )
+    private void writeData ( void* data, size_t bytes, OutputStream output )
 	{
 		do
 		{
@@ -669,7 +888,7 @@ class NGramSet_ ( bool ThreadSafe = false )
 		
 	***************************************************************************/
 
-	protected void read ( T ) ( out T data, InputStream input )
+    private void read ( T ) ( out T data, InputStream input )
 	{
 		static if ( is ( T A == A[] ) )
 		{
@@ -700,7 +919,7 @@ class NGramSet_ ( bool ThreadSafe = false )
 		
 	***************************************************************************/
 
-	protected void readData ( void* data, size_t bytes, InputStream input)
+    private void readData ( void* data, size_t bytes, InputStream input)
 	{
 		size_t ret;
 		do
@@ -709,60 +928,6 @@ class NGramSet_ ( bool ThreadSafe = false )
 			data += ret;
 			bytes -= ret;
 		} while ( bytes > 0 && ret != IOStream.Eof );
-	}
-}
-
-
-
-/*******************************************************************************
-
-	NGramSetIterator struct.
-
-*******************************************************************************/
-
-struct NGramSetIterator_ ( bool ThreadSafe = false )
-{
-	/***************************************************************************
-
-		Number of ngrams to iterate over (the n highest frequency).
-	
-	***************************************************************************/
-
-	public uint num;
-
-
-	/***************************************************************************
-
-		A reference to the NGramSet object to iterate over.
-	
-	***************************************************************************/
-
-	public NGramSet_!(ThreadSafe) ngrams;
-	
-
-	/***************************************************************************
-
-		foreach iterator over the given ngram set.
-	
-	***************************************************************************/
-
-	public int opApply ( int delegate ( ref dchar[] ngram, ref uint freq ) dg )
-	{
-		this.ngrams.ensureWithinRange(this.num);
-		this.ngrams.ensureSorted(this.num);
-		
-		int result;
-		foreach ( ngram; this.ngrams.sorted_ngrams[0..this.num] )
-		{
-			auto freq = this.ngrams.nGramFreq(ngram);
-			result = dg(ngram, freq);
-			if ( result )
-			{
-				break;
-			}
-		}
-	
-		return result;
 	}
 }
 
