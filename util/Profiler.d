@@ -90,9 +90,11 @@ module ocean.util.Profiler;
 
 *******************************************************************************/
 
-private import tango.util.log.Trace;
+private import ocean.core.ArrayMap;
 
 private import ocean.util.TraceProgress;
+
+private import tango.util.log.Trace;
 
 private import Float = tango.text.convert.Float;
 
@@ -106,7 +108,7 @@ private import tango.core.Memory;
 
 *******************************************************************************/
 
-struct Profiler
+class Profiler
 {
     /***************************************************************************
 
@@ -174,7 +176,7 @@ struct Profiler
 
 	***************************************************************************/
 
-	alias TimeDisplay.TimeMode Time;
+    public alias TimeDisplay.TimeMode Time;
 
 
     /***************************************************************************
@@ -183,7 +185,7 @@ struct Profiler
 
 	***************************************************************************/
 
-    ConsoleTracer tracer;
+    private ConsoleTracer tracer;
 
     
     /***************************************************************************
@@ -192,7 +194,7 @@ struct Profiler
 
     ***************************************************************************/
 
-    char[] buf;
+    private char[] buf;
 
 
 	/***************************************************************************
@@ -201,7 +203,7 @@ struct Profiler
 	
 	***************************************************************************/
 
-    ulong[char[]] section_start;
+    private ArrayMap!(ulong, char[]) section_start;
 
     
 	/***************************************************************************
@@ -210,7 +212,7 @@ struct Profiler
 	
 	***************************************************************************/
 
-    ulong[char[]] section_end;
+    private ArrayMap!(ulong, char[]) section_end;
 
 
 	/***************************************************************************
@@ -220,7 +222,7 @@ struct Profiler
 
 	***************************************************************************/
 	
-    float[char[]] section_avg_time;
+    private ArrayMap!(float, char[]) section_avg_time;
 
 
 	/***************************************************************************
@@ -230,7 +232,37 @@ struct Profiler
 
 	 ***************************************************************************/
 
-    uint[char[]] section_avg_count;
+    private ArrayMap!(uint, char[]) section_avg_count;
+
+
+    /***************************************************************************
+
+        Constructor. Initialises the internal array maps.
+        
+    ***************************************************************************/
+
+    public this ( )
+    {
+        this.section_start = new ArrayMap!(ulong, char[])();
+        this.section_end = new ArrayMap!(ulong, char[])();
+        this.section_avg_time = new ArrayMap!(float, char[])();
+        this.section_avg_count = new ArrayMap!(uint, char[])();
+    }
+
+
+    /***************************************************************************
+
+        Destructor. Destroys the internal array maps.
+        
+    ***************************************************************************/
+
+    ~this ( )
+    {
+        delete this.section_start;
+        delete this.section_end;
+        delete this.section_avg_time;
+        delete this.section_avg_count;
+    }
 
 
 	/***************************************************************************
@@ -242,14 +274,9 @@ struct Profiler
 	
 	***************************************************************************/
 
-    void startSection ( char[] name )
+    public void startSection ( char[] name )
 	{
-    	if ( !(name in this.section_start) )
-    	{
-    		this.section_start[name] = 0;
-    	}
-    	ulong* start = &this.section_start[name];
-		*start = this.tracer.timer.microsec();
+        this.section_start[name] = this.tracer.timer.microsec();
 	}
 
     
@@ -262,14 +289,23 @@ struct Profiler
 	
 	***************************************************************************/
 
-    void endSection ( char[] name )
+    public void endSection ( char[] name )
 	{
     	ulong end = this.tracer.timer.microsec();
 		this.section_end[name] = end;
 	}
 
 
-    void setDisplayUpdateInterval ( ulong micro_secs )
+    /***************************************************************************
+
+        Sets the display update interval in microseconds.
+        
+        Params:
+            micro_secs = minimum time (in microseconds) between display updates
+        
+    ***************************************************************************/
+
+    public void setDisplayUpdateInterval ( ulong micro_secs )
     {
     	this.tracer.update_interval = micro_secs;
     }
@@ -286,9 +322,9 @@ struct Profiler
 		
 	***************************************************************************/
 
-    void display ( Time time = Time.MSecs, bool streaming = true )
+    public void display ( Time time = Time.MSecs, bool streaming = true )
     {
-    	this._display!(uint)("", &this.getElapsed, time, streaming);
+    	this.display_("", &this.getElapsed, time, streaming);
     }
 
 
@@ -304,67 +340,20 @@ struct Profiler
 		
 	***************************************************************************/
 
-    void displayAverages ( Time time = Time.MSecs, bool streaming = true )
+    public void displayAverages ( Time time = Time.MSecs, bool streaming = true )
     {
-    	this._display!(float)("[AVG] ", &this.getAverage, time, streaming);
+    	this.display_("[AVG] ", &this.getAverage, time, streaming);
     }
 
 
 	/***************************************************************************
 
-		If it's time to update the display, displays the times for all timed
-		sections.
-		
-		Params:
-			prefix = string displayed before the times list
-			dg = delegate to return the value to display for each individual
-				section's time
-			time = display mode (secs, msecs, Usecs)
-			streaming = streaming display
-		
-	***************************************************************************/
-
-    void _display ( T : real ) ( char[] prefix, T delegate ( char[], uint ) dg, Time time, bool streaming )
-    {
-    	if ( this.tracer.timeToUpdate() )
-    	{
-    		this.buf.length = 0;
-    		this.buf ~= prefix;
-
-			T total = 0;
-	    	foreach ( name, start; this.section_start )
-	    	{
-				ulong* end_ptr = name in this.section_end;
-				if ( end_ptr )
-	    		{
-	    			uint elapsed = *end_ptr - start;
-	    			T display_time = dg(name, elapsed);
-	    			total += display_time;
-	    			TimeDisplay.appendTime(name, display_time, time, this.buf);
-	    			this.buf ~= ' ';
-	    		}
-	    	}
-			TimeDisplay.appendTime("| Total", total, time, this.buf);
-			if ( streaming )
-			{
-				this.tracer.writeStreaming(this.buf);
-			}
-			else
-			{
-				this.tracer.writeStatic(this.buf);
-			}
-    	}
-    }
-
-
-	/***************************************************************************
-
-		Delegate used by _display (above) to return the elapsed time of a
+		Delegate used by display_ (below) to return the elapsed time of a
 		section.
 		
 	***************************************************************************/
 
-    uint getElapsed ( char[] name, uint elapsed )
+    public uint getElapsed ( char[] name, uint elapsed )
     {
     	return elapsed;
     }
@@ -372,66 +361,41 @@ struct Profiler
 
 	/***************************************************************************
 
-		Delegate used by _display (above) to return the average time of a
+		Delegate used by display_ (below) to return the average time of a
 		section.
 		
 	***************************************************************************/
 
-    float getAverage ( char[] name, uint elapsed )
+    public float getAverage ( char[] name, uint elapsed )
     {
 		return this.updateAverageTime(name, elapsed);
     }
     
 
-	/***************************************************************************
+    /***************************************************************************
 
-		Updates the average time for a timed section.
-		
-		Params:
-			name = name of timed section
-			elapsed = duration of timed section (in microseconds)
-		
-		Returns:
-			the new average time for the section, after updating
-		
-	***************************************************************************/
+        Resets all section times which have been recorded thusfar.
+        
+    ***************************************************************************/
 
-    float updateAverageTime ( char[] name, uint elapsed )
-	{
-		float* avg_ptr = name in this.section_avg_time;
-		float avg = avg_ptr ? *avg_ptr : 0;
+    public void reset ( )
+    {
+        this.section_start.clear();
+        this.section_end.clear();
+        this.resetAverages();
+    }
 
-		float new_weight = 1.0;
-		uint* count_ptr = name in this.section_avg_count;
-		if ( count_ptr )
-		{
-			new_weight = 1.0 / cast(float) *count_ptr;
-		}
-
-		float new_avg = (cast(float) elapsed * new_weight) + (avg * (1.0 - new_weight));
-		this.section_avg_time[name] = new_avg;
-		this.section_avg_count[name]++;
-
-		return new_avg;
-	}
-
-
-	/***************************************************************************
+    
+    /***************************************************************************
 
 		Resets the average section times which have been recorded thusfar.
 		
 	***************************************************************************/
 
-    void resetAverages ( )
+    public void resetAverages ( )
 	{
-		foreach ( key, val; this.section_avg_time )
-		{
-			this.section_avg_time.remove(key);
-		}
-		foreach ( key, val; this.section_avg_count )
-		{
-			this.section_avg_count.remove(key);
-		}
+        this.section_avg_time.clear();
+        this.section_avg_count.clear();
 	}
 
 
@@ -446,7 +410,7 @@ struct Profiler
 	
 	***************************************************************************/
 
-    R timeSection ( R, T... ) ( char[] name, R delegate ( T ) section )
+    public R timeSection ( R, T... ) ( char[] name, R delegate ( T ) section )
     {
     	static if ( is ( R == void ) )
     	{
@@ -466,22 +430,126 @@ struct Profiler
 
     /***************************************************************************
 
+        Updates the average time for a timed section.
+        
+        Params:
+            name = name of timed section
+            elapsed = duration of timed section (in microseconds)
+        
+        Returns:
+            the new average time for the section, after updating
+        
+    ***************************************************************************/
+    
+    private float updateAverageTime ( char[] name, uint elapsed )
+    {
+        float* avg_ptr = name in this.section_avg_time;
+        float avg = avg_ptr ? *avg_ptr : 0;
+    
+        float new_weight = 1.0;
+        uint* count_ptr = name in this.section_avg_count;
+        if ( count_ptr )
+        {
+            new_weight = 1.0 / cast(float) *count_ptr;
+        }
+    
+        float new_avg = (cast(float) elapsed * new_weight) + (avg * (1.0 - new_weight));
+        this.section_avg_time[name] = new_avg;
+        this.section_avg_count[name] = this.section_avg_count[name] + 1;
+    
+        return new_avg;
+    }
+
+
+    /***************************************************************************
+
+        If it's time to update the display, displays the times for all timed
+        sections.
+
+        Params:
+            prefix = string displayed before the times list
+            dg = delegate to return the value to display for each individual
+                section's time
+            time = display mode (secs, msecs, Usecs)
+            streaming = streaming display
+
+    ***************************************************************************/
+
+    private void display_ ( T : real ) ( char[] prefix, T delegate ( char[], uint ) dg, Time time, bool streaming )
+    {
+        if ( this.tracer.timeToUpdate() )
+        {
+            this.buf.length = 0;
+            this.buf ~= prefix;
+    
+            T total = 0;
+            foreach ( name, start; this.section_start )
+            {
+                ulong* end_ptr = name in this.section_end;
+                if ( end_ptr )
+                {
+                    uint elapsed = *end_ptr - start;
+                    T display_time = dg(name, elapsed);
+                    total += display_time;
+                    TimeDisplay.appendTime(name, display_time, time, this.buf);
+                    this.buf ~= ' ';
+                }
+            }
+            TimeDisplay.appendTime("| Total", total, time, this.buf);
+            if ( streaming )
+            {
+                this.tracer.writeStreaming(this.buf);
+            }
+            else
+            {
+                this.tracer.writeStatic(this.buf);
+            }
+        }
+    }
+
+
+    /***************************************************************************
+
 		Shared instance of the Profiler.
 	
 	***************************************************************************/
 
-    static Profiler static_instance;
+    private static Profiler static_instance;
 
 
-	/***************************************************************************
+    /***************************************************************************
+
+        Static constructor. Creates the shared instance.
+    
+    ***************************************************************************/
+
+    static this ( )
+    {
+        static_instance = new Profiler();
+    }
+
+    
+    /***************************************************************************
+
+        Static destructor. Deletes the shared instance.
+    
+    ***************************************************************************/
+
+    static ~this()
+    {
+        delete static_instance;
+    }
+
+
+    /***************************************************************************
 
 		Gets the shared Profiler instance.
 		
 	***************************************************************************/
 
-    static public typeof(this) instance ()
+    public static typeof(this) instance ()
     {
-    	return &static_instance;
+    	return static_instance;
     }
 }
 
