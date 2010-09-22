@@ -6,7 +6,7 @@
 
     Version:        May 2010: Initial release
                     
-    Authors:        Thomas Nicolai
+    Authors:        Thomas Nicolai, David Eckardt, Mathias Baumann
     
  ******************************************************************************/
 
@@ -16,7 +16,7 @@ module ocean.core.ArrayMap;
 
     Imports
     
- ******************************************************************************/
+*******************************************************************************/
 
 private     import      ocean.core.Exception: ArrayMapException, assertEx;
 
@@ -228,12 +228,31 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     final               Bucket[]                        k_map;
    
     /***************************************************************************
-        
-        Value map
-        
-     **************************************************************************/
     
-    final               V[]                             v_map;
+        Holds a value and a key
+    
+    ***************************************************************************/
+    
+    struct KeyVal
+    {
+        V value;
+        K key;
+        
+        static KeyVal opCall (V v,K b) 
+        {
+            KeyVal bv = { v, b};
+            
+            return bv;
+        }
+    }
+    
+    /***************************************************************************
+    
+        KeyValue map
+    
+    ***************************************************************************/
+    
+    final               KeyVal[]                             v_map;
     
     /***************************************************************************
         
@@ -255,7 +274,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      **************************************************************************/
     
-    final               size_t                            default_alloc_size = 1;
+    final               size_t                          default_alloc_size = 1;
 
     /***************************************************************************
         
@@ -263,7 +282,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      **************************************************************************/
     
-    final               size_t                            default_size;
+    final               size_t                          default_size;
     
     /***************************************************************************
         
@@ -320,7 +339,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         this.k_map = new Bucket[this.buckets_length];
         
-        this.v_map = new V[this.default_size];
+        this.v_map = new KeyVal[this.default_size];
         
         foreach (i, ref bucket; this.k_map) 
         {
@@ -460,7 +479,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             this.v_map[p].length = value.length;
         }
         
-        this.v_map[p] = value;
+        this.v_map[p] = KeyVal(value,key);
     }
 
     /***************************************************************************
@@ -500,8 +519,8 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         size_t v = this.findValueSync(key);
         
         if ( v !is size_t.max )
-        {
-            return this.v_map[v];
+        {            
+            return this.v_map[v].value;
         }
         
         throw new ArrayMapException(`key doesn't exist`);
@@ -522,7 +541,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     {
         hash_t h = (toHash(key) % this.buckets_length);
 
-        this.writeLock(h, {this.remove_(h, key);});
+        this.writeLock(h, {this.remove_(h, key); return;});
     }
     
     /***************************************************************************
@@ -714,7 +733,9 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     /***************************************************************************
     
-        Return the element associated with key
+        Return the element associated with key.
+        Does not return a pointer if Mutex.Enable is set, 
+        to prevent race conditions.
     
         Usage example on efficient key search
         ---
@@ -750,7 +771,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     {
         size_t v = this.findValueSync(key);
         
-        return (v == v.max)? null : this.v_map.ptr + v; 
+        return (v == v.max)? null : &(this.v_map.ptr + v).value; 
     }
      
     /***************************************************************************
@@ -758,7 +779,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
          Returns iterator with value as reference
      
          Be aware that the returned list is unordered and that the array map
-         does not support iteration over the key of the element is this 
+         does not support iteration over the key of the element as this 
          would be very inefficent.
          
          Params:
@@ -775,9 +796,24 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
          
          foreach ( ref value; this.v_map[0 .. this.len] )
          {
-             result = dg(value);
+             result = dg(value.value);
              if (result) break;
          }
+         
+         return result;
+     }
+     
+     public int opApply ( int delegate ( ref K key, ref V value ) dg )
+     {
+         int result = 0;
+         
+         foreach ( ref value; this.v_map[0 .. this.len] )
+         {             
+             result = dg(value.key,value.value);
+             
+             if (result) break;
+         }
+         
          
          return result;
      }
@@ -1011,7 +1047,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         {
             if ( element.key == key )
             {
-                v = this.v_map.ptr + element.pos;
+                v = &(this.v_map.ptr + element.pos).value;
                 k = &element;
                 
                 break;
@@ -1032,7 +1068,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **************************************************************************/
     
-    private size_t getPutIndex ( in K key )
+    private size_t getPutIndex ( in K key)
     {
         hash_t h = (toHash(key) % this.buckets_length);
         
@@ -1066,7 +1102,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
             bucket.length++;
         }
-        
+
         return p;
     }
     
@@ -1192,15 +1228,16 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     private bool remove_ ( hash_t h, K key )
     {
-        KeyElement* k;
-        V* v;
+        KeyElement* k,nk;
+        V* v,nv;
         
         this.findBucket(key, h, k, v);
         
         if ( k !is null && v !is null )
         {
             Bucket* bucket = this.k_map.ptr + h;
-            
+            auto oldpos = k.pos;
+
             if ( bucket.length == 1 )
             {
                 bucket.length = 0;
@@ -1211,7 +1248,22 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
                 bucket.length = bucket.length - 1;
             }
             
-            if ( this.len > 1 ) *v = this.v_map[this.len - 1];
+            if (oldpos != this.len - 1)
+            {
+                this.findBucket(this.v_map[this.len - 1].key,
+                  toHash(this.v_map[this.len - 1].key) % this.buckets_length,
+                  nk,nv);
+
+                assert(nk !is null && nv !is null);
+                
+                nk.pos = oldpos;
+                
+                    
+            }
+
+            if ( this.len > 1 ) this.v_map[oldpos] = this.v_map[this.len - 1];
+            
+            assert(oldpos == this.len -1 || v_map[oldpos].key == nk.key);
             
             static if (M) synchronized
             {
@@ -1664,350 +1716,13 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     }
 }
 
-/*******************************************************************************  
-
-    Hashmap with consistent hashing and with key iteration.
-    
-    The ArraySet supports key/value iteration whereas the ArrayMap only 
-    supports value iteration. The price for having key/value iteration is 
-    having the key stored inside the key map as well as in the value map.
-    
-    Template Params:
-        V = type of value stored in array map
-        K = type of key stored in array map (must be of simple type)
-        M = enable/disable mutex
-    
- ******************************************************************************/
-
-class ArrayMapKV ( V, K = hash_t, bool M = Mutex.Disable )
-{
-    
-    /***************************************************************************
-        
-        KeyValue element alias
-        
-     **************************************************************************/
-    
-    private alias       KeyValueElement!(K, V)                  Element;
-    
-    /***************************************************************************
-    
-	    Array map alias
-	    
-	 **************************************************************************/
-
-    private alias       ArrayMap!(KeyValueElement!(K, V), K, M)	ArrayMapType;
-
-    /***************************************************************************
-        
-        Map
-        
-     **************************************************************************/
-    
-    final               ArrayMapType							map;
-
-    /***************************************************************************
-        
-        Sets number of buckets used
-    
-        Usage example
-        ---
-        scope array = new ArrayMap (1_000_000, 0.75);
-        ---
-        
-        Params:
-            default_size = estimated number of elements to be stored
-            load_factor = determines the number of buckets used
-            
-        Returns:
-            void
-            
-     **************************************************************************/
-    
-    public this ( size_t default_size = 10_000, float load_factor = 0.75 )
-    {
-        map = new ArrayMapType(default_size, load_factor);
-    }
-    
-    /***************************************************************************
-        
-        Destructor; free memory to gc
-            
-        Returns:
-            void
-            
-     **************************************************************************/
-    
-    public ~this () 
-    {
-        delete map;
-    }
-
-    /***************************************************************************
-        
-        Put element to array map
-        
-        If the key does not yet exists the element is added otherwise the value of
-        the existing element matching the key is replaced by the new value.
-        
-        Params:
-            key = array key
-            value = array value
-        
-        Returns:
-            void
-        
-     **************************************************************************/
-    
-    public void put ( K key, V value )
-    {
-        map.put(key, Element(key, value));
-    }
-    
-    /***************************************************************************
-        
-        Returns value associated with key
-        
-        Params:
-            key = array key
-            
-        Returns:
-            value of array key
-        
-     **************************************************************************/
-    
-    public V get ( K key )
-    {
-        return (map.get(key)).value;
-    }
-
-    /***************************************************************************
-        
-        Remove element from array map
-        
-        Params:
-            key = key of element to remove
-            
-        Returns:
-            void
-        
-     **************************************************************************/
-    
-    public void remove ( K key )
-    {
-        map.remove(key);
-    }
-    
-    /***************************************************************************
-        
-        Clear array map
-        
-        Returns:
-            void
-        
-     **************************************************************************/
-    
-    public void clear ()
-    {
-        map.clear();
-    }
-    
-    /***************************************************************************
-        
-        Returns whether key exists or not
-        
-        Params:
-            key = array key
-            
-        Returns:
-            true if key exists, false otherwise
-        
-     **************************************************************************/
-    
-    public ArrayMapKV dup ()
-    {
-        auto clone = new ArrayMapKV!(V, K, M)(map.default_size, map.load_factor);
-        
-        map.copy(clone.map);
-        
-        return clone;
-    }
-    
-    /***************************************************************************
-        
-        Returns whether key exists or not
-        
-        Params:
-            key = array key
-            
-        Returns:
-            true if key exists, false otherwise
-        
-     **************************************************************************/
-    
-    bool exists ( K key )
-    {   
-        return map.exists(key);
-    }
-    
-    /***************************************************************************
-        
-        Free memory allocated by array map
-        
-        Using free on an array map leads to freeing of any memory allocated. The
-        array map can't be reused anymore afterwards.
-        
-        Returns:
-            void
-        
-     **************************************************************************/
-    
-    public void free ()
-    {
-        map.free;
-    }
-    
-    /***************************************************************************
-        
-        Return number of elements stored in hashmap
-        
-        Returns:
-            number of elements
-        
-     **************************************************************************/
-    
-    public size_t length ()
-    {
-        return map.length;
-    }
-
-    /***************************************************************************
-        
-        Returns element value associated with key
-        
-        Params:
-            key = array key
-            
-        Returns:
-            value of array key
-        
-     **************************************************************************/
-    
-    public V opIndex ( K key )
-    {
-        return (map.get (key)).value;
-    }
-
-    /***************************************************************************
-        
-        Put element to array map
-        
-        If the key does not yet exists the element is added otherwise the value of
-        the existing element matching the key is replaced by the new value.
-        
-        Params:
-            key = array key
-            value = array value
-        
-        Returns:
-            void
-        
-     **************************************************************************/
-    
-    public void opIndexAssign ( V value, K key )
-    {
-        map.put(key, Element(key, value));
-    }
-    
-    /***************************************************************************
-        
-        Return value associated with key
-        
-        Params:
-            key = array key
-        
-        Returns:
-            a pointer to the located value, or null if not found
-    
-     **************************************************************************/
-
-    static if (M) public bool opIn_r ( K key )
-    {
-        return key in map;
-    }
-    else public V* opIn_r ( K key )
-    {
-        Element* e = key in map;
-        
-        if ( e !is null )
-        {
-            return &(*e).value;
-        }
-        
-        return null;
-    }
-    
-    /***************************************************************************
-        
-        Returns iterator with value as reference
-    
-        Be aware that the returned list is unordered and that the array map
-        does not support iteration over the key of the element is this 
-        would be very inefficent.
-        
-        Params:
-            dg = delegate to pass values to
-        
-        Returns:
-            delegate result
-    
-     **************************************************************************/
-    
-    public int opApply ( int delegate ( ref V value ) dg )
-    {
-        int result = 0;
-        
-        foreach (ref element; map)
-            if ((result = dg(element.value)) != 0)
-                break;
-        
-        return result;
-    }
-    
-    /***************************************************************************
-        
-        Returns iterator with key and value as reference
-    
-        Be aware that the returned list is unordered and that the array map
-        does not support iteration over the key of the element is this 
-        would be very inefficent.
-        
-        Params:
-            dg = delegate to pass key & values to
-        
-        Returns:
-            delegate result
-    
-     **************************************************************************/
-    
-    public int opApply ( int delegate( ref K key, ref V value ) dg )
-    {
-        int result = 0;
-        
-        foreach (ref element; map)
-            if ((result = dg(element.key, element.value)) != 0) 
-                break;
-        
-        return result;
-    }
-
-}
-
 /*******************************************************************************
 
     Unittest
 
  ******************************************************************************/
+
+debug = OceanUnitTest;
 
 debug (OceanUnitTest)
 {
@@ -2016,53 +1731,251 @@ debug (OceanUnitTest)
     import tango.time.StopWatch;
     import tango.core.Thread;
     import tango.util.container.HashMap;
+    import tango.io.Buffer;
+    import tango.util.container.HashMap;
+    private import  tango.math.random.Random;
+
+    
+    struct slowdown { 
+        int a,b,c; 
+        static slowdown opCall(int a, int b, int c){ slowdown f; return f; }
+    }
+    
+    
+    void test ( T ) ( T array,uint iterations , uint inserts, bool free = true)
+    {
+        StopWatch   w;
+        Trace.format("{}:\t", T.stringof);
+        w.start;
+        for (uint r = 1; r <= iterations; r++)
+        {
+            array.clear();
+            for (uint i = ((inserts * r) - inserts); i < (inserts * r); i++)
+            {
+                array[i] = slowdown(i, i + 1, i + 2);
+            }
+        }
+        Trace.format("put = {}/s\t", (inserts * iterations) / w.stop);
+        w.start;
+        uint hits = 0;
+        uint* p;
+        for (auto a = 0; a < iterations; ++a)
+        {
+            hits=0;
+            for (uint i = ((inserts * iterations) - inserts); i < (inserts * iterations); i++)
+            {
+                if (i in array) hits++;
+            }
+        }
+        assert (inserts == hits);
+        Trace.format("{}/{} gets/hits\tget = {}/s and ", array.length, hits,
+                     iterations*array.length / w.stop);
+        Trace.formatln("mem usage {} mbytes", GC.stats["poolSize"]/1024/1024);
+        
+        w.start;
+        for (auto a = 0; a < iterations; ++a)
+        {
+            size_t ii;
+            foreach (el; array)
+            {
+                assert (el == slowdown(ii, ii + 1, ii + 2));                
+                ++ii;
+            }            
+        }
+        Trace.format("\tforeach = {}/s", (iterations * inserts) / w.stop);
+        
+        w.start;
+        for (uint r = 1; r <= iterations; r++)
+        {
+            for (uint i = ((inserts * r) - inserts); i < (inserts * r); i++)
+            {
+                array.remove(i);
+            }
+        }
+        Trace.formatln("\tdelete = {}/s", (iterations * inserts) / w.stop);
+        
+        if(free)
+        {
+            array.free;
+            
+            delete array;
+        }
+    }
+    
+    
+    import tango.util.Convert;
+    
     
     unittest
     {
         Trace.formatln("Running ocean.core.ArrayMap unittest");
         
-        const uint iterations  = 5;
+        const uint iterations  = 50;
         const uint inserts     = 1_000_000;
         const uint num_threads = 1;
-        
-        /***********************************************************************
-            
-            ArrayMapKV Assertion Test
-            
-         **********************************************************************/
+
         
         StopWatch   w;
+      
+        {
+            ArrayMap!(slowdown, hash_t, Mutex.Disable) maps[char[]];
+            
+            
+            Trace.formatln("Testing {} arrays with each {}",10,inserts*0.1);
+            char[][10] strs;
+            
+            for(uint i=0;i<10;++i)
+            {
+                maps[to!(char[])(i)] = new ArrayMap!(slowdown, hash_t, Mutex.Disable)(cast(uint)(inserts*0.1));
+                strs[i] = to!(char[])(i);
+            }
+            
+            
+            w.start;  
+            for (uint r = 1; r <= iterations; r++)
+            {
+                foreach(map ; maps) map.clear();
+                for (uint i = ((cast (uint) (inserts * 0.1) * r) - cast (uint) (inserts * 0.1)); i < (cast (uint) (inserts * 0.1) * r); i++)
+                {
+             
+                    foreach (str; strs)
+                    {
+                        maps[str][i] = slowdown(i, i + 1, i + 2);
+                    }
+                }
+            }
+            Trace.format("put = {}/s\t", (inserts * iterations) / w.stop).flush;
+            
+            
+            w.start; 
+            uint hits = 0;
+            uint* p;
+            for (uint r = 1; r <= iterations; r++)            
+            {
+                //Trace.format("iteration {}",r);
+                hits=0;
+                uint i=(((cast (uint) (inserts * 0.1) * iterations)) - (cast (uint) (inserts * 0.1) ));
+                uint b=i;
+                //Trace.format(" {} -> ",i);
+                for (i = (((cast (uint) (inserts * 0.1) * iterations)) - (cast (uint) (inserts * 0.1) )); i < ((cast (uint) (inserts * 0.1) * iterations) ); i++)
+                {
+                    foreach (str; strs)
+                        if (i in maps[str]) hits++;
+                }
+                //Trace.formatln("{} ({}).. done",i,i-b);
+            }
+            
+            
+            Trace.format("{}/{} gets/hits\tget = {}/s and ", inserts, hits,
+                         iterations*inserts / w.stop);
+            Trace.formatln("mem usage {} mbytes", GC.stats["poolSize"]/1024/1024);
+            assert (inserts == hits);
+            Trace.formatln("done.");
+        }
         
-        scope map = new ArrayMapKV!(uint, hash_t, Mutex.Disable)(100);
-        
-        map.put(1,11111);
-        map.put(2,22222);
-    
-        assert(map[1] == 11111);
-        assert(map[2] == 22222);
-        
-        assert(1 in map);
-        assert(2 in map);
-        
-        assert(map.length == 2);
-        
-        map[3] = 33333;
-        
-        assert(map.length == 3);
-        assert(map.get(3) == 33333);
-        
-        map.remove(3);
-        assert((3 in map) == null);
-        assert(map.length == 2);
         
         /***********************************************************************
             
             ArrayMap Assertion Test
             
-         **********************************************************************/
+        ***********************************************************************/        
+       
+        {
+            scope
+                  array = new ArrayMap!(slowdown, hash_t, Mutex.Disable)(
+                                                                         inserts);
+            Trace.formatln("running performance test...");
+            test(array, iterations, inserts);
+            array = new ArrayMap!(slowdown, hash_t, Mutex.Disable)(inserts);
+            Trace.formatln("running remove test...");
+            scope random = new Random();
+            // fill the map, remove i, fill it again, ++i, repeat till i==size
+            w.start;
+            for (uint r = 1, remove = 1; r <= (iterations > inserts)? iterations : inserts; r += inserts * 0.1 , remove += inserts * 0.1)
+            {
+                array.clear();
+                if (remove > inserts) break;
+                //Trace.formatln("Filling");
+                // fill
+                for (uint i = ((inserts * r) - inserts); i < (inserts * r); i++)
+                {
+                    array[i] = slowdown(i, i + 1, i + 2);
+                }
+                
+                //Trace.formatln("Validating filled!");
+                foreach(i, kv ; array.v_map)
+                {
+                    assert(i >= array.len || array[kv.key] == kv.value);
+                }
+                // remove
+                uint rand;
+                random(rand);
+                auto rem = rand % (inserts - remove);
+                //Trace.formatln("removing {} starting at {}", remove, rem);
+                for (uint i = rem; i < remove + rem; ++i)
+                {
+                    array.remove((inserts * r) - inserts + i);
+                /+    Trace.formatln("removing {}",(inserts * r - inserts + i));
+                    foreach(kv ; array.v_map)
+                    {
+                        assert(array[kv.key] == kv.value);
+                    }+/
+                }
+                assert (array.length == inserts - remove);
+                //Trace.formatln("Validating");
+                // validate
+                uint count = 0;
+                for (uint i = ((inserts * r) - inserts); i < (inserts * r); i++)
+                {
+                    if (auto x = i in array)
+                    {
+                        assert (*x == slowdown(i, i + 1, i + 2), "failed to validate");
+                        ++count;
+                    }
+                }
+                
+                //Trace.formatln("Validating!");
+                foreach(i, kv ; array.v_map)
+                {
+                    assert(i >= array.len || array[kv.key] == kv.value);
+                }
+                
+                assert (count == array.length, "length doesn't fit");
+                //Trace.formatln("Filling again starting at {}", rem);
+                // fill again
+                for (uint i = ((inserts * r) - (inserts - rem)); i < (inserts * r) - (inserts - rem) + remove; i++)
+                {
+                    //      Trace.formatln("adding {}", i);
+                    assert (!(i in array));
+                    array[i] = slowdown(i, i + 1, i + 2);
+                }
+                
+                //Trace.formatln("length is {}, insetrs are {}", array.length,
+                //      inserts);
+                assert (array.length == inserts);
+                //Trace.formatln("Validating again");
+                // validate again
+                for (uint i = ((inserts * r) - inserts); i < (inserts * r); i++)
+                {
+                    assert (array[i] == slowdown(i, i + 1, i + 2), "failed to validate 2");
+                }
+                
+                //Trace.formatln("Validating again!");
+                foreach(i, kv ; array.v_map)
+                {
+                    assert(i >= array.len || array[kv.key] == kv.value);
+                }
+            }
+            w.stop;
+            array.clear();
+            array.free();
+        }
         
-        scope array = new ArrayMap!(uint, hash_t, Mutex.Disable)(inserts);
         
+        Trace.formatln("running general functionality test...");
+        auto array = new ArrayMap!(uint, hash_t, Mutex.Disable)(2);
+
+       
         array[1111] = 2;
         array[2222] = 4;
 
@@ -2082,48 +1995,53 @@ debug (OceanUnitTest)
         assert((1111 in array) == null);
         assert(array.length == 1);
         
-        /***********************************************************************
-            
-            Memory Test
-            
-         **********************************************************************/
         
-        Trace.formatln("running mem test...");
+        bool catchme=false;
+        try array.get(3333);
+        catch (ArrayMapException e) catchme=true;
+        assert(catchme); catchme = false;
         
-        for ( uint r = 1; r <= iterations; r++ )
         {
-            array.clear();
-            
-            w.start;
-
-            for ( uint i = ((inserts * r) - inserts); i < (inserts * r); i++ )
+            scope array2 = new ArrayMap!(uint, hash_t, Mutex.Disable)(1);
+            array.copy(array2);
+            assert (array[2222] == array2[2222]);            
+        }
+        
+        assert(array.dup[2222] == array[2222]);
+        
+        array[3333] = 234;
+        
+        {
+            size_t count = 0;
+            auto vals = [ 4,234]; 
+            foreach (v; array)
             {
-                array[i] = i;
+                ++count;        
+                assert(v == 234 || v == 4);
             }
-            
-            Trace.formatln  ("[{}:{}-{}]\t{} adds with {}/s and {} bytes mem usage", 
-                    r, ((inserts * r) - inserts), (inserts * r), array.length, 
-                    array.length/w.stop, GC.stats["poolSize"]);
+            assert(count == array.length);
         }
         
-        w.start;
-        uint hits = 0;
-        uint* p;
-        
-        for ( uint i = ((inserts * iterations) - inserts); i < (inserts * iterations); i++ )
         {
-            if ( i in array ) hits++;
+            size_t count = 0;
+            auto vals = [ 4,234]; 
+            foreach (k,v; array)
+            {
+                ++count;       
+                
+                assert((v == 234 && k == 3333) || 
+                       (v == 4   && k == 2222));
+                
+            }
+            assert(count == array.length);
         }
-        Trace.formatln("inserts = {}, hits = {}", inserts, hits);
-        assert(inserts == hits);
         
-        Trace.format  ("{}/{} gets/hits with {}/s and ", array.length, hits, array.length/w.stop);
-        Trace.formatln("mem usage {} bytes", GC.stats["poolSize"]);
+      //scope buf = new Buffer;
+       // assert(array.dump(buf) == 8);
+       //  assert(array[2222] == array2[2222]);
+       // assert(array == array2);
         
-        Trace.formatln("freeing memory allocated");
-        Trace.formatln("");
         
-        array.free;
 
         Thread.sleep(2);
     
