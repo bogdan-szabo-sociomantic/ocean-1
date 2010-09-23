@@ -534,6 +534,18 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         throw new ArrayMapException(`key doesn't exist`);
     }
 
+    /***************************************************************************
+        
+        Returns value associated with key
+        
+        Params:
+            key = array key
+            hash = hash value of key
+            
+        Returns:
+            value of array element
+        
+     **************************************************************************/
 
     public V get ( K key, hash_t hash )
     {
@@ -546,8 +558,6 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         throw new ArrayMapException(`hash doesn't exist`);
     }
-
-
 
     /***************************************************************************
         
@@ -674,7 +684,19 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         return this.findValueSync(key) != size_t.max;
     }
 
-    // TODO
+    /***************************************************************************
+        
+        Returns whether key exists or not
+        
+        Params:
+            key = array key
+            hash = hash of key
+            
+        Returns:
+            true if key exists, false otherwise
+        
+     **************************************************************************/
+
     bool exists ( K key, hash_t hash )
     {
         return this.findValueSync(key, hash % this.buckets_length) != size_t.max;
@@ -2013,6 +2035,8 @@ debug (OceanUnitTest)
         assert(array[2222] == 4);
         assert(1111 in array);
         assert(2222 in array);
+        assert(array.get(2222,array.toHash(2222)) == 4);
+        assert(array.exists(2222,array.toHash(2222)));
         assert(array.length == 2);
         
         array[1111] = 3;
