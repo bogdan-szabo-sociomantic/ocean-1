@@ -328,7 +328,7 @@ public class NGramParser
     
     ***************************************************************************/
 
-    public void normalizeText ( T ) ( T[] input, ref dchar[] output, ref dchar[] working, dchar[][] stopwords = [[]] )
+    public void normalizeText ( T ) ( T[] input, ref dchar[] output, ref dchar[] working, dchar[][] stopwords = [] )
     {
         convertToDChar(input, working);
 
@@ -337,6 +337,44 @@ public class NGramParser
         removeStopWords(output, working, stopwords);
 
         compressWhitespace(working, output);
+    }
+
+
+    /***************************************************************************
+
+        Processes a text, splitting it into words (by space characters), then
+        copying any non-stopwords into the output buffer.
+    
+        Params:
+            input = text to process
+            output = output for processed text
+            stopwords = list of words to remove from input text
+    
+    ***************************************************************************/
+    
+    public void removeStopWords ( dchar[] input, ref dchar[] output, ref dchar[][] stopwords )
+    {
+        output.length = 0;
+    
+        debug uint count, stop;
+        foreach ( word; TextUtil.split(input, " "d) )
+        {
+            if ( word.length )
+            {
+                debug count++;
+                auto NotStopWord = stopwords.length;
+                if ( stopwords.find(word) == NotStopWord )
+                {
+                    output.append(word, " "d);
+                }
+                else debug stop++;
+            }
+        }
+    
+        debug if ( stopwords.length )
+        {
+            Trace.formatln("Stopwording reduced word count from {} to {} ({}% of original)", count, count - stop, (cast(float)stop / cast(float)count) * 100);
+        }
     }
 
 
@@ -546,41 +584,6 @@ public class NGramParser
         {
             return [c];
         }
-    }
-
-
-    /***************************************************************************
-
-        Processes a text, splitting it into words (by space characters), then
-        copying any non-stopwords into the output buffer.
-
-        Params:
-            input = text to process
-            output = output for processed text
-            stopwords = list of words to remove from input text
-    
-    ***************************************************************************/
-
-    private void removeStopWords ( dchar[] input, ref dchar[] output, ref dchar[][] stopwords )
-    {
-        output.length = 0;
-
-        debug uint count, stop;
-        foreach ( word; TextUtil.split(input, " "d) )
-        {
-            if ( word.length )
-            {
-                debug count++;
-                auto NotStopWord = stopwords.length;
-                if ( stopwords.find(word) == NotStopWord )
-                {
-                    output.append(word, " "d);
-                }
-                else debug stop++;
-            }
-        }
-
-        debug Trace.formatln("Stopwording reduced word count from {} to {} ({}% of original)", count, count - stop, (cast(float)stop / cast(float)count) * 100);
     }
 
 
