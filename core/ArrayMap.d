@@ -1774,8 +1774,6 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
  ******************************************************************************/
 
-debug = OceanUnitTest;
-
 debug (OceanUnitTest)
 {
     import tango.util.log.Trace;
