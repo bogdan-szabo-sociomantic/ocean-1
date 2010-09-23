@@ -454,7 +454,10 @@ class NGramSet_ ( bool ThreadSafe = false )
 
     public void keepHighestCount ( uint num )
     {
-        this.ensureWithinRange(num);
+        if ( num > this.ngrams.length )
+        {
+            return;
+        }
 
         BitArray keep;
         this.findHighestCount(num, keep);
