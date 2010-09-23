@@ -1925,7 +1925,96 @@ debug (OceanUnitTest)
             Trace.formatln("done.");
         }
         
-        
+        /***********************************************************************
+            
+            ArrayMap Assertion Test
+            
+        ***********************************************************************/        
+       
+    {
+            scope
+                  array = new ArrayMap!(uint[], hash_t, Mutex.Disable)(
+                                                                         inserts);
+            
+            Trace.formatln("running remove test with arrays...");
+            scope random = new Random();
+            // fill the map, remove i, fill it again, ++i, repeat till i==size
+            w.start;
+            for (uint r = 1, remove = 1; r <= (iterations > inserts)? iterations : inserts; r += inserts * 0.1 , remove += inserts * 0.1)
+            {
+                array.clear();
+                if (remove > inserts) break;
+                //Trace.formatln("Filling");
+                // fill
+                for (uint i = ((inserts * r) - inserts); i < (inserts * r); i++)
+                {
+                    array[i] = [i, i + 1, i + 2];
+                }
+                //Trace.formatln("Validating filled!");
+                foreach (i, kv; array.v_map)
+                {
+                    assert (i >= array.len || array[kv.key] == kv.value);
+                }
+                // remove
+                uint rand;
+                random(rand);
+                auto rem = rand % (inserts - remove);
+                //Trace.formatln("removing {} starting at {}", remove, rem);
+                for (uint i = rem; i < remove + rem; ++i)
+                {
+                    array.remove((inserts * r) - inserts + i);
+                    /+    Trace.formatln("removing {}",(inserts * r - inserts + i));
+                     foreach(kv ; array.v_map)
+                     {
+                     assert(array[kv.key] == kv.value);
+                     }+/
+                }
+                assert (array.length == inserts - remove);
+                //Trace.formatln("Validating");
+                // validate
+                uint count = 0;
+                for (uint i = ((inserts * r) - inserts); i < (inserts * r); i++)
+                {
+                    if (auto x = i in array)
+                    {
+                        assert (*x == [i, i + 1, i + 2], "failed to validate");
+                        ++count;
+                    }
+                }
+                //Trace.formatln("Validating!");
+                foreach (i, kv; array.v_map)
+                {
+                    assert (i >= array.len || array[kv.key] == kv.value);
+                }
+                assert (count == array.length, "length doesn't fit");
+                //Trace.formatln("Filling again starting at {}", rem);
+                // fill again
+                for (uint i = ((inserts * r) - (inserts - rem)); i < (inserts * r) - (inserts - rem) + remove; i++)
+                {
+                    //      Trace.formatln("adding {}", i);
+                    assert (!(i in array));
+                    array[i] = [i, i + 1, i + 2];
+                }
+                //Trace.formatln("length is {}, insetrs are {}", array.length,
+                //      inserts);
+                assert (array.length == inserts);
+                //Trace.formatln("Validating again");
+                // validate again
+                for (uint i = ((inserts * r) - inserts); i < (inserts * r); i++)
+                {
+                    assert (array[i] == [i, i + 1, i + 2], "failed to validate 2");
+                }
+                //Trace.formatln("Validating again!");
+                foreach (i, kv; array.v_map)
+                {
+                    assert (i >= array.len || array[kv.key] == kv.value);
+                }
+            }
+            w.stop;
+            array.clear();
+            array.free();
+        }
+    
         /***********************************************************************
             
             ArrayMap Assertion Test
