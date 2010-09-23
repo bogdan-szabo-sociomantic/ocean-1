@@ -534,6 +534,21 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         throw new ArrayMapException(`key doesn't exist`);
     }
 
+
+    public V get ( K key, hash_t hash )
+    {
+        size_t v = this.findValueSync(key, hash % this.buckets_length);
+        
+        if ( v !is size_t.max )
+        {            
+            return this.v_map[v].value;
+        }
+        
+        throw new ArrayMapException(`hash doesn't exist`);
+    }
+
+
+
     /***************************************************************************
         
         Remove element from array map
@@ -657,6 +672,12 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     bool exists ( K key )
     {   
         return this.findValueSync(key) != size_t.max;
+    }
+
+    // TODO
+    bool exists ( K key, hash_t hash )
+    {
+        return this.findValueSync(key, hash % this.buckets_length) != size_t.max;
     }
     
     /***************************************************************************
@@ -929,8 +950,8 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
              hash
          
       *************************************************************************/
-     
-     public static hash_t toHash ( K key )
+
+    public static hash_t toHash ( K key )
      {
          static if (is (K : hash_t))
          {
