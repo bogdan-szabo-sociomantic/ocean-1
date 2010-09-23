@@ -454,7 +454,7 @@ class NGramSet_ ( bool ThreadSafe = false )
 
     public void keepHighestCount ( uint num )
     {
-        if ( num > this.ngrams.length )
+        if ( num >= this.ngrams.length )
         {
             return;
         }
