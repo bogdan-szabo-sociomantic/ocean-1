@@ -98,20 +98,9 @@ class NGramSet_ ( bool ThreadSafe = false )
     private NGramRelFreqArray ngrams_rel_freq;
 
     
-    /***************************************************************************
-
-        Flag which is set to true when the relative frequencies array is out of
-        date.
-
-    ***************************************************************************/
-
-    private bool rel_freq_invalid;
-    
-
 	/***************************************************************************
 	
-		A list of ngrams, sorted in descending order of frequency (that is,
-		highest first).
+		List of sorted ngrams resulting from one of the sort methods.
 		
 		This list is maintained as the associative array (this.ngrams) cannot be
 		sorted itself. The strings in this.sorted_ngrams are just slices into
@@ -124,7 +113,19 @@ class NGramSet_ ( bool ThreadSafe = false )
 
     /***************************************************************************
 
-        List of ngrams to be removed - used internally by keepHighestCount().
+        List of pre-calculated ngram hashes, corresponding to the order of the
+        ngrams in this.ngrams. The hashes are precalculated to speed up distance
+        calculations, which are often repeated over and over.
+    
+    ***************************************************************************/
+
+    private hash_t[] ngrams_hashes;
+
+
+    /***************************************************************************
+
+        List of ngrams to be removed - used internally by keepHighestCount() and
+		filter().
     
     ***************************************************************************/
 
@@ -153,10 +154,8 @@ class NGramSet_ ( bool ThreadSafe = false )
 	public void clear ( )
 	{
         this.ngrams.clear();
-        this.ngrams_rel_freq.clear();
 
-        this.rel_freq_invalid = false;
-		this.sorted_ngrams.length = 0;
+        this.recalcNeeded();
 	}
 	
 	
@@ -173,7 +172,7 @@ class NGramSet_ ( bool ThreadSafe = false )
 	public void add ( dchar[] ngram, uint freq )
 	{
 		this.ngrams[ngram] = freq;
-        this.rel_freq_invalid = true;
+        this.recalcNeeded();
 	}
 	
 	
@@ -197,7 +196,8 @@ class NGramSet_ ( bool ThreadSafe = false )
 		{
 			this.ngrams[ngram] = occurrences;
 		}
-        this.rel_freq_invalid = true;
+
+        this.recalcNeeded();
     }
 	
 	
@@ -244,6 +244,28 @@ class NGramSet_ ( bool ThreadSafe = false )
 	
 	***************************************************************************/
 
+    public int opApply ( int delegate ( ref dchar[] ) dg )
+    {
+        int result;
+        foreach ( ngram, count; this.ngrams )
+        {
+            result = dg(ngram);
+            if ( result )
+            {
+                break;
+            }
+        }
+    
+        return result;
+    }
+
+
+    /***************************************************************************
+    
+        foreach iterator over all the ngrams in the set and their count.
+    
+    ***************************************************************************/
+
     public int opApply ( int delegate ( ref dchar[], ref uint ) dg )
     {
         int result;
@@ -254,6 +276,88 @@ class NGramSet_ ( bool ThreadSafe = false )
             {
                 break;
             }
+        }
+    
+        return result;
+    }
+
+
+    /***************************************************************************
+    
+        foreach iterator over all the ngrams in the set and their relative
+        frequency.
+    
+    ***************************************************************************/
+
+    public int opApply ( int delegate ( ref dchar[], ref float ) dg )
+    {
+        this.updateRelFreqs();
+
+        int result;
+        foreach ( ngram, freq; this.ngrams_rel_freq )
+        {
+            result = dg(ngram, freq);
+            if ( result )
+            {
+                break;
+            }
+        }
+    
+        return result;
+    }
+
+
+    /***************************************************************************
+    
+        foreach iterator over all the ngrams in the set, their count and their
+        hashes.
+    
+    ***************************************************************************/
+
+    public int opApply ( int delegate ( ref dchar[], ref uint, ref hash_t ) dg )
+    {
+        this.updateHashes();
+
+        int result;
+        size_t i;
+        foreach ( ngram, count; this.ngrams )
+        {
+            result = dg(ngram, count, this.ngrams_hashes[i]);
+            if ( result )
+            {
+                break;
+            }
+
+            i++;
+        }
+    
+        return result;
+    }
+
+
+    /***************************************************************************
+    
+        foreach iterator over all the ngrams in the set, their relative
+        frequency and their hashes.
+    
+    ***************************************************************************/
+
+    public int opApply ( int delegate ( ref dchar[], ref float, ref hash_t ) dg )
+    {
+        this.updateRelFreqs();
+        this.updateHashes();
+
+        int result;
+        size_t i;
+        foreach ( ngram, freq; this.ngrams_rel_freq )
+        {
+            result = dg(ngram, freq, this.ngrams_hashes[i]);
+            if ( result )
+            {
+                break;
+            }
+
+            i++;
         }
     
         return result;
@@ -375,7 +479,7 @@ class NGramSet_ ( bool ThreadSafe = false )
 
         this.sorted_ngrams.length = 0;
 
-        this.rel_freq_invalid = true;
+        this.recalcNeeded();
     }
 
 
@@ -409,7 +513,7 @@ class NGramSet_ ( bool ThreadSafe = false )
         }
         this.remove_list.length = 0;
 
-        this.rel_freq_invalid = true;
+        this.recalcNeeded();
     }
 
 
@@ -421,6 +525,10 @@ class NGramSet_ ( bool ThreadSafe = false )
 		The distance is computed by accumulating the difference in the relative
 		frequency of each ngram in both sets, then dividing by the number of
 		ngrams compared.
+
+        Note: To speed up repeated comparisons with the same ngram set, the
+        hashes of the compared ngrams are precalculated, to avoid having to
+        calculate them on every call to this.ngrams.exists().
 
 		Params:
 			compare = set to compare against
@@ -440,51 +548,25 @@ class NGramSet_ ( bool ThreadSafe = false )
         }
 
         float total_distance = 0;
-
-        foreach ( ngram, count; compare )
+        size_t i;
+        foreach ( dchar[] compare_ngram, float compare_freq, hash_t compare_hash; compare )
         {
-            if ( !(ngram in this.ngrams) )
+            if ( !this.ngrams.exists(compare_ngram, compare_hash) )
             {
                 total_distance += 1;
-                continue;
+            }
+            else
+            {
+                float ngram_distance = abs(compare_freq - this.getRelFreq(compare_ngram, compare_hash));
+                total_distance += ngram_distance;
+
+//                debug Trace.format("'{}' ({}% / {}%): {}%,  ", compare_ngram, this.getRelFreq(compare_ngram, compare_hash) * 100, compare_freq * 100, ngram_distance * 100);
             }
 
-            float ngram_distance = abs(compare.getRelFreq(ngram) - this.getRelFreq(ngram));
-
-            total_distance += ngram_distance;
-
-//            debug Trace.format("'{}' ({}% / {}%): {}%,  ", ngram, this.getRelFreq(ngram) * 100, compare.getRelFreq(ngram) * 100, ngram_distance * 100);
+            i++;
         }
 
         return total_distance / cast(float) compare.length;
-    }
-
-    // TODO
-    public float distance ( This compare, dchar[][] ngrams )
-    {
-        if ( ngrams.length == 0 )
-        {
-            return 1.0;
-        }
-
-        float total_distance = 0;
-
-        foreach ( ngram; ngrams )
-        {
-            if ( !(ngram in this.ngrams) )
-            {
-                total_distance += 1;
-                continue;
-            }
-
-            float ngram_distance = abs(compare.getRelFreq(ngram) - this.getRelFreq(ngram));
-
-            total_distance += ngram_distance;
-
-//            debug Trace.format("'{}' ({}% / {}%): {}%,  ", ngram, this.getRelFreq(ngram) * 100, compare.getRelFreq(ngram) * 100, ngram_distance * 100);
-        }
-
-        return total_distance / cast(float) ngrams.length;
     }
 
 
@@ -738,6 +820,26 @@ class NGramSet_ ( bool ThreadSafe = false )
 
     /***************************************************************************
     
+        Invalidates the internal arrays for:
+            * ngram relative frequencies
+            * ngram hashes
+            * sorted ngrams
+
+        This method needs to be called any time this.ngrams is modified, as the
+        derived arrays will need to be recalculated.
+
+    ***************************************************************************/
+
+    private void recalcNeeded ( )
+    {
+        this.ngrams_rel_freq.clear();
+        this.sorted_ngrams.length = 0;
+        this.ngrams_hashes.length = 0;
+    }
+
+
+    /***************************************************************************
+    
         Computes the relative frequencies of the ngrams in the set, if the
         currently computed relative frequencies are out of date.
         
@@ -745,7 +847,7 @@ class NGramSet_ ( bool ThreadSafe = false )
 
     private void updateRelFreqs ( )
     {
-        if ( this.rel_freq_invalid )
+        if ( this.ngrams_rel_freq.length != this.ngrams.length )
         {
             auto total_ngrams = this.countOccurrences();
 
@@ -754,8 +856,57 @@ class NGramSet_ ( bool ThreadSafe = false )
                 float rel_freq = cast(float) count / cast(float) total_ngrams;
                 this.ngrams_rel_freq[ngram] = rel_freq;
             }
+        }
+    }
 
-            this.rel_freq_invalid = false;
+
+    /***************************************************************************
+    
+        Computes the hashes of the ngrams in the set, if the currently computed
+        hashes are out of date.
+        
+    ***************************************************************************/
+
+    private void updateHashes ( )
+    {
+        if ( this.ngrams_hashes.length != this.ngrams.length )
+        {
+            this.ngrams_hashes.length = this.ngrams.length;
+
+            size_t i;
+            foreach ( ngram; this )
+            {
+                this.ngrams_hashes[i++] = NGramCountArray.toHash(ngram);
+            }
+        }
+    }
+
+
+    /***************************************************************************
+
+        Gets the relative frequency of an ngram, given the ngram's hash. The
+		relative frequencies are updated if they're out of date.
+        
+        Params:
+            ngram = ngram to test
+			hash = hash of ngram
+            
+        Returns:
+            the ngram's relative frequency
+    
+    ***************************************************************************/
+    
+    private float getRelFreq ( dchar[] ngram, hash_t hash )
+    {
+        this.updateRelFreqs();
+    
+        if ( this.ngrams_rel_freq.exists(ngram, hash) )
+        {
+            return this.ngrams_rel_freq.get(ngram, hash);
+        }
+        else
+        {
+            return 0.0;
         }
     }
 
