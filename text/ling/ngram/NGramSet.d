@@ -572,6 +572,49 @@ class NGramSet_ ( bool ThreadSafe = false )
 
     /***************************************************************************
     
+        Compares a list of ngram sets to this one, works out the distance
+        between them, and returns the index of the closest match.
+        
+        Params:
+            compare = list of ngram sets to compare against
+            dg = delegate to call when comparing each ngram set
+    
+        Returns:
+            index of the closest match in the compare array, or -1 (size_t.max)
+            if no match was found
+    
+    ***************************************************************************/
+
+    public size_t findClosest ( This[] compare, void delegate ( size_t, This, float ) dg = null )
+    {
+        size_t best_index = size_t.max;
+        const NO_MATCH = 2.0;
+        float best_distance = NO_MATCH;
+
+        foreach ( i, ngram_set; compare )
+        {
+            if ( ngram_set.length )
+            {
+                auto distance = ngram_set.distance(this);
+                if ( distance < best_distance )
+                {
+                    best_distance = distance;
+                    best_index = i;
+                }
+
+                if ( dg )
+                {
+                    dg(i, ngram_set, distance);
+                }
+            }
+        }
+
+        return best_index;
+    }
+
+
+    /***************************************************************************
+    
         Tells if the given ngram is in this set.
         
         Params:
