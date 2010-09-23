@@ -435,8 +435,6 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     {
         this.len = 0;
         
-        delete this.v_map;
-        
         foreach (i, ref bucket; this.k_map)
         {
             static if (M)
@@ -453,9 +451,11 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         {
             foreach (ref value; this.v_map)
             {
-                delete value;
+                delete value.value;
             }
         }
+        
+        delete this.v_map;
         
         delete this.k_map;
         
@@ -484,7 +484,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         static if (this.VisArray)
         {
-            this.v_map[p].length = value.length;
+            this.v_map[p].value.length = value.length;
         }
         
         this.v_map[p] = KeyVal(value,key);
@@ -507,7 +507,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     {
         size_t p = this.getPutIndex(key);
         
-        this.v_map[p] ~= value;
+        this.v_map[p].value ~= value;
     }
 
     /***************************************************************************
@@ -574,7 +574,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     {
         hash_t h = (toHash(key) % this.buckets_length);
 
-        this.writeLock(h, {this.remove_(h, key); return;});
+        this.writeLock(h, delegate void () {this.remove_(h, key);});
     }
     
     /***************************************************************************
@@ -624,9 +624,10 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             
             static if (this.VisArray)
             {
-                foreach (i, value; this.v_map)
+                foreach (i, keyval; this.v_map)
                 {
-                    dst.v_map[i] = value.dup;
+                    dst.v_map[i].key   = keyval.key;
+                    dst.v_map[i].value = keyval.value.dup;
                 }
             }
             
@@ -731,7 +732,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         {
             foreach (ref value; this.v_map)
             {
-                value.length = 0;
+                value.value.length = 0;
             }
         }
     }
@@ -1169,7 +1170,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         {
             foreach (ref value; this.v_map)
             {
-                value.length = 0;
+                value.value.length = 0;
             }
         }
         
