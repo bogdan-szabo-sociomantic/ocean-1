@@ -33,8 +33,67 @@
 
 module ocean.core.UniStruct;
 
-struct UniStruct ( TypeId, Types ... )
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+import ocean.core.Exception : UniStructException;
+
+import tango.core.Traits;
+
+struct UniStruct ( Types ... )
 {
+    /***************************************************************************
+    
+        Template that returns the upper case version of the provided character
+        
+    ***************************************************************************/
+    
+    template upper (char a)
+    {
+        static if (a <= 'z' && a >='a')
+        {
+            const char upper =  a-32;
+        }
+        else
+        {
+            const char upper = a;
+        }
+    }
+    
+    /***************************************************************************
+    
+        template that creates a comma separated list as string
+        of the provided tuple values
+        
+    ***************************************************************************/
+    
+    template createList (MyTypes...) 
+    {     
+        static if (MyTypes.length > 0)
+        {
+            const char[] createList = upper!(MyTypes[0].stringof[0])
+                     ~MyTypes[0].stringof[1 .. $] 
+                     ~ ", " ~ createList!(MyTypes[1..$]);
+        }
+        else
+        {
+            const char[] createList =  "";
+        }
+            
+    }
+    
+    /***************************************************************************
+    
+        Mixin of an auto-generated enum of the types, first letter is always
+        upper case to avoid conflicts with basic datatypes (int -> Int)
+        
+    ***************************************************************************/
+    
+    mixin("enum TypeId { "~createList!(Types)~" }");
+    
     /**************************************************************************
      
          Type customized union template
@@ -212,16 +271,58 @@ struct UniStruct ( TypeId, Types ... )
     **************************************************************************/
 
     Type!(type_id) get ( TypeId type_id ) ( )
-    in
     {
-        assert (type_id == this.type_id_, typeof (*this).stringof ~ ": type id mismatch");
-    }
-    body
-    {
+        if(type_id != this.type_id_)
+            throw new UniStructException(typeof (*this).stringof ~ ": type id mismatch");
+        
         static if (type_id >= 0)
         {
-            return this.tu.get!(type_id)();
+           return this.tu.get!(type_id)();
         }
+    }
+    
+    /***************************************************************************
+    
+        Provides a (slightly modified) visitor-pattern accessor.
+        
+        Usage:
+        ---
+        UniStruct!(float,int) example;
+        
+        example.set(4999);
+        
+        // This will output "Value is an int : 4999"
+        example.visit( 
+          (float val) { Stdout.formatln("Value is a float: {}",val); },
+          (int   val) { Stdout.formatln("Value is an int : {}",val); });
+          
+        // You don't need to provide a method for every datatype, 
+        // but it will throw if you provided no delegate for the current type  
+        example.visit(
+          (int   val) { Stdout.formatln("Value is an int : {}",val); });
+         
+        ---
+            Params:
+                delegates = one or more delegates, passed as varargs, 
+                            that take one of the UniStruct types as parameter
+                            
+    ***************************************************************************/
+    
+    void visit ( Tuple ... ) ( Tuple delegates )
+    {        
+        foreach (i,type; Tuple) 
+            foreach ( paraTypes; ParameterTupleOf!(type))
+            {
+                const Id = Id!(paraTypes);
+                
+                if (Id == this.type_id_)
+                {
+                    delegates[i](this.tu.get!(Id));
+                    return;
+                }
+            }
+        
+        throw new UniStructException("No delegate fits");
     }
     
     /**************************************************************************
@@ -307,4 +408,50 @@ struct UniStruct ( TypeId, Types ... )
     {
         const Id = cast (TypeId) TU.Id!(Type);
     }
+}
+
+debug (OceanUnitTest)
+{
+    import tango.util.log.Trace;
+    
+
+    class Empty { int me; this(int a) { me = a; } };
+    
+    
+    
+    unittest
+    {
+        UniStruct!(int,float,Object) test;
+        
+        test.set!(float)(46);        
+        assert(test.type_id() == test.TypeId.Float);
+        
+        test.visit((float me) { assert(me == 46.0); } );
+        
+        test.set(34);      
+        assert(test.type_id == test.TypeId.Int);
+        
+        
+        test.visit((float me) { assert(false); },
+                   (  int me) { assert(me == 34); });
+        
+        test.set!(Object)(new Empty(3));
+        assert((cast(Empty)test.get!(test.TypeId.Object)()).me == 3);
+        
+        test.set!(test.TypeId.Int)(cast(int)19.0);
+        
+        {
+            bool catched=false;
+            try test.get!(test.TypeId.Float)();
+            catch (UniStructException e) catched = true;
+            assert(catched);
+        }
+        
+        int tmp = void;
+        test.get(tmp);
+        assert(tmp == 19);
+
+        
+    }
+    
 }
