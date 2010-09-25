@@ -328,7 +328,7 @@ template ExceptionOpCalls  ( E : Exception )
         {
             // ...
             
-            mixin CustomException!();
+            static mixin CustomException!();
             
             // Now MyClass.Exception can be thrown and caught.
         }
