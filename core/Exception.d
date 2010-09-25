@@ -316,6 +316,36 @@ template ExceptionOpCalls  ( E : Exception )
     }
 }
 
+/******************************************************************************
+
+    CustomException template to mixin an Exception class into a class or struct.
+    Usage:
+    
+    import $(TITLE);
+    
+    ---
+        class MyClass
+        {
+            // ...
+            
+            mixin CustomException!();
+            
+            // Now MyClass.Exception can be thrown and caught.
+        }
+    ---
+
+ *******************************************************************************/
+
+template CustomException ( )
+{
+    alias .Exception _Exception;
+    
+    class Exception : _Exception
+    {
+        this ( char[] msg                         ) { super(msg); }
+        this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+    }
+}
 
 /******************************************************************************
 
