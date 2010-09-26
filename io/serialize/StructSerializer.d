@@ -201,9 +201,9 @@ struct StructSerializer
         Loads/deserializes the content of s and its array members.
         
         receive is called repeatedly; on each call, it must populate the
-        provided data buffer with data previously produced by dump(). It must
-        return 0 to indicate success or a value different from 0 to abort
-        loading.
+        provided data buffer with data previously produced by dump().
+        Data which was populated once, should not be populated again. So
+        the delegate must behave like a stream receive function.
 
         Params:
             s       = struct instance (pointer)
@@ -635,4 +635,273 @@ struct StructSerializer
     {
         const FieldInfo = '\'' ~ S.tupleof[i].stringof ~ "' of type '" ~ T.stringof ~ '\'';
     }
+}
+
+debug (OceanUnitTest)
+{
+
+    /***************************************************************************
+
+        Imports
+
+    ***************************************************************************/
+
+    import tango.core.Traits;
+    import tango.stdc.time;
+    import tango.util.Convert : to;
+    /***************************************************************************
+
+        Provides a growing container. It will overwrite the oldest entries as soon
+        as the maxLength is reached.
+
+    ***************************************************************************/
+
+    struct CircularBuffer (T)
+    {
+        /***********************************************************************
+
+            growing array of elements
+
+        ***********************************************************************/
+
+        T[] elements;
+
+        /***********************************************************************
+
+           maximum allowed size of the array 
+
+        ***********************************************************************/
+
+        size_t maxLength = 50;
+
+        /***********************************************************************
+
+            current write position
+
+        ***********************************************************************/
+
+        size_t write = 0;
+
+        /***********************************************************************
+
+            Pushes an element on the Cache. If maxLength isn't reached, resizes 
+            the cache. If it is reached, overwrites the oldest element
+
+            Params:
+                element = The element to push into the cache 
+
+        ***********************************************************************/
+
+        void push (T element)
+        {
+            if (this.elements.length == this.write)
+            {
+                if (this.elements.length < this.maxLength)
+                {
+                    this.elements.length = this.elements.length + 1;
+                }
+                else
+                {
+                    this.write = 0;
+                }
+            }
+
+            static if (isArrayType!(T))
+            {
+                this.elements[this.write].length = element.length;
+                this.elements[this.write][] = element[];
+            }
+            else
+            {
+                this.elements[this.write] = element;
+            }
+
+            ++this.write;
+        }
+
+        /***********************************************************************
+
+            Returns the offset-newest element. Defaults to 0 (the newest)
+
+            Params:
+                offset = the offset-newest element. The higher this number, the
+                         older the returned element. Defaults to zero. (the newest
+                         element)
+
+        ***********************************************************************/
+
+        T* get (size_t offset=0)
+        {
+            if (offset < this.elements.length)
+            {
+                if (cast(int)(this.write - 1 - offset) < 0)
+                {
+                    return &elements[$ - offset + this.write - 1];
+                }
+
+                return &elements[this.write - 1 - offset];
+            }
+
+            throw new Exception("Element does not exist");
+        }
+    }
+    
+    alias CircularBuffer!(char[]) Urls;
+    
+
+    /***************************************************************************
+
+        Retargeting profile 
+
+    ***************************************************************************/
+
+    struct RetargetingAction 
+    {
+        hash_t id;
+        hash_t adpan_id;
+        time_t lastseen;
+        ubyte action;
+        
+
+        static RetargetingAction opCall(hash_t id,hash_t adpan_id,time_t lastseen,
+                                        ubyte action)
+        {
+            
+            RetargetingAction a = { id,adpan_id,lastseen,action };
+            
+            return a;
+        }
+    }
+
+    /***************************************************************************
+
+        Retargeting list 
+
+    ***************************************************************************/
+
+    alias CircularBuffer!(RetargetingAction) Retargeting;
+    
+    struct MeToo(int deep) 
+    {
+        uint a;               
+        char[] jo;
+        int[2] staticArray;
+        static if(deep > 0)
+            MeToo!(deep-1) rec;
+        
+        static if(deep > 0)
+            static MeToo opCall(uint aa, char[] jo, int sta, int stb,MeToo!(deep-1) rec)
+            {
+                MeToo a = {aa,jo,[sta,stb],rec};
+                return a;
+            }
+        else
+            static MeToo!(0) opCall(uint aa, char[] jo, int sta, int stb,)
+            {
+                MeToo!(0) a = {aa,jo,[sta,stb]};
+                return a;
+            }
+    }
+    
+unittest
+{
+   with (StructSerializer)
+   {
+       byte[] buf;
+       uint w=void;
+       {
+           Retargeting retargeting;
+           
+           retargeting.maxLength = 55;
+           
+           for(uint i = 0; i < 55; ++i)           
+               retargeting.push(RetargetingAction(i,i+2,3,4));
+       
+           w = retargeting.write;
+           dump(&retargeting,buf);
+           assert(length(&retargeting) == buf.length);
+       }
+       Retargeting newStruct;
+       
+       load(&newStruct,buf);
+       
+       assert(newStruct.maxLength == 55);
+       assert(newStruct.write == w);
+       
+       foreach(i, el ; newStruct.elements)
+       {
+           assert(el.id == i);
+           assert(el.adpan_id == i+2);
+           assert(el.lastseen == 3 && el.action == 4);
+       }
+       
+       
+       {
+           Urls urls;
+           
+           for(uint i=0;i<40;++i)
+               urls.push("http://example.com/"~to!(char[])(i));
+           
+           buf.length = 0;
+           dump(&urls,(void[] data){ buf~=cast(byte[])data; });
+       }
+       Urls empty;
+       load(&empty,(void[] d) { d[]=buf[0..d.length]; buf = buf[d.length..$]; });
+       
+       assert(empty.elements.length == 40);
+       
+       foreach(i, url ; empty.elements)
+           assert(url == "http://example.com/"~to!(char[])(i));
+       
+       
+       
+       struct SerializeMe
+       {
+
+           
+           MeToo!(4)[] structArray;
+       }
+       
+       {
+           SerializeMe sm;
+           sm.structArray ~= MeToo!(4)(1,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
+           sm.structArray ~= MeToo!(4)(2,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
+           sm.structArray ~= MeToo!(4)(3,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
+           sm.structArray ~= MeToo!(4)(4,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
+           
+           
+           dump(&sm,buf);
+       }
+       
+       SerializeMe dsm;
+       load(&dsm,buf);
+       
+       assert(dsm.structArray.length == 4);
+       
+       foreach(i, ar ; dsm.structArray)
+       {
+           assert(ar.a == i+1);
+           assert(ar.jo == "eins");
+           assert(ar.staticArray[0] == 2);
+           assert(ar.staticArray[1] == 3);
+           assert(ar.rec.a == 2);
+           assert(ar.rec.jo == "zwei");
+           assert(ar.rec.staticArray[0] == 2);
+           assert(ar.rec.staticArray[1] == 3);
+           assert(ar.rec.rec.a == 3);
+           assert(ar.rec.rec.jo == "drei");
+           assert(ar.rec.rec.staticArray[0] == 2);
+           assert(ar.rec.rec.staticArray[1] == 3);
+           assert(ar.rec.rec.rec.a == 4);
+           assert(ar.rec.rec.rec.jo == "");
+           assert(ar.rec.rec.rec.staticArray[0] == 2);
+           assert(ar.rec.rec.rec.staticArray[1] == 3);
+           assert(ar.rec.rec.rec.rec.a == 5);
+           assert(ar.rec.rec.rec.rec.jo == "");
+           assert(ar.rec.rec.rec.rec.staticArray[0] == 2);
+           assert(ar.rec.rec.rec.rec.staticArray[1] == 3);
+       }
+   }
+}
+
 }
