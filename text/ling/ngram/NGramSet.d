@@ -34,8 +34,6 @@ private	import tango.io.model.IConduit;
 
 private import tango.math.Math : abs;
 
-private import ocean.io.digest.Fnv1;
-
 debug
 {
 	private import tango.util.log.Trace;
