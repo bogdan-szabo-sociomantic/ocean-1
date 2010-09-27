@@ -53,13 +53,36 @@ debug
 
 /*******************************************************************************
 
+    Encoder interface.
+
+*******************************************************************************/
+
+interface StringEncoder
+{
+    /***************************************************************************
+
+        Converts a string from one encoding to another.
+        
+        Params:
+            input = string to convert
+            output = converted string
+    
+    ***************************************************************************/
+
+    public void convert ( char[] input, ref char[] output );
+}
+
+
+
+/*******************************************************************************
+
 	StringEncode class
 	The template parameters are the character encoding types for the input
 	and output of the converter.
 
 *******************************************************************************/
 
-public class StringEncode ( char[] fromcode, char[] tocode )
+public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 {
 	
 	/***************************************************************************
@@ -110,7 +133,7 @@ public class StringEncode ( char[] fromcode, char[] tocode )
 
 	***************************************************************************/
 
-	public void convert ( char[] input, out char[] output )
+	public void convert ( char[] input, ref char[] output )
 	{
 		output.length = input.length;
 
@@ -191,5 +214,131 @@ public class StringEncode ( char[] fromcode, char[] tocode )
 	{
 		iconv_close(this.cd);
 	}
+}
+
+
+
+/*******************************************************************************
+
+    String encoder sequence. Runs a sequence of encoders over a string until one
+    achieves a successful encoding.
+
+    Template params:
+        Encoders = tuple of types of encoders
+
+*******************************************************************************/
+
+public class StringEncoderSequence ( Encoders... )
+{
+    /***************************************************************************
+
+        Static constructor - ensures that all template types implement the
+        Encoder interface.
+    
+    ***************************************************************************/
+
+    static this ( )
+    {
+        foreach ( E; Encoders )
+        {
+            static assert(is(E : StringEncoder));
+        }
+    }
+
+
+    /***************************************************************************
+
+        Array of encoders.
+    
+    ***************************************************************************/
+    
+    private StringEncoder[] encoders;
+
+
+    /***************************************************************************
+
+        Constructor. News an instance of each of the template types.
+    
+    ***************************************************************************/
+
+    public this ( )
+    {
+        foreach ( E; Encoders )
+        {
+            this.encoders ~= new E;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Destructor. Deletes encoders.
+
+    ***************************************************************************/
+
+    ~this ( )
+    {
+        foreach ( e; this.encoders )
+        {
+            delete e;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Runs the encoders in sequence until one succeeds.
+        
+        Params:
+            input = text to convert
+            output = converted text
+
+        Returns:
+            converted text, or "" if all encoders failed.
+    
+    ***************************************************************************/
+
+    public char[] convertToUtf8 ( char[] input, ref char[] output )
+    {
+        output.length = 0;
+
+        foreach ( e; this.encoders )
+        {
+            if ( convert(e, input, output) )
+            {
+                return output;
+            }
+        }
+
+        return "";
+    }
+
+
+    /***************************************************************************
+
+        Attempts to convert the given text with the given encoder.
+        
+        Params:
+            encoder = encoder to use
+            input = text to convert
+            output = converted text
+    
+        Returns:
+            true if the text was converted successfully
+    
+    ***************************************************************************/
+
+    private bool convert ( StringEncoder encoder, char[] input, ref char[] output )
+    {
+        try
+        {
+            encoder.convert(input, output);
+            return true;
+        }
+        catch ( IconvException.InvalidMbSeq )
+        {
+            return false;
+        }
+    }
 }
 
