@@ -7,7 +7,8 @@
     version:        July 2010: Initial release
     
     authors:        Gavin Norman, David Eckardt
-    				Thomas Nicolai, Lars Kirchhoff
+    				Thomas Nicolai, Lars Kirchhoff, 
+                    Mathias Baumann
     
  ******************************************************************************/
 
@@ -22,7 +23,8 @@ module ocean.test.main;
 private import 	ocean.core.Array;
 private import 	ocean.core.ArrayMap;
 private import 	ocean.core.ObjectThreadPool;
-
+private import  ocean.core.StructSerializer;
+private import  ocean.core.UniStruct;
 
 private import 	ocean.io.digest.Fnv1;
 private import 	ocean.io.Retry;
