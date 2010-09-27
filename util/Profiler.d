@@ -547,8 +547,14 @@ class Profiler
 		
 	***************************************************************************/
 
-    public static typeof(this) instance ()
+    public static typeof(this) opCall ( )
     {
+        return static_instance;
+    }
+
+    deprecated public static typeof(this) instance ( )
+    {
+        pragma(msg, "Use opCall instead");
     	return static_instance;
     }
 }
