@@ -97,17 +97,17 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 	
 	***************************************************************************/
 	
-	public char[] encode ( char[] text, out char[] encoded )
+	public char[] encode ( char[] text, ref char[] encoded )
 	{
 		return this.encode_(text, encoded);
 	}
 	
-	public wchar[] encode ( wchar[] text, out wchar[] encoded )
+	public wchar[] encode ( wchar[] text, ref wchar[] encoded )
 	{
 		return this.encode_(text, encoded);
 	}
 	
-	public dchar[] encode ( dchar[] text, out dchar[] encoded )
+	public dchar[] encode ( dchar[] text, ref dchar[] encoded )
 	{
 		return this.encode_(text, encoded);
 	}
@@ -126,17 +126,17 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 	
 	***************************************************************************/
 	
-	public char[] decode ( char[] text, out char[] decoded )
+	public char[] decode ( char[] text, ref char[] decoded )
 	{
 		return this.decode_(text, decoded);
 	}
 	
-	public wchar[] decode ( wchar[] text, out wchar[] decoded )
+	public wchar[] decode ( wchar[] text, ref wchar[] decoded )
 	{
 		return this.decode_(text, decoded);
 	}
 	
-	public dchar[] decode ( dchar[] text, out dchar[] decoded )
+	public dchar[] decode ( dchar[] text, ref dchar[] decoded )
 	{
 		return this.decode_(text, decoded);
 	}
@@ -354,12 +354,18 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 	    
 	***************************************************************************/
 	
+    // TODO: this method could be made more efficient by not using the ~ operator,
+    // but instead pre-allocating the decoded buffer to (roughly) the right length
+    // then writing into it, rather than always appending and expanding the string.
+    
 	protected Char[] encode_ ( Char ) ( Char[] text, out Char[] encoded )
 	{
 		static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
 				This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
 	
-		size_t last_special_char;
+        encoded.length = 0;
+
+        size_t last_special_char;
 		size_t i;
 		while ( i < text.length )
 		{
@@ -398,13 +404,18 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 	        decoded output string
 	    
 	***************************************************************************/
-	
-	// decode any encoded characters
-	protected Char[] decode_ ( Char ) ( Char[] text, out Char[] decoded )
+
+    // TODO: this method could be made more efficient by not using the ~ operator,
+    // but instead pre-allocating the decoded buffer to (roughly) the right length
+    // then writing into it, rather than always appending and expanding the string.
+    
+	protected Char[] decode_ ( Char ) ( Char[] text, ref Char[] decoded )
 	{
-		static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
+        static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
 				This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
 	
+        decoded.length = 0;
+
 		size_t last_special_char;
 		size_t i;
 		while ( i < text.length )

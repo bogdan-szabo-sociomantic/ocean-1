@@ -54,9 +54,9 @@ public abstract class IEntityCodec ( E : IEntitySet )
 
 	***************************************************************************/
 
-	public abstract char[] encode ( char[] text, out char[] encoded );
-	public abstract wchar[] encode ( wchar[] text, out wchar[] encoded );
-	public abstract dchar[] encode ( dchar[] text, out dchar[] encoded );
+	public abstract char[] encode ( char[] text, ref char[] encoded );
+	public abstract wchar[] encode ( wchar[] text, ref wchar[] encoded );
+	public abstract dchar[] encode ( dchar[] text, ref dchar[] encoded );
 
 
 	/***************************************************************************
@@ -67,9 +67,9 @@ public abstract class IEntityCodec ( E : IEntitySet )
 	
 	***************************************************************************/
 
-	public abstract char[] decode ( char[] text, out char[] decoded );
-	public abstract wchar[] decode ( wchar[] text, out wchar[] decoded );
-	public abstract dchar[] decode ( dchar[] text, out dchar[] decoded );
+	public abstract char[] decode ( char[] text, ref char[] decoded );
+	public abstract wchar[] decode ( wchar[] text, ref wchar[] decoded );
+	public abstract dchar[] decode ( dchar[] text, ref dchar[] decoded );
 
 
 	/***************************************************************************
