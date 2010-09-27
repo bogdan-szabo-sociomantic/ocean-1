@@ -110,7 +110,7 @@ public import ocean.core.Exception: NgramParserException;
 
 private import TextUtil = tango.text.Util: contains, substitute, replace, split, trim;
 
-private import Unicode = tango.text.Unicode: toLower;
+private import Unicode = tango.text.Unicode;
 
 private import Utf = tango.text.convert.Utf;
 
@@ -151,20 +151,11 @@ public class NGramParser
 
     /***************************************************************************
 
-        Characters which are ignored during ngram parsing.
-
-    ***************************************************************************/
-
-    public const dchar[] ignored_chars = "0123456789-–;&(){}[]<>/\\|.,;:!@#$%£^&*_-+=~?\"\n\t”“„«»";
-
-
-    /***************************************************************************
-
         Apostrophe characters, which are converted to ' during processing.
     
     ***************************************************************************/
 
-    public const dchar[] apostrophes = "‘’`";
+    public const dchar[] apostrophes = "'‘’`’";
 
 
     /***************************************************************************
@@ -260,7 +251,7 @@ public class NGramParser
 
         Checks whether a text has been normalized. Normalized text:
 
-            1. Contains no ignored characters.
+            1. Contains no characters which should be stripped.
             2. Contains no upper case characters.
    
         Params:
@@ -275,9 +266,13 @@ public class NGramParser
     {
         foreach ( c; text )
         {
-            if ( TextUtil.contains(ignored_chars, c) || Unicode.isUpper(c) )
+            if ( c != '\'' && c != ' ' )
             {
-                return false;
+                if ( stripCharacter(c) || Unicode.isUpper(c) )
+                {
+                    Trace.formatln("{} ({}) should be stripped", c, cast(uint)c);
+                    return false;
+                }
             }
         }
 
@@ -330,9 +325,9 @@ public class NGramParser
 
     public void normalizeText ( T ) ( T[] input, ref dchar[] output, ref dchar[] working, dchar[][] stopwords = [] )
     {
-        convertToDChar(input, working);
+        auto dchar_input = convertToDChar(input, working);
 
-        normalizeCharacters(working, output);
+        normalizeCharacters(dchar_input, output);
 
         removeStopWords(output, working, stopwords);
 
@@ -416,6 +411,11 @@ public class NGramParser
     {
         output.length = input.length; // good guess
 
+        if ( !input.length )
+        {
+            return;
+        }
+        
         size_t read_pos, write_pos;
 
         while ( read_pos < input.length - 1 )
@@ -486,21 +486,23 @@ public class NGramParser
     
     ***************************************************************************/
 
-    private void convertToDChar ( dchar[] input, ref dchar[] output )
+    private dchar[] convertToDChar ( dchar[] input, ref dchar[] output )
     {
-        output.copy(input);
+        return input;
     }
     
-    private void convertToDChar ( char[] input, ref dchar[] output )
+    private dchar[] convertToDChar ( char[] input, ref dchar[] output )
     {
         try
         {
             output = Utf.toString32(input, output);
         }
-        catch (Exception e)
+        catch ( Exception e )
         {
-            throw new NgramParserException(typeof(this).stringof ~ ".setText: " ~ e.msg);
+            throw new NgramParserException(typeof(this).stringof ~ ".convertToDChar: " ~ e.msg);
         }
+
+        return output;
     }
     
 
@@ -527,21 +529,67 @@ public class NGramParser
         (For example: "don't", "isn't", etc in english.)
 
     ***************************************************************************/
-    
+
     private dchar[] normalizeCharacter ( dchar c )
     {
-        if ( TextUtil.contains(ignored_chars, c) )
-        {
-            return " "d;
-        }
-        else if ( TextUtil.contains(apostrophes, c) )
+        if ( TextUtil.contains(apostrophes, c) )
         {
             return "'"d;
         }
-        else
+        else if ( stripCharacter(c) )
+        {
+            return " "d;
+        }
+        else if ( Unicode.isLetter(c) )
         {
             return unicodeToLower(c);
         }
+        else
+        {
+            return [c];
+        }
+    }
+
+
+    // TODO
+    private bool stripCharacter ( dchar c )
+    {
+        if ( !(c in unicodeData) )
+        {
+            return false; // Must return false to not strip hiragana, hangul, etc
+        }
+
+        with ( UnicodeData.GeneralCategory ) switch ( unicodeData[c].generalCategory )
+        {
+            case Nd: //  Number, Decimal Digit
+            case Nl: //  Number, Letter
+            case No: //  Number, Other
+            case Pc: //  Punctuation, Connector
+            case Pd: //  Punctuation, Dash
+            case Ps: //  Punctuation, Open
+            case Pe: //  Punctuation, Close
+            case Pi: //  Punctuation, Initial quote (may behave like Ps or Pe depending on usage)
+            case Pf: //  Punctuation, Final quote (may behave like Ps or Pe depending on usage)
+            case Po: //  Punctuation, Other
+            case Sm: //  Symbol, Math
+            case Sc: //  Symbol, Currency
+            case Sk: //  Symbol, Modifier
+            case So: //  Symbol, Other
+            case Zs: //  Separator, Space
+            case Zl: //  Separator, Line
+            case Zp: //  Separator, Paragraph
+            case Cc: //  Other, Control
+            case Cf: //  Other, Format
+            case Cs: //  Other, Surrogate
+            case Co: //  Other, Private Use
+            case Cn: //  Other, Not Assigned (no characters in the file have this property)
+            case SpecialMapping: // Special Bit for detection of specialMappings
+                return true;
+
+            default:
+                return false;
+        }
+        
     }
 
 
