@@ -11,6 +11,12 @@
     Serializes data of value type fields and dynamic array of value type members
     of a struct instance, recursing into struct members if present.
     
+    
+    !!!!                             Warning                                !!!!
+    !!!!                          -------------                             !!!!
+    !!!!           The use of dynamic arrays has a big effect on            !!!! 
+    !!!!           the performance and should be done with care             !!!!
+    
     Values of struct fields of these types will be serialized and restored at
     serialization:
     
@@ -114,18 +120,35 @@ struct StructSerializer
         Params:
             s    = struct instance (pointer)
             data = output buffer to write serialized data to
+            
+        Returns:
+            amount of data written to the buffer
         
      **************************************************************************/
 
-    void dump ( S, D ) ( S* s, ref D[] data )
+    size_t dump ( S, D ) ( S* s, ref D[] data )
     {
         static assert (D.sizeof == 1, typeof (*this).stringof ~ ".dump: only "
                                       "single-byte element arrays supported, "
                                       "not '" ~ D.stringof ~ "[]'");
         
-        data.length = 0;
-        
-        dump(s, (void[] chunk) { data ~= cast (D[]) chunk; });
+
+        size_t written = 0;
+
+        dump(s, (void[] chunk) 
+        {
+                
+            if (chunk.length + written > data.length)
+            {
+                data.length = chunk.length + written;
+            }
+            
+            data[written .. written + chunk.length] = cast(byte[]) chunk[];
+            
+            written += chunk.length; 
+         });
+            
+        return written;
     }
     
     /**************************************************************************
@@ -133,8 +156,7 @@ struct StructSerializer
         Dumps/serializes the content of s and its array members.
         
         send is called repeatedly; on each call, it must store or forward the
-        provided data. It must return 0 to indicate success or a value different
-        from 0 to abort dumping.
+        provided data.
         
         Params:
             s    = struct instance (pointer)
@@ -637,6 +659,12 @@ struct StructSerializer
     }
 }
 
+/*******************************************************************************
+
+	Unittests
+
+*******************************************************************************/
+
 debug (OceanUnitTest)
 {
 
@@ -649,6 +677,10 @@ debug (OceanUnitTest)
     import tango.core.Traits;
     import tango.stdc.time;
     import tango.util.Convert : to;
+    import tango.time.StopWatch;
+    import tango.util.log.Trace;
+    import tango.core.Memory;
+    
     /***************************************************************************
 
         Provides a growing container. It will overwrite the oldest entries as soon
@@ -901,7 +933,113 @@ unittest
            assert(ar.rec.rec.rec.rec.staticArray[0] == 2);
            assert(ar.rec.rec.rec.rec.staticArray[1] == 3);
        }
+   
+   
+   StopWatch sw;
+   
+   
+   
+   SerializeMe sm;
+   sm.structArray ~= MeToo!(4)(1,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
+   sm.structArray ~= MeToo!(4)(2,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
+   sm.structArray ~= MeToo!(4)(3,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
+   sm.structArray ~= MeToo!(4)(4,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
+  
+   buf.length = length(&sm); 
+
+   /****************************************************************************
+   
+     Performance Test
+   
+      Results for struct SerializeMe:
+       Writing with 4049768.36/s (worst 3.6m)   
+       Reading with 7587750.42/s
+   
+   ****************************************************************************/
+   
+   
+   
+
+   Trace.formatln("SerializeMe Performance Test:");
+   sw.start;
+   for(uint i = 0;i<100_000_000; ++i)
+   {
+       dump(&sm,buf);
    }
+   Trace.formatln("Writing with {}/s",100_000_000/sw.stop);
+   
+   
+   sw.start;
+   for(uint i = 0;i<100_000_000; ++i)
+   {
+       load(&sm,buf);
+   }
+   Trace.formatln("Reading with {}/s",100_000_000/sw.stop);
+   
+   
+
+   Trace.formatln("Retargeting Performance Test:");
+   sw.start;
+   for(uint i = 0;i<100_000_000; ++i)
+   {
+       dump(&newStruct,buf);
+   }
+   Trace.formatln("Writing with {}/s",100_000_000/sw.stop);
+   
+   
+   sw.start;
+   for(uint i = 0;i<100_000_000; ++i)
+   {
+       load(&newStruct,buf);
+   }
+   Trace.formatln("Reading with {}/s",100_000_000/sw.stop);
+   
+   
+   Trace.formatln("Urls Performance Test:");
+   
+   
+   
+   
+   
+   
+   
+   buf.length = length(&empty);
+   sw.start;
+   for(uint i = 0;i<1_00000; ++i)
+   {    
+       dump(&empty,buf );    
+   }
+   Trace.formatln("{} Writing preallocated buf with",1_00000/sw.stop);
+   
+   
+   
+   uint a=0;
+   sw.start;
+   for(uint i = 0;i<1_0000; ++i)
+   {
+       a=0;
+       dump(&empty,(void[] data) { 
+           
+           if(data.length+a > buf.length)
+               assert(false);
+           
+           buf[a..a+data.length] = cast(byte[])data[]; 
+           a+=data.length;
+           } );
+   }
+   Trace.formatln("{} Writing with own delegate",1_0000/sw.stop);
+   
+  
+   sw.start;
+   for(uint i = 0;i<1_00000; ++i)
+   {
+       load(&empty,buf);
+   }
+   Trace.formatln("Reading with {}/s",1_00000/sw.stop);
+   
+   
+   }
+   
 }
 
 }
