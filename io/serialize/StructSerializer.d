@@ -151,7 +151,7 @@ struct StructSerializer
                 data.length = chunk.length + written;
             }
             
-            data[written .. written + chunk.length] = cast(byte[]) chunk[];
+            data[written .. written + chunk.length] = cast(D[]) chunk[];
             
             written += chunk.length; 
          });
