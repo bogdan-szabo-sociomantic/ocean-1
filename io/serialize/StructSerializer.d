@@ -89,7 +89,15 @@
 
 module core.serializer.StructSerializer;
 
+/*******************************************************************************
+
+	Imports
+
+*******************************************************************************/
+
 private import ocean.core.Exception: assertEx;
+
+private import tango.core.Traits;
 
 struct StructSerializer
 {
@@ -177,7 +185,7 @@ struct StructSerializer
         
         send((cast (void*) s_copy_ptr)[0 .. S.sizeof]);
         
-        transmitArrays!(false)(s, send);
+        transmitArrays!(false)(s, delegate void[] ( void[] data, size_t ) { send(data); return null; },false);
     }
     
     /**************************************************************************
@@ -185,9 +193,12 @@ struct StructSerializer
         Loads/deserializes the content of s and its array members.
     
         Params:
-            s    = struct instance (pointer)
-            data = input buffer to read serialized data from
-            
+            s     = struct instance (pointer)
+            data  = input buffer to read serialized data from
+            slice = optional. If true, will set dynamical arrays to
+                    slices of the provided buffer.
+                    Warning: Do not serialize a struct into the same buffer
+                             it was deserialized from.
         Throws:
             Exception if data is too short
         
@@ -196,7 +207,7 @@ struct StructSerializer
         
      **************************************************************************/
 
-    size_t load ( S, D ) ( S* s, D[] data )
+    size_t load ( S, D ) ( S* s, D[] data, bool slice = false )
     {
         static assert (D.sizeof == 1, typeof (*this).stringof ~ ".load: only "
                        "single-byte element arrays supported, "
@@ -204,16 +215,30 @@ struct StructSerializer
 
         size_t start = 0;
         
-        load(s, (void[] chunk)
-        {
-            size_t end = start + chunk.length;
-            
-            assertEx(end <= data.length, typeof (*this).stringof ~ " input data too short");
-            
-            chunk[] = (cast (void[]) data)[start .. end];
-            
-            start = end;
-        });
+        load(s, ( void[] chunk, size_t len = 0)
+        {   
+            if (len == 0)
+            { 
+                size_t end = start + chunk.length;
+                
+                assertEx(end <= data.length, typeof (*this).stringof ~ " input data too short");
+                
+                chunk[] = (cast (void[]) data)[start .. end];                
+                
+                start = end;
+                
+	            return cast(void[])null;                
+            }
+            else if(slice)
+            {
+                auto tmp = (cast (void[]) data)[start .. start + len];
+             
+                start += len;
+                
+                return tmp;
+            }
+			assert(false);
+        },slice);
         
         return start;
     }
@@ -222,31 +247,44 @@ struct StructSerializer
 
         Loads/deserializes the content of s and its array members.
         
-        receive is called repeatedly; on each call, it must populate the
-        provided data buffer with data previously produced by dump().
-        Data which was populated once, should not be populated again. So
-        the delegate must behave like a stream receive function.
+        receive is called repeatedly; 
+        
+        on each call, it must do one of the two, depending on the arguments:
+        
+        1) if (len == 0)
+            populate the provided data buffer with 
+            data previously produced by dump().
+            Data which was populated once, should not be populated again. 
+            So the delegate must behave like a stream receive function.
+        
+        2) if (len > 0)
+        
+            return a slice of len from the current position and advance the
+            position. This is only used when slicing is enabled.
 
         Params:
             s       = struct instance (pointer)
             receive = receiving callback delegate
-            
+            slice   = optional. If true, will set dynamical arrays to
+                      slices of the provided buffer
+                      Warning: Do not serialize a struct into the same buffer
+                               it was deserialized from.
         Returns:
             passes through return value of receive
         
      **************************************************************************/
 
-    void load ( S ) ( S* s, void delegate ( void[] data ) receive )
+    void load ( S ) ( S* s, void[] delegate ( void[] data , size_t len ) receive, bool slice = false )
     {
         S s_copy = *s;
         
         S* s_copy_ptr = &s_copy;
-        
-        receive((cast (void*) s)[0 .. S.sizeof]);
+
+        receive((cast (void*) s)[0 .. S.sizeof],0);
         
         copyReferences(s_copy_ptr, s);
         
-        transmitArrays!(true)(s, receive);
+        transmitArrays!(true)(s, receive,slice);
     }
     
     /**************************************************************************
@@ -385,13 +423,15 @@ struct StructSerializer
         Params:
             s        = struct instance (pointer)
             transmit = sending/receiving callback delegate
+            slice    = if true, a slice assignment 
+                       instead of a copy will be done
             
         Returns:
             passes through return value of transmit
         
      **************************************************************************/
 
-    void transmitArrays ( bool receive, S ) ( S* s, void delegate ( void[] array ) transmit )
+    void transmitArrays ( bool receive, S ) ( S* s, void[] delegate ( void[] array, size_t  ) transmit, bool slice )
     {
         foreach (i, T; typeof (S.tupleof))
         {
@@ -399,19 +439,19 @@ struct StructSerializer
             
             static if (is (T == struct))
             {
-                transmitArrays!(receive)(field, transmit);                      // recursive call
+                transmitArrays!(receive)(field, transmit,slice);                // recursive call
             }
             else static if (is (T U == U[]))
             {
                 mixin AssertSupportedArray!(T, U, S, i);
                 
-                transmitArray!(receive)(field, transmit);
+                transmitArray!(receive)(field, transmit,slice);
             }
             else mixin AssertSupportedType!(T, S, i);
         }
     }
     
-    /**************************************************************************
+    /***************************************************************************
 
         Transmits (sends or receives) the serialized data of array. That is,
         first transmit the array content byte length as size_t value, then the
@@ -423,6 +463,8 @@ struct StructSerializer
         Params:
             array    = array to send serialized data of (pointer)
             transmit = sending/receiving callback delegate
+            slice    = if true, a slice assignment 
+                       instead of a copy will be done
             
         Returns:
             passes through return value of send
@@ -431,35 +473,51 @@ struct StructSerializer
         
      **************************************************************************/
     
-    void transmitArray ( bool receive, T ) ( T[]* array, void delegate ( void[] data ) transmit )
+    debug import tango.util.log.Trace;
+    
+    void transmitArray ( bool receive, T ) ( T[]* array, void[] delegate (  void[] data, size_t  ) transmit, bool slice )
     {
         size_t len;
         
         static if (receive)
         {
-            transmit((cast (void*) &len)[0 .. len.sizeof]);
+            transmit((cast (void*) &len)[0 .. len.sizeof],0);
             
-            array.length = len;
-//            *array = new T[len];
+            static if (!isDynamicArrayType!(T))
+            {
+                if (slice)
+                {                   
+                    *array = cast(T[])transmit(null,len);
+                }
+                else
+                {
+                    array.length = len;
+                }
+            }
+            else
+            {
+                array.length = len;
+            }
         }
         else
         {
             len = array.length;
-            
-            transmit((cast (void*) &len)[0 .. len.sizeof]);
+
+            transmit((cast (void*) &len)[0 .. len.sizeof],0);
         }
         
         static if (is (T U : U[]))
         {
             for (size_t i = 0; i < len; i++)
             {
-                transmitArray!(receive)(array.ptr + i, transmit);               // recursive call
+                transmitArray!(receive)(array.ptr + i, transmit,slice);         // recursive call
             }
         }
-        else
+        else if (!slice)
         {
-            transmit((cast (void*) array.ptr)[0 .. len * T.sizeof]);
+            transmit((cast (void*) array.ptr)[0 .. len * T.sizeof],0);
         }
+        
     }
     
     /**************************************************************************
@@ -875,11 +933,16 @@ unittest
                urls.push("http://example.com/"~to!(char[])(i));
            
            buf.length = 0;
-           dump(&urls,(void[] data){ buf~=cast(byte[])data; });
+          // dump(&urls,(void[] data){ buf~=cast(byte[])data; });
+           dump(&urls,buf);
        }
        Urls empty;
-       load(&empty,(void[] d) { d[]=buf[0..d.length]; buf = buf[d.length..$]; });
-       
+       //load(&empty,
+        //   delegate void[] (void[] d, size_t len) { d[]=buf[0..d.length]; buf = buf[d.length..$]; return null; },
+        //   false);
+
+       load(&empty,buf,true);
+
        assert(empty.elements.length == 40);
        
        foreach(i, url ; empty.elements)
@@ -1002,12 +1065,12 @@ unittest
    
    
    
-   
-   buf.length = length(&empty);
+   {
+   auto byte buffer[]; buffer.length = length(&empty);
    sw.start;
    for(uint i = 0;i<1_00000; ++i)
    {    
-       dump(&empty,buf );    
+       dump(&empty,buffer );    
    }
    Trace.formatln("{} Writing preallocated buf with",1_00000/sw.stop);
    
@@ -1020,10 +1083,10 @@ unittest
        a=0;
        dump(&empty,(void[] data) { 
            
-           if(data.length+a > buf.length)
+           if(data.length+a > buffer.length)
                assert(false);
            
-           buf[a..a+data.length] = cast(byte[])data[]; 
+           buffer[a..a+data.length] = cast(byte[])data[]; 
            a+=data.length;
            } );
    }
@@ -1031,13 +1094,22 @@ unittest
    
   
    sw.start;
-   for(uint i = 0;i<1_00000; ++i)
+   for(uint i = 0;i<1_000000; ++i)
    {
-       load(&empty,buf);
+       load(&empty,buffer,true);
    }
-   Trace.formatln("Reading with {}/s",1_00000/sw.stop);
+   Trace.formatln("{}/s Reading using slicing",1_000000/sw.stop);
    
    
+   sw.start;
+   for(uint i = 0;i<1_000000; ++i)
+   {
+       load(&empty,buffer);
+   }
+   Trace.formatln("{}/s Reading with",1_000000/sw.stop);
+   
+   
+   }
    }
    
 }
