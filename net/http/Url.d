@@ -176,14 +176,15 @@ struct Url
         
         if (tolower)
         {
-            this.url = Unicode.toLower(url.dup);
+            this.url.length = url.length;
+            this.url = Unicode.toLower(url,this.url);
         }
         else
         {
-            this.url = url.dup;
+            this.url = url;
         }
         
-        this.parser.parse(this.url.dup);
+        this.parser.parse(this.url);
         
         this.host = this.parser.host;
         
@@ -376,7 +377,7 @@ struct Url
         {
             this.reset;
             
-            this.path = path.dup;
+            this.path = path;
             
             this.split = TextUtil.split(this.path, UriDelim.QUERY_URL);        
             
@@ -534,7 +535,7 @@ struct Url
         {
             this.reset;
             
-            this.query = query_string.dup;
+            this.query = query_string;
             
             this.elements = TextUtil.split(this.query, UriDelim.PARAM);
             
@@ -570,6 +571,20 @@ debug ( OceanUnitTest )
 {  
     import tango.util.log.Trace;
     import tango.core.Memory;
+    import tango.math.random.Random;
+    
+    void printUsage ( bool b = false )
+    {
+        static double before = 0; //GC.stats["usedSize"];
+       if(!b) 
+        Trace.formatln("Used: {} byte ({} kb) (+{}), gc {}, poolsize {}kb",
+                       GC.stats["usedSize"], GC.stats["usedSize"] / 1024,
+                       GC.stats["usedSize"] - before, GC.stats["gcCounter"],
+                       GC.stats["poolSize"] / 1024).flush;
+        if (b && before != GC.stats["usedSize"]) assert (false);
+        before = GC.stats["usedSize"];
+    }
+    
     
     unittest
     {
@@ -623,6 +638,82 @@ debug ( OceanUnitTest )
             
             x++;
         }
+        
+        char[][] urls;
+        urls.length = 2048*10;
+        
+        auto random = new Random();
+        char[] genWord(uint len=0)
+        {
+            if(len==0)
+            {
+                random(len);
+                len%=7; len++;
+            }
+            char[] ret; ret.length = len;
+            ret.length = 0;
+            long val;
+            char[] s;
+            for(uint i=0;i<len;++i)
+            {
+                
+                
+                if(i%8==0)
+                {
+                    random(val);            
+                    s=(cast(char*)&val)[0..8];
+                    foreach(ref c; s)
+                    {
+                        c = (c%('z'-'a'))+'a';
+                        
+                    }
+                }
+                assert(s[i%8]<='z' && s[i%8]>='a');
+
+                ret~=s[i%8];
+            }
+            return ret;
+            
+        }
+        
+        
+        uint longest = 0;
+        for (uint i=0; i< 2048*10; ++i)
+        {
+            urls[i] = genWord(3)~"://"~
+                genWord()~"."~
+                genWord(3)~"/";
+            
+            uint r=void; random(r); r%=30;
+            for(uint o=0;o<r;++o)
+                urls[i]~=genWord();
+            
+            urls[i]~="/"~genWord;
+            
+            longest = (urls[longest].length > urls[i].length) ? longest : i;
+        }
+        GC.collect;
+        GC.disable;
+        url.parse(urls[longest]);
+        Trace.format("After list setup  ");
+        printUsage();
+        
+        
+        
+        url.parse(urls[longest]);
+        Trace.format("after longest url ");
+        printUsage();
+        
+        foreach(urlstr;urls)
+        {
+            url.parse(urlstr);
+            //printUsage(true);
+        }
+        Trace.format("After mem test #2 ");
+        printUsage();        
+        
+        
+        
         
         Trace.formatln("done unittest ocean.net.http.Url");
     }
