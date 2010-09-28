@@ -245,8 +245,8 @@ class LibCurl
      **************************************************************************/
     
 	public CurlCode read ( ref char[] url, ref char[] content )
-    {
-        content.length = 0;
+	{
+	    content.length = 0;
 
         size_t append_content ( char[] received )
         {

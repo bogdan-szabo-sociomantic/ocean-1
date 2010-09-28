@@ -56,7 +56,7 @@ struct GlibUnicode
         
      **************************************************************************/
 
-    static void toLower ( dchar[] input, out dchar[] output )
+    static void toLower ( dchar[] input, ref dchar[] output )
     {
         return convert(input, output, &g_unichar_tolower);
     }
@@ -71,7 +71,7 @@ struct GlibUnicode
         
      **************************************************************************/
     
-    static void toLower ( dchar[] input, out char[] output )
+    static void toLower ( dchar[] input, ref char[] output )
     {
         return convert(input, output, &g_unichar_tolower);
     }
@@ -100,7 +100,7 @@ struct GlibUnicode
         
      **************************************************************************/
 
-    static void toUpper ( dchar[] input, out dchar[] output )
+    static void toUpper ( dchar[] input, ref dchar[] output )
     {
         return convert(input, output, &g_unichar_toupper);
     }
@@ -115,7 +115,7 @@ struct GlibUnicode
         
      **************************************************************************/
 
-    static void toUpper ( dchar[] input, out char[] output )
+    static void toUpper ( dchar[] input, ref char[] output )
     {
         return convert(input, output, &g_unichar_toupper);
     }
@@ -144,7 +144,7 @@ struct GlibUnicode
         
      **************************************************************************/
 
-    static void toTitle ( dchar[] input, out dchar[] output )
+    static void toTitle ( dchar[] input, ref dchar[] output )
     {
         return convert(input, output, &g_unichar_totitle);
     }
@@ -159,7 +159,7 @@ struct GlibUnicode
         
      **************************************************************************/
 
-    static void toTitle ( dchar[] input, out char[] output )
+    static void toTitle ( dchar[] input, ref char[] output )
     {
         return convert(input, output, &g_unichar_totitle);
     }
@@ -189,9 +189,11 @@ struct GlibUnicode
         
      **************************************************************************/
 
-    static void convert ( dchar[] input, out char[] output, Converter convert_fn )
+    static void convert ( dchar[] input, ref char[] output, Converter convert_fn )
     {
         char[6] tmp;
+        
+        output.length = 0;
         
         foreach ( c; input )
         {
@@ -212,7 +214,7 @@ struct GlibUnicode
         
      **************************************************************************/
 
-    static void convert ( dchar[] input, out dchar[] output, Converter convert_fn )
+    static void convert ( dchar[] input, ref dchar[] output, Converter convert_fn )
     {
         output.length = input.length;
         
@@ -250,8 +252,10 @@ struct GlibUnicode
         
      **************************************************************************/
 
-    static void toUtf8 ( Char ) ( Char[] input, out char[] output )
+    static void toUtf8 ( Char ) ( Char[] input, ref char[] output )
     {
+        output.length = 0;
+        
         foreach ( c; input )
         {
             output ~= toUtf8(c);

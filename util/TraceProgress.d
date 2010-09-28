@@ -381,7 +381,7 @@ struct ConsoleTracer
 	
 	***************************************************************************/
 	
-	protected void formatBackspaceString ( out char[] str, uint length )
+	protected void formatBackspaceString ( ref char[] str, uint length )
 	{
 		str.length = length;
 		str[0..$] = '\b';
@@ -1930,8 +1930,10 @@ public struct TraceProgress
 	
 	***************************************************************************/
 
-	protected void formatProgressThisInterval ( out char[] str )
+	protected void formatProgressThisInterval ( ref char[] str )
 	{
+        str.length = 0;
+        
 		str ~= "Last Interval: ";
 		this.count.display(str);
 		this.time.display(str);
@@ -1951,8 +1953,10 @@ public struct TraceProgress
 	
 	***************************************************************************/
 
-	protected void formatTotalProgress ( out char[] str )
+	protected void formatTotalProgress ( ref char[] str )
 	{
+        str.length = 0;
+        
 		str ~= "Total: ";
 		this.count.displayTotal(str);
 		this.time.displayTotal(str);

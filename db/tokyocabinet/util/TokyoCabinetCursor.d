@@ -245,7 +245,7 @@ class TokyoCabinetCursor
         
      ***************************************************************************/
     
-    public This get ( out char[] key, out char[] val )
+    public This get ( ref char[] key, ref char[] val )
     {
         scope (success)
         {
@@ -269,8 +269,10 @@ class TokyoCabinetCursor
         
     ***************************************************************************/
     
-    public This get ( out char[] key )
+    public This get ( ref char[] key )
     {
+        key.length = 0;
+        
         int len;
         
         char* key_ = cast (char*) tcbdbcurkey3(this.cursor, &len);

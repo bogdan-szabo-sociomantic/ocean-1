@@ -132,8 +132,10 @@ struct HttpCookie
     
      **************************************************************************/
 
-    bool write ( out char[] line )
+    bool write ( ref char[] line )
     {
+        line.length = 0;
+        
         bool is_set = this.isSet();
         
         if (is_set)

@@ -155,11 +155,13 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 	
 	***************************************************************************/
 
-	public Char[] decodeAmpersands ( Char ) ( Char[] text, out Char[] decoded )
+	public Char[] decodeAmpersands ( Char ) ( Char[] text, ref Char[] decoded )
 	{
 		static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
 				This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
 
+        decoded.length = 0;
+        
 		size_t last_amp;
 		size_t i;
 		while ( i < text.length )
@@ -354,18 +356,14 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 	    
 	***************************************************************************/
 	
-    // TODO: this method could be made more efficient by not using the ~ operator,
-    // but instead pre-allocating the decoded buffer to (roughly) the right length
-    // then writing into it, rather than always appending and expanding the string.
-    
-	protected Char[] encode_ ( Char ) ( Char[] text, out Char[] encoded )
+	protected Char[] encode_ ( Char ) ( Char[] text, ref Char[] encoded )
 	{
 		static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
 				This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
 	
         encoded.length = 0;
-
-        size_t last_special_char;
+        
+		size_t last_special_char;
 		size_t i;
 		while ( i < text.length )
 		{
@@ -405,16 +403,12 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 	    
 	***************************************************************************/
 
-    // TODO: this method could be made more efficient by not using the ~ operator,
-    // but instead pre-allocating the decoded buffer to (roughly) the right length
-    // then writing into it, rather than always appending and expanding the string.
-    
 	protected Char[] decode_ ( Char ) ( Char[] text, ref Char[] decoded )
 	{
         static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
 				This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
-	
-        decoded.length = 0;
+
+        decoded.length = 0;        
 
 		size_t last_special_char;
 		size_t i;

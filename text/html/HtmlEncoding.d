@@ -184,8 +184,10 @@ deprecated class HtmlEncoding ( bool wide_char = false, bool basic_only = false 
 	
 	***************************************************************************/
 	
-	public static Char[] encodeUnencodedSpecialCharacters ( Char[] content, out Char[] replacement )
+	public static Char[] encodeUnencodedSpecialCharacters ( Char[] content, ref Char[] replacement )
 	{
+        replacement.length = 0;
+        
 		size_t last_special_char;
 		foreach ( i, c; content )
 		{

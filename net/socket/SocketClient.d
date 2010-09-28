@@ -854,8 +854,10 @@ abstract class SocketClient ( Const : SocketClientConst )
 	
 	***************************************************************************/
 	
-	protected void getPairList ( T ) ( out T[2][] pair_list )
+	protected void getPairList ( T ) ( ref T[2][] pair_list )
 	{
+        pair_list.length = 0;
+        
 	    T[2] pair;
 	    bool end;
 	    do
@@ -883,10 +885,12 @@ abstract class SocketClient ( Const : SocketClientConst )
 	
 	***************************************************************************/
 
-	protected void getElementFromPairList ( T ) ( size_t keep_element, out T[] list )
+	protected void getElementFromPairList ( T ) ( size_t keep_element, ref T[] list )
 	{
 		assert(keep_element < 2, "Invalid pair element index");
 
+        list.length = 0;
+        
 		T[2] pair;
 		bool end;
 
