@@ -63,6 +63,12 @@ struct UniStruct ( Types ... )
         }
     }
     
+    /***************************************************************************
+        
+        Checks whether the string is a valid symbol name for enum
+        
+    ***************************************************************************/
+
     template validSymbols(char[] Check)
     {
         static if (Check.length > 0 &&
@@ -310,6 +316,8 @@ struct UniStruct ( Types ... )
     /***************************************************************************
     
         Provides a (slightly modified) visitor-pattern accessor.
+        
+        Visit will return whatever the called delegate returns.
         
         Usage:
         ---
