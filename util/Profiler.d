@@ -19,15 +19,15 @@
         
         import ocean.util.Profiler;
         
-        Profiler.instance().timeSection("section1", {
+        Profiler().timeSection("section1", {
         	// Code that does something
         });
 
-        Profiler.instance().timeSection("section2", {
+        Profiler().timeSection("section2", {
         	// Code that does something else
         });
 
-        Profiler.instance().display();
+        Profiler().display();
 
     ---
 
@@ -42,15 +42,15 @@
         
         import ocean.util.Profiler;
         
-        Profiler.instance().timeSection("section1", {
+        Profiler().timeSection("section1", {
         	// Code that does something
         });
 
-        Profiler.instance().timeSection("section2", {
+        Profiler().timeSection("section2", {
         	// Code that does something else
         });
 
-        Profiler.instance().displayAverages(Profiler.Time.Secs);
+        Profiler().displayAverages(Profiler.Time.Secs);
 
     ---
 
