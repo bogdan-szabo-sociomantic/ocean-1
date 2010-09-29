@@ -6,7 +6,7 @@
     
     version:        Febrruary 2010: Initial release
     
-    authors:        David Eckardt, Gavin Norman
+    authors:        David Eckardt, Gavin Norman, Mathias Baumann
     
     --
     
@@ -49,7 +49,7 @@
     
 module ocean.sys.SignalHandler;
 
-
+import tango.util.log.Trace;
 
 /******************************************************************************
  
@@ -59,6 +59,8 @@ module ocean.sys.SignalHandler;
 
 private import tango.stdc.signal: signal, raise, SIGABRT, SIGFPE,  SIGILL,
                                           SIGINT,  SIGSEGV, SIGTERM, SIG_DFL;
+
+private import ocean.core.UniStruct;
 
 version (Posix) private import tango.stdc.posix.signal: SIGALRM, SIGBUS,  SIGCHLD,
                                                         SIGCONT, SIGHUP,  SIGKILL,
@@ -73,8 +75,12 @@ debug
 
 
 
-struct SignalHandler
+class SignalHandler
 {
+    public alias bool delegate ( int ) DgHandler;
+    public alias bool function ( int ) FnHandler;
+    
+    
     static:
 
     /**************************************************************************
@@ -171,8 +177,14 @@ struct SignalHandler
          ];
     }
     
+    /***************************************************************************
     
+        Alias for a general handler (can be either, delegate or function)
+        
+    ***************************************************************************/
     
+    alias UniStruct!(DgHandler,FnHandler) Handler;
+        
     /**************************************************************************
     
         Default handlers registry to memorize the default handlers for reset
@@ -181,44 +193,267 @@ struct SignalHandler
 
     synchronized private SignalHandler[int] default_handlers;
     
-    /**************************************************************************
+    /***************************************************************************
     
-        Sets/registers handler for signal code.
+        Lists of delegate and function signal handlers. Each will be called
+        on the receipt of the previously registered signal
+    
+    ***************************************************************************/
+    
+    protected static  Handler[][int] handlers;
+    
+    /***************************************************************************
+    
+        registers handler for a signal code.
+        
+        The handler should return false if it wants to prevent 
+        the invocation of the default handler.
+        
+        Does nothing if the handler was already registered for that
+        signal code
         
         Params:
             code    = code of signal to handle by handler
             handler = signal handler callback function
      
-     **************************************************************************/
+    ***************************************************************************/
     
-    void set ( int code, SignalHandler handler )
+    void register ( T ) ( int code, T handler )
     {
-        set([code], handler);
+        register([code], handler);
     }
     
     /**************************************************************************
     
-        Sets/registers handler for signals of codes.
+        registers handler for signals of codes.
         
+        The handler should return false if it wants to prevent 
+        the invocation of the default handler.
+        
+        Does nothing if the handler was already registered for that
+        signal code
+         
         Params:
             codes   = codes of signals to handle by handler
             handler = signal handler callback function
      
      **************************************************************************/
 
-   void set ( int[] codes, SignalHandler handler )
+   void register ( T ) ( int[] codes, T handler )   
+   {
+       static if(!is( T == DgHandler ) && !is( T == FnHandler))
+       {
+           static assert(false,"register template only usable for DgHandler or FnHandler!");
+       }
+       
+       synchronized foreach (code; codes)
+       {   
+           if (!(code in this.default_handlers))
+           {
+               this.default_handlers[code] = signal(code, &this.sighandler);
+           }
+           
+           if (auto arrayOfhandlers = code in handlers)
+           {
+               foreach (arHandler ; *arrayOfhandlers)
+               {
+                   bool equal = arHandler.visit((FnHandler fn)
+                   {
+                       static if(is(T==FnHandler))
+                       {
+                           return (fn == handler);                           
+                       }
+                       else
+                       {
+                           return false;
+                       }
+                   },
+                   (DgHandler dg)
+                   {
+                       static if(is(T==DgHandler))
+                       {
+                           return (dg == handler);
+                       }
+                       else
+                       {
+                           false;
+                       }
+                   });
+                   
+                   if (equal)
+                   {
+                       return;
+                   }
+               }
+               
+               Handler h;
+               
+               h.set(handler);
+                   
+               (*arrayOfhandlers)~=h;
+           }
+           else
+           {
+               Handler h;
+               
+               h.set(handler);
+               
+               this.handlers[code]~=h;
+           }
+       }
+    }
+       
+    /***************************************************************************
+       
+       Removes a handler from the list
+       
+       !!! Do not call this function from within a signal handler !!!
+       
+       Params:
+           code    = signal that the handler is associate with
+           handler = signal handler callback function
+                     
+       Template Params:
+           T = type of the handler (delegate or function)
+                   
+       Throws:
+           throws an Exception if the handler was not found
+           
+    ***************************************************************************/
+    
+    void unregister ( T )( int code, T handler )
     {
-        synchronized foreach (code; codes)
+       unregister([code], handler);
+    }
+      
+   /***************************************************************************
+   
+       Removes a handler from the list
+       
+       !!! Do not call this function from within a signal handler !!!
+       
+       Params:
+           codes    = signals that the handler is associate with
+           handler = signal handler callback function
+               
+       Template Params:
+           T = type of the handler (delegate or function)
+           
+       Throws:
+           throws an Exception if the handler was not found
+    
+    ***************************************************************************/
+    
+    public static void unregister ( T ) ( int[] codes, T handler )
+    {        
+        static if (!is(T == DgHandler) && !is(T == FnHandler))
         {
-            SignalHandler prev_handler = signal(code, handler);
-            
-            if (!(code in this.default_handlers))
+            static assert (false, "unregister template only usable for DgHandler or FnHandler!");
+        }
+        
+        foreach (code ; codes)
+        {
+            if (auto hler = code in handlers)
             {
-                this.default_handlers[code] = prev_handler;
+                foreach (i, h; *hler)
+                {
+                    bool break_ = h.visit((FnHandler fn)
+                    {
+                        static if (is(T==FnHandler))
+                        {
+                            if (fn == handler)
+                            {
+                                (*hler)[i] = (*hler)[$ - 1];
+                                hler.length = hler.length - 1;
+                                
+                                return true;
+                            }
+                        }
+                        return false;
+                    },
+                    (DgHandler dg)
+                    {
+                        static if (is(T==DgHandler))
+                        {
+                            if (dg == handler)
+                            {
+                                (*hler)[i] = (*hler)[$ - 1];
+                                hler.length = hler.length - 1;
+                                
+                                return true;
+                            }
+                        }
+                        return false;
+                    } );
+                    
+                    if (break_)
+                    {
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                throw new Exception("Signal handler not found!");
             }
         }
     }
-    
+   
+   /****************************************************************************
+   
+       General signal handler. 
+       This function is registered as signal handler for every signal that
+       a callback has registered for. 
+       
+       It calls all callbacks for the signal and then — if none of the callbacks
+       returned false — calls the default handler.
+       
+       Params:
+           signal = the signal code
+           
+   ****************************************************************************/
+   
+   extern (C) private synchronized void sighandler (int sig)
+   {
+       bool defaultHandler = true;
+   
+       assert(sig in handlers);
+       
+       foreach (d ; handlers[sig])
+       {
+           d.visit((DgHandler dg) 
+           {
+               if (!dg(sig))
+               {
+                   defaultHandler = false;
+               }
+           },
+           (FnHandler fn) 
+           {
+               if (!fn(sig))
+               {
+                   defaultHandler = false;
+               }
+           }
+           );
+       }
+       
+       if (defaultHandler)
+       {           
+           if (auto def = sig in this.default_handlers)
+           {  
+               signal(sig,*def);
+               raise(sig);
+           }
+           else
+           {
+               assert(false, "Handler not registered");
+           }
+       }
+           
+   }
+   
+   
    /**************************************************************************
    
        Resets handlers for signal codes to the default handler and unregisters
@@ -256,6 +491,8 @@ struct SignalHandler
                 
                 this.default_handlers.remove(code);
             }
+            else
+                assert(false);
         }
     }
     
@@ -270,7 +507,7 @@ struct SignalHandler
 
     int[] registered ( )
     {
-        return this.default_handlers.keys.dup;
+        return this.handlers.keys.dup;
     }
     
     /**************************************************************************
@@ -289,192 +526,3 @@ struct SignalHandler
         return this.Ids[code];
     }
 }
-
-
-
-/*******************************************************************************
-
-	Class for convenient program termination handling
-
-*******************************************************************************/
-
-class TerminationSignal
-{
-	/***************************************************************************
-
-		Aliases for delegate and function termination handlers
-	
-	***************************************************************************/
-
-	public alias void delegate ( int ) DgHandler;
-	public alias void function ( int ) FnHandler;
-
-
-	/***************************************************************************
-
-		Lists of delegate and function termination handlers. Each will be called
-		on the receipt of a SIGINT or SIGTERM.
-
-	***************************************************************************/
-
-	protected static DgHandler[] delegates;
-	protected static FnHandler[] functions;
-
-
-	/***************************************************************************
-	
-	    Adds a delegate to the list of terminate handlers.
-	    
-	    Params:
-	    	dg = delegate to call on termination
-	
-	***************************************************************************/
-
-	public static void handle ( DgHandler dg )
-	in
-    {
-	    foreach(d ; delegates)
-        {
-	        assert(d != dg);
-        }
-    }
-    body
-    {
-		delegates ~= dg;
-		activate();
-	}
-
-
-    /***************************************************************************
-    
-        Removes a handler from the list
-        
-        Params:
-            dg = delegate to remove
-    
-    ***************************************************************************/
-    
-    public static void unregister ( DgHandler dg)
-    {
-        foreach(i, d ; this.delegates)
-        {
-            if(d == dg)
-            {                
-                this.delegates[i] = this.delegates[$-1];
-                this.delegates.length = this.delegates.length - 1;
-                return;
-            }            
-        }
-        
-        assert(false);
-    }
-
-    
-    /***************************************************************************
-    
-        Removes a handler from the list
-        
-        Params:
-            fn = function to remove
-    
-    ***************************************************************************/
-    
-    public static void unregister ( FnHandler fn)
-    {
-        foreach(i, d ; this.functions)
-        {
-            if(d == fn)
-            {                
-                this.functions[i] = this.functions[$-1];
-                this.functions.length = this.functions.length - 1;
-                return;
-            }            
-        }
-        
-        assert(false);
-    }
-    
-
-	/***************************************************************************
-	
-	    Adds a function to the list of terminate handlers.
-	    
-	    Params:
-	    	fn = function to call on termination
-	
-	***************************************************************************/
-    
-    public static void handle ( FnHandler fn )
-    in
-    {
-        foreach(d ; functions)
-        {
-            assert(d != fn);
-        }
-    }
-    body
-	{
-		functions ~= fn;
-		activate();
-	}
-
-
-	/***************************************************************************
-	
-	    Redirects the terminate signal (Ctrl-C) to the terminate method below.
-	
-	***************************************************************************/
-
-	public static void activate ( )
-	{
-		SignalHandler.set([SIGTERM, SIGINT], &terminate);
-	}
-
-
-	/***************************************************************************
-	
-	    Sets terminate signal handling back to the default (ie not handled by
-	    this class).
-	
-	***************************************************************************/
-
-	public static void deactivate ( )
-	{
-		SignalHandler.reset([SIGTERM, SIGINT]);
-	}
-
-
-	/***************************************************************************
-
-		Termination handler. Receives a signal, calls all registered function &
-		delegate termination handlers, then passes the signal on to the default
-		handler.
-
-	    Params:
-	        code = signal code
-
-	***************************************************************************/
-
-	extern (C) protected static synchronized void terminate ( int code )
-	{
-		debug Trace.formatln(SignalHandler.getId(code) ~ " raised: terminating");
-
-		// Process delegates
-		foreach ( dg; delegates )
-		{
-			dg(code);
-		}
-
-		// Process functions
-		foreach ( fn; functions )
-		{
-			fn(code);
-		}
-
-		// Deactivate this signal handler and pass this signal on to the default
-		// handler
-		deactivate();
-		raise(code);
-	}
-}
-

@@ -146,7 +146,7 @@ class RingQueue : PersistQueue
     {
         this.storageEngine = storage;
         
-        TerminationSignal.handle(&this.terminate);
+        SignalHandler.register([SIGTERM,SIGINT],&this.terminate);
         
         super(name,storage.size);
         
@@ -174,7 +174,7 @@ class RingQueue : PersistQueue
         
         this.storageEngine = new Memory(max); 
         
-        TerminationSignal.handle(&this.terminate);
+        SignalHandler.register([SIGTERM,SIGINT],&this.terminate);
         
         super(name,max); 
         
@@ -210,8 +210,8 @@ class RingQueue : PersistQueue
 
     public ~this()
     {
-        Trace.formatln("They killed me");
-        TerminationSignal.unregister(&this.terminate);
+        SignalHandler.unregister([SIGTERM,SIGINT],&this.terminate);
+        
         delete this.storageEngine;
     }
     
@@ -418,13 +418,15 @@ class RingQueue : PersistQueue
 
     ***************************************************************************/
 
-    protected void terminate ( int code )
+    protected bool terminate ( int code )
     {
         Trace.formatln("Closing {} (saving {} entries to {})",
                 this.getName(), this.size(), this.getName() ~ ".dump");
         this.log(SignalHandler.getId(code) ~ " raised: terminating .. at least trying to");
         
         this.dumpToFile();
+        
+        return true;
     } 
 
     
