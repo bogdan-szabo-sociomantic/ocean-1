@@ -63,6 +63,25 @@ struct UniStruct ( Types ... )
         }
     }
     
+    template validSymbols(char[] Check)
+    {
+        static if (Check.length > 0 &&
+                  Check[0] != ' ' &&
+                  Check[0] != '(' &&
+                  Check[0] != ')')
+        {
+            const validSymbols = validSymbols!(Check[1..$]);
+        }
+        else static if (Check.length > 0) 
+        {
+            const validSymbols = false;
+        }
+        else
+        {
+            const validSymbols = true;
+        }            
+    }
+    
     /***************************************************************************
     
         template that creates a comma separated list as string
@@ -72,11 +91,18 @@ struct UniStruct ( Types ... )
     
     template createList (MyTypes...) 
     {     
-        static if (MyTypes.length > 0)
-        {
-            const char[] createList = upper!(MyTypes[0].stringof[0])
-                     ~MyTypes[0].stringof[1 .. $] 
+        static if (MyTypes.length > 0)            
+        {            
+            static if(validSymbols!(MyTypes[0].stringof))
+            {
+                const char[] createList = upper!(MyTypes[0].stringof[0])
+                         ~MyTypes[0].stringof[1 .. $] 
                      ~ ", " ~ createList!(MyTypes[1..$]);
+            }
+            else
+            {
+                const char[] createList = MyTypes[0].mangleof ~ ", " ~ createList!(MyTypes[1..$]);
+            }
         }
         else
         {
@@ -308,20 +334,20 @@ struct UniStruct ( Types ... )
                             
     ***************************************************************************/
     
-    void visit ( Tuple ... ) ( Tuple delegates )
+    ReturnTypeOf!(Tuple[0]) visit ( Tuple ... ) ( Tuple delegates )
     {        
         foreach (i,type; Tuple) 
+        {
             foreach ( paraTypes; ParameterTupleOf!(type))
             {
                 const Id = Id!(paraTypes);
                 
                 if (Id == this.type_id_)
                 {
-                    delegates[i](this.tu.get!(Id));
-                    return;
+                    return delegates[i](this.tu.get!(Id));
                 }
             }
-        
+        }
         throw new UniStructException("No delegate fits");
     }
     
