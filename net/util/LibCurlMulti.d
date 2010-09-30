@@ -251,13 +251,15 @@ class LibCurlMulti
             do
             {
                 ret = curl_multi_perform(this.curlm, &active);
-            } while( ret == CurlMCode.CURLM_CALL_MULTI_PERFORM );
+            }
+            while ( ret == CurlMCode.CURLM_CALL_MULTI_PERFORM );
 
             if ( active )
             {
                 ret = this.sleepUntilMoreIO();
             }
-        } while ( active );
+        }
+        while ( active );
 
         // Return all requests to the pool
         foreach ( conn; this.conn_pool )
