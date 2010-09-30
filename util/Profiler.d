@@ -554,7 +554,6 @@ class Profiler
 
     deprecated public static typeof(this) instance ( )
     {
-        pragma(msg, "Use opCall instead");
     	return static_instance;
     }
 }
