@@ -1,4 +1,4 @@
-module ocean.net.util.c.curlh;
+module ocean.net.util.c.curl;
 
 /***************************************************************************
  *                                  _   _ ____  _
@@ -24,6 +24,10 @@ module ocean.net.util.c.curlh;
  ***************************************************************************/
 
 typedef void* CURL;
+
+typedef int curl_socket_t;
+const CURL_SOCKET_BAD = -1;
+
 
 const CURL_ERROR_SIZE = 0x100;
 
@@ -805,7 +809,7 @@ const CURLINFO_SLIST  = 0x400000;
 const CURLINFO_MASK   = 0x0fffff;
 const CURLINFO_TYPEMASK = 0xf00000;
 
-enum CURLINFO 
+enum CurlInfo
 {
   CURLINFO_NONE, /* first, never use this */
   CURLINFO_EFFECTIVE_URL    = CURLINFO_STRING + 1,
@@ -1113,7 +1117,7 @@ CURLcode curl_easy_perform(CURL handle);
  * performed transfer, all results from this function are undefined until the
  * transfer is completed.
  */
-CURLcode curl_easy_getinfo(CURL curl, CURLINFO info, ...);
+CURLcode curl_easy_getinfo(CURL curl, CurlInfo info, ...);
 
 /*
  * NAME curl_easy_duphandle()
