@@ -368,7 +368,7 @@ public class NGramParser
     
         debug if ( stopwords.length )
         {
-            Trace.formatln("Stopwording reduced word count from {} to {} ({}% of original)", count, count - stop, (cast(float)stop / cast(float)count) * 100);
+            Trace.formatln("Stopwording reduced word count from {} to {} ({}% reduction)", count, count - stop, (cast(float)stop / cast(float)count) * 100);
         }
     }
 
