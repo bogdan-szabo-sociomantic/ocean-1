@@ -34,6 +34,10 @@ private     import      tango.stdc.posix.pthread: pthread_rwlock_t,
                                                   pthread_rwlock_wrlock,
                                                   pthread_rwlock_unlock;
 
+debug private import tango.util.log.Trace;
+
+
+
 /*******************************************************************************
 
     Mutex support for multithreading
@@ -245,13 +249,6 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     {
         V value;
         K key;
-        
-        static KeyVal opCall (V v,K b) 
-        {
-            KeyVal bv = { v, b};
-            
-            return bv;
-        }
     }
     
     /***************************************************************************
@@ -475,20 +472,36 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Params:
             key = array key
             value = array value
-        
+            dup_arrays = if V is an array type, this flag determines whether the
+                contents of value should be copied into the array map (if false
+                the array map just contains a slice)
+
      **************************************************************************/
     
-    public void put ( K key, V value )
+    public void put ( K key, V value, bool dup_arrays = false )
     {
         size_t p = this.getPutIndex(key);
         
         static if (this.VisArray)
         {
-            this.v_map[p].value.length = value.length;
+            if ( dup_arrays )
+            {
+                this.v_map[p].value.length = value.length;
+                this.v_map[p].value[]      = value[];
+            }
+            else
+            {
+                this.v_map[p].value = value;
+            }
+
+            this.v_map[p].key = key;
         }
-        
-        this.v_map[p] = KeyVal(value,key);
+        else
+        {
+            this.v_map[p] = KeyVal(value,key);
+        }
     }
+
 
     /***************************************************************************
     
@@ -508,6 +521,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         size_t p = this.getPutIndex(key);
         
         this.v_map[p].value ~= value;
+        this.v_map[p].key = key;
     }
 
     /***************************************************************************
@@ -860,8 +874,8 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
          int result = 0;
          
          foreach ( ref value; this.v_map[0 .. this.len] )
-         {             
-             result = dg(value.key,value.value);
+         {
+             result = dg(value.key, value.value);
              
              if (result) break;
          }
