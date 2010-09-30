@@ -10,6 +10,10 @@
 
     Asynchronous fetching of content from one or more urls.
 
+    See:
+    
+        http://curl.haxx.se/libcurl/c/libcurl-multi.html
+
     Usage example:
 
     ---
