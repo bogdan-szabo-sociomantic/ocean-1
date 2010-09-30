@@ -18,6 +18,8 @@ module  ocean.net.util.LibCurl;
 
 ********************************************************************************/
 
+private import ocean.core.Array;
+
 public      import      ocean.core.Exception: CurlException;
 
 public      import      ocean.net.util.c.curl;
@@ -49,7 +51,7 @@ class LibCurl
             
     ****************************************************************************/
     
-    alias 			size_t delegate ( char[] )	ReadDg; 
+    alias 			size_t delegate ( char[], char[] )	ReadDg;
 
     /***************************************************************************
         
@@ -57,11 +59,27 @@ class LibCurl
             
     ****************************************************************************/
     
-	private			CURL						curl;
+	protected CURL						curl;
+
+    /***************************************************************************
+    
+        Request callback delegate
+            
+    ****************************************************************************/
+
+    private ReadDg request_callback;
+    
+    /***************************************************************************
+    
+        Internal copy of the request url
+            
+    ****************************************************************************/
+
+    private char[] request_url;
 
     /***************************************************************************
         
-        Default Parameter
+        Default Parameters
             
     ****************************************************************************/
 
@@ -141,7 +159,7 @@ class LibCurl
             
      **************************************************************************/
     
-    public T getInfo ( CURLINFO info, T = int ) ( )
+    public T getInfo ( CurlInfo info, T = int ) ( )
     {
         T value;
 
@@ -169,7 +187,7 @@ class LibCurl
             
      ***************************************************************************/
         
-    public alias getInfo!(CURLINFO.CURLINFO_RESPONSE_CODE) getResponseCode;
+    public alias getInfo!(CurlInfo.CURLINFO_RESPONSE_CODE) getResponseCode;
     
     /***************************************************************************
         
@@ -177,7 +195,7 @@ class LibCurl
             
      ***************************************************************************/
     
-    public alias getInfo!(CURLINFO.CURLINFO_TOTAL_TIME, double) getTotalTime;
+    public alias getInfo!(CurlInfo.CURLINFO_TOTAL_TIME, double) getTotalTime;
     
     /***************************************************************************
         
@@ -185,7 +203,7 @@ class LibCurl
             
      ***************************************************************************/
     
-    public alias getInfo!(CURLINFO.CURLINFO_CONNECT_TIME, double) getConnectTime;
+    public alias getInfo!(CurlInfo.CURLINFO_CONNECT_TIME, double) getConnectTime;
       
     /***************************************************************************
         
@@ -193,7 +211,7 @@ class LibCurl
             
      ***************************************************************************/
     
-    public alias getInfo!(CURLINFO.CURLINFO_PRETRANSFER_TIME, double)
+    public alias getInfo!(CurlInfo.CURLINFO_PRETRANSFER_TIME, double)
                  getPretransferTime;
     
     /***************************************************************************
@@ -202,7 +220,7 @@ class LibCurl
             
      ***************************************************************************/
     
-    public alias getInfo!(CURLINFO.CURLINFO_STARTTRANSFER_TIME, double) 
+    public alias getInfo!(CurlInfo.CURLINFO_STARTTRANSFER_TIME, double) 
                  getStarttransferTime;
     
     
@@ -212,7 +230,7 @@ class LibCurl
             
      **************************************************************************/
     
-    public alias getInfo!(CURLINFO.CURLINFO_REDIRECT_TIME, double)      
+    public alias getInfo!(CurlInfo.CURLINFO_REDIRECT_TIME, double)      
                  getRedirectTime;
 
     /***************************************************************************
@@ -244,11 +262,11 @@ class LibCurl
             
      **************************************************************************/
     
-	public CurlCode read ( ref char[] url, ref char[] content )
+	public CurlCode read ( char[] url, ref char[] content )
 	{
 	    content.length = 0;
 
-        size_t append_content ( char[] received )
+        size_t append_content ( char[] url, char[] received )
         {
             content ~= received;
             
@@ -276,21 +294,13 @@ class LibCurl
         
      **************************************************************************/
 
-    public CurlCode read ( ref char[] url, ReadDg read_dg )
+    public CurlCode read ( char[] url, ReadDg read_dg )
     {
-        int response_code;
-        
-        url ~= '\0';
-        
-        scope (exit) url.length = url.length - 1;  // remove null terminator
-        
-        this.setOption(CURLoption.WRITEDATA, &read_dg);
-        this.setOption(CURLoption.URL, url.ptr);
-        
+        this.setupRead(url, read_dg);
+
         return curl_easy_perform(this.curl);
     }
-    
-    
+
     /***************************************************************************
         
         Encode String
@@ -393,6 +403,50 @@ class LibCurl
     }
 
     /***************************************************************************
+    
+        Sets up the curl object with a request for a url, to be handled by the
+        passed delegate.
+
+        Params:
+            url = url to read from
+            read_dg = delegate to be called on receiving content from the url
+         
+    ***************************************************************************/
+
+    protected void setupRead ( char[] url, ReadDg read_dg )
+    {
+        this.request_url.length = 0;
+        this.request_url.append(url, "\0");
+
+        this.request_callback = read_dg;
+
+        auto callback = &this.receivedContent;
+        
+        this.setOption(CURLoption.WRITEDATA, cast(void*)this);
+        this.setOption(CURLoption.URL, this.request_url.ptr);
+    }
+    
+    /***************************************************************************
+
+        Called when the curl writeCallback is activated. This method simply
+        calls the user-specified delegate with the url of the request and the
+        content received.
+    
+        Params:
+            content = content received
+
+        Returns:
+            length of content (required by curl)
+         
+    ***************************************************************************/
+
+    protected size_t receivedContent ( char[] content )
+    {
+        this.request_callback(this.request_url, content);
+        return content.length;
+    }
+
+    /***************************************************************************
         
         Set LibCurl Option
             
@@ -476,11 +530,11 @@ class LibCurl
         {
             if (!ptr || !obj) return 0;            
             
-            ReadDg read_dg = *(cast (ReadDg*) obj);
+            auto curlobj = cast(LibCurl) obj;
             
             char[] content = (cast (char*) ptr)[0 .. size * nmemb].dup;
-            
-            return read_dg(content);
+
+            return curlobj.receivedContent(content);
     	}
     
     	
@@ -505,7 +559,7 @@ class LibCurl
     	
         private size_t headerCallback ( void* ptr, size_t size, size_t nmemb, void* obj ) 
         {
-            LibCurl curlobj = cast(LibCurl) obj;
+            auto curlobj = cast(LibCurl) obj;
             
             return size*nmemb;
         }
