@@ -495,7 +495,32 @@ class ObjectPool ( T, A ... )
         
         return this;
     }
+
+
+    /***************************************************************************
     
+        opApply method over the active items in the pool.
+        
+    ***************************************************************************/
+
+    public int opApply ( int delegate ( ref PoolItem ) dg )
+    {
+        int ret;
+
+        foreach ( item, info; this.items )
+        {
+            if ( !info.idle )
+            {
+                ret = dg(item);
+                if ( ret )
+                {
+                    break;
+                }
+            }
+        }
+
+        return ret;
+    }
     
     /**************************************************************************
     
