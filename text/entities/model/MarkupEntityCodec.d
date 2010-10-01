@@ -265,7 +265,7 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 				This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
 	
 		auto c = UtfString!(Char, true).extract(text);
-	
+
 		if ( c in this.entities )
 		{
 	    	if ( c == '&' )
@@ -292,9 +292,38 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 	}
 	
 	
-	/***************************************************************************
+    /***************************************************************************
+    
+        Checks whether the input string begins with an encoded entity.
+        
+        Params:
+            text = string to check
+            exact_match = if true, the encoded entity must fill the entire input 
+                string
+        
+        Returns:
+            true if the string begins with an encoded entity
+    
+    ***************************************************************************/
+    
+    public bool isEncodedEntity ( Char ) ( Char[] text, bool exact_match = false )
+    {
+        static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
+                This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
+
+        auto entity = this.sliceEncodedEntity(text);
+        if ( !entity.length )
+        {
+            return false;
+        }
+
+        return exact_match ? entity.length == text.length : true;
+    }
+
+
+    /***************************************************************************
 	
-	    Converts an encoded entty to an unicode character. The entity may be
+	    Converts an encoded entity to a unicode character. The entity may be
 	    either:
 	        - a numeric character reference (eg "&#xE1;" for 'á'), or
 	        - a named ISO8859-1/15 (Latin 1/9) entity (eg "&szlig;" for 'ß').
@@ -315,8 +344,7 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 	public dchar decodeEntity ( Char ) ( Char[] entity )
 	in
 	{
-	    assert(entity.length >= 2, "character entity too short");
-	    assert(entity[0] == '&' && entity[$ - 1] == ';', "invalid character entity");
+        assert(this.isEncodedEntity(entity, true), This.stringof ~ ".decodeEntity - invalid character entity");
 	}
 	body
 	{
@@ -430,7 +458,9 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 			}
 			else
 			{
-				i++;
+                // skip to the next character
+                UtfString!(Char, false) utf_str = { text[i..$] };
+                i += utf_str[0].length;
 			}
 		}
 	
@@ -539,7 +569,7 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 	     b) character 0 is '&',
 	     c) a ';' between characters 1 and 16,
 	     d) no white space character or '&' before the first ';'.
-	     e) first ';' is behind character 2
+	     e) first ';' is after character 2
 	
 	    If "entity" complies with all of these, slice from the '&' to the ';' is
 	    returned, otherwise null.
@@ -561,39 +591,39 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 	    {
 	        return "";
 	    }
-	
-	    size_t semicolon;
+
+        Char[] entity;
 	    UtfString!(Char, true) utf_str = { text };
 	    foreach ( i, c; utf_str )
 	    {
-	    	if ( i == 0 )
+            if ( i == 0 )
 	    	{
 	    	    if ( c != '&' )								// b) criterion
 	    	    {
-	    	        return "";
+                    break;
 	    	    }
 	    	}
 	    	else
 	    	{
 		    	if ( c == '&' || this.isSpace(c) )			// d) criterion
 		        {
-		        	return "";
+                    break;
 		        }
 	
 		        if ( c == ';' )
 		        {
-		        	if ( i < 1 )							// e) criterion
+		        	if ( i < 2 )							// e) criterion
 		        	{
-		        		return "";
+                        break;
 		        	}
 	
-		        	semicolon = i;
+                    entity = text[0 .. i + 1];
 		        	break;
 		        }
 	    	}
 	    }
-	
-	    return text[0 .. semicolon + 1];
+
+	    return entity;
 	}
 	
 	
