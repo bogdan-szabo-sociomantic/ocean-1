@@ -173,7 +173,7 @@ class LibCurlMulti
     ***************************************************************************/
 
     // TODO: lower values seem better - 200 seems slow - test this
-    private const DEFAULT_MAX_CONNECTIONS = 10;
+    public const DEFAULT_MAX_CONNECTIONS = 20;
 
 
     /***************************************************************************
@@ -204,7 +204,6 @@ class LibCurlMulti
 
     public ~this ( )
     {
-        Trace.formatln("{}.~this", typeof(this).stringof);
         this.close();
     }
 
@@ -316,24 +315,20 @@ class LibCurlMulti
 
     /***************************************************************************
     
-        Close curl session
+        Close curl session. Cleans up all curl easy connections.
         
     ***************************************************************************/
 
-    public void close ()
+    public void close ( )
     {
-        Trace.formatln("{}.close", typeof(this).stringof);
+        foreach ( conn; this.conn_pool )
+        {
+            auto handle = conn.curl;
+            conn.recycle(); // calls curl_multi_remove_handle
+            curl_easy_cleanup(handle);
+        }
 
-        // TODO
-
-//        foreach ( conn; this.conn_pool )
-//        {
-//            auto handle = conn.curl;
-//            conn.recycle(); // calls curl_multi_remove_handle
-//            curl_easy_cleanup(handle);
-//        }
-//
-//        curl_multi_cleanup(this.curlm);
+        curl_multi_cleanup(this.curlm);
     }
 
 
