@@ -327,8 +327,31 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 	
 		return c;
 	}
-	
-	
+
+    
+    /***************************************************************************
+    
+        Calculates the number of unicode characters in the referenced string.
+        The calculation requires that the whole string is iterated over.
+    
+        Returns:
+            number of unicode characters in the string
+    
+    ***************************************************************************/
+
+    public size_t length ( )
+    {
+        size_t len;
+
+        foreach ( c; *this )
+        {
+            len++;
+        }
+
+        return len;
+    }
+
+
 	/***************************************************************************
 	
 	    Extract the next character from the referenced string.
