@@ -163,7 +163,7 @@ class SignalHandler
         ];
 
         // Commonly needed
-        const int[] AppTermination = [SignalHandler.SIGINT, SignalHandler.SIGTERM];
+        const int[] AppTermination = [SIGINT, SIGTERM];
     }
     else
     {
