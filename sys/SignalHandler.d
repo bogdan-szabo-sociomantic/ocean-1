@@ -13,18 +13,17 @@
     Description:
     
     Register signal handlers for C/Posix Signals and, as an option, reset to
-    default signal handlers.
-    
-    The module also contains a class (TerminationSignal) for conveniently
-    assigning an arbitrary number of program-exit handlers. This class sets up a
-    handler for the SIGINT and SIGTERM signals, which are passed when a program
-    is interrupted with Ctrl-C. When the terminate signal handler is called, it
-    in turn calls all functions / delegates which were registered with it. This
-    class can be used to conveniently ensure that another class / struct
-    performs its required shutdown behaviour, even when the program is
-    interrupted.
+    default signal handlers. When a signal is received, all signal handlers
+    which have been registered for that signal are called in series, optionally
+    followed by the default handler. (The default handler is called if none of
+    the user-registered signal handler functions / delegates returned false.)
 
-	TerminationSignal usage example:
+    On unix, the constant SignalHandler.AppTermination provides a convenient
+    warpper for the SIGINT and SIGTERM signals. This can be used to conveniently
+    ensure that another class / struct performs its required shutdown behaviour,
+    even when the program is interrupted.
+
+	SignalHandler usage example:
 
 	---
 
@@ -34,17 +33,27 @@
 	{
 		public this ( )
 		{
-			TerminationSignal.handle(&this.terminate);
+			SignalHandler.register(SignalHandler.SIGALRM, &this.alarm);
+            SignalHandler.register(SignalHandler.AppTermination, &this.terminate);
 		}
 		
-		public void terminate ( int code )
+		public bool alarm ( int code )
 		{
-			// required shutdown behaviour for this class
+			// required alarm behaviour for this class
+
+            return false; // don't call default handler
 		}
-	}
+
+	    public bool terminate ( int code )
+        {
+            // required shutdown behaviour for this class
+
+            return true; // call default handler (terminates program)
+        }
+    }
 
     ---
-    
+
 *******************************************************************************/
     
 module ocean.sys.SignalHandler;
@@ -152,6 +161,9 @@ class SignalHandler
             SIGUSR2   : "SIGUSR2",
             SIGURG    : "SIGURG"
         ];
+
+        // Commonly needed
+        const int[] AppTermination = [SignalHandler.SIGINT, SignalHandler.SIGTERM];
     }
     else
     {
@@ -413,7 +425,7 @@ class SignalHandler
            
    ****************************************************************************/
    
-   extern (C) private synchronized void sighandler (int sig)
+   extern (C) private synchronized void sighandler ( int sig )
    {
        bool defaultHandler = true;
    
@@ -421,23 +433,24 @@ class SignalHandler
        
        foreach (d ; handlers[sig])
        {
-           d.visit((DgHandler dg) 
-           {
-               if (!dg(sig))
+           d.visit(
+               (DgHandler dg) 
                {
-                   defaultHandler = false;
-               }
-           },
-           (FnHandler fn) 
-           {
-               if (!fn(sig))
+                   if (!dg(sig))
+                   {
+                       defaultHandler = false;
+                   }
+               },
+               (FnHandler fn) 
                {
-                   defaultHandler = false;
+                   if (!fn(sig))
+                   {
+                       defaultHandler = false;
+                   }
                }
-           }
            );
        }
-       
+
        if (defaultHandler)
        {           
            if (auto def = sig in this.default_handlers)
@@ -526,3 +539,4 @@ class SignalHandler
         return this.Ids[code];
     }
 }
+
