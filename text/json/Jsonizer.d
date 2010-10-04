@@ -76,9 +76,9 @@ interface Jsonizable
 
         Jsonize.open(json);
 
-        Jsonize.appendInteger(json, "a number", 23);
-        Jsonize.appendFloat(json, "a float", 23.23);
-        Jsonize.appendString(json, "a string", "hello");
+        Jsonize.append(json, "a number", 23);
+        Jsonize.append(json, "a float", 23.23);
+        Jsonize.append(json, "a string", "hello");
 
         Jsonize.close(json);
         
@@ -118,8 +118,8 @@ interface Jsonizable
             
             public void jsonize ( Char ) ( ref Char[] json )
             {
-                Jsonize.appendInteger(json, this.id);
-                Jsonize.appendString(json, this.name);
+                Jsonize.append(json, this.id);
+                Jsonize.append(json, this.name);
             }
         }
 
@@ -127,7 +127,7 @@ interface Jsonizable
 
         Jsonize.open(json);
 
-        Jsonize.appendObject(json, "my object", an_object);
+        Jsonize.append(json, "my object", an_object);
 
         Jsonize.close(json);
         
