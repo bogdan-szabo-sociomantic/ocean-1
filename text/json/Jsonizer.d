@@ -18,6 +18,9 @@
            elements to be appended gradually. (The tango version expects all
            elements to be added at once.)
 
+        3. The class is not thread-safe, as it makes use of an internal string
+           buffer during number -> string conversions.
+
 *******************************************************************************/
 
 module text.json.Jsonizer;
@@ -30,7 +33,7 @@ module text.json.Jsonizer;
 
 *******************************************************************************/
 
-private import ocean.core.Array;
+private import Array = ocean.core.Array;
 
 private import tango.core.Array;
 
@@ -168,7 +171,7 @@ static:
 
     public void open ( ref Char[] json )
     {
-        json.append("{");
+        Array.append(json, "{");
     }
 
 
@@ -193,7 +196,7 @@ static:
     {
         if ( json[$-1] == '{' )
         {
-            json.append("}");
+            Array.append(json, "}");
         }
         else
         {
@@ -204,112 +207,47 @@ static:
 
     /***************************************************************************
 
-        Appends a named integer to a json string.
+        Appends a named item to a json string.
         
         Params:
             json = json string to append to
-            name = name of integer
-            n = integer to append
+            name = name of item
+            item = item to append
     
         Throws:
             asserts that json string is open
-    
+
     ***************************************************************************/
 
-    public void appendInteger ( ref Char[] json, Char[] name, uint n )
+    public void append ( T ) ( ref Char[] json, Char[] name, T item )
     in
     {
-        assert(isOpen(json), typeof(this).stringof ~ ".appendInteger - cannot append to a json string which is not open");
+        assert(isOpen(json), typeof(this).stringof ~ ".append - cannot append to a json string which is not open");
     }
     body
     {
-        value.length = 20;
-        value = Integer.format(value, n);
-        json.append(`"`, name, `":`, value, `,`);
-    }
-
-
-    /***************************************************************************
-
-        Appends a named float to a json string.
-        
-        Params:
-            json = json string to append to
-            name = name of float
-            n = float to append
-    
-        Throws:
-            asserts that json string is open
-    
-    ***************************************************************************/
-
-    public void appendFloat ( ref Char[] json, Char[] name, float n )
-    in
-    {
-        assert(isOpen(json), typeof(this).stringof ~ ".appendFloat - cannot append to a json string which is not open");
-    }
-    body
-    {
-        value.length = 20;
-        value = Float.format(value, n);
-        json.append(`"`, name, `":`, value, `,`);
-    }
-
-
-    /***************************************************************************
-
-        Appends a named string to a json string.
-        
-        Params:
-            json = json string to append to
-            name = name of string
-            string = string to append
-    
-        Throws:
-            asserts that json string is open
-    
-    ***************************************************************************/
-
-    public void appendString ( ref Char[] json, Char[] name, Char[] string )
-    in
-    {
-        assert(isOpen(json), typeof(this).stringof ~ ".appendString - cannot append to a json string which is not open");
-    }
-    body
-    {
-        json.append(`"`, name, `":"`, string, `",`);
-    }
-
-
-    /***************************************************************************
-
-        Appends a named Jsonizable object to a json string.
-    
-        Template params:
-            T = type of object to append
-        
-        Params:
-            json = json string to append to
-            name = name of object
-            object = object to append
-    
-        Throws:
-            asserts that json string is open
-    
-    ***************************************************************************/
-    
-    public void appendObject ( T : Jsonizable ) ( ref Char[] json, Char[] name, T object )
-    in
-    {
-        assert(isOpen(json), typeof(this).stringof ~ ".appendObject - cannot append to a json string which is not open");
-    }
-    body
-    {
-        json.append(`"`, name, `":`);
-        open(json);
-        object.jsonize(json);
-        close(json);
-        json.append(`,`);
+        static if ( is(T == float) || is(T == double) )
+        {
+            Array.append(json, `"`, name, `":`, floatToString(item), `,`);
+        }
+        else static if ( is(T == ubyte) || is(T == byte) || is(T == uint) || is(T == int) || is(T == ulong) || is(T == long) )
+        {
+            Array.append(json, `"`, name, `":`, intToString(item), `,`);
+        }
+        else static if ( is(T == Char[]) )
+        {
+            Array.append(json, `"`, name, `":"`, item, `",`);
+        }
+        else static if ( is(T : Jsonizable ) )
+        {
+            Array.append(json, `"`, name, `":`);
+            open(json);
+            object.jsonize(json);
+            close(json);
+            Array.append(json, `,`);
+        }
+        else static assert( false, typeof(this).stringof ~
+            ".append - can only jsonize floats, ints, strings or Jsonizable objects, not " ~ T.stringof );
     }
 
 
@@ -334,18 +272,18 @@ static:
     
     ***************************************************************************/
 
-    public void appendObject ( T ) ( ref Char[] json, Char[] name, T object, void delegate ( ref Char[], ref T ) jsonize )
+    public void append ( T ) ( ref Char[] json, Char[] name, T object, void delegate ( ref Char[], ref T ) jsonize )
     in
     {
-        assert(isOpen(json), typeof(this).stringof ~ ".appendObject - cannot append to a json string which is not open");
+        assert(isOpen(json), typeof(this).stringof ~ ".append - cannot append to a json string which is not open");
     }
     body
     {
-        json.append(`"`, name, `":`);
+        Array.append(json, `"`, name, `":`);
         open(json);
         jsonize(json, object);
         close(json);
-        json.append(`,`);
+        Array.append(json, `,`);
     }
 
 
@@ -376,30 +314,48 @@ static:
     }
     body
     {
-        json.append(`"`, name, `":[`);
+        Array.append(json, `"`, name, `":[`);
         foreach ( e; array )
         {
-            static if ( is(T == float) )
-            {
-                appendFloat(json, e);
-            }
-            else static if ( is(T == uint) )
-            {
-                appendInteger(json, e);
-            }
-            else static if ( is(T == Char[]) )
-            {
-                appendString(json, e);
-            }
-            else static if ( is(T : Jsonizable ) )
-            {
-                appendObject(json, e);
-            }
-            else static assert( false, typeof(this).stringof ~
-                ".appendArray - can only jsonize floats, uints, strings or Jsonizable objects, not " ~ T.stringof );
+            append(json, e);
         }
         json.length = json.length - 1; // cut off final ,
-        json.append(`],`);
+        Array.append(json, `],`);
+    }
+
+
+    /***************************************************************************
+
+        Appends a named array to a json string.
+        
+        The array is not passed directly, rather the number of items in the
+        array plus a delegate to write items by index are given.
+    
+        Params:
+            json = json string to append to
+            name = name of array
+            count = number of elements in the array
+            get_element = delegate to get an indexed element
+    
+        Throws:
+            asserts that json string is open
+    
+    ***************************************************************************/
+    
+    public void appendArrayIndexed ( T ) ( ref Char[] json, Char[] name, size_t count, T delegate ( size_t index ) get_element )
+    in
+    {
+        assert(isOpen(json), typeof(this).stringof ~ ".appendArrayIndexed - cannot append to a json string which is not open");
+    }
+    body
+    {
+        Array.append(json, `"`, name, `":[`);
+        for ( size_t i; i < count; i++ )
+        {
+            append(json, get_element(i));
+        }
+        json.length = json.length - 1; // cut off final ,
+        Array.append(json, `],`);
     }
 
 
@@ -407,6 +363,8 @@ static:
 
         Appends a named array of objects to a json string, with a delegate to do
         the actual writing of each element to the string.
+
+        Each element in the array is wrapped with {}, as an (unnamed) object.
 
         Template params:
             T = type of array element to append
@@ -429,99 +387,93 @@ static:
     }
     body
     {
-        json.append(`"`, name, `":[`);
+        Array.append(json, `"`, name, `":[`);
         foreach ( e; array )
         {
             appendObject(json, e, jsonize);
         }
         json.length = json.length - 1; // cut off final ,
-        json.append(`],`);
+        Array.append(json, `],`);
     }
 
 
     /***************************************************************************
 
-        Appends an unnamed integer to a json string. Used by the appendArray
-        method.
+        Appends a named array of objects to a json string.
         
+        The array is not passed directly, rather the number of items in the
+        array plus a delegate to write items by index are given.
+        
+        Each element in the array is wrapped with {}, as an (unnamed) object.
+    
         Params:
             json = json string to append to
-            n = integer to append
-    
-    ***************************************************************************/
-    
-    private void appendInteger ( ref Char[] json, uint n )
-    {
-        value.length = 20;
-        value = Integer.format(value, n);
-        json.append(value, `,`);
-    }
-
-
-    /***************************************************************************
-
-        Appends an unnamed float to a json string. Used by the appendArray
-        method.
-        
-        Params:
-            json = json string to append to
-            n = float to append
-    
-    ***************************************************************************/
-
-    private void appendFloat ( ref Char[] json, float n )
-    {
-        value.length = 20;
-        value = Float.format(value, n);
-        json.append(value, `,`);
-    }
-
-
-    /***************************************************************************
-
-        Appends an unnamed string to a json string. Used by the appendArray
-        method.
-        
-        Params:
-            json = json string to append to
-            string = string to append
-    
-    ***************************************************************************/
-
-    private void appendString ( ref Char[] json, Char[] string )
-    {
-        json.append(`"`, string, `",`);
-    }
-
-
-    /***************************************************************************
-
-        Appends an unnamed Jsonizable object to a json string. Used by the
-        appendArray method.
-
-        Template params:
-            T = type of object to append
-        
-        Params:
-            json = json string to append to
-            object = object to append
+            name = name of array
+            count = number of elements in the array
+            append_element = delegate to append an element to the json string
     
         Throws:
             asserts that json string is open
     
     ***************************************************************************/
     
-    private void appendObject ( T : Jsonizable ) ( ref Char[] json, T object )
+    public void appendObjectArrayIndexed ( ref Char[] json, Char[] name, size_t count, void delegate (ref Char[] json, size_t index ) append_element )
     in
     {
-        assert(isOpen(json), typeof(this).stringof ~ ".appendObject - cannot append to a json string which is not open");
+        assert(isOpen(json), typeof(this).stringof ~ ".appendObjectArrayIndexed - cannot append to a json string which is not open");
     }
     body
     {
-        open(json);
-        object.jsonize(json);
-        close(json);
-        json.append(`,`);
+        Array.append(json, `"`, name, `":[`);
+        for ( size_t i; i < count; i++ )
+        {
+            Array.append(json, `{`);
+            append_element(json, i);
+            json.length = json.length - 1; // cut off final ,
+            Array.append(json, `},`);
+        }
+        json.length = json.length - 1; // cut off final ,
+        Array.append(json, `],`);
+    }
+
+
+    /***************************************************************************
+
+        Appends an unnamed item to a json string. Used by the appendArray
+        method.
+        
+        Params:
+            json = json string to append to
+            item = item to append
+    
+        Throws:
+            asserts that json string is open
+    
+    ***************************************************************************/
+
+    private void append ( T ) ( ref Char[] json, T item )
+    {
+        static if ( is(T == float) || is(T == double) )
+        {
+            Array.append(json, floatToString(item), `,`);
+        }
+        else static if ( is(T == ubyte) || is(T == byte) || is(T == uint) || is(T == int) || is(T == ulong) || is(T == long) )
+        {
+            Array.append(json, intToString(item), `,`);
+        }
+        else static if ( is(T == Char[]) )
+        {
+            Array.append(json, `"`, item, `",`);
+        }
+        else static if ( is(T : Jsonizable ) )
+        {
+            open(json);
+            item.jsonize(json);
+            close(json);
+            Array.append(json, `,`);
+        }
+        else static assert( false, typeof(this).stringof ~
+            ".append - can only jsonize floats, ints, strings or Jsonizable objects, not " ~ T.stringof );
     }
 
 
@@ -542,18 +494,13 @@ static:
             asserts that json string is open
     
     ***************************************************************************/
-    
+
     private void appendObject ( T ) ( ref Char[] json, T object, void delegate ( ref Char[], ref T ) jsonize )
-    in
-    {
-        assert(isOpen(json), typeof(this).stringof ~ ".appendObject - cannot append to a json string which is not open");
-    }
-    body
     {
         open(json);
         jsonize(json, object);
         close(json);
-        json.append(`,`);
+        Array.append(json, `,`);
     }
 
 
@@ -568,6 +515,52 @@ static:
     {
         const Char[] valid_ends = "{[,";
         return json.length && valid_ends.contains(json[$-1]);
+    }
+
+
+    /***************************************************************************
+
+        Converts an integer to a string, using the internal 'value' member.
+    
+        Template params:
+            T = type of value
+        
+        Params:
+            n = value to convert
+    
+        Returns:
+            string conversion of n
+    
+    ***************************************************************************/
+    
+    private Char[] intToString ( T ) ( T n )
+    {
+        value.length = 20;
+        value = Integer.format(value, n);
+        return value;
+    }
+    
+    
+    /***************************************************************************
+    
+        Converts a float to a string, using the internal 'value' member.
+    
+        Template params:
+            T = type of value
+        
+        Params:
+            n = value to convert
+    
+        Returns:
+            string conversion of n
+    
+    ***************************************************************************/
+    
+    private Char[] floatToString ( T ) ( T n )
+    {
+        value.length = 20;
+        value = Float.format(value, n);
+        return value;
     }
 }
 
