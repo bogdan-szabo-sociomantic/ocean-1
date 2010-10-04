@@ -78,15 +78,6 @@ debug private import tango.util.log.Trace;
 abstract class SocketClientConst
 {
     /***************************************************************************
-    
-        Abstract method to return the name of the api.
-    
-    ***************************************************************************/
-
-    abstract public char[] apiName ( );
-
-
-    /***************************************************************************
 
 	    Singleton template, to be used as a mixin by derived classes, which need
 	    singleton behaviour so that the constants can be accessed without an
@@ -264,11 +255,26 @@ abstract class SocketClientConst
 
     static public void traceCommands ( )
     {
-        Trace.formatln("{} commands:", instance.apiName());
+        Trace.formatln("{} commands:", instance.apiName_());
         instance.traceCommands_();
     }
 
     abstract public void traceCommands_ ( );
+
+
+    /***********************************************************************
+
+        Returns:
+            api name
+        
+    ***********************************************************************/
+
+    static public char[] apiName ( )
+    {
+        return instance.apiName_();
+    }
+
+    abstract public char[] apiName_ ( );
 }
 
 
