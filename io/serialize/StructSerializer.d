@@ -99,6 +99,8 @@ private import ocean.core.Exception: assertEx;
 
 private import tango.core.Traits;
 
+debug import tango.util.log.Trace;
+
 struct StructSerializer
 {
     static:
@@ -472,8 +474,6 @@ struct StructSerializer
         TODO: array needs to be duped
         
      **************************************************************************/
-    
-    debug import tango.util.log.Trace;
     
     void transmitArray ( bool receive, T ) ( T[]* array, void[] delegate (  void[] data, size_t  ) transmit, bool slice )
     {
