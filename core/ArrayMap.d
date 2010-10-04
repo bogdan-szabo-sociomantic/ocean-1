@@ -519,7 +519,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     static if (this.VisArray) public void putcat ( in K key, in V value )
     {
         size_t p = this.getPutIndex(key);
-        
+
         this.v_map[p].value ~= value;
         this.v_map[p].key = key;
     }
@@ -749,6 +749,9 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
                 value.value.length = 0;
             }
         }
+
+        this.k_map.length = 0;
+        this.v_map.length = 0;
     }
     
     /***************************************************************************
@@ -1137,7 +1140,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     private size_t getPutIndex ( in K key)
     {
         hash_t h = (toHash(key) % this.buckets_length);
-        
+
         static if (M) 
         {
             pthread_rwlock_t* lock = this.rwlocks.ptr + h;
@@ -1170,32 +1173,6 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         }
 
         return p;
-    }
-    
-    /***************************************************************************
-        
-        Reset and free memory used by array map
-        
-     **************************************************************************/
-    
-    private void free_ ()
-    {
-        static if (this.VisArray)
-        {
-            foreach (ref value; this.v_map)
-            {
-                value.value.length = 0;
-            }
-        }
-        
-        foreach (ref bucket; this.k_map)
-        {
-            bucket.elements.length = 0;
-        }
-        
-        this.k_map.length = 0;
-        this.v_map.length = 0;
-        
     }
     
     /***************************************************************************
@@ -1249,7 +1226,13 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             
             this.v_map.length = this.default_size;
         }
-        
+
+        static if ( VisArray )
+        {
+            // reset new element
+            this.v_map[this.len].value.length = 0;
+        }
+
         return this.len++;
     }
 
@@ -1323,8 +1306,6 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
                 assert(nk !is null && nv !is null);
                 
                 nk.pos = oldpos;
-                
-                    
             }
 
             if ( this.len > 1 ) this.v_map[oldpos] = this.v_map[this.len - 1];
