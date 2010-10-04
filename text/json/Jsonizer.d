@@ -37,6 +37,8 @@ private import Array = ocean.core.Array;
 
 private import tango.core.Array;
 
+private import tango.math.IEEE : isNaN;
+
 private import Integer = tango.text.convert.Integer;
 
 private import Float = tango.text.convert.Float;
@@ -104,7 +106,7 @@ interface Jsonizable
 
     ---
 
-    Json object usage example:
+    Jsonizable object usage example:
 
     ---
 
@@ -131,6 +133,47 @@ interface Jsonizable
 
         Jsonize.close(json);
         
+        Trace.formatln("JSON = {}", json);
+
+    ---
+
+    Json nested struct (with delegates) usage example:
+
+    ---
+
+        char[] json;
+
+        struct Id
+        {
+            uint id;
+            char[] name;
+        }
+
+        struct Record
+        {
+            Id id;
+            char[] name;
+            uint total;
+        }
+
+        Record a_record;
+
+        with ( Jsonizer!(char) )
+        {
+            open(json);
+    
+            append(json, "record", a_record, ( ref char[] json, ref Record record ) {
+                append(json, "id", record.id, ( ref char[] json, ref Id id ) {
+                    append(json, "id", id.id);
+                    append(json, "name", id.name);
+                });
+                append(json, "name", record.name);
+                append(json, "total", record.total);
+            });
+    
+            close(json);
+        }
+
         Trace.formatln("JSON = {}", json);
 
     ---
@@ -544,7 +587,9 @@ static:
     /***************************************************************************
     
         Converts a float to a string, using the internal 'value' member.
-    
+
+        Note: NaN values are serialized as 0.0
+
         Template params:
             T = type of value
         
@@ -558,6 +603,10 @@ static:
     
     private Char[] floatToString ( T ) ( T n )
     {
+        if ( isNaN(n) )
+        {
+            n = 0.0;
+        }
         value.length = 20;
         value = Float.format(value, n);
         return value;
