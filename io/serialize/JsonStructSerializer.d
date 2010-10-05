@@ -15,6 +15,43 @@
     ocean.io.serialize.StructSerializer, which dumps a struct into a json
     string.
 
+    Usage example (in conjunction with ocean.io.serialize.StructSerializer):
+    
+    ---
+
+        // Example struct to serialize into json
+        struct Data
+        {
+            struct Id
+            {
+                char[] name;
+                hash_t id;
+            }
+
+            Id[] ids;
+            char[] name;
+            uint count;
+            float money;
+        }
+
+        // Output string buffer
+        char[] json;
+
+        // Set up some data in a struct
+        Data data;
+        test.ids = [Data.Id("hi", 23), Data.Id("hello", 17)];
+
+        // Create serializer object
+        scope ser = new JsonStructSerializer!(char)();
+
+        // Dump struct to string via serializer
+        StructSerializer.dump(&data, ser, json);
+
+        // Output resulting json
+        Trace.formatln("Json = {}", json);
+
+    ---
+
 *******************************************************************************/
 
 module ocean.io.serialize.JsonStructSerializer;
