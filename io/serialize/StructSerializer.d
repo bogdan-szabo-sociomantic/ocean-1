@@ -579,6 +579,8 @@ struct StructSerializer
     /**************************************************************************
 
         Returns the name of the ith field.
+
+        TODO: do this with template recursion
         
         Template parameter:
             i = struct field index
@@ -593,8 +595,24 @@ struct StructSerializer
 
     char[] getFieldName ( size_t i, S ) ( S* s )
     {
-        return S.tupleof[i].stringof; // TODO: strip last word
+        if ( S.tupleof[i].stringof.length < 2 )
+        {
+            return S.tupleof[i].stringof;
+        }
+
+        size_t index = S.tupleof[i].stringof.length - 1;
+        foreach_reverse ( c; S.tupleof[i].stringof )
+        {
+            if ( c == '.' )
+            {
+                break;
+            }
+            index--;
+        }
+
+        return S.tupleof[i].stringof[index + 1 .. $];
     }
+
     
     /**************************************************************************
 
