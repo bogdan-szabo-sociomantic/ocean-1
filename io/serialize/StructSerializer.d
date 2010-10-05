@@ -6,7 +6,7 @@
     
     version:        Aug 2010: Initial release
     
-    authors:        David Eckardt
+    authors:        David Eckardt, Gavin Norman
     
     Serializes data of value type fields and dynamic array of value type members
     of a struct instance, recursing into struct members if present.
@@ -101,6 +101,8 @@ private import tango.core.Traits;
 
 debug import tango.util.log.Trace;
 
+
+
 struct StructSerializer
 {
     static:
@@ -122,7 +124,6 @@ struct StructSerializer
         return S.sizeof + subArrayLength(s);
     }
     
-    
     /**************************************************************************
 
         Dumps/serializes the content of s and its array members.
@@ -141,13 +142,11 @@ struct StructSerializer
         static assert (D.sizeof == 1, typeof (*this).stringof ~ ".dump: only "
                                       "single-byte element arrays supported, "
                                       "not '" ~ D.stringof ~ "[]'");
-        
 
         size_t written = 0;
 
         dump(s, (void[] chunk) 
         {
-                
             if (chunk.length + written > data.length)
             {
                 data.length = chunk.length + written;
@@ -160,7 +159,44 @@ struct StructSerializer
             
         return written;
     }
-    
+
+    /**************************************************************************
+
+        Dumps/serializes the content of s and its array members, using the given
+        serializer object. The serializer object needs the following methods:
+            
+                void open ( ref Char[] output );
+
+                void close ( ref Char[] output );
+            
+                void serialize ( T ) ( ref Char[] output, T* item, char[] name );
+            
+                void serializeStruct ( ref Char[] output, Char[] name, void delegate ( ) serialize_struct );
+            
+                void serializeArray ( T ) ( ref Char[] output, T[] array, Char[] name );
+            
+                void serializeStructArray ( T ) ( ref Char[] output, Char[] name, T[] array, void delegate ( ref T ) serialize_element );
+
+        Unfortunately, as some of these methods are templates, it's not
+        possible to make an interface for it. But the compiler will let you know
+        whether a given serializer object is suitable or not ;)
+
+        See ocean.io.serialize.JsonStructSerializer for an example.
+
+        Params:
+            s    = struct instance (pointer)
+            serializer = object to do the serialization
+            data = output buffer to write serialized data to
+
+     **************************************************************************/
+
+    public void dump ( S, Serializer, D ) ( S* s, Serializer serializer, ref D[] data )
+    {
+        serializer.open(data);
+        serialize(s, serializer, data);
+        serializer.close(data);
+    }
+
     /**************************************************************************
 
         Dumps/serializes the content of s and its array members.
@@ -539,7 +575,79 @@ struct StructSerializer
     {
         return cast (FieldType!(S, i)*) (cast (void*) s + S.tupleof[i].offsetof);
     }
+
+    /**************************************************************************
+
+        Returns the name of the ith field.
+        
+        Template parameter:
+            i = struct field index
+        
+        Params:
+            s = struct instance (pointer)
+            
+        Returns:
+            name of the ith field
+        
+     **************************************************************************/
+
+    char[] getFieldName ( size_t i, S ) ( S* s )
+    {
+        return S.tupleof[i].stringof; // TODO: strip last word
+    }
     
+    /**************************************************************************
+
+        Dumps/serializes the content of s and its array members, using the given
+        serializer object. See the description of the dump() method above for a
+        full description of how the serializer object should behave.
+    
+        Params:
+            s    = struct instance (pointer)
+            serializer = object to do the serialization
+            data = output buffer to write serialized data to
+
+     **************************************************************************/
+    
+    private void serialize ( S, Serializer, D ) ( S* s, Serializer serializer, ref D[] data )
+    {
+        foreach (i, T; typeof (S.tupleof))
+        {
+            auto field = getField!(i)(s);
+            auto field_name = getFieldName!(i)(s);
+
+            static if (is (T == struct))
+            {
+                serializer.serializeStruct(data, field_name, {
+                    serialize(field, serializer, data);                               // recursive call
+                });
+            }
+            else static if (is (T U : U[]))
+            {
+                mixin AssertSupportedArray!(T, U, S, i);
+
+                U[] array = *field;
+
+                static if ( is(U == struct) )
+                {
+                    serializer.serializeStructArray(data, field_name, array, ( ref U element ) {
+                        serialize(&element, serializer, data);                    // recursive call
+                    });
+                }
+                else
+                {
+                    serializer.serializeArray(data, array, field_name);
+                }
+            }
+            else
+            {
+                mixin AssertSupportedType!(T, S, i);
+
+                serializer.serialize(data, *field, field_name);
+            }
+        }
+    }
+
     /**************************************************************************
 
         Generates the type of the i-th field of struct type S
