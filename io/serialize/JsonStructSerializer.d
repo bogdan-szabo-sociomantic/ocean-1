@@ -52,6 +52,24 @@
 
     ---
 
+    The (formatted) output of the above is:
+
+        {
+            "ids": [
+                {
+                    "name": "hi",
+                    "id": 23
+                },
+                {
+                    "name": "hello",
+                    "id": 17
+                }
+            ],
+            "name": "",
+            "count": 0,
+            "money": 0.00
+        }
+
 *******************************************************************************/
 
 module ocean.io.serialize.JsonStructSerializer;
