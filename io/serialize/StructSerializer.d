@@ -637,7 +637,7 @@ struct StructSerializer
             static if (is (T == struct))
             {
                 serializer.serializeStruct(data, field_name, {
-                    serialize(field, serializer, data);                               // recursive call
+                    serialize(field, serializer, data);                         // recursive call
                 });
             }
             else static if (is (T U : U[]))
@@ -649,7 +649,7 @@ struct StructSerializer
                 static if ( is(U == struct) )
                 {
                     serializer.serializeStructArray(data, field_name, array, ( ref U element ) {
-                        serialize(&element, serializer, data);                    // recursive call
+                        serialize(&element, serializer, data);                  // recursive call
                     });
                 }
                 else
@@ -661,7 +661,14 @@ struct StructSerializer
             {
                 mixin AssertSupportedType!(T, S, i);
 
-                serializer.serialize(data, *field, field_name);
+                static if (is (T B == enum))
+                {
+                    serializer.serialize(data, cast(B)(*field), field_name);
+                }
+                else
+                {
+                    serializer.serialize(data, *field, field_name);
+                }
             }
         }
     }
