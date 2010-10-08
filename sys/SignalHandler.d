@@ -58,7 +58,7 @@
     
 module ocean.sys.SignalHandler;
 
-import tango.util.log.Trace;
+
 
 /******************************************************************************
  
@@ -69,7 +69,8 @@ import tango.util.log.Trace;
 private import tango.stdc.signal: signal, raise, SIGABRT, SIGFPE,  SIGILL,
                                           SIGINT,  SIGSEGV, SIGTERM, SIG_DFL;
 
-private import ocean.core.UniStruct;
+private import ocean.core.UniStruct,
+               ocean.core.StringEnum;
 
 version (Posix) private import tango.stdc.posix.signal: SIGALRM, SIGBUS,  SIGCHLD,
                                                         SIGCONT, SIGHUP,  SIGKILL,
@@ -107,88 +108,55 @@ class SignalHandler
      
      **************************************************************************/
 
+    alias StringEnumValue!(int) Sig;
+
     version (Posix)
     {
-        enum : int
-        {
-            SIGABRT   = .SIGABRT, // Abnormal termination
-            SIGFPE    = .SIGFPE,  // Floating-point error
-            SIGILL    = .SIGILL,  // Illegal hardware instruction
-            SIGINT    = .SIGINT,  // Terminal interrupt character
-            SIGSEGV   = .SIGSEGV, // Invalid memory reference
-            SIGTERM   = .SIGTERM, // Termination
-            
-            SIGALRM   = .SIGALRM,
-            SIGBUS    = .SIGBUS,
-            SIGCHLD   = .SIGCHLD,
-            SIGCONT   = .SIGCONT,
-            SIGHUP    = .SIGHUP,
-            SIGKILL   = .SIGKILL,
-            SIGPIPE   = .SIGPIPE,
-            SIGQUIT   = .SIGQUIT,
-            SIGSTOP   = .SIGSTOP,
-            SIGTSTP   = .SIGTSTP,
-            SIGTTIN   = .SIGTTIN,
-            SIGTTOU   = .SIGTTOU,
-            SIGUSR1   = .SIGUSR1,
-            SIGUSR2   = .SIGUSR2,
-            SIGURG    = .SIGURG
-        }
-        
-        const char[][] Ids =
-        [
-            0         : "",
-            SIGABRT   : "SIGABRT",
-            SIGFPE    : "SIGFPE",
-            SIGILL    : "SIGILL",
-            SIGINT    : "SIGINT",
-            SIGSEGV   : "SIGSEGV",
-            SIGTERM   : "SIGTERM",
-             
-            SIGALRM   : "SIGALRM",
-            SIGBUS    : "SIGBUS",
-            SIGCHLD   : "SIGCHLD",
-            SIGCONT   : "SIGCONT",
-            SIGHUP    : "SIGHUP",
-            SIGKILL   : "SIGKILL",
-            SIGPIPE   : "SIGPIPE",
-            SIGQUIT   : "SIGQUIT",
-            SIGSTOP   : "SIGSTOP",
-            SIGTSTP   : "SIGTSTP",
-            SIGTTIN   : "SIGTTIN",
-            SIGTTOU   : "SIGTTOU",
-            SIGUSR1   : "SIGUSR1",
-            SIGUSR2   : "SIGUSR2",
-            SIGURG    : "SIGURG"
-        ];
-
-        // Commonly needed
-        const int[] AppTermination = [SIGINT, SIGTERM];
+        StringEnum!(
+                    Sig("SIGABRT", .SIGABRT), // Abnormal termination
+                    Sig("SIGFPE ", .SIGFPE),  // Floating-point error
+                    Sig("SIGILL ", .SIGILL),  // Illegal hardware instruction
+                    Sig("SIGINT ", .SIGINT),  // Terminal interrupt character
+                    Sig("SIGSEGV", .SIGSEGV), // Invalid memory reference
+                    Sig("SIGTERM", .SIGTERM), // Termination
+                    
+                    Sig("SIGALRM", .SIGALRM),
+                    Sig("SIGBUS ", .SIGBUS),
+                    Sig("SIGCHLD", .SIGCHLD),
+                    Sig("SIGCONT", .SIGCONT),
+                    Sig("SIGHUP ", .SIGHUP),
+                    Sig("SIGKILL", .SIGKILL),
+                    Sig("SIGPIPE", .SIGPIPE),
+                    Sig("SIGQUIT", .SIGQUIT),
+                    Sig("SIGSTOP", .SIGSTOP),
+                    Sig("SIGTSTP", .SIGTSTP),
+                    Sig("SIGTTIN", .SIGTTIN),
+                    Sig("SIGTTOU", .SIGTTOU),
+                    Sig("SIGUSR1", .SIGUSR1),
+                    Sig("SIGUSR2", .SIGUSR2),
+                    Sig("SIGURG ", .SIGURG)
+                ) Signals;
     }
     else
     {
-        enum : int
-        {
-            SIGABRT   = .SIGABRT, // Abnormal termination
-            SIGFPE    = .SIGFPE,  // Floating-point error
-            SIGILL    = .SIGILL,  // Illegal hardware instruction
-            SIGINT    = .SIGINT,  // Terminal interrupt character
-            SIGSEGV   = .SIGSEGV, // Invalid memory reference
-            SIGTERM   = .SIGTERM  // Termination
-        }
-        
-        const char[][] Ids =
-        [
-             0         : "",
-             SIGABRT   : "SIGABRT",
-             SIGFPE    : "SIGFPE",
-             SIGILL    : "SIGILL",
-             SIGINT    : "SIGINT",
-             SIGSEGV   : "SIGSEGV",
-             SIGTERM   : "SIGTERM"
-         ];
+        StringEnum!(
+                    Sig("SIGABRT", .SIGABRT), // Abnormal termination
+                    Sig("SIGFPE ", .SIGFPE),  // Floating-point error
+                    Sig("SIGILL ", .SIGILL),  // Illegal hardware instruction
+                    Sig("SIGINT ", .SIGINT),  // Terminal interrupt character
+                    Sig("SIGSEGV", .SIGSEGV), // Invalid memory reference
+                    Sig("SIGTERM", .SIGTERM) // Termination
+                ) Signals;
     }
     
+    /***************************************************************************
+    
+        Commonly used command line application termination signals
+        
+    ***************************************************************************/
+
+    const int[] AppTermination = [SIGINT, SIGTERM];
+
     /***************************************************************************
     
         Alias for a general handler (can be either, delegate or function)
@@ -251,8 +219,8 @@ class SignalHandler
      
      **************************************************************************/
 
-   void register ( T ) ( int[] codes, T handler )   
-   {
+   	void register ( T ) ( int[] codes, T handler )
+   	{
        static if(!is( T == DgHandler ) && !is( T == FnHandler))
        {
            static assert(false,"register template only usable for DgHandler or FnHandler!");
@@ -273,7 +241,7 @@ class SignalHandler
                    {
                        static if(is(T==FnHandler))
                        {
-                           return (fn == handler);                           
+                           return (fn == handler);
                        }
                        else
                        {
@@ -288,7 +256,7 @@ class SignalHandler
                        }
                        else
                        {
-                           false;
+                           return false;
                        }
                    });
                    
@@ -534,9 +502,7 @@ class SignalHandler
 
     char[] getId ( int code )
     {
-        assert ((this.Ids.length > code) && (code >= 0), "invalid signal code");
-        
-        return this.Ids[code];
+        return Signals.description(code);
     }
 }
 
