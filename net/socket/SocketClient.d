@@ -192,7 +192,7 @@ abstract class SocketClientConst
 	
 	***************************************************************************/
 
-    static public StringEnum!(Code,
+    static public StringEnum!(
             CodeDesc("Ok", 200),
             CodeDesc("Error", 500),
             CodeDesc("PutOnReadOnly", 501)
