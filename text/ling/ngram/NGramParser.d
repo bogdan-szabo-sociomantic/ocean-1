@@ -327,11 +327,17 @@ public class NGramParser
     {
         auto dchar_input = convertToDChar(input, working);
 
-        normalizeCharacters(dchar_input, output);
-
-        removeStopWords(output, working, stopwords);
-
-        compressWhitespace(working, output);
+        if ( stopwords.length )
+        {
+            normalizeCharacters(dchar_input, output);
+            removeStopWords(output, working, stopwords);
+            compressWhitespace(working, output);
+        }
+        else
+        {
+            normalizeCharacters(dchar_input, working);
+            compressWhitespace(working, output);
+        }
     }
 
 
@@ -347,7 +353,7 @@ public class NGramParser
     
     ***************************************************************************/
     
-    public void removeStopWords ( dchar[] input, ref dchar[] output, ref dchar[][] stopwords )
+    public void removeStopWords ( dchar[] input, ref dchar[] output, dchar[][] stopwords )
     {
         output.length = 0;
     
@@ -422,7 +428,7 @@ public class NGramParser
         {
             // skip whitespace characters
             bool got_whitespace;
-            while ( Unicode.isWhitespace(input[read_pos]) )
+            while ( read_pos < input.length && Unicode.isWhitespace(input[read_pos]) )
             {
                 got_whitespace = true;
                 read_pos++;
@@ -436,7 +442,7 @@ public class NGramParser
 
             // copy non-whitespace characters
             size_t word_start = read_pos;
-            while ( !Unicode.isWhitespace(input[read_pos]) )
+            while ( read_pos < input.length && !Unicode.isWhitespace(input[read_pos]) )
             {
                 read_pos++;
             }
