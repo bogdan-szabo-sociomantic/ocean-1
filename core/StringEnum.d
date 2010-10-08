@@ -101,8 +101,24 @@ struct StringEnumValue ( T = int )
 
 *******************************************************************************/
 
-class StringEnum ( T, V ... )
+class StringEnum ( V ... )
 {
+    // FIXME: for some reason neither of these assrtes fires...
+    static assert( !is( V == void ), "cannot create a StringEnum with no enum values!" );
+    static assert( V.length > 0, "cannot create a StringEnum with no enum values!" );
+
+
+    /***************************************************************************
+
+        Alias for the base type of the enum. Derived from the base type of the
+        first enum value. All StringEnumValues in the tuple V are asserted to be
+		of this type (see EnumValueListString, below).
+    
+    ***************************************************************************/
+
+    private alias typeof(V[0].code) T;
+
+
     /***************************************************************************
 
         Template forming a string containing the declaration of a single value
@@ -138,7 +154,7 @@ class StringEnum ( T, V ... )
     {
         static if ( V.length == 1 )
         {
-            static assert ( is(typeof(V[0]) == StringEnumValue!(T)) );
+            static assert ( is(typeof(V[0]) == StringEnumValue!(T)), "all StringEnum values must be based on the same type" );
 
             const char[] EnumValueListString = EnumValueString!(V[0].description, V[0].code);
         }
