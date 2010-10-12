@@ -523,9 +523,14 @@ class Profiler
     
     ***************************************************************************/
 
-    static this ( )
+    private static Profiler getStaticInstance ( )
     {
-        static_instance = new Profiler();
+        if ( !static_instance )
+        {
+            static_instance = new Profiler();
+        }
+
+        return static_instance;
     }
 
     
@@ -549,7 +554,7 @@ class Profiler
 
     public static typeof(this) opCall ( )
     {
-        return static_instance;
+        return getStaticInstance();
     }
 
     deprecated public static typeof(this) instance ( )
