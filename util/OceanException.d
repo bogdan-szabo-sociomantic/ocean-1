@@ -82,7 +82,9 @@ module      ocean.util.OceanException;
 
 ********************************************************************************/
 
-private     import      tango.util.Arguments;
+private     import      ocean.text.Arguments;
+
+private     import      Tango = tango.util.Arguments;
 
 private     import      tango.util.log.Log, tango.util.log.LayoutDate;
 
@@ -211,6 +213,24 @@ class OceanException: Exception
             true, if function was executed successfully
             
      *******************************************************************************/
+    
+    public static bool run( bool function(Tango.Arguments arguments) func, 
+            Tango.Arguments arguments )
+    {
+        try
+        {
+            return func(arguments);
+        }
+        catch (Exception e)
+        {
+            if ( OceanException.isAppender() )
+                OceanException.write(Logger.Level.Error, e.msg);
+
+            Trace.formatln(e.msg).flush;
+        }
+
+        return true;
+    }
     
     public static bool run( bool function(Arguments arguments) func, 
             Arguments arguments )
