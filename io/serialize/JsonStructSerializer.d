@@ -197,7 +197,15 @@ class JsonStructSerializer ( Char, bool ThreadSafe = false )
 
     /***************************************************************************
 
-        Appends a named element to the json string
+        Appends a named item to the json string
+    
+        Template params:
+            T = type of item
+        
+        Params:
+            output = string to serialize json data to
+            item = item to append
+            name = name of item
     
     ***************************************************************************/
 
@@ -211,6 +219,13 @@ class JsonStructSerializer ( Char, bool ThreadSafe = false )
 
         Appends a struct to the json string (as a named object)
     
+        Params:
+            output = string to serialize json data to
+            name = name of struct item
+            serialize_struct = delegate which is expected to call further
+                methods of this class in order to serialize the struct's
+                contents
+
     ***************************************************************************/
 
     void serializeStruct ( ref Char[] output, Char[] name, void delegate ( ) serialize_struct )
@@ -223,6 +238,14 @@ class JsonStructSerializer ( Char, bool ThreadSafe = false )
 
         Appends a named array to the json string
     
+        Template params:
+            T = base type of array
+    
+        Params:
+            output = string to serialize json data to
+            array = array to append
+            name = name of array item
+
     ***************************************************************************/
 
     void serializeArray ( T ) ( ref Char[] output, T[] array, Char[] name )
@@ -243,6 +266,17 @@ class JsonStructSerializer ( Char, bool ThreadSafe = false )
         Appends a named array of structs to the json string, as an array of
         unnamed objects.
     
+        Template params:
+            T = base type of array
+    
+        Params:
+            output = string to serialize json data to
+            array = array to append
+            name = name of struct item
+            serialize_element = delegate which is expected to call further
+                methods of this class in order to serialize each struct's
+                contents
+
     ***************************************************************************/
 
     void serializeStructArray ( T ) ( ref Char[] output, Char[] name, T[] array, void delegate ( ref T ) serialize_element )
