@@ -11,6 +11,38 @@
     See tango.text.Arguments - this class just adds a single public method to
     the interface of that class.
 
+    Usage example:
+
+    ---
+    
+        void main ( char[][] cmdl )
+        {
+            auto app_name = cmdl[0];
+        
+            // Parse command line args
+            scope args = new Arguments();
+            args.parse(cmdl[1..$]);
+        
+            args("help").aliased('?').aliased('h').help("display this help");
+            args("start").aliased('s').help("start of range to query (hash value - defaults to 0x00000000)");
+            args("end").aliased('e').help("end of range to query (hash value - defaults to 0xFFFFFFFF)");
+            args("channel").aliased('c').help("channel name to query");
+            args("all_channels").aliased('A').help("query all channels");
+        
+            args.displayHelp(app_name);
+        }
+    
+    ---
+
+    Running the above code writes the following to Stderr:
+    
+     ./NAME command line arguments:
+       -s,     --start         start of range to query (hash value - defaults to 0x00000000)
+       -e,     --end           end of range to query (hash value - defaults to 0xFFFFFFFF)
+       -h, -?, --help          display this help
+       -c,     --channel       channel name to query
+       -A,     --all_channels  query all channels
+
 *******************************************************************************/
 
 module ocean.text.Arguments;
