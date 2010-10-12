@@ -3,8 +3,6 @@
     Serializer, to be used with the StructSerializer, which dumps a struct into
     a json string.
     
-    in ocean.io.serialize.StructSerializer.
-    
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
     
     version:        October 2010: Initial release
@@ -55,19 +53,21 @@
     The (formatted) output of the above is:
 
         {
-            "ids": [
-                {
-                    "name": "hi",
-                    "id": 23
-                },
-                {
-                    "name": "hello",
-                    "id": 17
-                }
-            ],
-            "name": "",
-            "count": 0,
-            "money": 0.00
+            "Data": {
+                "ids": [
+                    {
+                        "name": "hi",
+                        "id": 23
+                    },
+                    {
+                        "name": "hello",
+                        "id": 17
+                    }
+                ],
+                "name": "",
+                "count": 0,
+                "money": 0.00
+            }
         }
 
 *******************************************************************************/
@@ -82,9 +82,13 @@ module ocean.io.serialize.JsonStructSerializer;
 
 *******************************************************************************/
 
+private import ocean.core.Array;
+
 private import ocean.text.json.Jsonizer;
 
 private import tango.core.Traits : isCharType;
+
+debug private import tango.util.log.Trace;
 
 
 
@@ -94,10 +98,12 @@ private import tango.core.Traits : isCharType;
     
     Template params:
         Char = character type of output string
+        ThreadSafe = if true, the class creates its own private instance of the
+                     Jsonizer class. Otherwise it uses a shared global instance.
 
 *******************************************************************************/
 
-class JsonStructSerializer ( Char )
+class JsonStructSerializer ( Char, bool ThreadSafe = false )
 {
     static assert ( isCharType!(Char), typeof(this).stringof ~ " - this class can only handle {char, wchar, dchar}, not " ~ Char.stringof );
 
@@ -110,19 +116,65 @@ class JsonStructSerializer ( Char )
 
     private alias Jsonizer!(Char) Json;
 
+    
+    /***************************************************************************
 
-static:
+        Jsonizer object (either created internally, or just a reference to the
+        global Jsonizer instance - see Jsonizer.opCall)
+    
+    ***************************************************************************/
+
+    private Json json;
+
+
+    /***************************************************************************
+
+        Constructor. Creates the local Jsonizer object, if needed.
+    
+    ***************************************************************************/
+
+    public this ( )
+    {
+        static if ( ThreadSafe )
+        {
+            this.json = new Json();
+        }
+        else
+        {
+            this.json = Json(); // use global static instance
+        }
+    }
+
+    
+    /***************************************************************************
+
+        Destructor. Destroys the local Jsonizer, if one was created.
+
+    ***************************************************************************/
+
+    ~this ( )
+    {
+        static if ( ThreadSafe )
+        {
+            delete this.json;
+        }
+    }
+
 
     /***************************************************************************
 
         Called at the start of struct serialization - opens the json string with
         a {
+        
+        Params:
+            output = string to serialize json data to
+            name = name of top-level object
     
     ***************************************************************************/
 
-    void open ( ref Char[] output )
+    void open ( ref Char[] output, Char[] name  )
     {
-        Json.open(output);
+        this.json.open(output, name);
     }
 
 
@@ -131,11 +183,15 @@ static:
         Called at the end of struct serialization - closes the json string with
         a }
     
+        Params:
+            output = string to serialize json data to
+            name = name of top-level object
+    
     ***************************************************************************/
 
-    void close ( ref Char[] output )
+    void close ( ref Char[] output, Char[] name  )
     {
-        Json.close(output);
+        this.json.close(output, name);
     }
 
 
@@ -145,9 +201,9 @@ static:
     
     ***************************************************************************/
 
-    void serialize ( T ) ( ref Char[] output, ref T item, char[] name )
+    void serialize ( T ) ( ref Char[] output, ref T item, Char[] name )
     {
-        Json.append(output, name, item);
+        this.json.add(output, name, item);
     }
 
     
@@ -159,7 +215,7 @@ static:
 
     void serializeStruct ( ref Char[] output, Char[] name, void delegate ( ) serialize_struct )
     {
-        Json.appendObject(output, name, serialize_struct);
+        this.json.addObject(output, name, serialize_struct);
     }
 
     
@@ -173,11 +229,11 @@ static:
     {
         static if ( is(T == char) )
         {
-            Json.append(output, name, array);
+            this.json.add(output, name, array);
         }
         else
         {
-            Json.appendArray(output, name, array);
+            this.json.addArray(output, name, array);
         }
     }
 
@@ -191,7 +247,7 @@ static:
 
     void serializeStructArray ( T ) ( ref Char[] output, Char[] name, T[] array, void delegate ( ref T ) serialize_element )
     {
-        Json.appendObjectArray(output, name, array, serialize_element);
+        this.json.addObjectArray(output, name, array, serialize_element);
     }
 }
 
