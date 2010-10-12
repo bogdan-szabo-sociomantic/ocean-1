@@ -38,7 +38,7 @@
 
         alias StringEnumValue!(int) Code;
 
-        StringEnum!(int,
+        StringEnum!(
             Code("first", 1),
             Code("second", 2)
         ) Commands;
