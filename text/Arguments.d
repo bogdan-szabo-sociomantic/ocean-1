@@ -1,0 +1,190 @@
+/*******************************************************************************
+
+    Command line arguments parser with automatic help text output
+
+    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
+    
+    version:        October 2010: Initial release
+    
+    authors:        Gavin Norman
+
+    See tango.text.Arguments - this class just adds a single public method to
+    the interface of that class.
+
+*******************************************************************************/
+
+module ocean.text.Arguments;
+
+
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+private import Tango = tango.text.Arguments;
+
+private import tango.io.Stdout;
+
+private import tango.math.Math : max;
+
+
+
+/*******************************************************************************
+
+    Arguments class.
+
+    Derives from tango.text.Arguments, and adds a displayHelp() method.
+
+*******************************************************************************/
+
+class Arguments : Tango.Arguments
+{
+    /***************************************************************************
+
+        Internal string used for spacing of help output.
+    
+    ***************************************************************************/
+    
+    private char[] spaces;
+
+    
+    /***************************************************************************
+
+        Maximum text width of argument aliases.
+    
+    ***************************************************************************/
+
+    private uint aliases_width;
+    
+    
+    /***************************************************************************
+
+        Maximum text width of argument long name.
+    
+    ***************************************************************************/
+
+    private uint long_name_width;
+    
+    
+    /***************************************************************************
+
+        Displays the help text for all arguments which have such defined.
+        
+        Params:
+            app_name = name of application
+    
+    ***************************************************************************/
+
+    public void displayHelp ( char[] app_name )
+    {
+        super.help(&this.calculateSpacing);
+
+        Stderr.format("\n{} command line arguments:\n", app_name);
+
+        super.help(&this.displayArgumentHelp);
+
+        Stderr.format("\n");
+    }
+
+    
+    /***************************************************************************
+
+        Calculates the display width of the passes aliases list. (Each alias is
+        a single character in the array.)
+        
+        Params:
+            aliases = array of argument aliases
+            
+        Returns:
+            display width of aliases
+    
+    ***************************************************************************/
+
+    private uint aliasesWidth ( char[] aliases )
+    {
+        auto width = aliases.length * 2; // *2 for a '-' before each alias
+        if ( aliases.length > 1 )
+        {
+            width += (aliases.length - 1) * 2; // ', ' after each alias except the last
+        }
+
+        return width;
+    }
+    
+    
+    /***************************************************************************
+
+        Delegate for the super.help method which displays nothing, but updates
+        the internal maximum counters for the width of the received argument
+        aliases and long names.
+        
+        Params:
+            long_name = argument long name
+            aliases = argument aliases
+            help = argument help text (ignored)
+    
+    ***************************************************************************/
+
+    private void calculateSpacing ( char[] long_name, char[] aliases, char[] help )
+    {
+        this.long_name_width = max(this.long_name_width, long_name.length);
+        this.aliases_width = max(this.aliases_width, this.aliasesWidth(aliases));
+    }
+    
+    
+    /***************************************************************************
+
+        Delegate for the super.help method which displays help text for an
+        argument.
+        
+        Params:
+            long_name = argument long name
+            aliases = argument aliases
+            help = argument help text
+    
+    ***************************************************************************/
+
+    private void displayArgumentHelp ( char[] long_name, char[] aliases, char[] help )
+    {
+        Stderr.format("  ");
+        foreach ( i, al; aliases )
+        {
+            Stderr.format("-{}", al);
+            if ( i != aliases.length - 1 || long_name.length )
+            {
+                Stderr.format(", ");
+            }
+        }
+
+        Stderr.format("{}", this.space(this.aliases_width - this.aliasesWidth(aliases)));
+        Stderr.format("--{}{}  ", long_name, this.space(this.long_name_width - long_name.length));
+        Stderr.format("{}\n", help);
+    }
+
+    
+    /***************************************************************************
+
+        Creates a string with the specified number of spaces.
+        
+        Params:
+            width = desired number of spaces
+
+        Returns:
+            string with desired number of spaces.
+    
+    ***************************************************************************/
+
+    private char[] space ( uint width )
+    {
+        this.spaces.length = width;
+        if ( width > 0 )
+        {
+            this.spaces[0..$] = ' ';
+        }
+
+        return this.spaces;
+    }
+}
+
