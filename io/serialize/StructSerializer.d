@@ -165,9 +165,9 @@ struct StructSerializer
         Dumps/serializes the content of s and its array members, using the given
         serializer object. The serializer object needs the following methods:
             
-                void open ( ref Char[] output );
+                void open ( ref Char[] output, char[] name );
 
-                void close ( ref Char[] output );
+                void close ( ref Char[] output, char[] name );
             
                 void serialize ( T ) ( ref Char[] output, T* item, char[] name );
             
@@ -192,9 +192,9 @@ struct StructSerializer
 
     public void dump ( S, Serializer, D ) ( S* s, Serializer serializer, ref D[] data )
     {
-        serializer.open(data);
+        serializer.open(data, S.stringof);
         serialize(s, serializer, data);
-        serializer.close(data);
+        serializer.close(data, S.stringof);
     }
 
     /**************************************************************************
