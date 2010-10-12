@@ -61,6 +61,10 @@ private import tango.io.Stdout;
 
 private import tango.math.Math : max;
 
+private import Integer = tango.text.convert.Integer;
+
+debug private import tango.util.log.Trace;
+
 
 
 /*******************************************************************************
@@ -118,6 +122,93 @@ class Arguments : Tango.Arguments
         super.help(&this.displayArgumentHelp);
 
         Stderr.format("\n");
+    }
+
+
+    /***************************************************************************
+
+        Convenience method to get the value of a bool argument.
+        
+        Params:
+            name = name of argument
+        
+        Returns:
+            true if the argument is set
+    
+    ***************************************************************************/
+
+    public bool getBool( char[] name )
+    {
+        auto arg = this.get(name);
+        if ( arg )
+        {
+            return arg.set;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Convenience method to get the value of an integer argument.
+
+        Template params:
+            T = type of integer to return
+        
+        Params:
+            name = name of argument
+        
+        Returns:
+            integer conversion of argument value
+            
+    ***************************************************************************/
+
+    public T getInt ( T ) ( char[] name )
+    {
+        auto arg = this.get(name);
+        char[] value;
+
+        if ( arg && arg.assigned.length == 1)
+        {
+            if ( arg.assigned.length )
+            {
+                value = arg.assigned[0];
+            }
+        }
+
+        return Integer.toLong(value);
+    }
+
+
+    /***************************************************************************
+
+        Convenience method to get the value of a string argument.
+    
+        Params:
+            name = name of argument
+        
+        Returns:
+            argument value
+            
+    ***************************************************************************/
+
+    public char[] getString ( char[] name )
+    {
+        auto arg = this.get(name);
+        char[] value;
+
+        if ( arg && arg.assigned.length == 1)
+        {
+            if ( arg.assigned.length )
+            {
+                value = arg.assigned[0];
+            }
+        }
+        
+        return value;
     }
 
     
