@@ -21,13 +21,12 @@
 
     The classes also implement a foreach iterator over the values of the enum.
 
-    The class template takes two parameters:
+    The class template takes as parameters a variadic list of StringEnumValue
+    structs, specifying the names and values of the enum's members.
 
-        1. The base type of the enum - must be an integral type (see
-        http://www.digitalmars.com/d/1.0/enum.html).
-
-        2. A variadic list of StringEnumValue structs, specifying the names and
-        values of the enum's members.
+    The StringEnumValue struct is also a template, which takes as parameter the
+    base type of the enum - must be an integral type (see
+    http://www.digitalmars.com/d/1.0/enum.html).
 
     Usage example:
 
