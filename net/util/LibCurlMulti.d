@@ -168,6 +168,15 @@ class LibCurlMulti
     
     /***************************************************************************
 
+        Timeout (in milliseconds) for asynchronous transfer (select).
+    
+    ***************************************************************************/
+
+    private long timeout_ms;
+
+
+    /***************************************************************************
+
         Default maximum number of parallel requests
     
     ***************************************************************************/
@@ -230,10 +239,35 @@ class LibCurlMulti
         }
 
         auto connection = this.conn_pool.get();
-        connection.addToCurlMulti(this.curlm, url, read_dg);
         connection.setUserAgent(this.user_agent);
+        connection.addToCurlMulti(this.curlm, url, read_dg);
 
         return true;
+    }
+
+
+    /***************************************************************************
+
+		Checks whether the given url has already been requested.        
+
+        Params:
+            url = url to check
+
+        Returns:
+            true if the request has already been added to the connection pool
+            
+    ***************************************************************************/
+
+    public bool isRequested ( char[] url )
+    {
+        foreach ( conn; this.conn_pool )
+        {
+            if ( url == conn.url )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -265,10 +299,7 @@ class LibCurlMulti
         while ( active );
 
         // Return all requests to the pool
-        foreach ( conn; this.conn_pool )
-        {
-            conn.recycle();
-        }
+        this.clear();
     }
 
 
@@ -286,7 +317,22 @@ class LibCurlMulti
         this.user_agent.copy(user_agent);
     }
 
+
+    /***************************************************************************
+
+        Sets the timeout value for all requests registered in the future.
     
+        Params:
+            timeout_ms = milliseconds timeout
+    
+    ***************************************************************************/
+
+    public void setTimeout ( long timeout_ms )
+    {
+        this.timeout_ms = timeout_ms;
+    }
+
+
     /***************************************************************************
 
         Returns:
@@ -333,6 +379,22 @@ class LibCurlMulti
 
 
     /***************************************************************************
+    
+        Closes all active connections. They are returned to the object pool of
+        connections, and can be reused.
+        
+    ***************************************************************************/
+
+    public void clear ( )
+    {
+        foreach ( conn; this.conn_pool )
+        {
+            conn.recycle(); // calls curl_multi_remove_handle
+        }
+    }
+
+
+    /***************************************************************************
 
         Sets up a select() wait until one of the registered requests has more
         I/O which needs processing.
@@ -354,18 +416,20 @@ class LibCurlMulti
         CurlMCode ret = curl_multi_fdset(this.curlm, &read_fd_set, &write_fd_set, &exc_fd_set, &max_fd);
         // TODO: check ret?
 
-        long timeout_ms;
-        ret = curl_multi_timeout(this.curlm, &timeout_ms);
-        // TODO: check ret?
-
-        long timeout_s = timeout_ms / 1000;
-        long timeout_us = (timeout_ms % 1000) * 1000;
-        timeval timeout = { timeout_s, timeout_us };
-
         if ( max_fd > -1 )
         {
-            .select(max_fd + 1, &read_fd_set, &write_fd_set, &exc_fd_set, &timeout);
-            // TODO: check ret?
+            timeval timeout;
+            timeout.tv_sec = this.timeout_ms / 1000;
+            timeout.tv_usec = (this.timeout_ms % 1000) * 1000;
+
+            auto r = .select(max_fd + 1, &read_fd_set, &write_fd_set, &exc_fd_set, &timeout);
+            if ( r == 0 )
+            {
+                debug Trace.formatln("LibCurlMulti Transfer timeout");
+
+                // Return all requests to the pool
+                this.clear();
+            }
         }
 
         return ret;
