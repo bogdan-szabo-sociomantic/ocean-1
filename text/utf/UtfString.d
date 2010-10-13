@@ -171,7 +171,7 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 	
 	***************************************************************************/
 	
-	Char[] string;
+	public Char[] string;
 	
 	
 	/***************************************************************************
@@ -182,14 +182,25 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 	
 	static if ( pull_dchars )
 	{
-		public alias dchar OutType;
+        public alias dchar OutType;
+        public alias dchar[] ArrayOutType;
 	}
 	else
 	{
 		public alias Char[] OutType;
+        public alias Char[] ArrayOutType;
 	}
 	
 	
+    /***************************************************************************
+    
+        Internal buffer, used by the slice operator.
+    
+    ***************************************************************************/
+
+    private ArrayOutType slice_string;
+
+
 	/***************************************************************************
 	
 	    foreach iterator.
@@ -324,11 +335,74 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 			c = This.extract(this.string[i..$], width);
 			i += width;
 		} while ( count++ < index );
-	
+
 		return c;
 	}
 
     
+    /***************************************************************************
+    
+        opSlice. Extracts an indexed sequence of unicode characters from the
+        referenced string.
+        
+        The returned slice is built up in the internal slice_string member.
+    
+        Params:
+            start = index of first character to extract
+            end = index of last character to extract
+            
+        Returns:
+            the sliced characters (either as dchars or as the same type as the
+            referenced string).
+    
+    ***************************************************************************/
+
+    public ArrayOutType opSlice ( size_t start, size_t end )
+    {
+        return this.slice(start, end, this.slice_string);
+    }
+    
+
+    /***************************************************************************
+    
+        Slice. Extracts an indexed sequence of unicode characters from the
+        referenced string.
+        
+        The returned slice is built up in the passed string.
+    
+        Params:
+            start = index of first character to extract
+            end = index of last character to extract
+            output = string into which the sliced characters are placed
+            
+        Returns:
+            the sliced characters (either as dchars or as the same type as the
+            referenced string).
+    
+    ***************************************************************************/
+
+    public ArrayOutType slice ( size_t start, size_t end, ref ArrayOutType output )
+    {
+        output.length = 0;
+        
+        size_t i;
+        foreach ( c; *this )
+        {
+            if ( i >= start )
+            {
+                output ~= c;
+            }
+
+            if ( ++i > end )
+            {
+                break;
+            }
+        }
+
+        return output;
+    }
+
+
     /***************************************************************************
     
         Calculates the number of unicode characters in the referenced string.
@@ -351,7 +425,7 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
         return len;
     }
 
-
+    
 	/***************************************************************************
 	
 	    Extract the next character from the referenced string.
