@@ -567,7 +567,7 @@ public class NGramParser
             c = character to check
         
         Returns:
-            true if the character should eb stripped
+            true if the character should be stripped
     
     ***************************************************************************/
 
