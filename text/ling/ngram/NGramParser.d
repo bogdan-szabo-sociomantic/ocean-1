@@ -744,11 +744,13 @@ debug ( OceanUnitTest )
 		const uint ngram_size = 3; // trigrams
 
 		scope ngrams = new NGramSet();
-		NGramParser.parseText(ngrams, ngram_size, text);
+        dchar[] normalized, normalized2, working;
+        NGramParser.normalizeText(text, normalized, working);
+        NGramParser.parseText(ngrams, ngram_size, normalized);
 
 		// Check that all the ngrams found actually exist in the source text
 		dchar[] unicode_text = Utf.toString32(text);
-		foreach ( ngram, freq; ngrams )
+		foreach ( dchar[] ngram, uint freq; ngrams )
 		{
 			const size_t NotFound = text.length;
 			assert(unicode_text.find(ngram) != NotFound, "NGramParser unittest: Error, ngram not found in source text.");
@@ -760,11 +762,11 @@ debug ( OceanUnitTest )
 		// Check that a text with no ngrams in common is completely different
 		const char[] text2 = "hail not too big";
 		scope ngrams2 = new NGramSet();
-		NGramParser.parseText(ngrams, ngram_size, text);
+        NGramParser.normalizeText(text, normalized2, working);
+		NGramParser.parseText(ngrams, ngram_size, normalized2);
 		assert(ngrams.distance(ngrams2) == 1.0, "NGramParser unittest: Error, ngram set comparison against a totally different ngram set didn't return total difference.");
 
 		Trace.formatln("\nDone unittest\n");
 	}
 }
-
 
