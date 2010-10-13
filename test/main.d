@@ -20,27 +20,30 @@ module ocean.test.main;
  	
  ******************************************************************************/
 
-private import 	ocean.core.Array;
-private import 	ocean.core.ArrayMap;
-private import 	ocean.core.ObjectThreadPool;
-private import  ocean.core.StructSerializer;
-private import  ocean.core.UniStruct;
+private import ocean.core.Array,
+               ocean.core.ArrayMap,
+               ocean.core.ObjectThreadPool,
+               ocean.core.UniStruct;
 
-private import 	ocean.io.digest.Fnv1;
-private import 	ocean.io.Retry;
-private import 	ocean.io.device.QueueMemory;
+private import ocean.io.Retry;
 
-import ocean.io.compress.Lzo;
-import ocean.io.compress.lzo.LzoChunk;
-import ocean.io.compress.lzo.LzoHeader;
+private import ocean.io.compress.Lzo;
+private import ocean.io.compress.lzo.LzoChunk,
+               ocean.io.compress.lzo.LzoHeader;
 
-private import 	ocean.net.http.Url;
+private import ocean.io.digest.Fnv1;
 
+private import ocean.io.device.queue.RingQueue;
 
-private import 	ocean.text.entities.XmlEntityCodec;
-private import 	ocean.text.utf.UtfString;
-private import 	ocean.text.ling.ngram.NGramParser;
-private import 	ocean.text.ling.ngram.NGramSet;
+private import ocean.io.serialize.SimpleSerializer,
+               ocean.io.serialize.StructSerializer;
+
+private import ocean.net.http.Url;
+
+private import ocean.text.entities.XmlEntityCodec;
+private import ocean.text.utf.UtfString;
+private import ocean.text.ling.ngram.NGramParser,
+               ocean.text.ling.ngram.NGramSet;
 
 
 
