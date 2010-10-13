@@ -393,7 +393,7 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
                 output ~= c;
             }
 
-            if ( ++i > end )
+            if ( ++i >= end )
             {
                 break;
             }
