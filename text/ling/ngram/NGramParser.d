@@ -557,7 +557,20 @@ public class NGramParser
     }
 
 
-    // TODO
+    /***************************************************************************
+
+        Checks whether a character should be ignored (replaced with a space).
+        The check is based on a set of unicode categories, defining digits,
+        punctuation, etc throughout the whole unicode range.
+
+        Params:
+            c = character to check
+        
+        Returns:
+            true if the character should eb stripped
+    
+    ***************************************************************************/
+
     private bool stripCharacter ( dchar c )
     {
         if ( !(c in unicodeData) )
