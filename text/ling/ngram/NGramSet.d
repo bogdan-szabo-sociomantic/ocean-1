@@ -28,6 +28,8 @@ module text.ling.ngram.NGramSet;
 
 private import ocean.core.ArrayMap;
 
+private import ocean.io.serialize.SimpleSerializer;
+
 private	import tango.core.BitArray;
 
 private	import tango.io.model.IConduit;
@@ -696,12 +698,12 @@ class NGramSet_ ( bool ThreadSafe = false )
 
 	public void serialize ( OutputStream output )
 	{
-		this.write(this.ngrams.length, output);
+		SimpleSerializer.write(output, this.ngrams.length);
 
 		foreach ( ngram, freq; this.ngrams )
 		{
-			this.write(ngram, output);
-			this.write(freq, output);
+            SimpleSerializer.write(output, ngram);
+            SimpleSerializer.write(output, freq);
 		}
 	}
 
@@ -720,17 +722,17 @@ class NGramSet_ ( bool ThreadSafe = false )
 		this.clear();
 
 		size_t length;
-		this.read(length, input);
+        SimpleSerializer.read(input, length);
 
 		for ( uint i; i < length; i++ )
 		{
 			dchar[] ngram;
-			this.read(ngram, input);
+            SimpleSerializer.read(input, ngram);
 
 			uint freq;
-			this.read(freq, input);
+            SimpleSerializer.read(input, freq);
 
-            // TODO: pretty sure this needs a dup here?
+            // TODO: pretty sure this needs a dup here? - maybe not, cos the read method declares it as 'out'
             // It's a shame, when an ngram set is parsed straight from a source
             // text, all the ngrams are just slices into that text.
             // But when a set is deserialized like this, they're all individual
@@ -1011,119 +1013,6 @@ class NGramSet_ ( bool ThreadSafe = false )
 
         return highest_index;
     }
-
-
-	/***************************************************************************
-
-		Writes something to an output stream. Single elements are written
-		straight to the output stream, while array types have their length
-		written, followed by each element.
-
-		Template params:
-			T = type of data to write
-
-		Params:
-			data = data to write
-			output = output stream to write to
-		
-	***************************************************************************/
-
-    private void write ( T ) ( T data, OutputStream output )
-	{
-		static if ( is ( T A == A[] ) )
-		{
-			this.write(data.length, output);
-
-			foreach ( d; data )
-			{
-				this.write(d, output);
-			}
-		}
-		else
-		{
-			this.writeData(&data, T.sizeof, output);
-		}
-	}
-
-
-	/***************************************************************************
-
-		Writes data to an output stream.
-	
-		Params:
-			data = pointer to data to write
-			bytes = length of data in bytes
-			output = output stream to write to
-		
-	***************************************************************************/
-
-    private void writeData ( void* data, size_t bytes, OutputStream output )
-	{
-		do
-		{
-			auto ret = output.write(data[0..bytes]);
-			data += ret;
-			bytes -= ret;
-		} while ( bytes > 0 );
-	}
-
-
-	/***************************************************************************
-
-		Reads something from an input stream. Single elements are read straight
-		from the input stream, while array types have their length read,
-		followed by each element.
-	
-		Template params:
-			T = type of data to read
-	
-		Params:
-			data = data to read
-			input = input stream to read from
-		
-	***************************************************************************/
-
-    private void read ( T ) ( out T data, InputStream input )
-	{
-		static if ( is ( T A == A[] ) )
-		{
-			size_t length;
-			this.read(length, input);
-			for ( uint i; i < length; i++ )
-			{
-				A d;
-				this.read(d, input);
-				data ~= d;
-			}
-		}
-		else
-		{
-			this.readData(&data, data.sizeof, input);
-		}
-	}
-
-
-	/***************************************************************************
-
-		Reads data from an input stream.
-	
-		Params:
-			data = pointer to data to read
-			bytes = length of data in bytes
-			input = input stream to read from
-		
-	***************************************************************************/
-
-    private void readData ( void* data, size_t bytes, InputStream input)
-	{
-		size_t ret;
-		do
-		{
-			ret = input.read(data[0..bytes]);
-			data += ret;
-			bytes -= ret;
-		} while ( bytes > 0 && ret != IOStream.Eof );
-	}
 }
 
 
@@ -1167,9 +1056,9 @@ debug ( OceanUnitTest )
 
 		// Check that the file has been serialized correctly
 		assert(ngramset.length == ngramset2.length, "ocean.text.ling.ngram.NGramSet unittest - file read has wrong number of ngrams");
-		foreach ( ngram, freq; ngramset2 )
+		foreach ( dchar[] ngram, uint freq; ngramset2 )
 		{
-			assert(ngramset.nGramFreq(ngram) == freq, "ocean.text.ling.ngram.NGramSet unittest - ngram in file read has wrong frequency");
+			assert(ngramset.getCount(ngram) == freq, "ocean.text.ling.ngram.NGramSet unittest - ngram in file read has wrong frequency");
 		}
 
 		Trace.formatln("\nDone unittest\n");
