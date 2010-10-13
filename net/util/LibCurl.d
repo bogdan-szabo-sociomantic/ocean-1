@@ -321,6 +321,25 @@ class LibCurl
         
         free(cvalue);
     }
+
+    /***************************************************************************
+        
+        Returns:
+            request url (if previously set), with the trailing '\0' removed.
+            
+     **************************************************************************/
+
+    public char[] url ( )
+    {
+        if ( request_url.length > 1 )
+        {
+            return this.request_url[0..$-1];
+        }
+        else
+        {
+            return "";
+        }
+    }
     
     /***************************************************************************
     
@@ -442,7 +461,7 @@ class LibCurl
 
     protected size_t receivedContent ( char[] content )
     {
-        this.request_callback(this.request_url, content);
+        this.request_callback(this.url(), content);
         return content.length;
     }
 
