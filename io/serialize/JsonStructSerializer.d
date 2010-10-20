@@ -126,7 +126,7 @@ class JsonStructSerializer ( Char, bool ThreadSafe = false )
 
     private Json json;
 
-
+    
     /***************************************************************************
 
         Constructor. Creates the local Jsonizer object, if needed.
@@ -172,7 +172,7 @@ class JsonStructSerializer ( Char, bool ThreadSafe = false )
     
     ***************************************************************************/
 
-    void open ( ref Char[] output, Char[] name  )
+    public void open ( ref Char[] output, Char[] name )
     {
         this.json.open(output, name);
     }
@@ -189,7 +189,7 @@ class JsonStructSerializer ( Char, bool ThreadSafe = false )
     
     ***************************************************************************/
 
-    void close ( ref Char[] output, Char[] name  )
+    public void close ( ref Char[] output, Char[] name  )
     {
         this.json.close(output, name);
     }
@@ -209,7 +209,7 @@ class JsonStructSerializer ( Char, bool ThreadSafe = false )
     
     ***************************************************************************/
 
-    void serialize ( T ) ( ref Char[] output, ref T item, Char[] name )
+    public void serialize ( T ) ( ref Char[] output, T item, Char[] name )
     {
         this.json.add(output, name, item);
     }
@@ -228,7 +228,7 @@ class JsonStructSerializer ( Char, bool ThreadSafe = false )
 
     ***************************************************************************/
 
-    void serializeStruct ( ref Char[] output, Char[] name, void delegate ( ) serialize_struct )
+    public void serializeStruct ( ref Char[] output, Char[] name, void delegate ( ) serialize_struct )
     {
         this.json.addObject(output, name, serialize_struct);
     }
@@ -237,7 +237,16 @@ class JsonStructSerializer ( Char, bool ThreadSafe = false )
     /***************************************************************************
 
         Appends a named array to the json string
-    
+
+        Multi-dimensional arrays are serialized as arrays of json objects, where
+        each sub-object has two values:
+        
+            * index = integer value giving index in array
+            * elements = sub-array of elements
+        
+        In this way, arrays of arbitrary dimension can be recursively
+        serialized.
+
         Template params:
             T = base type of array
     
@@ -248,15 +257,30 @@ class JsonStructSerializer ( Char, bool ThreadSafe = false )
 
     ***************************************************************************/
 
-    void serializeArray ( T ) ( ref Char[] output, T[] array, Char[] name )
+    public void serializeArray ( T ) ( ref Char[] output, T[] array, Char[] name )
     {
-        static if ( is(T == char) )
+        static if ( is(T == Char) )
         {
             this.json.add(output, name, array);
         }
         else
         {
-            this.json.addArray(output, name, array);
+            static if ( is(T U : U[]) && !is(U == Char) )
+            {
+                size_t index;
+
+                this.json.addObjectArray(output, name, array,
+                        ( ref U[] sub_array )
+                        {
+                            this.json.add(output, "index", index);
+                            this.serializeArray(output, sub_array, "elements");
+                            index++;
+                        });
+            }
+            else
+            {
+                this.json.addArray(output, name, array);
+            }
         }
     }
 
@@ -279,7 +303,7 @@ class JsonStructSerializer ( Char, bool ThreadSafe = false )
 
     ***************************************************************************/
 
-    void serializeStructArray ( T ) ( ref Char[] output, Char[] name, T[] array, void delegate ( ref T ) serialize_element )
+    public void serializeStructArray ( T ) ( ref Char[] output, Char[] name, T[] array, void delegate ( ref T ) serialize_element )
     {
         this.json.addObjectArray(output, name, array, serialize_element);
     }
