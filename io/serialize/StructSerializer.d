@@ -283,6 +283,46 @@ struct StructSerializer
     
     /**************************************************************************
 
+        Loads/deserializes the content of s and its array members, using the
+        given deserializer object. The deserializer object needs the following
+        methods:
+            
+                void open ( ref Char[] input, char[] name );
+    
+                void close ( );
+            
+                void deserialize ( T ) ( ref T output, char[] name );
+            
+                void deserializeStruct ( ref T output, Char[] name, void delegate ( ) deserialize_struct );
+            
+                void deserializeArray ( T ) ( ref T[] output, Char[] name );
+
+                void deserializeStaticArray ( T ) ( T[] output, Char[] name );
+
+                void deserializeStructArray ( T ) ( ref T[] output, Char[] name, void delegate ( ref T ) deserialize_element );
+    
+        Unfortunately, as some of these methods are templates, it's not
+        possible to make an interface for it. But the compiler will let you know
+        whether a given deserializer object is suitable or not ;)
+    
+        See ocean.io.serialize.JsonStructDeserializer for an example.
+    
+        Params:
+            s = struct instance (pointer)
+            deserializer = object to do the deserialization
+            data = input buffer to read serialized data from
+    
+     **************************************************************************/
+
+    public void load ( S, Deserializer, D ) ( S* s, Deserializer deserializer, D[] data )
+    {
+        deserializer.open(data, S.stringof);
+        deserialize(s, deserializer, data);
+        deserializer.close();
+    }
+
+    /**************************************************************************
+
         Loads/deserializes the content of s and its array members.
         
         receive is called repeatedly; 
@@ -621,7 +661,7 @@ struct StructSerializer
         full description of how the serializer object should behave.
     
         Params:
-            s    = struct instance (pointer)
+            s = struct instance (pointer)
             serializer = object to do the serialization
             data = output buffer to write serialized data to
 
@@ -634,16 +674,14 @@ struct StructSerializer
             auto field = getField!(i)(s);
             auto field_name = getFieldName!(i)(s);
 
-            static if (is (T == struct))
+            static if ( is(T == struct) )
             {
                 serializer.serializeStruct(data, field_name, {
                     serialize(field, serializer, data);                         // recursive call
                 });
             }
-            else static if (is (T U : U[]))
+            else static if( is(T U : U[]) )
             {
-                mixin AssertSupportedArray!(T, U, S, i);
-
                 U[] array = *field;
 
                 static if ( is(U == struct) )
@@ -661,7 +699,7 @@ struct StructSerializer
             {
                 mixin AssertSupportedType!(T, S, i);
 
-                static if (is (T B == enum))
+                static if ( is(T B == enum) )
                 {
                     serializer.serialize(data, cast(B)(*field), field_name);
                 }
@@ -673,6 +711,69 @@ struct StructSerializer
         }
     }
 
+    /**************************************************************************
+
+        Loads/deserializes the content of s and its array members, using the
+        given deserializer object. See the description of the load() method
+        above for a full description of how the deserializer object should
+        behave.
+    
+        Params:
+            s = struct instance (pointer)
+            deserializer = object to do the deserialization
+            data = input buffer to read serialized data from
+    
+     **************************************************************************/
+
+    private void deserialize ( S, Deserializer, D ) ( S* s, Deserializer deserializer, D[] data )
+    {
+        foreach (i, T; typeof (S.tupleof))
+        {
+            auto field = getField!(i)(s);
+            auto field_name = getFieldName!(i)(s);
+
+            static if ( is(T == struct) )
+            {
+                deserializer.deserializeStruct(field, field_name, {
+                    deserialize(field, deserializer, data);                     // recursive call
+                });
+            }
+            else static if ( is(T U : U[]) )
+            {
+                static if ( is(U == struct) )
+                {
+                    deserializer.deserializeStructArray(*field, field_name, ( ref U element ) {
+                        deserialize(&element, deserializer, data);              // recursive call
+                    });
+                }
+                else
+                {
+                    static if ( isStaticArrayType!(T) )
+                    {
+                        deserializer.deserializeStaticArray(*field, field_name);
+                    }
+                    else
+                    {
+                        deserializer.deserializeArray(*field, field_name);
+                    }
+                }
+            }
+            else
+            {
+                mixin AssertSupportedType!(T, S, i);
+
+                static if ( is(T B == enum) )
+                {
+                    deserializer.deserialize(cast(B)(*field), field_name);
+                }
+                else
+                {
+                    deserializer.deserialize(*field, field_name);
+                }
+            }
+        }
+    }
+    
     /**************************************************************************
 
         Generates the type of the i-th field of struct type S
