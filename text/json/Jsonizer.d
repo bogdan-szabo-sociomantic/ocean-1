@@ -282,7 +282,7 @@ class Jsonizer ( Char )
         {
             json.append(`"`, name, `":`, floatToString(item), `,`);
         }
-        else static if ( isIntegerType!(T) )
+        else static if ( isIntegerType!(T) || is(T == bool) )
         {
             json.append(`"`, name, `":`, intToString(item), `,`);
         }
@@ -297,7 +297,7 @@ class Jsonizer ( Char )
             closeSub(json, "},");
         }
         else static assert( false, typeof(this).stringof ~
-            ".add - can only jsonize floats, ints, strings or Jsonizable objects, not " ~ T.stringof );
+            ".add - can only jsonize floats, bools, ints, strings or Jsonizable objects, not " ~ T.stringof );
     }
 
 
@@ -571,7 +571,7 @@ class Jsonizer ( Char )
         {
             json.append(floatToString(item), `,`);
         }
-        else static if ( isIntegerType!(T) )
+        else static if ( isIntegerType!(T) || is(T == bool) )
         {
             json.append(intToString(item), `,`);
         }
@@ -586,7 +586,7 @@ class Jsonizer ( Char )
             closeSub(json, "},");
         }
         else static assert( false, typeof(this).stringof ~
-            ".addUnnamed - can only jsonize floats, ints, strings or Jsonizable objects, not " ~ T.stringof );
+            ".addUnnamed - can only jsonize floats, bools, ints, strings or Jsonizable objects, not " ~ T.stringof );
     }
 
 
