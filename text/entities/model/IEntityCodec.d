@@ -199,22 +199,30 @@ public abstract class IEntityCodec ( E : IEntitySet )
 
 	protected static Char[] charTo ( Char ) ( char[] text )
 	{
-		static if ( is(Char == dchar) )
-		{
-			return Utf.toString32(text);
-		}
-		else static if ( is(Char == wchar) )
-		{
-			return Utf.toString16(text);
-		}
-		else static if ( is(Char == char) )
-		{
-			return text;
-		}
-		else
-		{
-			static assert(false, This.stringof ~ ".charTo - template parameter must be one of {char, wchar, dchar}");
-		}
+        try
+        {
+    		static if ( is(Char == dchar) )
+    		{
+    			return Utf.toString32(text);
+    		}
+    		else static if ( is(Char == wchar) )
+    		{
+    			return Utf.toString16(text);
+    		}
+    		else static if ( is(Char == char) )
+    		{
+    			return text;
+    		}
+    		else
+    		{
+    			static assert(false, This.stringof ~ ".charTo - template parameter must be one of {char, wchar, dchar}");
+    		}
+        }
+        catch ( Exception e )
+        {
+            Trace.formatln("{}.charTo error - {}", typeof(this).stringof, e.msg);
+            return "";
+        }
 	}
 
 
