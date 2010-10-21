@@ -29,6 +29,8 @@ private     import      tango.net.http.HttpConst;
 
 private     import      tango.net.device.Socket: Socket;
 
+private     import      tango.net.device.Berkeley: IPv4Address;
+
 private     import      tango.stdc.time:  tm, time_t, time, gmtime;
 
 private     import      tango.stdc.stdio: snprintf;
