@@ -294,7 +294,7 @@ class Jsonizer ( Char )
         {
             openSub(json, "{", name);
             object.jsonize(json);
-            closeSub(json, "},");
+            closeSub(json, "},", "{");
         }
         else static assert( false, typeof(this).stringof ~
             ".add - can only jsonize floats, bools, ints, strings or Jsonizable objects, not " ~ T.stringof );
@@ -327,7 +327,7 @@ class Jsonizer ( Char )
     {
         openSub(json, "{", name);
         jsonize();
-        closeSub(json, "},");
+        closeSub(json, "},", "{");
     }
 
 
@@ -363,7 +363,7 @@ class Jsonizer ( Char )
         {
             addUnnamed(json, e);
         }
-        closeSub(json, "],");
+        closeSub(json, "],", "[");
     }
 
 
@@ -400,9 +400,9 @@ class Jsonizer ( Char )
         {
             openSub(json, "{");
             jsonize(e);
-            closeSub(json, "},");
+            closeSub(json, "},", "{");
         }
-        closeSub(json, "],");
+        closeSub(json, "],", "[");
     }
 
 
@@ -436,7 +436,7 @@ class Jsonizer ( Char )
         {
             addUnnamed(json, get_element(i));
         }
-        closeSub(json, "],");
+        closeSub(json, "],", "[");
     }
 
 
@@ -472,9 +472,9 @@ class Jsonizer ( Char )
         {
             openSub(json, "{");
             append_element(i);
-            closeSub(json, "},");
+            closeSub(json, "},", "{");
         }
-        closeSub(json, "],");
+        closeSub(json, "],", "[");
     }
 
 
@@ -523,14 +523,15 @@ class Jsonizer ( Char )
     
     ***************************************************************************/
 
-    private void closeSub ( ref Char[] json, Char[] closer )
+    private void closeSub ( ref Char[] json, Char[] closer, Char[] opener )
     in
     {
         assert(isOpen(json), typeof(this).stringof ~ ".closeSub - cannot close a json string which is not open");
+        assert(json.length >= opener.length, typeof(this).stringof ~ ".closeSub - the specified opener hasn't been added to the json string");
     }
     body
     {
-        if ( json[$-1] == '{' )
+        if ( opener.length && json[$ - opener.length .. $] == opener )
         {
             json.append(closer);
         }
@@ -583,7 +584,7 @@ class Jsonizer ( Char )
         {
             openSub(json);
             item.jsonize(json);
-            closeSub(json, "},");
+            closeSub(json, "},", "{");
         }
         else static assert( false, typeof(this).stringof ~
             ".addUnnamed - can only jsonize floats, bools, ints, strings or Jsonizable objects, not " ~ T.stringof );
