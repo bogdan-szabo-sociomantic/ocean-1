@@ -67,7 +67,7 @@
 
 *******************************************************************************/
 
-module ocean.core.Enum;
+module ocean.core.StringEnum;
 
 
 
@@ -93,7 +93,6 @@ struct StringEnumValue ( T = int )
     Class template defining an enum with code<->description lookup.
 
     Template params:
-        T = base type of enum
         V = tuple of StringEnumValue structs containing the code->description
             mapping info for the enum (statically asserted to be of the required
             type)
@@ -111,10 +110,10 @@ class StringEnum ( V ... )
 
         Alias for the base type of the enum. Derived from the base type of the
         first enum value. All StringEnumValues in the tuple V are asserted to be
-		of this type (see EnumValueListString, below).
+        of this type (see EnumValueListString, below).
     
     ***************************************************************************/
-
+    
     private alias typeof(V[0].code) T;
 
 
@@ -124,37 +123,37 @@ class StringEnum ( V ... )
         in an enum based on the given parameters. Something like:
         
             "Val1 = 1"
-
+    
         Template params:
             description = enum identifier
             code = enum value
-
+    
     ***************************************************************************/
-
+    
     private template EnumValueString ( char[] description, T code )
     {
         const char[] EnumValueString = description ~ " = " ~ code.stringof;
     }
-
-
+    
+    
     /***************************************************************************
-
+    
         Template forming a string containing an enum declaration based on the
         given parameters.
-
+    
         Template params:
             V = tuple of StringEnumValue structs containing the
                 code->description mapping info for the enum (statically asserted
                 to be of the required type)
     
     ***************************************************************************/
-
+    
     private template EnumValueListString ( V ... )
     {
         static if ( V.length == 1 )
         {
             static assert ( is(typeof(V[0]) == StringEnumValue!(T)), "all StringEnum values must be based on the same type" );
-
+    
             const char[] EnumValueListString = EnumValueString!(V[0].description, V[0].code);
         }
         else
@@ -162,10 +161,10 @@ class StringEnum ( V ... )
             const char[] EnumValueListString = EnumValueListString!(V[0]) ~ ", " ~ EnumValueListString!(V[1..$]);
         }
     }
-
-
+    
+    
     /***************************************************************************
-
+    
         Template forming a string containing an enum declaration based on the
         given parameters.
         
@@ -173,15 +172,53 @@ class StringEnum ( V ... )
             base = string of the base type of the enum (usually int)
             values = string of the value declaration of the enum, in the
                 following format:
-
+    
                     "Val1 = 1, Val2 = 2" etc
     
     ***************************************************************************/
-
+    
     private template EnumDeclaration ( char[] base, char[] values )
     {
         const char[] EnumDeclaration = "enum : " ~ base ~ " { " ~ values ~ " }";
         //pragma ( msg, EnumDeclaration );
+    }
+    
+    
+    /***************************************************************************
+    
+        Template to find the highest code in a list of StringEnumValues.
+    
+    ***************************************************************************/
+    
+    private template EnumMax ( V ... )
+    {
+        static if ( V.length == 1 )
+        {
+            const T EnumMax = V[0].code;
+        }
+        else
+        {
+            const T EnumMax = V[0].code > EnumMax!(V[1..$]) ? V[0].code : EnumMax!(V[1..$]);
+        }
+    }
+    
+    
+    /***************************************************************************
+    
+        Template to find the lowest code in a list of StringEnumValues.
+    
+    ***************************************************************************/
+    
+    private template EnumMin ( V ... )
+    {
+        static if ( V.length == 1 )
+        {
+            const T EnumMin = V[0].code;
+        }
+        else
+        {
+            const T EnumMin = V[0].code < EnumMin!(V[1..$]) ? V[0].code : EnumMin!(V[1..$]);
+        }
     }
 
 
@@ -197,6 +234,34 @@ class StringEnum ( V ... )
 
     /***************************************************************************
 
+        Constant declaring the length of the internal enum (the number of
+        elements in it).
+    
+    ***************************************************************************/
+    
+    static public const size_t length = V.length;
+
+
+    /***************************************************************************
+
+        Constant declaring the highest code in the internal enum.
+    
+    ***************************************************************************/
+
+    static public const T max = EnumMax!(V);
+
+
+    /***************************************************************************
+
+        Constant declaring the lowest code in the internal enum.
+    
+    ***************************************************************************/
+
+    static public const T min = EnumMin!(V);
+
+    
+    /***************************************************************************
+
         Code -> description map
     
     ***************************************************************************/
@@ -206,16 +271,36 @@ class StringEnum ( V ... )
 
     /***************************************************************************
 
-        Static constructor - initialises the code -> description map based on
-        the class's template parameters.
+        Code -> index map (where index represents the nth value in the enum)
+    
+    ***************************************************************************/
+
+    static private size_t[T] code_to_index;
+
+    
+    /***************************************************************************
+
+        Index -> code map (where index represents the nth value in the enum)
+    
+    ***************************************************************************/
+
+    static private T[length] index_to_code;
+
+
+    /***************************************************************************
+
+        Static constructor - initialises the internal maps based on the class's
+        template parameters.
 
     ***************************************************************************/
 
     static this ( )
     {
-        foreach ( v; V )
+        foreach ( i, v; V )
         {
             code_to_descr[v.code] = v.description;
+            code_to_index[v.code] = i;
+            index_to_code[i] = v.code;
         }
     }
 
@@ -292,6 +377,59 @@ class StringEnum ( V ... )
 
     /***************************************************************************
 
+        Gets the index for a code (where index represents the nth value in the
+        enum).
+        
+        Params:
+            test = code to get description for
+        
+        Returns:
+            the code's index in the enum, or the length of the enum if the code
+            isn't in the enum
+            
+    ***************************************************************************/
+
+    static public size_t codeIndex ( T test )
+    {
+        if ( test in code_to_index )
+        {
+            return code_to_index[test];
+        }
+        else
+        {
+            return length;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Gets the code of the nth value in the enum.
+        
+        Params:
+            i = index to get code for
+        
+        Returns:
+            the code of the indexed enum value
+            
+        Throws:
+            asserts that the given index is in range
+            
+    ***************************************************************************/
+
+    static public T indexCode ( size_t i )
+    in
+    {
+        assert(i < index_to_code.length);
+    }
+    body
+    {
+        return index_to_code[i];
+    }
+
+
+    /***************************************************************************
+
         Gets the code corresponding to the given description.
         
         Params:
@@ -331,6 +469,26 @@ class StringEnum ( V ... )
         foreach ( code, description; code_to_descr )
         {
             res = dg(code, description);
+        }
+        return res;
+    }
+
+
+    /***************************************************************************
+
+        foreach iterator over the code->description mapping, including each
+        value's index.
+    
+    ***************************************************************************/
+    
+    static public int opApply ( int delegate ( ref size_t index, ref T value, ref char[] name ) dg )
+    {
+        int res;
+        size_t index;
+        foreach ( code, description; code_to_descr )
+        {
+            res = dg(index, code, description);
+            index++;
         }
         return res;
     }
