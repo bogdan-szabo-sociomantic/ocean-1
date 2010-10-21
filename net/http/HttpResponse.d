@@ -171,9 +171,6 @@ struct HttpResponse
       
           Params:
              socket  = output conduit (socket)
-          
-          Returns:
-              void
               
       **************************************************************************/
      
@@ -182,6 +179,29 @@ struct HttpResponse
         this.socket = socket;
     }
     
+    
+    /**************************************************************************
+    
+        Retrieves the remote client address. A socket must been previously set.
+    
+        Params:
+           remote_addr = remote client address destination string
+            
+    **************************************************************************/
+
+    public void getRemoteAddress ( ref char[] remote_addr )
+    in
+    {
+        assert (this.socket);
+    }
+    body
+    {
+        scope addr = cast (IPv4Address) this.socket.socket.remoteAddress;       // FIXME use inet_ntop
+        
+        addr.toAddrString(remote_addr);
+    }
+    
+
     /***************************************************************************
     
         Sends a HTTP response (without message body).
