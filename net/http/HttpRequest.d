@@ -316,8 +316,6 @@ class HttpRequest
         
         Contains the header names and corresponding values.
         
-        (HeaderValues structure definition at the end of this class)
-        
     ***************************************************************************/
     
     public              HeaderValues            header;
