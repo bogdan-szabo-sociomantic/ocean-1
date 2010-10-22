@@ -430,6 +430,32 @@ class StringEnum ( V ... )
 
     /***************************************************************************
 
+        Gets the description of the nth value in the enum.
+        
+        Params:
+            i = index to get code for
+        
+        Returns:
+            the description of the indexed enum value
+            
+        Throws:
+            asserts that the given index is in range
+            
+    ***************************************************************************/
+    
+    static public char[] indexDescription ( size_t i )
+    in
+    {
+        assert(i < index_to_code.length);
+    }
+    body
+    {
+        return code_to_descr[index_to_code[i]];
+    }
+
+
+    /***************************************************************************
+
         Gets the code corresponding to the given description.
         
         Params:
