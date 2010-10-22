@@ -19,7 +19,7 @@ module         ocean.util.Config;
 
 ********************************************************************************/
 
-public         import         ocean.core.Exception: ConfigException;
+public         import         ocean.core.Exception: ConfigException, assertEx;
 
 private        import         tango.io.device.File;
 
@@ -231,12 +231,10 @@ class Config
     
     public static T get (T) (char[] category, char[] key)
     {
+        assertEx!(ConfigException)(exists(category, key), "Critial Error: No configuration key "
+                                   "'" ~ category ~ ":" ~ key ~ "' found");
         try
         {
-            assert(exists(category, key), "Critial Error: No configuration key "
-                                          "'" ~ category ~ ":" ~ key ~
-                                          "' found");
-            
             char[] property = this.properties[category][key];
             
             static if ( is(T : bool) )
@@ -257,10 +255,6 @@ class Config
             }
             else static assert(false, __FILE__ ~ " : get(): type '" ~
                                      T.stringof ~ "' is not supported");
-        }
-        catch (AssertException e)
-        {
-            ConfigException(e.msg);
         }
         catch (IllegalArgumentException)
         {
