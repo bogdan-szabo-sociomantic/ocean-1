@@ -345,7 +345,9 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
         opSlice. Extracts an indexed sequence of unicode characters from the
         referenced string.
         
-        The returned slice is built up in the internal slice_string member.
+        For dchar output, the returned slice is built up in the internal
+        slice_string member. Otherwise a slice into the referenced string is
+        returned.
     
         Params:
             start = index of first character to extract
@@ -358,15 +360,52 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
     ***************************************************************************/
 
     public ArrayOutType opSlice ( size_t start, size_t end )
+    in
     {
-        return this.slice(start, end, this.slice_string);
+        assert(end > start, typeof(this).stringof ~ ".opSlice - end <= start!");
+    }
+    body
+    {
+        static if ( pull_dchars )
+        {
+            return this.sliceCopy(start, end, this.slice_string);
+        }
+        else
+        {
+            size_t start_i;
+            size_t char_count;
+            size_t src_i;
+        
+            while ( src_i < this.string.length )
+            {
+                if ( char_count == start )
+                {
+                    start_i = src_i;
+                }
+                if ( char_count >= end )
+                {
+                    return this.string[start_i .. src_i];
+                }
+
+                Char[] process = this.string[src_i..$];
+
+                size_t width;
+                This.extract(process, width);
+
+                src_i += width;
+                char_count++;
+            }
+
+            assert(false, typeof(this).stringof ~ ".opSlice - end > array length");
+            return "";
+        }
     }
     
 
     /***************************************************************************
     
-        Slice. Extracts an indexed sequence of unicode characters from the
-        referenced string.
+        Slice / copy. Extracts an indexed sequence of unicode characters from
+        the referenced string and copies them into the provided buffer.
         
         The returned slice is built up in the passed string.
     
@@ -381,7 +420,7 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
     
     ***************************************************************************/
 
-    public ArrayOutType slice ( size_t start, size_t end, ref ArrayOutType output )
+    public ArrayOutType sliceCopy ( size_t start, size_t end, ref ArrayOutType output )
     {
         output.length = 0;
         
