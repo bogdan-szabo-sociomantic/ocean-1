@@ -160,6 +160,15 @@ public class NGramParser
 
     /***************************************************************************
 
+        Debug info output switch
+    
+    ***************************************************************************/
+
+    public bool debug_trace = false;
+
+
+    /***************************************************************************
+
         Split text into separate words and stores them in the output words
         array.
 
@@ -372,7 +381,7 @@ public class NGramParser
             }
         }
     
-        debug if ( stopwords.length )
+        debug if ( debug_trace && stopwords.length )
         {
             Trace.formatln("Stopwording reduced word count from {} to {} ({}% reduction)", count, count - stop, (cast(float)stop / cast(float)count) * 100);
         }
