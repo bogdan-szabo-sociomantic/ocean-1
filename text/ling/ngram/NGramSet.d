@@ -580,7 +580,7 @@ class NGramSet_ ( bool ThreadSafe = false )
         
         Params:
             compare = list of ngram sets to compare against
-            dg = delegate to call when comparing each ngram set
+            dg = (optional) delegate to call when comparing each ngram set
     
         Returns:
             index of the closest match in the compare array, or -1 (size_t.max)
