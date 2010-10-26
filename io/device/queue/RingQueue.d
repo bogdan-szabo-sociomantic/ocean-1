@@ -160,9 +160,12 @@ class RingQueue : PersistQueue
     ***************************************************************************/
         
     public this ( char[] name, uint max, EngineFlag flag = EngineFlag.Memory )
+    in
     {
-        assert(flag == EngineFlag.Memory,"Only memory implemented so far");
-        
+        assert (flag == EngineFlag.Memory, "Only memory implemented so far");
+    }
+    body
+    {
         this.storageEngine = new Memory(max); 
         
         super(name,max); 
