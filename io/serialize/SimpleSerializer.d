@@ -42,6 +42,8 @@ static:
         Writes something to an output stream. Single elements are written
         straight to the output stream, while array types have their length
         written, followed by each element.
+        If data is a pointer to a struct or union, it is dereferenced
+        automatically.
     
         Template params:
             T = type of data to write
@@ -50,30 +52,44 @@ static:
             output = output stream to write to
             data = data to write
         
+        Returns:
+            number of bytes transmitted
+        
+        Throws:
+            IOException on End Of Flow condition
+        
     ***************************************************************************/
     
-    public void write ( T ) ( OutputStream output, T data )
+    public size_t write ( T ) ( OutputStream output, T data )
     {
+        size_t written = 0;
+        
         static if ( is(T A == A[]) )
         {
-            write(output, data.length);
+            written += write(output, data.length);
     
             static if ( is(A B == B[])) // recursively write arrays of arrays
             {
                 foreach ( d; data )
                 {
-                    write(output, d);
+                    written += write(output, d);
                 }
             }
             else
             {
-                transmit(output, data.ptr, data.length * A.sizeof);
+                written += transmitArrayData(output, data);
             }
+        }
+        else static if (is (T A == A*) && (is (A == struct) || is (A == union)))
+        {
+            written += writeData(output, data, A.sizeof);
         }
         else
         {
-            transmit(output, &data, T.sizeof);
+            written += writeData(output, &data, T.sizeof);
         }
+        
+        return written;
     }
 
 
@@ -82,6 +98,8 @@ static:
         Reads something from an input stream. Single elements are read straight
         from the input stream, while array types have their length read,
         followed by each element.
+        If data is a pointer to a struct or union, it is dereferenced
+        automatically.
     
         Template params:
             T = type of data to read
@@ -90,32 +108,46 @@ static:
             input = input stream to read from
             data = data to read
         
+        Returns:
+            number of bytes transmitted
+        
+        Throws:
+            IOException on End Of Flow condition
+        
     ***************************************************************************/
     
-    public void read ( T ) ( InputStream input, ref T data )
+    public size_t read ( T ) ( InputStream input, ref T data )
     {
+        size_t read_ = 0;
+        
         static if ( is(T A == A[]) )
         {
             size_t length;
-            read(input, length);
+            read_ += read(input, length);
             data.length = length;
 
             static if ( is(A B == B[])) // recursively read arrays of arrays
             {
                 foreach ( ref d; data )
                 {
-                    read(input, d);
+                    read_ += read(input, d);
                 }
             }
             else
             {
-                transmit(input, data.ptr, data.length * A.sizeof);
+                read_ += transmitArrayData(input, data);
             }
+        }
+        else static if (is (T A == A*) && (is (A == struct) || is (A == union)))
+        {
+            read_ += readData(input, data, A.sizeof);
         }
         else
         {
-            transmit(input, &data, T.sizeof);
+            read_ += readData(input, &data, T.sizeof);
         }
+        
+        return read_;
     }
     
     /***************************************************************************
@@ -134,11 +166,14 @@ static:
         Returns:
             number of bytes transmitted
         
+        Throws:
+            IOException on End Of Flow condition
+        
     ***************************************************************************/
 
     public size_t transmit ( Stream : IOStream ) ( Stream stream, void* data, size_t bytes )
     {
-        return transmit(data[0 .. bytes]);
+        return transmit(stream, data[0 .. bytes]);
     }
 
     /***************************************************************************
@@ -151,8 +186,7 @@ static:
     
         Params:
             stream = stream to read from / write to
-            data = pointer to data
-            data  = data buffer to be populated/consumed
+            data = pointer to data buffer
             bytes = length of data in bytes
         
         Returns:
@@ -202,6 +236,116 @@ static:
         }
         
         return transmitted;
+    }
+    
+    /***************************************************************************
+    
+        Writes data to output, consuming the data buffer content to its
+        entirety.
+    
+        Params:
+            output = stream to write to
+            data = pointer to data buffer
+            bytes = length of data in bytes
+        
+        Returns:
+            number of bytes transmitted
+        
+        Throws:
+            IOException on End Of Flow condition
+        
+    ***************************************************************************/
+
+    public size_t writeData ( OutputStream output, void* data, size_t bytes )
+    {
+        return transmit(output, data, bytes);
+    }
+    
+    /***************************************************************************
+    
+        Reads data from input, populating the data buffer to its entirety.
+    
+        Params:
+            input = stream to read from
+            data = pointer to data buffer
+            bytes = length of data in bytes
+        
+        Returns:
+            number of bytes transmitted
+        
+        Throws:
+            IOException on End Of Flow condition
+        
+    ***************************************************************************/
+
+    public size_t readData ( InputStream input, void* data, size_t bytes )
+    {
+        return transmit(input, data, bytes);
+    }
+    
+    /***************************************************************************
+    
+        Writes data to output, consuming the data buffer content to its
+        entirety.
+    
+        Params:
+            output = stream to write to
+            data = data buffer
+        
+        Returns:
+            number of bytes transmitted
+        
+        Throws:
+            IOException on End Of Flow condition
+        
+    ***************************************************************************/
+
+    public size_t writeData ( OutputStream output, void[] data )
+    {
+        return transmit(output, data);
+    }
+    
+    /***************************************************************************
+    
+        Reads data from input, populating the data buffer to its entirety.
+    
+        Params:
+            input = stream to read from
+            data = data buffer
+        
+        Returns:
+            number of bytes transmitted
+        
+        Throws:
+            IOException on End Of Flow condition
+        
+    ***************************************************************************/
+
+    public size_t readData ( InputStream input, void[] data )
+    {
+        return transmit(input, data);
+    }
+    
+    /***************************************************************************
+    
+        Reads/writes the content of array from/to stream, populating array to
+        its entirety.
+    
+        Params:
+            stream = stream to read from/write to
+            array = array to transmit
+        
+        Returns:
+            number of bytes transmitted
+        
+        Throws:
+            IOException on End Of Flow condition
+        
+    ***************************************************************************/
+
+    public size_t transmitArrayData ( Stream : IOStream, T = T[] ) ( Stream stream, T array )
+    {
+        return transmit(stream, cast (void*) array.ptr, array.length * (*array.ptr).sizeof);
     }
 }
 
