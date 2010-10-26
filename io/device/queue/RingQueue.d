@@ -24,7 +24,7 @@ private import  ocean.io.device.queue.model.IPersistQueue,
                 ocean.io.device.queue.storage.model.IStorageEngine,
                 ocean.io.device.queue.storage.Memory;
 
-private import tango.io.device.Conduit;
+private import tango.io.model.IConduit: InputStream, OutputStream;
 
 private import ocean.sys.SignalHandler;
 
@@ -174,14 +174,38 @@ class RingQueue : PersistQueue
         
         this.storageEngine = new Memory(max); 
         
-        SignalHandler.register([SIGTERM,SIGINT],&this.terminate);
-        
         super(name,max); 
         
         this.gap = max;           
     }
     
+    public typeof (this) registerTerminate ( )
+    {
+        SignalHandler.register([SIGTERM,SIGINT],&this.terminate);
+        
+        return this;
+    }
+    
+    /***************************************************************************
+    
+        Calculates the size (in bytes) an item would take if it
+        were pushed to the queue. 
+        
+        Params:
+            data = data of which the queue-size should be returned
+            
+        Returns:
+            bytes that data will claim in the queue
+    
+    ***************************************************************************/
 
+    public typeof (this) unregisterTerminate ( )
+    {
+        SignalHandler.unregister([SIGTERM,SIGINT],&this.terminate);
+        
+        return this;
+    }
+    
     /***************************************************************************
     
         Calculates the size (in bytes) an item would take if it
@@ -210,8 +234,6 @@ class RingQueue : PersistQueue
 
     public ~this()
     {
-        SignalHandler.unregister([SIGTERM,SIGINT],&this.terminate);
-        
         delete this.storageEngine;
     }
     
@@ -231,23 +253,23 @@ class RingQueue : PersistQueue
     {    
         if (this.needsWrapping(item))
         {
-            this.gap = super.write_to;
-            super.write_to = 0;            
+            this.gap = super.state.write_to;
+            super.state.write_to = 0;            
         }
         
         with (this.storageEngine)
         {
-            seek(super.write_to);
+            seek(super.state.write_to);
             
             write((cast(void*)&Header.header(item.length)) [0..Header.sizeof]);
             
-            seek(super.write_to+Header.sizeof);
+            seek(super.state.write_to+Header.sizeof);
             
             write(item);
         }
         
-        this.write_to += this.pushSize(item);
-        ++super.items;         
+        super.state.write_to += this.pushSize(item);
+        ++super.state.items;
     }
     
     
@@ -262,17 +284,17 @@ class RingQueue : PersistQueue
         
     public uint usedSpace ( )
     {
-        if (items == 0)
+        if (super.state.items == 0)
         {
             return 0;
         }
         
-        if (super.write_to > super.read_from)
+        if (super.state.write_to > super.state.read_from)
         {
             return super.usedSpace();
         }
         
-        return this.gap - super.read_from + super.write_to;
+        return this.gap - super.state.read_from + super.state.write_to;
     }
     
     
@@ -304,7 +326,7 @@ class RingQueue : PersistQueue
         
     public uint freeSpace ( )
     {
-        return super.dimension - this.usedSpace; 
+        return super.state.dimension - this.usedSpace; 
     }
     
     /***************************************************************************
@@ -318,28 +340,28 @@ class RingQueue : PersistQueue
 
     protected void[] popItem ( )
     {
-        this.storageEngine.seek(super.read_from);
+        this.storageEngine.seek(super.state.read_from);
         
         Header* header = cast(Header*) this.storageEngine.read(Header.sizeof);
         
-        this.storageEngine.seek(super.read_from+header.sizeof);
+        this.storageEngine.seek(super.state.read_from+header.sizeof);
         
         void[] data = this.storageEngine.read(header.length);
         
-        super.read_from += header.sizeof + header.length;
+        super.state.read_from += header.sizeof + header.length;
         
         
-        if (super.read_from >= this.gap)                                        // check whether there is an item at this offset
+        if (super.state.read_from >= this.gap)                                  // check whether there is an item at this offset
         {               
-            super.read_from = 0;                                                // if no, set it to the beginning (wrapping around)
-            this.gap = this.dimension;
+            super.state.read_from = 0;                                          // if no, set it to the beginning (wrapping around)
+            this.gap = super.state.dimension;
         }
-        else if (super.read_from >= super.dimension)
+        else if (super.state.read_from >= super.state.dimension)
         {
-            super.read_from = 0;
+            super.state.read_from = 0;
         }
         
-        --super.items;
+        --super.state.items;
         
         return data;
     }
@@ -359,7 +381,7 @@ class RingQueue : PersistQueue
 
     private bool needsWrapping ( void[] data )
     {
-        return this.pushSize(data) + super.write_to > super.dimension;           
+        return this.pushSize(data) + super.state.write_to > super.state.dimension;           
     }
     
     
@@ -378,28 +400,27 @@ class RingQueue : PersistQueue
     
     public bool willFit ( void[] data )
     {            
-        if (super.items == 0 && super.dimension >= this.pushSize(data))
+        if (super.state.items == 0 && super.state.dimension >= this.pushSize(data))
         {         
             return true;
         }
         
         if (this.needsWrapping(data))
         {
-            return super.read_from >= this.pushSize(data);                      // check if there is enough space at the beginning
+            return super.state.read_from >= this.pushSize(data);                      // check if there is enough space at the beginning
         }
         
-        if (super.read_from < super.write_to)
+        if (super.state.read_from < super.state.write_to)
         {
-        
-            return super.dimension-super.write_to >= this.pushSize(data);
+            return super.state.dimension - super.state.write_to >= this.pushSize(data);
         }
         
-        if (super.read_from > super.write_to)                                   // check if there is enough space between the new and old data
+        if (super.state.read_from > super.state.write_to)                                   // check if there is enough space between the new and old data
         {
-            return super.read_from-super.write_to >= this.pushSize(data);
+            return super.state.read_from - super.state.write_to >= this.pushSize(data);
         }
         
-        if (super.read_from == super.write_to && super.items != 0)
+        if (super.state.read_from == super.state.write_to && super.state.items != 0)
         {
             return false;
         }        
@@ -436,14 +457,17 @@ class RingQueue : PersistQueue
     
         Params:
             conduit = conduit to read from
+        
+        Throws:
+            IOException on End Of Flow condition
 
     ***************************************************************************/
     
-    protected void readFromConduit ( Conduit conduit )
+    protected size_t readFromConduit ( InputStream input )
     {   
-        this.storageEngine.init(this.dimension);
+        this.storageEngine.init(super.state.dimension);
         
-        this.storageEngine.readFromConduit(conduit);
+        return this.storageEngine.readFromConduit(input);
     }
     
     
@@ -453,16 +477,17 @@ class RingQueue : PersistQueue
     
         Params:
             conduit = conduit to write to
+        
+        Throws:
+            IOException on End Of Flow condition
     
     ***************************************************************************/
 
-    protected void writeToConduit ( Conduit conduit )
+    protected size_t writeToConduit ( OutputStream output )
     {
         this.storageEngine.seek(0);
         
-        auto part = this.storageEngine.read(super.dimension);
-
-        for (size_t bytes=0; (bytes=conduit.write(part[bytes..$])) > 0;) {}
+        return this.storageEngine.writeToConduit(output);
     }    
 }
 

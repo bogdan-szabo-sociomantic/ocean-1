@@ -23,7 +23,7 @@ module io.device.queue.model.ISerializable;
 
 *******************************************************************************/
 
-private import tango.io.device.Conduit;
+private import tango.io.model.IConduit: InputStream, OutputStream;
 
 
 
@@ -35,7 +35,7 @@ interface Serializable
 	
 	***************************************************************************/
 	
-	synchronized void serialize ( Conduit conduit );
+	synchronized size_t serialize ( OutputStream output );
 	
 	
 	/***************************************************************************
@@ -44,6 +44,6 @@ interface Serializable
 	    
 	***************************************************************************/
 	
-	synchronized void deserialize ( Conduit conduit );
+	synchronized size_t deserialize ( InputStream input );
 }
 

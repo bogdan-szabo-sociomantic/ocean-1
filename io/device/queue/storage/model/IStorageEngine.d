@@ -19,7 +19,7 @@ module io.device.queue.storage.model.IStorageEngine;
 
 *******************************************************************************/
 
-private import tango.io.device.Conduit;
+private import tango.io.model.IConduit: InputStream, OutputStream;
 
 
 /*******************************************************************************
@@ -66,11 +66,14 @@ interface IStorageEngine
         Writes the content of the Storage Engine object to the provided conduit
         
         Params:
-            conduit = the conduit to write to
+            output = the output stream to write to
+            
+        Returns:
+            number of bytes written
             
     ***************************************************************************/
     
-    public void writeToConduit(Conduit);
+    public size_t writeToConduit(OutputStream output);
     
     /***************************************************************************
     
@@ -78,11 +81,14 @@ interface IStorageEngine
         Size must be set accordingly.
         
         Params:
-            conduit = the conduit to read from
+            input = the input stream to read from
+            
+        Returns:
+            number of bytes read
             
     ***************************************************************************/
     
-    public void readFromConduit(Conduit);
+    public size_t readFromConduit(InputStream input);
     
     /***************************************************************************
         

@@ -26,10 +26,12 @@ module io.device.model.queue.IPersistQueue;
 *******************************************************************************/
 
 private import ocean.io.device.queue.model.IQueue,
-				ocean.io.device.queue.model.ISerializable,
-				ocean.io.device.queue.model.ILoggable;
+               ocean.io.device.queue.model.ISerializable,
+               ocean.io.device.queue.model.ILoggable;
 
-private import tango.io.device.Conduit;
+private import ocean.io.serialize.SimpleSerializer;
+
+private import tango.io.model.IConduit: InputStream, OutputStream;
 
 private import tango.util.log.model.ILogger;
 
@@ -108,7 +110,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 
 	***************************************************************************/
 
-	abstract protected void writeToConduit ( Conduit conduit );
+	abstract protected size_t readFromConduit ( InputStream input );
 
 
 	/***************************************************************************
@@ -117,25 +119,54 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	***************************************************************************/
 
-	abstract protected void readFromConduit ( Conduit conduit );
+	abstract protected size_t writeToConduit ( OutputStream output );
 
 
 	/***************************************************************************
 	
-	    Queue Implementation
+	    Struct containing status variables
 	
 	***************************************************************************/
 
-	protected char[]	name;           // queue name (for logging)
-	protected long		dimension,      // max size (bytes)
-	                    write_to,       // rear insert position of queue (push)
-	                    read_from,      // front position of queue (pop)
-	                    items;          // number of items in the queue
+    struct State
+    {
+        long dimension,
+             write_to,
+             read_from,
+             items;
+    }
+    
+    /***************************************************************************
+    
+        Queue state
+    
+    ***************************************************************************/
 
-	protected Logger	logger;         // logging target
+    protected State state;
+    
+    /***************************************************************************
+    
+        Queue name
+    
+    ***************************************************************************/
+    
+    protected char[]    name;
 
-	protected char[] format_buf;		// buffer used for seek position formatting
+    /***************************************************************************
+    
+        Logging target
+    
+    ***************************************************************************/
 
+	protected Logger	logger;
+
+    /***************************************************************************
+    
+        Buffer used for seek position formatting
+    
+    ***************************************************************************/
+
+	protected char[] format_buf; 
 
 	/***************************************************************************
 	
@@ -152,7 +183,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	public this ( char[] name, uint max )
 	{
 		this.setName(name);
-	    this.dimension = max;
+	    this.state.dimension = max;
 	}
 
 
@@ -191,7 +222,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	    // check if the item will fit, and if it won't fit then cleanup and try again
 		if ( !this.willFit(item) )
 	    {
-            this.log("queue '{}' full with {} items", this.name, this.items);
+            this.log("queue '{}' full with {} items", this.name, this.state.items);
             return false;	        
 	    }
 
@@ -222,7 +253,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 
 		version ( MemCheck ) auto before = MemProfiler.checkUsage();
 
-		if ( this.items == 0 )
+		if ( this.state.items == 0 )
 		{
 			return null;
 		}
@@ -313,7 +344,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	public uint size ( )
 	{
-		return this.items;
+		return this.state.items;
 	}
 	
 	
@@ -344,7 +375,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	public uint freeSpace ( )
 	{
-		return this.dimension - this.write_to;
+		return this.state.dimension - this.state.write_to;
 	}
 	
 	
@@ -359,7 +390,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	public uint usedSpace ( )
 	{
-		return this.write_to - this.read_from;
+		return this.state.write_to - this.state.read_from;
 	}
 	
 
@@ -373,7 +404,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	public bool isFull ( )
 	{
-		return this.write_to >= this.dimension;
+		return this.state.write_to >= this.state.dimension;
 	}
 	
 	
@@ -385,7 +416,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	public bool isEmpty ( )
 	{
-		return this.items == 0;
+		return this.state.items == 0;
 	}
 
 
@@ -499,14 +530,27 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 		Writes the queue's state and contents to the given conduit.
 		
 		Params:
-			conduit = conduit to write to
-	
+			output = output to write to
+	    
+        Returns:
+            number of bytes written
+        
+        Throws:
+            IOException on End Of Flow condition
+        
 	***************************************************************************/
 	
-	public void serialize ( Conduit conduit )
+	public size_t serialize ( OutputStream output )
 	{
-		this.writeState(conduit);
-		this.writeToConduit(conduit);
+        size_t bytes_written = 0;
+        
+        bytes_written += this.writeState(output);
+        bytes_written += this.writeToConduit(output);
+        
+        debug Trace.formatln("Serialized {} ({} bytes): {} items, {} read, {} write, {} dimension",
+                             this.name, bytes_written, this.state.items, this.state.read_from, this.state.write_to, this.state.dimension);
+        
+        return bytes_written;
 	}
 
 	
@@ -518,16 +562,27 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	    copy method will assert if it doesn't though.
 	
 		Params:
-			conduit = conduit to read from
-	
+			input = input to read from
+	    
+        Returns:
+            number of bytes read
+        
+        Throws:
+            IOException on End Of Flow condition
+        
 	***************************************************************************/
 	
-	public void deserialize ( Conduit conduit )
+	public size_t deserialize ( InputStream input )
 	{
-		this.readState(conduit);
-		this.readFromConduit(conduit);
+        size_t bytes_read = 0;
+        
+        bytes_read += this.readState(input);
+        bytes_read += this.readFromConduit(input);
 
-        debug Trace.formatln("Deserialized {}: {} items, {} read, {} write, {} dimension", this.name, this.items, this.read_from, this.write_to, this.dimension);
+        debug Trace.formatln("Deserialized {} ({} bytes): {} items, {} read, {} write, {} dimension",
+                             this.name, bytes_read, this.state.items, this.state.read_from, this.state.write_to, this.state.dimension);
+        
+        return bytes_read; 
 	}
 
 
@@ -544,7 +599,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	public void logSeekPositions ( char[] str = "" )
 	{
-	    this.log("{} [ front = {} rear = {} ]", str, this.read_from, this.write_to);
+	    this.log("{} [ front = {} rear = {} ]", str, this.state.read_from, this.state.write_to);
 	}
 	
 	
@@ -566,8 +621,8 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 
 		if ( show_pcnt )
 		{
-			double first_pcnt = 100.0 * (cast(double) this.read_from / cast(double) this.dimension);
-			double insert_pcnt = 100.0 * (cast(double) this.write_to / cast(double) this.dimension);
+			double first_pcnt = 100.0 * (cast(double) this.state.read_from / cast(double) this.state.dimension);
+			double insert_pcnt = 100.0 * (cast(double) this.state.write_to / cast(double) this.state.dimension);
 	
 			this.format_buf.length = 20;
 			buf ~= "[" ~ Float.format(this.format_buf, first_pcnt) ~ "%..";
@@ -576,8 +631,8 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 		}
 		else
 		{
-			buf ~= "[" ~ Integer.format(this.format_buf, this.read_from) ~ ".."
-				~ Integer.format(this.format_buf, this.write_to) ~ " / "~ Integer.format(this.format_buf, this.dimension) ~ "]";
+			buf ~= "[" ~ Integer.format(this.format_buf, this.state.read_from) ~ ".."
+				~ Integer.format(this.format_buf, this.state.write_to) ~ " / "~ Integer.format(this.format_buf, this.state.dimension) ~ "]";
 		}
 	
 		if ( this.isFull() )
@@ -602,29 +657,12 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	protected void reset ( )
 	{
-		this.write_to = 0;
-		this.read_from = 0;
-		this.items = 0;
+		this.state.write_to = 0;
+		this.state.read_from = 0;
+		this.state.items = 0;
 	}
 
 
-	/***************************************************************************
-
-		Enum defining the order in which the queue's state longs are written to
-		/ read from a file.
-	
-	***************************************************************************/
-	
-	protected enum StateSerializeOrder
-	{
-		dimension = 0,
-		write_to,
-		read_from,
-		items,
-		name_length
-	}
-	
-	
 	/***************************************************************************
 	
 		Writes the queue's state to a conduit. The queue's name is written,
@@ -635,25 +673,19 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 		
 		Returns:
 			number of bytes written
+        
+        Throws:
+            IOException on End Of Flow condition
 	
 	***************************************************************************/
 	
-	protected long writeState ( Conduit conduit )
+	protected size_t writeState ( OutputStream output )
 	{
-		long[StateSerializeOrder.max + 1] longs;
-		
-		// Write longs
-		longs[StateSerializeOrder.dimension] = this.dimension;
-		longs[StateSerializeOrder.write_to] = this.write_to;
-		longs[StateSerializeOrder.read_from] = this.read_from;
-		longs[StateSerializeOrder.items] = this.items;
-		longs[StateSerializeOrder.name_length] = this.name.length;
-
-		long bytes_written = conduit.write(cast(void[]) longs);
+        size_t bytes_written = SimpleSerializer.write(output, &this.state);
 
 		// Write name
-		bytes_written += conduit.write(cast(void[]) this.name);
-
+		bytes_written += SimpleSerializer.write(output, this.name);
+        
 		return bytes_written;
 	}
 	
@@ -668,26 +700,18 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 		
 		Returns:
 			number of bytes read
+        
+        Throws:
+            IOException on End Of Flow condition
 	
 	***************************************************************************/
     
-	protected long readState ( Conduit conduit )
+	protected size_t readState ( InputStream input )
 	{
-		long[StateSerializeOrder.max + 1] longs;
-	
-		// Read longs
-		long bytes_read = conduit.read((cast(void*) longs.ptr)[0..long.sizeof*longs.length]);
-
-		this.dimension = longs[StateSerializeOrder.dimension];
-		this.write_to = longs[StateSerializeOrder.write_to];
-		this.read_from = longs[StateSerializeOrder.read_from];
-		this.items = longs[StateSerializeOrder.items];
-		this.name.length = longs[StateSerializeOrder.name_length];
-	
-		// Read names
-		bytes_read += conduit.read(cast(void[]) this.name);
-
-		return bytes_read;
+        size_t bytes_read = SimpleSerializer.read(input, this.state);
+        
+        bytes_read += SimpleSerializer.read(input, this.name);
+        
+        return bytes_read;
 	}
 }
-

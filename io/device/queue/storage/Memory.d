@@ -21,9 +21,11 @@ module io.device.queue.storage.Memory;
 
 private import ocean.io.device.queue.storage.model.IStorageEngine;
 
-private import tango.core.Exception;
+private import ocean.io.serialize.SimpleSerializer;
 
-private import tango.io.device.Conduit;
+//private import tango.core.Exception;
+
+private import tango.io.model.IConduit: InputStream, OutputStream;
 
 
 /*******************************************************************************
@@ -105,15 +107,9 @@ class Memory : IStorageEngine
             
     ***************************************************************************/
 
-    public void readFromConduit ( Conduit conduit )
+    public size_t readFromConduit ( InputStream input )
     {        
-        auto len = conduit.read(this.data);
-        
-        if(len != this.data.length)
-        {
-            assert(false,"buffer size to small");
-        }
-            
+        return SimpleSerializer.transmit(input, this.data);
     }
     
     
@@ -126,9 +122,9 @@ class Memory : IStorageEngine
             
     ***************************************************************************/
     
-    public void writeToConduit ( Conduit conduit )
+    public size_t writeToConduit ( OutputStream output )
     {        
-        for (size_t bytes=0;(bytes = conduit.write(data[bytes .. $])) > 0 ;) {}            
+        return SimpleSerializer.transmit(output, this.data);
     }
     
     
