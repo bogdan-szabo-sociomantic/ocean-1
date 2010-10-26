@@ -116,15 +116,6 @@ class RingQueue : PersistQueue
 
     struct Header
     {
-        static Header header ( size_t length )
-        {
-            Header h; 
-            
-            h.length = length;
-
-            return h;
-        }
-        
         size_t length;
     }
     
@@ -179,29 +170,34 @@ class RingQueue : PersistQueue
         this.gap = max;           
     }
     
+    /***************************************************************************
+    
+        Registers dumping to file on application termination
+    
+        Returns:
+            this instance
+    
+    ***************************************************************************/
+
     public typeof (this) registerTerminate ( )
     {
-        SignalHandler.register([SIGTERM,SIGINT],&this.terminate);
+        SignalHandler.register(SignalHandler.AppTermination, &this.terminate);
         
         return this;
     }
     
     /***************************************************************************
     
-        Calculates the size (in bytes) an item would take if it
-        were pushed to the queue. 
-        
-        Params:
-            data = data of which the queue-size should be returned
-            
+        Unregisters dumping to file on application termination
+    
         Returns:
-            bytes that data will claim in the queue
+            this instance
     
     ***************************************************************************/
 
     public typeof (this) unregisterTerminate ( )
     {
-        SignalHandler.unregister([SIGTERM,SIGINT],&this.terminate);
+        SignalHandler.unregister(SignalHandler.AppTermination, &this.terminate);
         
         return this;
     }
@@ -251,6 +247,8 @@ class RingQueue : PersistQueue
 
     protected void pushItem ( void[] item )
     {    
+        void[] header = (cast(void*)&Header(item.length))[0 .. Header.sizeof];
+        
         if (this.needsWrapping(item))
         {
             this.gap = super.state.write_to;
@@ -261,9 +259,9 @@ class RingQueue : PersistQueue
         {
             seek(super.state.write_to);
             
-            write((cast(void*)&Header.header(item.length)) [0..Header.sizeof]);
+            write(header);
             
-            seek(super.state.write_to+Header.sizeof);
+            seek(super.state.write_to + header.length);
             
             write(item);
         }
@@ -441,8 +439,8 @@ class RingQueue : PersistQueue
 
     protected bool terminate ( int code )
     {
-        Trace.formatln("Closing {} (saving {} entries to {})",
-                this.getName(), this.size(), this.getName() ~ ".dump");
+        Trace.formatln("Closing {} (saving {} entries to {}.dump)",
+                super.name, super.state.items, super.name);
         this.log(SignalHandler.getId(code) ~ " raised: terminating .. at least trying to");
         
         this.dumpToFile();
