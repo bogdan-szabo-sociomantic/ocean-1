@@ -342,11 +342,21 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	**********************************************************************/
 	
-	public uint size ( )
+	deprecated public uint size ( )
 	{
 		return this.state.items;
 	}
 	
+    /**********************************************************************
+    
+        Returns the state
+    
+    **********************************************************************/
+
+    public State getState ()
+    {
+        return this.state;
+    }
 	
 	/***************************************************************************
 	
