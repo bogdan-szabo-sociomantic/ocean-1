@@ -37,15 +37,11 @@ private import tango.util.log.Log;
 
 private import tango.io.FilePath, tango.io.device.File;
 
-private import tango.util.log.Trace;
-
 private import Integer = tango.text.convert.Integer;
 
 private import Float = tango.text.convert.Float;
 
-private import tango.core.Thread;
-
-
+debug private import tango.util.log.Trace;
 
 /*******************************************************************************
 
@@ -157,7 +153,6 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	{
 		this.setName(name);
 	    this.dimension = max;
-		this.readFromFile();
 	}
 
 
@@ -416,40 +411,75 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	***************************************************************************/
 	
 	public void dumpToFile ( )
+    {
+        this.dumpToFile(this.name ~ ".dump");
+    }
+    
+    /***************************************************************************
+
+        Writes the queue's state and contents to a file.
+    
+        If the file already exists it is overwritten.
+    
+        Params:
+            filename = name of file to write to
+    
+    ***************************************************************************/
+
+	public void dumpToFile ( char[] filename )
 	{
-		this.log("Writing to file " ~ this.name ~ ".dump");
-		scope fp = new FilePath(this.name ~ ".dump");
+	    this.log("Writing to file {}", filename);
+		debug Trace.formatln("Writing to file {}", filename);
+        
+		scope fp = new FilePath(filename);
 		if ( fp.exists() )
 		{
-			this.log("(File exists, deleting)");
-			fp.remove();
+			this.log("(File exists, overwriting)");
+            debug Trace.formatln("Writing to file {}", filename);
 		}
 	
-		scope file = new File(this.name ~ ".dump", File.WriteCreate);
+		scope file = new File(fp.toString(), File.WriteCreate);
 
+        scope (exit) file.close();
+        
 		synchronized ( this )
 		{
 			this.serialize(file);
 		}
-
-		file.close();
 	}
 	
+	/***************************************************************************
+    
+        Reads the queue's state and contents from a file with the queue's name
+        + ".dump".
+    
+	 ***************************************************************************/
+	
+	public void readFromFile (  )
+	{
+	    this.readFromFile(this.name ~ ".dump");
+	}
 	
 	/***************************************************************************
 	
 	    Reads the queue's state and contents from a file.
-	
+	    
+        Params:
+            filename = name of file to read from
+        
 	***************************************************************************/
 	
-	public void readFromFile ( )
+	public void readFromFile ( char[] filename )
 	{
-		this.log("Loading from file {}", this.name ~ ".dump");
-		scope fp = new FilePath(this.name ~ ".dump");
+	    this.log("Loading from file {}", filename);
+		debug Trace.formatln("Loading from file {}", filename);
+        
+        scope fp = new FilePath(filename);
+        
 		if ( fp.exists() )
 		{
 			this.log("(File exists, loading)");
-			scope file = new File(this.name ~ ".dump", File.ReadExisting);
+			scope file = new File(fp.toString(), File.ReadExisting);
 	
 			synchronized ( this )
 			{
@@ -463,8 +493,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 			this.log("(File doesn't exist)");
 		}
 	}
-
-
+	
 	/***************************************************************************
 
 		Writes the queue's state and contents to the given conduit.
@@ -498,7 +527,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 		this.readState(conduit);
 		this.readFromConduit(conduit);
 
-		Trace.formatln("Deserialized {}: {} items, {} read, {} write, {} dimension", this.name, this.items, this.read_from, this.write_to, this.dimension);
+        debug Trace.formatln("Deserialized {}: {} items, {} read, {} write, {} dimension", this.name, this.items, this.read_from, this.write_to, this.dimension);
 	}
 
 
