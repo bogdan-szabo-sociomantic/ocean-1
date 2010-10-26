@@ -10,7 +10,7 @@
     
 *******************************************************************************/
 
-module io.serialize.SimpleSerializer;
+module ocean.io.serialize.SimpleSerializer;
 
 
 
@@ -20,9 +20,12 @@ module io.serialize.SimpleSerializer;
 
 *******************************************************************************/
 
-private import tango.io.model.IConduit;
+private import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
 
+private import tango.core.Exception: IOException;
+private import ocean.core.Exception: assertEx;
 
+private import tango.util.log.Trace;
 
 /*******************************************************************************
 
@@ -64,12 +67,12 @@ static:
             }
             else
             {
-                transmit(output, cast(void*)data.ptr, data.length * A.sizeof);
+                transmit(output, data.ptr, data.length * A.sizeof);
             }
         }
         else
         {
-            transmit(output, cast(void*)&data, T.sizeof);
+            transmit(output, &data, T.sizeof);
         }
     }
 
@@ -106,51 +109,99 @@ static:
             }
             else
             {
-                transmit(input, cast(void*)data.ptr, data.length * A.sizeof);
+                transmit(input, data.ptr, data.length * A.sizeof);
             }
         }
         else
         {
-            transmit(input, cast(void*)&data, T.sizeof);
+            transmit(input, &data, T.sizeof);
         }
     }
+    
+    /***************************************************************************
+    
+        Reads/writes data from/to an io stream, populating/consuming
+        data[0 .. bytes].
+    
+        Template params:
+            Stream = type of stream; must be either InputStream or OutputStream
+    
+        Params:
+            stream = stream to read from / write to
+            data   = pointer to data buffer
+            bytes  = data buffer length (bytes)
+        
+        Returns:
+            number of bytes transmitted
+        
+    ***************************************************************************/
 
+    public size_t transmit ( Stream : IOStream ) ( Stream stream, void* data, size_t bytes )
+    {
+        return transmit(data[0 .. bytes]);
+    }
 
     /***************************************************************************
     
-        Reads / writes data from / to an io stream.
+        Reads/writes data from/to an io stream, populating/consuming data to its
+        entirety.
 
         Template params:
-            Stream = type of stream
+            Stream = type of stream; must be either InputStream or OutputStream
     
         Params:
             stream = stream to read from / write to
             data = pointer to data
+            data  = data buffer to be populated/consumed
             bytes = length of data in bytes
+        
+        Returns:
+            number of bytes transmitted
+        
+        Throws:
+            IOException on End Of Flow condition
         
     ***************************************************************************/
     
-    private void transmit ( Stream : IOStream ) ( Stream stream, void* data, size_t bytes )
+    public size_t transmit ( Stream : IOStream ) ( Stream stream, void[] data )
+    out (n)
     {
-        size_t ret;
-        do
+        Trace.formatln("transmit " ~ Stream.stringof ~ ": {}", n); 
+    }
+    body
+    {
+        static assert ( !(is(Stream : InputStream) && is(Stream : OutputStream)),
+                        "stream is '" ~ Stream.stringof ~  "; please cast it "
+                        "either to InputStream or OutputStream" );
+        
+        size_t transmitted = 0;
+        
+        while (transmitted < data.length)
         {
             static if ( is(Stream == OutputStream) )
             {
-                ret = stream.write(data[0..bytes]);
+                size_t ret = stream.write(data[transmitted .. $]);
+                
+                const act = "writing";
             }
             else
             {
-                ret = stream.read(data[0..bytes]);
+                static assert ( is(Stream == InputStream),
+                                "stream must be either InputStream or OutputStream, "
+                                "not '" ~ Stream.stringof ~ '\'' );
+                
+                size_t ret = stream.read(data[transmitted .. $]);
+                
+                const act = "reading";
+                
             }
 
-            if ( ret != IOStream.Eof )
-            {
-                data += ret;
-                bytes -= ret;
-            }
+            assertEx!(IOException)(ret != stream.Eof, "end of flow while " ~ act);
+            
+            transmitted += ret;
         }
-        while ( bytes > 0 && ret != IOStream.Eof );
+        
+        return transmitted;
     }
 }
 
