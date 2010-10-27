@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module io.device.queue.storage.Memory;
+module ocean.io.device.queue.storage.Memory;
 
 
 /*******************************************************************************
@@ -22,8 +22,6 @@ module io.device.queue.storage.Memory;
 private import ocean.io.device.queue.storage.model.IStorageEngine;
 
 private import ocean.io.serialize.SimpleSerializer;
-
-//private import tango.core.Exception;
 
 private import tango.io.model.IConduit: InputStream, OutputStream;
 
