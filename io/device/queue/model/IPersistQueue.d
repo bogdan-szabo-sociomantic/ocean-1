@@ -179,7 +179,8 @@ abstract class PersistQueue : Queue, Serializable, Loggable
         debug scope (failure) Trace.formatln(typeof (this).stringof ~ ".invariant failed with items = {}, read_from = {}, write_to = {}",
                                              this.state.items, this.state.read_from, this.state.write_to);
         
-        assert (this.state.items || !(this.state.read_from || this.state.write_to));
+        assert (this.state.items || !(this.state.read_from || this.state.write_to),
+                typeof (this).stringof ~ ".invariant failed");
     }
 
 	/***************************************************************************
