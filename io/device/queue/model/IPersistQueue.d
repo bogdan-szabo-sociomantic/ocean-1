@@ -383,53 +383,33 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 		Gets the amount of free space at the end of the queue.
 		
-        FIXME: WRONG RESULT after a wrap-around !!!
-        
 		Returns:
 			bytes free in queue
 	        
 	***************************************************************************/
 	
-	public long freeSpace ( )
-	{
-        debug Trace.formatln("freeSpace: {} - {} = {}", this.state.dimension, this.state.write_to, this.state.dimension - this.state.write_to).flush();
-        
-		return this.state.dimension - this.state.write_to;
-	}
-	
+    abstract ulong freeSpace ( ) ;
 	
 	/***************************************************************************
 	
 		Gets the amount of data stored in the queue.
 		
-        FIXME: WRONG RESULT after a wrap-around!!!
-        
 		Returns:
 			bytes stored in queue
 	        
 	***************************************************************************/
 	
-	public long usedSpace ( )
-	{
-		return this.state.write_to - this.state.read_from;
-	}
-	
+    abstract ulong usedSpace ( ) ;
 
 	/**********************************************************************
 	
 	    Returns true if queue is full (write position >= end of queue)
-	    
-        FIXME: WRONG RESULT after a wrap-around!!!
         
 		TODO: change to > 99% full? or < 1K free?
 		
 	**********************************************************************/
 	
-	public bool isFull ( )
-	{
-		return this.state.write_to >= this.state.dimension;
-	}
-	
+    abstract bool isFull ( ) ;
 	
 	/**********************************************************************
 	
