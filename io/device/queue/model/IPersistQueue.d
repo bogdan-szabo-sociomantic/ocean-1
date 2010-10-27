@@ -101,7 +101,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 
 	***************************************************************************/
 
-	abstract public uint pushSize ( void[] data );
+	abstract public size_t pushSize ( size_t len );
 
 
 	/***************************************************************************
@@ -120,8 +120,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	***************************************************************************/
 
 	abstract protected size_t writeToConduit ( OutputStream output );
-
-
+	
 	/***************************************************************************
 	
 	    Struct containing status variables
@@ -168,6 +167,21 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 
 	protected char[] format_buf; 
 
+    /***************************************************************************
+    
+        Invariant to assert queue position consistency: When the queue is empty,
+        read_from and write_to must both be 0.
+    
+    ***************************************************************************/
+
+    invariant
+    {
+        debug scope (failure) Trace.formatln(typeof (this).stringof ~ ".invariant failed with items = {}, read_from = {}, write_to = {}",
+                                             this.state.items, this.state.read_from, this.state.write_to);
+        
+        assert (this.state.items || !(this.state.read_from || this.state.write_to));
+    }
+
 	/***************************************************************************
 	
 	    Constructor.
@@ -212,29 +226,31 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	}
 	body
 	{
-		scope ( exit )
+        // Store item in queue
+        version ( MemCheck ) 
 		{
-			version ( MemCheck ) MemProfiler.checkSectionUsage("push", before, MemProfiler.Expect.NoChange);
+            auto before = MemProfiler.checkUsage();
+            
+            scope ( exit ) MemProfiler.checkSectionUsage("push", before, MemProfiler.Expect.NoChange);
 		}
 
-		version ( MemCheck ) auto before = MemProfiler.checkUsage();
-
+        bool will_fit = this.willFit(item.length);
+        
+        debug Trace.formatln("push: {}", will_fit);
+        
 	    // check if the item will fit, and if it won't fit then cleanup and try again
-		if ( !this.willFit(item) )
+		if ( !will_fit )
 	    {
             this.log("queue '{}' full with {} items", this.name, this.state.items);
-            return false;	        
 	    }
+        else
+        {
+            this.pushItem(item);
+        }
 
-		// Store item in queue
-		synchronized ( this )
-		{
-			this.pushItem(item);
-			return true;
-		}
+		return will_fit;
 	}
-
-
+    
 	/***************************************************************************
 
 		Pops an item from the queue.
@@ -244,24 +260,16 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	***************************************************************************/
 
-	synchronized public void[] pop ( )
+	public void[] pop ( )
 	{
-		scope ( exit)
+        version ( MemCheck )
 		{
-			version ( MemCheck ) MemProfiler.checkSectionUsage("pop", before, MemProfiler.Expect.NoChange);
+            auto before = MemProfiler.checkUsage();
+            
+            scope ( exit ) MemProfiler.checkSectionUsage("pop", before, MemProfiler.Expect.NoChange);
 		}
 
-		version ( MemCheck ) auto before = MemProfiler.checkUsage();
-
-		if ( this.state.items == 0 )
-		{
-			return null;
-		}
-
-		synchronized ( this )
-		{
-			return this.popItem();
-		}
+        return this.state.items? this.popItem() : null;
 	}
 
 
@@ -368,23 +376,23 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	        
 	***************************************************************************/
 	
-	public bool willFit ( void[] data )
-	{
-		return this.pushSize(data) < this.freeSpace();
-	}
-
+	abstract bool willFit ( size_t len );
 
 	/***************************************************************************
 	
 		Gets the amount of free space at the end of the queue.
 		
+        FIXME: WRONG RESULT after a wrap-around !!!
+        
 		Returns:
 			bytes free in queue
 	        
 	***************************************************************************/
 	
-	public uint freeSpace ( )
+	public long freeSpace ( )
 	{
+        debug Trace.formatln("freeSpace: {} - {} = {}", this.state.dimension, this.state.write_to, this.state.dimension - this.state.write_to).flush();
+        
 		return this.state.dimension - this.state.write_to;
 	}
 	
@@ -393,12 +401,14 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 		Gets the amount of data stored in the queue.
 		
+        FIXME: WRONG RESULT after a wrap-around!!!
+        
 		Returns:
 			bytes stored in queue
 	        
 	***************************************************************************/
 	
-	public uint usedSpace ( )
+	public long usedSpace ( )
 	{
 		return this.state.write_to - this.state.read_from;
 	}
@@ -407,7 +417,9 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	/**********************************************************************
 	
 	    Returns true if queue is full (write position >= end of queue)
-	
+	    
+        FIXME: WRONG RESULT after a wrap-around!!!
+        
 		TODO: change to > 99% full? or < 1K free?
 		
 	**********************************************************************/
@@ -483,10 +495,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 
         scope (exit) file.close();
         
-		synchronized ( this )
-		{
-			this.serialize(file);
-		}
+        this.serialize(file);
 	}
 	
 	/***************************************************************************
@@ -522,12 +531,9 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 			this.log("(File exists, loading)");
 			scope file = new File(fp.toString(), File.ReadExisting);
 	
-			synchronized ( this )
-			{
-				this.deserialize(file);
-			}
-
-			file.close();
+            scope (exit) file.close();
+            
+            this.deserialize(file);
 		}
 		else
 		{
