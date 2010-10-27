@@ -28,7 +28,7 @@ private import tango.io.model.IConduit: InputStream, OutputStream;
 
 private import ocean.sys.SignalHandler;
 
-private import tango.util.log.Trace;
+debug private import tango.util.log.Trace;
 
 
 /*******************************************************************************
@@ -218,9 +218,9 @@ class RingQueue : PersistQueue
 
     ***************************************************************************/
 
-    public uint pushSize ( void[] data )
+    public size_t pushSize ( size_t len )
     {        
-        return Header.sizeof + data.length;
+        return Header.sizeof + len;
     }
     
 
@@ -252,7 +252,7 @@ class RingQueue : PersistQueue
     {    
         void[] header = (cast(void*)&Header(item.length))[0 .. Header.sizeof];
         
-        if (this.needsWrapping(item))
+        if (this.needsWrapping(item.length))
         {
             this.gap = super.state.write_to;
             super.state.write_to = 0;            
@@ -262,18 +262,63 @@ class RingQueue : PersistQueue
         {
             seek(super.state.write_to);
             
-            write(header);
+            auto written = write(header);
+            assert(written == header.length, typeof (this).stringof ~ ": write(header) length mismatch");
             
             seek(super.state.write_to + header.length);
             
-            write(item);
+            written = write(item);
+            assert(written == item.length, typeof (this).stringof ~ ": write(item) length mismatch");
         }
         
-        super.state.write_to += this.pushSize(item);
+        super.state.write_to += this.pushSize(item.length);
         ++super.state.items;
     }
     
+    /***************************************************************************
+
+        Pops a single item from the queue. 
+        
+        Returns:
+            the popped item
     
+    ***************************************************************************/
+    
+    protected void[] popItem ( )
+    {
+        if (super.state.read_from >= this.gap)                                  // check whether there is an item at this offset
+        {               
+            super.state.read_from = 0;                                          // if no, set it to the beginning (wrapping around)
+            this.gap = super.state.dimension;
+        }
+        
+        this.storageEngine.seek(super.state.read_from);
+        
+        Header* header = cast(Header*) this.storageEngine.read(Header.sizeof).ptr;
+        
+        this.storageEngine.seek(super.state.read_from + header.sizeof);
+        
+        --super.state.items;
+        
+        if (!super.state.items)
+        {
+            super.state.read_from = 0;
+            super.state.write_to  = 0;
+        }
+        else
+        {
+            super.state.read_from += this.pushSize(header.length);
+            
+            if (super.state.read_from >= super.state.dimension)
+            {
+                super.state.read_from = 0;
+            }
+        }
+        
+        return this.storageEngine.read(header.length);
+    }
+    
+
     /***************************************************************************
     
         Gets the amount of data stored in the queue.
@@ -283,7 +328,7 @@ class RingQueue : PersistQueue
             
     ***************************************************************************/
         
-    public uint usedSpace ( )
+    public ulong usedSpace ( )
     {
         if (super.state.items == 0)
         {
@@ -292,7 +337,7 @@ class RingQueue : PersistQueue
         
         if (super.state.write_to > super.state.read_from)
         {
-            return super.usedSpace();
+            return this.state.dimension - this.state.write_to;
         }
         
         return this.gap - super.state.read_from + super.state.write_to;
@@ -325,48 +370,10 @@ class RingQueue : PersistQueue
             
     ***************************************************************************/
         
-    public uint freeSpace ( )
+    public ulong freeSpace ( )
     {
         return super.state.dimension - this.usedSpace; 
     }
-    
-    /***************************************************************************
-
-        Pops a single item from the queue. 
-        
-        Returns:
-            the popped item
-    
-    ***************************************************************************/
-
-    protected void[] popItem ( )
-    {
-        this.storageEngine.seek(super.state.read_from);
-        
-        Header* header = cast(Header*) this.storageEngine.read(Header.sizeof);
-        
-        this.storageEngine.seek(super.state.read_from+header.sizeof);
-        
-        void[] data = this.storageEngine.read(header.length);
-        
-        super.state.read_from += header.sizeof + header.length;
-        
-        
-        if (super.state.read_from >= this.gap)                                  // check whether there is an item at this offset
-        {               
-            super.state.read_from = 0;                                          // if no, set it to the beginning (wrapping around)
-            this.gap = super.state.dimension;
-        }
-        else if (super.state.read_from >= super.state.dimension)
-        {
-            super.state.read_from = 0;
-        }
-        
-        --super.state.items;
-        
-        return data;
-    }
-    
     
     /***************************************************************************
 
@@ -380,9 +387,9 @@ class RingQueue : PersistQueue
 
     ***************************************************************************/
 
-    private bool needsWrapping ( void[] data )
+    private bool needsWrapping ( size_t len )
     {
-        return this.pushSize(data) + super.state.write_to > super.state.dimension;           
+        return this.pushSize(len) + super.state.write_to > super.state.dimension;           
     }
     
     
@@ -399,34 +406,27 @@ class RingQueue : PersistQueue
 
     ***************************************************************************/
     
-    public bool willFit ( void[] data )
-    {            
-        if (super.state.items == 0 && super.state.dimension >= this.pushSize(data))
-        {         
-            return true;
-        }
+    public bool willFit ( size_t len )
+    {   
+        len = this.pushSize(len);
         
-        if (this.needsWrapping(data))
+        if (super.state.items)
         {
-            return super.state.read_from >= this.pushSize(data);                      // check if there is enough space at the beginning
-        }
-        
-        if (super.state.read_from < super.state.write_to)
-        {
-            return super.state.dimension - super.state.write_to >= this.pushSize(data);
-        }
-        
-        if (super.state.read_from > super.state.write_to)                                   // check if there is enough space between the new and old data
-        {
-            return super.state.read_from - super.state.write_to >= this.pushSize(data);
-        }
-        
-        if (super.state.read_from == super.state.write_to && super.state.items != 0)
-        {
-            return false;
-        }        
+            if (this.needsWrapping(len))
+            {
+                return len <= super.state.read_from;
+            }
+            else
+            {
+                long d = super.state.read_from - super.state.write_to;
                 
-        assert(false,"Not considered case happened");                
+                return len <= d || d < 0; 
+            }
+        }
+        else
+        {
+            return len <= super.state.dimension;                                // Queue is empty and item at most
+        }                                                                       // as long as the whole queue
     }
 
 
@@ -442,8 +442,8 @@ class RingQueue : PersistQueue
 
     protected bool terminate ( int code )
     {
-        Trace.formatln("Closing {} (saving {} entries to {}.dump)",
-                super.name, super.state.items, super.name);
+        debug Trace.formatln("Closing {} (saving {} entries to {}.dump)",
+                             super.name, super.state.items, super.name);
         this.log(SignalHandler.getId(code) ~ " raised: terminating .. at least trying to");
         
         this.dumpToFile();
@@ -458,6 +458,9 @@ class RingQueue : PersistQueue
     
         Params:
             conduit = conduit to read from
+        
+        Returns:
+            number of bytes read
         
         Throws:
             IOException on End Of Flow condition
@@ -479,6 +482,9 @@ class RingQueue : PersistQueue
         Params:
             conduit = conduit to write to
         
+        Returns:
+            number of bytes written
+        
         Throws:
             IOException on End Of Flow condition
     
@@ -489,7 +495,7 @@ class RingQueue : PersistQueue
         this.storageEngine.seek(0);
         
         return this.storageEngine.writeToConduit(output);
-    }    
+    }
 }
 
 /*******************************************************************************
@@ -505,6 +511,7 @@ debug ( OceanUnitTest )
     import tango.core.Memory;
     import ocean.util.Profiler;
     import tango.io.FilePath; 
+    import tango.util.log.Trace; 
     
     unittest
     {
