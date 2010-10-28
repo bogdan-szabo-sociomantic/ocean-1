@@ -709,6 +709,12 @@ abstract class PersistQueue : Queue, Serializable, Loggable
         
         bytes_read += SimpleSerializer.read(input, this.name);
         
+        if (!this.state.items)                                                  // reset read/write positions
+        {                                                                       // to prevent invariant to fail
+            this.state.read_from = 0;
+            this.state.write_to  = 0;
+        }
+        
         return bytes_read;
 	}
 }
