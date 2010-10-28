@@ -25,8 +25,6 @@ private import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
 private import tango.core.Exception: IOException;
 private import ocean.core.Exception: assertEx;
 
-private import tango.util.log.Trace;
-
 /*******************************************************************************
 
     Simple serializer struct - just a namespace, all methods are static.
@@ -198,11 +196,6 @@ static:
     ***************************************************************************/
     
     public size_t transmit ( Stream : IOStream ) ( Stream stream, void[] data )
-    out (n)
-    {
-        Trace.formatln("transmit " ~ Stream.stringof ~ ": {}", n); 
-    }
-    body
     {
         static assert ( !(is(Stream : InputStream) && is(Stream : OutputStream)),
                         "stream is '" ~ Stream.stringof ~  "; please cast it "
