@@ -46,6 +46,10 @@
 
     ---
 
+    Compile flags:
+
+        build with -debug=Json for detailed error output
+
 *******************************************************************************/
 
 module io.serialize.JsonStructDeserializer;
@@ -59,6 +63,8 @@ module io.serialize.JsonStructDeserializer;
 *******************************************************************************/
 
 private import ocean.core.Array;
+
+private import ocean.core.Exception;
 
 private import tango.core.Traits : isCharType, isRealType, isIntegerType, isStaticArrayType;
 
@@ -88,11 +94,146 @@ class JsonStructDeserializer ( Char )
 
     /***************************************************************************
 
-        Convenience alias for json parser
+        Json parser - simply a wrapper around the parser in
+        tango.text.json.JsonParser, which throws JsonExceptions instead of just
+        plain Exceptions.
     
     ***************************************************************************/
 
-    private alias JsonParser!(Char) Parser;
+    class Parser
+    {
+        /***********************************************************************
+
+            Json parser alias
+        
+        ***********************************************************************/
+
+        private alias JsonParser!(Char) JP;
+
+        
+        /***********************************************************************
+
+            Json parser instance
+        
+        ***********************************************************************/
+
+        private JP parser;
+    
+
+        /***********************************************************************
+
+            Json token alias
+        
+        ***********************************************************************/
+
+        public alias JP.Token Token;
+
+
+        /***********************************************************************
+
+            Constructor
+        
+        ***********************************************************************/
+
+        public this ( )
+        {
+            this.parser = new JP();
+        }
+
+        
+        /***********************************************************************
+
+            Destructor
+        
+        ***********************************************************************/
+
+        ~this ( )
+        {
+            delete this.parser;
+        }
+        
+
+        /***********************************************************************
+
+            Next
+        
+        ***********************************************************************/
+
+        public bool next ( )
+        {
+            return this.rethrow(&this.parser.next);
+        }
+
+
+        /***********************************************************************
+
+            Type
+        
+        ***********************************************************************/
+
+        public Token type ( )
+        {
+            return this.rethrow(&this.parser.type);
+        }
+
+
+        /***********************************************************************
+
+            Value
+        
+        ***********************************************************************/
+
+        public Char[] value ( )
+        {
+            return this.rethrow(&this.parser.value);
+        }
+        
+        
+        /***********************************************************************
+
+            Reset
+        
+        ***********************************************************************/
+
+        public void reset ( Char[] json )
+        {
+            return this.rethrow(&this.parser.reset, json);
+        }
+
+
+        /***********************************************************************
+
+            Executes the passed delegate, and rethrows any exceptions caught
+            within as JsonExceptions.
+            
+            Template params:
+                R = return type of delegate
+                T = tuple of delegate's arguments
+            
+            Params:
+                dg = delegate to execute
+                
+            Returns:
+                delegate's return value
+
+        ***********************************************************************/
+
+        private R rethrow ( R, T ... ) ( R delegate ( T ) dg, T dg_args )
+        {
+            R ret;
+
+            try
+            {
+                ret = dg(dg_args);
+            }
+            catch ( Exception e )
+            {
+                throw new JsonException(e.msg);
+            }
+
+            return ret;
+        }
+    }
 
 
     /***************************************************************************
@@ -142,6 +283,7 @@ class JsonStructDeserializer ( Char )
 
     public void open ( Char[] json, Char[] name )
     {
+        debug ( Json ) Trace.formatln("Deserializing json: '{}'", json);
         this.parser.reset(json);
 
         this.checkToken(Parser.Token.BeginObject);
@@ -162,6 +304,8 @@ class JsonStructDeserializer ( Char )
     {
         this.checkToken(Parser.Token.EndObject);
         this.checkToken(Parser.Token.EndObject);
+
+        debug ( Json ) Trace.formatln("Json deserialization completed");
     }
 
 
@@ -175,7 +319,10 @@ class JsonStructDeserializer ( Char )
         Params:
             output = variable to deserialize into
             name = expected name of the variable (optional)
-        
+
+        Throws:
+            throws a JsonException if the expected type of value cannot be read
+
     ***************************************************************************/
 
     public void deserialize ( T ) ( ref T output, Char[] name = "" )
@@ -187,18 +334,18 @@ class JsonStructDeserializer ( Char )
 
         static if ( isRealType!(T) )
         {
-            assert(this.parser.type() == Parser.Token.Number, typeof(this).stringof ~ ".deserialize - invalid token type in json string, expected Number (float)");
+            assertEx!(JsonException)(this.parser.type() == Parser.Token.Number, typeof(this).stringof ~ ".deserialize - invalid token type in json string, expected Number (float)");
             output = Float.toFloat(this.parser.value());
         }
         else static if ( isIntegerType!(T) )
         {
-            assert(this.parser.type() == Parser.Token.Number, typeof(this).stringof ~ ".deserialize - invalid token type in json string, expected Number (integer)");
+            assertEx!(JsonException)(this.parser.type() == Parser.Token.Number, typeof(this).stringof ~ ".deserialize - invalid token type in json string, expected Number (integer)");
             output = Integer.toLong(this.parser.value());
         }
         else static if ( is(T == bool) )
         {
-            assert(this.parser.type() == Parser.Token.Number, typeof(this).stringof ~ ".deserialize - invalid token type in json string, expected Number (bool)");
-            assert(this.parser.value() == "0" || this.parser.value() == "1", typeof(this).stringof ~ ".deserialize - invalid bool value in json string");
+            assertEx!(JsonException)(this.parser.type() == Parser.Token.Number, typeof(this).stringof ~ ".deserialize - invalid token type in json string, expected Number (bool)");
+            assertEx!(JsonException)(this.parser.value() == "0" || this.parser.value() == "1", typeof(this).stringof ~ ".deserialize - invalid bool value in json string");
             output = this.parser.value() == "1";
         }
         else static assert( false, typeof(this).stringof ~
@@ -260,6 +407,10 @@ class JsonStructDeserializer ( Char )
             output = array to deserialize into
             name = expected name of the array
         
+        Throws:
+            throws a JsonException if the array elements are not ordered
+            correctly
+
     ***************************************************************************/
 
     public void deserializeArray ( T ) ( ref T[] output, Char[] name )
@@ -292,7 +443,8 @@ class JsonStructDeserializer ( Char )
                     this.checkToken(Parser.Token.BeginObject);
 
                     this.checkName("index");
-                    assert(Integer.toLong(this.parser.value()) == index);
+                    assertEx!(JsonException)(Integer.toLong(this.parser.value()) == index,
+                                             typeof(this).stringof ~ ".deserializeArray - out of order array element");
                     this.parser.next(); // skip index value
 
                     static if ( isStaticArrayType!(U) )
@@ -342,6 +494,10 @@ class JsonStructDeserializer ( Char )
         Params:
             output = array to deserialize into
             name = expected name of the array
+
+        Throws:
+            throws a JsonException if the array elements are not ordered
+            correctly
         
     ***************************************************************************/
 
@@ -370,7 +526,8 @@ class JsonStructDeserializer ( Char )
                     this.checkToken(Parser.Token.BeginObject);
 
                     this.checkName("index");
-                    assert(Integer.toLong(this.parser.value()) == index);
+                    assertEx!(JsonException)(Integer.toLong(this.parser.value()) == index,
+                                             typeof(this).stringof ~ ".deserializeArray - out of order array element");
                     this.parser.next(); // skip index value
 
                     static if ( isStaticArrayType!(U) )
@@ -471,14 +628,17 @@ class JsonStructDeserializer ( Char )
             token = type of token expected
 
         Throws:
-            asserts that the expected token is found
+            throws a JsonException if the expected token is not found
         
     ***************************************************************************/
 
     private void checkToken ( Parser.Token token )
     {
-        assert(this.parser.type() == token,
-                typeof(this).stringof ~ ".checkToken - invalid token type in json string, expected token number " ~ Integer.toString(token) ~
+        debug ( Json ) Trace.formatln("Checking token type {} == {}", token, this.parser.type());
+
+        assertEx!(JsonException)(this.parser.type() == token,
+                typeof(this).stringof ~ ".checkToken - invalid token type in json string" ~
+                "', expected token number " ~ Integer.toString(token) ~
                 ", got token number " ~ Integer.toString(this.parser.type()));
         this.parser.next();
     }
@@ -494,11 +654,16 @@ class JsonStructDeserializer ( Char )
             token = type of token expected
             name = (optional) expected name of token
 
+        Throws:
+            throws a JsonException if the expected name is not found
+
     ***************************************************************************/
 
     private void checkName ( Char[] name )
     {
-        assert(this.parser.type() ==  Parser.Token.Name && this.parser.value() == name,
+        debug ( Json ) Trace.formatln("Checking name {} == {}", name, this.parser.value());
+
+        assertEx!(JsonException)(this.parser.type() ==  Parser.Token.Name && this.parser.value() == name,
                 typeof(this).stringof ~ ".checkName - name '" ~ name ~ "' expected, got '" ~ this.parser.value() ~ "'");
         this.parser.next();
     }
