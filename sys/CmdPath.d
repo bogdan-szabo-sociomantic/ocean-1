@@ -113,7 +113,7 @@ struct CmdPath
              
      **************************************************************************/
     
-    public char[] prepend ( char[][] path )
+    public char[] prepend ( char[][] path ... )
     {
         return FilePath.join(this.dir ~ path);
     }
