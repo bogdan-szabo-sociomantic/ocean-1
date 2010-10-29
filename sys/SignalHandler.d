@@ -237,7 +237,8 @@ class SignalHandler
            {
                foreach (arHandler ; *arrayOfhandlers)
                {
-                   bool equal = arHandler.visit((FnHandler fn)
+                   bool equal = arHandler.visit(
+                   (FnHandler fn)
                    {
                        static if(is(T==FnHandler))
                        {
