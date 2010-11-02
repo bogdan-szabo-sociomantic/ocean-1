@@ -70,6 +70,15 @@
 module ocean.core.StringEnum;
 
 
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+private import tango.core.Tuple;
+
+
 
 /*******************************************************************************
 
@@ -77,15 +86,16 @@ module ocean.core.StringEnum;
     string for the enum identifier and a code for the corresponding value.
 
     Template params:
-        T = base type of enum
+        B = base type of enum
 
 *******************************************************************************/
 
-struct StringEnumValue ( T = int )
+struct StringEnumValue ( B = int )
 {
     char[] description;
-    T code;
+    B code;
 }
+
 
 
 /*******************************************************************************
@@ -101,7 +111,7 @@ struct StringEnumValue ( T = int )
 
 class StringEnum ( V ... )
 {
-    // FIXME: for some reason neither of these assrtes fires...
+    // FIXME: for some reason neither of these asserts fires...
     static assert( !is( V == void ), "cannot create a StringEnum with no enum values!" );
     static assert( V.length > 0, "cannot create a StringEnum with no enum values!" );
 
@@ -518,5 +528,52 @@ class StringEnum ( V ... )
         }
         return res;
     }
+}
+
+
+
+/*******************************************************************************
+
+    Template to automatically create a tuple of StringEnumValues from a list of
+    strings.
+
+    Template params:
+        B = base type of enum
+        i = code for initial enum value
+        Strings = tuple of strings
+
+*******************************************************************************/
+
+template CreateCodes ( B, uint i, Strings ... )
+{
+    static if ( Strings.length == 1 )
+    {
+        alias Tuple!(StringEnumValue!(B)(Strings[0], i)) CreateCodes; 
+    }
+    else
+    {
+        alias Tuple!(StringEnumValue!(B)(Strings[0], i), CreateCodes!(B, i + 1, Strings[1 .. $])) CreateCodes;
+    }
+}
+
+
+
+/*******************************************************************************
+
+    Template to automatically create a StringEnum from a list of strings. The
+    enum's base type is specified, and the enum values are automatically
+    numbered, starting at 0.
+
+    Template params:
+        B = base type of enum
+        Strings = tuple of strings
+
+*******************************************************************************/
+
+template AutoStringEnum ( B, Strings ... )
+{
+    static assert ( is(typeof(Strings[0]) : char[]), "AutoStringEnum - please only give char[]s as template parameters");
+
+    alias StringEnum!(CreateCodes!(B, 0, Strings)) AutoStringEnum;
 }
 
