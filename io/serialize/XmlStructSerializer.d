@@ -232,13 +232,23 @@ class XmlStructSerializer ( Char )
         {
             openEntity(output, name);
 
-            foreach ( i, item; array )
+            static if ( is(T U : U[]) && !is(U == Char) )
             {
-                element_name.length = 0;
-                buf.length = 20;
-                element_name.append(`element n="`, Integer.format(buf, i), `"`);
+                foreach ( e; array )
+                {
+                    serializeArray(output, e, "sub_elements");
+                }
+            }
+            else
+            {
+                foreach ( i, item; array )
+                {
+                    element_name.length = 0;
+                    buf.length = 20;
+                    element_name.append(`element n="`, Integer.format(buf, i), `"`);
 
-                serialize(output, item, element_name);
+                    serialize(output, item, element_name);
+                }
             }
 
             closeEntity(output, name);
