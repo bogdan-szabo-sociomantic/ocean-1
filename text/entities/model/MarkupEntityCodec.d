@@ -47,8 +47,6 @@ module ocean.text.entities.model.MarkupEntityCodec;
 
 private import ocean.text.entities.model.IEntityCodec;
 private import ocean.text.entities.model.IEntitySet;
-private import ocean.text.entities.XmlEntitySet;
-private import ocean.text.entities.HtmlEntitySet;
 
 private import ocean.text.utf.UtfString;
 
