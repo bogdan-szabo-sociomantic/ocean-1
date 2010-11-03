@@ -98,7 +98,7 @@ class TraceStructSerializer
 
     void open ( char[] name )
     {
-        Trace.formatln("struct {}:", name);
+        Trace.formatln("{}struct {}:", this.indent, name);
         this.increaseIndent();
     }
 
@@ -116,6 +116,7 @@ class TraceStructSerializer
 
     void close ( char[] name )
     {
+        this.decreaseIndent();
     }
 
 
@@ -154,10 +155,7 @@ class TraceStructSerializer
 
     void serializeStruct ( char[] name, void delegate ( ) serialize_struct )
     {
-        Trace.formatln("{}struct {}:", this.indent, name);
-        this.increaseIndent();
         serialize_struct();
-        this.decreaseIndent();
     }
 
     
