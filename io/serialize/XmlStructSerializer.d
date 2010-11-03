@@ -74,6 +74,14 @@
 
 module io.serialize.XmlStructSerializer;
 
+
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
 private import ocean.core.Array;
 
 private import tango.core.Array;
