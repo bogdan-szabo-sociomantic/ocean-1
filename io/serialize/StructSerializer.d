@@ -183,14 +183,19 @@ struct StructSerializer
 
         See ocean.io.serialize.JsonStructSerializer for an example.
 
+        Template params:
+            S = type of struct to serialize
+            Serializer = type of serializer object
+            D = tuple of data parameters passed to the serializer
+
         Params:
             s    = struct instance (pointer)
             serializer = object to do the serialization
-            data = output buffer to write serialized data to
+            data = parameters for serializer
 
      **************************************************************************/
 
-    public void dump ( S, Serializer, D ) ( S* s, Serializer serializer, ref D[] data )
+    public void dump ( S, Serializer, D ... ) ( S* s, Serializer serializer, ref D data )
     {
         serializer.open(data, S.stringof);
         serialize(s, serializer, data);
@@ -660,14 +665,19 @@ struct StructSerializer
         serializer object. See the description of the dump() method above for a
         full description of how the serializer object should behave.
     
+        Template params:
+            S = type of struct to serialize
+            Serializer = type of serializer object
+            D = tuple of data parameters passed to the serializer
+
         Params:
             s = struct instance (pointer)
             serializer = object to do the serialization
-            data = output buffer to write serialized data to
+            data = parameters for serializer
 
      **************************************************************************/
     
-    private void serialize ( S, Serializer, D ) ( S* s, Serializer serializer, ref D[] data )
+    private void serialize ( S, Serializer, D ... ) ( S* s, Serializer serializer, ref D data )
     {
         foreach (i, T; typeof (S.tupleof))
         {
@@ -677,6 +687,7 @@ struct StructSerializer
             static if ( is(T == struct) )
             {
                 serializer.serializeStruct(data, field_name, {
+                    Trace.formatln("Struct recurse");
                     serialize(field, serializer, data);                         // recursive call
                 });
             }
@@ -687,6 +698,7 @@ struct StructSerializer
                 static if ( is(U == struct) )
                 {
                     serializer.serializeStructArray(data, field_name, array, ( ref U element ) {
+                        Trace.formatln("Struct array recurse");
                         serialize(&element, serializer, data);                  // recursive call
                     });
                 }
