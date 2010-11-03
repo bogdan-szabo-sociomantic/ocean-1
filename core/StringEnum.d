@@ -65,6 +65,22 @@
 
     ---
 
+    There is also an extension template, at the end of the module, to create
+    StringEnums with automatically generated enum values with a specified base
+    type, starting from 0.
+    
+    AutoStringEnum usage example:
+    
+    ---
+
+        import ocean.core.StringEnum;
+        
+        AutoStringEnum!(int,
+            "first",
+            "second") Commands;
+            
+    ---
+
 *******************************************************************************/
 
 module ocean.core.StringEnum;
