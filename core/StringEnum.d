@@ -9,6 +9,56 @@
 
     authors:        Gavin Norman
 
+    Contains two main templates:
+
+        1. StringEnum
+        2. AutoStringEnum
+
+    See the comments for each of these templates for full description and usage
+    examples.
+
+*******************************************************************************/
+
+module ocean.core.StringEnum;
+
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+private import tango.core.Tuple;
+
+
+
+/*******************************************************************************
+
+    Struct template representing a single member of an enum - containing a
+    string for the enum identifier and a code for the corresponding value.
+
+    Template params:
+        B = base type of enum
+
+*******************************************************************************/
+
+struct StringEnumValue ( B = int )
+{
+    char[] description;
+    B code;
+}
+
+
+
+/*******************************************************************************
+
+    Class template defining an enum with code<->description lookup.
+
+    Template params:
+        V = tuple of StringEnumValue structs containing the code->description
+            mapping info for the enum (statically asserted to be of the required
+            type)
+
     This template creates classes which contain a real (anonymous) enum, and an
     associative array mapping from the enum values to their string descriptions,
     allowing two-way lookup between codes <-> descriptions, and an
@@ -64,64 +114,6 @@
         }
 
     ---
-
-    There is also an extension template, at the end of the module, to create
-    StringEnums with automatically generated enum values with a specified base
-    type, starting from 0.
-    
-    AutoStringEnum usage example:
-    
-    ---
-
-        import ocean.core.StringEnum;
-        
-        AutoStringEnum!(int,
-            "first",
-            "second") Commands;
-            
-    ---
-
-*******************************************************************************/
-
-module ocean.core.StringEnum;
-
-
-/*******************************************************************************
-
-    Imports
-
-*******************************************************************************/
-
-private import tango.core.Tuple;
-
-
-
-/*******************************************************************************
-
-    Struct template representing a single member of an enum - containing a
-    string for the enum identifier and a code for the corresponding value.
-
-    Template params:
-        B = base type of enum
-
-*******************************************************************************/
-
-struct StringEnumValue ( B = int )
-{
-    char[] description;
-    B code;
-}
-
-
-
-/*******************************************************************************
-
-    Class template defining an enum with code<->description lookup.
-
-    Template params:
-        V = tuple of StringEnumValue structs containing the code->description
-            mapping info for the enum (statically asserted to be of the required
-            type)
 
 *******************************************************************************/
 
@@ -551,7 +543,7 @@ class StringEnum ( V ... )
 /*******************************************************************************
 
     Template to automatically create a tuple of StringEnumValues from a list of
-    strings.
+    strings. Used by AutoStringEnum (see below).
 
     Template params:
         B = base type of enum
@@ -583,6 +575,18 @@ template CreateCodes ( B, uint i, Strings ... )
     Template params:
         B = base type of enum
         Strings = tuple of strings
+
+    Usage example:
+    
+    ---
+
+        import ocean.core.StringEnum;
+        
+        AutoStringEnum!(int,
+            "first",
+            "second") Commands;
+            
+    ---
 
 *******************************************************************************/
 
