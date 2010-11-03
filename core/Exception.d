@@ -40,6 +40,14 @@ class ArrayMapException : Exception
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
     
     static mixin ExceptionOpCalls!(typeof (this));
+    
+    static class NonExistingKey : ArrayMapException
+    {
+        this ( char[] msg ) { super(msg); }
+        this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+        
+        static mixin ExceptionOpCalls!(typeof (this));
+    }
 }
 
 /******************************************************************************
@@ -395,5 +403,5 @@ void assertEx ( E : Exception = Exception, T ) ( T ok )
 
 void assertEx ( E : Exception = Exception, T, Args ... ) ( T ok, lazy char[] msg, Args args )
 {
-    if (!ok) throw new E(msg);
+    if (!ok) throw new E(msg, args);
 }
