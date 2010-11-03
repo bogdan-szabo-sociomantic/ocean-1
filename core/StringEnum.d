@@ -38,14 +38,14 @@ private import tango.core.Tuple;
     string for the enum identifier and a code for the corresponding value.
 
     Template params:
-        B = base type of enum
+        BaseType = base type of enum
 
 *******************************************************************************/
 
-struct StringEnumValue ( B = int )
+struct StringEnumValue ( BaseType = int )
 {
     char[] description;
-    B code;
+    BaseType code;
 }
 
 
@@ -132,7 +132,7 @@ class StringEnum ( V ... )
     
     ***************************************************************************/
     
-    private alias typeof(V[0].code) T;
+    public alias typeof(V[0].code) BaseType;
 
 
     /***************************************************************************
@@ -148,7 +148,7 @@ class StringEnum ( V ... )
     
     ***************************************************************************/
     
-    private template EnumValueString ( char[] description, T code )
+    private template EnumValueString ( char[] description, BaseType code )
     {
         const char[] EnumValueString = description ~ " = " ~ code.stringof;
     }
@@ -170,7 +170,7 @@ class StringEnum ( V ... )
     {
         static if ( V.length == 1 )
         {
-            static assert ( is(typeof(V[0]) == StringEnumValue!(T)), "all StringEnum values must be based on the same type" );
+            static assert ( is(typeof(V[0]) == StringEnumValue!(BaseType)), "all StringEnum values must be based on the same type" );
     
             const char[] EnumValueListString = EnumValueString!(V[0].description, V[0].code);
         }
@@ -212,11 +212,11 @@ class StringEnum ( V ... )
     {
         static if ( V.length == 1 )
         {
-            const T EnumMax = V[0].code;
+            const BaseType EnumMax = V[0].code;
         }
         else
         {
-            const T EnumMax = V[0].code > EnumMax!(V[1..$]) ? V[0].code : EnumMax!(V[1..$]);
+            const BaseType EnumMax = V[0].code > EnumMax!(V[1..$]) ? V[0].code : EnumMax!(V[1..$]);
         }
     }
     
@@ -231,11 +231,11 @@ class StringEnum ( V ... )
     {
         static if ( V.length == 1 )
         {
-            const T EnumMin = V[0].code;
+            const BaseType EnumMin = V[0].code;
         }
         else
         {
-            const T EnumMin = V[0].code < EnumMin!(V[1..$]) ? V[0].code : EnumMin!(V[1..$]);
+            const BaseType EnumMin = V[0].code < EnumMin!(V[1..$]) ? V[0].code : EnumMin!(V[1..$]);
         }
     }
 
@@ -247,7 +247,7 @@ class StringEnum ( V ... )
 
     ***************************************************************************/
 
-    static public mixin ( EnumDeclaration!(T.stringof, EnumValueListString!(V)) );
+    static public mixin ( EnumDeclaration!(BaseType.stringof, EnumValueListString!(V)) );
 
 
     /***************************************************************************
@@ -266,7 +266,7 @@ class StringEnum ( V ... )
     
     ***************************************************************************/
 
-    static public const T max = EnumMax!(V);
+    static public const BaseType max = EnumMax!(V);
 
 
     /***************************************************************************
@@ -275,7 +275,7 @@ class StringEnum ( V ... )
     
     ***************************************************************************/
 
-    static public const T min = EnumMin!(V);
+    static public const BaseType min = EnumMin!(V);
 
     
     /***************************************************************************
@@ -284,7 +284,7 @@ class StringEnum ( V ... )
     
     ***************************************************************************/
 
-    static private char[][T] code_to_descr;
+    static private char[][BaseType] code_to_descr;
 
 
     /***************************************************************************
@@ -293,7 +293,7 @@ class StringEnum ( V ... )
     
     ***************************************************************************/
 
-    static private size_t[T] code_to_index;
+    static private size_t[BaseType] code_to_index;
 
     
     /***************************************************************************
@@ -302,7 +302,7 @@ class StringEnum ( V ... )
     
     ***************************************************************************/
 
-    static private T[length] index_to_code;
+    static private BaseType[length] index_to_code;
 
 
     /***************************************************************************
@@ -335,7 +335,7 @@ class StringEnum ( V ... )
             
     ***************************************************************************/
 
-    static public bool opIn_r ( T test )
+    static public bool opIn_r ( BaseType test )
     {
         return !!(test in code_to_descr);
     }
@@ -380,7 +380,7 @@ class StringEnum ( V ... )
             
     ***************************************************************************/
 
-    static public char[] description ( T test )
+    static public char[] description ( BaseType test )
     {
         if ( test in code_to_descr )
         {
@@ -407,7 +407,7 @@ class StringEnum ( V ... )
             
     ***************************************************************************/
 
-    static public size_t codeIndex ( T test )
+    static public size_t codeIndex ( BaseType test )
     {
         if ( test in code_to_index )
         {
@@ -435,7 +435,7 @@ class StringEnum ( V ... )
             
     ***************************************************************************/
 
-    static public T indexCode ( size_t i )
+    static public BaseType indexCode ( size_t i )
     in
     {
         assert(i < index_to_code.length);
@@ -487,7 +487,7 @@ class StringEnum ( V ... )
     
     ***************************************************************************/
 
-    static public T code ( char[] description )
+    static public BaseType code ( char[] description )
     {
         foreach ( code, desc; code_to_descr )
         {
@@ -507,7 +507,7 @@ class StringEnum ( V ... )
     
     ***************************************************************************/
 
-    static public int opApply ( int delegate ( ref T value, ref char[] name ) dg )
+    static public int opApply ( int delegate ( ref BaseType value, ref char[] name ) dg )
     {
         int res;
         foreach ( code, description; code_to_descr )
@@ -525,7 +525,7 @@ class StringEnum ( V ... )
     
     ***************************************************************************/
     
-    static public int opApply ( int delegate ( ref size_t index, ref T value, ref char[] name ) dg )
+    static public int opApply ( int delegate ( ref size_t index, ref BaseType value, ref char[] name ) dg )
     {
         int res;
         size_t index;
