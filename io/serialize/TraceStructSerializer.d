@@ -31,9 +31,6 @@
             float money;
         }
 
-        // Output string buffer
-        char[] xml;
-
         // Set up some data in a struct
         Data data;
         test.ids = [Data.Id("hi", 23), Data.Id("hello", 17)];
@@ -41,11 +38,8 @@
         // Create serializer object
         scope ser = new TraceStructSerializer!(char)();
 
-        // Dump struct to string via serializer
-        StructSerializer.dump(&data, ser, dummy);
-
-        // Output resulting json
-        Trace.formatln("Xml = {}", xml);
+        // Dump struct to Trace via serializer
+        StructSerializer.dump(&data, ser);
 
     ---
 
