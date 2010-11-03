@@ -141,7 +141,7 @@ class TraceStructSerializer
 
     void serialize ( T ) ( ref T item, char[] name )
     {
-        Trace.formatln("{}{}: {}", this.indent, name, item);
+        Trace.formatln("{}{} ({}): {}", this.indent, name, T.stringof, item);
     }
 
 
@@ -160,7 +160,7 @@ class TraceStructSerializer
 
     void serializeStruct ( char[] name, void delegate ( ) serialize_struct )
     {
-        Trace.formatln("{}***Struct {}:", this.indent, name);
+        Trace.formatln("{}{}:", this.indent, name);
         this.increaseIndent();
         serialize_struct();
         this.decreaseIndent();
@@ -183,7 +183,7 @@ class TraceStructSerializer
 
     void serializeArray ( T ) ( T[] array, char[] name )
     {
-        Trace.formatln("{}{} (length {}): {}", this.indent, name, array.length, array);
+        Trace.formatln("{}{} ({}[], length {}): {}", this.indent, name, T.stringof, array.length, array);
     }
 
     
@@ -207,7 +207,7 @@ class TraceStructSerializer
 
     void serializeStructArray ( T ) ( char[] name, T[] array, void delegate ( ref T ) serialize_element )
     {
-        Trace.formatln("{}{} (length {}):", this.indent, name, array.length);
+        Trace.formatln("{}{} ({}[], length {}):", this.indent, name, T.stringof, array.length);
         this.increaseIndent();
 
         foreach ( i, item; array )
