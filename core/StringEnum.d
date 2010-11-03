@@ -52,6 +52,19 @@ struct StringEnumValue ( BaseType = int )
 
 /*******************************************************************************
 
+    Abstract base class for StringEnums. Contains no members, just provided as a
+    convenient way of checking that a class is in fact a StringEnum.
+
+*******************************************************************************/
+
+abstract class IStringEnum
+{
+}
+
+
+
+/*******************************************************************************
+
     Class template defining an enum with code<->description lookup.
 
     Template params:
@@ -117,7 +130,7 @@ struct StringEnumValue ( BaseType = int )
 
 *******************************************************************************/
 
-class StringEnum ( V ... )
+class StringEnum ( V ... ) : IStringEnum
 {
     // FIXME: for some reason neither of these asserts fires...
     static assert( !is( V == void ), "cannot create a StringEnum with no enum values!" );
