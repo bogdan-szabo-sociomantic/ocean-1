@@ -46,7 +46,7 @@
         // Dump struct to string via serializer
         StructSerializer.dump(&data, ser, xml);
 
-        // Output resulting json
+        // Output resulting xml
         Trace.formatln("Xml = {}", xml);
 
     ---
