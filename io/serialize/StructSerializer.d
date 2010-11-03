@@ -162,48 +162,6 @@ struct StructSerializer
 
     /**************************************************************************
 
-        Dumps/serializes the content of s and its array members, using the given
-        serializer object. The serializer object needs the following methods:
-            
-                void open ( ref Char[] output, char[] name );
-
-                void close ( ref Char[] output, char[] name );
-            
-                void serialize ( T ) ( ref Char[] output, T* item, char[] name );
-            
-                void serializeStruct ( ref Char[] output, Char[] name, void delegate ( ) serialize_struct );
-            
-                void serializeArray ( T ) ( ref Char[] output, T[] array, Char[] name );
-            
-                void serializeStructArray ( T ) ( ref Char[] output, Char[] name, T[] array, void delegate ( ref T ) serialize_element );
-
-        Unfortunately, as some of these methods are templates, it's not
-        possible to make an interface for it. But the compiler will let you know
-        whether a given serializer object is suitable or not ;)
-
-        See ocean.io.serialize.JsonStructSerializer for an example.
-
-        Template params:
-            S = type of struct to serialize
-            Serializer = type of serializer object
-            D = tuple of data parameters passed to the serializer
-
-        Params:
-            s    = struct instance (pointer)
-            serializer = object to do the serialization
-            data = parameters for serializer
-
-     **************************************************************************/
-
-    public void dump ( S, Serializer, D ... ) ( S* s, Serializer serializer, ref D data )
-    {
-        serializer.open(data, S.stringof);
-        serialize(s, serializer, data);
-        serializer.close(data, S.stringof);
-    }
-
-    /**************************************************************************
-
         Dumps/serializes the content of s and its array members.
         
         send is called repeatedly; on each call, it must store or forward the
@@ -288,46 +246,6 @@ struct StructSerializer
     
     /**************************************************************************
 
-        Loads/deserializes the content of s and its array members, using the
-        given deserializer object. The deserializer object needs the following
-        methods:
-            
-                void open ( ref Char[] input, char[] name );
-    
-                void close ( );
-            
-                void deserialize ( T ) ( ref T output, char[] name );
-            
-                void deserializeStruct ( ref T output, Char[] name, void delegate ( ) deserialize_struct );
-            
-                void deserializeArray ( T ) ( ref T[] output, Char[] name );
-
-                void deserializeStaticArray ( T ) ( T[] output, Char[] name );
-
-                void deserializeStructArray ( T ) ( ref T[] output, Char[] name, void delegate ( ref T ) deserialize_element );
-    
-        Unfortunately, as some of these methods are templates, it's not
-        possible to make an interface for it. But the compiler will let you know
-        whether a given deserializer object is suitable or not ;)
-    
-        See ocean.io.serialize.JsonStructDeserializer for an example.
-    
-        Params:
-            s = struct instance (pointer)
-            deserializer = object to do the deserialization
-            data = input buffer to read serialized data from
-    
-     **************************************************************************/
-
-    public void load ( S, Deserializer, D ) ( S* s, Deserializer deserializer, D[] data )
-    {
-        deserializer.open(data, S.stringof);
-        deserialize(s, deserializer, data);
-        deserializer.close();
-    }
-
-    /**************************************************************************
-
         Loads/deserializes the content of s and its array members.
         
         receive is called repeatedly; 
@@ -370,6 +288,88 @@ struct StructSerializer
         transmitArrays!(true)(s, receive,slice);
     }
     
+    /**************************************************************************
+
+        Dumps/serializes the content of s and its array members, using the given
+        serializer object. The serializer object needs the following methods:
+            
+                void open ( ref Char[] output, char[] name );
+    
+                void close ( ref Char[] output, char[] name );
+            
+                void serialize ( T ) ( ref Char[] output, T* item, char[] name );
+            
+                void serializeStruct ( ref Char[] output, Char[] name, void delegate ( ) serialize_struct );
+            
+                void serializeArray ( T ) ( ref Char[] output, T[] array, Char[] name );
+            
+                void serializeStructArray ( T ) ( ref Char[] output, Char[] name, T[] array, void delegate ( ref T ) serialize_element );
+    
+        Unfortunately, as some of these methods are templates, it's not
+        possible to make an interface for it. But the compiler will let you know
+        whether a given serializer object is suitable or not ;)
+    
+        See ocean.io.serialize.JsonStructSerializer for an example.
+    
+        Template params:
+            S = type of struct to serialize
+            Serializer = type of serializer object
+            D = tuple of data parameters passed to the serializer
+    
+        Params:
+            s    = struct instance (pointer)
+            serializer = object to do the serialization
+            data = parameters for serializer
+    
+     **************************************************************************/
+    
+    public void serialize ( S, Serializer, D ... ) ( S* s, Serializer serializer, ref D data )
+    {
+        serializer.open(data, S.stringof);
+        serialize_(s, serializer, data);
+        serializer.close(data, S.stringof);
+    }
+    
+    /**************************************************************************
+    
+        Loads/deserializes the content of s and its array members, using the
+        given deserializer object. The deserializer object needs the following
+        methods:
+            
+                void open ( ref Char[] input, char[] name );
+    
+                void close ( );
+            
+                void deserialize ( T ) ( ref T output, char[] name );
+            
+                void deserializeStruct ( ref T output, Char[] name, void delegate ( ) deserialize_struct );
+            
+                void deserializeArray ( T ) ( ref T[] output, Char[] name );
+    
+                void deserializeStaticArray ( T ) ( T[] output, Char[] name );
+    
+                void deserializeStructArray ( T ) ( ref T[] output, Char[] name, void delegate ( ref T ) deserialize_element );
+    
+        Unfortunately, as some of these methods are templates, it's not
+        possible to make an interface for it. But the compiler will let you know
+        whether a given deserializer object is suitable or not ;)
+    
+        See ocean.io.serialize.JsonStructDeserializer for an example.
+    
+        Params:
+            s = struct instance (pointer)
+            deserializer = object to do the deserialization
+            data = input buffer to read serialized data from
+    
+     **************************************************************************/
+    
+    public void deserialize ( S, Deserializer, D ) ( S* s, Deserializer deserializer, D[] data )
+    {
+        deserializer.open(data, S.stringof);
+        deserialize_(s, deserializer, data);
+        deserializer.close();
+    }
+
     /**************************************************************************
 
         Calculates the sum of the serialized byte length of all array fields of
@@ -677,7 +677,7 @@ struct StructSerializer
 
      **************************************************************************/
     
-    private void serialize ( S, Serializer, D ... ) ( S* s, Serializer serializer, ref D data )
+    private void serialize_ ( S, Serializer, D ... ) ( S* s, Serializer serializer, ref D data )
     {
         foreach (i, T; typeof (S.tupleof))
         {
@@ -735,7 +735,7 @@ struct StructSerializer
     
      **************************************************************************/
 
-    private void deserialize ( S, Deserializer, D ) ( S* s, Deserializer deserializer, D[] data )
+    private void deserialize_ ( S, Deserializer, D ) ( S* s, Deserializer deserializer, D[] data )
     {
         foreach (i, T; typeof (S.tupleof))
         {
