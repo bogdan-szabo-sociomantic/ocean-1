@@ -43,7 +43,7 @@
         scope ser = new JsonStructSerializer!(char)();
 
         // Dump struct to string via serializer
-        StructSerializer.dump(&data, ser, json);
+        StructSerializer.serialize(&data, ser, json);
 
         // Output resulting json
         Trace.formatln("Json = {}", json);
@@ -83,6 +83,8 @@ module ocean.io.serialize.JsonStructSerializer;
 *******************************************************************************/
 
 private import ocean.core.Array;
+
+private import ocean.io.serialize.StructSerializer;
 
 private import ocean.text.json.Jsonizer;
 
@@ -158,6 +160,26 @@ class JsonStructSerializer ( Char, bool ThreadSafe = false )
         {
             delete this.json;
         }
+    }
+
+
+    /***************************************************************************
+
+        Convenience method to serialize a struct.
+    
+        Template params:
+            T = type of struct to serialize
+        
+        Params:
+            output = string to serialize xml data to
+            item = struct to serialize
+    
+    ***************************************************************************/
+    
+    void serialize ( T ) ( ref Char[] output, ref T item )
+    {
+        output.length = 0;
+        StructSerializer.serialize(&item, this, output);
     }
 
 

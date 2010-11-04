@@ -44,7 +44,7 @@
         scope ser = new XmlStructSerializer!(char)();
 
         // Dump struct to string via serializer
-        StructSerializer.dump(&data, ser, xml);
+        StructSerializer.serialize(&data, ser, xml);
 
         // Output resulting xml
         Trace.formatln("Xml = {}", xml);
@@ -84,6 +84,8 @@ module io.serialize.XmlStructSerializer;
 
 private import ocean.core.Array;
 
+private import ocean.io.serialize.StructSerializer;
+
 private import tango.core.Array;
 
 private import tango.core.Traits;
@@ -114,6 +116,26 @@ class XmlStructSerializer ( Char )
     ***************************************************************************/
 
     private Char[] element_name, buf;
+
+
+    /***************************************************************************
+
+        Convenience method to serialize a struct.
+    
+        Template params:
+            T = type of struct to serialize
+        
+        Params:
+            output = string to serialize xml data to
+            item = struct to serialize
+    
+    ***************************************************************************/
+    
+    void serialize ( T ) ( ref Char[] output, ref T item )
+    {
+        output.length = 0;
+        StructSerializer.serialize(&item, this, output);
+    }
 
 
     /***************************************************************************
