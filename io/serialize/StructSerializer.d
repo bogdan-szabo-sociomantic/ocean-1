@@ -687,7 +687,7 @@ struct StructSerializer
             static if ( is(T == struct) )
             {
                 serializer.serializeStruct(data, field_name, {
-                    serialize(field, serializer, data);                         // recursive call
+                    serialize_(field, serializer, data);                         // recursive call
                 });
             }
             else static if( is(T U : U[]) )
@@ -697,7 +697,7 @@ struct StructSerializer
                 static if ( is(U == struct) )
                 {
                     serializer.serializeStructArray(data, field_name, array, ( ref U element ) {
-                        serialize(&element, serializer, data);                  // recursive call
+                        serialize_(&element, serializer, data);                  // recursive call
                     });
                 }
                 else
