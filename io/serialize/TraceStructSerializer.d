@@ -39,7 +39,7 @@
         scope ser = new TraceStructSerializer!(char)();
 
         // Dump struct to Trace via serializer
-        StructSerializer.dump(&data, ser);
+        ser.serialize(data);
 
     ---
 
@@ -54,6 +54,8 @@ module ocean.io.serialize.TraceStructSerializer;
     Imports
 
 *******************************************************************************/
+
+private import ocean.io.serialize.StructSerializer;
 
 private import tango.util.log.Trace;
 
@@ -83,6 +85,24 @@ class TraceStructSerializer
     ***************************************************************************/
 
     private char[] indent;
+
+
+    /***************************************************************************
+
+        Convenience method to serialize a struct.
+    
+        Template params:
+            T = type of struct to serialize
+        
+        Params:
+            item = struct to serialize
+    
+    ***************************************************************************/
+    
+    void serialize ( T ) ( ref T item )
+    {
+        StructSerializer.serialize(&item, this);
+    }
 
 
     /***************************************************************************
