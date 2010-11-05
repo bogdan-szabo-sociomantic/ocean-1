@@ -95,7 +95,7 @@ module core.serializer.StructSerializer;
 
 *******************************************************************************/
 
-private import ocean.core.Exception: assertEx;
+private import ocean.core.Exception: assertEx, SerializerException;
 
 private import tango.core.Traits;
 
@@ -203,12 +203,9 @@ struct StructSerializer
         Throws:
             Exception if data is too short
         
-        Returns:
-            number of bytes consumed from data
-        
      **************************************************************************/
 
-    size_t load ( S, D ) ( S* s, D[] data, bool slice = false )
+    void load ( S, D ) ( S* s, D[] data, bool slice = false )
     {
         static assert (D.sizeof == 1, typeof (*this).stringof ~ ".load: only "
                        "single-byte element arrays supported, "
@@ -222,7 +219,9 @@ struct StructSerializer
             { 
                 size_t end = start + chunk.length;
                 
-                assertEx(end <= data.length, typeof (*this).stringof ~ " input data too short");
+                assertEx!(SerializerException.LengthMismatch)(end <= data.length,
+                          typeof (*this).stringof ~ " input data too short",
+                          data.length, end);
                 
                 chunk[] = (cast (void[]) data)[start .. end];                
                 
@@ -240,8 +239,6 @@ struct StructSerializer
             }
 			assert(false);
         },slice);
-        
-        return start;
     }
     
     /**************************************************************************
