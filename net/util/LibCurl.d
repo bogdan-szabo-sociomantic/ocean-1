@@ -78,6 +78,14 @@ class LibCurl
     private char[] request_url;
 
     /***************************************************************************
+    
+        Request authorisation (username:password)
+            
+    ****************************************************************************/
+
+    private char[] request_auth;
+
+    /***************************************************************************
         
         Default Parameters
             
@@ -340,6 +348,22 @@ class LibCurl
             return "";
         }
     }
+
+    /***************************************************************************
+    
+        Sets cURL query authorisation - username & password.
+        
+        Params:
+            username = username for url authorisation
+            password = password for url authorisation
+            
+     **************************************************************************/
+
+    public void setAuth ( char[] username, char[] password )
+    {
+        this.request_auth.concat(username, ":", password);
+        this.setOptionT!(CURLoption.USERPWD, char[])(this.request_auth);
+    }
     
     /***************************************************************************
     
@@ -406,7 +430,6 @@ class LibCurl
     
     alias setOptionT!(CURLoption.FORBID_REUSE, int) setForbidReuse;
 
-    
     /***************************************************************************
         
         Close curl session

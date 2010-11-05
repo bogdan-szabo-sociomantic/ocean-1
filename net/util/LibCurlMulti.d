@@ -248,6 +248,38 @@ class LibCurlMulti
 
     /***************************************************************************
 
+        Sets up a request to read content from Url with authorisation, if there
+        is a free connection.
+    
+        Params:
+            url = url to download content from
+            username = username for url authorisation
+            password = password for url authorisation
+            read_dg = delegate to call upon receiving content
+
+        Returns:
+            true if the request could be added
+            
+    ***************************************************************************/
+
+    public bool read ( char[] url, char[] username, char[] password, LibCurl.ReadDg read_dg )
+    {
+        if ( this.conn_pool.getNumAvailableItems() == 0 )
+        {
+            return false;
+        }
+
+        auto connection = this.conn_pool.get();
+        connection.setUserAgent(this.user_agent);
+        connection.setAuth(username, password);
+        connection.addToCurlMulti(this.curlm, url, read_dg);
+
+        return true;
+    }
+
+
+    /***************************************************************************
+
 		Checks whether the given url has already been requested.        
 
         Params:
