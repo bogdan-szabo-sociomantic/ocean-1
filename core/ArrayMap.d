@@ -484,7 +484,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         static if (this.VisArray)
         {
-            if ( dup_arrays )
+            if ( dup_arrays ) synchronized (this)
             {
                 this.v_map[p].value.length = value.length;
                 this.v_map[p].value[]      = value[];
@@ -503,29 +503,57 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     }
 
 
-    /***************************************************************************
-    
-        Append element value to value of existing element in array map
-        
-        If the key does not yet exists the element is added otherwise the new
-        value is appended to the value of the existing element matching the key.
-        
-        Params:
-            key = array key
-            value = array value
-        
-     **************************************************************************/
-    
-    static if (this.VisArray) public void putcat ( in K key, in V value )
+    static if (this.VisArray)
     {
-        size_t p = this.getPutIndex(key);
-
-        this.v_map[p].value ~= value;
-        this.v_map[p].key = key;
-    }
-
-    /***************************************************************************
+        /***********************************************************************
         
+            Appends element value to value of existing element in array map
+            
+            If the key does not yet exists the element is added otherwise the
+            new value is appended to the value of the existing element matching
+            the key.
+            
+            Params:
+                key = array key
+                value = array value
+            
+         **********************************************************************/
+        
+        public void putcat ( in K key, in V value )
+        {
+            size_t p = this.getPutIndex(key);
+    
+            this.v_map[p].value ~= value;
+            this.v_map[p].key = key;
+        }
+
+        public V get ( K key, ref V value )
+        {
+            return this.get_(this.findValueSync(key), value);
+        }
+        
+        /***********************************************************************
+        
+            Returns value associated with key; copying it into the provided
+            destination array, maintaining thread-safety.
+            
+            Params:
+                key = array key
+                hash = hash value of key
+                
+            Returns:
+                value of array element
+            
+         **********************************************************************/
+    
+        public V get ( K key, hash_t hash, ref V value )
+        {
+            return this.get_(this.findValueSync(key, hash % this.buckets_length), value);
+        }
+    }
+    
+    /***************************************************************************
+    
         Returns value associated with key
         
         Params:
@@ -538,19 +566,19 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     public V get ( K key )
     {
-        size_t v = this.findValueSync(key);
-        
-        if ( v !is size_t.max )
-        {            
-            return this.v_map[v].value;
-        }
-        
-        throw new ArrayMapException(`key doesn't exist`);
+        return this.get_(this.findValueSync(key));
     }
-
-    /***************************************************************************
-        
+    
+    /***********************************************************************
+    
         Returns value associated with key
+        Note that, if V is an array type, the returned value is a slice to a
+        volatile data element. To avoid the value to become invalid, especially
+        when using the ArrayMap with multiple threads, use the overloaded
+        ---
+            V get ( K key, ref V value )
+        ---
+        version of this method.
         
         Params:
             key = array key
@@ -559,20 +587,13 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Returns:
             value of array element
         
-     **************************************************************************/
-
+     **********************************************************************/
+    
     public V get ( K key, hash_t hash )
     {
-        size_t v = this.findValueSync(key, hash % this.buckets_length);
-        
-        if ( v !is size_t.max )
-        {            
-            return this.v_map[v].value;
-        }
-        
-        throw new ArrayMapException(`hash doesn't exist`);
+        return this.get_(this.findValueSync(key, hash % this.buckets_length));
     }
-
+    
     /***************************************************************************
         
         Remove element from array map
@@ -1004,6 +1025,108 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
      }
      
     /***************************************************************************
+    
+        Returns the value array element with index v or throws an exception if
+        v is size_t.max to indicate that a value does not exist.
+        
+        Params:
+            v = value index
+            
+        Returns:
+            element value index in this.v_map
+        
+        Throws:
+            ArrayMapException.NonExistingKey if v == size_t.max
+        
+     **************************************************************************/
+
+    private V get_ ( size_t v )
+    {
+        this.assertExists(v);
+        
+        return this.v_map[v].value;
+    }
+    
+    static if (this.VisArray)
+    {
+        /***************************************************************************
+        
+            Copies the content of the value array element with index v into
+            value, maintaining thread-safety, or throws an exception if v is
+            size_t.max to indicate that a value does not exist.
+            
+            Params:
+                v     = value index
+                value = value content destination array
+                
+            Returns:
+                value (slice to value parameter argument)
+            
+            Throws:
+                ArrayMapException.NonExistingKey if v == size_t.max
+            
+         **************************************************************************/
+
+        private V get_ ( size_t v, ref V value )
+        {
+            this.assertExists(v);
+            
+            static if (M) synchronized (this)
+            {
+                this.getDup(v, value);
+            }
+            else
+            {
+                this.getDup(v, value);
+            }
+            
+            return value;
+        }
+        
+        /***************************************************************************
+        
+            Copies the content of the value array element with index v into
+            value.
+            
+            Params:
+                v     = value index
+                value = value content destination array
+            
+         **************************************************************************/
+
+        private void getDup ( size_t v, ref V value )
+        in
+        {
+            assert (v != v.max);
+        }
+        body
+        {
+            V val = this.v_map[v].value;
+            
+            value.length = val.length;
+            value[] = val[];
+        }
+    }
+    
+    /***************************************************************************
+    
+        Throws an exception if v is size_t.max to indicate that a value does not
+        exist.
+        
+        Params:
+            v = value index
+            
+        Throws:
+            ArrayMapException.NonExistingKey if v == size_t.max
+        
+     **************************************************************************/
+
+    private void assertExists ( size_t v )
+    {
+        assertEx!(ArrayMapException.NonExistingKey)(v != v.max, `key doesn't exist`);
+    }
+    
+    /***************************************************************************
         
         Returns array element value index
         
@@ -1187,9 +1310,16 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     
     static if (M)
     {
-        synchronized private size_t incrementMap ()
+        private size_t incrementMap ()
         {
-            return this.incrementMap_();
+            size_t result;
+            
+            synchronized (this)
+            {
+                result = this.incrementMap_();
+            }
+            
+            return result;
         }
     }
     else
@@ -1312,7 +1442,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             
             assert(oldpos == this.len -1 || v_map[oldpos].key == nk.key);
             
-            static if (M) synchronized
+            static if (M) synchronized (this)
             {
                 this.len--;
             }
