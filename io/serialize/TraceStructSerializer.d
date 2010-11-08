@@ -175,7 +175,10 @@ class TraceStructSerializer
 
     void serializeStruct ( char[] name, void delegate ( ) serialize_struct )
     {
+        Trace.formatln("{}struct {}:", this.indent, name);
+        this.increaseIndent();
         serialize_struct();
+        this.decreaseIndent();
     }
 
     
