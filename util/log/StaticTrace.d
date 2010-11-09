@@ -69,6 +69,9 @@ private class StaticSyncPrint
         Params:
             fmt = format string (same format as tanog.util.log.Trace)
             ... = variadic list of values referenced in format string
+
+        Returns:
+            this instance for method chaining
     
     ***************************************************************************/
 
@@ -92,6 +95,15 @@ private class StaticSyncPrint
         return this;
     }
 
+
+    /***************************************************************************
+
+        Flushes the output to the console.
+
+        Returns:
+            this instance for method chaining
+
+    ***************************************************************************/
 
     public typeof(this) flush ( )
     {
