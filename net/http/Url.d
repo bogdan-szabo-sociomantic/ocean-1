@@ -161,7 +161,10 @@ struct Url
             
         Returns:
             resource format or null if not given
-            
+        
+        Throws:
+            May throw an Exception if url is invalid or bad UTF-8
+        
      *******************************************************************************/
     
     public void parse ( in char[] url, bool tolower = true )
