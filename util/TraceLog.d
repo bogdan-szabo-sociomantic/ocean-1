@@ -8,8 +8,11 @@
 
     authors:        Thomas Nicolai
                     Lars Kirchhoff
+                    Gavin Norman
 
-    Writes trace log messages to a log file. Tracing can be enabled and disabled.
+    Writes trace log messages to a log file and / or to the console via Trace.
+    Tracing to log is on by default, while tracing to the console is off by
+    default. Both can be individually enabled and disabled.
 
     --
 
@@ -19,15 +22,20 @@
 
         TraceLog.write("We got {} items", 23);
 
-        TraceLog.disable;
+        TraceLog.enabled = false;
 
         TraceLog.write("This message is not written to the trace log");
+
+        TraceLog.console_enabled = true;
+
+        TraceLog.write("This message is written to the console only");
 
     --
 
 ********************************************************************************/
 
 module ocean.util.TraceLog;
+
 
 
 /*******************************************************************************
@@ -44,6 +52,7 @@ private     import      tango.text.convert.Layout;
 private     import      tango.util.log.Trace;
 
 
+
 /*******************************************************************************
 
     TraceLog
@@ -52,43 +61,63 @@ private     import      tango.util.log.Trace;
 
 struct TraceLog
 {
-    static:
-    
-    /*******************************************************************************
+static:
+
+    /***************************************************************************
+
+        Struct type alias
+
+    ***************************************************************************/
+
+    public alias            typeof(*this)        This;
+
+
+    /***************************************************************************
         
-        Trace Logging Activated/Deactivated
+        Log file logging Activated/Deactivated
     
-     *******************************************************************************/
+    ***************************************************************************/
 
     public                  bool                enabled = true;
+
+
+    /***************************************************************************
+        
+        Console logging Activated/Deactivated
     
-    /*******************************************************************************
+    ***************************************************************************/
+
+    public                  bool                console_enabled = false;
+
+
+    /***************************************************************************
         
         Trace Log File Location
     
-     *******************************************************************************/
+    ***************************************************************************/
     
     private                 char[]              traceLogFile;
 
     
-    /*******************************************************************************
+    /***************************************************************************
         
         Logger Instance
     
-     *******************************************************************************/
+    ***************************************************************************/
     
     private synchronized    Logger              logger = null;
     
     
-    /*******************************************************************************
+    /***************************************************************************
         
         Layout Instance
     
-     *******************************************************************************/
+    ***************************************************************************/
     
     private synchronized    Layout!(char)       layout;
 
-    /*******************************************************************************
+
+    /***************************************************************************
         
         Initialization of TraceLog
     
@@ -105,23 +134,23 @@ struct TraceLog
         Params:
             trace_file = string that contains the path to the trace log file
        
-     *******************************************************************************/
+    ***************************************************************************/
     
     public void init( char[] file, char[] id = "TraceLog" )
     {
-        this.traceLogFile = file;
+        This.traceLogFile = file;
 
         auto appender = new AppendFile(file);
         appender.layout(new LayoutDate);
 
-        this.logger = Log.getLogger(id);
-        this.logger.add(appender);
+        This.logger = Log.getLogger(id);
+        This.logger.add(appender);
         
-        this.layout = new Layout!(char);
+        This.layout = new Layout!(char);
     }
 
 
-    /*******************************************************************************
+    /***************************************************************************
         
         Writes Trace Message
     
@@ -145,20 +174,45 @@ struct TraceLog
             fmt = message string to format with given arguments if any
             ... = optional arguments to format
        
-     *******************************************************************************/
-    
+    ***************************************************************************/
+
     public void write ( char[] fmt, ... )
     {
-        if (this.enabled && this.logger)
+        static char[] buffer;
+        
+        uint layoutSink ( char[] s )
         {
-            this.logger.append(Logger.Level.Trace, _arguments.length?
-                                   this.layout.convert(_arguments, _argptr, fmt) :
-                                   fmt);
+            buffer ~= s;
+            return s.length;
+        }
+
+        synchronized
+        {
+            auto log_output = This.enabled && This.logger;
+            auto console_output = This.console_enabled;
+
+            char[] out_str = fmt;
+            if ( _arguments.length && log_output || console_output )
+            {
+                buffer.length = 0;
+                This.layout.convert(&layoutSink, _arguments, _argptr, fmt);
+                out_str = buffer;
+            }
+
+            if ( log_output )
+            {
+                logger.append(Logger.Level.Trace, out_str);
+            }
+    
+            if ( console_output )
+            {
+                Trace.formatln(out_str);
+            }
         }
     }
     
     
-    /*******************************************************************************
+    /***************************************************************************
         
         Returns Logger Instance
         
@@ -174,57 +228,10 @@ struct TraceLog
         Returns:
             Logger instance
        
-     *******************************************************************************/
+    ***************************************************************************/
 
     public Logger getLogger ()
     {
-        return this.logger;
+        return This.logger;
     }
-    
-    
-    /*******************************************************************************
-        
-        Disable Trace Logging
-        
-        ---
-     
-        Usage Example:
-     
-            TraceLog.disableTrace;
-        
-        ---
-     
-        Returns:
-            Logger instance
-       
-     *******************************************************************************/
-
-    public void disableTrace()
-    {
-        this.enabled = false;
-    }
-
-
-    /*******************************************************************************
-        
-        Enable Trace Logging
-        
-        ---
-     
-        Usage Example:
-     
-            TraceLog.enableTrace;
-        
-        ---
-     
-        Returns:
-            Logger instance
-       
-     *******************************************************************************/
-
-    public static void enableTrace()
-    {
-        this.enabled = true;
-    }
-
 }
