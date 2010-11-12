@@ -46,7 +46,7 @@ class JsonParserIter : JsonParser!(char)
     {
         Other = 0,
         ValueType,
-        Container
+        Container,
     }
     
     /**************************************************************************
@@ -59,26 +59,46 @@ class JsonParserIter : JsonParser!(char)
     
     /**************************************************************************
 
+        Token nesting difference values
+    
+     **************************************************************************/
+
+    private static int[Token]        nestings;
+    
+    /**************************************************************************
+
         Static constructor
-        Populates this.token_class
+        Populates associative arrays
     
      **************************************************************************/
 
     static this ( )
     {
-        this.token_class[Token.Empty]       = TokenClass.Other;
-        this.token_class[Token.Name]        = TokenClass.Other; 
-        this.token_class[Token.String]      = TokenClass.ValueType; 
-        this.token_class[Token.Number]      = TokenClass.ValueType;
-        this.token_class[Token.BeginObject] = TokenClass.Container; 
-        this.token_class[Token.EndObject]   = TokenClass.Container;
-        this.token_class[Token.BeginArray]  = TokenClass.Container; 
-        this.token_class[Token.EndArray]    = TokenClass.Container; 
-        this.token_class[Token.True]        = TokenClass.ValueType; 
-        this.token_class[Token.False]       = TokenClass.ValueType; 
-        this.token_class[Token.Null]        = TokenClass.ValueType;
+        this.token_class =
+        [
+            Token.Empty:       TokenClass.Other,
+            Token.Name:        TokenClass.Other, 
+            Token.String:      TokenClass.ValueType, 
+            Token.Number:      TokenClass.ValueType,
+            Token.True:        TokenClass.ValueType, 
+            Token.False:       TokenClass.ValueType, 
+            Token.Null:        TokenClass.ValueType,
+            Token.BeginObject: TokenClass.Container, 
+            Token.BeginArray:  TokenClass.Container, 
+            Token.EndObject:   TokenClass.Container,
+            Token.EndArray:    TokenClass.Container
+        ];
+        
+        this.nestings =
+        [
+            Token.BeginObject: +1, 
+            Token.BeginArray:  +1, 
+            Token.EndObject:   -1,
+            Token.EndArray:    -1
+        ];
         
         this.token_class.rehash;
+        this.nestings.rehash;
     }
     
     /**************************************************************************
@@ -98,6 +118,44 @@ class JsonParserIter : JsonParser!(char)
         if (!tocla) throw new Exception("unknown token");
         
         return *tocla;
+    }
+    
+    
+    /**************************************************************************
+        
+        Returns the nesting level difference caused by token.
+        
+        Params:
+            token = token to get nesting level difference
+        
+        Returns:
+            +1 if token is BeginObject or BeginArray,
+            -1 if token is EndObject or EndArray,
+             0 otherwise
+    
+     **************************************************************************/
+
+    static int nesting ( Token token )
+    {
+        int* level = token in this.nestings;
+        
+        return level? *level : 0;
+    }
+    
+    /**************************************************************************
+    
+        Returns the nesting level difference caused by the current token.
+        
+        Returns:
+            +1 if the current token is BeginObject or BeginArray,
+            -1 if the current token is EndObject or EndArray,
+             0 otherwise
+    
+     **************************************************************************/
+
+    int nesting ( )
+    {
+        return this.nesting(super.type);
     }
     
     /**************************************************************************
