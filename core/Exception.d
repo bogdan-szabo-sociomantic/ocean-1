@@ -413,31 +413,12 @@ template CustomException ( )
 
 /******************************************************************************
 
-    Throws a new E exception if ok is false, 0 or null.
+    Throws a new or existing Exception if ok is false, 0 or null.
     
     Params:
         ok = condition which is challenged for being true or not 0/null
-   
-    Throws:
-        new E exception if ok is
-            - false or
-            - equal to 0 or
-            - a null object, reference or pointer.
-        
- ******************************************************************************/
-
-void assertEx ( E : Exception = Exception, T ) ( T ok )
-{
-    assertEx(ok, new E);
-}
-
-/******************************************************************************
-
-    Throws e if ok is false, 0 or null.
-    
-    Params:
-        ok = condition which is challenged for being true or not 0/null
-        e  = Exception instance to throw or expression returning that instance
+        e  = Exception instance to throw or expression returning that instance.
+             Omit argument or pass null to throw new E
     
     Throws:
         e if ok is
@@ -447,9 +428,9 @@ void assertEx ( E : Exception = Exception, T ) ( T ok )
         
  ******************************************************************************/
 
-void assertEx ( E : Exception = Exception, T ) ( T ok, lazy E e )
+void assertEx ( E : Exception = Exception, T ) ( T ok, lazy E e = null )
 {
-    if (!ok) throw e;
+    if (!ok) throw e? e : new E;
 }
 
 
@@ -468,6 +449,6 @@ void assertEx ( E : Exception = Exception, T ) ( T ok, lazy E e )
 
 void assertEx ( E : Exception = Exception, T, Args ... ) ( T ok, lazy char[] msg, Args args )
 {
-    assertEx(new E(msg, args), ok);
+    if (!ok) throw new E(msg, args);
 }
 
