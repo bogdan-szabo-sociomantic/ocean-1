@@ -59,7 +59,6 @@
 
             // execute method
             OceanException.run(&run);
-
         }
 
 
@@ -101,34 +100,51 @@ private     import      tango.text.convert.Layout;
 
 class OceanException: Exception
 {
+    /***************************************************************************
+    
+        This alias
+    
+    ***************************************************************************/
 
-    /*******************************************************************************
+    public              alias typeof(this)              This;
+
+
+    /***************************************************************************
+    
+        Shared Layout instance - used repeatedly in the Warn() method
+    
+    ***************************************************************************/
+    
+    private             static Layout!(char)            layout_instance;
+
+
+    /***************************************************************************
         
         Trace Log File Location
     
-     *******************************************************************************/
+    ***************************************************************************/
     
     private             static Logger                   logger;
     
     
-    /*******************************************************************************
+    /***************************************************************************
         
         Default Logger Name
     
-     *******************************************************************************/
+    ***************************************************************************/
 
     private             static char[]                   loggerName = "OceanException";
 
 
     
-    /*******************************************************************************
+    /***************************************************************************
         
         Constructor 
         
         Params:
             msg = exception message
             
-     *******************************************************************************/
+    ***************************************************************************/
     
     protected this (char[] msg)
     {
@@ -136,7 +152,7 @@ class OceanException: Exception
     }
 
 
-    /*******************************************************************************
+    /***************************************************************************
         
         Runs static method and catch exception
         
@@ -164,7 +180,7 @@ class OceanException: Exception
         Returns:
             true, if function was executed successfully
             
-     *******************************************************************************/
+    ***************************************************************************/
     
     public static bool run( bool function(TypeInfo[] arguments, void* args) func, ... )
     {
@@ -184,7 +200,7 @@ class OceanException: Exception
     }
     
     
-    /*******************************************************************************
+    /***************************************************************************
         
         Runs static method and catch exception
         
@@ -212,7 +228,7 @@ class OceanException: Exception
         Returns:
             true, if function was executed successfully
             
-     *******************************************************************************/
+    ***************************************************************************/
     
     public static bool run( bool function(Tango.Arguments arguments) func, 
             Tango.Arguments arguments )
@@ -251,7 +267,7 @@ class OceanException: Exception
     }
     
     
-    /*******************************************************************************
+    /***************************************************************************
         
         Runs static method and catch exception
         
@@ -278,7 +294,7 @@ class OceanException: Exception
         Returns:
             true, if function was executed successfully
             
-     *******************************************************************************/
+    ***************************************************************************/
     
     public static bool run( bool function ( ) func )
     {
@@ -298,7 +314,7 @@ class OceanException: Exception
     }
     
 
-    /*******************************************************************************
+    /***************************************************************************
         
         Runs static method and catch exception
         
@@ -325,7 +341,7 @@ class OceanException: Exception
         Returns:
             true, if function was executed successfully
             
-     *******************************************************************************/
+    ***************************************************************************/
     
     public static bool run( bool delegate() func )
     {
@@ -345,7 +361,7 @@ class OceanException: Exception
     }
 
 
-    /*******************************************************************************
+    /***************************************************************************
         
         Throw Exception
         
@@ -364,9 +380,9 @@ class OceanException: Exception
         Params:
             msg = error message
             
-     *******************************************************************************/
+    ***************************************************************************/
     
-    public static void opCall( char[] msg )
+    public static void opCall ( char[] msg )
     {
         if ( OceanException.isAppender() )
             OceanException.write(Logger.Level.Error, msg);
@@ -375,7 +391,7 @@ class OceanException: Exception
     }
 
 
-    /*******************************************************************************
+    /***************************************************************************
         
         Throws Critical Exception
         
@@ -393,15 +409,15 @@ class OceanException: Exception
         Params:
             msg = error message
             
-     *******************************************************************************/
+    ***************************************************************************/
     
-    public static void Critical( char[] msg )
+    public static void Critical ( char[] msg )
     {
         OceanException(msg);
     }
 
     
-    /*******************************************************************************
+    /***************************************************************************
         
         Writes Warn Message
         
@@ -418,27 +434,39 @@ class OceanException: Exception
         ---
         
         Params:
-            msg = error message
-            ... = arguments passed to include into formating
+            fmt = error message format string
+            ... = arguments passed to include into formatting
             
-     *******************************************************************************/
+    ***************************************************************************/
     
-    public static void Warn( char[] msg, ... )
+    public static void Warn ( char[] fmt, ... )
     {
-        if ( OceanException.isAppender() )
+        static char[] buffer;
+        
+        uint layoutSink ( char[] s )
         {
-            OceanException.write(Logger.Level.Warn, 
-                (new Layout!(char)).convert(_arguments, _argptr, msg));
+            buffer ~= s;
+            return s.length;
         }
-        else
+
+        synchronized
         {
-            Trace.formatln("{}", 
-                (new Layout!(char)).convert(_arguments, _argptr, msg)).flush;
+            buffer.length = 0;
+            This.layout.convert(&layoutSink, _arguments, _argptr, fmt);
+
+            if ( OceanException.isAppender() )
+            {
+                OceanException.write(Logger.Level.Warn, buffer);
+            }
+            else
+            {
+                Trace.formatln("{}", buffer);
+            }
         }
     }
     
     
-    /*******************************************************************************
+    /***************************************************************************
         
         Set Log Appender (output target)
         
@@ -451,7 +479,7 @@ class OceanException: Exception
         Returns:
             true, if appender could be set
             
-     *******************************************************************************/
+    ***************************************************************************/
     
     public static bool setOutput ( Appender ap )
     {
@@ -471,14 +499,14 @@ class OceanException: Exception
     }
     
 
-    /*******************************************************************************
+    /***************************************************************************
         
         Sets Logger Name
         
         Params:
             name = name of logger instance
             
-     *******************************************************************************/
+    ***************************************************************************/
     
     public static void setLoggerName( char[] name )
     {
@@ -486,14 +514,14 @@ class OceanException: Exception
     }
 
     
-    /*******************************************************************************
+    /***************************************************************************
         
         Returns Logger Instance
         
         Returns:
             logger instance
             
-     *******************************************************************************/
+    ***************************************************************************/
     
     public static Logger getLogger ( )
     {
@@ -501,14 +529,14 @@ class OceanException: Exception
     }
     
     
-    /*******************************************************************************
+    /***************************************************************************
         
         Write Exception to the attached Appender
         
         Params:
             msg = error message
             
-     *******************************************************************************/
+    ***************************************************************************/
     
     private static void write( Level level, char[] msg  )
     {
@@ -516,14 +544,14 @@ class OceanException: Exception
     }
 
 
-    /*******************************************************************************
+    /***************************************************************************
         
         Returns if Appender is attached
         
         Returns:
             true, if appender is set
             
-     *******************************************************************************/
+    ***************************************************************************/
     
     private static bool isAppender()
     {
@@ -533,6 +561,25 @@ class OceanException: Exception
         return false;
     }
 
+    
+    /***************************************************************************
+    
+        Gets an instance of the Layout class, shared by all methods of this
+        class. A Layout is newed if one doesn't exist already.
+        
+        Returns:
+            Layout instance
+            
+    ***************************************************************************/
 
+    private static Layout!(char) layout ( )
+    {
+        if ( !This.layout_instance )
+        {
+            This.layout_instance = new Layout!(char);
+        }
+
+        return This.layout_instance;
+    }
 }
 
