@@ -143,9 +143,6 @@ static:
         auto appender = new AppendFile(file);
         appender.layout(new LayoutDate);
 
-        This.logger = Log.getLogger(id);
-        This.logger.add(appender);
-        
         This.layout = new Layout!(char);
     }
 
