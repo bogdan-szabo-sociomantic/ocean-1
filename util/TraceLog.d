@@ -132,7 +132,8 @@ static:
         ---
      
         Params:
-            trace_file = string that contains the path to the trace log file
+            file = string that contains the path to the trace log file
+            id = name of logger
        
     ***************************************************************************/
     
@@ -142,6 +143,10 @@ static:
 
         auto appender = new AppendFile(file);
         appender.layout(new LayoutDate);
+
+        This.logger = Log.getLogger(id);
+        logger.additive(false); // disable default console output
+        This.logger.add(appender);
 
         This.layout = new Layout!(char);
     }
@@ -198,7 +203,7 @@ static:
 
             if ( log_output )
             {
-                logger.append(Logger.Level.Trace, out_str);
+                This.logger.append(Logger.Level.Trace, out_str);
             }
     
             if ( console_output )
