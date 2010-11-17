@@ -194,7 +194,7 @@ static:
             auto console_output = This.console_enabled;
 
             char[] out_str = fmt;
-            if ( _arguments.length && log_output || console_output )
+            if ( _arguments.length && (log_output || console_output) )
             {
                 buffer.length = 0;
                 This.layout.convert(&layoutSink, _arguments, _argptr, fmt);
