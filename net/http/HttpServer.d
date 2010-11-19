@@ -306,9 +306,9 @@ class HttpServer
         this.epoll = new EpollSelector(); 
         
         this.epoll.open(100, 64);
-        this.epoll.register(this.socket, Event.Read  | Event.Hangup | 
-                                         Event.Error | Event.InvalidHandle);     
-        //this.epoll.register(this.socket, Event.Read);     
+        //this.epoll.register(this.socket, Event.Read  | Event.Hangup | 
+        //                                 Event.Error | Event.InvalidHandle);
+        this.epoll.register(this.socket, Event.Read);
                 
         scope(exit) 
         {
@@ -361,11 +361,10 @@ class HttpServer
                         {
                             debug
                             {
-                                Trace.formatln("unknown socket error");
+                                Trace.formatln(`unknown socket error`);
                             }
                         }
                     }
-                
                 }
                 catch ( Exception e )
                 {
