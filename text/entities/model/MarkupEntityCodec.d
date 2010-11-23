@@ -259,37 +259,39 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 	
 	public bool isUnencodedEntity ( Char ) ( Char[] text )
 	{
-		static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
+        static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
 				This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
-	
-		auto c = UtfString!(Char, true).extract(text);
 
-		if ( c in this.entities )
-		{
-	    	if ( c == '&' )
-	    	{
-	    		// The following characters must form a valid character code
-	    		auto entity = this.sliceEncodedEntity(text);
-	    		if ( entity.length )
-	    		{
-	    			auto decoded_entity = this.decodeEntity(entity);
-	        		return decoded_entity == InvalidUnicode;
-	    		}
-	    		else
-	    		{
-	    			return true;
-	    		}
-	    	}
-	    	else
-	    	{
-	    		return true;
-	    	}
-		}
-	
-		return false;
+        auto c = UtfString!(Char, true).extract(text);
+
+        if ( c in this.entities )
+        {
+            if ( c == '&' )
+            {
+                // The following characters must form a valid character code
+                auto entity = this.sliceEncodedEntity(text);
+                if ( entity.length )
+                {
+                    auto decoded_entity = this.decodeEntity(entity);
+                    return decoded_entity == InvalidUnicode;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return true;
+            }
+        }
+        else
+        {
+            return false;
+        }
 	}
-	
-	
+
+
     /***************************************************************************
     
         Checks whether the input string begins with an encoded entity.
@@ -394,23 +396,22 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 		while ( i < text.length )
 		{
 			Char[] process = text[i..$];
-			if ( this.isUnencodedEntity(process) )
+
+            size_t width;
+            auto c = UtfString!(Char, true).extract(process, width);
+
+            if ( this.isUnencodedEntity(process) )
 			{
 				encoded ~= text[last_special_char..i];
 	
-				size_t width;
-				auto c = UtfString!(Char, true).extract(process, width);
 				this.appendEncodedEntity(encoded, c);
-	
-				i += width;
-				last_special_char = i;
+
+				last_special_char = i + width;
 			}
-			else
-			{
-				i++;
-			}
+
+            i += width;
 		}
-	
+
 		encoded ~= text[last_special_char..$];
 		return encoded;
 	}
