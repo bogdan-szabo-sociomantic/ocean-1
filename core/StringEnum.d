@@ -415,7 +415,8 @@ class StringEnum ( V ... ) : IStringEnum
         
         return description? *description : DefaultDescription;
     }
-
+    
+    alias description opIndex;
 
     /***************************************************************************
 
@@ -510,7 +511,8 @@ class StringEnum ( V ... ) : IStringEnum
     {
         return descr_to_code[description];
     }
-
+    
+    alias code opIndex;
 
     /***************************************************************************
 
