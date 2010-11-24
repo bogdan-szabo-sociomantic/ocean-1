@@ -312,23 +312,23 @@ class LibCurlMulti
 
     public void eventLoop ( )
     {
-        int active;
+        int num_active_transfers;
         CurlMCode ret;
 
         do
         {
             do
             {
-                ret = curl_multi_perform(this.curlm, &active);
+                ret = curl_multi_perform(this.curlm, &num_active_transfers);
             }
             while ( ret == CurlMCode.CURLM_CALL_MULTI_PERFORM );
 
-            if ( active )
+            if ( num_active_transfers > 0 )
             {
                 ret = this.sleepUntilMoreIO();
             }
         }
-        while ( active );
+        while ( num_active_transfers );
 
         // Return all requests to the pool
         this.clear();
@@ -451,13 +451,18 @@ class LibCurlMulti
         if ( max_fd > -1 )
         {
             timeval timeout;
-            timeout.tv_sec = this.timeout_ms / 1000;
-            timeout.tv_usec = (this.timeout_ms % 1000) * 1000;
+            timeval* timeout_ptr = null;
+            if ( this.timeout_ms > 0 )
+            {
+                timeout.tv_sec = this.timeout_ms / 1000;
+                timeout.tv_usec = (this.timeout_ms % 1000) * 1000;
+                timeout_ptr = &timeout;
+            }
 
-            auto r = .select(max_fd + 1, &read_fd_set, &write_fd_set, &exc_fd_set, &timeout);
+            auto r = .select(max_fd + 1, &read_fd_set, &write_fd_set, &exc_fd_set, timeout_ptr);
             if ( r == 0 )
             {
-                debug Trace.formatln("LibCurlMulti Transfer timeout");
+                debug Trace.formatln("LibCurlMulti select timeout");
 
                 // Return all requests to the pool
                 this.clear();
