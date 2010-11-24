@@ -288,6 +288,8 @@ public class StringEncoderSequence ( Encoders... )
     /***************************************************************************
 
         Runs the encoders in sequence until one succeeds.
+
+        This method is aliased with opCall.
         
         Params:
             input = text to convert
@@ -298,7 +300,7 @@ public class StringEncoderSequence ( Encoders... )
     
     ***************************************************************************/
 
-    public char[] convertToUtf8 ( char[] input, ref char[] output )
+    public char[] convert ( char[] input, ref char[] output )
     {
         output.length = 0;
 
@@ -312,6 +314,8 @@ public class StringEncoderSequence ( Encoders... )
 
         return "";
     }
+
+    public alias convert opCall;
 
 
     /***************************************************************************
