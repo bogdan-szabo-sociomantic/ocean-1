@@ -127,7 +127,10 @@ abstract class IStringEnum
         }
 
     ---
-
+    
+    TODO: change opIn_r to wrap 'in' of associative array to maintain 'in'
+          operator consistency
+    
 *******************************************************************************/
 
 class StringEnum ( V ... ) : IStringEnum
@@ -136,6 +139,15 @@ class StringEnum ( V ... ) : IStringEnum
     static assert( !is( V == void ), "cannot create a StringEnum with no enum values!" );
     static assert( V.length > 0, "cannot create a StringEnum with no enum values!" );
 
+    
+    /***************************************************************************
+
+        Default description
+    
+    ***************************************************************************/
+
+    const DefaultDescription = "INVALID CODE";
+    
 
     /***************************************************************************
 
@@ -147,7 +159,7 @@ class StringEnum ( V ... ) : IStringEnum
     
     public alias typeof(V[0].code) BaseType;
 
-
+    
     /***************************************************************************
 
         Template forming a string containing the declaration of a single value
@@ -295,9 +307,18 @@ class StringEnum ( V ... ) : IStringEnum
 
         Code -> description map
     
+     ***************************************************************************/
+    
+    static private char[][BaseType] code_to_descr;
+    
+    
+    /***************************************************************************
+
+        Description -> code map
+    
     ***************************************************************************/
 
-    static private char[][BaseType] code_to_descr;
+    static private BaseType[char[]] descr_to_code;
 
 
     /***************************************************************************
@@ -324,15 +345,20 @@ class StringEnum ( V ... ) : IStringEnum
         template parameters.
 
     ***************************************************************************/
-
+    
     static this ( )
     {
         foreach ( i, v; V )
         {
             code_to_descr[v.code] = v.description;
+            descr_to_code[v.description] = v.code;
             code_to_index[v.code] = i;
             index_to_code[i] = v.code;
         }
+        
+        code_to_descr.rehash;
+        descr_to_code.rehash;
+        code_to_index.rehash;
     }
 
 
@@ -367,18 +393,8 @@ class StringEnum ( V ... ) : IStringEnum
 
     static public bool opIn_r ( char[] description )
     {
-        try
-        {
-            code(description);
-        }
-        catch
-        {
-            return false;
-        }
-
-        return true;
+        return !!(description in descr_to_code);
     }
-
 
     /***************************************************************************
 
@@ -395,14 +411,9 @@ class StringEnum ( V ... ) : IStringEnum
 
     static public char[] description ( BaseType test )
     {
-        if ( test in code_to_descr )
-        {
-            return code_to_descr[test];
-        }
-        else
-        {
-            return "INVALID CODE";
-        }
+        char[]* description = test in code_to_descr;
+        
+        return description? *description : DefaultDescription;
     }
 
 
@@ -422,14 +433,9 @@ class StringEnum ( V ... ) : IStringEnum
 
     static public size_t codeIndex ( BaseType test )
     {
-        if ( test in code_to_index )
-        {
-            return code_to_index[test];
-        }
-        else
-        {
-            return length;
-        }
+        size_t* index = test in code_to_index;
+        
+        return index? *index : length;
     }
 
 
@@ -502,15 +508,7 @@ class StringEnum ( V ... ) : IStringEnum
 
     static public BaseType code ( char[] description )
     {
-        foreach ( code, desc; code_to_descr )
-        {
-            if ( desc == description )
-            {
-                return code;
-            }
-        }
-
-        assert(false, typeof(this).stringof ~ " - no code corresponds to description '" ~ description ~ "'");
+        return descr_to_code[description];
     }
 
 
