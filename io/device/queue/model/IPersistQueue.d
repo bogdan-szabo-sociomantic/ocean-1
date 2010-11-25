@@ -14,6 +14,12 @@
 	See ocean.io.device.QueueFile and ocean.io.device.QueueMemory for
 	implementations of this class.
 	
+    TODO: strip out the logging support and the formatSeekPositions method -
+    this should go in the application, not the library.
+    
+    TODO: perhaps also remove the capability of dumping / loading from a file
+    and move that to the application level as well.
+
 *******************************************************************************/
 
 module io.device.model.queue.IPersistQueue;
@@ -237,8 +243,6 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 
         bool will_fit = this.willFit(item.length);
         
-        debug Trace.formatln("push: {}", will_fit);
-        
 	    // check if the item will fit, and if it won't fit then cleanup and try again
 		if ( !will_fit )
 	    {
@@ -421,7 +425,6 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	{
 		return this.state.items == 0;
 	}
-
 
 	/***************************************************************************
 	
