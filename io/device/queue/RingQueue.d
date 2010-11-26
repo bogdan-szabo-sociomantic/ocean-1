@@ -24,6 +24,8 @@ private import  ocean.io.device.queue.model.IPersistQueue,
                 ocean.io.device.queue.storage.model.IStorageEngine,
                 ocean.io.device.queue.storage.Memory;
 
+private import ocean.io.serialize.SimpleSerializer;
+
 private import tango.io.model.IConduit: InputStream, OutputStream;
 
 private import ocean.sys.SignalHandler;
@@ -87,8 +89,8 @@ class RingQueue : PersistQueue
     
     /***************************************************************************
     
-        Location of the gap at the rear end of the buffer
-        where the unused space starts
+        Location of the gap at the rear end of the buffer where the unused space
+        starts
 
     ***************************************************************************/        
     
@@ -238,6 +240,23 @@ class RingQueue : PersistQueue
     
     
     /***************************************************************************
+    
+        Invariant to assert queue position consistency: When the queue is empty,
+        read_from and write_to must both be 0.
+    
+    ***************************************************************************/
+    
+    invariant
+    {
+        debug scope (failure) Trace.formatln(typeof (this).stringof ~ ".invariant failed with items = {}, read_from = {}, write_to = {}",
+                super.state.items, super.state.read_from, super.state.write_to);
+        
+        assert (super.state.items || !(super.state.read_from || super.state.write_to),
+                typeof (this).stringof ~ ".invariant failed");
+    }
+
+
+    /***************************************************************************
 
         Pushes a single item to the queue.
         
@@ -249,6 +268,12 @@ class RingQueue : PersistQueue
     ***************************************************************************/
 
     protected void pushItem ( void[] item )
+    in
+    {
+    	// This is checked by the super class, but just for the sake of safety
+        assert(this.willFit(item.length), typeof(this).stringof ~ ".pushItem - item will not fit");
+    }
+    body
     {    
         void[] header = (cast(void*)&Header(item.length))[0 .. Header.sizeof];
         
@@ -285,6 +310,12 @@ class RingQueue : PersistQueue
     ***************************************************************************/
     
     protected void[] popItem ( )
+    in
+    {
+    	// This is checked by the super class, but just for the sake of safety
+        assert(super.state.items > 0, typeof(this).stringof ~ ".popItem - no items in the queue");
+    }
+    body
     {
         if (super.state.read_from >= this.gap)                                  // check whether there is an item at this offset
         {               
@@ -317,7 +348,7 @@ class RingQueue : PersistQueue
         
         return this.storageEngine.read(header.length);
     }
-    
+
 
     /***************************************************************************
     
@@ -337,7 +368,7 @@ class RingQueue : PersistQueue
         
         if (super.state.write_to > super.state.read_from)
         {
-            return this.state.dimension - this.state.write_to;
+            return super.state.write_to - super.state.read_from;
         }
         
         return this.gap - super.state.read_from + super.state.write_to;
@@ -409,7 +440,7 @@ class RingQueue : PersistQueue
     public bool willFit ( size_t len )
     {   
         len = this.pushSize(len);
-        
+
         if (super.state.items)
         {
             if (this.needsWrapping(len))
@@ -425,6 +456,7 @@ class RingQueue : PersistQueue
         }
         else
         {
+            assert(super.state.write_to == 0, typeof(this).stringof ~ "willFit: queue should be in the zeroed state");
             return len <= super.state.dimension;                                // Queue is empty and item at most
         }                                                                       // as long as the whole queue
     }
@@ -495,6 +527,65 @@ class RingQueue : PersistQueue
         this.storageEngine.seek(0);
         
         return this.storageEngine.writeToConduit(output);
+    }
+
+    /***************************************************************************
+    
+        Writes the queue's state to a conduit. The gap member is written,
+        followed by the super class' state.
+
+        Params:
+            conduit = conduit to write to
+        
+        Returns:
+            number of bytes written
+        
+        Throws:
+            IOException on End Of Flow condition
+    
+    ***************************************************************************/
+    
+    override protected size_t writeState ( OutputStream output )
+    {
+        size_t bytes_written = SimpleSerializer.write(output, &this.gap);
+
+        // Write super class' state
+        bytes_written += super.writeState(output);
+        
+        return bytes_written;
+    }
+
+
+    /***************************************************************************
+    
+        Reads the queue's state from a conduit. The queue's gap member is read,
+        followed by the super class' state.
+        
+        Params:
+            conduit = conduit to read from
+        
+        Returns:
+            number of bytes read
+        
+        Throws:
+            IOException on End Of Flow condition
+    
+    ***************************************************************************/
+    
+    override protected size_t readState ( InputStream input )
+    {
+        size_t bytes_read = SimpleSerializer.read(input, this.gap);
+        
+        // Read super class' state
+        bytes_read += super.readState(input);
+        
+        if (!this.state.items)                                                  // reset read/write positions
+        {                                                                       // to prevent invariant to fail
+            this.state.read_from = 0;
+            this.state.write_to  = 0;
+        }
+        
+        return bytes_read;
     }
 }
 
