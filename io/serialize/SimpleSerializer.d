@@ -25,6 +25,8 @@ private import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
 private import tango.core.Exception: IOException;
 private import ocean.core.Exception: assertEx;
 
+debug private import tango.util.log.Trace;
+
 /*******************************************************************************
 
     Simple serializer struct - just a namespace, all methods are static.
