@@ -51,7 +51,7 @@
 
             import $(TITLE);
             
-            auto comp = new Compress;
+            auto comp = new Zlib;
             
             ubyte[] compressed;
             
@@ -84,7 +84,7 @@
             import $(TITLE);
             import tango.io.device.File;
             
-            auto comp = new Compress;
+            auto comp = new Zlib;
             auto file = new File;
             
             char[] content;
@@ -115,7 +115,7 @@
             
  ******************************************************************************/
 
-module ocean.compress.Compress;
+module ocean.io.compress.Zlib;
 
 
 
@@ -136,6 +136,12 @@ private     import      Integer = tango.text.convert.Integer: toInt;
 private     import      tango.math.Math: min;
 
 private     import      ocean.core.Exception: CompressException;
+
+private import ocean.io.serialize.SimpleSerializer;
+
+debug private import tango.util.log.Trace;
+
+
 
 /******************************************************************************
 
@@ -390,7 +396,8 @@ class Zlib
         
         return this.encode(this.initInputBuffer().append(buffer_in), buffer_out);
     }
-    
+
+
     /**************************************************************************
     
         Uncompresses Stream
@@ -565,6 +572,37 @@ class Zlib
     +/
     
     
+    /**************************************************************************
+
+        Detects whether a buffer contains data compressed with gzip.
+    
+        Warning: This test is not 100% reliable. It works by comparing the first
+        bytes of the input buffer with the gzip header. Thus it is possible
+        (although extremely unlikely) that an uncompressed binary file could by
+        chance match the gzip header and return a false positive.
+    
+        On the other hand, if the test return false, the result is 100%
+        reliable, as the gzip header is always present for properly compressed
+        data.
+    
+        Params:
+            buffer_in  = data to check
+    
+        Returns:
+            true if the first bytes of the buffer match the gzip header pattern
+    
+     **************************************************************************/
+    
+    public bool guessGZipEncoded ( T ) ( T[] buffer_in )
+    {
+        const char[] GZipHeaderBytes = [0x1F, 0x8B, 0x08];
+    
+        auto buffer_bytes = (cast(char*)buffer_in.ptr)[0 .. buffer_in.length * T.sizeof];
+    
+        return buffer_bytes[0 .. GZipHeaderBytes.length] == GZipHeaderBytes;
+    }
+
+
     /**************************************************************************
      
          Close the buffer
@@ -1105,6 +1143,7 @@ class Zlib
         return codes[0];
     }
     
+
     /**************************************************************************
     
         Assert T is a single byte type or void 
