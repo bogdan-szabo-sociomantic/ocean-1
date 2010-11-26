@@ -40,9 +40,7 @@ private import ocean.text.util.StringReplace;
 
 *******************************************************************************/
 
-public class HtmlEntityCodec : MarkupEntityCodec!(HtmlEntitySet)
-{
-}
+public alias MarkupEntityCodec!(HtmlEntitySet) HtmlEntityCodec;
 
 
 

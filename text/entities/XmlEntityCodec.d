@@ -32,9 +32,7 @@ private import ocean.text.entities.XmlEntitySet;
 
 *******************************************************************************/
 
-public class XmlEntityCodec : MarkupEntityCodec!(XmlEntitySet)
-{
-}
+public alias MarkupEntityCodec!(XmlEntitySet) XmlEntityCodec;
 
 
 /*******************************************************************************
