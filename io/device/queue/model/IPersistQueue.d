@@ -51,17 +51,6 @@ private import Float = tango.text.convert.Float;
 
 debug private import tango.util.log.Trace;
 
-/*******************************************************************************
-
-	Version for checking memory usage of various operations.
-
-*******************************************************************************/
-
-version ( MemCheck )
-{
-	private import ocean.util.Profiler;
-}
-
 
 
 /*******************************************************************************
@@ -173,21 +162,6 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 
 	protected char[] format_buf; 
 
-    /***************************************************************************
-    
-        Invariant to assert queue position consistency: When the queue is empty,
-        read_from and write_to must both be 0.
-    
-    ***************************************************************************/
-
-    invariant
-    {
-        debug scope (failure) Trace.formatln(typeof (this).stringof ~ ".invariant failed with items = {}, read_from = {}, write_to = {}",
-                                             this.state.items, this.state.read_from, this.state.write_to);
-        
-        assert (this.state.items || !(this.state.read_from || this.state.write_to),
-                typeof (this).stringof ~ ".invariant failed");
-    }
 
 	/***************************************************************************
 	
@@ -211,9 +185,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	/***************************************************************************
 
 		Pushes an item to the queue. The item is checked for valid length (>0),
-		and the queue checks if the item will fit. If there's not enough space
-		available the cleanup method is called in an attempt to make more space.
-		The push is then retried.
+		and the queue checks if the item will fit.
 	    
 	    Params:
 	    	item = item to be pushed
@@ -233,29 +205,20 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	}
 	body
 	{
-        // Store item in queue
-        version ( MemCheck ) 
-		{
-            auto before = MemProfiler.checkUsage();
-            
-            scope ( exit ) MemProfiler.checkSectionUsage("push", before, MemProfiler.Expect.NoChange);
-		}
-
-        bool will_fit = this.willFit(item.length);
-        
-	    // check if the item will fit, and if it won't fit then cleanup and try again
-		if ( !will_fit )
+        auto will_fit = this.willFit(item.length);
+		if ( will_fit )
 	    {
-            this.log("queue '{}' full with {} items", this.name, this.state.items);
+            this.pushItem(item);
 	    }
         else
         {
-            this.pushItem(item);
+            this.log("queue '{}' full with {} items", this.name, this.state.items);
         }
 
 		return will_fit;
 	}
-    
+
+
 	/***************************************************************************
 
 		Pops an item from the queue.
@@ -267,14 +230,7 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 
 	public void[] pop ( )
 	{
-        version ( MemCheck )
-		{
-            auto before = MemProfiler.checkUsage();
-            
-            scope ( exit ) MemProfiler.checkSectionUsage("pop", before, MemProfiler.Expect.NoChange);
-		}
-
-        return this.state.items? this.popItem() : null;
+        return this.state.items ? this.popItem() : null;
 	}
 
 
@@ -617,8 +573,6 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 	
 	public void formatSeekPositions ( ref char[] buf, bool show_pcnt, bool nl = true )
 	{
-		version ( MemCheck ) auto before = MemProfiler.checkUsage();
-
 		if ( show_pcnt )
 		{
 			double first_pcnt = 100.0 * (cast(double) this.state.read_from / cast(double) this.state.dimension);
@@ -644,8 +598,6 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 		{
 			buf ~= "\n";
 		}
-	
-		version ( MemCheck ) MemProfiler.checkSectionUsage("format", before, MemProfiler.Expect.NoChange);
 	}
 
 
