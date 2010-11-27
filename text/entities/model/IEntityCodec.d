@@ -26,6 +26,8 @@ module ocean.text.entities.model.IEntityCodec;
 
 private import ocean.text.entities.model.IEntitySet;
 
+private import ocean.util.OceanException;
+
 private import Utf = tango.text.convert.Utf;
 
 debug
@@ -220,7 +222,7 @@ public abstract class IEntityCodec ( E : IEntitySet )
         }
         catch ( Exception e )
         {
-            Trace.formatln("{}.charTo error - {}", typeof(this).stringof, e.msg);
+            OceanException.Warn("{}.charTo error - {}", typeof(this).stringof, e.msg);
             return "";
         }
 	}
