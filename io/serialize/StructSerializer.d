@@ -99,10 +99,6 @@ private import ocean.core.Exception: assertEx, SerializerException;
 
 private import tango.core.Traits;
 
-debug import tango.util.log.Trace;
-
-
-
 struct StructSerializer
 {
     static:
@@ -145,7 +141,7 @@ struct StructSerializer
 
         size_t written = 0;
 
-        dump(s, (void[] chunk) 
+        return dump(s, (void[] chunk) 
         {
             if (chunk.length + written > data.length)
             {
@@ -156,10 +152,132 @@ struct StructSerializer
             
             written += chunk.length; 
          });
-            
-        return written;
     }
 
+    /**************************************************************************
+
+        Loads/deserializes the content of s and its array members.
+    
+        Params:
+            s     = struct instance (pointer)
+            data  = input buffer to read serialized data from
+            slice = optional. If true, will set dynamical arrays to
+                    slices of the provided buffer.
+                    Warning: Do not serialize a struct into the same buffer
+                             it was deserialized from.
+        Throws:
+            Exception if data is too short
+        
+        Returns:
+            number of bytes consumed from data
+        
+     **************************************************************************/
+    
+    size_t load ( S, D ) ( S* s, D[] data )
+    {
+        static assert (D.sizeof == 1, typeof (*this).stringof ~ ".load: only "
+                       "single-byte element arrays supported, "
+                       "not '" ~ D.stringof ~ "[]'");
+    
+        size_t start = 0;
+        
+        return load(s, ( void[] chunk )
+        {   
+            size_t end = start + chunk.length;
+            
+            assertLongEnough(end, data.length);
+            
+            chunk[] = (cast (void[]) data)[start .. end];                
+            
+            start = end;
+        });
+    }
+    
+    deprecated size_t load ( S, D ) ( S* s, D[] data, bool slice )
+    {
+        assert (false);
+        return 0;
+    }
+    /*
+    template load ( S, D )
+    {
+        static assert (false, "\n\t" ~ typeof (*this).stringof ~
+                ".load(S* s, D[] data, bool slice) is deprecated: please use\n"
+                "\t\tload(S* s, D[] data) for slice == false or\n"
+                "\t\tloadSlice(out S* s, D[] data) for slice == true\n");
+        
+        deprecated size_t load ( S* s, D[] data, bool slice )
+        {
+            return 0;
+        }
+    }
+    */
+    
+    
+    /**************************************************************************
+
+        Sets s to reference data and the array members of s to slice the
+        corresponding data sections. As a result, no data are moved and s can
+        be used as if it would be a pointer to a struct.
+    
+        Params:
+            s     = struct instance pointer output
+            data  = input buffer of serialized struct data to reference to
+        
+        Returns:
+            number of bytes used from data
+        
+        Throws:
+            Exception if data is too short
+        
+     **************************************************************************/
+
+    size_t loadSlice ( S ) ( out S* s, void[] data )
+    {
+        const size_t pos = S.sizeof;
+        
+        assertLongEnough(pos, data.length);
+        
+        s = cast (S*) data.ptr;
+        
+        return sliceArrays(s, data[pos .. $]);
+    }
+    
+    /**************************************************************************
+
+        Sets s to reference data and the array members of s to slice the
+        corresponding data sections. As a result, no data are moved and s can
+        be used as if it would be a pointer to a struct.
+    
+        Params:
+            data  = input buffer of serialized struct data to reference to
+        
+        Returns:
+            struct instance pointer output
+        
+        Throws:
+            Exception if data is too short
+        
+     **************************************************************************/
+
+    S* loadSlice ( S ) ( void[] data )
+    {
+        S* s;
+        
+        loadSlice(s, data);
+        
+        return s;
+    }
+    
+    S* loadSlice ( S ) ( void[] data, out size_t end )
+    {
+        S* s;
+        
+        end = loadSlice(s, data);
+        
+        return s;
+    }
+    
     /**************************************************************************
 
         Dumps/serializes the content of s and its array members.
@@ -175,116 +293,74 @@ struct StructSerializer
             passes through return value of send
         
      **************************************************************************/
-
-    void dump ( S ) ( S* s, void delegate ( void[] data ) send )
+    
+    size_t dump ( S ) ( S* s, void delegate ( void[] data ) receive )
     {
-        S s_copy = *s;
-        
-        S* s_copy_ptr = &s_copy;
-        
-        resetReferences(s_copy_ptr);
-        
-        send((cast (void*) s_copy_ptr)[0 .. S.sizeof]);
-        
-        transmitArrays!(false)(s, delegate void[] ( void[] data, size_t ) { send(data); return null; },false);
+        return transmit!(false)(s, receive);
     }
     
-    /**************************************************************************
-
-        Loads/deserializes the content of s and its array members.
-    
-        Params:
-            s     = struct instance (pointer)
-            data  = input buffer to read serialized data from
-            slice = optional. If true, will set dynamical arrays to
-                    slices of the provided buffer.
-                    Warning: Do not serialize a struct into the same buffer
-                             it was deserialized from.
-        Throws:
-            Exception if data is too short
-        
-     **************************************************************************/
-
-    void load ( S, D ) ( S* s, D[] data, bool slice = false )
-    {
-        static assert (D.sizeof == 1, typeof (*this).stringof ~ ".load: only "
-                       "single-byte element arrays supported, "
-                       "not '" ~ D.stringof ~ "[]'");
-
-        size_t start = 0;
-        
-        load(s, ( void[] chunk, size_t len = 0)
-        {   
-            if (len == 0)
-            { 
-                size_t end = start + chunk.length;
-                
-                assertEx!(SerializerException.LengthMismatch)(end <= data.length,
-                          typeof (*this).stringof ~ " input data too short",
-                          data.length, end);
-                
-                chunk[] = (cast (void[]) data)[start .. end];                
-                
-                start = end;
-                
-	            return cast(void[])null;                
-            }
-            else if(slice)
-            {
-                auto tmp = (cast (void[]) data)[start .. start + len];
-             
-                start += len;
-                
-                return tmp;
-            }
-			assert(false);
-        },slice);
-    }
     
     /**************************************************************************
 
         Loads/deserializes the content of s and its array members.
         
-        receive is called repeatedly; 
-        
-        on each call, it must do one of the two, depending on the arguments:
-        
-        1) if (len == 0)
-            populate the provided data buffer with 
-            data previously produced by dump().
-            Data which was populated once, should not be populated again. 
-            So the delegate must behave like a stream receive function.
-        
-        2) if (len > 0)
-        
-            return a slice of len from the current position and advance the
-            position. This is only used when slicing is enabled.
-
+        receive is called repeatedly; on each call, it must populate the
+        provided data buffer with data previously produced by dump(). Data which
+        was populated once should not be populated again. So the delegate must
+        behave like a stream receive function.
+    
         Params:
             s       = struct instance (pointer)
             receive = receiving callback delegate
-            slice   = optional. If true, will set dynamical arrays to
-                      slices of the provided buffer
-                      Warning: Do not serialize a struct into the same buffer
-                               it was deserialized from.
-        Returns:
-            passes through return value of receive
+        
+     **************************************************************************/
+    
+    size_t load ( S ) ( S* s, void delegate ( void[] data ) receive )
+    {
+        return transmit!(true)(s, receive);
+    }
+    
+    /**************************************************************************
+
+        Dumps/serializes or loads/deserializes the content of s and its 
+        members.
+        
+        transmit_data is called repeatedly; on each call,
+         - if receive is false, it must it must store or forward the provided
+           data;
+         - if receive is true, it must populate the provided data buffer with
+           data previously produced by dump(). Data which was populated once
+           should not be populated again. So the delegate must behave like a
+           stream receive function.
+    
+        Params:
+            s             = struct instance (pointer)
+            transmit_data = sending/receiving callback delegate
         
      **************************************************************************/
 
-    void load ( S ) ( S* s, void[] delegate ( void[] data , size_t len ) receive, bool slice = false )
+    size_t transmit ( bool receive, S ) ( S* s, void delegate ( void[] data ) transmit_data )
     {
         S s_copy = *s;
         
         S* s_copy_ptr = &s_copy;
-
-        receive((cast (void*) s)[0 .. S.sizeof],0);
         
-        copyReferences(s_copy_ptr, s);
+        static if (!receive)
+        {
+            resetReferences(s_copy_ptr);
+        }
         
-        transmitArrays!(true)(s, receive,slice);
+        transmit_data((cast (void*) s)[0 .. S.sizeof]);
+        
+        static if (receive)
+        {
+            copyReferences(s_copy_ptr, s);
+        }
+        
+        return S.sizeof + transmitArrays!(receive)(s, transmit_data);
     }
     
+
     /**************************************************************************
 
         Dumps/serializes the content of s and its array members, using the given
@@ -387,11 +463,11 @@ struct StructSerializer
         
         foreach (i, T; typeof (S.tupleof))
         {
-            auto field = getField!(i)(s);
+            T* field = getField!(i, T, S)(s);
             
             static if (is (T == struct))
             {
-                result += subArrayLength(getField!(i)(s));                      // recursive call
+                result += subArrayLength(field);                                // recursive call
             }
             else static if (is (T U == U[]))
             {
@@ -447,11 +523,11 @@ struct StructSerializer
         
      **************************************************************************/
 
-    void resetReferences ( S ) ( S* s )
+    S* resetReferences ( S ) ( S* s )
     {
         foreach (i, T; typeof (S.tupleof))
         {
-            auto field = getField!(i)(s);
+            T* field = getField!(i, T, S)(s);
             
             static if (is (T == struct))
             {
@@ -462,6 +538,8 @@ struct StructSerializer
                 *field = null;
             }
         }
+        
+        return s;
     }
     
     /**************************************************************************
@@ -474,12 +552,12 @@ struct StructSerializer
         
      **************************************************************************/
 
-    void copyReferences ( S ) ( S* src, S* dst )
+    S* copyReferences ( S ) ( S* src, S* dst )
     {
         foreach (i, T; typeof (S.tupleof))
         {
-            auto src_field = getField!(i)(src);
-            auto dst_field = getField!(i)(dst);
+            T* src_field = getField!(i, T, S)(src),
+               dst_field = getField!(i, T, S)(dst);
             
             static if (is (T == struct))
             {
@@ -490,6 +568,8 @@ struct StructSerializer
                 *dst_field = *src_field;
             }
         }
+        
+        return dst;
     }
     
     /**************************************************************************
@@ -511,24 +591,28 @@ struct StructSerializer
         
      **************************************************************************/
 
-    void transmitArrays ( bool receive, S ) ( S* s, void[] delegate ( void[] array, size_t  ) transmit, bool slice )
+    size_t transmitArrays ( bool receive, S ) ( S* s, void delegate ( void[] array ) transmit )
     {
+        size_t bytes = 0;
+        
         foreach (i, T; typeof (S.tupleof))
         {
-            auto field = getField!(i)(s);
+            T* field = getField!(i, T, S)(s);
             
             static if (is (T == struct))
             {
-                transmitArrays!(receive)(field, transmit,slice);                // recursive call
+                bytes += transmitArrays!(receive)(field, transmit);             // recursive call
             }
             else static if (is (T U == U[]))
             {
                 mixin AssertSupportedArray!(T, U, S, i);
                 
-                transmitArray!(receive)(field, transmit,slice);
+                bytes += transmitArray!(receive)(*field, transmit);
             }
             else mixin AssertSupportedType!(T, S, i);
         }
+        
+        return bytes;
     }
     
     /***************************************************************************
@@ -553,108 +637,133 @@ struct StructSerializer
         
      **************************************************************************/
     
-    void transmitArray ( bool receive, T ) ( T[]* array, void[] delegate (  void[] data, size_t  ) transmit, bool slice )
+    size_t transmitArray ( bool receive, T ) ( ref T[] array, void delegate ( void[] data ) transmit )
     {
-        size_t len;
+        size_t len,
+               bytes = len.sizeof;
+        
+        static if (!receive)
+        {
+            len = array.length;
+        }
+        
+        transmit((cast (void*) &len)[0 .. len.sizeof]);
         
         static if (receive)
         {
-            transmit((cast (void*) &len)[0 .. len.sizeof],0);
-            
-            static if (!isDynamicArrayType!(T))
+            array.length = len;
+        }
+        
+        static if (is (T U == U[]))
+        {
+            foreach (ref element; array)
             {
-                if (slice)
-                {                   
-                    *array = cast(T[])transmit(null,len);
-                }
-                else
-                {
-                    array.length = len;
-                }
-            }
-            else
-            {
-                array.length = len;
+                bytes += transmitArray!(receive)(element, transmit);            // recursive call
             }
         }
         else
         {
-            len = array.length;
-
-            transmit((cast (void*) &len)[0 .. len.sizeof],0);
+            size_t n = len * T.sizeof;
+            
+            transmit((cast (void*) array.ptr)[0 .. n]);
+            
+            bytes += n;
         }
         
-        static if (is (T U : U[]))
-        {
-            for (size_t i = 0; i < len; i++)
-            {
-                transmitArray!(receive)(array.ptr + i, transmit,slice);         // recursive call
-            }
-        }
-        else if (!slice)
-        {
-            transmit((cast (void*) array.ptr)[0 .. len * T.sizeof],0);
-        }
-        
+        return bytes;
     }
     
-    /**************************************************************************
+    /***************************************************************************
 
-        Returns a pointer to the i-th field of s
-        
-        Template parameter:
-            i = struct field index
+        Sets all dynamic array members of s to slice the corresponding sections
+        of data. data must be a concatenated sequence of chunks generated by
+        transmitArray() for each dynamic array member of S.
         
         Params:
-            s = struct instance (pointer)
+            s    = pointer to struct instance to set arrays to slice data
+            data = array data to slice
             
         Returns:
-            pointer to the i-th field of s
+            number of data bytes sliced 
+        
+        Throws:
+            Exception if data is too short
         
      **************************************************************************/
 
-    FieldType!(S, i)* getField ( size_t i, S ) ( S* s )
+    size_t sliceArrays ( S ) ( S* s, void[] data )
     {
-        return cast (FieldType!(S, i)*) (cast (void*) s + S.tupleof[i].offsetof);
-    }
-
-    /**************************************************************************
-
-        Returns the name of the ith field.
-
-        TODO: do this with template recursion
+        size_t pos = 0;
         
-        Template parameter:
-            i = struct field index
-        
-        Params:
-            s = struct instance (pointer)
+        foreach (i, T; typeof (S.tupleof))
+        {
+            T* field = getField!(i, T, S)(s);
             
-        Returns:
-            name of the ith field
-        
-     **************************************************************************/
-
-    char[] getFieldName ( size_t i, S ) ( S* s )
-    {
-        if ( S.tupleof[i].stringof.length < 2 )
-        {
-            return S.tupleof[i].stringof;
-        }
-
-        size_t index = S.tupleof[i].stringof.length - 1;
-        foreach_reverse ( c; S.tupleof[i].stringof )
-        {
-            if ( c == '.' )
+            static if (is (T == struct))
             {
-                break;
+                pos += sliceArrays(field, data[pos .. $]);
             }
-            index--;
+            else static if (is (T U == U[]))
+            {
+                debug pragma (msg, "sliceArrays " ~ S.stringof ~ ": " ~ FieldInfo!(T, S, i));
+                
+                mixin AssertSupportedArray!(T, U, S, i);
+                
+                pos += sliceArray(*field, data[pos .. $]);
+            }
+            else mixin AssertSupportedType!(T, S, i);
         }
-
-        return S.tupleof[i].stringof[index + 1 .. $];
+        
+        return pos;
     }
+    
+    /***************************************************************************
+    
+        Creates an array slice to data. Data must start with a size_t value
+        reflecting the byte length, followed by the array content data.
+        
+        Params:
+            s    = pointer to struct instance to set arrays to slice data
+            data = array data to slice
+            
+        Returns:
+            number of data bytes sliced 
+        
+        Throws:
+            Exception if data is too short
+        
+     **************************************************************************/
 
+    size_t sliceArray ( T ) ( out T[] array, void[] data )
+    {
+        size_t end = size_t.sizeof;
+        
+        assertLongEnough(end, data.length);
+        
+        size_t len = *cast (size_t*) data.ptr;
+        
+        static if (is (T U == U[]))
+        {
+            debug pragma (msg, "sliceArray > " ~ U.stringof);
+            
+            foreach (ref element; resizeArray(array, len))
+            {
+                end += sliceArray(element, data[end .. $]);
+            }
+        }
+        else
+        {
+            debug pragma (msg, "sliceArray: " ~ T.stringof);
+            
+            end += len * T.sizeof;
+            
+            assertLongEnough(end, data.length);
+            
+            array = (cast (T*) (data.ptr + size_t.sizeof))[0 .. len];
+        }
+        
+        return end;
+    }
     
     /**************************************************************************
 
@@ -678,8 +787,8 @@ struct StructSerializer
     {
         foreach (i, T; typeof (S.tupleof))
         {
-            auto field = getField!(i)(s);
-            auto field_name = getFieldName!(i)(s);
+            T*    field = getField!(i, T, S)(s);
+            const field_name = FieldName!(i, S);
 
             static if ( is(T == struct) )
             {
@@ -736,8 +845,8 @@ struct StructSerializer
     {
         foreach (i, T; typeof (S.tupleof))
         {
-            auto field = getField!(i)(s);
-            auto field_name = getFieldName!(i)(s);
+            T*    field      = getField!(i, T, S)(s);
+            const field_name = FieldName!(i, S);
 
             static if ( is(T == struct) )
             {
@@ -779,6 +888,51 @@ struct StructSerializer
                 }
             }
         }
+    }
+    
+    /**************************************************************************
+
+        Returns a pointer to the i-th field of s
+        
+        Template parameter:
+            i = struct field index
+        
+        Params:
+            s = struct instance (pointer)
+            
+        Returns:
+            pointer to the i-th field of s
+        
+     **************************************************************************/
+    
+    FieldType!(S, i)* getField ( size_t i, S ) ( S* s )
+    {
+        return getField!(i, FieldType!(S, i), S)(s);
+    }
+
+    /**************************************************************************
+
+        Returns a pointer to the i-th field of s
+        
+        Template parameter:
+            i = struct field index
+        
+        Params:
+            s = struct instance (pointer)
+            
+        Returns:
+            pointer to the i-th field of s
+        
+     **************************************************************************/
+    
+    T* getField ( size_t i, T, S ) ( S* s )
+    {
+        return cast (T*) ((cast (void*) s) + S.tupleof[i].offsetof);
+    }
+
+    private void assertLongEnough ( size_t pos, size_t data_length )
+    {
+        assertEx(pos <= data_length, typeof (*this).stringof ~ " input data too short");
     }
     
     /**************************************************************************
@@ -955,6 +1109,47 @@ struct StructSerializer
     template FieldInfo ( T, S, size_t i )
     {
         const FieldInfo = '\'' ~ S.tupleof[i].stringof ~ "' of type '" ~ T.stringof ~ '\'';
+    }
+    
+    /**************************************************************************
+
+        Evaluates to the name of the ith field.
+    
+        Template parameter:
+            i = struct field index
+            S = struct type
+            
+        Evaluates to:
+            name of the ith field
+        
+     **************************************************************************/
+
+    template FieldName ( size_t i, S )
+    {
+        static assert (is (S == struct), typeof (*this).stringof ~ ".FieldName:"
+                       " need a struct, not '" ~ S.stringof ~ '\'');
+        
+        const FieldName = StripFieldName!(S.tupleof[i].stringof);
+    }
+    
+    template StripFieldName ( char[] name, size_t n = size_t.max )
+    {
+        static if (n >= name.length)
+        {
+            const StripFieldName = StripFieldName!(name, name.length - 1);
+        }
+        else static if (name[n] == '.')
+        {
+            const StripFieldName = name[n + 1 .. $];
+        }
+        else static if (n)
+        {
+            const StripFieldName = StripFieldName!(name, n - 1);
+        }
+        else
+        {
+            const StripFieldName = name;
+        }
     }
 }
 
