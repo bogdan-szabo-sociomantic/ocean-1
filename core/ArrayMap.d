@@ -1011,19 +1011,17 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
              hash
          
       *************************************************************************/
-
-    public static hash_t toHash ( K key )
-     {
-         static if (is (K : hash_t))
-         {
-             return key;
-         }
-         else
-         {
-             return Fnv1a.fnv1(key);
-         }
-     }
-     
+    
+    public alias Fnv1a.fnv1 toHash;
+    
+    static if (is (K : hash_t))
+    {
+        public static hash_t toHash ( K key )
+        {
+            return key;
+        }
+    }
+    
     /***************************************************************************
     
         Returns the value array element with index v or throws an exception if
