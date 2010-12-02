@@ -345,16 +345,17 @@ struct StructSerializer
         
         S* s_copy_ptr = &s_copy;
         
-        static if (!receive)
-        {
-            resetReferences(s_copy_ptr);
-        }
-        
-        transmit_data((cast (void*) s)[0 .. S.sizeof]);
-        
         static if (receive)
         {
+            transmit_data((cast (void*) s)[0 .. S.sizeof]);
+            
             copyReferences(s_copy_ptr, s);
+        }
+        else
+        {
+            resetReferences(s_copy_ptr);
+            
+            transmit_data((cast (void*) s_copy_ptr)[0 .. S.sizeof]);
         }
         
         return S.sizeof + transmitArrays!(receive)(s, transmit_data);
