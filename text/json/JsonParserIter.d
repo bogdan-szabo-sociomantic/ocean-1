@@ -10,7 +10,7 @@
     authors:        David Eckardt
     
     Extends Tango's JsonParser by iteration and token classification facilities
-    
+   
  ******************************************************************************/
 
 module ocean.text.json.JsonParserIter;
