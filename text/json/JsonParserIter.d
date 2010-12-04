@@ -7,10 +7,29 @@
     
     version:        September 2010: initial release
     
-    authors:        David Eckardt
+    authors:        David Eckardt, Gavin Norman
     
-    Extends Tango's JsonParser by iteration and token classification facilities
-   
+    Extends Tango's JsonParser by iteration and token classification facilities.
+
+    Includes methods to extract the values of named entities.
+
+    Named entity extraction usage example:
+
+    ---
+
+        char[] json = "{"object":{"cost":12.34,"sub":{"cost":56.78}}}";
+
+        scope parser = new JsonParserIter();
+        parser.reset(json);
+
+        auto val = parser.nextNamed("cost");
+        assert(val == "12.34");
+
+        val = parser.nextNamed("cost");
+        assert(val == "56.78");
+
+    ---
+
  ******************************************************************************/
 
 module ocean.text.json.JsonParserIter;
@@ -23,6 +42,16 @@ module ocean.text.json.JsonParserIter;
 
 private import tango.text.json.JsonParser;
 
+private import tango.core.Traits;
+
+private import Integer = tango.text.convert.Integer;
+
+private import Float = tango.text.convert.Float;
+
+debug private import tango.util.log.Trace;
+
+
+
 /******************************************************************************/
 
 class JsonParserIter : JsonParser!(char)
@@ -33,7 +62,7 @@ class JsonParserIter : JsonParser!(char)
     
      **************************************************************************/
 
-    alias typeof (super).Token Token;
+    public alias typeof (super).Token Token;
     
     /**************************************************************************
 
@@ -42,7 +71,7 @@ class JsonParserIter : JsonParser!(char)
     
      **************************************************************************/
 
-    enum TokenClass
+    public enum TokenClass
     {
         Other = 0,
         ValueType,
@@ -111,7 +140,7 @@ class JsonParserIter : JsonParser!(char)
     
      **************************************************************************/
 
-    static TokenClass tokenClass ( Token token )
+    static public TokenClass tokenClass ( Token token )
     {
         TokenClass* tocla = token in this.token_class;
         
@@ -135,7 +164,7 @@ class JsonParserIter : JsonParser!(char)
     
      **************************************************************************/
 
-    static int nesting ( Token token )
+    static public int nesting ( Token token )
     {
         int* level = token in this.nestings;
         
@@ -153,7 +182,7 @@ class JsonParserIter : JsonParser!(char)
     
      **************************************************************************/
 
-    int nesting ( )
+    public int nesting ( )
     {
         return this.nesting(super.type);
     }
@@ -165,7 +194,7 @@ class JsonParserIter : JsonParser!(char)
     
      **************************************************************************/
 
-    TokenClass tokenClass ( )
+    public TokenClass tokenClass ( )
     {
         return this.tokenClass(super.type);
     }
@@ -179,7 +208,7 @@ class JsonParserIter : JsonParser!(char)
     
      **************************************************************************/
 
-    Token nextType ( )
+    public Token nextType ( )
     {
         return super.next()? super.type : Token.Empty;
     }
@@ -197,7 +226,7 @@ class JsonParserIter : JsonParser!(char)
     
      **************************************************************************/
 
-    typeof (this) opCall ( char[] content )
+    public typeof (this) opCall ( char[] content )
     {
         super.reset(content);
         
@@ -210,7 +239,7 @@ class JsonParserIter : JsonParser!(char)
     
      **************************************************************************/
 
-    int opApply ( int delegate ( ref char[] value ) dg )
+    public int opApply ( int delegate ( ref char[] value ) dg )
     {
         int result = 0;
         
@@ -223,14 +252,14 @@ class JsonParserIter : JsonParser!(char)
             
         return result;
     }
-    
+
     /**************************************************************************
 
         'foreach' iteration over type/value pairs in the current content
     
      **************************************************************************/
 
-    int opApply ( int delegate ( ref Token type, ref char[] value ) dg )
+    public int opApply ( int delegate ( ref Token type, ref char[] value ) dg )
     {
         return this.opApply((ref char[] value)
                             {
@@ -238,4 +267,170 @@ class JsonParserIter : JsonParser!(char)
                                 return dg(type, value);
                             });
     }
+
+
+    /**************************************************************************
+
+        Iterates over the json string looking for the named element and
+        returning the value of the following element.
+
+        Note that the search takes place from the current iteration position,
+        and all iterations are cumulative. The iteration position is reset using
+        the 'reset' method (in super).
+
+        Params:
+            name = name to search for
+
+        Returns:
+            value of element after the named element
+    
+     **************************************************************************/
+
+    public char[] nextNamed ( char[] name )
+    {
+        return this.nextNamedValue(name, ( Token token ) { return true; });
+    }
+
+
+    /**************************************************************************
+
+        Iterates over the json string looking for the named element and
+        returning the value of the following element if it is a boolean. If the
+        value is not boolean the search continues.
+
+        Note that the search takes place from the current iteration position,
+        and all iterations are cumulative. The iteration position is reset using
+        the 'reset' method (in super).
+    
+        Params:
+            name = name to search for
+    
+        Returns:
+            boolean value of element after the named element
+    
+     **************************************************************************/
+
+    public bool nextNamedBool ( char[] name )
+    {
+        return this.nextNamedValue(name, ( Token token ) { return token == Token.True || token == Token.False; }) == "true";
+    }
+
+
+    /**************************************************************************
+
+        Iterates over the json string looking for the named element and
+        returning the value of the following element if it is a string. If the
+        value is not a string the search continues.
+    
+        Note that the search takes place from the current iteration position,
+        and all iterations are cumulative. The iteration position is reset using
+        the 'reset' method (in super).
+    
+        Params:
+            name = name to search for
+    
+        Returns:
+            value of element after the named element
+    
+     **************************************************************************/
+
+    public char[] nextNamedString ( char[] name )
+    {
+        return this.nextNamedValue(name, ( Token token ) { return token == Token.String; });
+    }
+
+    
+    /**************************************************************************
+
+        Iterates over the json string looking for the named element and
+        returning the value of the following element if it is a number. If the
+        value is not a number the search continues.
+    
+        Note that the search takes place from the current iteration position,
+        and all iterations are cumulative. The iteration position is reset using
+        the 'reset' method (in super).
+
+        Template params:
+            T = numerical type to return
+    
+        Params:
+            name = name to search for
+    
+        Returns:
+            numerical value of element after the named element
+
+        Throws:
+            if the value is not valid number
+    
+     **************************************************************************/
+
+    public T nextNamedNumber ( T ) ( char[] name )
+    {
+        T ret;
+        auto string = this.nextNamedValue(name, ( Token token ) { return token == Token.Number; });
+
+        static if ( isRealType!(T) )
+        {
+            ret = Float.toFloat(string);
+        }
+        else static if ( isIntegerType!(T) )
+        {
+            ret = Integer.toLong(string);
+        }
+        else
+        {
+            static assert(false, typeof(this).stringof ~ ".nextNamedNumber - template type must be numerical, not " ~ T.stringof);
+        }
+
+        return ret;
+    }
+
+
+    /**************************************************************************
+
+        Iterates over the json string looking for the named element and
+        returning the value of the following element if its type matches the
+        requirements of the passed delegate.
+    
+        Note that the search takes place from the current iteration position,
+        and all iterations are cumulative. The iteration position is reset using
+        the 'reset' method (in super).
+    
+        Params:
+            name = name to search for
+            type_match_dg = delegate which receives the type of the element
+                following a correctly named value, and decides whether this is
+                the value to be returned
+    
+        Returns:
+            value of element after the named element
+    
+     **************************************************************************/
+
+    private char[] nextNamedValue ( char[] name, bool delegate ( Token ) type_match_dg )
+    {
+        bool got_name;
+        foreach ( type, value; this )
+        {
+            if ( got_name )
+            {
+                if ( type_match_dg(type) )
+                {
+                    return value;
+                }
+                else
+                {
+                    got_name = false;
+                }
+            }
+
+            if ( type == Token.Name && value == name )
+            {
+                got_name = true;
+            }
+        }
+
+        return "";
+    }
 }
+
