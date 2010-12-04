@@ -124,10 +124,12 @@ class Arguments : Tango.Arguments
         Stderr.format("\n");
     }
 
-
+    
     /***************************************************************************
 
         Convenience method to get the value of a bool argument.
+
+        This method is aliased as 'exists', as it has the same logic.
         
         Params:
             name = name of argument
@@ -149,6 +151,8 @@ class Arguments : Tango.Arguments
             return false;
         }
     }
+
+    public alias getBool exists;
 
 
     /***************************************************************************
