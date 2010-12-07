@@ -116,6 +116,11 @@ struct StructSerializer
      **************************************************************************/
 
     size_t length ( S ) ( S* s )
+    in
+    {
+        assertStructPtr!("length")(s);
+    }
+    body
     {
         return S.sizeof + subArrayLength(s);
     }
@@ -135,12 +140,12 @@ struct StructSerializer
 
     size_t dump ( S, D ) ( S* s, ref D[] data )
     {
-        static assert (D.sizeof == 1, typeof (*this).stringof ~ ".dump: only "
-                                      "single-byte element arrays supported, "
-                                      "not '" ~ D.stringof ~ "[]'");
+        mixin AssertSingleByteType!(D, typeof (*this).stringof ~ ".dump");
 
         size_t written = 0;
-
+        
+        scope (exit) data.length = written;
+        
         return dump(s, (void[] chunk) 
         {
             if (chunk.length + written > data.length)
@@ -175,10 +180,8 @@ struct StructSerializer
     
     size_t load ( S, D ) ( S* s, D[] data )
     {
-        static assert (D.sizeof == 1, typeof (*this).stringof ~ ".load: only "
-                       "single-byte element arrays supported, "
-                       "not '" ~ D.stringof ~ "[]'");
-    
+        mixin AssertSingleByteType!(D, typeof (*this).stringof ~ ".load");
+        
         size_t start = 0;
         
         return load(s, ( void[] chunk )
@@ -192,27 +195,6 @@ struct StructSerializer
             start = end;
         });
     }
-    
-    deprecated size_t load ( S, D ) ( S* s, D[] data, bool slice )
-    {
-        assert (false);
-        return 0;
-    }
-    /*
-    template load ( S, D )
-    {
-        static assert (false, "\n\t" ~ typeof (*this).stringof ~
-                ".load(S* s, D[] data, bool slice) is deprecated: please use\n"
-                "\t\tload(S* s, D[] data) for slice == false or\n"
-                "\t\tloadSlice(out S* s, D[] data) for slice == true\n");
-        
-        deprecated size_t load ( S* s, D[] data, bool slice )
-        {
-            return 0;
-        }
-    }
-    */
-    
     
     /**************************************************************************
 
@@ -232,16 +214,31 @@ struct StructSerializer
         
      **************************************************************************/
 
-    size_t loadSlice ( S ) ( out S* s, void[] data )
+    size_t loadSlice ( D, S ) ( out S* s, D[] data )
     {
+        mixin AssertSingleByteType!(D, typeof (*this).stringof ~ ".loadSlice");
+        
         const size_t pos = S.sizeof;
         
         assertLongEnough(pos, data.length);
         
         s = cast (S*) data.ptr;
         
-        return sliceArrays(s, data[pos .. $]);
+        return sliceArrays(s, (cast (void[]) data)[pos .. $]);
     }
+    
+    /**************************************************************************
+
+        Use loadSlice() instead.
+    
+     **************************************************************************/
+
+    deprecated size_t load ( S, D ) ( S* s, D[] data, bool slice )
+    {
+        assert (false);
+        return 0;
+    }
+    
     
     /**************************************************************************
 
@@ -260,20 +257,26 @@ struct StructSerializer
         
      **************************************************************************/
 
-    S* loadSlice ( S ) ( void[] data )
+    S loadSlice ( S, D ) ( D[] data, out size_t n )
     {
-        S* s;
+        static if (is (S T == T*))
+        {
+            static assert (is (T == struct), typeof (*this).stringof ~
+                           ".loadSlice: need pointer to a struct, not '" ~ T.stringof ~ '\'');
+        }
+        else if (is (S == struct))
+        {
+            static assert (false, typeof (*this).stringof ~ ".loadSlice: need a"
+                           " pointer to struct (hint: use '" ~ S.stringof ~ "*'"
+                           " instead of '" ~ S.stringof ~ "')");
+        }
+        else static assert (false, typeof (*this).stringof ~ ".loadSlice: need "
+                            "a pointer to struct, not '" ~ S.stringof ~ '\'');
+
         
-        loadSlice(s, data);
+        S s;
         
-        return s;
-    }
-    
-    S* loadSlice ( S ) ( void[] data, out size_t end )
-    {
-        S* s;
-        
-        end = loadSlice(s, data);
+        n = loadSlice(s, data);
         
         return s;
     }
@@ -295,10 +298,14 @@ struct StructSerializer
      **************************************************************************/
     
     size_t dump ( S ) ( S* s, void delegate ( void[] data ) receive )
+    in
+    {
+        assertStructPtr!("dump")(s);
+    }
+    body
     {
         return transmit!(false)(s, receive);
     }
-    
     
     /**************************************************************************
 
@@ -316,6 +323,11 @@ struct StructSerializer
      **************************************************************************/
     
     size_t load ( S ) ( S* s, void delegate ( void[] data ) receive )
+    in
+    {
+        assertStructPtr!("load")(s);
+    }
+    body
     {
         return transmit!(true)(s, receive);
     }
@@ -340,6 +352,13 @@ struct StructSerializer
      **************************************************************************/
 
     size_t transmit ( bool receive, S ) ( S* s, void delegate ( void[] data ) transmit_data )
+    in
+    {
+        assert (s, typeof (*this).stringof ~ ".transmit (receive = " ~ 
+                receive.stringof ~ "): source pointer of type '" ~ S.stringof ~
+                "*' is null");
+    }
+    body
     {
         S s_copy = *s;
         
@@ -766,6 +785,24 @@ struct StructSerializer
         return end;
     }
     
+    T[] resizeArray ( T ) ( ref T[] array, size_t len )
+    {
+        static if (is (T U == U[]))
+        {
+            if (array.length > len)
+            {
+                foreach (ref element; array[len .. $])
+                {
+                    element.length = 0;
+                }
+            }
+        }
+        
+        array.length = len;
+        
+        return array;
+    }
+    
     /**************************************************************************
 
         Dumps/serializes the content of s and its array members, using the given
@@ -931,11 +968,59 @@ struct StructSerializer
         return cast (T*) ((cast (void*) s) + S.tupleof[i].offsetof);
     }
 
+    /**************************************************************************
+
+        Asserts pos <= data.length; pos is assumed to be the element index in an
+        input data array of length data_length. This checking is always done,
+        even in release mode.
+        
+        Params:
+            pos         = input data array position
+            data_length = input data array length
+        
+        Throws:
+            Exception if not pos <= data_length
+        
+     **************************************************************************/
+
     private void assertLongEnough ( size_t pos, size_t data_length )
     {
         assertEx(pos <= data_length, typeof (*this).stringof ~ " input data too short");
     }
     
+    /**************************************************************************
+
+        Asserts s != null; s is assumed to be the struct source or destination
+        pointer. In addition a warning message is printed at compile time if
+        S is a pointer to a pointer. 
+        The s != null checking is done in assert() fashion; that is, it is not
+        done in release mode.
+        
+        Template params:
+            func = invoking function (for message generation)
+        
+        Params:
+            s = pointer to a source or destination struct; shall not be null
+        
+        Throws:
+            Exception if s is null
+        
+     **************************************************************************/
+
+    private void assertStructPtr ( char[] func, S ) ( S* s )
+    {
+        static if (is (S T == T*))
+        {
+            pragma (msg, typeof (*this).stringof ~ '.' ~ func ~
+                    " - warning: passing '" ~ T.stringof ~ "**' destination "
+                    "argument (you " "probably want '" ~ T.stringof ~ "*')");
+        }
+        
+        assert (s, typeof (*this).stringof ~ '.' ~ func ~ ": destination "
+                "pointer of type '" ~ S.stringof ~ "*' is null");
+    }
+    
+
     /**************************************************************************
 
         Generates the type of the i-th field of struct type S
@@ -1043,12 +1128,30 @@ struct StructSerializer
 
     /**************************************************************************
 
+        Asserts that T is a single-byte type; T is assumed to be the element
+        type for a serialized data array.
+        
+        Template parameters:
+            T       = type which shall be of single byte size
+            context = context where T is used (for message generation)
+        
+     **************************************************************************/
+    
+    template AssertSingleByteType ( T, char[] context )
+    {
+        static assert (T.sizeof == 1, context ~ ": only single-byte element"
+                       "arrays supported for data, not '" ~ T.stringof ~ "[]'");
+    
+    }
+
+    /**************************************************************************
+
         Asserts that T, which is the type of the i-th field of S, is a supported
         field type for struct serialization; typedefs and unions are currently
         not supported.
         Warns if T is an associative array.
         
-        Template parameter:
+        Template parameters:
             T = type to check
             S = struct type (for message generation)
             i = struct field index (for message generation)
@@ -1183,7 +1286,7 @@ debug (OceanUnitTest)
 
     ***************************************************************************/
 
-    struct CircularBuffer (T)
+    struct CircularBuffer_ (T)
     {
         /***********************************************************************
 
@@ -1273,7 +1376,7 @@ debug (OceanUnitTest)
         }
     }
     
-    alias CircularBuffer!(char[]) Urls;
+    alias CircularBuffer_!(char[]) Urls;
     
 
     /***************************************************************************
@@ -1306,7 +1409,7 @@ debug (OceanUnitTest)
 
     ***************************************************************************/
 
-    alias CircularBuffer!(RetargetingAction) Retargeting;
+    alias CircularBuffer_!(RetargetingAction) Retargeting;
     
     struct MeToo(int deep) 
     {
@@ -1374,15 +1477,16 @@ unittest
            dump(&urls,buf);
        }
        Urls empty;
-       //load(&empty,
+       Urls* emptyp;
+       //load(&emptyp,
         //   delegate void[] (void[] d, size_t len) { d[]=buf[0..d.length]; buf = buf[d.length..$]; return null; },
         //   false);
 
-       load(&empty,buf,true);
+       loadSlice(emptyp,buf);
 
-       assert(empty.elements.length == 40);
+       assert(emptyp.elements.length == 40);
        
-       foreach(i, url ; empty.elements)
+       foreach(i, url ; emptyp.elements)
            assert(url == "http://example.com/"~to!(char[])(i));
        
        
@@ -1498,16 +1602,12 @@ unittest
    Trace.formatln("Urls Performance Test:");
    
    
-   
-   
-   
-   
    {
-   auto byte buffer[]; buffer.length = length(&empty);
+   auto byte buffer[]; buffer.length = length(emptyp);
    sw.start;
    for(uint i = 0;i<1_00000; ++i)
    {    
-       dump(&empty,buffer );    
+       dump(emptyp,buffer );    
    }
    Trace.formatln("{} Writing preallocated buf with",1_00000/sw.stop);
    
@@ -1518,7 +1618,7 @@ unittest
    for(uint i = 0;i<1_0000; ++i)
    {
        a=0;
-       dump(&empty,(void[] data) { 
+       dump(emptyp,(void[] data) { 
            
            if(data.length+a > buffer.length)
                assert(false);
@@ -1533,10 +1633,9 @@ unittest
    sw.start;
    for(uint i = 0;i<1_000000; ++i)
    {
-       load(&empty,buffer,true);
+       load(emptyp,buffer);
    }
    Trace.formatln("{}/s Reading using slicing",1_000000/sw.stop);
-   
    
    sw.start;
    for(uint i = 0;i<1_000000; ++i)
@@ -1545,7 +1644,9 @@ unittest
    }
    Trace.formatln("{}/s Reading with",1_000000/sw.stop);
    
-   
+   foreach(i, url ; empty.elements)
+       assert(url == "http://example.com/"~to!(char[])(i));
+
    }
    }
    
