@@ -599,7 +599,14 @@ class Zlib
     
         auto buffer_bytes = (cast(char*)buffer_in.ptr)[0 .. buffer_in.length * T.sizeof];
     
-        return buffer_bytes[0 .. GZipHeaderBytes.length] == GZipHeaderBytes;
+        if ( buffer_bytes.length < GZipHeaderBytes.length )
+        {
+            return false;
+        }
+        else
+        {
+            return buffer_bytes[0 .. GZipHeaderBytes.length] == GZipHeaderBytes;
+        }
     }
 
 
