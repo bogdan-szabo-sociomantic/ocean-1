@@ -1011,12 +1011,12 @@ struct StructSerializer
     {
         static if (is (S T == T*))
         {
-            pragma (msg, typeof (*this).stringof ~ '.' ~ func ~
-                    " - warning: passing '" ~ T.stringof ~ "**' destination "
-                    "argument (you " "probably want '" ~ T.stringof ~ "*')");
+            pragma (msg, typeof (*this).stringof ~ '.' ~ func ~ " - warning: "
+                    "passing struct pointer argument of type '" ~ (S*).stringof ~
+                    "' (you " "probably want '" ~ (T*).stringof ~ "')");
         }
         
-        assert (s, typeof (*this).stringof ~ '.' ~ func ~ ": destination "
+        assert (s, typeof (*this).stringof ~ '.' ~ func ~ ": "
                 "pointer of type '" ~ S.stringof ~ "*' is null");
     }
     
