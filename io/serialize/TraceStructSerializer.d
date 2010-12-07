@@ -71,48 +71,15 @@ private import tango.util.log.Trace;
 
 *******************************************************************************/
 
-class TraceStructSerializer
+class TraceStructSerializer : StringStructSerializer!(char)
 {
-    /***************************************************************************
-
-        String serializer
-    
-    ***************************************************************************/
-
-    private StringStructSerializer!(char) string_serializer;
-
-
     /***************************************************************************
 
         String to receive serialized data
     
     ***************************************************************************/
-    
+
     private char[] string;
-
-
-    /***************************************************************************
-
-        Constructor
-    
-    ***************************************************************************/
-
-    public this ( )
-    {
-        this.string_serializer = new StringStructSerializer!(char)();
-    }
-
-
-    /***************************************************************************
-
-        Destructor
-    
-    ***************************************************************************/
-
-    ~this ( )
-    {
-        delete this.string_serializer;
-    }
 
 
     /***************************************************************************
@@ -129,7 +96,9 @@ class TraceStructSerializer
     
     void serialize ( T ) ( ref T item )
     {
+        this.string.length = 0;
         StructSerializer.serialize(&item, this);
+        Trace.formatln("{}", this.string).flush();
     }
 
 
@@ -145,9 +114,7 @@ class TraceStructSerializer
     
     void open ( char[] name )
     {
-        this.string.length = 0;
-        this.string_serializer.open(this.string, name);
-        Trace.format("{}", this.string).flush();
+        super.open(this.string, name);
     }
     
     
@@ -162,9 +129,7 @@ class TraceStructSerializer
     
     void close ( char[] name )
     {
-        this.string.length = 0;
-        this.string_serializer.close(this.string, name);
-        Trace.format("{}", this.string).flush();
+        super.close(this.string, name);
     }
     
     
@@ -183,9 +148,7 @@ class TraceStructSerializer
     
     void serialize ( T ) ( ref T item, char[] name )
     {
-        this.string.length = 0;
-        this.string_serializer.serialize(this.string, item, name);
-        Trace.format("{}", this.string).flush();
+        super.serialize(this.string, item, name);
     }
     
     
@@ -203,9 +166,7 @@ class TraceStructSerializer
     
     void serializeStruct ( char[] name, void delegate ( ) serialize_struct )
     {
-        this.string.length = 0;
-        this.string_serializer.serializeStruct(this.string, name, serialize_struct);
-        Trace.format("{}", this.string).flush();
+        super.serializeStruct(this.string, name, serialize_struct);
     }
     
     
@@ -224,9 +185,7 @@ class TraceStructSerializer
     
     void serializeArray ( T ) ( T[] array, char[] name )
     {
-        this.string.length = 0;
-        this.string_serializer.serializeArray(this.string, array, name);
-        Trace.format("{}", this.string).flush();
+        super.serializeArray(this.string, array, name);
     }
     
     
@@ -248,9 +207,7 @@ class TraceStructSerializer
     
     void serializeStructArray ( T ) ( char[] name, T[] array, void delegate ( ref T ) serialize_element )
     {
-        this.string.length = 0;
-        this.string_serializer.serializeStructArray(this.string, name, array, serialize_element);
-        Trace.format("{}", this.string).flush();
+        super.serializeStructArray(this.string, name, array, serialize_element);
     }
 }
 
