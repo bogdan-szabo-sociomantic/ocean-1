@@ -21,6 +21,7 @@
         size_t receiveContent ( char[] url, char[] content )
         {
             Trace.formatln("Curl received content from '{}': '{}'", url, content);
+            return content.length;
         }
 
         scope curl = new LibCurlMulti();

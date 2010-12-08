@@ -1,13 +1,52 @@
 /*******************************************************************************
 
-        LibCurl D Binding
-    
-        copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
-    
-        version:        Oct 2009: Initial release
-    
-        authors:        Thomas Nicolai
+    LibCurl D Binding
+
+    copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
+
+    version:        Oct 2009: Initial release
+
+    authors:        Thomas Nicolai
            
+    Usage example:
+
+    ---
+
+        // cUrl callback - called whenever a chunk of data is received which
+        // needs handling.
+
+        // Note that because this callback is called from within the cUrl C
+        // library, it is best to always catch all exceptions which might be
+        // thrown within it.
+
+        size_t receiveContent ( char[] url, char[] content )
+        {
+            try
+            {
+                Trace.formatln("Curl received content from '{}': '{}'", url, content);
+            }
+            catch ( Exception e )
+            {
+            }
+
+            return content.length;
+        }
+
+        // Create cUrl object
+        scope curl = new LibCurl();
+
+        // Set up user agent
+        const char[] user_agent = "User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.3; de; rv:1.9.1.10) Gecko/2009102316 Firefox/3.1.10";
+        curl.setUserAgent(user_agent);
+
+        // Set up request authorisation
+        curl.setAuth("username", "password");
+
+        // Activate request
+        curl.read("http://www.sociomantic.com/", &receiveContent);
+
+    ---
+
 ********************************************************************************/
 
 module  ocean.net.util.LibCurl;
