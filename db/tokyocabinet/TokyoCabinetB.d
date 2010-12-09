@@ -56,7 +56,8 @@ private     import  ocean.db.tokyocabinet.c.tcbdb:
                         tcbdbputdup, tcbdbputdupback,
                         tcbdbget3,   tcbdbget5,       tcbdbrange,    tcbdbforeach, 
                         tcbdbout,    tcbdbvsiz,       tcbdbvnum,     tcbdbrnum,
-                        tcbdbfsiz,   tcbdbsync,       tcbdbecode,    tcbdberrmsg;
+                        tcbdbfsiz,   tcbdbsync,       tcbdbecode,    tcbdberrmsg,
+                        tcbdbvanish;
                         
 private     import  ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
 
@@ -651,6 +652,20 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
         return tcbdbout(super.db, key.ptr, key.length);
     }
     
+    /**************************************************************************
+    
+        Clears the database
+        
+        Returns:
+            true on success or false otherwise
+        
+    ***************************************************************************/
+    
+    public bool clear ( )
+    {
+        return tcbdbvanish(super.db);
+    }
+
     /**************************************************************************
     
         Returns the number of records of a key

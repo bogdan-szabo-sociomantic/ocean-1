@@ -54,8 +54,8 @@ private     import  ocean.db.tokyocabinet.c.tchdb:
                         tchdbput,   tchdbputasync, tchdbputkeep,  tchdbputcat,
                         tchdbget,   tchdbget3,     tchdbforeach,  tchdbsync,
                         tchdbout,   tchdbrnum,     tchdbvsiz,     tchdbfsiz,
-                        tchdbecode, tchdberrmsg,   tchdbpath;
-                        
+                        tchdbecode, tchdberrmsg,   tchdbpath,     tchdbvanish;
+
 private     import ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
     
 private     import  ocean.text.util.StringC;
@@ -624,6 +624,21 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     }
     
     
+    /**************************************************************************
+    
+        Clears the database
+        
+        Returns:
+            true on success or false otherwise
+        
+    ***************************************************************************/
+    
+    public bool clear ( )
+    {
+        return tchdbvanish(super.db);
+    }
+
+
     /**************************************************************************
         
         Returns the number of records
