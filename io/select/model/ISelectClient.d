@@ -38,6 +38,9 @@ private import tango.io.model.IConduit:           ISelectable;
 
 abstract class ISelectClient
 {
+    alias .Event       Event;
+    alias .ISelectable ISelectable;
+    
     /**************************************************************************
 
         I/O device instance
