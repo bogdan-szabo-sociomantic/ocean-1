@@ -191,7 +191,7 @@ struct HttpResponse
             
     **************************************************************************/
 
-    public void getRemoteAddress ( ref char[] remote_addr )
+    public char[] getRemoteAddress ( )
     in
     {
         assert (this.socket);
@@ -200,7 +200,7 @@ struct HttpResponse
     {
         scope addr = cast (IPv4Address) this.socket.socket.remoteAddress;       // FIXME use inet_ntop
         
-        addr.toAddrString(remote_addr);
+        return addr.toAddrString();
     }
     
 
