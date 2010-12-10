@@ -103,7 +103,7 @@ class SelectWriter : ISelectProtocol
      
      **************************************************************************/
 
-    public Event events ( )
+    final Event events ( )
     {
         return Event.Write;
     }

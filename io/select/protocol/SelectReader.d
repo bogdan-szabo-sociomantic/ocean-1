@@ -95,7 +95,7 @@ class SelectReader : ISelectProtocol
      
      **************************************************************************/
 
-    public Event events ( )
+    final Event events ( )
     {
         return Event.Read;
     }
