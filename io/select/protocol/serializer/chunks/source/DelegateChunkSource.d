@@ -57,6 +57,13 @@ class DelegateChunkSource : IChunkSource!(ChunkDelegates.PutValueDg)
 
     private size_t array_cursor;
     
+
+    /***************************************************************************
+
+        Resets internal state.
+    
+    ***************************************************************************/
+
     override void reset ( )
     {
         super.reset();
@@ -83,6 +90,7 @@ class DelegateChunkSource : IChunkSource!(ChunkDelegates.PutValueDg)
 
     public size_t readArrayLength ( ChunkDelegates.PutValueDg input )
     {
+        this.array_cursor = 0;
         this.array.copy(input());
         return this.array.length;
     }
