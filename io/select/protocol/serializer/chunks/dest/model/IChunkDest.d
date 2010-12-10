@@ -11,7 +11,7 @@
 
 *******************************************************************************/
 
-module dht.async.select.protocol.serializer.chunks.dest.model.IChunkDest;
+module ocean.io.select.protocol.serializer.chunks.dest.model.IChunkDest;
 
 
 /*******************************************************************************

@@ -14,7 +14,7 @@
 
 *******************************************************************************/
 
-module dht.async.select.protocol.serializer.GetArrays;
+module ocean.io.select.protocol.serializer.GetArrays;
 
 
 

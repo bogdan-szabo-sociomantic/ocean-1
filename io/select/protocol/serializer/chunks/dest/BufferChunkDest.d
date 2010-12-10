@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module dht.async.select.protocol.serializer.chunks.dest.BufferChunkDest;
+module ocean.io.select.protocol.serializer.chunks.dest.BufferChunkDest;
 
 
 
