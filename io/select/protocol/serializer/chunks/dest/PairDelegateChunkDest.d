@@ -20,9 +20,11 @@ module ocean.io.select.protocol.serializer.chunks.dest.PairDelegateChunkDest;
 
 *******************************************************************************/
 
+private import ocean.io.select.protocol.serializer.chunks.ChunkDelegates;
+
 private import ocean.io.select.protocol.serializer.chunks.dest.model.IChunkDest;
 
-private import ocean.io.request.params.RequestParams;
+private import ocean.io.select.protocol.serializer.chunks.dest.model.ChunkDestType;
 
 debug private import tango.util.log.Trace;
 
@@ -34,7 +36,7 @@ debug private import tango.util.log.Trace;
 
 *******************************************************************************/
 
-class PairDelegateChunkDest : IChunkDest!(RequestParams.GetPairDg)
+class PairDelegateChunkDest : IChunkDest!(ChunkDelegates.GetPairDg)
 {
     /***************************************************************************
 
@@ -56,7 +58,7 @@ class PairDelegateChunkDest : IChunkDest!(RequestParams.GetPairDg)
     
     ***************************************************************************/
 
-    public void processArray ( RequestParams.GetPairDg output, uint id, void[] array )
+    public void processArray ( ChunkDelegates.GetPairDg output, void[] array )
     {
         this.array[this.array_index].length = array.length;
         this.array[this.array_index][] = array[];
@@ -67,7 +69,7 @@ class PairDelegateChunkDest : IChunkDest!(RequestParams.GetPairDg)
         {
             this.array_index = 0;
             
-            output(id, cast(char[])this.array[0], cast(char[])this.array[1]);
+            output(cast(char[])this.array[0], cast(char[])this.array[1]);
         }
     }
     

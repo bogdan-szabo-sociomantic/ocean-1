@@ -20,9 +20,11 @@ module ocean.io.select.protocol.serializer.chunks.dest.ValueDelegateChunkDest;
 
 *******************************************************************************/
 
+private import ocean.io.select.protocol.serializer.chunks.ChunkDelegates;
+
 private import ocean.io.select.protocol.serializer.chunks.dest.model.IChunkDest;
 
-private import ocean.io.request.params.RequestParams;
+private import ocean.io.select.protocol.serializer.chunks.dest.model.ChunkDestType;
 
 
 
@@ -32,7 +34,7 @@ private import ocean.io.request.params.RequestParams;
 
 *******************************************************************************/
 
-class ValueDelegateChunkDest : IChunkDest!(RequestParams.GetValueDg)
+class ValueDelegateChunkDest : IChunkDest!(ChunkDelegates.GetValueDg)
 {
     /***************************************************************************
 
@@ -44,9 +46,9 @@ class ValueDelegateChunkDest : IChunkDest!(RequestParams.GetValueDg)
     
     ***************************************************************************/
 
-    public void processArray ( RequestParams.GetValueDg output, uint id, void[] array )
+    public void processArray ( ChunkDelegates.GetValueDg output, void[] array )
     {
-        output(id, cast(char[])array);
+        output(cast(char[])array);
     }
 }
 

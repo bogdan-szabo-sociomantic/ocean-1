@@ -12,21 +12,21 @@
     
 *******************************************************************************/
 
-module dht.async.select.protocol.serializer.chunks.source.model.ChunkSource;
-
+module ocean.io.select.protocol.serializer.chunks.source.model.ChunkSource;
+/+
 /******************************************************************************
 
     Imports
 
  ******************************************************************************/
 
-private import ocean.io.request.params.RequestParams;
-
 private import ocean.io.select.protocol.serializer.chunks.source.model.IChunkSource,
                ocean.io.select.protocol.serializer.chunks.source.StreamChunkSource,
                ocean.io.select.protocol.serializer.chunks.source.DelegateChunkSource,
                ocean.io.select.protocol.serializer.chunks.source.BufferChunkSource,
                ocean.io.select.protocol.serializer.chunks.source.ListChunkSource;
+
+
 
 /***************************************************************************
 
@@ -54,14 +54,15 @@ template ChunkSourceType ( Input )
             alias BufferChunkSource!(T) ChunkSourceType;
         }
     }
-    else static if ( is(Input == RequestParams.PutValueDg) )
+    else static if ( is(Input == PutValueDg) )
     {
         alias DelegateChunkSource ChunkSourceType;
     }
     else
     {
-        static assert(is(Input == InputStream), typeof(this).stringof ~ " - unhandled array source type: " ~ Input.stringof );
+        static assert(is(Input == InputStream), "ChunkSourceType - unhandled array source type: " ~ Input.stringof );
         
         alias StreamChunkSource ChunkSourceType;
     }
 }
++/

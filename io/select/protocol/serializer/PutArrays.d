@@ -24,10 +24,14 @@ module ocean.io.select.protocol.serializer.model.PutArrays;
 
 *******************************************************************************/
 
+private import ocean.io.select.protocol.serializer.chunks.ChunkDelegates;
+
 private import ocean.io.select.protocol.serializer.chunks.source.model.IChunkSource,
                ocean.io.select.protocol.serializer.chunks.source.model.ChunkSourceType,
                ocean.io.select.protocol.serializer.chunks.model.IChunkSerializer,
                ocean.io.select.protocol.serializer.chunks.model.ChunkSerializerType;
+
+private import ocean.io.select.protocol.serializer.chunks.source.DelegateChunkSource;
 
 private import tango.math.Math: min;
 
@@ -62,7 +66,7 @@ debug private import tango.util.log.Trace;
 
 *******************************************************************************/
 
-class PutArrays ( Input, bool Compressed = false )
+class PutArrays ( bool Compressed = false )
 {
     /***************************************************************************
     
@@ -70,8 +74,9 @@ class PutArrays ( Input, bool Compressed = false )
         
     ***************************************************************************/
 
-    private ChunkSourceType!(Input) chunk_source;
+//    private ChunkSourceType!(Input) chunk_source;
 
+    private DelegateChunkSource chunk_source;
 
     /***************************************************************************
     
@@ -147,7 +152,7 @@ class PutArrays ( Input, bool Compressed = false )
 
     public this ( size_t output_buffer_length = DefaultOutputBufferLength )
     {
-        this.chunk_source = new ChunkSourceType!(Input);
+        this.chunk_source = new DelegateChunkSource;
         
         this.serializer = new ChunkSerializerType!(Compressed);
         
@@ -194,7 +199,6 @@ class PutArrays ( Input, bool Compressed = false )
         Receives and processes a single array
         
         Params:
-            id     = request identifier
             input  = data source (stream / buffer)
             data   = output buffer
             cursor = position through output buffer
@@ -204,10 +208,10 @@ class PutArrays ( Input, bool Compressed = false )
     
     ***************************************************************************/
     
-    public bool putSingleArray ( hash_t id, Input input, void[] data, ref ulong cursor )
+    public bool putSingleArray ( ChunkDelegates.PutValueDg input, void[] data, ref ulong cursor )
     {
         this.termination_mode = IChunkSerializer.ListTerminationMode.None;
-        return this.processArrayList(id, input, data, cursor, &this.processedOneArray);
+        return this.processArrayList(input, data, cursor, &this.processedOneArray);
     }
     
     
@@ -216,7 +220,6 @@ class PutArrays ( Input, bool Compressed = false )
         Receives and processes a list of arrays
     
         Params:
-            id     = request identifier
             input  = data source (stream / buffer)
             data   = output buffer
             cursor = position through output buffer
@@ -226,10 +229,10 @@ class PutArrays ( Input, bool Compressed = false )
     
     ***************************************************************************/
     
-    public bool putArrayList ( hash_t id, Input input, void[] data, ref ulong cursor )
+    public bool putArrayList ( ChunkDelegates.PutValueDg input, void[] data, ref ulong cursor )
     {
         this.termination_mode = IChunkSerializer.ListTerminationMode.List;
-        return this.processArrayList(id, input, data, cursor, &this.endOfList);
+        return this.processArrayList(input, data, cursor, &this.endOfList);
     }
     
     
@@ -245,7 +248,6 @@ class PutArrays ( Input, bool Compressed = false )
                finished.
             
         Params:
-            id        = request identifier
             input     = data source (stream / buffer)
             data      = output buffer
             cursor    = position through output buffer
@@ -256,8 +258,8 @@ class PutArrays ( Input, bool Compressed = false )
     
     ***************************************************************************/
 
-    private bool processArrayList ( hash_t id, Input input, void[] data, ref ulong cursor,
-                                    bool delegate ( Input input, void[] array ) finish_dg )
+    private bool processArrayList ( ChunkDelegates.PutValueDg input, void[] data, ref ulong cursor,
+                                    bool delegate ( ChunkDelegates.PutValueDg input, void[] array ) finish_dg )
     {
         do
         {
@@ -268,13 +270,13 @@ class PutArrays ( Input, bool Compressed = false )
                 break;
     
                 case State.StartArray:
-                    this.array_length_to_read = this.chunk_source.readArrayLength(id, input);
+                    this.array_length_to_read = this.chunk_source.readArrayLength(input);
                     this.state = State.ReadChunk;
                 break;
 
                 case State.ReadChunk:
                     this.chunk.length = min(this.array_length_to_read, this.output_buffer_length);
-                    this.chunk_source.getNextChunk(id, input, this.chunk);
+                    this.chunk_source.getNextChunk(input, this.chunk);
                     
                     if ( finish_dg(input, this.chunk) )
                     {
@@ -348,7 +350,7 @@ class PutArrays ( Input, bool Compressed = false )
     
     ***************************************************************************/
     
-    private bool processedOneArray ( Input input, void[] array )
+    private bool processedOneArray ( ChunkDelegates.PutValueDg input, void[] array )
     {
         return this.chunk_source.arrays_processed > 0;
     }
@@ -372,7 +374,7 @@ class PutArrays ( Input, bool Compressed = false )
     
     ***************************************************************************/
     
-    private bool endOfList ( Input input, void[] array )
+    private bool endOfList ( ChunkDelegates.PutValueDg input, void[] array )
     {
         return this.chunk_source.endOfList(input, array);
     }

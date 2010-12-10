@@ -22,14 +22,10 @@ module ocean.io.select.protocol.serializer.chunks.dest.model.ChunkDestType;
 
 ******************************************************************************/
 
-private import ocean.io.request.params.RequestParams;
+private import ocean.io.select.protocol.serializer.chunks.ChunkDelegates;
 
-private import ocean.io.select.protocol.serializer.chunks.dest.StreamChunkDest,
-               ocean.io.select.protocol.serializer.chunks.dest.BufferChunkDest,
-               ocean.io.select.protocol.serializer.chunks.dest.ValueDelegateChunkDest,
+private import ocean.io.select.protocol.serializer.chunks.dest.ValueDelegateChunkDest,
                ocean.io.select.protocol.serializer.chunks.dest.PairDelegateChunkDest;
-
-private import tango.io.model.IConduit: OutputStream;
 
 
 
@@ -54,23 +50,17 @@ template ChunkDestType ( Output )
     
     ***************************************************************************/
     
-        static if (is(Output == RequestParams.GetValueDg) )
-        {
-            alias ValueDelegateChunkDest ChunkDestType;
-        }
-        else static if (is(Output == RequestParams.GetPairDg) )
-        {
-            alias PairDelegateChunkDest ChunkDestType;
-        }
-        else static if ( is(Output T == T[]*) )
-        {
-            alias BufferChunkDest!(T) ChunkDestType;
-        }
-        else
-        {
-            static assert(is(Output == OutputStream), "ChunkDestType - unhandled array destination type: " ~ Output.stringof );
-            
-            alias StreamChunkDest ChunkDestType;
-        }
+    static if (is(Output == ChunkDelegates.GetValueDg) )
+    {
+        alias ValueDelegateChunkDest ChunkDestType;
+    }
+    else static if (is(Output == ChunkDelegates.GetPairDg) )
+    {
+        alias PairDelegateChunkDest ChunkDestType;
+    }
+    else
+    {
+        static assert(false, "ChunkDestType - unhandled array destination type: " ~ Output.stringof );
+    }
 }
 

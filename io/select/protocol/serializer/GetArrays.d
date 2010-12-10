@@ -29,6 +29,9 @@ private import ocean.io.select.protocol.serializer.chunks.dest.model.IChunkDest,
 
 private import ocean.io.select.protocol.serializer.chunks.ChunkDeserializer;
 
+private import ocean.io.select.protocol.serializer.chunks.dest.ValueDelegateChunkDest;
+private import ocean.io.select.protocol.serializer.chunks.dest.PairDelegateChunkDest;
+
 private import ocean.io.compress.lzo.LzoHeader;
 
 debug private import tango.util.log.Trace;
@@ -160,7 +163,6 @@ class GetArrays ( Output )
         Receives and processes a single array
         
         Params:
-            id        = request identifier
             output    = output data device (stream / buffer)
             data      = input buffer
             cursor    = position through input buffer
@@ -170,9 +172,9 @@ class GetArrays ( Output )
     
     ***************************************************************************/
     
-    public bool getSingleArray ( hash_t id, Output output, void[] data, ref ulong cursor )
+    public bool getSingleArray ( Output output, void[] data, ref ulong cursor )
     {
-        return this.processArrayList(id, output, data, cursor, &this.isEndOfFirstArray);
+        return this.processArrayList(output, data, cursor, &this.isEndOfFirstArray);
     }
     
     
@@ -190,9 +192,9 @@ class GetArrays ( Output )
     
     ***************************************************************************/
     
-    public bool getPair ( hash_t id, Output output, void[] data, ref ulong cursor )
+    public bool getPair ( Output output, void[] data, ref ulong cursor )
     {
-        return this.processArrayList(id, output, data, cursor, &this.isEndOfFirstPair);
+        return this.processArrayList(output, data, cursor, &this.isEndOfFirstPair);
     }
 
 
@@ -201,7 +203,6 @@ class GetArrays ( Output )
         Receives and processes a list of arrays
         
         Params:
-            id        = request identifier
             output    = output data device (stream / buffer)
             data      = input buffer
             cursor    = position through input buffer
@@ -211,9 +212,9 @@ class GetArrays ( Output )
     
     ***************************************************************************/
     
-    public bool getArrayList ( hash_t id, Output output, void[] data, ref ulong cursor )
+    public bool getArrayList ( Output output, void[] data, ref ulong cursor )
     {
-        return this.processArrayList(id, output, data, cursor, &this.isNull);
+        return this.processArrayList(output, data, cursor, &this.isNull);
     }
     
     
@@ -222,7 +223,6 @@ class GetArrays ( Output )
         Receives and processes a list of pairs
         
         Params:
-            id        = request identifier
             output    = output data device (stream / buffer)
             data      = input buffer
             cursor    = position through input buffer
@@ -232,9 +232,9 @@ class GetArrays ( Output )
     
     ***************************************************************************/
     
-    public bool getPairList ( hash_t id, Output output, void[] data, ref ulong cursor )
+    public bool getPairList ( Output output, void[] data, ref ulong cursor )
     {
-        return this.processArrayList(id, output, data, cursor, &this.isEndOfNullPair);
+        return this.processArrayList(output, data, cursor, &this.isEndOfNullPair);
     }
     
     
@@ -248,7 +248,6 @@ class GetArrays ( Output )
             4. Call the terminateList() method when finished.
     
         Params:
-            id        = request identifier
             output    = output data device (stream / buffer)
             data      = input buffer
             cursor    = position through input buffer
@@ -259,7 +258,7 @@ class GetArrays ( Output )
     
     ***************************************************************************/
     
-    private bool processArrayList ( hash_t id, Output output, void[] data, ref ulong cursor, bool delegate ( void[] ) finish_dg )
+    private bool processArrayList ( Output output, void[] data, ref ulong cursor, bool delegate ( void[] ) finish_dg )
     {
         void[] array;
 
@@ -285,7 +284,7 @@ class GetArrays ( Output )
                 break;
 
                 case ProcessArray:
-                    this.chunk_dest.processArray(output, id, array);
+                    this.chunk_dest.processArray(output, array);
 
                     if ( this.isEndOfArray(array) )
                     {

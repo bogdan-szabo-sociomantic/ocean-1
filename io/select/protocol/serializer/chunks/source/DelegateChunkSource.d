@@ -20,9 +20,11 @@ module ocean.io.select.protocol.serializer.chunks.source.DelegateChunkSource;
 
 *******************************************************************************/
 
+private import ocean.io.select.protocol.serializer.chunks.ChunkDelegates;
+
 private import ocean.io.select.protocol.serializer.chunks.source.model.IChunkSource;
 
-private import ocean.io.request.params.RequestParams;
+private import ocean.io.select.protocol.serializer.chunks.source.model.ChunkSourceType;
 
 private import ocean.core.Array;
 
@@ -36,7 +38,7 @@ debug private import tango.util.log.Trace;
 
 *******************************************************************************/
 
-class DelegateChunkSource : IChunkSource!(RequestParams.PutValueDg)
+class DelegateChunkSource : IChunkSource!(ChunkDelegates.PutValueDg)
 {
     /***************************************************************************
 
@@ -79,9 +81,9 @@ class DelegateChunkSource : IChunkSource!(RequestParams.PutValueDg)
     
     ***************************************************************************/
 
-    public size_t readArrayLength ( hash_t id, RequestParams.PutValueDg input )
+    public size_t readArrayLength ( ChunkDelegates.PutValueDg input )
     {
-        this.array.copy(input(id));
+        this.array.copy(input());
         return this.array.length;
     }
 
@@ -97,7 +99,7 @@ class DelegateChunkSource : IChunkSource!(RequestParams.PutValueDg)
     
     ***************************************************************************/
 
-    public void getNextChunk ( hash_t id, RequestParams.PutValueDg input, void[] chunk )
+    public void getNextChunk ( ChunkDelegates.PutValueDg input, void[] chunk )
     in
     {
         assert (this.array_cursor + chunk.length <= this.array.length,
@@ -127,8 +129,9 @@ class DelegateChunkSource : IChunkSource!(RequestParams.PutValueDg)
     
     ***************************************************************************/
 
-    public bool endOfList ( RequestParams.PutValueDg input, void[] array )
+    public bool endOfList ( ChunkDelegates.PutValueDg input, void[] array )
     {
         return array.length == 0;
     }
 }
+

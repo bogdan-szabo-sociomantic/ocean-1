@@ -35,7 +35,7 @@ abstract class IChunkDest ( Output )
     
     ***************************************************************************/
 
-    abstract public void processArray ( Output output, uint id, void[] array );
+    abstract public void processArray ( Output output, void[] array );
 
 
     /***************************************************************************

@@ -63,7 +63,7 @@ abstract class IChunkSource ( Input )
     
     ***************************************************************************/
 
-    abstract public size_t readArrayLength ( hash_t id, Input input );
+    abstract public size_t readArrayLength ( Input input );
 
 
     /***************************************************************************
@@ -76,7 +76,7 @@ abstract class IChunkSource ( Input )
     
     ***************************************************************************/
 
-    abstract public void getNextChunk ( hash_t id, Input input, void[] chunk );
+    abstract public void getNextChunk ( Input input, void[] chunk );
     
 
     /***************************************************************************
