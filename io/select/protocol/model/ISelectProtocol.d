@@ -210,7 +210,8 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     {
         this(conduit, dispatcher, this.DefaultBufferSize);
     }
-    
+
+
     /**************************************************************************
 
         Sets the chain of IOHandlers and the Session Finalizer
@@ -229,17 +230,35 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     {
         this.io_handlers = io_handlers.dup;
 
-        this.data.length = 0;
-        
         this.handler_index = 0;
         
         this.session_finalizer = session_finalizer;
         
-        this.dispatcher.register(this);
-        
         return this;
     }
-    
+
+
+    /**************************************************************************
+
+        Registers the chain of io handlers with the select dispatcher. The
+        internal data buffer is cleared (if you're just registering a new set of
+        io handlers, then any data in the buffer is just old junk).
+
+        Returns:
+            this instance
+
+     **************************************************************************/
+
+    public typeof(this) register ( )
+    {
+        this.data.length = 0;
+
+        this.dispatcher.register(this);
+
+        return this;
+    }
+
+
     /**************************************************************************
 
         Returns true if there are IOHandlers pending or false otherwise.
@@ -295,7 +314,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         
         do
         {
-            this.handle(conduit);
+            unfinished = this.handle(conduit);
             
             unfinished |= this.pending;
             
@@ -305,7 +324,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
             }
         }
         while (this.pending)
-            
+
         return unfinished;
     }
     
