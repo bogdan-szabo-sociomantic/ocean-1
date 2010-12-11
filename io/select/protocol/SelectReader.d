@@ -117,9 +117,6 @@ class SelectReader : ISelectProtocol
 
     protected bool handle ( ISelectable conduit )
     {
-        bool more      = false;
-        bool finalized = false;
-        
         if (super.endOfData)
         {
             super.pos = 0;
@@ -128,8 +125,6 @@ class SelectReader : ISelectProtocol
         }
         
         return super.invokeHandlers();
-        
-        return more;
     }
     
     /**************************************************************************
@@ -148,7 +143,7 @@ class SelectReader : ISelectProtocol
         
         super.data.length = this.receive(super.data, conduit);
         
-//        debug (Raw) Trace.formatln(">>> {:X2}", super.data);
+        debug (Raw) Trace.formatln(">>> {:X2}", super.data);
     }
     
     /**************************************************************************
