@@ -12,22 +12,22 @@ import ocean.io.select.model.IConnectionHandler;
 
 import tango.io.Stdout;
 
-class SelectListener ( T : IConnectionHandler ) : ISelectClient
+class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient
 {
     private IPv4Address address;
     
-    private ObjectPool!(T, SelectDispatcher, IConnectionHandler.FinalizeDg) receiver_pool;
+    private ObjectPool!(T, SelectDispatcher, IConnectionHandler.FinalizeDg, Args) receiver_pool;
     
     private SelectDispatcher dispatcher;
     
     this ( char[] address, ushort port, SelectDispatcher dispatcher,
-           int backlog = 32, bool reuse = true )
+           Args args, int backlog = 32, bool reuse = true )
     {
-        this(new IPv4Address(address, port), dispatcher, backlog, reuse);
+        this(new IPv4Address(address, port), dispatcher, args, backlog, reuse);
     }
 
     this ( IPv4Address address, SelectDispatcher dispatcher,
-           int backlog = 32, bool reuse = false )
+           Args args, int backlog = 32, bool reuse = false )
     {
         this.address    = address;
         this.dispatcher = dispatcher;
@@ -38,9 +38,14 @@ class SelectListener ( T : IConnectionHandler ) : ISelectClient
         
         super(socket);
         
-        this.receiver_pool = this.receiver_pool.newPool(dispatcher, &this.returnToPool);
+        this.receiver_pool = this.receiver_pool.newPool(dispatcher, &this.returnToPool, args);
         
         dispatcher.register(this);
+    }
+    
+    public void eventLoop ( )
+    {
+        this.dispatcher.eventLoop();
     }
     
     private void returnToPool ( IConnectionHandler connection )
@@ -68,7 +73,11 @@ class SelectListener ( T : IConnectionHandler ) : ISelectClient
         
         this.receiver_pool.get().assign((ISelectable conduit)
         {
-             (cast (ServerSocket) server_socket).accept(cast (Socket) conduit);
+            auto socket = cast (Socket) conduit;
+            
+             (cast (ServerSocket) server_socket).accept(socket);
+             
+             socket.socket.blocking = false;
         });
         
         Stderr.formatln("{}: accepted", i);
