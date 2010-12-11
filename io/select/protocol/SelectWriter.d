@@ -187,7 +187,7 @@ class SelectWriter : ISelectProtocol
     
      **************************************************************************/
 
-    debug (DhtClient) char[] id ( )
+    debug (ISelectClient) char[] id ( )
     {
         return this.ClassId;
     }

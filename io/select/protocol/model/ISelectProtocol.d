@@ -462,7 +462,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
 
      **************************************************************************/
     
-    debug (DhtClient) abstract char[] id ( ) ;
+    debug (ISelectClient) abstract char[] id ( ) ;
     
     /**************************************************************************
 

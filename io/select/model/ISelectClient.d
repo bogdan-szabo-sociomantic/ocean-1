@@ -82,7 +82,7 @@ abstract class ISelectClient
     final ISelectable conduit ( )
     in
     {
-        debug (DhtClient) assert (this.conduit_, this.id ~ ": no conduit");
+        debug (ISelectClient) assert (this.conduit_, this.id ~ ": no conduit");
         else  assert (this.conduit_, typeof (this).stringof ~ ": no conduit");
     }
     body
@@ -164,7 +164,7 @@ abstract class ISelectClient
     
      **************************************************************************/
 
-    debug (DhtClient) abstract char[] id ( );
+    debug (ISelectClient) abstract char[] id ( );
 }
 
 /******************************************************************************
