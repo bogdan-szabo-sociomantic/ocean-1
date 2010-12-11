@@ -291,15 +291,21 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     }
     body
     {
-        bool unfinished = this.handle(conduit);
+        bool unfinished;
         
-        unfinished |= this.pending;
-        
-        if (!unfinished)
+        do
         {
-            unfinished |= this.finalize();
+            this.handle(conduit);
+            
+            unfinished |= this.pending;
+            
+            if (!unfinished)
+            {
+                unfinished |= this.finalize();
+            }
         }
-        
+        while (this.pending)
+            
         return unfinished;
     }
     
@@ -331,14 +337,12 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         while (!more && this.pending)
         catch (IOHandlerException)
         {
-            // FIXME: Is the error callback invoked?
-            
             more = false;
             
             this.io_handlers.length = 0;
         }
             
-        return more || this.pending;
+        return more || this.pending; // TODO: || this.pending is probably unnecessary
     }
 
    /**************************************************************************
