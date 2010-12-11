@@ -167,7 +167,7 @@ class SelectWriter : ISelectProtocol
     }
     body
     {
-//        debug (Raw) Trace.formatln("<<< {:X2}", data);
+        debug (Raw) Trace.formatln("<<< {:X2}", data);
         
         size_t sent = conduit.write(data);
         
