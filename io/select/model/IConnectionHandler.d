@@ -1,3 +1,15 @@
+/******************************************************************************
+
+    Base class for a connection handler SelectListener
+
+    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
+
+    version:        December 2010: Initial release
+
+    authors:        David Eckardt
+
+ ******************************************************************************/
+
 module ocean.io.select.model.IConnectionHandler;
 
 import ocean.io.select.SelectDispatcher;
@@ -12,6 +24,8 @@ import tango.net.device.Socket;
 abstract class IConnectionHandler
 {
     alias void delegate ( typeof (this) ) FinalizeDg;
+    
+    alias .SelectDispatcher SelectDispatcher;
     
     private class Finalizer : IAdvancedSelectClient.IFinalizer
     {
