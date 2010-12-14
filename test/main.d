@@ -45,6 +45,8 @@ private import ocean.text.utf.UtfString;
 private import ocean.text.ling.ngram.NGramParser,
                ocean.text.ling.ngram.NGramSet;
 
+private import ocean.crypt.HMAC;
+
 
 
 /*******************************************************************************

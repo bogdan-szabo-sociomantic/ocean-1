@@ -136,6 +136,20 @@ class CompressException : Exception
 
 /******************************************************************************
 
+    HMAC Exception
+
+*******************************************************************************/
+
+class HMACException : Exception
+{
+    this ( char[] msg ) { super(msg); }
+    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+    
+    static mixin ExceptionOpCalls!(typeof (this));
+}
+
+/******************************************************************************
+
     MySQLException
 
 *******************************************************************************/
