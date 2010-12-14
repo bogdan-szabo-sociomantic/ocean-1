@@ -917,7 +917,7 @@ class HttpRequest
                 }
                 
                 assertEx!(RequestException.NotImplemented)
-                         (this.method in this.supported_methods);
+                         (this.method in this.supported_methods, "method not supported");
                 
                 switch (this.ver)
                 {
