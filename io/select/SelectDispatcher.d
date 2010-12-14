@@ -95,22 +95,22 @@ class SelectDispatcher
         Constructor
 
         Params:
-            selector = Selector instance to use. This instance is considered to
-                       be owned by the SelectDispatcher and deleted in the
-                       destructor; do not use it otherwise nor delete it.
-            size     = value that provides a hint for the maximum amount of
-                       conduits that will be registered
-            max      = value that provides a hint for the maximum amount of
-                       conduit events that will be returned in the selection set
-                       per call to select.
+            selector =   Selector instance to use. This instance is considered
+                         to be owned by the SelectDispatcher and deleted in the
+                         destructor; do not use it otherwise nor delete it.
+            size       = value that provides a hint for the maximum amount of
+                         conduits that will be registered
+            max_events = value that provides a hint for the maximum amount of
+                         conduit events that will be returned in the selection
+                         set per call to select.
 
      **************************************************************************/
 
-    this ( AbstractSelector selector, uint size, uint maxEvents )
+    this ( AbstractSelector selector, uint size, uint max_events )
     {
         this.selector = selector;
 
-        selector.open(size, maxEvents);
+        selector.open(size, max_events);
     }
 
     /***************************************************************************
