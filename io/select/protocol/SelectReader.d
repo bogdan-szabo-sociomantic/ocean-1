@@ -35,6 +35,10 @@ private import tango.io.model.IConduit:           ISelectable, InputStream;
 private import tango.core.Exception:              IOException;
 private import ocean.core.Exception:              assertEx;
 
+private import tango.stdc.errno;
+
+
+
 debug   private import tango.util.log.Trace;
 
 /******************************************************************************
@@ -97,7 +101,8 @@ class SelectReader : ISelectProtocol
 
     final Event events ( )
     {
-        return Event.Read;
+//        return Event.Read;
+        return cast(Event)(Event.Read | 0x2000); // FIXME: this is only a temporary fix until we have the EPOLLRDHUP event properly integrated
     }
     
     /**************************************************************************
@@ -120,7 +125,7 @@ class SelectReader : ISelectProtocol
         if (super.endOfData)
         {
             super.pos = 0;
-            
+
             this.receive(cast (InputStream) conduit);
         }
         
@@ -168,9 +173,24 @@ class SelectReader : ISelectProtocol
     body
     {
         size_t received = conduit.read(data);
-        
-        assertEx!(IOException)(received != conduit.Eof, this.ClassId ~ ": end of flow whilst reading");
-        
+
+        if ( received == conduit.Eof )
+        {
+            switch (errno)
+            {
+                case EAGAIN:
+                static if ( EAGAIN != EWOULDBLOCK )
+                {
+                    case EWOULDBLOCK:
+                }
+                    received = 0;
+                    break;
+
+                default:
+                    assertEx!(IOException)(false, this.ClassId ~ ": end of flow whilst reading");
+            }
+        }
+
         return received;
     }
     
