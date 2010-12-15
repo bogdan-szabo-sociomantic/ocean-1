@@ -80,13 +80,36 @@ abstract class ISelectProtocol : IAdvancedSelectClient
 {
     /**************************************************************************
 
+        Return status of io handler chain finalizer delegates.
+
+        0. Unregister =  The io handler chain is finished and should be
+            unregistered.
+
+        1. Select = Indicates that the io handler chain has not finished, and
+            needs more data (thus select must be called again).
+
+        2. Continue = Indicates that the io handler chain has finished but has
+            registered further io handlers which should immediately be given the
+            opportunity to process existing data before calling select again.
+
+     **************************************************************************/
+
+    enum FinalizerStatus
+    {
+        Unregister = 0,
+        Select = 1, 
+        Continue = 2 
+    }
+    
+    /**************************************************************************
+
         Callback delegate alias type definitions
 
      **************************************************************************/
     
     alias bool delegate ( void[] data, ref ulong cursor ) IOHandler;
     
-    alias bool delegate ( ) FinalizeDg;
+    alias FinalizerStatus delegate ( ) FinalizeDg;
     
     /**************************************************************************
 
@@ -224,6 +247,8 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         Returns:
             this instance
     
+		TODO: use ocean.core.Array : copy instead of dup
+
      **************************************************************************/
     
     public typeof (this) setIOHandlers ( IOHandler[] io_handlers, FinalizeDg session_finalizer = null )
@@ -257,7 +282,6 @@ abstract class ISelectProtocol : IAdvancedSelectClient
 
         return this;
     }
-
 
     /**************************************************************************
 
@@ -302,7 +326,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
             should be left unchanged or false to unregister the Conduit. 
     
      **************************************************************************/
-
+        
     final bool handle ( ISelectable conduit, Event events_in )
     in
     {
@@ -310,22 +334,17 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     }
     body
     {
-        bool unfinished;
-        
+        FinalizerStatus status;
+
         do
         {
-            unfinished = this.handle(conduit);
+            bool more = this.handle(conduit) || this.pending;
             
-            unfinished |= this.pending;
-            
-            if (!unfinished)
-            {
-                unfinished |= this.finalize();
-            }
+            status = more ? status.Select : this.finalize();
         }
-        while (this.pending)
+        while (status == status.Continue)
 
-        return unfinished;
+        return status != status.Unregister;
     }
     
     /**************************************************************************
@@ -442,14 +461,14 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     
      **************************************************************************/
 
-    private bool finalize ( )
+    private FinalizerStatus finalize ( )
     {
         bool have_finalizer = !!this.session_finalizer;
         
         this.handler_index      = 0;
         this.io_handlers.length = 0;
 
-        return have_finalizer? this.session_finalizer() : false;
+        return have_finalizer? this.session_finalizer() : FinalizerStatus.Unregister;
     }
     
     
