@@ -285,6 +285,25 @@ abstract class ISelectProtocol : IAdvancedSelectClient
 
     /**************************************************************************
 
+        Unregisters the chain of io handlers with the select dispatcher. The
+        internal data buffer is cleared.
+
+        Returns:
+            this instance
+
+     **************************************************************************/
+
+    public typeof(this) unregister ( )
+    {
+        this.data.length = 0;
+
+        this.dispatcher.unregister(this);
+
+        return this;
+    }
+
+    /**************************************************************************
+
         Returns true if there are IOHandlers pending or false otherwise.
         
         Returns:
@@ -342,7 +361,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
             
             status = more ? status.Select : this.finalize();
         }
-        while (status == status.Continue)
+        while (status == status.Continue);
 
         return status != status.Unregister;
     }
