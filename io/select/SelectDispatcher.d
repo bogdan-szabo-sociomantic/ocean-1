@@ -258,7 +258,7 @@ class SelectDispatcher
             this instance
         
         Throws:
-            SocketException if key is in an erraneous state or on selection
+            SocketException if key is in an erroneous state or on selection
             timeout
         
      **************************************************************************/
@@ -268,16 +268,16 @@ class SelectDispatcher
         while (this.selector.count())
         {
             int event_count = this.selector.select(this.timeout_);
-
             assertEx!(SocketException)(event_count > 0, "select timeout");
+
             foreach (key; this.selector.selectedSet())
             {
                 bool unregister_key = false;
                 
                 ISelectClient client = cast (ISelectClient) key.attachment;
-                
+
                 version (SelectSelect) scope (exit) if (!this.registry.length) break; // FIXME: required for SelectSelect not to crash
-                
+
                 try
                 {
                     this.checkKeyError(key);
@@ -324,6 +324,8 @@ class SelectDispatcher
             assertEx!(SocketException)(!key.isInvalidHandle(), "socket: invalid handle");
             assertEx!(SocketException)(!key.isError(),         "socket error");
         }
+
+        assertEx!(SocketException)((key.events & 0x2000) == 0, "socket hung up on read");
     }
     
     /***************************************************************************
