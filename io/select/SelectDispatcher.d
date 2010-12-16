@@ -37,9 +37,14 @@ module ocean.io.select.SelectDispatcher;
 
 private import tango.core.Exception: SocketException;
 
+import tango.io.selector.EpollSelector;
+
+
 private import tango.io.selector.AbstractSelector;
 private import tango.io.selector.model.ISelector: Event, SelectionKey;
 private import tango.io.model.IConduit: ISelectable;
+
+private import tango.sys.linux.epoll: EPOLLONESHOT, EPOLLET;
 
 private import tango.time.Time: TimeSpan;
 
@@ -47,7 +52,7 @@ private import ocean.io.select.model.ISelectClient;
 
 private import ocean.core.Exception: assertEx;
 
-debug   import tango.util.log.Trace;
+debug (ISelectClient) import tango.util.log.Trace;
 
 /*******************************************************************************
 
@@ -55,7 +60,7 @@ debug   import tango.util.log.Trace;
 
  ******************************************************************************/
 
-class SelectDispatcher
+deprecated class SelectDispatcher
 {
     /***************************************************************************
 
@@ -80,15 +85,6 @@ class SelectDispatcher
      **************************************************************************/
 
     private TimeSpan timeout_ = TimeSpan.max;
-
-    /***************************************************************************
-
-        Workaround to avoid crashes when using a SelectSelect; used in
-        dispatch() below
-
-     **************************************************************************/
-
-    version (SelectSelect) private bool[ISelectable.Handle] registry;
 
     /***************************************************************************
 
@@ -215,12 +211,15 @@ class SelectDispatcher
 
      **************************************************************************/
 
-    public This register ( ISelectClient client )
+    public This register ( ISelectClient client, bool one_shot = false )
     {
         this.selector.register( client.conduit,
                                 client.events   |
                                 Event.Hangup    |
                                 Event.Error     |
+                                
+                                cast (Event) (EPOLLONESHOT * one_shot) |
+                                
                                 Event.InvalidHandle,
                                 cast (Object) client);
 
@@ -276,7 +275,7 @@ class SelectDispatcher
                 
                 ISelectClient client = cast (ISelectClient) key.attachment;
 
-                version (SelectSelect) scope (exit) if (!this.registry.length) break; // FIXME: required for SelectSelect not to crash
+                debug (ISelectClient) Trace.formatln("{}: {:X8}", client.id, key.events);
 
                 try
                 {
@@ -286,6 +285,8 @@ class SelectDispatcher
                 }
                 catch (Exception e)
                 {
+                    debug (ISelectClient) Trace.formatln("{}: {}", client.id, e.msg);
+                    
                     client.error(e, key.events);
                     
                     unregister_key = true;
@@ -294,8 +295,6 @@ class SelectDispatcher
                 {
                     this.selector.unregister(key.conduit);
 
-                    version (SelectSelect) this.registry.remove(key.conduit.fileHandle);
-                    
                     client.finalize();
                 }
             }

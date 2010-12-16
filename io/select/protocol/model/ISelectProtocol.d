@@ -62,9 +62,9 @@ module ocean.io.select.protocol.model.ISelectProtocol;
 
 private import ocean.io.select.model.ISelectClient;
 
-private import ocean.io.select.SelectDispatcher;
+private import ocean.io.select.EpollSelectDispatcher;
 
-private import ISelect = tango.io.selector.model.ISelector: Event;
+//private import ISelect = tango.io.selector.model.ISelector: Event;
 
 private import tango.io.model.IConduit: ISelectable, IConduit;
 
@@ -170,7 +170,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     
      **************************************************************************/
 
-    private   SelectDispatcher dispatcher;
+    private   EpollSelectDispatcher dispatcher;
     
     /**************************************************************************
 
@@ -207,7 +207,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     
      **************************************************************************/
 
-    protected this ( ISelectable conduit, SelectDispatcher dispatcher, size_t buffer_size )
+    protected this ( ISelectable conduit, EpollSelectDispatcher dispatcher, size_t buffer_size )
     {
         super(conduit);
         
@@ -229,7 +229,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     
      **************************************************************************/
 
-    protected this ( ISelectable conduit, SelectDispatcher dispatcher )
+    protected this ( ISelectable conduit, EpollSelectDispatcher dispatcher )
     {
         this(conduit, dispatcher, this.DefaultBufferSize);
     }
@@ -346,10 +346,10 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     
      **************************************************************************/
         
-    final bool handle ( ISelectable conduit, Event events_in )
+    final bool handle ( Event events_in )
     in
     {
-        assert (events_in & this.events(), typeof (this).stringof ~ ".handle: wrong events");
+        assert (events_in & this.events, typeof (this).stringof ~ ".handle: wrong events");
     }
     body
     {
@@ -357,7 +357,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
 
         do
         {
-            bool more = this.handle(conduit) || this.pending;
+            bool more = this.handle() || this.pending;
             
             status = more ? status.Select : this.finalize();
         }
@@ -415,7 +415,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     
     **************************************************************************/
 
-    abstract protected bool handle ( ISelectable conduit );
+    abstract protected bool handle ( );
     
     /**************************************************************************
 

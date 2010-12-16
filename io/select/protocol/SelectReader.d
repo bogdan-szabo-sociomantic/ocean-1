@@ -26,7 +26,7 @@ module ocean.io.select.protocol.SelectReader;
 
 private import ocean.io.select.protocol.model.ISelectProtocol;
 
-private import ocean.io.select.SelectDispatcher;
+private import ocean.io.select.EpollSelectDispatcher;
 
 private import tango.io.selector.model.ISelector: Event;
 
@@ -68,7 +68,7 @@ class SelectReader : ISelectProtocol
     
      **************************************************************************/
     
-    public this ( ISelectable conduit, SelectDispatcher dispatcher, size_t buffer_size )
+    public this ( ISelectable conduit, EpollSelectDispatcher dispatcher, size_t buffer_size )
     {
         super(conduit, dispatcher, buffer_size);
     }
@@ -83,7 +83,7 @@ class SelectReader : ISelectProtocol
     
      **************************************************************************/
     
-    public this ( ISelectable conduit, SelectDispatcher dispatcher )
+    public this ( ISelectable conduit, EpollSelectDispatcher dispatcher )
     {
         super(conduit, dispatcher);
     }
@@ -101,8 +101,8 @@ class SelectReader : ISelectProtocol
 
     final Event events ( )
     {
-//        return Event.Read;
-        return cast(Event)(Event.Read | 0x2000); // FIXME: this is only a temporary fix until we have the EPOLLRDHUP event properly integrated
+        return Event.Read | Event.ReadHangup;
+//        return cast(Event)(Event.Read | 0x2000); // FIXME: this is only a temporary fix until we have the EPOLLRDHUP event properly integrated
     }
     
     /**************************************************************************
@@ -120,13 +120,13 @@ class SelectReader : ISelectProtocol
      
      **************************************************************************/
 
-    protected bool handle ( ISelectable conduit )
+    protected bool handle ( )
     {
         if (super.endOfData)
         {
             super.pos = 0;
 
-            this.receive(cast (InputStream) conduit);
+            this.receive(cast (InputStream) super.conduit);
         }
         
         return super.invokeHandlers();

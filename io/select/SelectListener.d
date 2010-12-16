@@ -66,9 +66,9 @@ module ocean.io.select.SelectListener;
 
  ******************************************************************************/
 
-import ocean.io.select.SelectDispatcher;
-import ocean.io.select.model.ISelectClient,
-       ocean.io.select.model.IConnectionHandler;
+private import ocean.io.select.EpollSelectDispatcher,
+               ocean.io.select.model.ISelectClient,
+               ocean.io.select.model.IConnectionHandler;
 
 import ocean.core.ObjectPool;
 
@@ -96,7 +96,7 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient
     
      **************************************************************************/
 
-    private SelectDispatcher dispatcher;
+    private EpollSelectDispatcher dispatcher;
     
     /**************************************************************************
 
@@ -104,7 +104,7 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient
     
      **************************************************************************/
 
-    private ObjectPool!(T, SelectDispatcher,
+    private ObjectPool!(T, EpollSelectDispatcher,
                         IConnectionHandler.FinalizeDg, Args) receiver_pool;
     
     /**************************************************************************
@@ -123,7 +123,7 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient
         
      **************************************************************************/
 
-    this ( char[] address, ushort port, SelectDispatcher dispatcher,
+    this ( char[] address, ushort port, EpollSelectDispatcher dispatcher,
            Args args, int backlog = 32, bool reuse = true )
     {
         this(new IPv4Address(address, port), dispatcher, args, backlog, reuse);
@@ -144,7 +144,7 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient
         
      **************************************************************************/
 
-    this ( IPv4Address address, SelectDispatcher dispatcher,
+    this ( IPv4Address address, EpollSelectDispatcher dispatcher,
            Args args, int backlog = 32, bool reuse = true )
     {
         this.dispatcher = dispatcher;
@@ -212,20 +212,15 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient
     
      **************************************************************************/
 
-    public bool handle ( ISelectable server_socket, Event event )
-    in
+    public bool handle ( Event event )
     {
-        assert (conduit is super.conduit);
-    }
-    body
-    {
-        this.receiver_pool.get().assign((ISelectable conduit)
+        this.receiver_pool.get().assign((ISelectable connection_conduit)
         {
-             Socket socket = cast (Socket) conduit;
+             Socket connection_socket = cast (Socket) connection_conduit;
             
-             (cast (ServerSocket) server_socket).accept(socket);
+             (cast (ServerSocket) super.conduit).accept(connection_socket);
              
-             socket.socket.blocking = false;
+             connection_socket.socket.blocking = false;
         });
         
         return true;

@@ -26,7 +26,7 @@ module ocean.io.protocol.SelectWriter;
 
 private import ocean.io.select.protocol.model.ISelectProtocol;
 
-private import ocean.io.select.SelectDispatcher;
+private import ocean.io.select.EpollSelectDispatcher;
 
 private import tango.io.model.IConduit:           ISelectable, OutputStream;
 
@@ -72,7 +72,7 @@ class SelectWriter : ISelectProtocol
     
      **************************************************************************/
 
-    public this ( ISelectable conduit, SelectDispatcher dispatcher, size_t buffer_size )
+    public this ( ISelectable conduit, EpollSelectDispatcher dispatcher, size_t buffer_size )
     {
         super(conduit, dispatcher, buffer_size);
     }
@@ -87,7 +87,7 @@ class SelectWriter : ISelectProtocol
     
      **************************************************************************/
 
-    public this ( ISelectable conduit, SelectDispatcher dispatcher )
+    public this ( ISelectable conduit, EpollSelectDispatcher dispatcher )
     {
         super(conduit, dispatcher);
     }
@@ -123,7 +123,7 @@ class SelectWriter : ISelectProtocol
      
      **************************************************************************/
 
-    protected bool handle ( ISelectable conduit )
+    protected bool handle ( )
     {
         bool more      = false;
         
@@ -142,7 +142,8 @@ class SelectWriter : ISelectProtocol
         
         super.data.length = super.pos;
         
-        this.send_pos += this.send(super.data[this.send_pos .. $], cast (OutputStream) conduit);
+        this.send_pos += this.send(super.data[this.send_pos .. $],
+                                   cast (OutputStream) super.conduit);
         
         return more || (this.send_pos < super.data.length);
     }

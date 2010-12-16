@@ -27,8 +27,16 @@ module ocean.io.select.model.ISelectClient;
 
  ******************************************************************************/
 
-private import tango.io.selector.model.ISelector: Event;
-private import tango.io.model.IConduit:           ISelectable;
+//private import ocean.io.select.epoll.Epoll;
+
+private import tango.sys.linux.epoll: EPOLLIN, EPOLLOUT, EPOLLPRI,
+                                      EPOLLONESHOT, EPOLLET,
+                                      EPOLLHUP, EPOLLERR;
+
+private const EPOLLRDHUP = 0x2000;
+
+
+private import tango.io.model.IConduit: ISelectable;
 
 /******************************************************************************
 
@@ -38,8 +46,22 @@ private import tango.io.model.IConduit:           ISelectable;
 
 abstract class ISelectClient
 {
-    alias .Event       Event;
     alias .ISelectable ISelectable;
+    
+    enum Event
+    {
+        None            = 0,
+        Read            = EPOLLIN,
+        UrgentRead      = EPOLLPRI,
+        Write           = EPOLLOUT,
+        EdgeTriggered   = EPOLLET,
+        OneShot         = EPOLLONESHOT,
+        ReadHangup      = EPOLLRDHUP,
+        Hangup          = EPOLLHUP,
+        Error           = EPOLLERR
+    }
+
+    public bool registered = false;
     
     /**************************************************************************
 
@@ -131,7 +153,7 @@ abstract class ISelectClient
     
      **************************************************************************/
 
-    abstract bool handle ( ISelectable conduit, Event event );
+    abstract bool handle ( Event event );
     
     /**************************************************************************
 
@@ -247,7 +269,7 @@ abstract class IAdvancedSelectClient : ISelectClient
         alias eventFlagsSetT!(Event.Write)         write;
         alias eventFlagsSetT!(Event.Error)         error;
         alias eventFlagsSetT!(Event.Hangup)        hangup;
-        alias eventFlagsSetT!(Event.InvalidHandle) invalid_handle;
+        alias eventFlagsSetT!(Event.ReadHangup)    read_hangup;
     }
     
     /**************************************************************************/

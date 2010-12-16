@@ -12,20 +12,25 @@
 
 module ocean.io.select.model.IConnectionHandler;
 
-import ocean.io.select.SelectDispatcher;
-import ocean.io.select.protocol.SelectReader,
-       ocean.io.select.protocol.SelectWriter;
+version (NewSelectProtocol) import ocean.io.select.protocol.SelectProtocol;
+else                        import ocean.io.select.protocol.SelectReader,
+                                   ocean.io.select.protocol.SelectWriter;
 
+import ocean.io.select.EpollSelectDispatcher;
+    
 import ocean.io.select.model.ISelectClient : IAdvancedSelectClient;
 
-import tango.net.device.Socket;
+import tango.net.device.Socket: Socket;
 
+import tango.io.model.IConduit: ISelectable;
 
 abstract class IConnectionHandler
 {
+    alias .ISelectable    ISelectable;
+    
     alias void delegate ( typeof (this) ) FinalizeDg;
     
-    alias .SelectDispatcher SelectDispatcher;
+    alias .EpollSelectDispatcher EpollSelectDispatcher;
     
     private class Finalizer : IAdvancedSelectClient.IFinalizer
     {
@@ -42,22 +47,42 @@ abstract class IConnectionHandler
         }
     }
     
-    protected SelectReader reader;
-    protected SelectWriter writer;
+    version (NewSelectProtocol)
+    {
+        alias .SelectProtocol SelectProtocol;
+        
+        protected SelectProtocol protocol;
+    }
+    else
+    {
+        alias .SelectReader SelectReader;
+        alias .SelectWriter SelectWriter;
+        
+        protected SelectReader reader;
+        protected SelectWriter writer;
+    }
     
-    this ( SelectDispatcher dispatcher, FinalizeDg finalize_dg )
+    this ( EpollSelectDispatcher dispatcher, FinalizeDg finalize_dg )
     {
         Socket socket = new Socket;
         
         socket.socket.blocking = false;
         
-        Finalizer finalizer = new Finalizer(finalize_dg);
-        
-        this.reader = new SelectReader(socket, dispatcher);
-        this.writer = new SelectWriter(socket, dispatcher);
-        
-        this.reader.finalizer = finalizer;
-        this.writer.finalizer = finalizer;
+        version (NewSelectProtocol)
+        {
+            this.protocol = new SelectProtocol(socket, dispatcher);
+            this.protocol.finalizer = new Finalizer(finalize_dg);
+        }
+        else
+        {
+            Finalizer finalizer = new Finalizer(finalize_dg);
+            
+            this.reader = new SelectReader(socket, dispatcher);
+            this.writer = new SelectWriter(socket, dispatcher);
+            
+            this.reader.finalizer = finalizer;
+            this.writer.finalizer = finalizer;
+        }
     }
     
     abstract typeof (this) assign ( void delegate ( ISelectable ) );
