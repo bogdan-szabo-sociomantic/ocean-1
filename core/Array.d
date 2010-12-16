@@ -57,7 +57,7 @@ module ocean.core.Array;
 
 ********************************************************************************/
 
-size_t concat ( T ) ( ref T[] dest, T[][] arrays ... )
+T[] concat ( T ) ( ref T[] dest, T[][] arrays ... )
 {
 	size_t total_len;
 	foreach ( array; arrays )
@@ -74,7 +74,7 @@ size_t concat ( T ) ( ref T[] dest, T[][] arrays ... )
 		write_slice = write_slice[array.length .. $];
 	}
 
-	return total_len;
+	return dest;
 }
 
 
@@ -103,7 +103,7 @@ size_t concat ( T ) ( ref T[] dest, T[][] arrays ... )
 
 *******************************************************************************/
 
-size_t append ( T ) ( ref T[] dest, T[][] arrays ... )
+T[] append ( T ) ( ref T[] dest, T[][] arrays ... )
 {
 	size_t total_len;
 	foreach ( array; arrays )
@@ -145,10 +145,12 @@ size_t append ( T ) ( ref T[] dest, T[][] arrays ... )
 
 *******************************************************************************/
 
-void copy ( T ) ( ref T[] dest, T[] src )
+T[] copy ( T ) ( ref T[] dest, T[] src )
 {
     dest.length = src.length;
     dest[] = src[];
+    
+    return dst;
 }
 
 
@@ -173,10 +175,12 @@ void copy ( T ) ( ref T[] dest, T[] src )
 
 *******************************************************************************/
 
-void appendCopy ( T ) ( ref T[][] dest, T[] src )
+T[] appendCopy ( T ) ( ref T[][] dest, T[] src )
 {
     dest.length = dest.length + 1;
     dest[$ - 1].copy(src);
+    
+    return dst;
 }
 
 
