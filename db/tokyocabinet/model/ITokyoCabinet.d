@@ -80,8 +80,8 @@ abstract class ITokyoCabinet ( TCDB, alias tcdbforeach )
     
     extern (C) private alias bool function ( TCDB* hdb, void* key, int ksiz, 
                                                         void* val, int vsiz ) TcPutFunc;
-    
-    
+
+
     /**************************************************************************
     
         "foreach" iterator over key/value pairs of records in database. The
@@ -285,8 +285,8 @@ abstract class ITokyoCabinet ( TCDB, alias tcdbforeach )
     means for 'foreach' iteration over the Tokyo Cabinet database. The iteration
     variables are key and value, both of type char[].
     
-    Essentially, TcDbIterator invokes tcdbforeach(), adapting the D 'foreach'
-    delegate to the callback function reference of tcdbforeach().
+    Essentially, TokyoCabinetIterator invokes tcdbforeach(), adapting the D
+    'foreach' delegate to the callback function reference of tcdbforeach().
     
     The provided functionality should be reentrant/thread-safe.
     
