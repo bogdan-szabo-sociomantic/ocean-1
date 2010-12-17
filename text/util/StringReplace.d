@@ -80,7 +80,7 @@ class StringReplace ( bool wide_char = false )
     
      **************************************************************************/
     
-    public alias size_t delegate ( Char[] pattern, out Char[] replacement ) Decoder;
+    public alias size_t delegate ( Char[] pattern, ref Char[] replacement ) Decoder;
     
     
     /**************************************************************************
@@ -91,6 +91,7 @@ class StringReplace ( bool wide_char = false )
     
     private size_t[] items;
     
+    private Char[] replacement;
     
     /**************************************************************************
     
@@ -505,13 +506,13 @@ class StringReplace ( bool wide_char = false )
         
         foreach (i, next; this.items[1 .. $])
         {
-            Char[] replacement;
-            
             auto dst_pos      = item - distance;
             
-            auto replaced     = decode(content[item .. $], replacement); // invoke delegate
+            this.replacement.length = 0;
             
-            auto len          = replacement.length;
+            auto replaced     = decode(content[item .. $], this.replacement); // invoke delegate
+            
+            auto len          = this.replacement.length;
             
             auto inter_length = next - item - replaced;
             
@@ -519,7 +520,7 @@ class StringReplace ( bool wide_char = false )
             assert (dst_pos + replaced <= content.length, "StringReplace: replaced string exceeds content");
             assert (replaced           <= next - item,    "StringReplace: replaced string hits next occurrence");
             
-            content[dst_pos .. dst_pos + len] = replacement.dup;
+            content[dst_pos .. dst_pos + len] = this.replacement[];
             
             StringSearch_.shiftString(content, item - distance + len, item + replaced, inter_length);
             
