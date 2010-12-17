@@ -220,7 +220,8 @@ class TokyoCabinetM
     
     /**************************************************************************
     
-        Begins an iteration, getting the key of first record in the database.
+        Gets the key of first record in the database. (The database's internal
+        iteration position is reset to the first record.)
     
         Params:
             key   = record key output
