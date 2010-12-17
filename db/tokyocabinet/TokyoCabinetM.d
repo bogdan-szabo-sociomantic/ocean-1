@@ -22,14 +22,19 @@ module ocean.db.tokyocabinet.TokyoCabinetM;
 
 private     import  ocean.db.tokyocabinet.model.ITokyoCabinet: TokyoCabinetIterator;
 
+private     import  ocean.core.Array;
+
 private     import  ocean.db.tokyocabinet.c.tcmdb:
                         TCMDB,
                         tcmdbnew,   tcmdbnew2,     tcmdbvanish, tcmdbdel,
                         tcmdbput,   tcmdbputkeep,  tcmdbputcat,
                         tcmdbget,   tcmdbforeach,
-                        tcmdbout,   tcmdbrnum,     tcmdbmsiz,   tcmdbvsiz;
+                        tcmdbout,   tcmdbrnum,     tcmdbmsiz,   tcmdbvsiz,
+                        tcmdbiterinit, tcmdbiterinit2, tcmdbiternext;
 
 private     import  tango.stdc.stdlib: free;
+
+debug private import tango.util.log.Trace;
 
 /*******************************************************************************
 
@@ -195,6 +200,8 @@ class TokyoCabinetM
 
     public bool get ( char[] key, ref char[] value )
     {
+        value.length = 0;
+
         int len;
         
         void* value_ = cast (void*) tcmdbget(this.db, key.ptr, key.length, &len); 
@@ -203,14 +210,65 @@ class TokyoCabinetM
         
         if (found)
         {
-            value = (cast (char*) value_)[0 .. len].dup;
-            
+            value.copy((cast(char*) value_)[0 .. len]);
+
             free(value_);
         }
         
         return found;
     }
     
+    /**************************************************************************
+    
+        Begins an iteration, getting the key of first record in the database.
+    
+        Params:
+            key   = record key output
+    
+        Returns
+            true on success or false if record not existing
+
+    ***************************************************************************/
+
+    public bool getFirstKey ( ref char[] key )
+    {
+        tcmdbiterinit(this.db);
+        return iterateNextKey(key);
+    }
+
+    /**************************************************************************
+
+        Iterates from the given key, getting the key of next record in the
+        database.
+
+        Params:
+            last_key = key to iterate from
+            key      = record key output
+
+        Returns
+            true on success or false if record not existing
+
+    ***************************************************************************/
+
+    public bool getNextKey ( char[] last_key, ref char[] key )
+    {
+        key.length = 0;
+
+        if ( exists(last_key) )
+        {
+            tcmdbiterinit2(this.db, last_key.ptr, last_key.length);
+            if ( !iterateNextKey(key) )
+            {
+                return false;
+            }
+            return iterateNextKey(key);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     /**************************************************************************
     
         Tells whether a record exists
@@ -315,6 +373,37 @@ class TokyoCabinetM
         TcIterator.tcdbopapply(this.db, delg, result);
         
         return result;
+    }
+
+    /**************************************************************************
+
+        Iterates from the current iteration position, getting the key of next
+        record in the database.
+    
+        Params:
+            key      = record key output
+    
+        Returns
+            true on success or false if record not existing
+    
+    ***************************************************************************/
+    
+    private bool iterateNextKey ( ref char[] key )
+    {
+        int len;
+    
+        void* key_ = cast(void*)tcmdbiternext(this.db, &len); 
+    
+        bool found = !!key_;
+    
+        if (found)
+        {
+            key.copy((cast(char*)key_)[0 .. len]);
+    
+            free(key_);
+        }
+    
+        return found;
     }
 }
 
