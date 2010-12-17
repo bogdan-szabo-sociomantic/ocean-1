@@ -1,17 +1,18 @@
 /*******************************************************************************
 
-    Class for array put forwarding. Receives arrays one by one from a variety of
-    sources (streams, buffers, lists), splits them into chunks and processes
-    them (possibly with compression), writing to a data output buffer.
+    Class for array put forwarding. Receives arrays one by one from a delegate,
+    splits them into chunks and processes them (possibly with compression),
+    writing to a data output buffer.
 
-    Puts single arrays and lists of arrays.
+    Puts single arrays, pairs of arrays, lists of arrays and lists of pairs.
 
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     version:        August 2010: Initial release
-    
+                    December 2010: Only reads from delegates
+
     authors:        Gavin Norman
-    
+
 *******************************************************************************/
 
 module ocean.io.select.protocol.serializer.model.PutArrays;
@@ -42,25 +43,22 @@ debug private import tango.util.log.Trace;
 /*******************************************************************************
 
     Put arrays class.
-
+    
     Template params:
-        Input = input device type, typically an InputStream or a buffer
         Compressed = write compressed / uncompressed data?
     
-    Gets arrays from the input device (using a class derived from IChunkSource),
-    and splits them into chunks (with a maximum size). The input arrays are
-    chunked in this manner to:
+    Gets arrays from an input delegate, and splits them into chunks (with a
+    maximum size). The input arrays are chunked in this manner to:
 
         1. Minimize buffering.
         2. Enable compression, which needs to work with chunks.
 
-    Each chunk is processed and output is written to the output buffer by an
-    instance of a class derived from IChunkSerializer.
+    Each chunk is processed and written to the output buffer by an instance of a
+    class derived from IChunkSerializer.
     
-    Note: Reading from the input device will always succeed (as it's either a
-    variable in memory or a socket, which will block until the data is
-    received).
-    
+    Note: Reading from the input device will always succeed (as it's just a
+    delegate which provides the array to process).
+
     On the other hand, writing to the output buffer must be interruptable /
     resumable, as we may have to write half variables.
 
@@ -70,41 +68,49 @@ class PutArrays ( bool Compressed = false )
 {
     /***************************************************************************
     
-        Source of arrays to process
-        
-    ***************************************************************************/
-
-//    private ChunkSourceType!(Input) chunk_source;
-
-    private DelegateChunkSource chunk_source;
-
-    /***************************************************************************
-    
-        Chunk buffer (slice into the chunk stored in chunk_source)
+        Chunk buffer (slice into the chunk passed by input delegate).
     
     ***************************************************************************/
-
-    private void[] chunk;
+    
+    private char[] chunk;
 
 
     /***************************************************************************
     
-        Chunk serializer
+        Count of the number of arrays processed since the last call to reset().
     
     ***************************************************************************/
 
+    private uint arrays_processed;
+
+
+    /***************************************************************************
+    
+        The last value of arrays_processed where the chunk being processed was
+        null.
+    
+    ***************************************************************************/
+    
+    private uint last_null_array;
+
+
+    /***************************************************************************
+    
+        Asynchronous chunk serializer, may provide compression.
+    
+    ***************************************************************************/
+    
     private IChunkSerializer serializer;
 
 
     /***************************************************************************
     
-        Processing state
+        Processing state.
     
     ***************************************************************************/
     
     enum State
     {
-        Initial,
         StartArray,
         ReadChunk,
         ProcessChunk,
@@ -117,14 +123,24 @@ class PutArrays ( bool Compressed = false )
     
     /***************************************************************************
     
-        Maximum size of chunk to receive and process
+        Maximum size of chunk to receive and process.
     
     ***************************************************************************/
     
     const size_t DefaultOutputBufferLength = 1024;
     
     private size_t output_buffer_length = this.DefaultOutputBufferLength;
+
+
+    /***************************************************************************
     
+        Array to process, received from input delegate.
+    
+    ***************************************************************************/
+
+    private char[] array;
+
+
     /***************************************************************************
     
         Total remaining size (bytes) of the current array being received &
@@ -137,69 +153,63 @@ class PutArrays ( bool Compressed = false )
     
     /***************************************************************************
     
-        List termination mode
+        List termination mode.
     
     ***************************************************************************/
     
     private IChunkSerializer.ListTerminationMode termination_mode;
-
-
+    
+    
     /***************************************************************************
     
         Constructor
         
     ***************************************************************************/
-
+    
     public this ( size_t output_buffer_length = DefaultOutputBufferLength )
     {
-        this.chunk_source = new DelegateChunkSource;
-        
         this.serializer = new ChunkSerializerType!(Compressed);
-        
+
         this.output_buffer_length = output_buffer_length;
-        
-        this.chunk = new void[this.output_buffer_length];
     }
-    
+
+
     /***************************************************************************
     
         Destructor
         
     ***************************************************************************/
-
+    
     ~this ( )
     {
-        delete this.chunk_source;
         delete this.serializer;
         delete this.chunk;
     }
-
+    
     
     /***************************************************************************
     
         Resets the internal state between runs.
         
     ***************************************************************************/
-
+    
     public void reset ( )
     {
-        this.state = State.Initial;
+        this.state = State.StartArray;
         this.termination_mode = IChunkSerializer.ListTerminationMode.None;
-        this.array_length_to_read = 0;
-
-        this.chunk_source.reset();
-        this.chunk.length = 0;
-
+        this.last_null_array = this.last_null_array.max;
+        this.arrays_processed = 0;
+    
         this.serializer.reset();
     }
-
+    
     
     /***************************************************************************
     
         Receives and processes a single array
         
         Params:
-            input  = data source (stream / buffer)
+            input  = input delegate
             data   = output buffer
             cursor = position through output buffer
     
@@ -220,7 +230,7 @@ class PutArrays ( bool Compressed = false )
         Receives and processes a list of arrays
     
         Params:
-            input  = data source (stream / buffer)
+            input  = input delegate
             data   = output buffer
             cursor = position through output buffer
     
@@ -238,17 +248,38 @@ class PutArrays ( bool Compressed = false )
     
     /***************************************************************************
     
+        Receives and processes a list of pairs
+    
+        Params:
+            input  = input delegate
+            data   = output buffer
+            cursor = position through output buffer
+    
+        Returns:
+            true if the output buffer is full and needs to be flushed
+    
+    ***************************************************************************/
+
+    public bool putPairList ( ChunkDelegates.PutValueDg input, void[] data, ref ulong cursor )
+    {
+        this.termination_mode = IChunkSerializer.ListTerminationMode.List;
+        return this.processArrayList(input, data, cursor, &this.endOfNullPair);
+    }
+
+
+    /***************************************************************************
+    
         Receives and processes a list of arrays:
-            1. The length of an array is read from the input source.
+            1. An array is read from the input delegate.
             2. Repeatedly:
-                a. Read the array in one chunk at a time
+                a. Extracts chunks one at a time from the received array
                 b. Process each chunk
                 Until the whole array has been processed
-            3. Check the finishing condition, and return to step 2 if not
+            3. Check the finishing condition, and return to step 1 if not
                finished.
-            
+
         Params:
-            input     = data source (stream / buffer)
+            input     = input delegate
             data      = output buffer
             cursor    = position through output buffer
             finish_dg = delegate for finishing condition
@@ -259,81 +290,120 @@ class PutArrays ( bool Compressed = false )
     ***************************************************************************/
 
     private bool processArrayList ( ChunkDelegates.PutValueDg input, void[] data, ref ulong cursor,
-                                    bool delegate ( ChunkDelegates.PutValueDg input, void[] array ) finish_dg )
+                                    bool delegate ( void[] array ) finish_dg )
     {
         do
         {
-            switch ( this.state )
+            with ( State ) switch ( this.state )
             {
-                case State.Initial:
-                    this.state = State.StartArray;
+                case StartArray:
+                    this.array = input();
+                    this.array_length_to_read = this.array.length;
+
+                    this.state = ReadChunk;
+                break;
+
+                case ReadChunk:
+                    this.getNextChunk(this.chunk, this.array);
+
+                    // TODO: previously there was a check to finish_dg here - is this necessary?
+
+                    this.state = ProcessChunk;
                 break;
     
-                case State.StartArray:
-                    this.array_length_to_read = this.chunk_source.readArrayLength(input);
-                    this.state = State.ReadChunk;
-                break;
-
-                case State.ReadChunk:
-                    this.chunk.length = min(this.array_length_to_read, this.output_buffer_length);
-                    this.chunk_source.getNextChunk(input, this.chunk);
-                    
-                    if ( finish_dg(input, this.chunk) )
-                    {
-                        this.state = State.Terminate;
-                    }
-                    else
-                    {
-                        this.state = State.ProcessChunk;
-                    }
-                break;
-
-                case State.ProcessChunk:
-                    auto last_chunk_in_array = (this.array_length_to_read - this.chunk.length) == 0;
-
-                    auto still_writing_chunk = this.serializer.processChunk(this.chunk,
-                                                                            this.array_length_to_read,
-                                                                            last_chunk_in_array,
-                                                                            data,
-                                                                            cursor);
-
+                case ProcessChunk:
+                    auto still_writing_chunk = this.processChunk(data, cursor);
                     if ( still_writing_chunk )
                     {
                         return true;
                     }
                     else                                                        // finished this chunk
                     {
-                        this.array_length_to_read -= this.chunk.length;
-                        if ( !last_chunk_in_array )
+                        if ( this.lastChunkInArray() )                          // no more chunks to read, finished whole array
                         {
-                            this.state = State.ReadChunk;                       // read more chunks from this array
+                            this.arrays_processed++;
+                            this.state = StartArray;
                         }
-                        else                                                    // no more chunks to read, finished whole array
+                        else
                         {
-                            this.chunk_source.nextArray();
-                            this.state = State.StartArray;
+                            this.state = ReadChunk;                             // read more chunks from this array
                         }
     
-                        if ( finish_dg(input, this.chunk) )
+                        if ( finish_dg(this.chunk) )
                         {
-                            this.state = State.Terminate;
+                            this.state = Terminate;
                         }
                     }
                 break;
-
-                case State.Terminate:
+    
+                case Terminate:
                     auto still_writing_terminator = this.serializer.terminate(this.termination_mode, data, cursor);
                     if ( still_writing_terminator )
                     {
                         return true;
                     }
-
-                    this.state = State.Finished;
+    
+                    this.state = Finished;
                 break;
             }
         } while ( this.state != State.Finished );
-
+    
         return false;
+    }
+
+
+    /***************************************************************************
+    
+        Pulls the next chunk from the array being processed.
+
+        Params:
+            chunk = string to be set to the next chunk
+            source = array to read chunk from
+    
+    ***************************************************************************/
+
+    private void getNextChunk ( ref char[] chunk, char[] source )
+    {
+        auto len = min(this.array_length_to_read, this.output_buffer_length);
+        auto pos = source.length - this.array_length_to_read;
+
+        chunk = source[pos .. pos + len];
+        this.array_length_to_read -= len;
+    }
+
+
+    /***************************************************************************
+
+        Serializes a chunk of data (may include compressing the chunk).
+
+        Params:
+            data      = output buffer
+            cursor    = position through output buffer
+    
+        Returns:
+            true if the output buffer is full and needs to be flushed
+    
+    ***************************************************************************/
+
+    private bool processChunk ( void[] data, ref ulong cursor )
+    {
+        auto still_writing_chunk = this.serializer.processChunk(this.chunk, this.array.length,
+                this.lastChunkInArray(), data, cursor);
+
+        return still_writing_chunk;
+    }
+
+
+    /***************************************************************************
+
+        Returns:
+            true if the current chunk is the last in the current array
+    
+    ***************************************************************************/
+
+    private bool lastChunkInArray ( )
+    {
+        return this.array_length_to_read == 0;
     }
 
 
@@ -350,33 +420,59 @@ class PutArrays ( bool Compressed = false )
     
     ***************************************************************************/
     
-    private bool processedOneArray ( ChunkDelegates.PutValueDg input, void[] array )
+    private bool processedOneArray ( void[] array )
     {
-        return this.chunk_source.arrays_processed > 0;
+        return this.arrays_processed > 0;
+    }
+    
+    
+    /***************************************************************************
+    
+        Checks whether this is the last array in the list (indicated by an
+        empty array).
+        
+        Params:
+            array = data to check
+    
+        Returns:
+            true if the array indicates the end of the list
+    
+    ***************************************************************************/
+    
+    private bool endOfList ( void[] array )
+    {
+        return array.length == 0;
     }
 
 
     /***************************************************************************
     
-        Checks whether this is the last array in the list.
+        Checks whether this is the last array in the list of pairs (indicated by
+        two empty arrays in a row).
         
-        For buffered array lists we can simply check whether we've processed
-        every array in the list.
-        
-        For streamed array lists, the end is indicated by an empty array.
-    
         Params:
-            input = data source (stream / buffer)
             array = data to check
     
         Returns:
-            true if the array is a stop header
+            true if the array indicates the end of the list of pairs
     
     ***************************************************************************/
-    
-    private bool endOfList ( ChunkDelegates.PutValueDg input, void[] array )
+
+    private bool endOfNullPair ( void[] array )
     {
-        return this.chunk_source.endOfList(input, array);
+        if ( array.length == 0 )
+        {
+            if ( this.last_null_array < this.arrays_processed )
+            {
+                return true;
+            }
+            else
+            {
+                this.last_null_array = this.arrays_processed;
+            }
+        }
+
+        return false;
     }
 }
 
