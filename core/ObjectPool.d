@@ -101,7 +101,6 @@ public interface Resettable
     void reset ( );
 }
 
-
 /*******************************************************************************
   
     ObjectPool class template
@@ -205,7 +204,9 @@ class ObjectPool ( T, A ... )
 
     public this ( A args )
     {
-        this.serial = cast (hash_t) &this;
+        static assert ((void*).sizeof >= hash_t.sizeof);
+        
+        this.serial = cast (hash_t) (cast (void*) this);
         
         static if (A.length) this.args = args; 
     }
@@ -258,7 +259,11 @@ class ObjectPool ( T, A ... )
         
         return this.create(this.args);
     }
-
+    
+    public T getNative ( )
+    {
+        return this.get();
+    }
     
     /**************************************************************************
     
@@ -636,7 +641,7 @@ class ObjectPool ( T, A ... )
       
      **************************************************************************/
      
-    private class PoolItem : T
+    private static class PoolItem : T
     {
         /**********************************************************************
         
