@@ -23,11 +23,6 @@
         dest.concat("hello ", "world");
     ---
     
-	Note: the functions in this file aren't inside a class / struct, so it's
-	normally best to import the module with a name:
-	
-		import Array = ocean.core.Array;
-
 *******************************************************************************/
 
 module ocean.core.Array;
