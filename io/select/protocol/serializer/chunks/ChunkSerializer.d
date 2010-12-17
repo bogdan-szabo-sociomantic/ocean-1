@@ -76,7 +76,7 @@ class ChunkSerializer : IChunkSerializer
             chunk = chunk to serialize
             array_total_length = total length of whole array (may be >
                 chunk.length, if chunk is only a part of a whole array)
-            last_chunk_in_array = true when this is thel last chunk in an array
+            last_chunk_in_array = true when this is the last chunk in an array
             data = output buffer
             cursor = output buffer cursor
     
