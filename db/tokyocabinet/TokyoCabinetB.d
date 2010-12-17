@@ -44,6 +44,8 @@ module ocean.db.tokyocabinet.TokyoCabinetB;
 
 private     import  ocean.core.Exception: TokyoCabinetException;
 
+private     import  ocean.core.Array;
+
 private     import  ocean.db.tokyocabinet.util.TokyoCabinetCursor;
 private     import  ocean.db.tokyocabinet.util.TokyoCabinetList;
 private     import  ocean.db.tokyocabinet.util.TokyoCabinetExtString;
@@ -442,8 +444,10 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
             
     ***************************************************************************/
 
-    public bool get ( char[] key, out char[] value )
+    public bool get ( char[] key, ref char[] value )
     {
+        value.length = 0;
+
         bool found;
         
         synchronized
@@ -456,7 +460,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
             
             if (found)
             {
-                value = valuep[0 .. len].dup;
+                value.copy((cast(char*) value_)[0 .. len]);
             }
         }
         

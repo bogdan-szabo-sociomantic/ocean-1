@@ -42,7 +42,6 @@ module ocean.db.tokyocabinet.TokyoCabinetH;
 
  ******************************************************************************/
 
-
 protected   import 	ocean.core.Exception: TokyoCabinetException;
 
 private     import  ocean.db.tokyocabinet.model.ITokyoCabinet;
@@ -500,7 +499,6 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
             
     ***************************************************************************/
     
-    
     deprecated public bool get_alt ( char[] key, out char[] value )
     {
         int length;
@@ -564,8 +562,10 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
             
     ***************************************************************************/
 
-    public bool get ( char[] key, out char[] value )
+    public bool get ( char[] key, ref char[] value )
     {
+        value.length = 0;
+        
         int length = tchdbvsiz(super.db, key.ptr, key.length);
         
         bool found = length >= 0;
@@ -584,7 +584,6 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
         
         return found;
     }
-    
     
     
     /**************************************************************************
