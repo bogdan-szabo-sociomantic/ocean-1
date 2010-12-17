@@ -86,7 +86,6 @@ class GetArrays ( Output )
     
     enum State
     {
-        Initial,
         GetArray,
         ProcessArray,
         Finished
@@ -148,7 +147,7 @@ class GetArrays ( Output )
     
     public void reset ( )
     {
-        this.state = State.Initial;
+        this.state = State.GetArray;
 
         this.arrays_processed = 0;
         this.got_first_terminator = false;
@@ -268,10 +267,6 @@ class GetArrays ( Output )
         {
             with ( State ) switch ( this.state )
             {
-                case Initial:
-                    this.state = GetArray;
-                break;
-
                 case GetArray:
                     auto io_wait = this.deserializer.getNextArray(data, cursor);
                     if ( io_wait )
@@ -327,6 +322,8 @@ class GetArrays ( Output )
 
     private bool isEndOfArray ( void[] array )
     {
+        scope ( failure ) Trace.formatln("ERR");
+        Trace.formatln("IsEndOfArray: {:x}", array);
         LzoHeader!(false) header;
         
         if ( header.tryRead(array) )
@@ -407,12 +404,12 @@ class GetArrays ( Output )
     
     private bool isEndOfNullPair ( void[] array )
     {
-        if ( this.got_first_terminator && this.isNull(array) )
+        if ( this.got_first_terminator && array.length == 0 )
         {
             return true;
         }
     
-        this.got_first_terminator = this.isNull(array);
+        this.got_first_terminator = array.length == 0;
     
         return false;
     }
