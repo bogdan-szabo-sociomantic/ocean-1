@@ -322,8 +322,6 @@ class GetArrays ( Output )
 
     private bool isEndOfArray ( void[] array )
     {
-        scope ( failure ) Trace.formatln("ERR");
-        Trace.formatln("IsEndOfArray: {:x}", array);
         LzoHeader!(false) header;
         
         if ( header.tryRead(array) )
