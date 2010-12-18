@@ -427,10 +427,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
     {
         super.tcPut(key, value, &tcbdbputdupback, "tcbdbputdupback");
     }
-    
-    
-    
-    
+
     /**************************************************************************
     
         Get record value
@@ -460,7 +457,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
             
             if (found)
             {
-                value.copy((cast(char*) value_)[0 .. len]);
+                value.copy((cast(char*)valuep)[0 .. len]);
             }
         }
         
