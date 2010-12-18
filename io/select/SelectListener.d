@@ -68,12 +68,16 @@ module ocean.io.select.SelectListener;
 
 private import ocean.io.select.EpollSelectDispatcher,
                ocean.io.select.model.ISelectClient,
-               ocean.io.select.model.IConnectionHandler;
+               ocean.io.select.model.IConnectionHandler,
+               ocean.io.select.model.ISelectListenerInfo;
 
 import ocean.core.ObjectPool;
 
 import tango.net.device.Socket,
        tango.net.device.Berkeley: IPv4Address;
+
+
+
 
 /******************************************************************************
 
@@ -88,7 +92,7 @@ import tango.net.device.Socket,
 
  ******************************************************************************/
 
-class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient
+class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient, ISelectListenerInfo
 {
     /**************************************************************************
 
@@ -214,7 +218,7 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient
 
     public bool handle ( Event event )
     {
-        this.receiver_pool.get().assign((ISelectable connection_conduit)
+        this.receiver_pool.get().assign(this, (ISelectable connection_conduit)
         {
              Socket connection_socket = cast (Socket) connection_conduit;
             
@@ -225,7 +229,19 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient
         
         return true;
     }
+
+    /**************************************************************************
+
+        Returns:
+             the number of active connections in the pool
     
+     **************************************************************************/
+
+    public size_t numOpenConnections ( )
+    {
+        return this.receiver_pool.getNumBusyItems();
+    }
+
     /**************************************************************************
 
         Returns connection into the object pool.

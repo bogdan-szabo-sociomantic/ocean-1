@@ -16,6 +16,8 @@ version (NewSelectProtocol) import ocean.io.select.protocol.SelectProtocol;
 else                        import ocean.io.select.protocol.SelectReader,
                                    ocean.io.select.protocol.SelectWriter;
 
+private import ocean.io.select.model.ISelectListenerInfo;
+
 import ocean.io.select.EpollSelectDispatcher;
     
 import ocean.io.select.model.ISelectClient : IAdvancedSelectClient;
@@ -85,6 +87,6 @@ abstract class IConnectionHandler
         }
     }
     
-    abstract typeof (this) assign ( void delegate ( ISelectable ) );
+    abstract typeof (this) assign ( ISelectListenerInfo, void delegate ( ISelectable ) );
 }
 
