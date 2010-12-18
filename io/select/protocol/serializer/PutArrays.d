@@ -27,12 +27,8 @@ module ocean.io.select.protocol.serializer.model.PutArrays;
 
 private import ocean.io.select.protocol.serializer.chunks.ChunkDelegates;
 
-private import ocean.io.select.protocol.serializer.chunks.source.model.IChunkSource,
-               ocean.io.select.protocol.serializer.chunks.source.model.ChunkSourceType,
-               ocean.io.select.protocol.serializer.chunks.model.IChunkSerializer,
+private import ocean.io.select.protocol.serializer.chunks.model.IChunkSerializer,
                ocean.io.select.protocol.serializer.chunks.model.ChunkSerializerType;
-
-private import ocean.io.select.protocol.serializer.chunks.source.DelegateChunkSource;
 
 private import tango.math.Math: min;
 
