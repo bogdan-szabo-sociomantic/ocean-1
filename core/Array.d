@@ -145,7 +145,7 @@ T[] copy ( T ) ( ref T[] dest, T[] src )
     dest.length = src.length;
     dest[] = src[];
     
-    return dst;
+    return dest;
 }
 
 
@@ -170,12 +170,12 @@ T[] copy ( T ) ( ref T[] dest, T[] src )
 
 *******************************************************************************/
 
-T[] appendCopy ( T ) ( ref T[][] dest, T[] src )
+T[][] appendCopy ( T ) ( ref T[][] dest, T[] src )
 {
     dest.length = dest.length + 1;
     dest[$ - 1].copy(src);
     
-    return dst;
+    return dest;
 }
 
 
