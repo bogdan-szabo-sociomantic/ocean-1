@@ -226,6 +226,30 @@ class SignalHandler
            static assert(false,"register template only usable for DgHandler or FnHandler!");
        }
        
+       bool checkfn(FnHandler fn)
+       {
+           static if(is(T==FnHandler))
+           {
+               return (fn == handler);
+           }
+           else
+           {
+               return false;
+           }
+       }
+       
+       bool checkdg(DgHandler dg)
+       {
+           static if(is(T==DgHandler))
+           {
+               return (dg == handler);
+           }
+           else
+           {
+               return false;
+           }
+       }
+       
        synchronized foreach (code; codes)
        {   
            if (!(code in this.default_handlers))
@@ -237,29 +261,7 @@ class SignalHandler
            {
                foreach (arHandler ; *arrayOfhandlers)
                {
-                   bool equal = arHandler.visit(
-                   (FnHandler fn)
-                   {
-                       static if(is(T==FnHandler))
-                       {
-                           return (fn == handler);
-                       }
-                       else
-                       {
-                           return false;
-                       }
-                   },
-                   (DgHandler dg)
-                   {
-                       static if(is(T==DgHandler))
-                       {
-                           return (dg == handler);
-                       }
-                       else
-                       {
-                           return false;
-                       }
-                   });
+                   bool equal = arHandler.visit(&checkfn,&checkdg);
                    
                    if (equal)
                    {
@@ -332,13 +334,15 @@ class SignalHandler
             static assert (false, "unregister template only usable for DgHandler or FnHandler!");
         }
         
+        
+        
         foreach (code ; codes)
         {
             if (auto hler = code in handlers)
             {
                 foreach (i, h; *hler)
                 {
-                    bool break_ = h.visit((FnHandler fn)
+                    bool checkfn(FnHandler fn)
                     {
                         static if (is(T==FnHandler))
                         {
@@ -351,8 +355,9 @@ class SignalHandler
                             }
                         }
                         return false;
-                    },
-                    (DgHandler dg)
+                    }
+                    
+                    bool checkdg(DgHandler dg)
                     {
                         static if (is(T==DgHandler))
                         {
@@ -365,7 +370,9 @@ class SignalHandler
                             }
                         }
                         return false;
-                    } );
+                    }
+                    
+                    bool break_ = h.visit(&checkfn,&checkdg);
                     
                     if (break_)
                     {
