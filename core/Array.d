@@ -116,7 +116,7 @@ T[] append ( T ) ( ref T[] dest, T[][] arrays ... )
 		write_slice = write_slice[array.length .. $];
 	}
 
-	return old_len + total_len;
+	return dest;
 }
 
 
