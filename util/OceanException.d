@@ -135,6 +135,14 @@ class OceanException: Exception
 
     private             static char[]                   loggerName = "OceanException";
 
+    
+    /***************************************************************************
+    
+        Whether to output to console 
+    
+    ***************************************************************************/
+       
+    public              static bool                     console_output = false;
 
     
     /***************************************************************************
@@ -191,9 +199,11 @@ class OceanException: Exception
         catch (Exception e)
         {
             if ( OceanException.isAppender() )
+            {
                 OceanException.write(Logger.Level.Error, e.msg);
+            }
 
-            Trace.formatln(e.msg).flush;
+            Trace.formatln(e.msg).flush;            
         }
 
         return true;
@@ -240,9 +250,11 @@ class OceanException: Exception
         catch (Exception e)
         {
             if ( OceanException.isAppender() )
+            {
                 OceanException.write(Logger.Level.Error, e.msg);
-
-            Trace.formatln(e.msg).flush;
+            }
+            
+            Trace.formatln(e.msg).flush;   
         }
 
         return true;
@@ -258,9 +270,11 @@ class OceanException: Exception
         catch (Exception e)
         {
             if ( OceanException.isAppender() )
+            {
                 OceanException.write(Logger.Level.Error, e.msg);
+            }
 
-            Trace.formatln(e.msg).flush;
+            Trace.formatln(e.msg).flush;   
         }
 
         return true;
@@ -305,9 +319,11 @@ class OceanException: Exception
         catch (Exception e)
         {
             if ( OceanException.isAppender() )
+            {
                 OceanException.write(Logger.Level.Error, e.msg);
+            }
 
-            Trace.formatln(e.msg).flush;
+            Trace.formatln(e.msg).flush;   
         }
 
         return true;
@@ -352,9 +368,11 @@ class OceanException: Exception
         catch (Exception e)
         {
             if ( OceanException.isAppender() )
+            {
                 OceanException.write(Logger.Level.Error, e.msg);
+            }
 
-            Trace.formatln(e.msg).flush;
+            Trace.formatln(e.msg).flush;   
         }
 
         return true;
@@ -458,7 +476,8 @@ class OceanException: Exception
             {
                 OceanException.write(Logger.Level.Warn, buffer);
             }
-            else
+
+            if (console_output)
             {
                 Trace.formatln("{}", buffer);
             }
