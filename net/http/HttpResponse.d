@@ -280,7 +280,7 @@ struct HttpResponse
              true on success or false on error
 
      **************************************************************************/
-    
+
     public bool send ( char[] data, HttpStatus status = HttpResponses.OK, 
                        char[] msg = `` )
     in
@@ -297,10 +297,10 @@ struct HttpResponse
             
             this.setDefaultHeader();
             this.setHeaderValue(HttpHeader.ContentLength.value, data.length);
-            
+
             if ( this.send_date )
             {
-                this.setHeaderValue(HttpHeader.Date.value, this.formatTime());
+                this.setHeaderValue(HttpHeader.Date.value, this.getGmtDate());
             }
             
             if ( this.cookie.isSet() )
@@ -481,15 +481,19 @@ struct HttpResponse
         {
             this.buf ~= name ~ `: ` ~ value ~ HttpConst.Eol;
         }
-        
+
         this.buf ~= HttpConst.Eol;
     }
     
     /**************************************************************************
     
-        Formats the current GMT as RFC 1123 time stamp according to
+        Returns GMT formated datestamp
+
+		Method formats the current GMT as RFC 1123 time stamp according to
         RFC 2616, 14.18:
         
+		FIXME; use a global buffer instead of allocating a new one every time
+
         e.g. Sun, 06 Nov 1994 08:49:37 GMT
          
             http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18
@@ -499,7 +503,7 @@ struct HttpResponse
          
      **************************************************************************/
 
-    private char[] formatTime ()
+    public char[] getGmtDate ()
     {
         const char[3][] Weekdays = [`Sun`, `Mon`, `Tue`, `Wed`, `Thu`, `Fri`, `Sat`];
         const char[3][] Months   = [`Jan`, `Feb`, `Mar`, `Apr`, `May`, `Jun`,
