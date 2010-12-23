@@ -115,6 +115,14 @@ struct Url
     public              Path                            path;
 
     /***************************************************************************
+        
+        Path tolower conversion buffer
+    
+     ***************************************************************************/
+    
+    public              char[]                          path_buffer;
+
+    /***************************************************************************
     
         Query component
 
@@ -148,7 +156,7 @@ struct Url
     
     public char[] toString ()
     {
-        return this.url;
+        return this.parser.toString();
     }
 
     
@@ -167,7 +175,7 @@ struct Url
             May throw an Exception if url is invalid or bad UTF-8
         
      ***************************************************************************/
-    
+
     public void parse ( in char[] url, bool tolower = true )
     {
         this.host.length = 0;
@@ -180,17 +188,11 @@ struct Url
         this.url.copy(url);
         
         this.parser.parse(this.url);        
-        this.host = this.parser.host;        
+        
+        this.host = this.parser.host;
+        
         this.query.parse(this.parser.query);
-
-        if (tolower)
-        {
-            this.path.parse(Unicode.toLower(this.parser.path, this.parser.path));
-        }
-        else
-        {
-            this.path.parse(this.parser.path);
-        }
+        this.path.parse(this.parser.path, this.parser, tolower);
     }
     
     /***************************************************************************
@@ -301,19 +303,30 @@ struct Url
                 
             Params:
                 path = url path
+                tolower = enable/disable tolower case conversion 
                 
             Returns:
                 void
             
          ***********************************************************************/
         
-        public void parse ( in char[] path )
+        public void parse ( in char[] path, Uri uri, bool tolower = true )
         {
             this.reset;
             
-            this.path = path;
+            if ( tolower )
+            {
+                this.path.length = path.length;
+                this.path = Unicode.toLower(path, this.path);
+                
+                uri.path(this.path);
+            }
+            else
+            {
+                this.path = path;
+            }
             
-            this.split = TextUtil.split(this.path, UriDelim.QUERY_URL);        
+            this.split = TextUtil.split(this.path, UriDelim.QUERY_URL);  
             
             for ( uint i = 0; i < this.split.length; i++ )        
             {
