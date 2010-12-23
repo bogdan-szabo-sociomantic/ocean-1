@@ -18,12 +18,14 @@ module ocean.net.http.HttpResponse;
 
     Imports
 
-*******************************************************************************/
+********************************************************************************/
 
 private     import      ocean.net.http.HttpCookie, ocean.net.http.HttpConstants, 
                         ocean.net.http.HttpHeader;
 
 private     import      ocean.util.OceanException;
+
+private     import      ocean.core.Array;
 
 private     import      tango.net.http.HttpConst;
 
@@ -31,15 +33,21 @@ private     import      tango.net.device.Socket: Socket;
 
 private     import      tango.net.device.Berkeley: IPv4Address;
 
-private     import      tango.stdc.time:  tm, time_t, time, gmtime;
+private     import      tango.stdc.time:  tm, time_t, time;
 
 private     import      tango.stdc.stdio: snprintf;
 
 private     import      Integer = tango.text.convert.Integer;
 
-debug
+/*******************************************************************************
+
+    Thread safe gmtime function
+
+********************************************************************************/
+
+extern (C) 
 {
-    private     import      tango.util.log.Trace;
+    tm* gmtime_r(in time_t* timer, tm* result);
 }
 
 /*******************************************************************************
@@ -106,7 +114,7 @@ debug
     Add non-blocking writing with epoll
 
 
-*******************************************************************************/
+********************************************************************************/
 
 struct HttpResponse
 {
@@ -153,6 +161,23 @@ struct HttpResponse
    
    /***************************************************************************
        
+       Timestamp format & result buffer 
+    
+    ***************************************************************************/  
+    
+    private             char[]                      datefmt;
+    private             char[]                      datestr;
+    
+    /***************************************************************************
+        
+        Gmtime timestamp struct
+     
+     ***************************************************************************/ 
+    
+    private             tm                          datetime;
+    
+   /***************************************************************************
+       
        Response header
        
     ***************************************************************************/
@@ -165,8 +190,18 @@ struct HttpResponse
         
      ***************************************************************************/
      
-     private             Socket                     socket;
+     private            Socket                      socket;
  
+     /***************************************************************************
+         
+         Http header gmt timestamp conversions
+         
+      ***************************************************************************/
+     
+     const char[3][] Weekdays = [`Sun`, `Mon`, `Tue`, `Wed`, `Thu`, `Fri`, `Sat`];
+     const char[3][] Months   = [`Jan`, `Feb`, `Mar`, `Apr`, `May`, `Jun`, `Jul`, 
+                                 `Aug`, `Sep`, `Oct`, `Nov`, `Dec`];
+     
      /**************************************************************************
          
           Set Default Header
@@ -181,24 +216,25 @@ struct HttpResponse
         this.socket = socket;
     }
     
-    
     /**************************************************************************
     
         Retrieves the remote client address. A socket must been previously set.
     
+        FIXME; use inet_ntop
+        
         Params:
            remote_addr = remote client address destination string
             
     **************************************************************************/
 
-    public char[] getRemoteAddress ( )
+    public char[] getRemoteAddress ()
     in
     {
         assert (this.socket);
     }
     body
     {
-        scope addr = cast (IPv4Address) this.socket.socket.remoteAddress;       // FIXME use inet_ntop
+        scope addr = cast (IPv4Address) this.socket.socket.remoteAddress; 
         
         return addr.toAddrString();
     }
@@ -316,11 +352,6 @@ struct HttpResponse
         }
         catch (Exception e)
         {
-            debug
-            {
-                Trace.formatln(`Error on response: {}`, e.msg);
-            }
-            
             OceanException.Warn(`Error on response: {}`, e.msg);
             
             ok = false;
@@ -445,7 +476,7 @@ struct HttpResponse
     
     private void setBody ( in char[] data )
     {
-        this.buf ~= data;
+        this.buf.append(data);
     }
     
     /**************************************************************************
@@ -464,25 +495,21 @@ struct HttpResponse
     
     private void setHeader ( HttpStatus status, char[] msg = `` )
     {
-        this.buf  = this.http_version 
-                  ~ ` `
-                  ~ Integer.toString(status.code)
-                  ~ ` `
-                  ~ status.name;
+        this.buf.concat(this.http_version, ` `, Integer.toString(status.code), ` `, status.name);
         
         if ( msg.length )
         {
-            this.buf ~= `: ` ~ msg;
+            this.buf.append(`: `, msg);
         }
         
-        this.buf ~= HttpConst.Eol;
+        this.buf.append(HttpConst.Eol);
         
         foreach (name, value; this.header)
         {
-            this.buf ~= name ~ `: ` ~ value ~ HttpConst.Eol;
+            this.buf.append(name, `: `, value, HttpConst.Eol);
         }
 
-        this.buf ~= HttpConst.Eol;
+        this.buf.append(HttpConst.Eol);
     }
     
     /**************************************************************************
@@ -493,16 +520,17 @@ struct HttpResponse
         RFC 2616, 14.18:
         
 		FIXME; use a global buffer instead of allocating a new one every time
-
+        FIXME; make it thread safe and remove the synchronize statement
+        
         e.g. Sun, 06 Nov 1994 08:49:37 GMT
          
             http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18
-             
+        
         Returns:
             HTTP time stamp of current GMT
          
      **************************************************************************/
-
+    /*
     public char[] getGmtDate ()
     {
         const char[3][] Weekdays = [`Sun`, `Mon`, `Tue`, `Wed`, `Thu`, `Fri`, `Sat`];
@@ -533,6 +561,37 @@ struct HttpResponse
         
         return result[0 .. n].dup;
     }
-    
+    */
+           
+    // FIXME; this is now a thread safe version
+    public char[] getGmtDate ()
+    {   
+        this.datefmt.length   = 0;
+        this.datestr.length = 0;
+
+        int n;
+        time_t t;
+        
+        t = time(null);
+        gmtime_r(&t, &datetime); 
+        
+        assert (datetime.tm_wday < Weekdays.length, `formatTime: invalid weekday`);
+        assert (datetime.tm_mon  < Months.length,   `formatTime: invalid month`);
+        
+        this.datefmt.concat(Weekdays[datetime.tm_wday], `, %02d `, 
+                            Months[datetime.tm_mon], ` %04d %02d:%02d:%02d GMT`, "\0");
+        
+        this.datestr.length = 32;
+        
+        n = snprintf(this.datestr.ptr, this.datestr.length, this.datefmt.ptr,
+                     this.datetime.tm_mday, this.datetime.tm_year + 1900, 
+                     this.datetime.tm_hour, this.datetime.tm_min, this.datetime.tm_sec);
+        
+        assert (n >= 0, `error formatting time`);
+        
+        this.datestr.length = n;
+        
+        return this.datestr;
+    }    
 
 }
