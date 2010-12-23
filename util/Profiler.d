@@ -9,23 +9,24 @@
     Provides a simple means of profiling the time and memory usage taken to
     execute sections of code and display output to Trace telling how long each
     recorded section took, and the total of all sections.
-    
+
     The output frequency of the profiler can be limited using the
-    setDisplayUpdateInterval method.
+    displayInterval() method. The update frequency defaults to ten times per
+    second.
 
     Usage:
-       
-    ---
-        
-        import ocean.util.Profiler;
-        
-        Profiler().timeSection("section1", {
-        	// Code that does something
-        });
 
-        Profiler().timeSection("section2", {
-        	// Code that does something else
-        });
+    ---
+
+        import ocean.util.Profiler;
+
+        Profiler().start("section1");
+        // Code that does something
+        Profiler().end("section1");
+
+        Profiler().start("section2");
+        // Code that does something else
+        Profiler().end("section2");
 
         Profiler().display();
 
@@ -42,13 +43,13 @@
         
         import ocean.util.Profiler;
         
-        Profiler().timeSection("section1", {
-        	// Code that does something
-        });
+        Profiler().start("section1");
+        // Code that does something
+        Profiler().end("section1");
 
-        Profiler().timeSection("section2", {
-        	// Code that does something else
-        });
+        Profiler().start("section2");
+        // Code that does something else
+        Profiler().end("section2");
 
         Profiler().displayAverages(Profiler.Time.Secs);
 
@@ -90,9 +91,13 @@ module ocean.util.Profiler;
 
 *******************************************************************************/
 
+private import ocean.core.Array;
+
 private import ocean.core.ArrayMap;
 
 private import ocean.util.TraceProgress;
+
+private import ocean.util.log.PeriodicTrace;
 
 private import tango.util.log.Trace;
 
@@ -165,7 +170,7 @@ class Profiler
 
 		static void appendTime ( char[] name, float time, TimeMode timemode, ref char[] str )
     	{
-			str ~= name ~ ": " ~ Float.toString(time / this.div[timemode]) ~ this.name[timemode];
+			str.append(name, ": ", Float.toString(time / this.div[timemode]), this.name[timemode]);
     	}
     }
 
@@ -181,11 +186,20 @@ class Profiler
 
     /***************************************************************************
 
+        Toggles between static display (true) and line-by-line display (false)
+    
+    ***************************************************************************/
+
+    public bool static_display;
+
+
+    /***************************************************************************
+
 		Console tracer, including timer
 
 	***************************************************************************/
 
-    private ConsoleTracer tracer;
+    private PeriodicTrace tracer;
 
     
     /***************************************************************************
@@ -274,7 +288,7 @@ class Profiler
 	
 	***************************************************************************/
 
-    public void startSection ( char[] name )
+    public void start ( char[] name )
 	{
         this.section_start[name] = this.tracer.timer.microsec();
 	}
@@ -289,7 +303,7 @@ class Profiler
 	
 	***************************************************************************/
 
-    public void endSection ( char[] name )
+    public void end ( char[] name )
 	{
     	ulong end = this.tracer.timer.microsec();
 		this.section_end[name] = end;
@@ -305,9 +319,9 @@ class Profiler
         
     ***************************************************************************/
 
-    public void setDisplayUpdateInterval ( ulong micro_secs )
+    public void displayInterval ( ulong micro_secs )
     {
-    	this.tracer.update_interval = micro_secs;
+    	this.tracer.interval = micro_secs;
     }
 
 
@@ -318,13 +332,12 @@ class Profiler
 		
 		Params:
 			time = display mode (secs, msecs, Usecs)
-			streaming = streaming display
 		
 	***************************************************************************/
 
-    public void display ( Time time = Time.MSecs, bool streaming = true )
+    public void display ( Time time = Time.MSecs )
     {
-    	this.display_("", &this.getElapsed, time, streaming);
+    	this.display_("", &this.getElapsed, time);
     }
 
 
@@ -336,13 +349,39 @@ class Profiler
 		
 		Params:
 			time = display mode (secs, msecs, Usecs)
-			streaming = streaming display
 		
 	***************************************************************************/
 
-    public void displayAverages ( Time time = Time.MSecs, bool streaming = true )
+    public void displayAverages ( Time time = Time.MSecs )
     {
-    	this.display_("[AVG] ", &this.getAverage, time, streaming);
+    	this.display_("[AVG] ", &this.updateAverageTime, time);
+    }
+
+
+    /***************************************************************************
+
+        Resets all section times which have been recorded thusfar.
+        
+    ***************************************************************************/
+    
+    public void reset ( )
+    {
+        this.section_start.clear();
+        this.section_end.clear();
+        this.resetAverages();
+    }
+    
+    
+    /***************************************************************************
+    
+        Resets the average section times which have been recorded thusfar.
+        
+    ***************************************************************************/
+    
+    public void resetAverages ( )
+    {
+        this.section_avg_time.clear();
+        this.section_avg_count.clear();
     }
 
 
@@ -353,78 +392,9 @@ class Profiler
 		
 	***************************************************************************/
 
-    public uint getElapsed ( char[] name, uint elapsed )
+    private uint getElapsed ( char[] name, uint elapsed )
     {
     	return elapsed;
-    }
-
-
-	/***************************************************************************
-
-		Delegate used by display_ (below) to return the average time of a
-		section.
-		
-	***************************************************************************/
-
-    public float getAverage ( char[] name, uint elapsed )
-    {
-		return this.updateAverageTime(name, elapsed);
-    }
-    
-
-    /***************************************************************************
-
-        Resets all section times which have been recorded thusfar.
-        
-    ***************************************************************************/
-
-    public void reset ( )
-    {
-        this.section_start.clear();
-        this.section_end.clear();
-        this.resetAverages();
-    }
-
-    
-    /***************************************************************************
-
-		Resets the average section times which have been recorded thusfar.
-		
-	***************************************************************************/
-
-    public void resetAverages ( )
-	{
-        this.section_avg_time.clear();
-        this.section_avg_count.clear();
-	}
-
-
-	/***************************************************************************
-
-		Times a section of code (usually an anonymous delegate) which is passed
-		as the parameter 'section'.
-		
-		Params:
-			name = section name
-			section = section of code to be timed
-	
-	***************************************************************************/
-
-    public R timeSection ( R, T... ) ( char[] name, R delegate ( T ) section )
-    {
-    	static if ( is ( R == void ) )
-    	{
-	    	this.startSection(name);
-	    	section();
-	    	this.endSection(name);
-    	}
-    	else
-    	{
-	    	this.startSection(name);
-	    	R r = section();
-	    	this.endSection(name);
-	    	return r;
-    	}
     }
 
 
@@ -443,19 +413,34 @@ class Profiler
     
     private float updateAverageTime ( char[] name, uint elapsed )
     {
-        float* avg_ptr = name in this.section_avg_time;
-        float avg = avg_ptr ? *avg_ptr : 0;
-    
-        float new_weight = 1.0;
-        uint* count_ptr = name in this.section_avg_count;
-        if ( count_ptr )
+        float avg;
+        if ( name in this.section_avg_time )
         {
-            new_weight = 1.0 / cast(float) *count_ptr;
+            avg = this.section_avg_time[name];
+        }
+        else
+        {
+            avg = 0.0;
         }
     
+        float new_weight = 1.0;
+        uint count;
+        if ( name in this.section_avg_count )
+        {
+            count = this.section_avg_count[name];
+            new_weight = 1.0 / cast(float)count;
+        }
+
         float new_avg = (cast(float) elapsed * new_weight) + (avg * (1.0 - new_weight));
         this.section_avg_time[name] = new_avg;
-        this.section_avg_count[name] = this.section_avg_count[name] + 1;
+        if ( name in this.section_avg_count )
+        {
+            this.section_avg_count[name] = this.section_avg_count[name] + 1;
+        }
+        else
+        {
+            this.section_avg_count[name] = 1;
+        }
     
         return new_avg;
     }
@@ -471,11 +456,10 @@ class Profiler
             dg = delegate to return the value to display for each individual
                 section's time
             time = display mode (secs, msecs, Usecs)
-            streaming = streaming display
 
     ***************************************************************************/
 
-    private void display_ ( T : real ) ( char[] prefix, T delegate ( char[], uint ) dg, Time time, bool streaming )
+    private void display_ ( T : real ) ( char[] prefix, T delegate ( char[], uint ) dg, Time time )
     {
         if ( this.tracer.timeToUpdate() )
         {
@@ -485,10 +469,10 @@ class Profiler
             T total = 0;
             foreach ( name, start; this.section_start )
             {
-                ulong* end_ptr = name in this.section_end;
-                if ( end_ptr )
+                if ( name in this.section_end )
                 {
-                    uint elapsed = *end_ptr - start;
+                    ulong end = this.section_end[name];
+                    uint elapsed = end - start;
                     T display_time = dg(name, elapsed);
                     total += display_time;
                     TimeDisplay.appendTime(name, display_time, time, this.buf);
@@ -496,14 +480,8 @@ class Profiler
                 }
             }
             TimeDisplay.appendTime("| Total", total, time, this.buf);
-            if ( streaming )
-            {
-                this.tracer.writeStreaming(this.buf);
-            }
-            else
-            {
-                this.tracer.writeStatic(this.buf);
-            }
+            this.tracer.static_display = this.static_display;
+            this.tracer.format(this.buf);
         }
     }
 
@@ -519,30 +497,16 @@ class Profiler
 
     /***************************************************************************
 
-        Static constructor. Creates the shared instance.
-    
-    ***************************************************************************/
-
-    private static Profiler getStaticInstance ( )
-    {
-        if ( !static_instance )
-        {
-            static_instance = new Profiler();
-        }
-
-        return static_instance;
-    }
-
-    
-    /***************************************************************************
-
         Static destructor. Deletes the shared instance.
     
     ***************************************************************************/
 
     static ~this()
     {
-        delete static_instance;
+        if ( static_instance )
+        {
+            delete static_instance;
+        }
     }
 
 
@@ -554,12 +518,12 @@ class Profiler
 
     public static typeof(this) opCall ( )
     {
-        return getStaticInstance();
-    }
+        if ( !static_instance )
+        {
+            static_instance = new Profiler();
+        }
 
-    deprecated public static typeof(this) instance ( )
-    {
-    	return static_instance;
+        return static_instance;
     }
 }
 
