@@ -79,6 +79,9 @@
 
 	---
 
+    TODO: split MemProfiler into a seperate file, or maybe just remove it - I'm
+    not convinced of the effectiveness of the GC.stats methods...
+
 *******************************************************************************/
 
 module ocean.util.Profiler;
