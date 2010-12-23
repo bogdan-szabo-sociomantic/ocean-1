@@ -90,7 +90,7 @@ private class StaticSyncPrint
         formatted.length = formatted.length * 2;
         formatted[len..$] = '\b';
 
-        Trace.format("{}", formatted).flush();
+        Trace.format("{}", formatted);
 
         return this;
     }
