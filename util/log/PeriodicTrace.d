@@ -91,7 +91,7 @@ struct PeriodicTrace
     
     ***************************************************************************/
     
-    static private StopWatch timer;
+    static public StopWatch timer;
     
     
     /***************************************************************************
@@ -178,6 +178,28 @@ struct PeriodicTrace
 
 
     /***************************************************************************
+    
+        Checks if it's time to update the display.
+        
+        Note: this method is public so that using classes can determine whether
+        they need to perform any internal update before calling display().
+        
+        TODO: this might be better done with a lazy char[] version of format(),
+        which only calls the lazy delegate if it *is* time to update.
+
+        Returns:
+            true if the display update interval has passed
+    
+    ***************************************************************************/
+    
+    public bool timeToUpdate ( )
+    {
+        this.now = timer.microsec();
+        return this.now > this.last_update_time + this.interval;
+    }
+
+
+    /***************************************************************************
 
         Checks whether the passed string is longer than the previous longest
         string. If it is shorter then it is padded with spaces to match the
@@ -201,22 +223,6 @@ struct PeriodicTrace
         {
             max_strlen = string.length;
         }
-    }
-
-
-    /***************************************************************************
-    
-        Checks if it's time to update the display.
-        
-        Returns:
-            true if the display update interval has passed
-    
-    ***************************************************************************/
-    
-    private bool timeToUpdate ( )
-    {
-        this.now = timer.microsec();
-        return this.now > this.last_update_time + this.interval;
     }
 
 
