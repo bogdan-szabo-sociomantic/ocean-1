@@ -38,7 +38,7 @@
     
     ---
     
-        import core.util.Utf: UtfConvert;
+        import ocean.text.utf.UtfConvert;
     
         char[]  result_c;                           // UTF8  source string
         wchar[] result_w;                           // UTF16 source string
@@ -48,10 +48,10 @@
         wchar[] hello_w = "Hello UTF16 World!";     // UTF16 result string
         dchar[] hello_d = "Hello UTF32 World!";     // UTF32 result string
         
-        UtfConvert(hello_c, result_d);    // UTF8 to UTF32
-        UtfConvert(hello_d, result_w);    // UTF32 to UTF16
-        UtfConvert(hello_c, result_c);    // UTF8 to UTF8: hello_c is copied
-                                          // to result_c (duplicated not sliced)
+        UtfConvert(hello_c, result_d);              // UTF8 to UTF32
+        UtfConvert(hello_d, result_w);              // UTF32 to UTF16
+        UtfConvert(hello_c, result_c);              // UTF8 to UTF8: hello_c is copied
+                                                    // to result_c (duplicated not sliced)
     
     ---
     
@@ -59,13 +59,13 @@
     
     ---
     
-        import core.util.Utf: Utf;
+        import ocean.text.utf.UtfConvert;
         
-        char[]  hello = "Hello UTF8 World!"; // UTF8 source string
+        char[]  hello = "Hello UTF8 World!";        // UTF8 source string
         
-        dchar[] result;                      // UTF32 destination string
+        dchar[] result;                             // UTF32 destination string
         
-        auto utf = new Utf!(char, dchar);    // instantiate an UTF8 to UTF32 converter
+        auto utf = new UtfConvert!(char, dchar);    // instantiate an UTF8 to UTF32 converter
         
         result = utf(hello);
         
@@ -208,7 +208,7 @@ class UtfConvert ( S, T )
           target string
           
  ******************************************************************************/
-public static T[] convertUtf ( S, T, bool noop_dup = true ) ( S[] input, T[] converted )
+public static T[] convertUtf ( S, T, bool noop_dup = true ) ( S[] input, ref T[] converted )
 {
     static if (is (T == S))
     {
@@ -241,7 +241,6 @@ public static T[] convertUtf ( S, T, bool noop_dup = true ) ( S[] input, T[] con
                                    ~ T.stringof ~ "' not supported "
                                    "(character types only)");
     }
-
     
     return converted;
 }
