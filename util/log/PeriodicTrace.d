@@ -17,6 +17,9 @@
     The struct defaults to a line-by-line update (using Trace.formatln) updated
     every 1/10 of a second.
 
+    Note: this struct automatically calls Trace.flush / StaticTrace.flush after
+    updating.
+
     Usage example:
     
     ---
@@ -24,12 +27,12 @@
         private import ocean.util.log.PeriodicTrace;
 
         PeriodicTrace trace;
-        trace.interval = 500_000; // update display after at least half a second
+        trace.interval = 500_000; // only update display after at least half a second has passed
         trace.static_display = true;
 
         for ( uint i; i < uint.max; i++ )
         {
-            trace.interval.format("{}", i);
+            trace.format("{}", i).flush;
         }
 
     ---
@@ -162,11 +165,11 @@ struct PeriodicTrace
             {
                 this.padToMax(this.formatted);
 
-                StaticTrace.format("{}", this.formatted);
+                StaticTrace.format("{}", this.formatted).flush;
             }
             else
             {
-                Trace.formatln("{}", this.formatted);
+                Trace.formatln("{}", this.formatted).flush;
             }
         }
 
