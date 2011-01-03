@@ -8,6 +8,24 @@
 
 	Xml entity en/decoder.
 
+    Example usage:
+    
+    ---
+
+        import ocean.text.entities.XmlEntityCodec;
+
+        scope entity_codec = new XmlEntityCodec;
+
+        char[] test = "hello & world © &gt;&amp;#x230;'";
+        
+        if ( entity_codec.containsUnencoded(test) )
+        {
+            char[] encoded;
+            entity_codec.encode(test, encoded);
+        }
+    
+    ---
+
 *******************************************************************************/
 
 module ocean.text.entities.XmlEntityCodec;

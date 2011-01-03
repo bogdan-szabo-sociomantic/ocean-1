@@ -8,6 +8,24 @@
 
 	Html entity en/decoder.
 
+    Example usage:
+    
+    ---
+
+        import ocean.text.entities.HtmlEntityCodec;
+
+        scope entity_codec = new HtmlEntityCodec;
+
+        char[] test = "hello & world © &szlig;&nbsp;&amp;#x230;'";
+        
+        if ( entity_codec.containsUnencoded(test) )
+        {
+            char[] encoded;
+            entity_codec.encode(test, encoded);
+        }
+    
+    ---
+
 	Note: Also includes the classes HtmlDecoding and HtmlEncoding, which are
 	functional replacements for the old classes of the same name (found in
 	ocean.text.html.*). These classes provide an opCall method each to decode or
