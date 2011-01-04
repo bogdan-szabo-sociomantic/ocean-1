@@ -5,10 +5,10 @@
 
     Puts single arrays, lists of arrays and lists of pairs.
 
-    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
+    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
 
     version:        August 2010: Initial release
-                    January 2010: Unified / simplified version
+                    January 2011: Unified / simplified version
 
     authors:        Gavin Norman
 
@@ -75,7 +75,8 @@ module ocean.io.select.protocol.serializer.PutArrays;
 private import ocean.io.select.protocol.serializer.chunks.model.IChunkSerializer,
                ocean.io.select.protocol.serializer.chunks.model.ChunkSerializerType;
 
-private import ocean.io.select.protocol.serializer.SelectSerializer;
+private import ocean.io.select.protocol.serializer.SelectSerializer,
+               ocean.io.select.protocol.serializer.ArrayTransmitTerminator;
 
 private import ocean.io.compress.lzo.LzoHeader,
                ocean.io.compress.lzo.LzoChunk;
@@ -156,168 +157,6 @@ class PutArrays
 
     /***************************************************************************
 
-        Abstract class used to determine when processing of array(s) has
-        finished.
-
-        Different types of terminator are required depending on whether a single
-        array or a list of arrays are being serialized.
-
-    ***************************************************************************/
-
-    abstract private class Terminator
-    {
-        /***********************************************************************
-        
-            Count of the number of arrays processed since the last call to
-            reset().
-        
-        ***********************************************************************/
-
-        protected uint arrays_processed;
-        
-
-        /***********************************************************************
-
-            Called when serialization of an array is completed. Increments the
-            count of processed arrays, then calls the abstract finishedArray_()
-            (which must be implemented by derived classes) to determine whether
-            it was the last array or whether the input delegate should be called
-            again to fetch another array for serialization.
-
-            Params:
-                array = array just serialized
-
-            Returns:
-                true if no more arrays are pending
-
-        ***********************************************************************/
-
-        public bool finishedArray ( void[] array )
-        {
-            this.arrays_processed++;
-            return this.finishedArray_(array);
-        }
-
-        abstract protected bool finishedArray_ ( void[] array );
-
-
-        /***********************************************************************
-
-            Called when processing is initialised. Resets the count of processed
-            arrays, then calls reset_() (which can be overridden by derived
-            classes to add any additional reset behaviour needed).
-
-        ***********************************************************************/
-
-        final public void reset ( )
-        {
-            this.arrays_processed = 0;
-            this.reset_();
-        }
-
-        protected void reset_ ( )
-        {
-        }
-    }
-
-
-    /***************************************************************************
-
-        Terminator used when processing a single array.
-    
-    ***************************************************************************/
-
-    private class SingleArrayTerminator : Terminator
-    {
-        protected bool finishedArray_ ( void[] array )
-        {
-            return super.arrays_processed > 0;
-        }
-    }
-    
-
-    /***************************************************************************
-
-        Terminator used when processing a list of arrays. The list is regarded
-        as finished when the input delegate sends an empty string.
-    
-    ***************************************************************************/
-
-    private class ArrayListTerminator : Terminator
-    {
-        protected bool finishedArray_ ( void[] array )
-        {
-            return array.length == 0;
-        }
-    }
-    
-
-    /***************************************************************************
-
-        Terminator used when processing a list of array pairs. The list is
-        regarded as finished when the input delegate sends two consecutive empty
-        strings.
-    
-    ***************************************************************************/
-
-    private class PairListTerminator : Terminator
-    {
-        /***********************************************************************
-        
-            The last value of arrays_processed where the chunk being processed
-            was null.
-        
-        ***********************************************************************/
-
-        private size_t last_null_array;
-
-
-        /***********************************************************************
-        
-            reset_() override which resets the last_null_array member.
-        
-        ***********************************************************************/
-
-        override protected void reset_ ( )
-        {
-            this.last_null_array = this.last_null_array.max;
-        }
-        
-
-        /***********************************************************************
-
-            If the received array is empty, see if this is the second empty
-            array in a row.
-
-            Params:
-                array = last array serialized
-
-            Returns:
-                true after receiving two consecutive empty arrays.
-
-        ***********************************************************************/
-
-        protected bool finishedArray_ ( void[] array )
-        {
-            if ( array.length == 0 )
-            {
-                if ( this.last_null_array < super.arrays_processed )
-                {
-                    return true;
-                }
-                else
-                {
-                    this.last_null_array = super.arrays_processed;
-                }
-            }
-
-            return false;
-        }
-    }
-    
-    
-    /***************************************************************************
-
         Terminator instances.
     
     ***************************************************************************/
@@ -368,31 +207,34 @@ class PutArrays
             Params:
                 array = array to write
                 data = output buffer
-                cursor = position through output buffer
+                cursor = global write cursor
+                output_array_cursor = write position in current output buffer
 
             Returns:
                 true if the output buffer is full and needs to be flushed
     
         ***********************************************************************/
 
-        abstract public bool send ( void[] array, void[] output, ref ulong cursor );
+        abstract public bool send ( void[] array, void[] output, ref ulong cursor, ref size_t output_array_cursor );
 
 
         /***********************************************************************
 
-            Resets the input array cursor, then calls reset_() (which can be
-            overridden by derived classes to add any additional reset behaviour
-            needed).
+            Called when a new array is ready to be serialized.
+
+            Resets the input array cursor, then calls startArray_() (which can
+            be overridden by derived classes to add any additional reset
+            behaviour needed).
 
         ***********************************************************************/
 
-        final public void reset ( )
+        final public void startArray ( )
         {
             this.input_array_cursor = 0;
-            this.reset_();
+            this.startArray_();
         }
 
-        protected void reset_ ( )
+        protected void startArray_ ( )
         {
         }
 
@@ -403,27 +245,35 @@ class PutArrays
 
             Params:
                 array = array to write
-                data = output buffer
-                cursor = write cursor
+                output = output buffer
+                cursor = global write cursor
+                output_array_cursor = write position in current output buffer
 
             Returns:
                 true if the output buffer is full and needs to be flushed
 
         ***********************************************************************/
 
-        protected bool serializeArray ( void[] array, ref void[] data, ref ulong cursor )
+        protected bool serializeArray ( void[] array, ref void[] output, ref ulong cursor, ref size_t output_array_cursor )
         {
             auto start = this.input_array_cursor;
-            auto io_wait = SelectSerializer.send(array, data[cursor..$], this.input_array_cursor);
+            auto io_wait = SelectSerializer.send(array, output[output_array_cursor..$], this.input_array_cursor);
 
             auto consumed = this.input_array_cursor - start;
             cursor += consumed;
 
-            if ( !io_wait )
+            if ( io_wait )
+            {
+                // Next time this method is called the output buffer will have
+                // been flushed, so we need to write at the beginning of it.
+                output_array_cursor = 0;
+            }
+            else
             {
                 // Serialization of current array has finished.
                 // Start at the beginning of the next array next time this method is called.
                 this.input_array_cursor = 0;
+                output_array_cursor += consumed;
             }
 
             return io_wait;
@@ -439,9 +289,9 @@ class PutArrays
 
     private class SimpleArraySerializer : ArraySerializer
     {
-        public bool send ( void[] array, void[] output, ref ulong cursor )
+        public bool send ( void[] array, void[] output, ref ulong cursor, ref size_t output_array_cursor )
         {
-            return super.serializeArray(array, output, cursor);
+            return super.serializeArray(array, output, cursor, output_array_cursor);
         }
     }
 
@@ -494,11 +344,11 @@ class PutArrays
 
         /***********************************************************************
 
-            reset_() override which resets the state and chunk position.
+            startArray_() override which resets the state and chunk position.
     
         ***********************************************************************/
 
-        override protected void reset_ ( )
+        override protected void startArray_ ( )
         {
             this.state = State.StartChunk;
             this.chunk_pos = 0;
@@ -513,15 +363,16 @@ class PutArrays
     
             Params:
                 array = array to write
-                data = output buffer
-                cursor = write cursor
+                output = output buffer
+                cursor = global write cursor
+                output_array_cursor = write position in current output buffer
 
             Returns:
                 true if the output buffer is full and needs to be flushed
 
         ***********************************************************************/
 
-        public bool send ( void[] array, void[] output, ref ulong cursor )
+        public bool send ( void[] array, void[] output, ref ulong cursor, ref size_t output_array_cursor )
         {
             do
             {
@@ -539,7 +390,7 @@ class PutArrays
 
                     case SendChunk:
                         Trace.formatln("[*]ChunkedArraySerializer - SendChunk: '{:X2}'", this.chunk);
-                        auto io_wait = super.serializeArray(this.chunk, output, cursor);
+                        auto io_wait = super.serializeArray(this.chunk, output, cursor, output_array_cursor);
                         if ( io_wait ) return true;
 
                         Trace.formatln("[*]ChunkedArraySerializer - SendChunk: DONE");
@@ -671,11 +522,11 @@ class PutArrays
 
         /***********************************************************************
 
-            reset_() override which resets the state and chunk cursor.
+            startArray_() override which resets the state and chunk cursor.
 
         ***********************************************************************/
 
-        override protected void reset_ ( )
+        override protected void startArray_ ( )
         {
             this.state = State.InitStartChunk;
             this.chunk_pos = 0;
@@ -688,15 +539,16 @@ class PutArrays
 
             Params:
                 array = array to write
-                data = output buffer
-                cursor = write cursor
+                output = output buffer
+                cursor = global write cursor
+                output_array_cursor = write position in current output buffer
 
             Returns:
                 true if the output buffer is full and needs to be flushed
 
         ***********************************************************************/
 
-        public bool send ( void[] array, void[] output, ref ulong cursor )
+        public bool send ( void[] array, void[] output, ref ulong cursor, ref size_t output_array_cursor )
         {
             do
             {
@@ -711,7 +563,7 @@ class PutArrays
 
                     case WriteStartChunk:
                         Trace.formatln("[*]CompressingArraySerializer - WriteStartChunk");
-                        auto io_wait = super.serializeArray(this.chunk_header.data_without_length(), output, cursor);
+                        auto io_wait = super.serializeArray(this.chunk_header.data_without_length(), output, cursor, output_array_cursor);
                         if ( io_wait ) return true;
 
                         this.state = ExtractChunk;
@@ -727,7 +579,7 @@ class PutArrays
 
                     case WriteChunk:
                         Trace.formatln("[*]CompressingArraySerializer - WriteChunk");
-                        auto io_wait = super.serializeArray(this.compressed_chunk, output, cursor);
+                        auto io_wait = super.serializeArray(this.compressed_chunk, output, cursor, output_array_cursor);
                         if ( io_wait ) return true;
 
                         this.state = this.chunk_pos < array.length ? ExtractChunk : InitEndChunk;
@@ -741,7 +593,7 @@ class PutArrays
 
                     case WriteEndChunk:
                         Trace.formatln("[*]CompressingArraySerializer - WriteEndChunk: {}", this.chunk_header.data_without_length().length);
-                        auto io_wait = super.serializeArray(this.chunk_header.data_without_length(), output, cursor);
+                        auto io_wait = super.serializeArray(this.chunk_header.data_without_length(), output, cursor, output_array_cursor);
                         if ( io_wait ) return true;
 
                         this.state = Finished;
@@ -862,8 +714,7 @@ class PutArrays
     public void putSingleArray ( )
     {
         this.terminator = this.single_array_terminator;
-        this.terminator.reset();
-        this.state = State.GetArray;
+        this.reset();
     }
 
 
@@ -877,8 +728,7 @@ class PutArrays
     public void putArrayList ( )
     {
         this.terminator = this.array_list_terminator;
-        this.terminator.reset();
-        this.state = State.GetArray;
+        this.reset();
     }
     
     
@@ -892,8 +742,7 @@ class PutArrays
     public void putPairList ( )
     {
         this.terminator = this.pair_list_terminator;
-        this.terminator.reset();
-        this.state = State.GetArray;
+        this.reset();
     }
 
 
@@ -919,6 +768,8 @@ class PutArrays
 
     public bool serializeArrays ( InputDg input, void[] output, ref ulong cursor )
     {
+        size_t output_array_cursor = 0;
+
         do
         {
             with ( State ) switch ( this.state )
@@ -946,13 +797,13 @@ class PutArrays
                         }
                     }
 
-                    this.serializer.reset();
+                    this.serializer.startArray();
 
                     this.state = SendArray;
                 break;
 
                 case SendArray:
-                    auto io_wait = this.serializer.send(this.array, output, cursor);
+                    auto io_wait = this.serializer.send(this.array, output, cursor, output_array_cursor);
                     if ( io_wait ) return true;
 
                     auto last_array = this.terminator.finishedArray(this.array);
@@ -963,6 +814,23 @@ class PutArrays
         while ( this.state != State.Finished );
 
         return false;
+    }
+
+
+    /***************************************************************************
+    
+        Resets the internal state.
+    
+    ***************************************************************************/
+    
+    private void reset ( )
+    {
+        if ( this.terminator )
+        {
+            this.terminator.reset();
+        }
+    
+        this.state = State.GetArray;
     }
 
 
