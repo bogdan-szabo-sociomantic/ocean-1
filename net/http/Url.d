@@ -272,7 +272,7 @@ struct Url
         
         /***********************************************************************
             
-            Returns path component as string
+            Returns url encoded path component as string
                 
             Returns:
                 url path component
