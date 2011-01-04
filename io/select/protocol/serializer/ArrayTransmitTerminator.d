@@ -111,7 +111,7 @@ class SingleArrayTerminator : Terminator
 
 /*******************************************************************************
 
-    Terminator used when transmitting a single array.
+    Terminator used when transmitting a single pair of arrays.
 
 *******************************************************************************/
 
