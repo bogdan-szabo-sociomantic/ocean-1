@@ -72,8 +72,7 @@ module ocean.io.select.protocol.serializer.PutArrays;
 
 *******************************************************************************/
 
-private import ocean.io.select.protocol.serializer.chunks.model.IChunkSerializer,
-               ocean.io.select.protocol.serializer.chunks.model.ChunkSerializerType;
+private import ocean.io.select.protocol.serializer.model.ISelectArraysTransmitter;
 
 private import ocean.io.select.protocol.serializer.SelectSerializer,
                ocean.io.select.protocol.serializer.ArrayTransmitTerminator;
@@ -107,9 +106,9 @@ debug private import tango.util.log.Trace;
 
 *******************************************************************************/
 
-// TODO: change name to ArraysSelectSerializer
+// TODO: change name to SelectArraysSerializer
 
-class PutArrays
+class PutArrays : ISelectArraysTransmitter
 {
     /***************************************************************************
 
@@ -153,26 +152,6 @@ class PutArrays
     ***************************************************************************/
 
     private char[] array;
-
-
-    /***************************************************************************
-
-        Terminator instances.
-    
-    ***************************************************************************/
-
-    private SingleArrayTerminator single_array_terminator;
-    private ArrayListTerminator array_list_terminator;
-    private PairListTerminator pair_list_terminator;
-
-
-    /***************************************************************************
-
-        Reference to the terminator instance currently being used.
-    
-    ***************************************************************************/
-
-    private Terminator terminator;
 
 
     /***************************************************************************
@@ -682,9 +661,6 @@ class PutArrays
         this.chunked_serializer = new ChunkedArraySerializer();
         this.compress_serializer = new CompressingArraySerializer();
         this.simple_serializer = new SimpleArraySerializer();
-        this.single_array_terminator = new SingleArrayTerminator();
-        this.array_list_terminator = new ArrayListTerminator();
-        this.pair_list_terminator = new PairListTerminator();
     }
 
 
@@ -699,50 +675,6 @@ class PutArrays
         delete this.chunked_serializer;
         delete this.compress_serializer;
         delete this.simple_serializer;
-        delete this.single_array_terminator;
-        delete this.array_list_terminator;
-        delete this.pair_list_terminator;
-    }
-
-
-    /***************************************************************************
-    
-        Initialises the serialization of a single array.
-    
-    ***************************************************************************/
-    
-    public void putSingleArray ( )
-    {
-        this.terminator = this.single_array_terminator;
-        this.reset();
-    }
-
-
-    /***************************************************************************
-    
-        Initialises the serialization of a list of arrays. The input delegate
-        must terminate the list by sending an empty array.
-    
-    ***************************************************************************/
-    
-    public void putArrayList ( )
-    {
-        this.terminator = this.array_list_terminator;
-        this.reset();
-    }
-    
-    
-    /***************************************************************************
-    
-        Initialises the serialization of a list of pairs. The input delegate
-        must terminate the list by sending two consecutive empty arrays.
-    
-    ***************************************************************************/
-
-    public void putPairList ( )
-    {
-        this.terminator = this.pair_list_terminator;
-        this.reset();
     }
 
 
@@ -778,7 +710,7 @@ class PutArrays
                     this.array = input();
 
                     // TODO: this block of ifs can be simplified when the Traces are no longer needed
-                    if ( this.isLzoStartChunk(this.array) ) // already compressed
+                    if ( this.isLzoStartChunk!(true)(this.array) ) // already compressed
                     {
                         Trace.formatln("[*] forwarding already compressed array: '{}'", this.array);
                         this.serializer = this.chunked_serializer;
@@ -806,7 +738,7 @@ class PutArrays
                     auto io_wait = this.serializer.send(this.array, output, cursor, output_array_cursor);
                     if ( io_wait ) return true;
 
-                    auto last_array = this.terminator.finishedArray(this.array);
+                    auto last_array = super.terminator.finishedArray(this.array);
                     this.state = last_array ? Finished : GetArray;
                 break;
             }
@@ -823,42 +755,9 @@ class PutArrays
     
     ***************************************************************************/
     
-    private void reset ( )
+    protected void reset_ ( )
     {
-        if ( this.terminator )
-        {
-            this.terminator.reset();
-        }
-    
         this.state = State.GetArray;
-    }
-
-
-    /***************************************************************************
-    
-        Tells whether the given array contains an lzo compression start chunk.
-
-        Params:
-            array = array to test
-
-        Returns:
-            true if a compression start chunk is found at the beginning of the
-            passed array.
-     
-    ***************************************************************************/
-
-    private bool isLzoStartChunk ( void[] array )
-    {
-        LzoHeader!(true) header;
-
-        if ( array.length < header.read_length )
-        {
-            return false;
-        }
-        else
-        {
-            return header.tryReadStart(array[0..header.read_length]);
-        }
     }
 }
 

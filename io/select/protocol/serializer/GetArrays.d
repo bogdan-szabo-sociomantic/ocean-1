@@ -26,6 +26,8 @@ module ocean.io.select.protocol.serializer.GetArrays;
 
 *******************************************************************************/
 
+private import ocean.io.select.protocol.serializer.model.ISelectArraysTransmitter;
+
 private import ocean.io.select.protocol.serializer.chunks.dest.model.IChunkDest;
 
 private import ocean.io.select.protocol.serializer.SelectDeserializer,
@@ -56,15 +58,26 @@ debug private import tango.util.log.Trace;
 
 *******************************************************************************/
 
-//TODO: change name to ArraysSelectDeserializer
+//TODO: change name to SelectArraysDeserializer
 
-class GetArrays
+class GetArrays : ISelectArraysTransmitter
 {
-    // TODO
+    /***************************************************************************
+
+        Toggles array decompression - should be set externally by the user.
+    
+    ***************************************************************************/
+
     public bool decompress;
 
 
-    // TODO
+    /***************************************************************************
+    
+        Alias for an output delegate which is called when an array has been
+        deserialized.
+    
+    ***************************************************************************/
+
     public alias void delegate ( char[] ) OutputDg;
 
 
@@ -86,42 +99,20 @@ class GetArrays
     
     
     /***************************************************************************
-
-        Terminator instances.
     
+        LzoChunk instance, header & buffer
+        
     ***************************************************************************/
     
-    private SingleArrayTerminator single_array_terminator;
-    private SinglePairTerminator single_pair_terminator;
-    private ArrayListTerminator array_list_terminator;
-    private PairListTerminator pair_list_terminator;
+    private LzoChunk!(false) lzo;
     
-    
-    /***************************************************************************
-    
-        Reference to the terminator instance currently being used.
-    
-    ***************************************************************************/
-    
-    private Terminator terminator;
+    private void[] lzo_buffer;
 
 
-    /***************************************************************************
+    // TODO
+    private void[] array_buf, chunked_array_buf;
 
-        Count of complete arrays processed. Each chunked array counts as one.
-    
-    ***************************************************************************/
-    
-//    private uint arrays_processed;
-
-
-    /***************************************************************************
-
-        Has a list terminator (null string) been read? Used by isNullPair().
-
-    ***************************************************************************/
-
-//    private bool got_first_terminator;
+    private ulong array_read_cursor;
 
 
     /***************************************************************************
@@ -134,11 +125,6 @@ class GetArrays
     {
         this.lzo = new LzoChunk!(false);
         this.lzo_buffer = new void[1024];
-
-        this.single_array_terminator = new SingleArrayTerminator();
-        this.single_pair_terminator = new SinglePairTerminator();
-        this.array_list_terminator = new ArrayListTerminator();
-        this.pair_list_terminator = new PairListTerminator();
     }
 
 
@@ -152,129 +138,40 @@ class GetArrays
     {
         delete this.lzo;
         delete this.lzo_buffer;
-
-        delete this.single_array_terminator;
-        delete this.single_pair_terminator;
-        delete this.array_list_terminator;
-        delete this.pair_list_terminator;
     }
 
 
-    /***************************************************************************
-    
-        Resets the internal state between runs.
-        
-    ***************************************************************************/
-    
-//    public void reset ( )
-//    {
-//        this.state = State.GetArray;
-//
-////        this.arrays_processed = 0;
-////        this.got_first_terminator = false;
-//
-////        this.deserializer.reset();
-//    }
-    
-    
-    /***************************************************************************
-    
-        Receives and processes a single array
-        
-        Params:
-            output    = output data device (stream / buffer)
-            data      = input buffer
-            cursor    = position through input buffer
-    
-        Returns:
-            true if the input buffer is empty and needs to be refilled
-    
-    ***************************************************************************/
+    // TODO: maybe restructure the internals of processArrayList to work with classes like this:
 
-    // TODO: replace finish_dgs with a termination mode enum - it's simpler
-
-    public void getSingleArray ( )
-    {
-        this.terminator = this.single_array_terminator;
-        this.terminator.reset();
-        this.state = State.GetArray;
-
-//        return this.processArrayList(output, data, cursor, &this.isEndOfFirstArray);
-    }
-    
-    
-    /***************************************************************************
-    
-        Receives and processes a pair
-
-        Params:
-            output = data output device (stream / buffer)
-            data = input buffer
-            cursor = position through input buffer
-    
-        Returns:
-            true if the input buffer is empty and needs to be refilled
-    
-    ***************************************************************************/
-    
-    public void getPair ( )
-    {
-        this.terminator = this.single_pair_terminator;
-        this.terminator.reset();
-        this.state = State.GetArray;
-
-//        return this.processArrayList(output, data, cursor, &this.isEndOfFirstPair);
-    }
+    /*    abstract class ArrayDeserializer
+        {
+            // returns true to receive more arrays
+            public bool receive ( void[] array, OutputDg output );
+        }
 
 
-    /***************************************************************************
-    
-        Receives and processes a list of arrays
-        
-        Params:
-            output    = output data device (stream / buffer)
-            data      = input buffer
-            cursor    = position through input buffer
-    
-        Returns:
-            true if the input buffer is empty and needs to be refilled
-    
-    ***************************************************************************/
-    
-    public void getArrayList ( )
-    {
-        this.terminator = this.array_list_terminator;
-        this.terminator.reset();
-        this.state = State.GetArray;
+        class SimpleArrayDeserializer : ArrayDeserializer
+        {
+            // returns true to receive more arrays
+            public bool receive ( void[] array, OutputDg output )
+            {
+                output(cast(char[])array);
+                return false;
+            }
+        }
 
-//        return this.processArrayList(output, data, cursor, &this.isNull);
-    }
-    
-    
-    /***************************************************************************
-    
-        Receives and processes a list of pairs
-        
-        Params:
-            output    = output data device (stream / buffer)
-            data      = input buffer
-            cursor    = position through input buffer
-    
-        Returns:
-            true if the input buffer is empty and needs to be refilled
-    
-    ***************************************************************************/
-    
-    public void getPairList ( )
-    {
-        this.terminator = this.pair_list_terminator;
-        this.terminator.reset();
-        this.state = State.GetArray;
 
-//        return this.processArrayList(output, data, cursor, &this.isEndOfNullPair);
-    }
-    
-    
+        class CompressingArrayDeserializer : ArrayDeserializer
+        {
+            // returns true to receive more arrays
+            public bool receive ( void[] array, OutputDg output )
+            {
+                return true; // TODO
+            }
+        }
+    */
+
+
     /***************************************************************************
     
         Receives and processes a list of arrays:
@@ -295,41 +192,9 @@ class GetArrays
     
     ***************************************************************************/
 
-    // TODO: maybe restructure the internals of processArrayList to work with classes like this:
-
-/*    abstract class ArrayDeserializer
-    {
-        // returns true to receive more arrays
-        public bool receive ( void[] array, OutputDg output );
-    }
-
-
-    class SimpleArrayDeserializer : ArrayDeserializer
-    {
-        // returns true to receive more arrays
-        public bool receive ( void[] array, OutputDg output )
-        {
-            output(cast(char[])array);
-            return false;
-        }
-    }
-
-
-    class CompressingArrayDeserializer : ArrayDeserializer
-    {
-        // returns true to receive more arrays
-        public bool receive ( void[] array, OutputDg output )
-        {
-            return true; // TODO
-        }
-    }
-*/
-    private void[] array_buf, chunked_array_buf;
-
     public bool deserializeArrays ( OutputDg output, void[] input, ref ulong cursor )
     {
         size_t input_array_cursor;
-//        this.newInputBuffer();
 
         do
         {
@@ -339,7 +204,7 @@ class GetArrays
                     auto io_wait = this.getArray(this.array_buf, input, cursor, input_array_cursor);
                     if ( io_wait ) return true;
 
-                    if ( this.isStartChunk(this.array_buf) )
+                    if ( super.isLzoStartChunk!(false)(this.array_buf) )
                     {
                         Trace.formatln("[*] got start chunk");
                         this.state = ProcessArrayChunk;
@@ -349,7 +214,7 @@ class GetArrays
                         Trace.formatln("[*] got complete array: '{}'", cast(char[])this.array_buf);
                         output(cast(char[])this.array_buf);
 
-                        auto last_array = this.terminator.finishedArray(this.array_buf);
+                        auto last_array = super.terminator.finishedArray(this.array_buf);
                         this.state = last_array ? Finished : GetArray;
                         this.nextArray();
 
@@ -365,7 +230,7 @@ class GetArrays
                     {
                         Trace.formatln("[*] got complete chunked array");
                         output(cast(char[])this.chunked_array_buf);
-                        auto last_array = this.terminator.finishedArray(this.chunked_array_buf);
+                        auto last_array = super.terminator.finishedArray(this.chunked_array_buf);
                         this.state = last_array ? Finished : GetArray;
                         this.nextArray();
 
@@ -394,7 +259,6 @@ class GetArrays
 
     private void nextArray ( )
     {
-//        this.arrays_processed++;
         this.array_buf.length = 0;
         this.chunked_array_buf.length = 0;
         this.array_read_cursor = 0;
@@ -405,8 +269,6 @@ class GetArrays
         this.array_buf.length = 0;
         this.array_read_cursor = 0;
     }
-
-    private ulong array_read_cursor;
 
     private bool getArray ( ref void[] array, void[] input, ref ulong cursor, ref size_t input_array_cursor )
     {
@@ -419,13 +281,6 @@ class GetArrays
         input_array_cursor += consumed;
 
         return io_wait;
-    }
-
-
-    private bool isStartChunk ( void[] array )
-    {
-        LzoHeader!(false) header;
-        return array.length && header.tryReadStart(array);
     }
 
 
@@ -453,15 +308,6 @@ class GetArrays
         return header.type == header.type.Stop;
     }
 
-    /***************************************************************************
-    
-        LzoChunk instance, header & buffer
-        
-    ***************************************************************************/
-
-    private LzoChunk!(false) lzo;
-
-    private void[] lzo_buffer;
 
     /***************************************************************************
     
@@ -506,6 +352,18 @@ class GetArrays
                 Trace.formatln("Bad chunk type: {:X}", header.type);
                 assert(false, typeof(this).stringof ~ ".uncompress - invalid chunk type");
         }
+    }
+
+
+    /***************************************************************************
+    
+        Resets the internal state.
+        
+    ***************************************************************************/
+    
+    protected void reset_ ( )
+    {
+        this.state = State.GetArray;
     }
 }
 
