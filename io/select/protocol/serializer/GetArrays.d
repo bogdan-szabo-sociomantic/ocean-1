@@ -89,67 +89,61 @@ class GetArrays : ISelectArraysTransmitter
     
     ***************************************************************************/
     
-//    enum State
-//    {
-//        GetArray,
-//        ProcessArrayChunk,
-//        GetNextChunk,
-//        Finished
-//    }
-//
-//    private State state;
+    enum State
+    {
+        Initial,
+        GetFirstArray,
+        HandleArray,
+        GetNextArray,
+        TransmitArray,
+        Finished
+    }
+
+    private State state;
     
     
     // TODO
     private void[] array, chunked_array_buf;
 
+
+    /***********************************************************************
+
+        Called when a new array is ready to be deserialized.
+    
+        Resets the output array cursor, then calls startArray_() (which can
+        be overridden by derived classes to add any additional reset
+        behaviour needed).
+    
+    ***********************************************************************/
+
     private ulong array_read_cursor;
 
+    private void nextArray ( )
+    {
+        this.array_read_cursor = 0;
+    }
 
-    // TODO: maybe restructure the internals of processArrayList to work with classes like this:
+    private bool getArray ( ref void[] array, void[] input, ref ulong cursor, ref size_t input_array_cursor )
+    {
+        auto start = this.array_read_cursor;
+        auto io_wait = SelectDeserializer.receive(array, input[input_array_cursor..$], this.array_read_cursor);
+
+        // Update cursor
+        auto consumed = this.array_read_cursor - start;
+        cursor += consumed;
+        input_array_cursor += consumed;
+
+        return io_wait;
+    }
+
+
 
     abstract class ArrayDeserializer
     {
-        private ulong array_read_cursor;
-
-        /***********************************************************************
-
-            Called when a new array is ready to be deserialized.
-
-            Resets the output array cursor, then calls startArray_() (which can
-            be overridden by derived classes to add any additional reset
-            behaviour needed).
-    
-        ***********************************************************************/
-    
-        final public void startArray ( )
-        {
-            this.array_read_cursor = 0;
-//            this.startArray_(); TODO
-        }
-    
-//        protected void startArray_ ( )
-//        {
-//        }
-
-
         // return true to get more arrays before calling the output delegate
         abstract public bool receive ( void[] input, ref void[] output );
 
-        public bool getArray ( ref void[] array, void[] input, ref ulong cursor, ref size_t input_array_cursor )
-        {
-            auto start = this.array_read_cursor;
-            auto io_wait = SelectDeserializer.receive(array, input[input_array_cursor..$], this.array_read_cursor);
-
-            // Update cursor
-            auto consumed = this.array_read_cursor - start;
-            cursor += consumed;
-            input_array_cursor += consumed;
-
-            return io_wait;
-        }
     }
-
 
     class SimpleArrayDeserializer : ArrayDeserializer
     {
@@ -180,25 +174,6 @@ class GetArrays : ISelectArraysTransmitter
             output ~= input;
 
             return header.type != header.type.Stop;
-
-//            if ( end_chunk )
-//            {
-//                Trace.formatln("[*] got complete chunked array");
-//                output(cast(char[])this.chunked_array_buf);
-//                auto last_array = super.terminator.finishedArray(this.chunked_array_buf);
-//                this.state = last_array ? Finished : GetArray;
-////                this.nextArray();
-//
-////                this.state = finish_dg(this.chunked_array_buf) ? Finished : GetArray;
-//            }
-//            else
-//            {
-//                Trace.formatln("[*] next chunk");
-////                this.state = GetNextChunk;
-////                this.nextArrayChunk();
-//            }
-
-            return true; // TODO
         }
     }
 
@@ -240,27 +215,6 @@ class GetArrays : ISelectArraysTransmitter
             output ~= uncompressed;
 
             return header.type != header.type.Stop;
-            
-            
-//            auto end_chunk = this.processArrayChunk(input, output);
-//            if ( end_chunk )
-//            {
-//                Trace.formatln("[*] got complete chunked array");
-//                output(cast(char[])this.chunked_array_buf);
-//                auto last_array = super.terminator.finishedArray(this.chunked_array_buf);
-//                this.state = last_array ? Finished : GetArray;
-//                this.nextArray();
-//
-////                this.state = finish_dg(this.chunked_array_buf) ? Finished : GetArray;
-//            }
-//            else
-//            {
-//                Trace.formatln("[*] next chunk");
-//                this.state = GetNextChunk;
-//                this.nextArrayChunk();
-//            }
-//
-//            return true; // TODO
         }
 
         /***********************************************************************
@@ -379,50 +333,50 @@ class GetArrays : ISelectArraysTransmitter
             with ( State ) switch ( this.state )
             {
                 case Initial:
-                    this.got_first_array = false;
                     this.output_array.length = 0;
-                    this.deserializer = this.simple_deserializer;
-                    this.deserializer.startArray();
 
-                    this.state = GetArray;
+                    this.nextArray();
+
+                    this.state = GetFirstArray;
                 break;
 
-                case GetArray:
-                    auto io_wait = this.deserializer.getArray(this.array, input, cursor, input_array_cursor);
+                case GetFirstArray:
+                    auto io_wait = this.getArray(this.array, input, cursor, input_array_cursor);
                     if ( io_wait ) return true;
-
-                    if ( !this.got_first_array )
+                    
+                    if ( super.isLzoStartChunk!(false)(this.array) )
                     {
-                        if ( super.isLzoStartChunk!(false)(this.array) )
+                        if ( this.decompress )
                         {
-                            if ( this.decompress )
-                            {
-                                this.deserializer = this.decompress_deserializer;
-                            }
-                            else
-                            {
-                                this.deserializer = this.chunked_deserializer;
-                            }
-                            Trace.formatln("[*] got start chunk");
+                            this.deserializer = this.decompress_deserializer;
                         }
                         else
                         {
-                            this.deserializer = this.simple_deserializer;
+                            this.deserializer = this.chunked_deserializer;
                         }
+                        Trace.formatln("[*] got start chunk");
                     }
-
-                    this.got_first_array = true;
-
-                    auto more_arrays = this.deserializer.receive(this.array, this.output_array);
-                    if ( !more_arrays )
+                    else
                     {
-                        this.state = TransmitArray;
+                        this.deserializer = this.simple_deserializer;
                     }
 
-                    // TODO: could these class members be moved into the deserializer?
-//                    this.array.length = 0;
-                    this.deserializer.startArray();
-//                    this.array_read_cursor = 0;
+                    this.state = HandleArray;
+                break;
+
+                case HandleArray:
+                    auto more_arrays = this.deserializer.receive(this.array, this.output_array);
+
+                    this.nextArray(); // get ready to receive next array
+
+                    this.state = more_arrays ? GetNextArray : TransmitArray;
+                break;
+
+                case GetNextArray:
+                    auto io_wait = this.getArray(this.array, input, cursor, input_array_cursor);
+                    if ( io_wait ) return true;
+                    
+                    this.state = HandleArray;
                 break;
 
                 case TransmitArray:
@@ -439,28 +393,13 @@ class GetArrays : ISelectArraysTransmitter
     }
 
 
-    private bool got_first_array;
-
-
-    private void nextArray ( )
-    {
-        this.array.length = 0;
-        this.chunked_array_buf.length = 0;
-        this.array_read_cursor = 0;
-    }
-
-    private void nextArrayChunk ( )
-    {
-        this.array.length = 0;
-        this.array_read_cursor = 0;
-    }
-
     override protected void reset_()
     {
-        this.deserializer = null;
         this.array.length = 0;
         this.output_array.length = 0;
         this.array_read_cursor = 0;
+        
+        this.state = State.Initial;
     }
 }
 
