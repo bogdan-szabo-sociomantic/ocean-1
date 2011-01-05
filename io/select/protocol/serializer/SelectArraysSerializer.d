@@ -16,7 +16,7 @@
     
     ---
     
-        import ocean.io.select.protocol.serializer.PutArrays;
+        import ocean.io.select.protocol.serializer.SelectArraysSerializer;
 
         class AsyncSender
         {
@@ -24,28 +24,28 @@
             
             size_t array_index;
 
-            PutArrays put;
+            SelectArraysSerializer put;
             
             this ( )
             {
-                this.put = new PutArrays();
+                this.put = new SelectArraysSerializer();
             }
 
             void reset ( )
             {
                 this.array_index = 0;
 
-                this.put.compress = true;
+                const bool compress = true;
 
-                this.put.putArrayList();
+                this.put.arrayList(compress);
             }
 
             bool asyncSend ( void[] output, ref ulong cursor )
             {
-                return this.put.serializeArrays(&this.arrays, output, cursor);
+                return this.put.transmitArrays(&this.provideArrays, output, cursor);
             }
 
-            char[] arrays ( )
+            char[] provideArrays ( )
             {
                 if ( this.array_index < arrays_to_send.length )
                 {
@@ -62,7 +62,7 @@
 
 *******************************************************************************/
 
-module ocean.io.select.protocol.serializer.PutArrays;
+module ocean.io.select.protocol.serializer.SelectArraysSerializer;
 
 
 
@@ -74,8 +74,7 @@ module ocean.io.select.protocol.serializer.PutArrays;
 
 private import ocean.io.select.protocol.serializer.model.ISelectArraysTransmitter;
 
-private import ocean.io.select.protocol.serializer.SelectSerializer,
-               ocean.io.select.protocol.serializer.ArrayTransmitTerminator;
+private import ocean.io.select.protocol.serializer.SelectSerializer;
 
 private import ocean.io.compress.lzo.LzoHeader,
                ocean.io.compress.lzo.LzoChunk;
@@ -88,7 +87,17 @@ debug private import tango.util.log.Trace;
 
 /*******************************************************************************
 
-    Put arrays class.
+    Alias for an input delegate which provides the array(s) to be serialized.
+
+*******************************************************************************/
+
+public alias char[] delegate ( ) InputDg;
+
+
+
+/*******************************************************************************
+
+    Array serialization class.
     
     Gets arrays from an input delegate, and asynchronously serializes them to an
     output buffer.
@@ -106,43 +115,22 @@ debug private import tango.util.log.Trace;
 
 *******************************************************************************/
 
-// TODO: change name to SelectArraysSerializer
-
-class PutArrays : ISelectArraysTransmitter
+class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
 {
-    /***************************************************************************
-
-        Toggles array compression - should be set externally by the user.
-
-    ***************************************************************************/
-
-    public bool compress;
-
-
-    /***************************************************************************
-    
-        Alias for an input delegate which provides the array(s) to be
-        serialized.
-    
-    ***************************************************************************/
-
-    public alias char[] delegate ( ) InputDg;
-
-    
     /***************************************************************************
     
         Processing state.
     
     ***************************************************************************/
     
-//    enum State
-//    {
-//        GetArray,   // get next array from delegate
-//        SendArray,  // sending a simple non-chunked array
-//        Finished
-//    }
-//    
-//    private State state;
+    enum State
+    {
+        GetArray,   // get next array from delegate
+        TransmitArray,  // sending a simple non-chunked array
+        Finished
+    }
+    
+    private State state;
 
 
     /***************************************************************************
@@ -698,18 +686,14 @@ class PutArrays : ISelectArraysTransmitter
     
     ***************************************************************************/
 
-    public bool serializeArrays ( InputDg input, void[] output, ref ulong cursor )
+    public bool transmitArrays ( InputDg input, void[] output, ref ulong cursor )
     {
-        size_t output_array_cursor = 0;
+        size_t output_array_cursor;
 
         do
         {
             with ( State ) switch ( this.state )
             {
-                case Initial:
-                    this.state = GetArray;
-                break;
-
                 case GetArray:
                     this.array = input();
 
@@ -721,7 +705,7 @@ class PutArrays : ISelectArraysTransmitter
                     }
                     else
                     {
-                        if ( compress )
+                        if ( super.compress_decompress )
                         {
                             Trace.formatln("[*] compressing and forwarding array: '{}'", this.array);
                             this.serializer = this.compress_serializer;
@@ -750,6 +734,11 @@ class PutArrays : ISelectArraysTransmitter
         while ( this.state != State.Finished );
 
         return false;
+    }
+
+    override protected void reset_ ( )
+    {
+        this.state = State.GetArray;
     }
 }
 

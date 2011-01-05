@@ -9,14 +9,61 @@
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
     
     version:        August 2010: Initial release
+                    January 2011: Unified / simplified version
     
     authors:        Gavin Norman
 
-    TODO: usage example
+    Usage example:
+    
+    ---
+
+        import ocean.core.Array;
+
+        import ocean.io.select.protocol.serializer.SelectArraysDeserializer;
+
+        class AsyncReceiver
+        {
+            char[][] arrays_received;
+            
+            SelectArraysDeserializer get;
+            
+            this ( )
+            {
+                this.get = new SelectArraysDeserializer();
+            }
+
+            void reset ( )
+            {
+                this.arrays_received.length = 0;
+
+                const bool decompress = true;
+
+                this.get.arrayList(decompress);
+            }
+
+            bool asyncReceive ( void[] input, ref ulong cursor )
+            {
+                return this.get.transmitArrays(&this.receiveArrays, input, cursor);
+            }
+
+            void receiveArrays ( char[] array )
+            {
+                if ( array.length )
+                {
+                    this.arrays_received.appendCopy(array);
+                }
+                else
+                {
+                    // received end of list terminator
+                }
+            }
+        }
+
+    ---
 
 *******************************************************************************/
 
-module ocean.io.select.protocol.serializer.GetArrays;
+module ocean.io.select.protocol.serializer.SelectArraysDeserializer;
 
 
 
@@ -32,8 +79,7 @@ private import ocean.io.select.protocol.serializer.model.ISelectArraysTransmitte
 
 private import ocean.io.select.protocol.serializer.chunks.dest.model.IChunkDest;
 
-private import ocean.io.select.protocol.serializer.SelectDeserializer,
-               ocean.io.select.protocol.serializer.ArrayTransmitTerminator;
+private import ocean.io.select.protocol.serializer.SelectDeserializer;
 
 private import ocean.io.compress.lzo.LzoChunk;
 
@@ -45,8 +91,34 @@ debug private import tango.util.log.Trace;
 
 /*******************************************************************************
 
-    Get arrays class.
+    Alias for an output delegate which is called when an array has been
+    deserialized.
 
+*******************************************************************************/
+
+public alias void delegate ( char[] ) OutputDg;
+
+
+
+/*******************************************************************************
+
+    Array deserialization class.
+
+    Asynchronously gets arrays from an input buffer, and sends them to an output
+    delegate.
+
+    The class handles several types of serialization:
+
+        1. Simple arrays.
+        2. Lzo compressed arrays (split into a series of chunks).
+        3. Forwarding previously lzo compressed (chunked) arrays. 
+
+    Note: Although reading from the input delegate will always succeed (as it's
+    just a delegate which provides the array to process), on the other hand,
+    writing to the output buffer must be interruptable / resumable, as we may
+    have to write half variables.
+
+    
     Gets arrays from the input buffer, using an instance of ChunkDeserializer,
     and sends them to output destination (an instance of a class derived from
     IChunkDest).
@@ -60,29 +132,8 @@ debug private import tango.util.log.Trace;
 
 *******************************************************************************/
 
-//TODO: change name to SelectArraysDeserializer
-
-class GetArrays : ISelectArraysTransmitter
+class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
 {
-    /***************************************************************************
-
-        Toggles array decompression - should be set externally by the user.
-    
-    ***************************************************************************/
-
-    public bool decompress;
-
-
-    /***************************************************************************
-    
-        Alias for an output delegate which is called when an array has been
-        deserialized.
-    
-    ***************************************************************************/
-
-    public alias void delegate ( char[] ) OutputDg;
-
-
     /***************************************************************************
     
         Processing state
@@ -103,49 +154,20 @@ class GetArrays : ISelectArraysTransmitter
     
     
     // TODO
-    private void[] array, chunked_array_buf;
+    private void[] array;
 
-
-    /***********************************************************************
-
-        Called when a new array is ready to be deserialized.
-    
-        Resets the output array cursor, then calls startArray_() (which can
-        be overridden by derived classes to add any additional reset
-        behaviour needed).
-    
-    ***********************************************************************/
 
     private ulong array_read_cursor;
 
-    private void nextArray ( )
-    {
-        this.array_read_cursor = 0;
-    }
-
-    private bool getArray ( ref void[] array, void[] input, ref ulong cursor, ref size_t input_array_cursor )
-    {
-        auto start = this.array_read_cursor;
-        auto io_wait = SelectDeserializer.receive(array, input[input_array_cursor..$], this.array_read_cursor);
-
-        // Update cursor
-        auto consumed = this.array_read_cursor - start;
-        cursor += consumed;
-        input_array_cursor += consumed;
-
-        return io_wait;
-    }
 
 
-
-    abstract class ArrayDeserializer
+    abstract private class ArrayDeserializer
     {
         // return true to get more arrays before calling the output delegate
         abstract public bool receive ( void[] input, ref void[] output );
-
     }
 
-    class SimpleArrayDeserializer : ArrayDeserializer
+    private class SimpleArrayDeserializer : ArrayDeserializer
     {
         // return true to get more arrays before calling the output delegate
         public bool receive ( void[] input, ref void[] output )
@@ -157,7 +179,7 @@ class GetArrays : ISelectArraysTransmitter
     }
 
 
-    class ChunkedArrayDeserializer : ArrayDeserializer
+    private class ChunkedArrayDeserializer : ArrayDeserializer
     {
         // return true to get more arrays before calling the output delegate
         public bool receive ( void[] input, ref void[] output )
@@ -178,7 +200,7 @@ class GetArrays : ISelectArraysTransmitter
     }
 
 
-    class DecompressingArrayDeserializer : ArrayDeserializer
+    private class DecompressingArrayDeserializer : ArrayDeserializer
     {
         /***********************************************************************
         
@@ -324,7 +346,7 @@ class GetArrays : ISelectArraysTransmitter
     
     private void[] output_array;
 
-    public bool deserializeArrays ( OutputDg output, void[] input, ref ulong cursor )
+    public bool transmitArrays ( OutputDg output, void[] input, ref ulong cursor )
     {
         size_t input_array_cursor;
 
@@ -346,7 +368,7 @@ class GetArrays : ISelectArraysTransmitter
                     
                     if ( super.isLzoStartChunk!(false)(this.array) )
                     {
-                        if ( this.decompress )
+                        if ( super.compress_decompress )
                         {
                             this.deserializer = this.decompress_deserializer;
                         }
@@ -390,6 +412,35 @@ class GetArrays : ISelectArraysTransmitter
         while ( this.state != State.Finished );
 
         return false;
+    }
+
+
+    /***********************************************************************
+
+        Called when a new array is ready to be deserialized.
+    
+        Resets the output array cursor, then calls startArray_() (which can
+        be overridden by derived classes to add any additional reset
+        behaviour needed).
+    
+    ***********************************************************************/
+    
+    private void nextArray ( )
+    {
+        this.array_read_cursor = 0;
+    }
+    
+    private bool getArray ( ref void[] array, void[] input, ref ulong cursor, ref size_t input_array_cursor )
+    {
+        auto start = this.array_read_cursor;
+        auto io_wait = SelectDeserializer.receive(array, input[input_array_cursor..$], this.array_read_cursor);
+    
+        // Update cursor
+        auto consumed = this.array_read_cursor - start;
+        cursor += consumed;
+        input_array_cursor += consumed;
+    
+        return io_wait;
     }
 
 
