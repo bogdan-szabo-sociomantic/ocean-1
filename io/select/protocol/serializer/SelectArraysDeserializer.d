@@ -345,28 +345,23 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
             switch ( header.type )
             {
                 case header.Type.Start:
-                    Trace.formatln("[*] Start chunk");
                     return [];
                 break;
     
                 case header.Type.LZO1X:
-                    Trace.formatln("[*] Uncompressing chunk");
                     this.lzo.uncompress(whole_chunk, this.lzo_buffer);
                     return this.lzo_buffer;
                 break;
         
                 case header.Type.None:
-                    Trace.formatln("[*] Not compressed chunk");
                     return payload;
                 break;
         
                 case header.Type.Stop:
-                    Trace.formatln("[*] Stop chunk");
                     return [];
                 break;
     
                 default:
-                    Trace.formatln("Bad chunk type: {:X}", header.type);
                     assert(false, typeof(this).stringof ~ ".uncompress - invalid chunk type");
             }
         }

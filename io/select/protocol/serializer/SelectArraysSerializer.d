@@ -346,7 +346,6 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
                 with ( State ) switch ( this.state )
                 {
                     case StartChunk:
-                        Trace.formatln("[*]ChunkedArraySerializer - StartChunk");
                         auto chunk_length = *(cast(size_t*)(array.ptr + this.chunk_pos));
                         this.chunk_pos += size_t.sizeof;
                         this.chunk = array[this.chunk_pos .. this.chunk_pos + chunk_length];
@@ -356,17 +355,14 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
                     break;
 
                     case SendChunk:
-                        Trace.formatln("[*]ChunkedArraySerializer - SendChunk: '{:X2}'", this.chunk);
                         auto io_wait = super.serializeArray(this.chunk, output, cursor, output_array_cursor);
                         if ( io_wait ) return true;
 
-                        Trace.formatln("[*]ChunkedArraySerializer - SendChunk: DONE");
                         this.state = this.chunk_pos < array.length ? StartChunk : Finished;
                     break;
                 }
             }
             while ( this.state != State.Finished );
-            Trace.formatln("[*]ChunkedArraySerializer - Finished");
 
             return false;
         }
@@ -522,14 +518,12 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
                 with ( State ) switch ( this.state )
                 {
                     case InitStartChunk:
-                        Trace.formatln("[*]CompressingArraySerializer - InitStartChunk");
                         this.chunk_header.start(array.length);
 
                         this.state = WriteStartChunk;
                     break;
 
                     case WriteStartChunk:
-                        Trace.formatln("[*]CompressingArraySerializer - WriteStartChunk");
                         auto io_wait = super.serializeArray(this.chunk_header.data_without_length(), output, cursor, output_array_cursor);
                         if ( io_wait ) return true;
 
@@ -537,7 +531,6 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
                     break;
 
                     case ExtractChunk:
-                        Trace.formatln("[*]CompressingArraySerializer - ExtractChunk");
                         this.getNextChunk(this.chunk, array);
                         this.compressed_chunk = this.compress(this.chunk);
 
@@ -545,7 +538,6 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
                     break;
 
                     case WriteChunk:
-                        Trace.formatln("[*]CompressingArraySerializer - WriteChunk");
                         auto io_wait = super.serializeArray(this.compressed_chunk, output, cursor, output_array_cursor);
                         if ( io_wait ) return true;
 
@@ -553,13 +545,11 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
                     break;
 
                     case InitEndChunk:
-                        Trace.formatln("[*]CompressingArraySerializer - InitEndChunk");
                         this.chunk_header.stop();
                         this.state = WriteEndChunk;
                     break;
 
                     case WriteEndChunk:
-                        Trace.formatln("[*]CompressingArraySerializer - WriteEndChunk: {}", this.chunk_header.data_without_length().length);
                         auto io_wait = super.serializeArray(this.chunk_header.data_without_length(), output, cursor, output_array_cursor);
                         if ( io_wait ) return true;
 
@@ -568,7 +558,6 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
                 }
             }
             while ( this.state != State.Finished );
-            Trace.formatln("[*]CompressingArraySerializer - Finished");
 
             return false;
         }
