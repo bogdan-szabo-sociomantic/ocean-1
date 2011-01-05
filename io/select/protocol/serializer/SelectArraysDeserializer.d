@@ -111,22 +111,10 @@ public alias void delegate ( char[] ) OutputDg;
         2. Lzo compressed arrays (split into a series of chunks).
         3. Forwarding previously lzo compressed (chunked) arrays. 
 
-    Note: Although reading from the input delegate will always succeed (as it's
-    just a delegate which provides the array to process), on the other hand,
-    writing to the output buffer must be interruptable / resumable, as we may
-    have to write half variables.
-
-    
-    Gets arrays from the input buffer, using an instance of ChunkDeserializer,
-    and sends them to output destination (an instance of a class derived from
-    IChunkDest).
-
-    Note: Writing to the output device will always succeed (as it's either a
-    variable in memory or a socket, which will block until the data is
-    sent).
-    
-    On the other hand, reading from the input buffer must be interruptable /
-    resumable, as we may have to read half variables.
+    Note: Although sending to the output delegate will always succeed (as it's
+    just a delegate which receives the array to process), on the other hand,
+    reading from the input buffer must be interruptable / resumable, as we may
+    have to read half variables.
 
 *******************************************************************************/
 
