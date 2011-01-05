@@ -135,14 +135,14 @@ class PutArrays : ISelectArraysTransmitter
     
     ***************************************************************************/
     
-    enum State
-    {
-        GetArray,   // get next array from delegate
-        SendArray,  // sending a simple non-chunked array
-        Finished
-    }
-    
-    private State state;
+//    enum State
+//    {
+//        GetArray,   // get next array from delegate
+//        SendArray,  // sending a simple non-chunked array
+//        Finished
+//    }
+//    
+//    private State state;
 
 
     /***************************************************************************
@@ -706,6 +706,10 @@ class PutArrays : ISelectArraysTransmitter
         {
             with ( State ) switch ( this.state )
             {
+                case Initial:
+                    this.state = GetArray;
+                break;
+
                 case GetArray:
                     this.array = input();
 
@@ -731,10 +735,10 @@ class PutArrays : ISelectArraysTransmitter
 
                     this.serializer.startArray();
 
-                    this.state = SendArray;
+                    this.state = TransmitArray;
                 break;
 
-                case SendArray:
+                case TransmitArray:
                     auto io_wait = this.serializer.send(this.array, output, cursor, output_array_cursor);
                     if ( io_wait ) return true;
 
@@ -746,18 +750,6 @@ class PutArrays : ISelectArraysTransmitter
         while ( this.state != State.Finished );
 
         return false;
-    }
-
-
-    /***************************************************************************
-    
-        Resets the internal state.
-    
-    ***************************************************************************/
-    
-    protected void reset_ ( )
-    {
-        this.state = State.GetArray;
     }
 }
 

@@ -23,6 +23,23 @@ debug private import tango.util.log.Trace;
 abstract class ISelectArraysTransmitter
 {
     /***************************************************************************
+    
+        Transmission state.
+    
+    ***************************************************************************/
+
+    enum State
+    {
+        Initial,
+        GetArray,
+        TransmitArray,
+        Finished
+    }
+
+    protected State state;
+
+
+    /***************************************************************************
 
         Toggles array decompression - should be set externally by the user.
     
@@ -193,9 +210,13 @@ abstract class ISelectArraysTransmitter
             this.terminator.reset();
         }
 
+        this.state = State.Initial;
+        
         this.reset_();
     }
 
-    abstract protected void reset_();
+    protected void reset_()
+    {
+    }
 }
 

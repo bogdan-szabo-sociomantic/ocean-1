@@ -26,6 +26,8 @@ module ocean.io.select.protocol.serializer.GetArrays;
 
 *******************************************************************************/
 
+private import ocean.core.Array;
+
 private import ocean.io.select.protocol.serializer.model.ISelectArraysTransmitter;
 
 private import ocean.io.select.protocol.serializer.chunks.dest.model.IChunkDest;
@@ -87,32 +89,219 @@ class GetArrays : ISelectArraysTransmitter
     
     ***************************************************************************/
     
-    enum State
-    {
-        GetArray,
-        ProcessArrayChunk,
-        GetNextChunk,
-        Finished
-    }
-
-    private State state;
+//    enum State
+//    {
+//        GetArray,
+//        ProcessArrayChunk,
+//        GetNextChunk,
+//        Finished
+//    }
+//
+//    private State state;
     
     
-    /***************************************************************************
-    
-        LzoChunk instance, header & buffer
-        
-    ***************************************************************************/
-    
-    private LzoChunk!(false) lzo;
-    
-    private void[] lzo_buffer;
-
-
     // TODO
-    private void[] array_buf, chunked_array_buf;
+    private void[] array, chunked_array_buf;
 
     private ulong array_read_cursor;
+
+
+    // TODO: maybe restructure the internals of processArrayList to work with classes like this:
+
+    abstract class ArrayDeserializer
+    {
+        private ulong output_array_cursor;
+
+        /***********************************************************************
+
+            Called when a new array is ready to be deserialized.
+
+            Resets the output array cursor, then calls startArray_() (which can
+            be overridden by derived classes to add any additional reset
+            behaviour needed).
+    
+        ***********************************************************************/
+    
+        final public void startArray ( )
+        {
+            this.output_array_cursor = 0;
+            this.startArray_();
+        }
+    
+        protected void startArray_ ( )
+        {
+        }
+
+
+        // return true to get more arrays before calling the output delegate
+        abstract public bool receive ( void[] input, ref void[] output );
+    }
+
+
+    class SimpleArrayDeserializer : ArrayDeserializer
+    {
+        // return true to get more arrays before calling the output delegate
+        public bool receive ( void[] input, ref void[] output )
+        {
+            Trace.formatln("[*] got array");
+            output.copy(input);
+            return false;
+        }
+    }
+
+
+    class ChunkedArrayDeserializer : ArrayDeserializer
+    {
+        // return true to get more arrays before calling the output delegate
+        public bool receive ( void[] input, ref void[] output )
+        {
+            Trace.formatln("[*] got array chunk");
+
+            LzoHeader!(false) header;
+            auto payload = header.read(input);
+
+            ubyte[size_t.sizeof] chunk_length; // using ubyte as cannot define static void array
+            *(cast(size_t*)chunk_length.ptr) = input.length;
+            
+            output ~= chunk_length;
+            output ~= input;
+
+            return header.type != header.type.Stop;
+
+//            if ( end_chunk )
+//            {
+//                Trace.formatln("[*] got complete chunked array");
+//                output(cast(char[])this.chunked_array_buf);
+//                auto last_array = super.terminator.finishedArray(this.chunked_array_buf);
+//                this.state = last_array ? Finished : GetArray;
+////                this.nextArray();
+//
+////                this.state = finish_dg(this.chunked_array_buf) ? Finished : GetArray;
+//            }
+//            else
+//            {
+//                Trace.formatln("[*] next chunk");
+////                this.state = GetNextChunk;
+////                this.nextArrayChunk();
+//            }
+
+            return true; // TODO
+        }
+    }
+
+
+    class DecompressingArrayDeserializer : ArrayDeserializer
+    {
+        /***********************************************************************
+        
+            LzoChunk instance (decompressor) & working buffer.
+        
+        ***********************************************************************/
+        
+        protected LzoChunk!(false) lzo;
+        
+        protected void[] lzo_buffer;
+
+
+        this ( )
+        {
+            this.lzo = new LzoChunk!(false);
+            this.lzo_buffer = new void[1024];
+        }
+        
+        ~this ( )
+        {
+            delete this.lzo;
+            delete this.lzo_buffer;
+        }
+
+        // return true to get more arrays before calling the output delegate
+        public bool receive ( void[] input, ref void[] output )
+        {
+            Trace.formatln("[*] got array chunk - decompressing");
+
+            LzoHeader!(false) header;
+            auto payload = header.read(input);
+
+            auto uncompressed = this.uncompress(header, payload, input);
+            output ~= uncompressed;
+
+            return header.type != header.type.Stop;
+            
+            
+//            auto end_chunk = this.processArrayChunk(input, output);
+//            if ( end_chunk )
+//            {
+//                Trace.formatln("[*] got complete chunked array");
+//                output(cast(char[])this.chunked_array_buf);
+//                auto last_array = super.terminator.finishedArray(this.chunked_array_buf);
+//                this.state = last_array ? Finished : GetArray;
+//                this.nextArray();
+//
+////                this.state = finish_dg(this.chunked_array_buf) ? Finished : GetArray;
+//            }
+//            else
+//            {
+//                Trace.formatln("[*] next chunk");
+//                this.state = GetNextChunk;
+//                this.nextArrayChunk();
+//            }
+//
+//            return true; // TODO
+        }
+
+        /***********************************************************************
+        
+            Decompresses content from an array.
+        
+            Params:
+                header = compression header
+                payload = possibly compressed payload
+                whole_chunk = array containing header + payload
+            
+            Returns:
+                decompressed payload
+        
+        ***********************************************************************/
+        
+        protected void[] uncompress ( LzoHeader!(false) header, void[] payload, void[] whole_chunk )
+        {
+            switch ( header.type )
+            {
+                case header.Type.Start:
+                    Trace.formatln("[*] Start chunk");
+                    return [];
+                break;
+    
+                case header.Type.LZO1X:
+                    Trace.formatln("[*] Uncompressing chunk");
+                    this.lzo.uncompress(whole_chunk, this.lzo_buffer);
+                    return this.lzo_buffer;
+                break;
+        
+                case header.Type.None:
+                    Trace.formatln("[*] Not compressed chunk");
+                    return payload;
+                break;
+        
+                case header.Type.Stop:
+                    Trace.formatln("[*] Stop chunk");
+                    return [];
+                break;
+    
+                default:
+                    Trace.formatln("Bad chunk type: {:X}", header.type);
+                    assert(false, typeof(this).stringof ~ ".uncompress - invalid chunk type");
+            }
+        }
+    }
+
+
+    private SimpleArrayDeserializer simple_deserializer;
+    private ChunkedArrayDeserializer chunked_deserializer;
+    private DecompressingArrayDeserializer decompress_deserializer;
+
+    private ArrayDeserializer deserializer;
 
 
     /***************************************************************************
@@ -123,8 +312,9 @@ class GetArrays : ISelectArraysTransmitter
     
     public this ( )
     {
-        this.lzo = new LzoChunk!(false);
-        this.lzo_buffer = new void[1024];
+        this.simple_deserializer = new SimpleArrayDeserializer();
+        this.chunked_deserializer = new ChunkedArrayDeserializer();
+        this.decompress_deserializer = new DecompressingArrayDeserializer();
     }
 
 
@@ -136,40 +326,10 @@ class GetArrays : ISelectArraysTransmitter
     
     ~this ( )
     {
-        delete this.lzo;
-        delete this.lzo_buffer;
+        delete this.simple_deserializer;
+        delete this.chunked_deserializer;
+        delete this.decompress_deserializer;
     }
-
-
-    // TODO: maybe restructure the internals of processArrayList to work with classes like this:
-
-    /*    abstract class ArrayDeserializer
-        {
-            // returns true to receive more arrays
-            public bool receive ( void[] array, OutputDg output );
-        }
-
-
-        class SimpleArrayDeserializer : ArrayDeserializer
-        {
-            // returns true to receive more arrays
-            public bool receive ( void[] array, OutputDg output )
-            {
-                output(cast(char[])array);
-                return false;
-            }
-        }
-
-
-        class CompressingArrayDeserializer : ArrayDeserializer
-        {
-            // returns true to receive more arrays
-            public bool receive ( void[] array, OutputDg output )
-            {
-                return true; // TODO
-            }
-        }
-    */
 
 
     /***************************************************************************
@@ -192,6 +352,11 @@ class GetArrays : ISelectArraysTransmitter
     
     ***************************************************************************/
 
+    // TODO: rename these methods to transmitArrays, unify in base class with
+    // protected methods to getArray amd transmitArray
+    
+    private void[] processed_array;
+
     public bool deserializeArrays ( OutputDg output, void[] input, ref ulong cursor )
     {
         size_t input_array_cursor;
@@ -200,55 +365,59 @@ class GetArrays : ISelectArraysTransmitter
         {
             with ( State ) switch ( this.state )
             {
+                case Initial:
+                    this.state = GetArray;
+                break;
+
                 case GetArray:
-                    auto io_wait = this.getArray(this.array_buf, input, cursor, input_array_cursor);
+                    auto io_wait = this.getArray(this.array, input, cursor, input_array_cursor);
                     if ( io_wait ) return true;
 
-                    if ( super.isLzoStartChunk!(false)(this.array_buf) )
+                    // TODO: is it possible somehow to remove the need for this
+                    // setting of a null deserializer at the beginning?
+
+                    if ( this.deserializer is null )
                     {
-                        Trace.formatln("[*] got start chunk");
-                        this.state = ProcessArrayChunk;
+                        if ( super.isLzoStartChunk!(false)(this.array) )
+                        {
+                            if ( this.decompress )
+                            {
+                                this.deserializer = this.decompress_deserializer;
+                            }
+                            else
+                            {
+                                this.deserializer = this.chunked_deserializer;
+                            }
+                            Trace.formatln("[*] got start chunk");
+                        }
+                        else
+                        {
+                            this.deserializer = this.simple_deserializer;
+                        }
+                    }
+
+                    auto more_arrays = this.deserializer.receive(this.array, this.processed_array);
+                    if ( more_arrays )
+                    {
+                        
                     }
                     else
                     {
-                        Trace.formatln("[*] got complete array: '{}'", cast(char[])this.array_buf);
-                        output(cast(char[])this.array_buf);
-
-                        auto last_array = super.terminator.finishedArray(this.array_buf);
-                        this.state = last_array ? Finished : GetArray;
-                        this.nextArray();
-
-//                        this.state = finish_dg(this.array_buf) ? Finished : GetArray;
-//                        this.nextArray();
+                        this.deserializer = null;
+                        this.state = TransmitArray;
                     }
+                    
+                    // TODO: could these class members be moved into the deserializer?
+                    this.array.length = 0;
+                    this.array_read_cursor = 0;
                 break;
 
-                case ProcessArrayChunk:
-                    Trace.formatln("[*] got array chunk");
-                    auto end_chunk = this.processArrayChunk(this.array_buf, this.chunked_array_buf);
-                    if ( end_chunk )
-                    {
-                        Trace.formatln("[*] got complete chunked array");
-                        output(cast(char[])this.chunked_array_buf);
-                        auto last_array = super.terminator.finishedArray(this.chunked_array_buf);
-                        this.state = last_array ? Finished : GetArray;
-                        this.nextArray();
+                case TransmitArray:
+                    output(cast(char[])this.processed_array);
 
-//                        this.state = finish_dg(this.chunked_array_buf) ? Finished : GetArray;
-                    }
-                    else
-                    {
-                        Trace.formatln("[*] next chunk");
-                        this.state = GetNextChunk;
-                        this.nextArrayChunk();
-                    }
-                break;
-
-                case GetNextChunk:
-                    auto io_wait = this.getArray(this.array_buf, input, cursor, input_array_cursor);
-                    if ( io_wait ) return true;
-
-                    this.state = ProcessArrayChunk;
+                    auto last_array = super.terminator.finishedArray(this.processed_array);
+                    this.state = last_array ? Finished : GetArray;
+                    this.processed_array.length = 0;
                 break;
             }
         }
@@ -259,14 +428,14 @@ class GetArrays : ISelectArraysTransmitter
 
     private void nextArray ( )
     {
-        this.array_buf.length = 0;
+        this.array.length = 0;
         this.chunked_array_buf.length = 0;
         this.array_read_cursor = 0;
     }
 
     private void nextArrayChunk ( )
     {
-        this.array_buf.length = 0;
+        this.array.length = 0;
         this.array_read_cursor = 0;
     }
 
@@ -283,87 +452,12 @@ class GetArrays : ISelectArraysTransmitter
         return io_wait;
     }
 
-
-    private bool processArrayChunk ( void[] array_chunk, ref void[] complete_array )
+    override protected void reset_()
     {
-        Trace.formatln("[*] processArrayChunk: {:X2}", array_chunk);
-
-        LzoHeader!(false) header;
-        auto payload = header.read(array_chunk);
-
-        if ( decompress )
-        {
-            auto uncompressed = this.uncompress(header, payload, array_chunk);
-            complete_array ~= uncompressed;
-        }
-        else
-        {
-            ubyte[size_t.sizeof] chunk_length; // using ubyte as cannot define static void array
-            *(cast(size_t*)chunk_length.ptr) = array_chunk.length;
-            
-            complete_array ~= chunk_length;
-            complete_array ~= array_chunk;
-        }
-
-        return header.type == header.type.Stop;
-    }
-
-
-    /***************************************************************************
-    
-        Decompresses an array, if necessary.
-    
-        Params:
-            header = compression header
-            payload = possibly compressed payload
-            whole_chunk = array containing header + payload
-        
-        Returns:
-            decompressed payload
-    
-    ***************************************************************************/
-    
-    protected void[] uncompress ( LzoHeader!(false) header, void[] payload, void[] whole_chunk )
-    {
-        switch ( header.type )
-        {
-            case header.Type.Start:
-                Trace.formatln("[*] Start chunk");
-                return [];
-            break;
-
-            case header.Type.LZO1X:
-                Trace.formatln("[*] Uncompressing chunk");
-                this.lzo.uncompress(whole_chunk, this.lzo_buffer);
-                return this.lzo_buffer;
-            break;
-    
-            case header.Type.None:
-                Trace.formatln("[*] Not compressed chunk");
-                return payload;
-            break;
-    
-            case header.Type.Stop:
-                Trace.formatln("[*] Stop chunk");
-                return [];
-            break;
-
-            default:
-                Trace.formatln("Bad chunk type: {:X}", header.type);
-                assert(false, typeof(this).stringof ~ ".uncompress - invalid chunk type");
-        }
-    }
-
-
-    /***************************************************************************
-    
-        Resets the internal state.
-        
-    ***************************************************************************/
-    
-    protected void reset_ ( )
-    {
-        this.state = State.GetArray;
+        this.deserializer = null;
+        this.array.length = 0;
+        this.processed_array.length = 0;
+        this.array_read_cursor = 0;
     }
 }
 
