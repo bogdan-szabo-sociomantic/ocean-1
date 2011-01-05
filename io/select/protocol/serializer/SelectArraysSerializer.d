@@ -265,11 +265,11 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
 
     /***************************************************************************
 
-        Serializer used when sending an array containing data which is already
-        chunked as a result of lzo compression. In this case we need to split
-        the array into its constituent chunks and send them each separately.
-        (Otherwise the array is sent as a whole, and interpreted as a whole by
-        the receiver, which isn't what we want.)
+        Serializer used when forwarding an array containing data which is
+        already chunked as a result of lzo compression. In this case we need to
+        split the array into its constituent chunks and send them each
+        separately. (Otherwise the array is sent as a whole, and interpreted as
+        a whole by the receiver, which isn't what we want.)
     
     ***************************************************************************/
 
@@ -673,8 +673,8 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
             1. An array is read from the input delegate.
             2. The array is serialized (by an instance of a class derived from
                ArraySerializer).
-            3. The finishing condition is checked (using an instance of a class
-               derived from Progress), return to step 1 if not finished.
+            3. The finishing condition is checked (using the super class),
+               return to step 1 if not finished.
 
         Params:
             input     = input delegate
@@ -697,24 +697,13 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
                 case GetArray:
                     this.array = input();
 
-                    // TODO: this block of ifs can be simplified when the Traces are no longer needed
-                    if ( this.isLzoStartChunk!(true)(this.array) ) // already compressed
+                    if ( this.isLzoStartChunk!(true)(this.array) )              // already compressed
                     {
-                        Trace.formatln("[*] forwarding already compressed array: '{}'", this.array);
                         this.serializer = this.chunked_serializer;
                     }
                     else
                     {
-                        if ( super.compress_decompress )
-                        {
-                            Trace.formatln("[*] compressing and forwarding array: '{}'", this.array);
-                            this.serializer = this.compress_serializer;
-                        }
-                        else
-                        {
-                            Trace.formatln("[*] forwarding simple array (uncompressed): '{}'", this.array);
-                            this.serializer = this.simple_serializer;
-                        }
+                        this.serializer = super.compress_decompress ? this.compress_serializer : this.simple_serializer; 
                     }
 
                     this.serializer.startArray();
@@ -735,6 +724,13 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
 
         return false;
     }
+
+
+    /***************************************************************************
+
+        Resets to initial state. Called by super.reset().
+    
+    ***************************************************************************/
 
     override protected void reset_ ( )
     {

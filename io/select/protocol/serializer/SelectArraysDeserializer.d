@@ -77,8 +77,6 @@ private import ocean.core.Array;
 
 private import ocean.io.select.protocol.serializer.model.ISelectArraysTransmitter;
 
-private import ocean.io.select.protocol.serializer.chunks.dest.model.IChunkDest;
-
 private import ocean.io.select.protocol.serializer.SelectDeserializer;
 
 private import ocean.io.compress.lzo.LzoChunk;
@@ -153,39 +151,93 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
     private State state;
     
     
-    // TODO
+    /***************************************************************************
+    
+        Array buffer used to deserialize into.
+    
+    ***************************************************************************/
+
     private void[] array;
 
+
+    /***************************************************************************
+
+        Cursor indicating how many bytes have been read into this.array.
+
+    ***************************************************************************/
 
     private ulong array_read_cursor;
 
 
+    /***************************************************************************
+    
+        Array buffer used to build up the complete array which is sent to the
+        output delegate. This array may be formed of several individual array
+        chunks (which are received one at a time into this.array).
+    
+    ***************************************************************************/
+
+    private void[] output_array;
+
+
+    /***************************************************************************
+
+        Abstract class used to deserialize an array.
+
+        Different types of array deserializer are required depending on the
+        content of the array received and the setting of the decompress member.
+
+    ***************************************************************************/
 
     abstract private class ArrayDeserializer
     {
-        // return true to get more arrays before calling the output delegate
+        /***********************************************************************
+
+            Receives and handles a chunk of an array.
+            
+            Params:
+                input = array chunk to handle
+                output = output array to write into
+
+            Returns:
+                true if one or more further array chunks need to be read to
+                complete the output array
+
+        ***********************************************************************/
+
         abstract public bool receive ( void[] input, ref void[] output );
     }
 
+
+    /***************************************************************************
+
+        Deserializer used when simply receiving an array.
+
+    ***************************************************************************/
+
     private class SimpleArrayDeserializer : ArrayDeserializer
     {
-        // return true to get more arrays before calling the output delegate
         public bool receive ( void[] input, ref void[] output )
         {
-            Trace.formatln("[*] got array");
             output.copy(input);
             return false;
         }
     }
 
 
+    /***************************************************************************
+
+        Deserializer used when forwarding an array which has been lzo compressed
+        and is thus split into chunks. Chunks must be read and appended to the
+        output array, with their lengths prepended (thus replicating the stream
+        of chunks as read) until the stop chunk is reached.
+    
+    ***************************************************************************/
+
     private class ChunkedArrayDeserializer : ArrayDeserializer
     {
-        // return true to get more arrays before calling the output delegate
         public bool receive ( void[] input, ref void[] output )
         {
-            Trace.formatln("[*] got array chunk");
-
             LzoHeader!(false) header;
             auto payload = header.read(input);
 
@@ -200,6 +252,15 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
     }
 
 
+    /***************************************************************************
+
+        Deserializer used when decompressing an array which has been lzo
+        compressed and is thus split into chunks. Chunks must be read and the
+        decompressed data appended to the output array, until the stop chunk is
+        reached.
+    
+    ***************************************************************************/
+
     private class DecompressingArrayDeserializer : ArrayDeserializer
     {
         /***********************************************************************
@@ -213,23 +274,48 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
         protected void[] lzo_buffer;
 
 
+        /***********************************************************************
+        
+            Constructor.
+        
+        ***********************************************************************/
+
         this ( )
         {
             this.lzo = new LzoChunk!(false);
             this.lzo_buffer = new void[1024];
         }
         
+
+        /***********************************************************************
+        
+            Destructor.
+        
+        ***********************************************************************/
+
         ~this ( )
         {
             delete this.lzo;
             delete this.lzo_buffer;
         }
 
-        // return true to get more arrays before calling the output delegate
+
+        /***********************************************************************
+
+            Receives and handles a chunk of an array.
+            
+            Params:
+                input = array chunk to handle
+                output = output array to write into
+    
+            Returns:
+                true if one or more further array chunks need to be read to
+                complete the output array
+    
+        ***********************************************************************/
+
         public bool receive ( void[] input, ref void[] output )
         {
-            Trace.formatln("[*] got array chunk - decompressing");
-
             LzoHeader!(false) header;
             auto payload = header.read(input);
 
@@ -238,6 +324,7 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
 
             return header.type != header.type.Stop;
         }
+
 
         /***********************************************************************
         
@@ -286,9 +373,22 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
     }
 
 
+    /***************************************************************************
+
+        Deserializer instances.
+    
+    ***************************************************************************/
+
     private SimpleArrayDeserializer simple_deserializer;
     private ChunkedArrayDeserializer chunked_deserializer;
     private DecompressingArrayDeserializer decompress_deserializer;
+
+
+    /***************************************************************************
+
+        Reference to the deserializer instance currently being used.
+    
+    ***************************************************************************/
 
     private ArrayDeserializer deserializer;
 
@@ -322,29 +422,26 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
 
 
     /***************************************************************************
-    
-        Receives and processes a list of arrays:
-            1. An array is read from the input buffer.
-            2. The array is processed.
-            3. Check the finishing condition, and return to step 1 if not
-               finished.
-            4. Call the terminateList() method when finished.
-    
+
+        Deserializes array(s):
+
+            1. An array is deserialized from the input buffer.
+            2. The array is processed - which may include decompression.
+            3. If the received array was only one chunk of a larger array,
+               return to step 1. Otherwise send the complete array to the
+               output delegate.
+            4. The finishing condition is checked (using the super class),
+               return to step 1 if not finished.
+
         Params:
-            output    = output data device (stream / buffer)
-            data      = input buffer
-            cursor    = position through input buffer
-            finish_dg = delegate for finishing condition
-    
+            output = output delegate
+            input = input data buffer
+            cursor = global cursor
+
         Returns:
             true if the input buffer is empty and needs to be refilled
-    
-    ***************************************************************************/
 
-    // TODO: rename these methods to transmitArrays, unify in base class with
-    // protected methods to getArray amd transmitArray
-    
-    private void[] output_array;
+    ***************************************************************************/
 
     public bool transmitArrays ( OutputDg output, void[] input, ref ulong cursor )
     {
@@ -357,7 +454,7 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
                 case Initial:
                     this.output_array.length = 0;
 
-                    this.nextArray();
+                    this.nextArray(); // get ready to receive first array
 
                     this.state = GetFirstArray;
                 break;
@@ -376,7 +473,6 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
                         {
                             this.deserializer = this.chunked_deserializer;
                         }
-                        Trace.formatln("[*] got start chunk");
                     }
                     else
                     {
@@ -415,21 +511,21 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
     }
 
 
-    /***********************************************************************
+    /***************************************************************************
 
-        Called when a new array is ready to be deserialized.
+        Deserializes an array from the input buffer.
+
+        Params:
+            array = array to read into
+            input = input data buffer
+            cursor = global cursor
+            input_array_cursor = position through input buffer 
     
-        Resets the output array cursor, then calls startArray_() (which can
-        be overridden by derived classes to add any additional reset
-        behaviour needed).
-    
-    ***********************************************************************/
-    
-    private void nextArray ( )
-    {
-        this.array_read_cursor = 0;
-    }
-    
+        Returns:
+            true if the input buffer is empty and needs to be refilled
+
+    ***************************************************************************/
+
     private bool getArray ( ref void[] array, void[] input, ref ulong cursor, ref size_t input_array_cursor )
     {
         auto start = this.array_read_cursor;
@@ -443,6 +539,24 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
         return io_wait;
     }
 
+
+    /***************************************************************************
+
+        Called when a new array is ready to be deserialized. Resets the output
+        array cursor.
+    
+    ***************************************************************************/
+    
+    private void nextArray ( )
+    {
+        this.array_read_cursor = 0;
+    }
+    
+    /***************************************************************************
+
+        Resets to initial state. Called by super.reset().
+    
+    ***************************************************************************/
 
     override protected void reset_()
     {
