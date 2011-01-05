@@ -110,7 +110,7 @@ class GetArrays : ISelectArraysTransmitter
 
     abstract class ArrayDeserializer
     {
-        private ulong output_array_cursor;
+        private ulong array_read_cursor;
 
         /***********************************************************************
 
@@ -124,17 +124,30 @@ class GetArrays : ISelectArraysTransmitter
     
         final public void startArray ( )
         {
-            this.output_array_cursor = 0;
-            this.startArray_();
+            this.array_read_cursor = 0;
+//            this.startArray_(); TODO
         }
     
-        protected void startArray_ ( )
-        {
-        }
+//        protected void startArray_ ( )
+//        {
+//        }
 
 
         // return true to get more arrays before calling the output delegate
         abstract public bool receive ( void[] input, ref void[] output );
+
+        public bool getArray ( ref void[] array, void[] input, ref ulong cursor, ref size_t input_array_cursor )
+        {
+            auto start = this.array_read_cursor;
+            auto io_wait = SelectDeserializer.receive(array, input[input_array_cursor..$], this.array_read_cursor);
+
+            // Update cursor
+            auto consumed = this.array_read_cursor - start;
+            cursor += consumed;
+            input_array_cursor += consumed;
+
+            return io_wait;
+        }
     }
 
 
@@ -355,7 +368,7 @@ class GetArrays : ISelectArraysTransmitter
     // TODO: rename these methods to transmitArrays, unify in base class with
     // protected methods to getArray amd transmitArray
     
-    private void[] processed_array;
+    private void[] output_array;
 
     public bool deserializeArrays ( OutputDg output, void[] input, ref ulong cursor )
     {
@@ -366,17 +379,19 @@ class GetArrays : ISelectArraysTransmitter
             with ( State ) switch ( this.state )
             {
                 case Initial:
+                    this.got_first_array = false;
+                    this.output_array.length = 0;
+                    this.deserializer = this.simple_deserializer;
+                    this.deserializer.startArray();
+
                     this.state = GetArray;
                 break;
 
                 case GetArray:
-                    auto io_wait = this.getArray(this.array, input, cursor, input_array_cursor);
+                    auto io_wait = this.deserializer.getArray(this.array, input, cursor, input_array_cursor);
                     if ( io_wait ) return true;
 
-                    // TODO: is it possible somehow to remove the need for this
-                    // setting of a null deserializer at the beginning?
-
-                    if ( this.deserializer is null )
+                    if ( !this.got_first_array )
                     {
                         if ( super.isLzoStartChunk!(false)(this.array) )
                         {
@@ -396,28 +411,25 @@ class GetArrays : ISelectArraysTransmitter
                         }
                     }
 
-                    auto more_arrays = this.deserializer.receive(this.array, this.processed_array);
-                    if ( more_arrays )
+                    this.got_first_array = true;
+
+                    auto more_arrays = this.deserializer.receive(this.array, this.output_array);
+                    if ( !more_arrays )
                     {
-                        
-                    }
-                    else
-                    {
-                        this.deserializer = null;
                         this.state = TransmitArray;
                     }
-                    
+
                     // TODO: could these class members be moved into the deserializer?
-                    this.array.length = 0;
-                    this.array_read_cursor = 0;
+//                    this.array.length = 0;
+                    this.deserializer.startArray();
+//                    this.array_read_cursor = 0;
                 break;
 
                 case TransmitArray:
-                    output(cast(char[])this.processed_array);
+                    output(cast(char[])this.output_array);
 
-                    auto last_array = super.terminator.finishedArray(this.processed_array);
-                    this.state = last_array ? Finished : GetArray;
-                    this.processed_array.length = 0;
+                    auto last_array = super.terminator.finishedArray(this.output_array);
+                    this.state = last_array ? Finished : Initial;
                 break;
             }
         }
@@ -425,6 +437,10 @@ class GetArrays : ISelectArraysTransmitter
 
         return false;
     }
+
+
+    private bool got_first_array;
+
 
     private void nextArray ( )
     {
@@ -439,24 +455,11 @@ class GetArrays : ISelectArraysTransmitter
         this.array_read_cursor = 0;
     }
 
-    private bool getArray ( ref void[] array, void[] input, ref ulong cursor, ref size_t input_array_cursor )
-    {
-        auto start = this.array_read_cursor;
-        auto io_wait = SelectDeserializer.receive(array, input[input_array_cursor..$], this.array_read_cursor);
-
-        // Update cursor
-        auto consumed = this.array_read_cursor - start;
-        cursor += consumed;
-        input_array_cursor += consumed;
-
-        return io_wait;
-    }
-
     override protected void reset_()
     {
         this.deserializer = null;
         this.array.length = 0;
-        this.processed_array.length = 0;
+        this.output_array.length = 0;
         this.array_read_cursor = 0;
     }
 }
