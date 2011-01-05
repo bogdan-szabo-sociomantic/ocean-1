@@ -105,7 +105,7 @@ public alias void delegate ( char[] ) OutputDg;
     Asynchronously gets arrays from an input buffer, and sends them to an output
     delegate.
 
-    The class handles several types of serialization:
+    The class handles several types of deserialization:
 
         1. Simple arrays.
         2. Lzo compressed arrays (split into a series of chunks).
