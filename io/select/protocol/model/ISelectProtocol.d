@@ -296,7 +296,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     public typeof(this) unregister ( )
     {
         this.data.length = 0;
-
+        
         this.dispatcher.unregister(this);
 
         return this;
@@ -311,11 +311,26 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     
      **************************************************************************/
 
-    final bool pending ( )
+    final public bool pending ( )
     {
         return this.handler_index < this.io_handlers.length;
     }
     
+    /**************************************************************************
+
+        Resets the internal cursors and data buffer. If a fatal error occurs
+        during an i/o handler, then this method needs to be called before the
+        next i/o handler is activated.
+
+     **************************************************************************/
+
+    public void init ( )
+    {
+        this.cursor = 0;
+        this.pos = 0;
+        this.data.length = 0;
+    }
+
     /**************************************************************************
 
         Returns true if the current data buffer position is at the end of the
@@ -470,7 +485,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         
         return more;
     }
-    
+
     /**************************************************************************
 
         Clears the IOHandlers and invokes the Session Finalizer if provided.
