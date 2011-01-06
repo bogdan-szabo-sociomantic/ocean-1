@@ -6,7 +6,18 @@
     
     authors:        Gavin Norman
 
-    Abstract class for asynchronously de/serializing one or more arrays.
+    Abstract class for asynchronously de/serializing one or more arrays. The
+    following array transmission situations are supported:
+
+        1. Single array
+        2. Pair of arrays
+        3. List of arrays (terminted with a blank)
+        4. List of pairs of arrays (terminated with two consecutive blanks)
+
+    For usage examples see:
+
+        ocean.io.select.protocol.serializer.SelectArraysSerializer;
+        ocean.io.select.protocol.serializer.SelectArraysDeserializer;
 
 *******************************************************************************/
 
