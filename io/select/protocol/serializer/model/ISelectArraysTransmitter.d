@@ -364,6 +364,8 @@ abstract class ISelectArraysTransmitter ( IODg )
 
         Receives and transmits one or more arrays.
 
+        Note: this method is aliased to opCall, for convenient calling.
+
         Params:
             io_dg = input/output delegate which either provides or receives
                 arrays
@@ -378,6 +380,8 @@ abstract class ISelectArraysTransmitter ( IODg )
     ***************************************************************************/
 
     abstract public bool transmitArrays ( IODg io_dg, void[] data, ref ulong cursor );
+
+    public alias transmitArrays opCall;
 
 
     /***************************************************************************
