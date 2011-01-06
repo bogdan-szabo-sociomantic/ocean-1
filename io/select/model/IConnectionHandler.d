@@ -64,7 +64,7 @@ abstract class IConnectionHandler
         protected SelectWriter writer;
     }
     
-    this ( EpollSelectDispatcher dispatcher, FinalizeDg finalize_dg )
+    public this ( EpollSelectDispatcher dispatcher, FinalizeDg finalize_dg )
     {
         Socket socket = new Socket;
         
@@ -86,7 +86,26 @@ abstract class IConnectionHandler
             this.writer.finalizer = finalizer;
         }
     }
-    
-    abstract typeof (this) assign ( ISelectListenerInfo, void delegate ( ISelectable ) );
+
+	// Always reset this instance when a new connection is assigned.
+	// In the case where the previous connection this instance handled ended
+	// normally, this initialisation is not strictly necessary.
+	// However in the case where the previous connection was terminated prematurely,
+	// the initialisation is needed.
+    public typeof (this) assign ( ISelectListenerInfo listener_info, void delegate ( ISelectable ) assign_to_conduit )
+    {
+    	this.init();
+
+        this.assign_(listener_info, assign_to_conduit);
+        return this;
+    }
+
+    abstract protected void assign_ ( ISelectListenerInfo, void delegate ( ISelectable ) );
+
+	private void init ( )
+	{
+        this.reader.init();
+        this.writer.init();
+	}
 }
 
