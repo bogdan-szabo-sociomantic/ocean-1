@@ -20,8 +20,7 @@ module ocean.io.select.protocol.serializer.model.ISelectArraysTransmitter;
 
 *******************************************************************************/
 
-private import ocean.io.compress.lzo.LzoHeader,
-               ocean.io.compress.lzo.LzoChunk;
+private import ocean.io.compress.lzo.LzoHeader;
 
 debug private import tango.util.log.Trace;
 
