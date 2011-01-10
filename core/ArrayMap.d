@@ -272,7 +272,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
     /***************************************************************************
         
-        Startup size of array map
+        Actual allocated size of array map
         
      **************************************************************************/
     
