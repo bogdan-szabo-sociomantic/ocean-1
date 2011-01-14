@@ -22,10 +22,24 @@
         char[] dest;
         dest.concat("hello ", "world");
     ---
+
+    TODO: Extend unittest to test all functions in this module.
     
 *******************************************************************************/
 
 module ocean.core.Array;
+
+
+
+/*******************************************************************************
+    
+    Imports
+    
+*******************************************************************************/
+
+private import tango.text.Util : patterns;
+
+
 
 /*******************************************************************************
 
@@ -37,12 +51,15 @@ module ocean.core.Array;
 	modified in-place as required. This avoids any per-element memory
 	allocation, which the normal ~ operator suffers from.
 
+    Template params:
+        T = type of array element
+
 	Params:
 		dest = reference to the destination array
 		arrays = variadic list of arrays to concatenate
 
-	Returns:
-		the length of the concatenated arrays
+    Returns:
+        dest
 
 	Usage:
 	---
@@ -52,7 +69,7 @@ module ocean.core.Array;
 
 ********************************************************************************/
 
-T[] concat ( T ) ( ref T[] dest, T[][] arrays ... )
+public T[] concat ( T ) ( ref T[] dest, T[][] arrays ... )
 {
 	size_t total_len;
 	foreach ( array; arrays )
@@ -83,13 +100,16 @@ T[] concat ( T ) ( ref T[] dest, T[][] arrays ... )
 	modified in-place as required. This avoids any per-element memory
 	allocation, which the normal ~ operator suffers from.
 	
+    Template params:
+        T = type of array element
+
 	Params:
 		dest = reference to the destination array
 		arrays = variadic list of arrays to append
 	
-	Returns:
-		the new length of the destination array
-	
+    Returns:
+        dest
+
 	Usage:
 	---
 		char[] dest = "hello";
@@ -98,7 +118,7 @@ T[] concat ( T ) ( ref T[] dest, T[][] arrays ... )
 
 *******************************************************************************/
 
-T[] append ( T ) ( ref T[] dest, T[][] arrays ... )
+public T[] append ( T ) ( ref T[] dest, T[][] arrays ... )
 {
 	size_t total_len;
 	foreach ( array; arrays )
@@ -124,13 +144,19 @@ T[] append ( T ) ( ref T[] dest, T[][] arrays ... )
 
     Copies the contents of one array to another, setting the length of the
     destination array first.
-    
+
     This function is provided as a shorthand for this common operation.
-    
+
+    Template params:
+        T = type of array element
+
     Params:
         dest = reference to the destination array
         array = array to copy
-    
+
+    Returns:
+        dest
+
     Usage:
     ---
         char[] dest;
@@ -140,7 +166,7 @@ T[] append ( T ) ( ref T[] dest, T[][] arrays ... )
 
 *******************************************************************************/
 
-T[] copy ( T ) ( ref T[] dest, T[] src )
+public T[] copy ( T ) ( ref T[] dest, T[] src )
 {
     dest.length = src.length;
     dest[] = src[];
@@ -154,13 +180,19 @@ T[] copy ( T ) ( ref T[] dest, T[] src )
     Appends an element to a list of arrays, and copies the contents of the
     passed source array into the new element, setting the length of the
     destination array first.
-    
+
     This function is provided as a shorthand for this common operation.
-    
+
+    Template params:
+        T = type of array element
+
     Params:
         dest = reference to the destination array list
         array = array to copy
-    
+
+    Returns:
+        dest
+
     Usage:
     ---
         char[][] dest;
@@ -170,7 +202,7 @@ T[] copy ( T ) ( ref T[] dest, T[] src )
 
 *******************************************************************************/
 
-T[][] appendCopy ( T ) ( ref T[][] dest, T[] src )
+public T[][] appendCopy ( T ) ( ref T[][] dest, T[] src )
 {
     dest.length = dest.length + 1;
     dest[$ - 1].copy(src);
@@ -179,12 +211,105 @@ T[][] appendCopy ( T ) ( ref T[][] dest, T[] src )
 }
 
 
+/*******************************************************************************
+
+    Split the provided array wherever a pattern instance is found, and return
+    the resultant segments. The pattern is excluded from each of the segments.
+    
+    Note that the src content is not duplicated by this function, but is sliced
+    instead.
+
+    (Adapted from tango.text.Util : split, which isn't memory safe.)
+    
+    Template params:
+        T = type of array element
+    
+    Params:
+        src = source array to split
+        pattern = pattern to split array by
+        result = receives split array segments (slices into src)
+    
+    Returns:
+        result
+
+*******************************************************************************/
+
+public T[][] split ( T ) ( T[] src, T[] pattern, ref T[][] result )
+{
+    result.length = 0;
+    
+    foreach ( segment; patterns(src, pattern) )
+    {
+        result ~= segment;
+    }
+
+    return result;
+}
+
+
+/*******************************************************************************
+
+    Substitute all instances of match from source. Set replacement to null in
+    order to remove instead of replace (or use the remove() function, below).
+    
+    (Adapted from tango.text.Util : substitute, which isn't memory safe.)
+    
+    Template params:
+        T = type of array element
+    
+    Params:
+        src = source array to split
+        match = pattern to match in source array
+        replacement = pattern to replace matched sub-arrays
+        result = receives array with replaced patterns
+    
+    Returns:
+        result
+
+*******************************************************************************/
+
+public T[] substitute ( T ) ( T[] source, T[] match, T[] replacement, ref T[] result )
+{
+    result.length = 0;
+    
+    foreach ( s; patterns(source, match, replacement) )
+    {
+        result ~= s;
+    }
+    
+    return result;
+}
+
+
+/*******************************************************************************
+
+    Removes all instances of match from source.
+    
+    Template params:
+        T = type of array element
+    
+    Params:
+        src = source array to split
+        match = pattern to remove from source array
+        result = receives array with removed patterns
+    
+    Returns:
+        result
+
+*******************************************************************************/
+
+public T[] remove ( T ) ( T[] source, T[] match, ref T[] result )
+{
+    substitute(source, match, null, result);    
+}
+
+
 
 /*******************************************************************************
 
     Unittest
-    
-********************************************************************************/
+
+*******************************************************************************/
 
 debug ( OceanUnitTest )
 {
