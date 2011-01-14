@@ -514,7 +514,6 @@ struct Url
             if ( start < url.length )
             {
                 uint end = url[start..$].find(UriDelim.FRAGMENT);
-    
                 this.extract(url[start + 1 .. start + end], decode_values);
             }
         }
@@ -600,15 +599,36 @@ struct Url
             the original string, if it contained no escaped characters, or the
             decoded string otherwise.
 
+        FIXME: The following character encoding schemes need to be supported:
+            1. %XX - where X is a hex digit
+            2. %uXXXX - where X is a hex digit
+
+        At the moment we support only case 1, which is the standard.
+        Unfortunately there's also the non-standard case 2, which is used so we
+        need to support it as well.
+
+        See: http://en.wikipedia.org/wiki/Percent-encoding (Non standard implementations)
+
     ***************************************************************************/
     
     private static char[] decode ( char[] source, ref char[] working, char[] ignore = "" )
     {
+        static bool charOk ( char c )
+        {
+            return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+        }
+
         static int toInt ( char c )
+        in
+        {
+            assert(charOk(c), "invalid hex character");
+        }
+        body
         {
             if      (c >= '0' && c <= '9')  return c - '0';
             else if (c >= 'a' && c <= 'f')  return c - ('a' - 10);
             else if (c >= 'A' && c <= 'F')  return c - ('A' - 10);
+            else                            return 0;
         }
 
         const EncodedMarker = '%';
@@ -628,7 +648,8 @@ struct Url
             {
                 int c = source[read_pos];
     
-                if ( c == EncodedMarker && (read_pos + 2) < source.length )
+                if ( c == EncodedMarker && (read_pos + 2) < source.length
+                     && charOk(source[read_pos + 1]) && charOk(source[read_pos + 2]) )
                 {
                     c = toInt(source[read_pos + 1]) * 16 + toInt(source[read_pos + 2]);
     
