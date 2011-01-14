@@ -31,14 +31,14 @@ public  import      tango.net.http.HttpConst;
 
 struct HttpMethod
 {       
-    static const char[] Options      = "OPTIONS";
-    static const char[] Get          = "GET";
-    static const char[] Head         = "HEAD";
-    static const char[] Post         = "POST";
-    static const char[] Put          = "PUT";
-    static const char[] Delete       = "DELETE";
-    static const char[] Trace        = "TRACE";
-    static const char[] Connect      = "CONNECT";
+    static const char[] Options      = `OPTIONS`;
+    static const char[] Get          = `GET`;
+    static const char[] Head         = `HEAD`;
+    static const char[] Post         = `POST`;
+    static const char[] Put          = `PUT`;
+    static const char[] Delete       = `DELETE`;
+    static const char[] Trace        = `TRACE`;
+    static const char[] Connect      = `CONNECT`;
 }
 
 
@@ -51,10 +51,11 @@ struct HttpMethod
 
 struct UriDelim
 {       
-    static const char[] QUERY      = "?"; // seperates uri path & query parameter
-    static const char[] QUERY_URL  = "/"; // separates url path elements
-    static const char[] PARAM      = "&"; // seperates key/value pairs
-    static const char[] KEY_VALUE  = "="; // separate key and value
+    static const char[] QUERY      = `?`; // seperates uri path & query parameter
+    static const char[] FRAGMENT   = `#`; // seperates uri path & fragment
+    static const char[] QUERY_URL  = `/`; // separates url path elements
+    static const char[] PARAM      = `&`; // seperates key/value pairs
+    static const char[] KEY_VALUE  = `=`; // separate key and value
 }
 
 
@@ -71,8 +72,8 @@ typedef char[] HttpVersionId;
 
 struct HttpVersion
 {   
-    static const HttpVersionId v10 = cast (HttpVersionId) "HTTP/1.0",
-                               v11 = cast (HttpVersionId) "HTTP/1.1";
+    static const HttpVersionId v10 = cast (HttpVersionId) `HTTP/1.0`,
+                               v11 = cast (HttpVersionId) `HTTP/1.1`;
 }
 
 
@@ -91,12 +92,12 @@ struct HttpCookieAttr
 {
     static const struct Name
     {
-        static const Comment  = "comment",
-                     Domain   = "domain",
-                     Expires  = "expires", // max-age !is crossbrowser compatible
-                     Path     = "path",
-                     Secure   = "secure",
-                     Version  = "version";
+        static const Comment  = `comment`,
+                     Domain   = `domain`,
+                     Expires  = `expires`, // max-age !is crossbrowser compatible
+                     Path     = `path`,
+                     Secure   = `secure`,
+                     Version  = `version`;
     }
     
     static const struct Delim
@@ -131,7 +132,7 @@ struct HttpStatusNames
     {
         char[]* str = code in this.response_names;
         
-        return str? *str : "[unknown HTTP status code]";
+        return str? *str : `[unknown HTTP status code]`;
     }
     
     /**************************************************************************
