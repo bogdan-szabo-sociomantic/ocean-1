@@ -33,9 +33,9 @@ private     import      tango.net.Uri;
 
 private     import      Unicode = tango.text.Unicode;
 
-private     import      TextUtil = tango.text.Util : split;
-
 debug private import tango.util.log.Trace;
+
+
 
 /*******************************************************************************  
 
@@ -201,7 +201,7 @@ struct Url
         this.parser.parse(this.url);        
         
         this.host = this.parser.host;
-        
+
         this.query.parse(url);
         this.path.parse(this.parser.path, this.parser, tolower);
     }
@@ -230,7 +230,7 @@ struct Url
          ***********************************************************************/                                                   
         
         private             char[][]                        segments;
-        private             char[][]                        split;
+        private             char[][]                        splits;
     
         /***********************************************************************
             
@@ -264,7 +264,7 @@ struct Url
         {
             this.path.length = 0;
             this.segments.length = 0;
-            this.split.length = 0;
+            this.splits.length = 0;
         }
         
         /***********************************************************************
@@ -337,13 +337,13 @@ struct Url
                 this.path = path;
             }
             
-            this.split = TextUtil.split(this.path, UriDelim.QUERY_URL);  
+            this.path.split(UriDelim.QUERY_URL, this.splits);
             
-            for ( uint i = 0; i < this.split.length; i++ )        
+            for ( uint i = 0; i < this.splits.length; i++ )        
             {
-                if ( this.split[i].length )
+                if ( this.splits[i].length )
                 {
-                    this.segments ~= this.split[i];
+                    this.segments ~= this.splits[i];
                 }
             }
         }
@@ -403,7 +403,7 @@ struct Url
          ***********************************************************************/
         
         private             char[][]                        elements;
-        private             char[][]                        split;
+        private             char[][]                        splits;
         
         /***********************************************************************
             
@@ -470,7 +470,7 @@ struct Url
             this.decode_buf.length = 0;
             this.elements.length = 0;
             this.pairs.length = 0;
-            this.split.length = 0;
+            this.splits.length = 0;
         }
         
         /***********************************************************************
@@ -510,7 +510,7 @@ struct Url
             this.reset;
 
             uint start = url.find(UriDelim.QUERY);
-            
+
             if ( start < url.length )
             {
                 uint end = url[start..$].find(UriDelim.FRAGMENT);
@@ -541,15 +541,15 @@ struct Url
                 this.query    = query;
             }
 
-            this.elements = TextUtil.split(query, UriDelim.PARAM);
+            query.split(UriDelim.PARAM, this.elements);
 
             foreach ( i, ref element; this.elements )
             {
                 if ( element.length && element != UriDelim.PARAM ) 
                 {
-                    this.split = TextUtil.split(element, UriDelim.KEY_VALUE);
+                    element.split(UriDelim.KEY_VALUE, this.splits);
 
-                    if ( this.split.length == 2 )
+                    if ( this.splits.length == 2 )
                     {
                         if ( decode_values )
                         {
@@ -557,17 +557,26 @@ struct Url
                             {
                                 this.query.append(UriDelim.PARAM);
                             }
-                            this.query.append(this.split[0], UriDelim.KEY_VALUE,
-                                              Url.decode(this.split[1], this.decode_buf));
+
+                            auto decoded_value = Url.decode(this.splits[1], this.decode_buf);
+                            this.query.append(this.splits[0], UriDelim.KEY_VALUE, decoded_value);
+
+                            auto key_start = this.query.length - decoded_value.length - 1 - this.splits[0].length;
+                            auto key = this.query[key_start .. key_start + this.splits[0].length];
+
+                            auto value_start = this.query.length - decoded_value.length;
+                            auto value = this.query[value_start .. value_start + decoded_value.length];
+
+                            this.pairs ~= QueryPair(key, value);
                         }
                         else
                         {
-                            this.pairs ~= QueryPair(this.split[0], this.split[0]);
+                            this.pairs ~= QueryPair(this.splits[0], this.splits[0]);
                         }
                     }
-                    else if ( split.length == 1 )
+                    else if ( this.splits.length == 1 )
                     {
-                        this.pairs ~= QueryPair(this.split[0], null);
+                        this.pairs ~= QueryPair(this.splits[0], null);
                     }
                 }
             }
@@ -704,9 +713,11 @@ debug ( OceanUnitTest )
         
         uint x = 0;
         
+        GC.disable;
+
         auto mem_before = GC.stats["poolSize"];
 
-        for ( uint i=0; i <= 500_000; i++ )
+        for ( uint i=0; i <= 500_000_000; i++ )
         {
             url.parse(url_string);
             
@@ -719,9 +730,9 @@ debug ( OceanUnitTest )
             	auto mem_now = GC.stats["poolSize"];
 
                 Trace.formatln("finished 50000 calls: alloc mem {} b", mem_now);
-                
-                assert(mem_now - mem_before > 0, "found memory leak");
-                
+
+                assert(mem_now - mem_before == 0, "found memory leak");
+
                 x = 0;
             }
             
@@ -799,10 +810,7 @@ debug ( OceanUnitTest )
             //printUsage(true);
         }
         Trace.format("After mem test #2 ");
-        printUsage();        
-        
-        
-        
+        printUsage();
         
         Trace.formatln("done unittest ocean.net.http.Url");
     }
