@@ -23,6 +23,10 @@ private     import      ocean.net.http.HttpConstants;
 
 private     import      ocean.core.Array;
 
+private     import      tango.core.Array;
+
+private     import      tango.stdc.string : memchr;
+
 private     import      tango.net.http.HttpConst;
 
 private     import      tango.net.Uri;
@@ -31,11 +35,16 @@ private     import      Unicode = tango.text.Unicode;
 
 private     import      TextUtil = tango.text.Util : split;
 
+debug private import tango.util.log.Trace;
+
 /*******************************************************************************  
 
     Url parses a url string and seperates its components to be directly 
     and efficiently accessible.
-    
+
+    Escaped characters (eg "%20") in values of url query parameters are
+    automatically decoded. (See Url.decode().)
+
     Url parser usage example
     ---
     Url    url;
@@ -66,7 +75,9 @@ private     import      TextUtil = tango.text.Util : split;
     
     TODO
     
-    add url string (en)decoding and proper exception handling
+    Add url string (en)decoding and proper exception handling
+        - The decode method exists but is private, it's static so can safely be
+        made public.
 
     See also the Rfc's
     
@@ -191,10 +202,10 @@ struct Url
         
         this.host = this.parser.host;
         
-        this.query.parse(this.parser.query);
+        this.query.parse(url);
         this.path.parse(this.parser.path, this.parser, tolower);
     }
-    
+
     /***************************************************************************
         
         Path Component
@@ -362,15 +373,24 @@ struct Url
     
         /***********************************************************************
             
-            Query component string
+            Query component string. If decoding is required, this is a new
+            string, otherwise it's a slice into the string passed to parse().
             
-         ***********************************************************************/                                                   
+        ***********************************************************************/                                                   
         
         private             char[]                          query;
         
         /***********************************************************************
+
+            Buffer used when decoding query parameters.
+
+        ***********************************************************************/                                                   
+
+        private             char[]                          decode_buf;
+
+        /***********************************************************************
             
-            Query key/value pairs
+            Query key/value pairs (all slices into this.query)
             
          ***********************************************************************/
 
@@ -378,7 +398,7 @@ struct Url
         
         /***********************************************************************
             
-            Temporary split values
+            Temporary split values (slices)
             
          ***********************************************************************/
         
@@ -403,10 +423,10 @@ struct Url
             {
                 if ( pair.key == key )
                 {
-                    return pair.value; // TODO does this needs a .dup?
+                    return pair.value; // TODO does this needs a .dup? -- (Gavin:) why would it?
                 }
             }
-            
+
             return null;
         }
        
@@ -446,68 +466,187 @@ struct Url
         
         public void reset ()
         {
-            this.query.length =
-            this.elements.length =
-            this.pairs.length    =
+            this.query.length = 0;
+            this.decode_buf.length = 0;
+            this.elements.length = 0;
+            this.pairs.length = 0;
             this.split.length = 0;
         }
         
         /***********************************************************************
-            
-            Parses query component
-            
+
+            Parses query component, optionally decoding query values.
+
+            Method extracts the query element from the given url by searching 
+            for '?' character denoting start of url query. The '#' fragment
+            character is denoting the end of the url query, otherwise the end of
+            string is used. After identifying the query string its splitted into
+            its elements and the values are decoded.
+
             Method transforms
+
             ---
-            char[] = "?language=en&set=large"
+                char[] = "?language=en&set=large"
             ---
             
             into 
+
             ---
-            char[][char[]] param;
+                char[][char[]] param;
             
-            param['language'] = 'en';
-            param['set']      = 'large';
+                param['language'] = 'en';
+                param['set']      = 'large';
             ---
-            
-            
+
             Params:
-                query_string = query string to parse
-                
-            Returns:
-                void
-            
-         ***********************************************************************/
-        
-        public void parse ( in char[] query_string )
+                url    = encoded url character string
+                decode_values = if true, query parameter values will be decoded
+                    (note that keys are never decoded)
+
+        ***********************************************************************/
+
+        public void parse ( in char[] url, bool decode_values = true )
         {
             this.reset;
+
+            uint start = url.find(UriDelim.QUERY);
             
-            this.query = query_string;
+            if ( start < url.length )
+            {
+                uint end = url[start..$].find(UriDelim.FRAGMENT);
+    
+                this.extract(url[start + 1 .. start + end], decode_values);
+            }
+        }
+
+        /***********************************************************************
             
-            this.elements = TextUtil.split(this.query, UriDelim.PARAM);
+            Seperates the query path elements and optionally decodes value.
             
-            foreach ( ref element; this.elements )
+            Params:
+                query  = encoded url character string
+                decode_values = if true, query parameter values will be decoded
+                    (note that keys are never decoded)
+
+        ***********************************************************************/
+        
+        private void extract ( in char[] query, bool decode_values = true )
+        {
+            if ( decode_values )
+            {
+                this.query.length = 0;
+            }
+            else
+            {
+                this.query    = query;
+            }
+
+            this.elements = TextUtil.split(query, UriDelim.PARAM);
+
+            foreach ( i, ref element; this.elements )
             {
                 if ( element.length && element != UriDelim.PARAM ) 
                 {
                     this.split = TextUtil.split(element, UriDelim.KEY_VALUE);
 
-                    // TODO: decode "%26" -> '&' in the value strings
-
-                    if (this.split.length == 2)
+                    if ( this.split.length == 2 )
                     {
-                        this.pairs ~= QueryPair(this.split[0], this.split[1]);
+                        if ( decode_values )
+                        {
+                            if ( i > 0 )
+                            {
+                                this.query.append(UriDelim.PARAM);
+                            }
+                            this.query.append(this.split[0], UriDelim.KEY_VALUE,
+                                              Url.decode(this.split[1], this.decode_buf));
+                        }
+                        else
+                        {
+                            this.pairs ~= QueryPair(this.split[0], this.split[0]);
+                        }
                     }
-                    else if (split.length == 1)
+                    else if ( split.length == 1 )
                     {
                         this.pairs ~= QueryPair(this.split[0], null);
                     }
                 }
             }
         }
-        
     }
 
+    /***************************************************************************
+
+        Checks whether the passed source string contains any characters encoded
+        according to the RFC 2396 escape format. (A '%' character followed by
+        two hexadecimal digits.) If the string does contain encoded characters,
+        the passed working buffer is filled with a decoded version of the source
+        string.
+
+        Params:
+            source = character string to decode
+            working = decode buffer
+            ignore = any characters in this string will not be decoded
+
+        Returns:
+            the original string, if it contained no escaped characters, or the
+            decoded string otherwise.
+
+    ***************************************************************************/
+    
+    private static char[] decode ( char[] source, ref char[] working, char[] ignore = "" )
+    {
+        static int toInt ( char c )
+        {
+            if      (c >= '0' && c <= '9')  return c - '0';
+            else if (c >= 'a' && c <= 'f')  return c - ('a' - 10);
+            else if (c >= 'A' && c <= 'F')  return c - ('A' - 10);
+        }
+
+        const EncodedMarker = '%';
+
+        // take a peek first, to see if there's work to do
+        if ( source.length && memchr(source.ptr, EncodedMarker, source.length) )
+        {
+            size_t read_pos;
+            size_t write_pos;
+            size_t written;
+    
+            // ensure we have enough decoding space available
+            working.length = source.length;
+    
+            // scan string, stripping % encodings as we go
+            for ( read_pos = 0; read_pos < source.length; read_pos++, write_pos++, written++ )
+            {
+                int c = source[read_pos];
+    
+                if ( c == EncodedMarker && (read_pos + 2) < source.length )
+                {
+                    c = toInt(source[read_pos + 1]) * 16 + toInt(source[read_pos + 2]);
+    
+                    // leave ignored escapes in the stream, 
+                    // permitting escaped '&' to remain in
+                    // the query string
+                    if ( ignore.length && ignore.find(c) < ignore.length )
+                    {
+                        c = EncodedMarker;
+                    }
+                    else
+                    {
+                        read_pos += 2;
+                    }
+                }
+    
+                working[write_pos] = cast(char)c;
+            }
+    
+            // return decoded content
+            working.length = written;
+            return working;
+        }
+    
+        // return original content
+        return source;
+    }
 }
 
 
