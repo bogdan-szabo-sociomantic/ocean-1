@@ -33,7 +33,25 @@
         }
 
         // Input string
-        char[] json = "{"Data":{"ids":[{"name":"hello", "id":23}, {"name":"hi", "id":17}], "name":"monty", "count":112, "money":123.456}}";
+        char[] json =   `{
+                            "Data":
+                            {
+                                "ids":
+                                 [
+                                     {
+                                         "name":"hello", 
+                                         "id":23
+                                     }, 
+                                     {
+                                         "name":"hi", 
+                                         "id":17
+                                     }
+                                 ], 
+                                 "name":"monty", 
+                                 "count":112, 
+                                 "money":123.456
+                            }
+                        }`;
 
         // Set up struct to read into
         Data data;
