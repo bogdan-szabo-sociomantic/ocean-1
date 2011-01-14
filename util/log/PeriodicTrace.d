@@ -177,6 +177,9 @@ struct PeriodicTrace
     }
 
 
+    // TODO: flush() method
+
+
     /***************************************************************************
     
         Checks if it's time to update the display.
@@ -184,7 +187,7 @@ struct PeriodicTrace
         Note: this method is public so that using classes can determine whether
         they need to perform any internal update before calling display().
         
-        TODO: this might be better done with a lazy char[] version of format(),
+        TODO: this would be better done with a lazy char[] version of format(),
         which only calls the lazy delegate if it *is* time to update.
 
         Returns:
