@@ -53,10 +53,12 @@ struct EscapeChars
     
      **************************************************************************/
 
-    public char[] opCall ( ref char[] str )
+    public char[] opCall ( ref char[] str, char[] escape = `\` )
     {
-        str ~= '\0';
+        char* occurrence_ptr, src, dst;
         
+        str ~= '\0';
+
         scope (exit)
         {
             assert (str.length);
@@ -71,23 +73,29 @@ struct EscapeChars
         for (size_t pos = strcspn(str.ptr, Tokens.ptr); pos < end;)
         {
             this.occurrences ~= pos;
-            
+
             pos += strcspn(str.ptr + ++pos, Tokens.ptr);
         }
         
-        str.length = str.length + this.occurrences.length;
+        str.length = str.length + (this.occurrences.length * escape.length);
         
-        str[$ - 1] = '\0';
+        str[$ - 1] = '\0'; // append a 0 to the end, as it is stripped in the scope(exit)
         
-        foreach_reverse (i, item; this.occurrences)
+        foreach_reverse (i, occurrence; this.occurrences)
         {
-            char* item_ptr = str.ptr + item;
+            occurrence_ptr = str.ptr + occurrence;
             
-            memmove(item_ptr + i + 1, item_ptr, end - item);
+            src = occurrence_ptr;
+            dst = src + ((i + 1) * escape.length);
             
-            item_ptr[i] = '\\';
-            
-            end = item;
+            size_t len = end - occurrence;
+
+            memmove(dst, src, len);
+
+            char* esc = dst - escape.length;
+            esc[0..escape.length] = escape[];
+
+            end = occurrence;
         }
         
         return str;
