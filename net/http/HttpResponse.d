@@ -21,7 +21,7 @@ module ocean.net.http.HttpResponse;
 ********************************************************************************/
 
 private     import      ocean.net.http.HttpCookie, ocean.net.http.HttpConstants, 
-                        ocean.net.http.HttpHeader;
+                        ocean.net.http.HttpHeader, ocean.net.http.HttpTime;
 
 private     import      ocean.util.OceanException;
 
@@ -33,22 +33,7 @@ private     import      tango.net.device.Socket: Socket;
 
 private     import      tango.net.device.Berkeley: IPv4Address;
 
-private     import      tango.stdc.time:  tm, time_t, time;
-
-private     import      tango.stdc.stdio: snprintf;
-
 private     import      Integer = tango.text.convert.Integer;
-
-/*******************************************************************************
-
-    Thread safe gmtime function
-
-********************************************************************************/
-
-extern (C) 
-{
-    tm* gmtime_r(in time_t* timer, tm* result);
-}
 
 /*******************************************************************************
 
@@ -159,22 +144,13 @@ struct HttpResponse
    
    private              char[]                      buf;
    
-   /***************************************************************************
-       
-       Timestamp format & result buffer 
-    
-    ***************************************************************************/  
-    
-    private             char[]                      datefmt;
-    private             char[]                      datestr;
-    
     /***************************************************************************
         
-        Gmtime timestamp struct
+        HTTP timestamp generator
      
      ***************************************************************************/ 
     
-    private             tm                          datetime;
+    private             HttpTime                    httptime;
     
    /***************************************************************************
        
@@ -514,84 +490,22 @@ struct HttpResponse
     
     /**************************************************************************
     
-        Returns GMT formated datestamp
+        Returns GMT formatted date/time stamp
 
-		Method formats the current GMT as RFC 1123 time stamp according to
-        RFC 2616, 14.18:
-        
-		FIXME; use a global buffer instead of allocating a new one every time
-        FIXME; make it thread safe and remove the synchronize statement
-        
-        e.g. Sun, 06 Nov 1994 08:49:37 GMT
-         
-            http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18
-        
+		Method formats the current wall clock time (GMT) as HTTP compliant time
+        stamp (asctime).
+                
         Returns:
-            HTTP time stamp of current GMT
+            HTTP time stamp of current wall clock time (GMT). Do not modify
+            (exposes an internal buffer).
+        
+        Throws:
+            Exception if formatting failed (supposed never to happen)
          
      **************************************************************************/
-    /*
+    
     public char[] getGmtDate ()
     {
-        const char[3][] Weekdays = [`Sun`, `Mon`, `Tue`, `Wed`, `Thu`, `Fri`, `Sat`];
-        const char[3][] Months   = [`Jan`, `Feb`, `Mar`, `Apr`, `May`, `Jun`,
-                                    `Jul`, `Aug`, `Sep`, `Oct`, `Nov`, `Dec`];
-        
-        char[0x20] result;
-        
-        int n;
-        
-        synchronized
-        {
-            time_t  t        = time(null);
-            tm*     datetime = gmtime(&t);
-            
-            assert (datetime.tm_wday < Weekdays.length, `formatTime: invalid weekday`);
-            assert (datetime.tm_mon  < Months.length,   `formatTime: invalid month`);
-            
-            char[] fmt = Weekdays[datetime.tm_wday] ~ `, %02d ` ~
-                         Months[datetime.tm_mon]    ~ ` %04d %02d:%02d:%02d GMT` ~ '\0';
-            
-            n = snprintf(result.ptr, result.length, fmt.ptr,
-                         datetime.tm_mday, datetime.tm_year + 1900,
-                         datetime.tm_hour, datetime.tm_min, datetime.tm_sec);
-            
-            assert (n >= 0, `error formatting time`);
-        }
-        
-        return result[0 .. n].dup;
+        return this.httptime.toString();
     }
-    */
-           
-    // FIXME; this is now a thread safe version
-    public char[] getGmtDate ()
-    {   
-        this.datefmt.length   = 0;
-        this.datestr.length = 0;
-
-        int n;
-        time_t t;
-        
-        t = time(null);
-        gmtime_r(&t, &datetime); 
-        
-        assert (datetime.tm_wday < Weekdays.length, `formatTime: invalid weekday`);
-        assert (datetime.tm_mon  < Months.length,   `formatTime: invalid month`);
-        
-        this.datefmt.concat(Weekdays[datetime.tm_wday], `, %02d `, 
-                            Months[datetime.tm_mon], ` %04d %02d:%02d:%02d GMT`, "\0");
-        
-        this.datestr.length = 32;
-        
-        n = snprintf(this.datestr.ptr, this.datestr.length, this.datefmt.ptr,
-                     this.datetime.tm_mday, this.datetime.tm_year + 1900, 
-                     this.datetime.tm_hour, this.datetime.tm_min, this.datetime.tm_sec);
-        
-        assert (n >= 0, `error formatting time`);
-        
-        this.datestr.length = n;
-        
-        return this.datestr;
-    }    
-
 }
