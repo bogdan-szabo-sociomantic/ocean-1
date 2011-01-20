@@ -7,7 +7,39 @@
     version:        October 2010: Initial release
     
     authors:        Gavin Norman
+
+    Usage example, writing:
     
+    ---
+
+        private import ocean.io.serialize.SimpleSerializer;
+
+        scope file = new File("myfile.dat", File.WriteCreate);
+
+        char[] some_data = "data to be written to the file first";
+        char[][] more_data = ["second", "third", "fourth", "etc"];
+
+        SimpleSerializer.write(file, some_data);
+        SimpleSerializer.write(file, more_data);
+
+    ---
+
+    Usage example, reading:
+
+    ---
+
+        private import ocean.io.serialize.SimpleSerializer;
+
+        scope file = new File("myfile.dat", File.ReadExisting);
+
+        char[] some_data;
+        char[][] more_data;
+
+        SimpleSerializer.read(file, some_data);
+        SimpleSerializer.read(file, more_data);
+
+    ---
+
 *******************************************************************************/
 
 module ocean.io.serialize.SimpleSerializer;
