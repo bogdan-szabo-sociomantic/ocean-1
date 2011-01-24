@@ -300,7 +300,8 @@ public T[] substitute ( T ) ( T[] source, T[] match, T[] replacement, ref T[] re
 
 public T[] remove ( T ) ( T[] source, T[] match, ref T[] result )
 {
-    substitute(source, match, null, result);    
+    char[] replacement = null;
+    return substitute(source, match, replacement, result);
 }
 
 
