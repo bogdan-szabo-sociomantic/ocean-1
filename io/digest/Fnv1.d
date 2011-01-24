@@ -423,30 +423,34 @@ class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
     {
         ubyte[] data_;
         
-        static if (is (U V : V[]))
+        static if (is (U : ubyte[]))
         {
-        	static if ( V.sizeof == 1 )
-        	{
-                data_ = cast (ubyte[]) data;
-        	}
-        	else
-        	{
-        		auto len = data.length * V.sizeof;
-        		data_ = cast(ubyte[])((cast(void*)data)[0..len]);
-        	}
+            data_ = data;
+        }
+        else static if (is (U V : V[]))
+        {
+            static if (V.sizeof == 1)
+            {
+                data_ = cast(ubyte[])data;
+            }
+            else
+            {
+                data_ = (cast(ubyte*)data.ptr)[0 .. data.length * V.sizeof];
+            }
         }
         else
         {
-            data_ = cast (ubyte[]) [data];
+            data_ = cast(ubyte[])((cast(void*)&data)[0 .. data.sizeof]);
         }
         
-        foreach (ref d; data_)
+        foreach (d; data_)
         {
             digest = fnv1_core(d, digest);
         }
         
         return digest;
     }
+    
     public alias fnv1 opCall;
     
     
