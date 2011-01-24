@@ -87,7 +87,7 @@
     
  ******************************************************************************/
 
-module core.serializer.StructSerializer;
+module ocean.io.serialize.StructSerializer;
 
 /*******************************************************************************
 
@@ -95,7 +95,11 @@ module core.serializer.StructSerializer;
 
 *******************************************************************************/
 
+private import ocean.io.serialize.SimpleSerializer;
+
 private import ocean.core.Exception: assertEx, SerializerException;
+
+private import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
 
 private import tango.core.Traits;
 
@@ -283,6 +287,25 @@ struct StructSerializer
     
     /**************************************************************************
 
+        Dumps/serializes the content of s and its array members, writing
+        serialized data to output.
+        
+        Params:
+            s      = struct instance (pointer)
+            output = output stream to write serialized data to
+            
+        Returns:
+            number of bytes written
+        
+     **************************************************************************/
+
+    size_t dump ( S ) ( S* s, OutputStream output )
+    {
+        return dump(s, (void[] data) {SimpleSerializer.transmit(output, data);});
+    }
+    
+    /**************************************************************************
+
         Dumps/serializes the content of s and its array members.
         
         send is called repeatedly; on each call, it must store or forward the
@@ -293,7 +316,7 @@ struct StructSerializer
             send = sending callback delegate
             
         Returns:
-            passes through return value of send
+            number of bytes written
         
      **************************************************************************/
     
@@ -309,6 +332,25 @@ struct StructSerializer
     
     /**************************************************************************
 
+        Loads/deserializes the content of s and its array members, reading
+        serialized data from input.
+        
+        Params:
+            s     = struct instance (pointer)
+            input = input stream to read data from
+        
+        Returns:
+            number of bytes read
+        
+     **************************************************************************/
+
+    size_t load ( S ) ( S* s, InputStream input )
+    {
+        return load(s, (void[] data) {SimpleSerializer.transmit(input, data);});
+    }
+    
+    /**************************************************************************
+
         Loads/deserializes the content of s and its array members.
         
         receive is called repeatedly; on each call, it must populate the
@@ -319,6 +361,9 @@ struct StructSerializer
         Params:
             s       = struct instance (pointer)
             receive = receiving callback delegate
+        
+        Returns:
+            number of bytes read
         
      **************************************************************************/
     
@@ -348,6 +393,9 @@ struct StructSerializer
         Params:
             s             = struct instance (pointer)
             transmit_data = sending/receiving callback delegate
+        
+        Returns:
+            number of bytes read or written
         
      **************************************************************************/
 
@@ -657,7 +705,7 @@ struct StructSerializer
         
      **************************************************************************/
     
-    size_t transmitArray ( bool receive, T ) ( ref T[] array, void delegate ( void[] data ) transmit )
+    size_t transmitArray ( bool receive, T ) ( ref T[] array, void delegate ( void[] data ) transmit_dg )
     {
         size_t len,
                bytes = len.sizeof;
@@ -667,25 +715,45 @@ struct StructSerializer
             len = array.length;
         }
         
-        transmit((cast (void*) &len)[0 .. len.sizeof]);
+        transmit_dg((cast (void*) &len)[0 .. len.sizeof]);
         
         static if (receive)
         {
             array.length = len;
         }
         
-        static if (is (T U == U[]))
+        static if (is (T == struct))                                            // recurse into substruct
+        {                                                                       // if it contains dynamic
+            const RecurseIntoStruct = ContainsDynamicArray!(typeof (T.tupleof));// arrays
+        }
+        else
+        {
+            const RecurseIntoStruct = false;
+        }
+        
+        static if (is (T U == U[]))                                             // recurse into subarray
         {
             foreach (ref element; array)
             {
-                bytes += transmitArray!(receive)(element, transmit);            // recursive call
+                bytes += transmitArray!(receive)(element, transmit_dg);
+            }
+        }
+        else static if (RecurseIntoStruct)
+        {
+            debug pragma (msg, typeof (*this).stringof  ~ ".transmitArray: "
+                               "array elements of struct type '" ~ T.stringof ~
+                               "' contain subarrays");
+            
+            foreach (ref element; array)
+            {
+                bytes += transmit!(receive)(&element, transmit_dg);
             }
         }
         else
         {
             size_t n = len * T.sizeof;
             
-            transmit((cast (void*) array.ptr)[0 .. n]);
+            transmit_dg((cast (void*) array.ptr)[0 .. n]);
             
             bytes += n;
         }
@@ -1051,29 +1119,85 @@ struct StructSerializer
         
      **************************************************************************/
 
-    template containsReferenceType ( T ... )
+    template ContainsReferenceType ( T ... )
     {
         static if (is (T[0] == struct))
         {
             static if (T.length == 1)
             {
-                const containsReferenceType = containsReferenceType!(typeof (T[0].tupleof));
+                const ContainsReferenceType = ContainsReferenceType!(typeof (T[0].tupleof));
             }
             else
             {
-                const containsReferenceType = containsReferenceType!(typeof (T[0].tupleof)) || containsReferenceType!(T[1 .. $]);
+                const ContainsReferenceType = ContainsReferenceType!(typeof (T[0].tupleof)) || ContainsReferenceType!(T[1 .. $]);
             }
         }
         else
         {
             static if (T.length == 1)
             {
-                const containsReferenceType = isReferenceType!(T[0]);
+                const ContainsReferenceType = isReferenceType!(T[0]);
             }
             else
             {
-                const containsReferenceType = isReferenceType!(T[0]) || containsReferenceType!(T[1 .. $]);
+                const ContainsReferenceType = isReferenceType!(T[0]) || ContainsReferenceType!(T[1 .. $]);
             }
+        }
+    }
+    
+    /**************************************************************************
+
+        Evaluates to true if T contains a dynamic array type. If T contains a
+        struct, the struct and its sub-structs, if any, are recursively scanned
+        for dynamic array types. 
+        
+        Template parameters:
+            T = type tuple to scan for dynamic array types
+            
+        Evaluates to:
+            true if T or a sub-struct of an element of T contains a dynamic
+            array type or false otherwise
+        
+     **************************************************************************/
+
+    template ContainsDynamicArray ( T ... )
+    {
+        static if (T.length)
+        {
+            static if (is (T[0] == struct))
+            {
+                static if (T.length == 1)
+                {
+                    const ContainsDynamicArray = ContainsDynamicArray!(typeof (T[0].tupleof));
+                }
+                else
+                {
+                    const ContainsDynamicArray = ContainsDynamicArray!(typeof (T[0].tupleof)) ||
+                                                 ContainsDynamicArray!(T[1 .. $]);
+                }
+            }
+            else
+            {
+                static if (is (T[0] U == U[]))
+                {
+                    const ContainsDynamicArray = true;
+                }
+                else
+                {
+                    static if (T.length == 1)
+                    {
+                        const ContainsDynamicArray = false;
+                    }
+                    else
+                    {
+                        const ContainsDynamicArray = ContainsDynamicArray!(T[1 .. $]);
+                    }
+                }
+            }
+        }
+        else
+        {
+            const ContainsDynamicArray = false;
         }
     }
     
