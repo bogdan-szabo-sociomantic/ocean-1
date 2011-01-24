@@ -188,6 +188,38 @@ class LibCurlMulti
 
     /***************************************************************************
 
+        Error codes enum. Combines the curl multi error codes (see
+        ocean.net.util.c.multi) with one extra code indicating a select error.
+
+    ***************************************************************************/
+
+    public enum ErrorCode
+    {
+        CallMultiPerform = -1,
+        OK,
+        BadHandle,
+        BadEasyHandle,
+        OutOfMemory,
+        InternalError,
+        BadSocket,
+        UnknownOption,
+        SelectTimeout // the call to .select timed out with no events
+    }
+
+
+    /***************************************************************************
+
+        Error callback delegate.
+
+    ***************************************************************************/
+
+    public alias void delegate ( ErrorCode err ) ErrorCallback;
+
+    private ErrorCallback error_dg;
+
+
+    /***************************************************************************
+
         Constructor - init curl multi and set options
 
     ***************************************************************************/
@@ -195,9 +227,8 @@ class LibCurlMulti
     public this ( uint max_connections = DEFAULT_MAX_CONNECTIONS )
     {
         this.curlm = curl_multi_init();
-        assert (this.curlm, typeof(this).stringof ~ ".this - Error on curl_multi_init!");
+        assert(this.curlm, typeof(this).stringof ~ ".this - Error on curl_multi_init!");
 
-//        this.setOption(CURLMoption.SOCKETFUNCTION, &this.socketCallback);
         this.setOption(CURLMoption.PIPELINING, 1);
         this.setOption(CURLMoption.MAXCONNECTS, max_connections);
 
@@ -327,12 +358,32 @@ class LibCurlMulti
             if ( num_active_transfers > 0 )
             {
                 ret = this.sleepUntilMoreIO();
+                if ( ret != CurlMCode.CURLM_OK )
+                {
+                    this.error(ret);
+                }
             }
         }
         while ( num_active_transfers );
 
         // Return all requests to the pool
         this.clear();
+    }
+
+    
+    /***************************************************************************
+
+        Sets the error callback delegate.
+        
+        Params:
+            error_dg = delegate to be called on a select timeout or an error
+                code returned from lib curl
+
+    ***************************************************************************/
+
+    public void setErrorCallback ( ErrorCallback error_dg )
+    {
+        this.error_dg = error_dg;
     }
 
 
@@ -447,9 +498,8 @@ class LibCurlMulti
         FD_ZERO(&exc_fd_set);
 
         CurlMCode ret = curl_multi_fdset(this.curlm, &read_fd_set, &write_fd_set, &exc_fd_set, &max_fd);
-        // TODO: check ret?
 
-        if ( max_fd > -1 )
+        if ( ret == CurlMCode.CURLM_OK && max_fd > -1 )
         {
             timeval timeout;
             timeval* timeout_ptr = null;
@@ -463,11 +513,9 @@ class LibCurlMulti
             auto r = .select(max_fd + 1, &read_fd_set, &write_fd_set, &exc_fd_set, timeout_ptr);
             if ( r == 0 )
             {
-                debug Trace.formatln("LibCurlMulti select timeout");
-
-                // Return all requests to the pool
-                this.clear();
+                this.timeout();
             }
+            // TODO: r == -1 indicates an error, with errno set. Check this as well?
         }
 
         return ret;
@@ -509,6 +557,46 @@ class LibCurlMulti
     private CurlMCode setOption ( CURLMoption option, void* p ) 
     {
         return curl_multi_setopt(this.curlm, option, p);
+    }
+
+
+    /***************************************************************************
+
+        Called when a select timeout occurs. Calls the error delegate and resets
+        all connections.
+    
+    ***************************************************************************/
+    
+    private void timeout ( )
+    {
+        debug Trace.formatln("{} select timeout", typeof(this).stringof);
+    
+        if ( this.error_dg )
+        {
+            this.error_dg(ErrorCode.SelectTimeout);
+        }
+    
+        // Return all requests to the pool
+        this.clear();
+    }
+    
+    
+    /***************************************************************************
+    
+        Called when a lib curl error occurs. Calls the error delegate.
+    
+        Params:
+            err_code = code of error which occurred
+    
+    ***************************************************************************/
+    
+    private void error ( CurlMCode err_code )
+    {
+        debug Trace.formatln("{} error: {}", typeof(this).stringof, err_code);
+        if ( this.error_dg )
+        {
+            this.error_dg(cast(ErrorCode)err_code);
+        }
     }
 }
 
