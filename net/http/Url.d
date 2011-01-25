@@ -75,9 +75,11 @@ debug private import tango.util.log.Trace;
     char[] value = url.query["key"];
     ---
 
-    TODO
+    TODO: Add url string encoding function (at least one using tango.net.Uri).
 
-    Add url string encoding
+    TODO: The Url.parse method is still using tango.net.Uri.parse, whereas
+        Url.Query.parse is using the new static method in this class. Could this
+        all be combined into using a single function?
 
     See also the Rfc's
 
