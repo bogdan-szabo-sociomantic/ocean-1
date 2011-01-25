@@ -133,17 +133,17 @@ struct SelectDeserializer
         if (cursor < size_t.sizeof)
         {
             assert (array.length == size_storage_len);
-            
-            size_t bytes;
-            
-            bool received_length = !receiveArrayLength(array, bytes, data, cursor);
-            
-//            Trace.formatln("received_length = {}, bytes = {}", received_length, bytes);
-            
+
+            size_t items_to_receive;
+
+            bool received_length = !receiveArrayLength(array, items_to_receive, data, cursor);
+
+//            Trace.formatln("received_length = {}, array length to receive = {}", received_length, items_to_receive);
+
             if (received_length)
             {
-                setArrayLength!(strip_length, T)(array, bytes);
-                
+                setArrayLength!(strip_length, T)(array, items_to_receive * T.sizeof);
+
                 data_start = size_t.sizeof - start;
             }
         }
@@ -264,6 +264,7 @@ struct SelectDeserializer
         
         Params:
             array  = destination array
+            len    = length of array
             data   = input data
             cursor = output data cursor index
             
