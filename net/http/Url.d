@@ -23,6 +23,8 @@ private     import      ocean.net.http.HttpConstants;
 
 private     import      ocean.core.Array;
 
+private     import      Utf = tango.text.convert.Utf;
+
 private     import      tango.core.Array;
 
 private     import      tango.stdc.string : memchr;
@@ -72,15 +74,13 @@ debug private import tango.util.log.Trace;
     ---
     char[] value = url.query["key"];
     ---
-    
+
     TODO
-    
-    Add url string (en)decoding and proper exception handling
-        - The decode method exists but is private, it's static so can safely be
-        made public.
+
+    Add url string encoding
 
     See also the Rfc's
-    
+
     http://tools.ietf.org/html/rfc3986
     http://tools.ietf.org/html/rfc1738
     
@@ -586,34 +586,112 @@ struct Url
 
         Checks whether the passed source string contains any characters encoded
         according to the RFC 2396 escape format. (A '%' character followed by
-        two hexadecimal digits.) If the string does contain encoded characters,
-        the passed working buffer is filled with a decoded version of the source
-        string.
+        two hexadecimal digits.)
+
+        The non-standard 4-digit unicode encoding scheme is also supported ("%u"
+        followed by four hex digits).
+
+        If the string does contain encoded characters, the passed working buffer
+        is filled with a decoded version of the source string.
 
         Params:
             source = character string to decode
             working = decode buffer
-            ignore = any characters in this string will not be decoded
+            char_dg = an optional delegate to determine whether each decoded
+                character should be written to the output string in its decoded
+                or its original (encoded) form. This delegate can be used in
+                cases where the decoding of only certain characters is desired.
 
         Returns:
             the original string, if it contained no escaped characters, or the
             decoded string otherwise.
 
-        FIXME: The following character encoding schemes need to be supported:
-            1. %XX - where X is a hex digit
-            2. %uXXXX - where X is a hex digit
+    ***************************************************************************/
 
-        At the moment we support only case 1, which is the standard.
-        Unfortunately there's also the non-standard case 2, which is used so we
-        need to support it as well.
+    private const EncodedMarker = '%';
 
-        See: http://en.wikipedia.org/wiki/Percent-encoding (Non standard implementations)
+    public static char[] decode ( char[] source, ref char[] working,
+            bool delegate ( char[] decoded, char[] source, size_t offset, size_t c_len ) char_dg = null )
+    {
+        // take a peek first, to see if there's work to do
+        if ( source.length && memchr(source.ptr, EncodedMarker, source.length) )
+        {
+            size_t read_pos;
+            size_t write_pos;
+
+            // ensure we have enough decoding space available
+            working.length = source.length;
+    
+            // scan string, stripping % encodings as we go
+            while ( read_pos < source.length )
+            {
+                char[8] decoded_buf;
+                char[] decoded = decoded_buf;
+                auto consumed = decodeCharacter(source, read_pos, decoded);
+
+                bool write_decoded = true;
+                if ( consumed > 1 && char_dg )
+                {
+                    write_decoded = char_dg(decoded, source, read_pos, consumed);
+                }
+
+                if ( write_decoded )
+                {
+                    working[write_pos .. write_pos + decoded.length] = decoded[];
+                    write_pos += decoded.length;
+                }
+                else
+                {
+                    working[write_pos .. write_pos + consumed] = source[read_pos .. read_pos + consumed];
+                    write_pos += consumed;
+                }
+                read_pos += consumed;
+            }
+
+            // return decoded content
+            working.length = write_pos;
+            return working;
+        }
+
+        // return original content
+        return source;
+    }
+
+
+    /***************************************************************************
+
+        Extracts a single character from the specified position in the passed
+        string. If the specified position contains a '%' character then the
+        following characters are scanned to see if they represent an encoded
+        character in either the RFC 2396 escape format (%XX) or the non-standard
+        escape format (%uXXXX).
+
+        (See: http://en.wikipedia.org/wiki/Percent-encoding)
+
+        The extracted character is written as utf8 into the provided output
+        string.
+
+        Params:
+            source = character string to decode a character from
+            offset = position to extract character from
+            decoded = output value to receive the extracted character
+
+        Returns:
+            the number of characters consumed from the source string
 
     ***************************************************************************/
-    
-    private static char[] decode ( char[] source, ref char[] working, char[] ignore = "" )
+
+    public static size_t decodeCharacter ( char[] source, size_t offset, ref char[] dst )
+    in
     {
-        static bool charOk ( char c )
+        assert(source.length, "Url.decodeCharacter - cannot decode an empty string");
+        assert(offset < source.length, "Url.decodeCharacter - offset out of array bounds");
+    }
+    body
+    {
+        // TODO: these hex decoding functions should be put somewhere central in
+        // ocean (see also swam.dht.DhtHash for more similar functions)
+        static bool isHex ( char c )
         {
             return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
         }
@@ -621,7 +699,11 @@ struct Url
         static int toInt ( char c )
         in
         {
-            assert(charOk(c), "invalid hex character");
+            assert(isHex(c), "Url.decodeCharacter - invalid hex character");
+        }
+        out ( n )
+        {
+            assert(n >= 0 && n <= 15, "Url.decodeCharacter - invalid hex output");
         }
         body
         {
@@ -631,51 +713,46 @@ struct Url
             else                            return 0;
         }
 
-        const EncodedMarker = '%';
+        source = source[offset .. $];
 
-        // take a peek first, to see if there's work to do
-        if ( source.length && memchr(source.ptr, EncodedMarker, source.length) )
+        char[] write_chars;
+        uint consumed;
+
+        if ( source[0] == EncodedMarker && source.length >= 3 )
         {
-            size_t read_pos;
-            size_t write_pos;
-            size_t written;
-    
-            // ensure we have enough decoding space available
-            working.length = source.length;
-    
-            // scan string, stripping % encodings as we go
-            for ( read_pos = 0; read_pos < source.length; read_pos++, write_pos++, written++ )
+            // Non-standard case: '%uABCD'
+            if ( source[1] == 'u' && source.length >= 6
+                 && isHex(source[2]) && isHex(source[3]) && isHex(source[4]) && isHex(source[5]) )
             {
-                int c = source[read_pos];
-    
-                if ( c == EncodedMarker && (read_pos + 2) < source.length
-                     && charOk(source[read_pos + 1]) && charOk(source[read_pos + 2]) )
-                {
-                    c = toInt(source[read_pos + 1]) * 16 + toInt(source[read_pos + 2]);
-    
-                    // leave ignored escapes in the stream, 
-                    // permitting escaped '&' to remain in
-                    // the query string
-                    if ( ignore.length && ignore.find(c) < ignore.length )
-                    {
-                        c = EncodedMarker;
-                    }
-                    else
-                    {
-                        read_pos += 2;
-                    }
-                }
-    
-                working[write_pos] = cast(char)c;
+                dchar unicode_char =
+                    (toInt(source[2]) * 16 * 16 * 16) + (toInt(source[3]) * 16 * 16) + (toInt(source[4]) * 16) + toInt(source[5]);
+
+                char[8] utf_buf;
+                char[] utf_chars = utf_buf;
+
+                write_chars = Utf.encode(utf_chars, unicode_char);
+                consumed = 6;
             }
-    
-            // return decoded content
-            working.length = written;
-            return working;
+            // Standard case: '%EF'
+            else if ( isHex(source[1]) && isHex(source[2]) )
+            {
+                char decoded_char;
+                decoded_char = (toInt(source[1]) * 16) + toInt(source[2]);
+
+                write_chars = [decoded_char];
+                consumed = 3;
+            }
         }
-    
-        // return original content
-        return source;
+
+        // Not a percent encoded character
+        if ( !consumed )
+        {
+            write_chars = source[0..1];
+            consumed = 1;
+        }
+
+        dst.copy(write_chars);
+        return consumed;
     }
 }
 
