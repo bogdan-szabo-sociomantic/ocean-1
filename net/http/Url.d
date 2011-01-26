@@ -817,7 +817,7 @@ debug ( OceanUnitTest )
 
         auto mem_before = GC.stats["poolSize"];
 
-        for ( uint i=0; i <= 500_000_000; i++ )
+        for ( uint i=0; i <= 5_000_000; i++ )
         {
             url.parse(url_string);
             
