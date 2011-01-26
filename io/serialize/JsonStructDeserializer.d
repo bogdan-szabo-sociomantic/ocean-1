@@ -60,7 +60,7 @@
         scope deser = new JsonStructDeserializer!(char)();
 
         // Load struct from string via deserializer
-        StructSerializer.load(&data, deser, json);
+        StructSerializer.deserialize(&data, deser, json);
 
     ---
 
