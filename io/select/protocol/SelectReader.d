@@ -102,7 +102,6 @@ class SelectReader : ISelectProtocol
     final Event events ( )
     {
         return Event.Read | Event.ReadHangup;
-//        return cast(Event)(Event.Read | 0x2000); // FIXME: this is only a temporary fix until we have the EPOLLRDHUP event properly integrated
     }
     
     /**************************************************************************
