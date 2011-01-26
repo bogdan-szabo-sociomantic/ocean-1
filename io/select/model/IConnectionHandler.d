@@ -30,7 +30,7 @@ debug private import tango.util.log.Trace;
 
 
 
-abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer
+abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedSelectClient.IErrorReporter
 {
     alias .ISelectable    ISelectable;
     
@@ -51,6 +51,19 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer
     }
 
     
+    alias void delegate ( Exception, IAdvancedSelectClient.EventInfo ) ErrorDg;
+
+    private ErrorDg error_dg;
+
+    protected void error ( Exception exception, IAdvancedSelectClient.EventInfo event )
+    {
+        if ( this.error_dg )
+        {
+            this.error_dg(exception, event);
+        }
+    }
+
+    
     
     version (NewSelectProtocol)
     {
@@ -67,13 +80,14 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer
         protected SelectWriter writer;
     }
     
-    public this ( EpollSelectDispatcher dispatcher, FinalizeDg finalize_dg )
+    public this ( EpollSelectDispatcher dispatcher, FinalizeDg finalize_dg, ErrorDg error_dg )
     {
         Socket socket = new Socket;
-        
+
         socket.socket.blocking = false;
 
         this.finalize_dg = finalize_dg;
+        this.error_dg = error_dg;
 
         version (NewSelectProtocol)
         {
@@ -84,9 +98,11 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer
         {
             this.reader = new SelectReader(socket, dispatcher);
             this.writer = new SelectWriter(socket, dispatcher);
-            
+
             this.reader.finalizer = this;
             this.writer.finalizer = this;
+            this.reader.error_reporter = this;
+            this.writer.error_reporter = this;
         }
     }
 
