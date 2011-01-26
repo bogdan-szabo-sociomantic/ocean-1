@@ -18,36 +18,39 @@ else                        import ocean.io.select.protocol.SelectReader,
 
 private import ocean.io.select.model.ISelectListenerInfo;
 
-import ocean.io.select.EpollSelectDispatcher;
+private import ocean.io.select.EpollSelectDispatcher;
     
-import ocean.io.select.model.ISelectClient : IAdvancedSelectClient;
+private import ocean.io.select.model.ISelectClient : IAdvancedSelectClient;
 
-import tango.net.device.Socket: Socket;
+private import tango.net.device.Socket: Socket;
 
-import tango.io.model.IConduit: ISelectable;
+private import tango.io.model.IConduit: ISelectable;
 
-abstract class IConnectionHandler
+debug private import tango.util.log.Trace;
+
+
+
+abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer
 {
     alias .ISelectable    ISelectable;
     
-    alias void delegate ( typeof (this) ) FinalizeDg;
-    
     alias .EpollSelectDispatcher EpollSelectDispatcher;
     
-    private class Finalizer : IAdvancedSelectClient.IFinalizer
+    
+    
+    alias void delegate ( typeof (this) ) FinalizeDg;
+
+    private FinalizeDg finalize_dg;
+
+    protected void finalize ( )
     {
-        private FinalizeDg finalize_dg;
-        
-        this ( FinalizeDg finalize_dg )
+        if ( this.finalize_dg )
         {
-            this.finalize_dg = finalize_dg;
-        }
-        
-        void finalize ( )
-        {
-            this.finalize_dg(this.outer);
+            this.finalize_dg(this);
         }
     }
+
+    
     
     version (NewSelectProtocol)
     {
@@ -69,21 +72,21 @@ abstract class IConnectionHandler
         Socket socket = new Socket;
         
         socket.socket.blocking = false;
-        
+
+        this.finalize_dg = finalize_dg;
+
         version (NewSelectProtocol)
         {
             this.protocol = new SelectProtocol(socket, dispatcher);
-            this.protocol.finalizer = new Finalizer(finalize_dg);
+            this.protocol.finalizer = this;
         }
         else
         {
-            Finalizer finalizer = new Finalizer(finalize_dg);
-            
             this.reader = new SelectReader(socket, dispatcher);
             this.writer = new SelectWriter(socket, dispatcher);
             
-            this.reader.finalizer = finalizer;
-            this.writer.finalizer = finalizer;
+            this.reader.finalizer = this;
+            this.writer.finalizer = this;
         }
     }
 
