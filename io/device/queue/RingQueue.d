@@ -437,13 +437,13 @@ class RingQueue : PersistQueue
 
     ***************************************************************************/
     
-    public bool willFit ( size_t len )
+    public bool willFit ( size_t elen )
     {   
-        len = this.pushSize(len);
+        size_t len = this.pushSize(elen);
 
         if (super.state.items)
         {
-            if (this.needsWrapping(len))
+            if (this.needsWrapping(elen))
             {
                 return len <= super.state.read_from;
             }
@@ -632,9 +632,10 @@ debug ( OceanUnitTest )
         Trace.formatln("\nRunning ocean.io.device.queue.RingQueue wrapping stability test");
         {
             scope queue = new RingQueue("test",(1+RingQueue.Header.sizeof)*3);
+
             // [___] r=0 w=0
             assert(queue.push("1"));
-            
+
             // [#__] r=0 w=5
             assert(queue.push("2"));
             
@@ -645,7 +646,7 @@ debug ( OceanUnitTest )
             assert(!queue.push("4"));
             assert(queue.isFull);
             assert(queue.pop() == "1");
-                       
+  
             // [_##] r=5 w=15
             assert(queue.freeSpace() == 1+RingQueue.Header.sizeof);
             assert(queue.pop() == "2");
@@ -665,39 +666,36 @@ debug ( OceanUnitTest )
             // [###] r=10 w=10
             assert(queue.isFull);
             assert(queue.pop() == "3");
-                        
-            // [##_] r=15 w=10
+      
+            // [##_] r=15/0 w=10
             assert(queue.freeSpace() == (1+RingQueue.Header.sizeof)*1);
             assert(queue.pop() == "1");         
-            
+
             // [_#_] r=5 w=10
             assert(queue.pop() == "2");
-            
-            // [__] r=10 w=10
+  
+            // [__] r=0 w=0
             assert(queue.isEmpty);
             assert(queue.push("1"));
-            
-            // [__#] r=10 w=15
+
+            // [#__] r=0 w=5
             assert(queue.push("2#"));            
             
-            // [$_#] r=10 w=6 ($ = 2 bytes)
+            // [#$_] r=0 w=11 ($ = 2 bytes)
             assert(queue.pop() == "1");           
             
-            // [$__] r=15 w=6
+            // [_$_] r=5 w=11
             assert(queue.push("1"));             
             
-            // [$#_] r=15 w=11
+            // [#$_] r=5 w=5
             assert(!queue.push("2"));
             assert(queue.pop() == "2#");
-            
-            // [_#_] r=6 w=11
+   
+            // [#__] r=11 w=5
             assert(queue.push("2")); // this needs to be wrapped now
-            
-            // [##_] r=6 w=5            
-            assert(queue.gap == RingQueue.Header.sizeof + queue.state.read_from + 1);
-          
-            
-            
+
+            // [##_] r=11 w=10            
+            assert(queue.gap == queue.state.read_from);
         }
          
         /***********************************************************************
@@ -743,6 +741,9 @@ debug ( OceanUnitTest )
             delete fq;
             
             fq = new RingQueue("fileQueue",QueueSize);
+            
+            fq.readFromFile();
+            
             rmFile();
 
             assert(fq.usedSpace == sizeBefore);
@@ -787,17 +788,15 @@ debug ( OceanUnitTest )
                     elements~= el;
                     bytesLeft -= el;
                 }
-                uint start=void; random(start);
-                start %= QueueSize;
-                // set it to start reading from .. anywhere.
-
+                
                 uint pos=0;            
-
 
                 auto before = MemProfiler.checkUsageMb();                         
 
                 scope q = new RingQueue("hello",QueueSize);
-                q.state.write_to = q.state.read_from = start; StopWatch watch; watch.start;
+                
+                StopWatch watch; watch.start;
+                
                 uint i;
 
                 foreach(el ; elements)
@@ -814,7 +813,7 @@ debug ( OceanUnitTest )
                 while(q.pop) {}
 
                 if(it%(Iterations*.1) == 0)
-                Trace.formatln("Iteration {}: Started at byte {}\t{} Items and\t{} MB in\t{} ms. Memory: Before\t{} MB, after:\t{}MB, Diff:\t{}",it,start,i,pos/1024.0/1024,watch.microsec(),before,MemProfiler.checkUsageMb,(MemProfiler.checkUsageMb-before));
+                Trace.formatln("Iteration {}: {} Items and\t{} MB in\t{} ms. Memory: Before\t{} MB, after:\t{}MB, Diff:\t{}",it,i,pos/1024.0/1024,watch.microsec(),before,MemProfiler.checkUsageMb,(MemProfiler.checkUsageMb-before));
                 allBytes+=pos;
                 average+=watch.microsec();
 
