@@ -652,12 +652,12 @@ debug ( OceanUnitTest )
             
             // [__#] r=10 w=15
             assert(queue.freeSpace() == (1+RingQueue.Header.sizeof)*2);
-            assert(queue.write_to == queue.dimension);
+            assert(queue.state.write_to == queue.state.dimension);
             assert(queue.push("1"));
             
             // [#_#] r=10 w=5
             assert(queue.freeSpace() == 1+RingQueue.Header.sizeof);
-            assert(queue.write_to == queue.pushSize("2"));
+            assert(queue.state.write_to == queue.pushSize("2".length));
             assert(queue.push("2"));
            // Trace.formatln("gap is {}, free is {}, write is {}", queue.gap, queue.freeSpace(),queue.write_to);
            
@@ -694,7 +694,7 @@ debug ( OceanUnitTest )
             assert(queue.push("2")); // this needs to be wrapped now
             
             // [##_] r=6 w=5            
-            assert(queue.gap == RingQueue.Header.sizeof + queue.read_from + 1);
+            assert(queue.gap == RingQueue.Header.sizeof + queue.state.read_from + 1);
           
             
             
@@ -736,7 +736,7 @@ debug ( OceanUnitTest )
             while(fq.push(buffer[0..pushlen]));
 
             auto sizeBefore = fq.usedSpace;
-            auto itemsBefore = fq.items;
+            auto itemsBefore = fq.state.items;
 
             fq.dumpToFile();
 
@@ -745,8 +745,8 @@ debug ( OceanUnitTest )
             fq = new RingQueue("fileQueue",QueueSize);
             rmFile();
 
-            assert(fq.usedSpace ==sizeBefore);
-            assert(itemsBefore == fq.items);
+            assert(fq.usedSpace == sizeBefore);
+            assert(itemsBefore == fq.state.items);
         }
 
         
@@ -797,7 +797,7 @@ debug ( OceanUnitTest )
                 auto before = MemProfiler.checkUsageMb();                         
 
                 scope q = new RingQueue("hello",QueueSize);
-                q.write_to = q.read_from = start; StopWatch watch; watch.start;
+                q.state.write_to = q.state.read_from = start; StopWatch watch; watch.start;
                 uint i;
 
                 foreach(el ; elements)
@@ -836,7 +836,7 @@ debug ( OceanUnitTest )
         
         assert(queue.push("Element 1"));                
         assert(queue.pop() == "Element 1");
-        assert(queue.items == 0);
+        assert(queue.state.items == 0);
         assert(!queue.isFull);
         assert(queue.isEmpty);
         assert(queue.usedSpace() == 0);
@@ -865,8 +865,8 @@ debug ( OceanUnitTest )
         middle.push("3");
         middle.push("4");
         assert(middle.pop == "1");        
-        assert(middle.read_from == 5);
-        assert(middle.write_to == 5*4);
+        assert(middle.state.read_from == 5);
+        assert(middle.state.write_to == 5*4);
         assert(middle.freeSpace() == 5*2);
         assert(middle.push("5"));
         assert(middle.push("6"));
