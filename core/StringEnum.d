@@ -508,6 +508,9 @@ class StringEnum ( V ... ) : IStringEnum
             
         Throws:
             asserts that the description is in the list
+            
+        TODO: This code sefgaults when "-release" is being used!
+              Needs a check if description does not exist. 
     
     ***************************************************************************/
 
