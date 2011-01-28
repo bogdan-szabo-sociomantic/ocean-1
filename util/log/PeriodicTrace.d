@@ -14,25 +14,47 @@
     or ocean.util.log.StaticTrace, depending on the value of the struct's
     static_display member.
 
-    The struct defaults to a line-by-line update (using Trace.formatln) updated
-    every 1/10 of a second.
-
     Note: this struct automatically calls Trace.flush / StaticTrace.flush after
     updating.
 
-    Usage example:
+    Two global instances of this struct exist for convenience: PeriodicTrace and
+    StaticPeriodicTrace. The latter has the static_display flag set to true.
+
+    Usage example with the global instance:
+
+    ---
+
+        private import ocean.util.log.PeriodicTrace;
+
+        const ulong trace_interval = 500_000; // only update display after at least half a second has passed
+
+        for ( uint i; i < uint.max; i++ )
+        {
+            StaticPeriodicTrace.format(trace_interval, "{}", i);
+        }
+
+    ---
+
+    A local instance of the PeriodicTracer struct may be useful in situations
+    where two or more separate periodic outputs are required each with a 
+    different update interval.
+
+    Usage example with a local instance:
     
     ---
 
         private import ocean.util.log.PeriodicTrace;
 
-        PeriodicTrace trace;
-        trace.interval = 500_000; // only update display after at least half a second has passed
-        trace.static_display = true;
+        PeriodicTrace trace1;
+        trace1.interval = 500_000; // only update display after at least half a second has passed
+
+        PeriodicTrace trace2;
+        trace2.interval = 5_000_000; // only update display after at least 5 seconds have passed
 
         for ( uint i; i < uint.max; i++ )
         {
-            trace.format("{}", i).flush;
+            trace1.format("{}", i);
+            trace2.format("{}", i);
         }
 
     ---
@@ -51,6 +73,8 @@ module ocean.util.log.PeriodicTrace;
 
 private import ocean.util.log.StaticTrace;
 
+private import tango.stdc.stdarg;
+
 private import tango.util.log.Trace;
 
 private import tango.text.convert.Layout;
@@ -61,11 +85,30 @@ private import tango.time.StopWatch;
 
 /*******************************************************************************
 
-    PeriodicTrace struct.
+    Two shared instances of the PeriodicTracer struct, one with a normal
+    "streaming" display via Trace, and one with a static updating display via
+    StaticTrace.
 
 *******************************************************************************/
 
-struct PeriodicTrace
+public PeriodicTracer PeriodicTrace;
+
+public PeriodicTracer StaticPeriodicTrace;
+
+static this ( )
+{
+    StaticPeriodicTrace.static_display = true;
+}
+
+
+
+/*******************************************************************************
+
+    PeriodicTracer struct.
+
+*******************************************************************************/
+
+struct PeriodicTracer
 {
     /***************************************************************************
     
@@ -148,32 +191,30 @@ struct PeriodicTrace
 
     public typeof(this) format ( char[] fmt, ... )
     {
-        if ( this.timeToUpdate() )
-        {
-            this.last_update_time = this.now;
+        return this.format(fmt, _argptr, _arguments);
+    }
 
-            this.formatted.length = 0;
-            uint sink ( char[] s )
-            {
-                this.formatted ~= s;
-                return s.length;
-            }
 
-            Layout!(char).instance()(&sink, _arguments, _argptr, fmt);
+    /***************************************************************************
 
-            if ( this.static_display )
-            {
-                this.padToMax(this.formatted);
+        Outputs a formatted string to the console if the specified update
+        interval has passed. The display is either static or adds a newline
+        depending on the this.static_display member.
 
-                StaticTrace.format("{}", this.formatted).flush;
-            }
-            else
-            {
-                Trace.formatln("{}", this.formatted).flush;
-            }
-        }
+        Params:
+            interval = minimum interval between display updates
+            fmt = format string (same format as tanog.util.log.Trace)
+            ... = variadic list of values referenced in format string
 
-        return this;
+        Returns:
+            this instance for method chaining
+
+    ***************************************************************************/
+
+    public typeof(this) format ( ulong interval, char[] fmt, ... )
+    {
+        this.interval = interval;
+        return this.format(fmt, _argptr, _arguments);
     }
 
 
@@ -199,6 +240,53 @@ struct PeriodicTrace
     {
         this.now = timer.microsec();
         return this.now > this.last_update_time + this.interval;
+    }
+
+
+    /***************************************************************************
+
+        Outputs a formatted string to the console if the update interval has
+        passed. The display is either static or adds a newline depending on the
+        this.static_display member.
+    
+        Params:
+            fmt = format string (same format as tanog.util.log.Trace)
+            args = argument pointers
+            types = argument types
+    
+        Returns:
+            this instance for method chaining
+    
+    ***************************************************************************/
+    
+    private typeof(this) format ( char[] fmt, va_list args, TypeInfo[] types )
+    {
+        if ( this.timeToUpdate() )
+        {
+            this.last_update_time = this.now;
+    
+            this.formatted.length = 0;
+            uint sink ( char[] s )
+            {
+                this.formatted ~= s;
+                return s.length;
+            }
+    
+            Layout!(char).instance()(&sink, types, args, fmt);
+    
+            if ( this.static_display )
+            {
+                this.padToMax(this.formatted);
+    
+                StaticTrace.format("{}", this.formatted).flush;
+            }
+            else
+            {
+                Trace.formatln("{}", this.formatted).flush;
+            }
+        }
+    
+        return this;
     }
 
 
