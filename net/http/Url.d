@@ -169,7 +169,7 @@ struct Url
     
     public char[] toString ()
     {
-        return this.parser.toString();
+        return this.url;
     }
 
     
