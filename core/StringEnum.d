@@ -233,6 +233,25 @@ class StringEnum ( V ... ) : IStringEnum
     
     /***************************************************************************
     
+        Template to find the lowest code in a list of StringEnumValues.
+    
+    ***************************************************************************/
+    
+    private template EnumMin ( V ... )
+    {
+        static if ( V.length == 1 )
+        {
+            const BaseType EnumMin = V[0].code;
+        }
+        else
+        {
+            const BaseType EnumMin = V[0].code < EnumMin!(V[1..$]) ? V[0].code : EnumMin!(V[1..$]);
+        }
+    }
+
+
+    /***************************************************************************
+    
         Template to find the highest code in a list of StringEnumValues.
     
     ***************************************************************************/
@@ -251,20 +270,47 @@ class StringEnum ( V ... ) : IStringEnum
     
     
     /***************************************************************************
-    
-        Template to find the lowest code in a list of StringEnumValues.
-    
+
+        Template to find the length of the longest description in a list of
+        StringEnumValues.
+
     ***************************************************************************/
     
-    private template EnumMin ( V ... )
+    private template DescriptionsMax ( V ... )
     {
         static if ( V.length == 1 )
         {
-            const BaseType EnumMin = V[0].code;
+            const size_t DescriptionsMax = V[0].description.length;
         }
         else
         {
-            const BaseType EnumMin = V[0].code < EnumMin!(V[1..$]) ? V[0].code : EnumMin!(V[1..$]);
+            const size_t DescriptionsMax =
+                V[0].description.length > DescriptionsMax!(V[1..$])
+                ? V[0].description.length
+                : DescriptionsMax!(V[1..$]);
+        }
+    }
+
+
+    /***************************************************************************
+
+        Template to find the length of the shortest description in a list of
+        StringEnumValues.
+    
+    ***************************************************************************/
+    
+    private template DescriptionsMin ( V ... )
+    {
+        static if ( V.length == 1 )
+        {
+            const size_t DescriptionsMin = V[0].description.length;
+        }
+        else
+        {
+            const size_t DescriptionsMin =
+                V[0].description.length < DescriptionsMin!(V[1..$])
+                ? V[0].description.length
+                : DescriptionsMin!(V[1..$]);
         }
     }
 
@@ -307,6 +353,24 @@ class StringEnum ( V ... ) : IStringEnum
     static public const BaseType min = EnumMin!(V);
 
     
+    /***************************************************************************
+
+        Constant declaring the length of the shortest description string.
+    
+    ***************************************************************************/
+
+    static public const size_t min_descr_length = DescriptionsMin!(V);
+
+
+    /***************************************************************************
+    
+    Constant declaring the length of the longest description string.
+    
+    ***************************************************************************/
+    
+    static public const size_t max_descr_length = DescriptionsMax!(V);
+
+
     /***************************************************************************
 
         Code -> description map
@@ -383,6 +447,7 @@ class StringEnum ( V ... ) : IStringEnum
         return !!(test in code_to_descr);
     }
 
+
     /***************************************************************************
 
         Tells whether the given description is in the enum.
@@ -399,6 +464,7 @@ class StringEnum ( V ... ) : IStringEnum
     {
         return !!(description in descr_to_code);
     }
+
 
     /***************************************************************************
 
@@ -419,8 +485,9 @@ class StringEnum ( V ... ) : IStringEnum
         
         return description? *description : DefaultDescription;
     }
-    
+
     alias description opIndex;
+
 
     /***************************************************************************
 
@@ -499,27 +566,30 @@ class StringEnum ( V ... ) : IStringEnum
     /***************************************************************************
 
         Gets the code corresponding to the given description.
-        
+
         Params:
             description = description to get code for
-        
+
         Returns:
             code corresponding to the description
-            
+
         Throws:
-            asserts that the description is in the list
-            
-        TODO: This code sefgaults when "-release" is being used!
-              Needs a check if description does not exist. 
-    
+            if the description is not in the list
+
     ***************************************************************************/
 
     static public BaseType code ( char[] description )
     {
+        if ( !(description in descr_to_code) )
+        {
+            throw new Exception(typeof(this).stringof ~ ".code - description not found");
+        }
+
         return descr_to_code[description];
     }
-    
+
     alias code opIndex;
+
 
     /***************************************************************************
 
