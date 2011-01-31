@@ -352,12 +352,12 @@ class JsonStructDeserializer ( Char )
 
         static if ( isRealType!(T) )
         {
-            assertEx!(JsonException)(this.parser.type() == Parser.Token.Number, typeof(this).stringof ~ ".deserialize - invalid token type in json string, expected Number (float)");
+            assertEx!(JsonException)(this.parser.type() == Parser.Token.Number || this.parser.type == Parser.Token.String, typeof(this).stringof ~ ".deserialize - invalid token type in json string, expected Number (float)");
             output = Float.toFloat(this.parser.value());
         }
         else static if ( isIntegerType!(T) )
         {
-            assertEx!(JsonException)(this.parser.type() == Parser.Token.Number, typeof(this).stringof ~ ".deserialize - invalid token type in json string, expected Number (integer)");
+            assertEx!(JsonException)(this.parser.type() == Parser.Token.Number || this.parser.type == Parser.Token.String, typeof(this).stringof ~ ".deserialize - invalid token type in json string, expected Number (integer)");
             output = Integer.toLong(this.parser.value());
         }
         else static if ( is(T == bool) )
