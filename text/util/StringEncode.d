@@ -306,9 +306,22 @@ public class StringEncoderSequence ( Encoders... )
 
         foreach ( e; this.encoders )
         {
-            if ( convert(e, input, output) )
+            try
             {
-                return output;
+                if ( convert(e, input, output) )
+                {
+                    return output;
+                }
+            }
+            // Exceptions thrown by an encoder are ignored.
+            catch ( IconvException.InvalidMbSeq e )
+            {
+            }
+            catch ( IconvException.IncompleteMbSeq e )
+            {
+            }
+            catch ( IconvException e )
+            {
             }
         }
 
