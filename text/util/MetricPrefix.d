@@ -138,12 +138,26 @@ struct MetricPrefix
         
         this.scaled = n;
         
-        int i;
+        int i = 4;
         
-        for (i = e + 4; (n > 1000) && (i < P.length); i++)
+        if (n != 0)
         {
-            n           /= 1000;
-            this.scaled /= 1000.;
+            if (n > 1)
+            {
+                for (i += e; (n > 1000) && (i < P.length); i++)
+                {
+                    n           /= 1000;
+                    this.scaled /= 1000;
+                }
+            }
+            else
+            {
+                for (i += e; (n < 1) && (i > 0); i--)
+                {
+                    n           *= 1000;
+                    this.scaled *= 1000;
+                }
+            }
         }
         
         this.prefix = P[i];
