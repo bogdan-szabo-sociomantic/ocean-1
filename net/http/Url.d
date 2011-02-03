@@ -623,7 +623,7 @@ struct Url
 
             // ensure we have enough decoding space available
             working.length = source.length;
-    
+
             // scan string, stripping % encodings as we go
             while ( read_pos < source.length )
             {
@@ -715,33 +715,31 @@ struct Url
             else                            return 0;
         }
 
-        source = source[offset .. $];
+        auto src = source[offset .. $];
 
-        char[] write_chars;
         uint consumed;
 
-        if ( source[0] == EncodedMarker && source.length >= 3 )
+        if ( src[0] == EncodedMarker && src.length >= 3 )
         {
             // Non-standard case: '%uABCD'
-            if ( source[1] == 'u' && source.length >= 6
-                 && isHex(source[2]) && isHex(source[3]) && isHex(source[4]) && isHex(source[5]) )
+            if ( src[1] == 'u' && src.length >= 6
+                 && isHex(src[2]) && isHex(src[3]) && isHex(src[4]) && isHex(src[5]) )
             {
                 dchar unicode_char =
-                    (toInt(source[2]) * 16 * 16 * 16) + (toInt(source[3]) * 16 * 16) + (toInt(source[4]) * 16) + toInt(source[5]);
+                    (toInt(src[2]) * 16 * 16 * 16) + (toInt(src[3]) * 16 * 16) + (toInt(src[4]) * 16) + toInt(src[5]);
 
-                char[8] utf_buf;
-                char[] utf_chars = utf_buf;
-
-                write_chars = Utf.encode(utf_chars, unicode_char);
+                char[8] decoded_chars;
+                auto write_chars = Utf.encode(decoded_chars, unicode_char);
+                dst.copy(write_chars);
                 consumed = 6;
             }
             // Standard case: '%EF'
-            else if ( isHex(source[1]) && isHex(source[2]) )
+            else if ( isHex(src[1]) && isHex(src[2]) )
             {
-                char decoded_char;
-                decoded_char = (toInt(source[1]) * 16) + toInt(source[2]);
+                char decoded_char = (toInt(src[1]) * 16) + toInt(src[2]);
 
-                write_chars = [decoded_char];
+                dst.length = 1;
+                dst[0] = decoded_char;
                 consumed = 3;
             }
         }
@@ -749,11 +747,11 @@ struct Url
         // Not a percent encoded character
         if ( !consumed )
         {
-            write_chars = source[0..1];
+            dst.length = 1;
+            dst[0] = src[0];
             consumed = 1;
         }
 
-        dst.copy(write_chars);
         return consumed;
     }
 }
