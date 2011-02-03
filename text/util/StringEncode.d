@@ -84,18 +84,34 @@ interface StringEncoder
 
 public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 {
-	
 	/***************************************************************************
 
-		Protected property : the conversion descriptor which iconv uses
-		internally
-	
+		The conversion descriptor which iconv uses internally
+
 	***************************************************************************/
 
-	protected ConversionDescriptor cd;
+	private ConversionDescriptor cd;
 
 
-	/***************************************************************************
+    /***************************************************************************
+
+        Exceptions which could be thrown by this class. (These are created as
+        class members so that there is no risk of convert() being called over
+        and over, and newing exceptions each time, leading to an accumulation of
+        memory over time.)
+
+    ***************************************************************************/
+
+    private IconvException.InvalidMbSeq exception_InvalidMbSeq;
+
+    private IconvException.IncompleteMbSeq exception_IncompleteMbSeq;
+
+    private IconvException.TooBig exception_TooBig;
+
+    private IconvException exception_Generic;
+
+
+    /***************************************************************************
 
 		Constructor.
 		Initialises iconv with the desired character encoding conversion types,
@@ -106,10 +122,39 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 	public this ( )
 	{
 		this.cd = iconv_open(tocode.ptr, fromcode.ptr);
-	}
+
+        this.exception_InvalidMbSeq = new IconvException.InvalidMbSeq;
+
+        this.exception_IncompleteMbSeq = new IconvException.IncompleteMbSeq;
+
+        this.exception_TooBig = new IconvException.TooBig;
+
+        this.exception_Generic = new IconvException;
+    }
 
 
-	/***************************************************************************
+    /***************************************************************************
+
+        Destructor.
+        Simply closes down the C iconv library.
+    
+    ***************************************************************************/
+
+    private ~this ( )
+    {
+        iconv_close(this.cd);
+
+        delete this.exception_InvalidMbSeq;
+
+        delete this.exception_IncompleteMbSeq;
+
+        delete this.exception_TooBig;
+
+        delete this.exception_Generic;
+    }
+
+
+    /***************************************************************************
 
 		Converts a string in one encoding type to another (as specified by the 
 		class' template parameters).
@@ -124,12 +169,9 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 
 		Params:
 			input = the array of characters to be converted.
-			
 			output = array of characters which will be filled with the results
-			of the conversion. The output array is resized to fit the results.
-
-		Returns:
-			void
+			         of the conversion. The output array is resized to fit the
+                     results.
 
 	***************************************************************************/
 
@@ -150,8 +192,12 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 			catch ( IconvException.TooBig )
 			{
 				output.length = output.length + input.length;
+
+                // TODO: performance could be improved here by passing the
+                // number of bytes already processed to iconv
 			}
-		} while ( !succeeded )
+		}
+        while ( !succeeded );
 	}
 
 
@@ -162,12 +208,9 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 	
 		Params:
 			input = the array of characters to be converted.
-			
 			output = array of characters which will be filled with the results
-			of the conversion. The output array is resized to fit the results.
-	
-		Returns:
-			void
+			         of the conversion. The output array is resized to fit the
+                     results.
 	
 	***************************************************************************/
 
@@ -177,7 +220,7 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 		size_t outbytesleft = output.length;
 		char* inptr  = input.ptr;
 		char* outptr = output.ptr;
-		
+
 		// Do the conversion
 		ptrdiff_t result = iconv(this.cd, &inptr, &inbytesleft, &outptr, &outbytesleft);
 		output.length = output.length - outbytesleft;
@@ -188,31 +231,18 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 			switch (errno())
 			{
 				case EILSEQ:
-					throw new IconvException.InvalidMbSeq;
+                    throw this.exception_InvalidMbSeq;
 					
 				case EINVAL:
-					throw new IconvException.IncompleteMbSeq;
+                    throw this.exception_IncompleteMbSeq;
 					
 				case E2BIG:
-					throw new IconvException.TooBig;
+                    throw this.exception_TooBig;
 					
 				default:
-					throw new IconvException;
+                    throw this.exception_Generic;
 			}
 		}
-	}
-
-
-	/***************************************************************************
-
-		Destructor.
-		Simply closes down the C iconv library.
-	
-	***************************************************************************/
-
-	private ~this ( )
-	{
-		iconv_close(this.cd);
 	}
 }
 
@@ -325,7 +355,8 @@ public class StringEncoderSequence ( Encoders... )
             }
         }
 
-        return "";
+        output.length = 0;
+        return output;
     }
 
     public alias convert opCall;
