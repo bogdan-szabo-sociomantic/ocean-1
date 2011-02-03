@@ -247,16 +247,14 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         Returns:
             this instance
     
-		TODO: use ocean.core.Array : copy instead of dup
-
      **************************************************************************/
     
     public typeof (this) setIOHandlers ( IOHandler[] io_handlers, FinalizeDg session_finalizer = null )
     {
-        this.io_handlers = io_handlers.dup;
+        this.io_handlers.copy(io_handlers);
 
         this.handler_index = 0;
-        
+
         this.session_finalizer = session_finalizer;
         
         return this;
@@ -277,6 +275,10 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     public typeof(this) register ( )
     {
         this.data.length = 0;
+
+        this.pos = 0;
+
+        this.cursor = 0;
 
         this.dispatcher.register(this);
 
