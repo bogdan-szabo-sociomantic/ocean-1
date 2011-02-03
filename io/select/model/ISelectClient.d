@@ -46,9 +46,9 @@ private import tango.io.model.IConduit: ISelectable;
 
 abstract class ISelectClient
 {
-    alias .ISelectable ISelectable;
+    public alias .ISelectable ISelectable;
     
-    enum Event
+    public enum Event
     {
         None            = 0,
         Read            = EPOLLIN,
@@ -101,7 +101,7 @@ abstract class ISelectClient
     
      **************************************************************************/
     
-    final ISelectable conduit ( )
+    final public ISelectable conduit ( )
     in
     {
         debug (ISelectClient) assert (this.conduit_, this.id ~ ": no conduit");
@@ -121,7 +121,7 @@ abstract class ISelectClient
     
      **************************************************************************/
 
-    final void conduit ( ISelectable conduit_ )
+    final public void conduit ( ISelectable conduit_ )
     {
         this.conduit_ = conduit_;
     }
@@ -135,7 +135,7 @@ abstract class ISelectClient
     
      **************************************************************************/
 
-    abstract Event events ( );
+    abstract public Event events ( );
     
     /**************************************************************************
 
@@ -153,7 +153,7 @@ abstract class ISelectClient
     
      **************************************************************************/
 
-    abstract bool handle ( Event event );
+    abstract public bool handle ( Event event );
     
     /**************************************************************************
 
@@ -162,7 +162,7 @@ abstract class ISelectClient
         
      **************************************************************************/
 
-    void finalize ( ) { }
+    public void finalize ( ) { }
     
     /**************************************************************************
 
@@ -175,7 +175,20 @@ abstract class ISelectClient
         
      **************************************************************************/
 
-    void error ( Exception exception, Event event ) { }
+    public void error ( Exception exception, Event event ) { }
+
+    /**************************************************************************
+
+        Method to get string formatted information about a connection (for
+        example the address and port of a socket connection). Intended to be
+        overloaded by a subclass if required.
+
+        Params:
+            buffer = string to receive formatted connection information
+        
+     **************************************************************************/
+
+    public void connectionInfo ( ref char[] buffer ) { }
     
     /**************************************************************************
 
@@ -186,7 +199,7 @@ abstract class ISelectClient
     
      **************************************************************************/
 
-    debug (ISelectClient) abstract char[] id ( );
+    debug (ISelectClient) abstract public char[] id ( );
 }
 
 /******************************************************************************
@@ -274,18 +287,25 @@ abstract class IAdvancedSelectClient : ISelectClient
     
     /**************************************************************************/
 
-    interface IFinalizer
+    public interface IFinalizer
     {
         void finalize ( );
     }
     
     /**************************************************************************/
 
-    interface IErrorReporter
+    public interface IErrorReporter
     {
         void error ( Exception exception, EventInfo event );
     }
-    
+
+    /**************************************************************************/
+
+    public interface IConnectionInfo
+    {
+        void connectionInfo ( ref char[] buffer );
+    }
+
     /**************************************************************************
 
         IFinalizer and IErrorReporter instance
@@ -294,6 +314,7 @@ abstract class IAdvancedSelectClient : ISelectClient
 
     private IFinalizer     finalizer_ = null;
     private IErrorReporter error_reporter_ = null;
+    private IConnectionInfo connection_info_ = null;
     
     /**************************************************************************
 
@@ -318,25 +339,40 @@ abstract class IAdvancedSelectClient : ISelectClient
     
      **************************************************************************/
     
-    final void finalizer ( IFinalizer finalizer_ )
+    final public void finalizer ( IFinalizer finalizer_ )
     {
         this.finalizer_ = finalizer_;
     }
     
     /**************************************************************************
 
-        Sets the Error REporter. May be set to null to disable error reporting.
+        Sets the Error Reporter. May be set to null to disable error reporting.
         
         Params:
-            finalizer = IFinalizer instance
+            error_reporter_ = IErrorReporter instance
     
      **************************************************************************/
 
-    final void error_reporter ( IErrorReporter error_reporter_ )
+    final public void error_reporter ( IErrorReporter error_reporter_ )
     {
         this.error_reporter_ = error_reporter_;
     }
     
+    /**************************************************************************
+
+        Sets the Connection Info. May be set to null to disable fetching of
+        connection info.
+        
+        Params:
+            connection_info_ = IConnectionInfo instance
+    
+     **************************************************************************/
+    
+    final public void connection_info ( IConnectionInfo connection_info_ )
+    {
+        this.connection_info_ = connection_info_;
+    }
+
     /**************************************************************************
 
         Finalize method, called after this instance has been unregistered from
@@ -344,7 +380,7 @@ abstract class IAdvancedSelectClient : ISelectClient
     
      **************************************************************************/
     
-    final override void finalize ( )
+    final override public void finalize ( )
     {
         if (this.finalizer_)
         {
@@ -363,7 +399,7 @@ abstract class IAdvancedSelectClient : ISelectClient
         
      **************************************************************************/
 
-    final override void error ( Exception exception, Event event )
+    final override public void error ( Exception exception, Event event )
     {
         if (this.error_reporter_)
         {
@@ -371,6 +407,23 @@ abstract class IAdvancedSelectClient : ISelectClient
         }
     }
     
+    /**************************************************************************
+
+        Connection info fetching method.
+
+        Params:
+            buffer = string buffer to receive formatted connection info
+        
+     **************************************************************************/
+    
+    final override public void connectionInfo ( ref char[] buffer )
+    {
+        if (this.connection_info_)
+        {
+            this.connection_info_.connectionInfo(buffer);
+        }
+    }
+
     /**************************************************************************
 
         Destructor
