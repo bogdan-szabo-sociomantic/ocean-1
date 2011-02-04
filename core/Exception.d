@@ -28,8 +28,6 @@
 
 module ocean.core.Exception;
 
-private import ocean.core.Array;
-
 /******************************************************************************
 
     ArrayMapException
@@ -399,6 +397,12 @@ template ExceptionOpCalls  ( E : Exception )
 /******************************************************************************
 
     CustomException template to mixin an Exception class into a class or struct.
+
+    Note: requires the concat function, defined in ocean.core.Array, so you need
+    to import that module into any module where you use this mixin:
+
+        private import ocean.core.Array;
+
     Usage:
     
     import $(TITLE);
@@ -428,7 +432,7 @@ template CustomException ( )
 
         typeof(this) opCall ( char[][] msg ... )
         {
-            this.msg.concat(msg);
+            super.msg.concat(msg);
             return this;
         }
     }
