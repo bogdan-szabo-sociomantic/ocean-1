@@ -40,20 +40,7 @@ private import tango.core.Exception;
 
 private import tango.io.device.Conduit;
 
-
-
-/*******************************************************************************
-
-    C memcpy
-
-*******************************************************************************/
-
-extern (C)
-{
-        protected void * memcpy (void *dst, void *src, size_t);
-}
-
-
+private import tango.stdc.string: memcpy;
 
 /*******************************************************************************
 
