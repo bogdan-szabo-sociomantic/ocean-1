@@ -28,6 +28,8 @@
 
 module ocean.core.Exception;
 
+private import ocean.core.Array;
+
 /******************************************************************************
 
     ArrayMapException
@@ -420,8 +422,15 @@ template CustomException ( )
     
     class Exception : _Exception
     {
+        this ( )                                    { super(""); }
         this ( char[] msg                         ) { super(msg); }
         this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+
+        typeof(this) opCall ( char[][] msg ... )
+        {
+            this.msg.concat(msg);
+            return this;
+        }
     }
 }
 
