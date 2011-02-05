@@ -263,6 +263,33 @@ abstract class ISelectProtocol : IAdvancedSelectClient
 
     /**************************************************************************
 
+        Sets a single IOHandler and the Session Finalizer
+        
+        Params:
+            io_handler          = IOHandler
+            session_finalizer   = Session Finalizer, pass null to provide no
+                                  Finalizer
+    
+        Returns:
+            this instance
+    
+     **************************************************************************/
+
+    public typeof (this) setIOHandlers ( IOHandler io_handler, FinalizeDg session_finalizer = null )
+    {
+        this.io_handlers.length = 1;
+        this.io_handlers[0] = io_handler;
+
+        this.handler_index = 0;
+
+        this.session_finalizer = session_finalizer;
+
+        return this;
+    }
+
+
+    /**************************************************************************
+
         Registers the chain of io handlers with the select dispatcher. The
         internal data buffer is cleared (if you're just registering a new set of
         io handlers, then any data in the buffer is just old junk).
