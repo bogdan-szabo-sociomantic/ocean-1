@@ -96,7 +96,7 @@ static:
     {
         size_t written = 0;
         
-        static if ( is(T A == A[]) )
+        static if ( is(T A : A[]) )
         {
             written += write(output, data.length);
     
@@ -152,7 +152,7 @@ static:
     {
         size_t read_ = 0;
         
-        static if ( is(T A == A[]) )
+        static if ( is(T A : A[]) )
         {
             size_t length;
             read_ += read(input, length);
