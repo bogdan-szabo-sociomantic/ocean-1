@@ -220,13 +220,12 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient, ISele
     {
         this.receiver_pool.get().assign(this, (ISelectable connection_conduit)
         {
-             Socket connection_socket = cast (Socket) connection_conduit;
-            
-             (cast (ServerSocket) super.conduit).accept(connection_socket);
-             
-             connection_socket.socket.blocking = false;
+            Socket connection_socket = cast (Socket) connection_conduit;
+
+            (cast (ServerSocket) super.conduit).accept(connection_socket);
+            connection_socket.socket.noDelay(true).blocking(false);
         });
-        
+
         return true;
     }
 
