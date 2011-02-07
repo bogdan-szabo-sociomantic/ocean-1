@@ -83,8 +83,7 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
     public this ( EpollSelectDispatcher dispatcher, FinalizeDg finalize_dg, ErrorDg error_dg )
     {
         Socket socket = new Socket;
-
-        socket.socket.blocking = false;
+        socket.socket.noDelay(true).blocking(false);
 
         this.finalize_dg = finalize_dg;
         this.error_dg = error_dg;
