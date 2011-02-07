@@ -23,13 +23,16 @@
 
         class AsyncReceiver
         {
+            LzoChunkCompressor lzo;
+
             char[][] arrays_received;
             
             SelectArraysDeserializer get;
             
             this ( )
             {
-                this.get = new SelectArraysDeserializer();
+                this.lzo = new LzoChunkCompressor;
+                this.get = new SelectArraysDeserializer(this.lzo.decompressor);
             }
 
             void reset ( )
@@ -79,9 +82,7 @@ private import ocean.io.select.protocol.serializer.model.ISelectArraysTransmitte
 
 private import ocean.io.select.protocol.serializer.SelectDeserializer;
 
-private import ocean.io.compress.lzo.LzoChunk;
-
-private import ocean.io.compress.lzo.LzoHeader;
+private import ocean.io.compress.lzo.LzoChunkCompressor;
 
 debug private import tango.util.log.Trace;
 
@@ -168,6 +169,15 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
     private void[] output_array;
 
 
+    /***********************************************************************
+    
+        LzoChunk decompressor.
+    
+    ***********************************************************************/
+
+    protected LzoChunkCompressor.Decompressor lzo;
+
+
     /***************************************************************************
 
         Abstract class used to deserialize an array.
@@ -226,14 +236,13 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
     {
         public bool receive ( void[] input, ref void[] output )
         {
-            LzoHeader!(false) header;
+            LzoChunkCompressor.Decompressor.Header header;
             auto payload = header.read(input);
 
             ubyte[size_t.sizeof] chunk_length; // using ubyte as cannot define static void array
             *(cast(size_t*)chunk_length.ptr) = input.length;
-            
-            output ~= chunk_length;
-            output ~= input;
+
+            output.append(cast(void[])chunk_length, input);
 
             return header.type != header.type.Stop;
         }
@@ -252,43 +261,6 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
     private class DecompressingArrayDeserializer : ArrayDeserializer
     {
         /***********************************************************************
-        
-            LzoChunk instance (decompressor) & working buffer.
-        
-        ***********************************************************************/
-        
-        protected LzoChunk!(false) lzo;
-        
-        protected void[] lzo_buffer;
-
-
-        /***********************************************************************
-        
-            Constructor.
-        
-        ***********************************************************************/
-
-        this ( )
-        {
-            this.lzo = new LzoChunk!(false);
-            this.lzo_buffer = new void[1024];
-        }
-        
-
-        /***********************************************************************
-        
-            Destructor.
-        
-        ***********************************************************************/
-
-        ~this ( )
-        {
-            delete this.lzo;
-            delete this.lzo_buffer;
-        }
-
-
-        /***********************************************************************
 
             Receives and handles a chunk of an array.
             
@@ -304,7 +276,7 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
 
         public bool receive ( void[] input, ref void[] output )
         {
-            LzoHeader!(false) header;
+            LzoChunkCompressor.Decompressor.Header header;
             auto payload = header.read(input);
 
             auto uncompressed = this.uncompress(header, payload, input);
@@ -328,7 +300,7 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
         
         ***********************************************************************/
         
-        protected void[] uncompress ( LzoHeader!(false) header, void[] payload, void[] whole_chunk )
+        protected void[] uncompress ( LzoChunkCompressor.Decompressor.Header header, void[] payload, void[] whole_chunk )
         {
             switch ( header.type )
             {
@@ -337,8 +309,7 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
                 break;
     
                 case header.Type.LZO1X:
-                    this.lzo.uncompress(whole_chunk, this.lzo_buffer);
-                    return this.lzo_buffer;
+                    return this.outer.lzo.decompress(whole_chunk);
                 break;
         
                 case header.Type.None:
@@ -382,8 +353,10 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
         
     ***************************************************************************/
     
-    public this ( )
+    public this ( LzoChunkCompressor.Decompressor lzo )
     {
+        this.lzo = lzo;
+
         this.simple_deserializer = new SimpleArrayDeserializer();
         this.chunked_deserializer = new ChunkedArrayDeserializer();
         this.decompress_deserializer = new DecompressingArrayDeserializer();
@@ -445,17 +418,12 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
                 case GetFirstArray:
                     auto io_wait = this.getArray(this.array, input, cursor, input_array_cursor);
                     if ( io_wait ) return true;
-                    
-                    if ( super.isLzoStartChunk!(false)(this.array) )
+
+                    if ( this.lzo.isStartChunk(this.array) )
                     {
-                        if ( super.compress_decompress )
-                        {
-                            this.deserializer = this.decompress_deserializer;
-                        }
-                        else
-                        {
-                            this.deserializer = this.chunked_deserializer;
-                        }
+                        this.deserializer = super.compress_decompress
+                            ? this.decompress_deserializer
+                            : this.chunked_deserializer;
                     }
                     else
                     {
@@ -513,7 +481,7 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
     {
         auto start = this.array_read_cursor;
         auto io_wait = SelectDeserializer.receive(array, input[input_array_cursor..$], this.array_read_cursor);
-    
+
         // Update cursor
         auto consumed = this.array_read_cursor - start;
         cursor += consumed;
@@ -534,7 +502,8 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
     {
         this.array_read_cursor = 0;
     }
-    
+
+
     /***************************************************************************
 
         Resets to initial state. Called by super.reset().

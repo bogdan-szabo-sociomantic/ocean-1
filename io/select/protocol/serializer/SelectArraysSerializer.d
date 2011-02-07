@@ -20,6 +20,8 @@
 
         class AsyncSender
         {
+            LzoChunkCompressor lzo;
+
             static const arrays_to_send = ["hello", "world", "yes"];
             
             size_t array_index;
@@ -28,7 +30,8 @@
             
             this ( )
             {
-                this.put = new SelectArraysSerializer();
+                this.lzo = new LzoChunkCompressor;
+                this.put = new SelectArraysSerializer(this.lzo.compressor);
             }
 
             void reset ( )
@@ -72,12 +75,13 @@ module ocean.io.select.protocol.serializer.SelectArraysSerializer;
 
 *******************************************************************************/
 
+private import ocean.core.Array;
+
 private import ocean.io.select.protocol.serializer.model.ISelectArraysTransmitter;
 
 private import ocean.io.select.protocol.serializer.SelectSerializer;
 
-private import ocean.io.compress.lzo.LzoHeader,
-               ocean.io.compress.lzo.LzoChunk;
+private import ocean.io.compress.lzo.LzoChunkCompressor;
 
 private import tango.math.Math: min;
 
@@ -140,6 +144,15 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
     ***************************************************************************/
 
     private char[] array;
+
+
+    /***************************************************************************
+
+        LzoChunk compressor.
+
+    ***************************************************************************/
+
+    private LzoChunkCompressor.Compressor lzo;
 
 
     /***************************************************************************
@@ -403,22 +416,11 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
 
         /***********************************************************************
         
-            LzoChunk instance (compressor) & working buffer.
-        
-        ***********************************************************************/
-        
-        protected LzoChunk!() lzo;
-        
-        protected void[] lzo_buffer;
-
-
-        /***********************************************************************
-        
             Lzo chunk header.
         
         ***********************************************************************/
 
-        private LzoHeader!() chunk_header;
+        private LzoChunkCompressor.Compressor.Header chunk_header;
 
 
         /***********************************************************************
@@ -455,32 +457,6 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
         ***********************************************************************/
 
         private const size_t ChunkSize = 1024;
-
-
-        /***********************************************************************
-        
-            Constructor.
-        
-        ***********************************************************************/
-        
-        public this ( )
-        {
-            this.lzo = new LzoChunk!();
-            this.lzo_buffer = new void[1024];
-        }
-        
-        
-        /***********************************************************************
-        
-            Destructor.
-        
-        ***********************************************************************/
-        
-        public ~this ( )
-        {
-            delete this.lzo;
-            delete this.lzo_buffer;
-        }
 
 
         /***********************************************************************
@@ -532,7 +508,7 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
 
                     case ExtractChunk:
                         this.getNextChunk(this.chunk, array);
-                        this.compressed_chunk = this.compress(this.chunk);
+                        this.compress(this.chunk, this.compressed_chunk);
 
                         this.state = WriteChunk;
                     break;
@@ -599,10 +575,10 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
 
         ***********************************************************************/
 
-        protected void[] compress ( void[] data )
+        private void compress ( void[] data, ref void[] compressed )
         {
-            this.lzo.compress(data, this.lzo_buffer);
-            return this.lzo_buffer[size_t.sizeof .. $];                         // slice off the chunk size, as the protocol will rewrite it
+            auto result = this.outer.lzo.compress(data);
+            compressed.copy(result[size_t.sizeof .. $]);                        // slice off the chunk size, as the protocol will rewrite it
         }
     }
 
@@ -629,12 +605,17 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
 
     /***************************************************************************
     
-        Constructor
+        Constructor.
+        
+        Params:
+            lzo = reference to an lzo chunk compressor
         
     ***************************************************************************/
     
-    public this ( )
+    public this ( LzoChunkCompressor.Compressor lzo )
     {
+        this.lzo = lzo;
+
         this.chunked_serializer = new ChunkedArraySerializer();
         this.compress_serializer = new CompressingArraySerializer();
         this.simple_serializer = new SimpleArraySerializer();
@@ -686,7 +667,7 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
                 case GetArray:
                     this.array = input();
 
-                    if ( this.isLzoStartChunk!(true)(this.array) )              // already compressed
+                    if ( this.lzo.isStartChunk(this.array) )              // already compressed
                     {
                         this.serializer = this.chunked_serializer;
                     }
