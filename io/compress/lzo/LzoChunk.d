@@ -98,7 +98,17 @@ class LzoChunk ( bool LengthInline = true )
     
     /***************************************************************************
     
-        Constructor
+        Flag set to true if the lzo instance is a reference (ie was passed from
+        the outside, is *not* owned by this instance, and should not be deleted
+        in the destructor).
+         
+     **************************************************************************/
+
+    bool lzo_is_reference;
+
+    /***************************************************************************
+    
+        Constructor - creates a new lzo instance internally.
          
      **************************************************************************/
 
@@ -106,16 +116,36 @@ class LzoChunk ( bool LengthInline = true )
     {
         this.lzo   = new Lzo;
     }
+
+    /***************************************************************************
+    
+        Constructor - sets this instance to use an lzo object passed externally
+        (this allows multiple instances to use the same lzo object).
+        
+        Params:
+            lzo = lzo object to use
+
+     **************************************************************************/
+
+    public this ( Lzo lzo )
+    {
+        this.lzo = lzo;
+        this.lzo_is_reference = true;
+    }
     
     /***************************************************************************
-        
-        Destructor
-         
+
+        Destructor - deletes the internal lzo object if it was created by this
+        class
+
      **************************************************************************/
     
     ~this ( )
     {
-        delete this.lzo;
+        if ( !this.lzo_is_reference )
+        {
+            delete this.lzo;
+        }
     }
 
     /***************************************************************************
