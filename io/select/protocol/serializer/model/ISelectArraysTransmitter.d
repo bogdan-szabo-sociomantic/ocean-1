@@ -31,8 +31,6 @@ module ocean.io.select.protocol.serializer.model.ISelectArraysTransmitter;
 
 *******************************************************************************/
 
-private import ocean.io.compress.lzo.LzoHeader;
-
 debug private import tango.util.log.Trace;
 
 
@@ -382,39 +380,6 @@ abstract class ISelectArraysTransmitter ( IODg )
     abstract public bool transmitArrays ( IODg io_dg, void[] data, ref ulong cursor );
 
     public alias transmitArrays opCall;
-
-
-    /***************************************************************************
-    
-        Tells whether the given array contains an lzo compression start chunk.
-
-        Template params:
-            length_inline = flag indicating whether the array to be tested is
-                assumed to have the header chunk length prepended (ie the first
-                4 bytes of the array), or not
-
-        Params:
-            array = array to test
-
-        Returns:
-            true if a compression start chunk is found at the beginning of the
-            passed array.
-
-    ***************************************************************************/
-    
-    protected bool isLzoStartChunk ( bool length_inline ) ( void[] array )
-    {
-        LzoHeader!(length_inline) header;
-    
-        if ( array.length < header.read_length )
-        {
-            return false;
-        }
-        else
-        {
-            return header.tryReadStart(array[0..header.read_length]);
-        }
-    }
 
 
     /***************************************************************************
