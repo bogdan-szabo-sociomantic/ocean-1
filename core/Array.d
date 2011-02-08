@@ -304,6 +304,44 @@ public T[] remove ( T ) ( T[] source, T[] match, ref T[] result )
     return substitute(source, match, replacement, result);
 }
 
+/*******************************************************************************
+
+    Sorts array and removes all value duplicates.
+    
+    Template params:
+        T = type of array element
+    
+    Params:
+        array = array to clean from duplicate values
+    
+    Returns:
+        result
+
+*******************************************************************************/
+
+public T[] uniq ( T ) ( ref T[] array )
+{
+    if (array.length)
+    {
+        size_t n = 0;
+        
+        T item = array.sort[n];
+        
+        foreach (element; array)
+        {
+            if (element != item)
+            {
+                array[++n] = element;
+                item       = element;
+            }
+        }
+        
+        array.length = n + 1;
+    }
+    
+    return array;
+}
+
 
 
 /*******************************************************************************
