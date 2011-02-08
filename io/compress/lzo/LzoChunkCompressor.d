@@ -259,7 +259,6 @@ class LzoChunkCompressor
     public this ( )
     {
         this.lzo = new Lzo;
-        this.result = new void[1024];
 
         this.compressor = new Compressor;
         this.decompressor = new Decompressor;
@@ -275,7 +274,7 @@ class LzoChunkCompressor
     ~this ( )
     {
         delete this.lzo;
-        delete this.result;
+        this.result.length = 0;
         delete this.compressor;
         delete this.decompressor;
     }
