@@ -232,7 +232,7 @@ abstract class IAdvancedSelectClient : ISelectClient
 
     struct EventInfo
     {
-        Event code = Event.None;
+        public Event code = Event.None;
         
         /**********************************************************************
          
@@ -241,7 +241,7 @@ abstract class IAdvancedSelectClient : ISelectClient
         
          **********************************************************************/
 
-        bool none ( )
+        public bool none ( )
         {
             return !this.code;
         }
@@ -259,7 +259,7 @@ abstract class IAdvancedSelectClient : ISelectClient
         
          **********************************************************************/
         
-        bool eventFlagsSet ( Event flags )
+        public bool eventFlagsSet ( Event flags )
         {
             return !!(this.code & flags);
         }
@@ -272,17 +272,17 @@ abstract class IAdvancedSelectClient : ISelectClient
         
          **********************************************************************/
 
-        bool eventFlagsSetT ( Event flags ) ( )
+        public bool eventFlagsSetT ( Event flags ) ( )
         {
             return this.eventFlagsSet(flags);
         }
         
-        alias eventFlagsSetT!(Event.Read)          read;
-        alias eventFlagsSetT!(Event.UrgentRead)    urgent_read;
-        alias eventFlagsSetT!(Event.Write)         write;
-        alias eventFlagsSetT!(Event.Error)         error;
-        alias eventFlagsSetT!(Event.Hangup)        hangup;
-        alias eventFlagsSetT!(Event.ReadHangup)    read_hangup;
+        public alias eventFlagsSetT!(Event.Read)          read;
+        public alias eventFlagsSetT!(Event.UrgentRead)    urgent_read;
+        public alias eventFlagsSetT!(Event.Write)         write;
+        public alias eventFlagsSetT!(Event.Error)         error;
+        public alias eventFlagsSetT!(Event.Hangup)        hangup;
+        public alias eventFlagsSetT!(Event.ReadHangup)    read_hangup;
     }
     
     /**************************************************************************/
@@ -395,7 +395,7 @@ abstract class IAdvancedSelectClient : ISelectClient
         
         Params:
             exception: Exception thrown by handle()
-            event:     Seletor event while exception was caught
+            event:     Selector event while exception was caught
         
      **************************************************************************/
 
