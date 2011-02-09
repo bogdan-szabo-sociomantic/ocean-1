@@ -53,7 +53,7 @@ private import ocean.io.select.model.ISelectClient;
 private import ocean.core.Array:     copy;
 private import ocean.core.Exception: assertEx;
 
-debug (ISelectClient) import tango.util.log.Trace;
+debug private import tango.util.log.Trace;
 
 /*******************************************************************************
 
@@ -117,6 +117,18 @@ class EpollSelectDispatcher
         this.selector.open(size, max_events);
     }
     
+    /***************************************************************************
+
+        Destructor
+    
+     **************************************************************************/
+    
+    ~this ()
+    {
+        delete this.selector;
+        delete this.exception;
+    }
+
     /***************************************************************************
 
         Opens the selector instance
@@ -265,6 +277,8 @@ class EpollSelectDispatcher
         
      **************************************************************************/
 
+    debug (ISelectClient) private char[] connection_info_buffer;
+
     public bool eventLoop ( )
     {
         bool not_timed_out = true;
@@ -283,7 +297,11 @@ class EpollSelectDispatcher
                 
                 Event events = cast (Event) key.events;
                 
-                debug (ISelectClient) Trace.formatln("{}: {:X8}", client.id, key.events);
+                debug (ISelectClient)
+                {
+                    client.connectionInfo(this.connection_info_buffer);
+                    Trace.formatln("{}: {}: {:X8}", this.connection_info_buffer, client.id, key.events);
+                }
 
                 try
                 {
@@ -292,9 +310,9 @@ class EpollSelectDispatcher
                 catch (Exception e)
                 {
                     debug (ISelectClient) Trace.formatln("{}: {}", client.id, e.msg);
-                    
+
                     client.error(e, events);
-                    
+
                     unregister_key = true;
                 }
                 finally if (unregister_key)
@@ -304,6 +322,11 @@ class EpollSelectDispatcher
                     client.finalize();
                 }
             }
+        }
+
+        if ( !not_timed_out )
+        {
+            // TODO: call error delegate with timeout code
         }
 
         return not_timed_out;
@@ -334,17 +357,6 @@ class EpollSelectDispatcher
         return events;
     }
     
-    /***************************************************************************
-
-        Destructor
-
-     **************************************************************************/
-
-    ~this ()
-    {
-        delete this.selector;
-        delete this.exception;
-    }
     
     static class KeyException : SocketException
     {
