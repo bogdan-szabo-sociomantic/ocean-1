@@ -237,6 +237,19 @@ abstract class ISelectProtocol : IAdvancedSelectClient
 
     /**************************************************************************
 
+        Destructor
+        
+     **************************************************************************/
+
+    ~this ( )
+    {
+        delete this.data;
+        delete this.io_handlers;
+    }
+
+
+    /**************************************************************************
+
         Sets the chain of IOHandlers and the Session Finalizer
         
         Params:
@@ -527,7 +540,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     private FinalizerStatus finalize ( )
     {
         bool have_finalizer = !!this.session_finalizer;
-        
+
         this.handler_index      = 0;
         this.io_handlers.length = 0;
 
@@ -545,16 +558,4 @@ abstract class ISelectProtocol : IAdvancedSelectClient
      **************************************************************************/
     
     debug (ISelectClient) abstract char[] id ( ) ;
-    
-    /**************************************************************************
-
-        Destructor
-        
-     **************************************************************************/
-
-    ~this ( )
-    {
-        delete this.data;
-        delete this.io_handlers;
-    }
 }
