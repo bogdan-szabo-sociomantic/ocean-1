@@ -76,6 +76,7 @@ import ocean.core.ObjectPool;
 import tango.net.device.Socket,
        tango.net.device.Berkeley: IPv4Address;
 
+debug private import tango.util.log.Trace;
 
 
 
@@ -108,7 +109,7 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient, ISele
     
      **************************************************************************/
 
-    private ObjectPool!(T, EpollSelectDispatcher,
+    private ObjectPool!(T, EpollSelectDispatcher, ISelectListenerInfo,
                         IConnectionHandler.FinalizeDg, Args) receiver_pool;
     
     /**************************************************************************
@@ -154,12 +155,11 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient, ISele
         this.dispatcher = dispatcher;
         
         auto socket = new ServerSocket(address, backlog, reuse);
-        
-        socket.socket.blocking = false;
+        socket.socket.noDelay(true).blocking(false);
         
         super(socket);
         
-        this.receiver_pool = this.receiver_pool.newPool(dispatcher,
+        this.receiver_pool = this.receiver_pool.newPool(dispatcher, this,
                                                         &this.returnToPool,
                                                         args);
         
@@ -201,30 +201,31 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient, ISele
     /**************************************************************************
 
         I/O event handler
-        
+
         Called from SelectDispatcher during event loop.
-        
+
         Params:
-             conduit = I/O device instance (as taken from Selection Key by the
-                       SelectDispatcher)
-             event   = identifier of I/O event that just occured on the device
-             
+             event = identifier of I/O event that just occured on the device
+
         Returns:
             true if the handler should be called again on next event occurrence
             or false if this instance should be unregistered from the
             SelectDispatcher (this is effectively a server shutdown).
-    
+
      **************************************************************************/
 
     public bool handle ( Event event )
     {
-        this.receiver_pool.get().assign(this, (ISelectable connection_conduit)
-        {
-            Socket connection_socket = cast (Socket) connection_conduit;
+        auto new_connection = this.receiver_pool.get();
 
-            (cast (ServerSocket) super.conduit).accept(connection_socket);
-            connection_socket.socket.noDelay(true).blocking(false);
-        });
+        new_connection.assign(
+            (ISelectable connection_conduit)
+            {
+                Socket connection_socket = cast (Socket) connection_conduit;
+    
+                (cast (ServerSocket) super.conduit).accept(connection_socket);
+                connection_socket.socket.noDelay(true).blocking(false);
+            });
 
         return true;
     }
