@@ -144,7 +144,7 @@ alias Fnv1Generic!(true,  ulong)  Fnv1a64;
         
 *******************************************************************************/
 
-class Fnv1Generic ( bool FNV1A = false, T = size_t ) : Digest
+class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : Digest
 {
     /**************************************************************************
     
