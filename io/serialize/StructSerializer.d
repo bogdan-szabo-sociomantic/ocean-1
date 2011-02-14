@@ -1696,6 +1696,23 @@ unittest
    }
    Trace.formatln("Writing with {}/s",100_000_000/sw.stop);
    
+   // FIXME !!: This causes a segfault:
+   /*
+    * Program received signal SIGSEGV, Segmentation fault.
+    __memcpy_ssse3 () at ../sysdeps/i386/i686/multiarch/memcpy-ssse3.S:1099
+    1099    ../sysdeps/i386/i686/multiarch/memcpy-ssse3.S: No such file or directory.
+        in ../sysdeps/i386/i686/multiarch/memcpy-ssse3.S
+    (gdb) bt
+    #0  __memcpy_ssse3 () at ../sysdeps/i386/i686/multiarch/memcpy-ssse3.S:1099
+    #1  0x08101d7c in _d_arraycopy ()
+    #2  0x080b30a9 in ocean.io.serialize.StructSerializer.StructSerializer.load!(SerializeMe,byte).load.__dgliteral32 (this=0xffffc670, chunk=581442738273124356)
+        at /home/mathias/workspace/includes/ocean/io/serialize/StructSerializer.d:197
+    #3  0x00000078 in ?? ()
+    #4  0xffffc4f0 in ?? ()
+    #5  0x080b1293 in ocean.io.serialize.StructSerializer.__unittest1 ()
+        at /home/mathias/workspace/includes/ocean/io/serialize/StructSerializer.d:1703
+    #6  0xd969d540 in ?? () 
+    */
    
    sw.start;
    for(uint i = 0;i<100_000_000; ++i)
