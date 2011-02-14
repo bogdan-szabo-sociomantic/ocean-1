@@ -202,7 +202,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             
          **********************************************************************/
 
-        private         pthread_rwlock_t[]              rwlocks;
+        private         RwLock[]              rwlocks;
         
         /***********************************************************************
         
@@ -295,6 +295,48 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     final               size_t                            len;
     
     /***************************************************************************
+    
+        Wraps a rw lock and makes sure it gets destroyed on collection
+        
+     **************************************************************************/
+
+    class RwLock
+    {
+        private pthread_rwlock_t _lock;
+        
+        public this ( )
+        {
+            pthread_rwlock_init(&this._lock, null);
+        }
+        
+        public ~this ( )
+        {
+            pthread_rwlock_destroy(&this._lock);
+        }
+        
+        public void lock ( )
+        {
+            pthread_rwlock_rdlock(&this._lock);
+        }
+        
+        public void unlock ( )
+        {
+            pthread_rwlock_unlock(&this._lock);
+        }
+        
+        public void writeLock()
+        {
+            pthread_rwlock_wrlock(&this._lock);
+        }
+        
+        public void writeUnlock()
+        {            
+            pthread_rwlock_unlock(&this._lock);
+        }
+        
+    }
+    
+    /***************************************************************************
         
         Sets number of buckets used
 
@@ -328,7 +370,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
                 
         static if (M)
         {
-            this.rwlocks = new pthread_rwlock_t[this.buckets_length];
+            this.rwlocks = new RwLock[this.buckets_length];
         }
         
         this.k_map = new Bucket[this.buckets_length];
@@ -341,7 +383,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             
             static if (M)
             {
-                pthread_rwlock_init(this.rwlocks.ptr + i, null);
+                this.rwlocks[i] = new RwLock();
             }
         }
     }
@@ -402,52 +444,12 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         static if (M)
         {
-            this.rwlocks = new pthread_rwlock_t[this.buckets_length];
+            this.rwlocks = new RwLock[this.buckets_length];
             
             for (size_t i = 0; i < this.rwlocks.length; i++)
             {
-                pthread_rwlock_init(this.rwlocks.ptr + i, null);
+                this.rwlocks[i] = new RwLock();
             }
-        }
-    }
-    
-    /***************************************************************************
-    
-        Destructor; free memory to gc
-            
-     **************************************************************************/
-    
-    ~this () 
-    {
-        this.len = 0;
-        
-        foreach (i, ref bucket; this.k_map)
-        {
-            static if (M)
-            {
-                pthread_rwlock_destroy(this.rwlocks.ptr + i);
-            }
-            
-            bucket.length = 0;
-            
-            delete bucket.elements;
-        }
-        
-        static if (this.VisArray)
-        {
-            foreach (ref value; this.v_map)
-            {
-                delete value.value;
-            }
-        }
-        
-        delete this.v_map;
-        
-        delete this.k_map;
-        
-        static if (M)
-        {
-            delete this.rwlocks;
         }
     }
 
@@ -657,16 +659,18 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             
             static if (M)
             {
-                for (size_t i = dst.k_map.length; i < dst.rwlocks.length; i++)
+                foreach (ref lock; dst.rwlocks[dst.k_map.length .. $])
                 {
-                    pthread_rwlock_destroy(dst.rwlocks.ptr + i);
+                    delete lock;
                 }
+                
+                auto oldLen = dst.rwlocks.length;
                 
                 dst.rwlocks.length = dst.k_map.length;
                 
-                for (size_t i = dst.rwlocks.length; i < dst.k_map.length; i++)
+                foreach (ref lock; dst.rwlocks[oldLen .. $])
                 {
-                    pthread_rwlock_init(dst.rwlocks.ptr + i, null);
+                    lock = new RwLock();
                 }
             }
         }
@@ -736,6 +740,8 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         Returns:
             void
+            
+        TODO: setting length to zero does _not_ release the pointer
         
      **************************************************************************/
     
@@ -1147,10 +1153,9 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     {
         static if (M)
         {
-            pthread_rwlock_t* lock = this.rwlocks.ptr + h;
+            this.rwlocks[h].lock();
             
-            pthread_rwlock_rdlock(lock);
-            scope (exit) pthread_rwlock_unlock(lock);
+            scope (exit) this.rwlocks[h].unlock();
             
             return this.findValue(key, h);
         }
@@ -1253,11 +1258,9 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
         static if (M) 
         {
-            pthread_rwlock_t* lock = this.rwlocks.ptr + h;
+            this.rwlocks[h].lock();
             
-            pthread_rwlock_wrlock(lock);
-            
-            scope (exit) pthread_rwlock_unlock(lock);
+            scope (exit) this.rwlocks[h].unlock();
         }   
         
         Bucket* bucket = this.k_map.ptr + h;
@@ -1487,10 +1490,10 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     private void writeLock ( hash_t h, void delegate() dg )
     {
         static if (M) 
-        {
-            pthread_rwlock_wrlock(this.rwlocks.ptr + h);
+        {   
+            this.rwlocks[h].writeLock();
             
-            scope (exit) pthread_rwlock_unlock(this.rwlocks.ptr + h);
+            scope (exit) this.rwlocks[h].writeUnlock();   
         }   
         
         dg();
