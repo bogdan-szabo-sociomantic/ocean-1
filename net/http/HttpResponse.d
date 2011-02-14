@@ -206,7 +206,7 @@ struct HttpResponse
     public char[] getRemoteAddress ()
     in
     {
-        assert (this.socket);
+        assert (this.socket !is null);
     }
     body
     {
@@ -297,7 +297,7 @@ struct HttpResponse
                        char[] msg = `` )
     in
     {
-        assert(this.socket, `http response error: invalid socket given`);
+        assert (this.socket !is null, `http response error: invalid socket given`);
     }
     body
     {
