@@ -103,7 +103,6 @@ private     import      Integer = tango.text.convert.Integer;
 
 struct HttpResponse
 {
-    
     /**************************************************************************
     
         Cookie
@@ -168,16 +167,6 @@ struct HttpResponse
      
      private            Socket                      socket;
  
-     /***************************************************************************
-         
-         Http header gmt timestamp conversions
-         
-      ***************************************************************************/
-     
-     const char[3][] Weekdays = [`Sun`, `Mon`, `Tue`, `Wed`, `Thu`, `Fri`, `Sat`];
-     const char[3][] Months   = [`Jan`, `Feb`, `Mar`, `Apr`, `May`, `Jun`, `Jul`, 
-                                 `Aug`, `Sep`, `Oct`, `Nov`, `Dec`];
-     
      /**************************************************************************
          
           Set Default Header
@@ -349,8 +338,8 @@ struct HttpResponse
         this.cookie.reset();
         this.header.reset();
         
-        this.cookie_header.length = 
-        this.buf.length = 0;
+        this.cookie_header.length = 0;
+        this.buf.length           = 0;
     }
     
     /**************************************************************************
