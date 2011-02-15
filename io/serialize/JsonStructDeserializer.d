@@ -347,7 +347,12 @@ class JsonStructDeserializer ( Char )
     {
         if ( name.length )
         {
-            this.checkName(name);
+            if (!this.checkName(name, false))
+            {
+                output = output.init;
+                
+                return;
+            }
         }
 
         static if ( isRealType!(T) )
@@ -671,19 +676,33 @@ class JsonStructDeserializer ( Char )
         Params:
             token = type of token expected
             name = (optional) expected name of token
+            throwException = whether to throw an exception or return false on error
 
         Throws:
             throws a JsonException if the expected name is not found
 
     ***************************************************************************/
 
-    private void checkName ( Char[] name )
+    private bool checkName ( Char[] name, bool throwException = true )
     {
         debug ( Json ) Trace.formatln("Checking name {} == {}", name, this.parser.value());
 
-        assertEx!(JsonException)(this.parser.type() ==  Parser.Token.Name && this.parser.value() == name,
+        if (throwException)
+        {
+            assertEx!(JsonException)(this.parser.type() ==  Parser.Token.Name && this.parser.value() == name,
                 typeof(this).stringof ~ ".checkName - name '" ~ name ~ "' expected, got '" ~ this.parser.value() ~ "'");
+        }
+        else
+        {
+            if (!(this.parser.type() ==  Parser.Token.Name && this.parser.value() == name))
+            {
+                return false;
+            }
+        }        
+        
         this.parser.next();
+        
+        return true;
     }
 }
 
