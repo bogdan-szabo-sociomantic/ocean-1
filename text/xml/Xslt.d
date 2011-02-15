@@ -148,6 +148,12 @@ class Xslt
 
     public void transform ( ref char[] source, ref char[] dest, ref char[] stylesheet_text )
     {
+        scope ( failure )
+        {
+            // clean everything to ensure it's fresh next time this method is called
+            this.cleanupParser();
+        }
+
         this.initParser();
 
         source.append("\0");
