@@ -18,9 +18,7 @@ module ocean.text.util.EscapeChars;
 
  ******************************************************************************/
 
-private import ocean.core.Array: copy;
-
-private import ocean.core.Exception: assertEx;
+private import ocean.core.Array: concat;
 
 private import tango.stdc.string: strcspn, memmove, memcpy, memchr, strlen;
 
@@ -66,9 +64,6 @@ struct EscapeChars
         Returns:
             resulting string
         
-        Throws:
-            Exception if tokens contains a '\0'
-        
      **************************************************************************/
 
     public char[] opCall ( ref char[] str, char[] escape = `\`,
@@ -76,13 +71,9 @@ struct EscapeChars
     {
         if (tokens.length)
         {
-            assertEx(!memchr(tokens.ptr, '\0', tokens.length),
-                     typeof (*this).stringof ~ ": "
-                     "NUL characters not allowed in tokens");
-            
             this.copyTokens(tokens);
             
-            str ~= '\0';
+            str ~= '\0';                                                        // append a 0 to the end, as it is stripped in the scope(exit)
     
             scope (exit)
             {
@@ -104,7 +95,7 @@ struct EscapeChars
             
             str.length = str.length + (this.occurrences.length * escape.length);
             
-            str[$ - 1] = '\0'; // append a 0 to the end, as it is stripped in the scope(exit)
+            str[$ - 1] = '\0';                                                  // append a 0 to the end, as it is stripped in the scope(exit)
             
             foreach_reverse (i, occurrence; this.occurrences)
             {
@@ -134,8 +125,8 @@ struct EscapeChars
     in
     {
         assert (tokens);
-        assert (tokens[$ - 1]);
-        assert (!memchr(tokens.ptr, '\0', tokens.length));
+        assert (!memchr(tokens.ptr, '\0', tokens.length),
+                typeof (*this).stringof ~ ": NUL characters not allowed in tokens");
     }
     out
     {
@@ -145,8 +136,6 @@ struct EscapeChars
     }
     body
     {
-        this.tokens.copy(tokens);
-        
-        this.tokens ~= '\0';
+        this.tokens.concat(tokens, "\0");
     }
 }
