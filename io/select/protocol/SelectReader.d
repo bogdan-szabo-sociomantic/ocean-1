@@ -59,6 +59,22 @@ class SelectReader : ISelectProtocol
     
     /**************************************************************************
 
+        Alias for a delegate to be called when data is received.
+
+     **************************************************************************/
+
+    public alias void delegate ( void[] ) ReceivedCallback;
+
+    /**************************************************************************
+
+        Delegate to be called when data is received.
+    
+     **************************************************************************/
+
+    private ReceivedCallback on_received;
+
+    /**************************************************************************
+
         Constructor
         
         Params:
@@ -90,6 +106,20 @@ class SelectReader : ISelectProtocol
 
     /**************************************************************************
 
+        Sets a delegate to be called when data is received.
+        
+        Params:
+            on_received = delegate to call when data is received
+
+     **************************************************************************/
+
+    public void receivedCallback ( ReceivedCallback on_received )
+    {
+        this.on_received = on_received;
+    }
+
+    /**************************************************************************
+
         Returns the identifiers of the event(s) to register for.
         
         (Implements an abstract super class method.)
@@ -99,7 +129,7 @@ class SelectReader : ISelectProtocol
      
      **************************************************************************/
 
-    final Event events ( )
+    final public Event events ( )
     {
         return Event.Read | Event.ReadHangup;
     }
@@ -148,8 +178,13 @@ class SelectReader : ISelectProtocol
         super.data.length = this.receive(super.data, conduit);
         
         debug (Raw) Trace.formatln(">>> {:X2}", super.data);
+
+        if ( this.on_received )
+        {
+            this.on_received(super.data);
+        }
     }
-    
+
     /**************************************************************************
 
         Receives data through conduit.
@@ -209,3 +244,4 @@ class SelectReader : ISelectProtocol
         return this.ClassId;
     }
 }
+

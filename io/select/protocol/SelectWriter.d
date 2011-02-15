@@ -63,6 +63,22 @@ class SelectWriter : ISelectProtocol
     
     /**************************************************************************
 
+        Alias for a delegate to be called when data is sent.
+    
+     **************************************************************************/
+
+    public alias void delegate ( void[] ) SentCallback;
+
+    /**************************************************************************
+
+        Delegate to be called when data is sent.
+    
+     **************************************************************************/
+
+    private SentCallback on_sent;
+
+    /**************************************************************************
+
         Constructor
         
         Params:
@@ -94,6 +110,20 @@ class SelectWriter : ISelectProtocol
     
     /**************************************************************************
 
+        Sets a delegate to be called when data is sent.
+        
+        Params:
+            on_sent = delegate to call when data is sent
+    
+     **************************************************************************/
+    
+    public void sentCallback ( SentCallback on_sent )
+    {
+        this.on_sent = on_sent;
+    }
+
+    /**************************************************************************
+
         Returns the identifiers of the event(s) to register for.
         
         (Implements an abstract super class method.)
@@ -103,7 +133,7 @@ class SelectWriter : ISelectProtocol
      
      **************************************************************************/
 
-    final Event events ( )
+    final public Event events ( )
     {
         return Event.Write;
     }
@@ -142,12 +172,17 @@ class SelectWriter : ISelectProtocol
         
         super.data.length = super.pos;
         
-        this.send_pos += this.send(super.data[this.send_pos .. $],
-                                   cast (OutputStream) super.conduit);
-        
+        auto send_data = super.data[this.send_pos .. $];
+        this.send_pos += this.send(send_data, cast (OutputStream) super.conduit);
+
+        if ( this.on_sent )
+        {
+            this.on_sent(send_data);
+        }
+
         return more || (this.send_pos < super.data.length);
     }
-    
+
     /**************************************************************************
 
         Sends data through conduit.
@@ -171,12 +206,12 @@ class SelectWriter : ISelectProtocol
         debug (Raw) Trace.formatln("<<< {:X2}", data);
         
         size_t sent = conduit.write(data);
-        
+
         assertEx!(IOException)(sent != conduit.Eof, this.ClassId ~ ": end of flow whilst writing");
         
         return sent;
     }
-    
+
     /**************************************************************************
 
         Returns an identifier string for this instance
@@ -193,3 +228,4 @@ class SelectWriter : ISelectProtocol
         return this.ClassId;
     }
 }
+
