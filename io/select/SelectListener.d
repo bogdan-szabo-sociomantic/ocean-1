@@ -111,7 +111,15 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient, ISele
 
     private ObjectPool!(T, EpollSelectDispatcher, ISelectListenerInfo,
                         IConnectionHandler.FinalizeDg, Args) receiver_pool;
-    
+
+    /**************************************************************************
+
+        Count of bytes received & sent over all connections.
+
+     **************************************************************************/
+
+    private ulong bytes_received, bytes_sent;
+
     /**************************************************************************
 
         Constructor
@@ -240,6 +248,70 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient, ISele
     public size_t numOpenConnections ( )
     {
         return this.receiver_pool.getNumBusyItems();
+    }
+
+    /**************************************************************************
+
+        Increments the count of received bytes by the specified amount.
+
+        Params:
+            bytes = number of bytes received
+
+     **************************************************************************/
+
+    public void receivedBytes ( size_t bytes )
+    {
+        this.bytes_received += bytes;
+    }
+
+    /**************************************************************************
+
+        Increments the count of sent bytes by the specified amount.
+    
+        Params:
+            bytes = number of bytes sent
+    
+     **************************************************************************/
+
+    public void sentBytes ( size_t bytes )
+    {
+        this.bytes_sent += bytes;
+    }
+
+    /**************************************************************************
+
+        Returns:
+            number of bytes received
+    
+     **************************************************************************/
+
+    public ulong bytesReceived ( )
+    {
+        return this.bytes_received;
+    }
+
+    /**************************************************************************
+
+        Returns:
+            number of bytes sent
+    
+     **************************************************************************/
+
+    public ulong bytesSent ( )
+    {
+        return this.bytes_sent;
+    }
+
+    /**************************************************************************
+
+        Resets the count of received and sent bytes.
+
+     **************************************************************************/
+
+    public void resetByteCounters ( )
+    {
+        this.bytes_received = 0;
+        this.bytes_sent = 0;
     }
 
     /**************************************************************************

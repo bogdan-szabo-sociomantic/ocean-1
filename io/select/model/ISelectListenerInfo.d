@@ -25,5 +25,58 @@ interface ISelectListenerInfo
      **************************************************************************/
 
     public size_t numOpenConnections ( );
+
+
+    /**************************************************************************
+
+        Increments the count of received bytes by the specified amount.
+    
+        Params:
+            bytes = number of bytes received
+    
+     **************************************************************************/
+    
+    public void receivedBytes ( size_t bytes );
+
+    
+    /**************************************************************************
+    
+        Increments the count of sent bytes by the specified amount.
+    
+        Params:
+            bytes = number of bytes sent
+    
+     **************************************************************************/
+    
+    public void sentBytes ( size_t bytes );
+
+
+    /**************************************************************************
+    
+        Returns:
+            number of bytes received
+    
+     **************************************************************************/
+    
+    public ulong bytesReceived ( );
+
+
+    /**************************************************************************
+    
+        Returns:
+            number of bytes sent
+    
+     **************************************************************************/
+    
+    public ulong bytesSent ( );
+
+
+    /**************************************************************************
+    
+        Resets the count of received and sent bytes.
+    
+     **************************************************************************/
+    
+    public void resetByteCounters ( );
 }
 
