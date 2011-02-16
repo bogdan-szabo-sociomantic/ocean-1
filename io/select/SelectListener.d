@@ -68,8 +68,7 @@ module ocean.io.select.SelectListener;
 
 private import ocean.io.select.EpollSelectDispatcher,
                ocean.io.select.model.ISelectClient,
-               ocean.io.select.model.IConnectionHandler,
-               ocean.io.select.model.ISelectListenerInfo;
+               ocean.io.select.model.IConnectionHandler;
 
 import ocean.core.ObjectPool;
 
@@ -93,7 +92,7 @@ debug private import tango.util.log.Trace;
 
  ******************************************************************************/
 
-class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient, ISelectListenerInfo
+class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient
 {
     /**************************************************************************
 
@@ -109,16 +108,8 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient, ISele
     
      **************************************************************************/
 
-    private ObjectPool!(T, EpollSelectDispatcher, ISelectListenerInfo,
-                        IConnectionHandler.FinalizeDg, Args) receiver_pool;
-
-    /**************************************************************************
-
-        Count of bytes received & sent over all connections.
-
-     **************************************************************************/
-
-    private ulong bytes_received, bytes_sent;
+    private ObjectPool!(T, EpollSelectDispatcher, IConnectionHandler.FinalizeDg,
+                        Args) receiver_pool;
 
     /**************************************************************************
 
@@ -167,7 +158,7 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient, ISele
         
         super(socket);
         
-        this.receiver_pool = this.receiver_pool.newPool(dispatcher, this,
+        this.receiver_pool = this.receiver_pool.newPool(dispatcher,
                                                         &this.returnToPool,
                                                         args);
         
@@ -241,77 +232,13 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient, ISele
     /**************************************************************************
 
         Returns:
-             the number of active connections in the pool
-    
-     **************************************************************************/
-
-    public size_t numOpenConnections ( )
-    {
-        return this.receiver_pool.getNumBusyItems();
-    }
-
-    /**************************************************************************
-
-        Increments the count of received bytes by the specified amount.
-
-        Params:
-            bytes = number of bytes received
+            information interface to the connections pool
 
      **************************************************************************/
 
-    public void receivedBytes ( size_t bytes )
+    public IObjectPoolInfo poolInfo ( )
     {
-        this.bytes_received += bytes;
-    }
-
-    /**************************************************************************
-
-        Increments the count of sent bytes by the specified amount.
-    
-        Params:
-            bytes = number of bytes sent
-    
-     **************************************************************************/
-
-    public void sentBytes ( size_t bytes )
-    {
-        this.bytes_sent += bytes;
-    }
-
-    /**************************************************************************
-
-        Returns:
-            number of bytes received
-    
-     **************************************************************************/
-
-    public ulong bytesReceived ( )
-    {
-        return this.bytes_received;
-    }
-
-    /**************************************************************************
-
-        Returns:
-            number of bytes sent
-    
-     **************************************************************************/
-
-    public ulong bytesSent ( )
-    {
-        return this.bytes_sent;
-    }
-
-    /**************************************************************************
-
-        Resets the count of received and sent bytes.
-
-     **************************************************************************/
-
-    public void resetByteCounters ( )
-    {
-        this.bytes_received = 0;
-        this.bytes_sent = 0;
+        return this.receiver_pool;
     }
 
     /**************************************************************************
