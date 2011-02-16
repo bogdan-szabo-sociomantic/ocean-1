@@ -92,7 +92,7 @@ debug private import tango.util.log.Trace;
 
 /*******************************************************************************
 
-	Interface for pool items that offer a reset method
+    Interface for pool items that offer a reset method
 
 *******************************************************************************/
 
@@ -100,6 +100,80 @@ public interface Resettable
 {
     void reset ( );
 }
+
+
+
+/*******************************************************************************
+
+    Informational interface to an object pool items, which only provides methods
+    to get info about the state of the pool.
+
+*******************************************************************************/
+
+public interface IObjectPoolInfo
+{
+    /**************************************************************************
+    
+        Returns the limit of items in pool
+        
+        Returns:
+            limit of items in pool
+        
+    **************************************************************************/
+
+    public size_t limit ( );
+
+
+    /**************************************************************************
+    
+        Returns the number of items in pool.
+        
+        Returns:
+            the number of items in pool
+        
+     **************************************************************************/
+    
+    public size_t getNumItems ( );
+    
+    
+    /**************************************************************************
+    
+        Returns the number of idle items in pool.
+        
+        Returns:
+            the number of idle items in pool
+        
+     **************************************************************************/
+    
+    public size_t getNumIdleItems ( );
+
+
+    /**************************************************************************
+    
+        Returns the number of busy items in pool.
+        
+        Returns:
+            the number of busy items in pool
+        
+     **************************************************************************/
+    
+    public size_t getNumBusyItems ( );
+
+
+    /**************************************************************************
+    
+        Returns the number of items available from pool. This is a reasonable
+        value only if the total number of pool items is limited.
+        
+        Returns:
+            the number of items available from pool
+        
+     **************************************************************************/
+    
+    public size_t getNumAvailableItems ( );
+}
+
+
 
 /*******************************************************************************
   
@@ -111,7 +185,7 @@ public interface Resettable
    
 *******************************************************************************/
 
-class ObjectPool ( T, A ... )
+class ObjectPool ( T, A ... ) : IObjectPoolInfo
 {
     /**************************************************************************
     
