@@ -23,8 +23,6 @@ module ocean.io.select.model.IConnectionHandler;
 private import ocean.io.select.protocol.SelectReader,
                ocean.io.select.protocol.SelectWriter;
 
-private import ocean.io.select.model.ISelectListenerInfo;
-
 private import ocean.io.select.EpollSelectDispatcher;
     
 private import ocean.io.select.model.ISelectClient : IAdvancedSelectClient;
@@ -54,16 +52,6 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
     public alias .ISelectable ISelectable;
 
     public alias .EpollSelectDispatcher EpollSelectDispatcher;
-
-
-    /***************************************************************************
-
-        Info interface to the select listener which owns this connection
-        handler.
-
-    ***************************************************************************/
-
-    protected ISelectListenerInfo listener;
 
 
     /***************************************************************************
@@ -144,12 +132,10 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
 
     ***************************************************************************/
 
-    public this ( EpollSelectDispatcher dispatcher, ISelectListenerInfo listener_info, FinalizeDg finalize_dg, ErrorDg error_dg )
+    public this ( EpollSelectDispatcher dispatcher, FinalizeDg finalize_dg, ErrorDg error_dg )
     {
         Socket socket = new Socket;
         socket.socket.noDelay(true).blocking(false);
-
-        this.listener = listener_info;
 
         this.finalize_dg = finalize_dg;
         this.error_dg = error_dg;
