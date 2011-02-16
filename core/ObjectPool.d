@@ -105,8 +105,8 @@ public interface Resettable
 
 /*******************************************************************************
 
-    Informational interface to an object pool items, which only provides methods
-    to get info about the state of the pool.
+    Informational interface to an object pool, which only provides methods to
+    get info about the state of the pool, no methods to modify anything.
 
 *******************************************************************************/
 
