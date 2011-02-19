@@ -657,6 +657,22 @@ struct StructSerializer
         Returns:
             passes through return value of transmit
         
+        FIXME: Does currently not scan static array fields for a struct type
+        containing dynamic arrays. Example:
+        
+         ---
+             struct S1
+             {
+                 int[] x;
+             }
+             
+             struct S2
+             {
+                 
+                 S1[7] y;   // elements contain a dynamic array
+             }
+         ---
+        
      **************************************************************************/
 
     size_t transmitArrays ( bool receive, S ) ( S* s, void delegate ( void[] array ) transmit )
