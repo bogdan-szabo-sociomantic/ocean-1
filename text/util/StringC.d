@@ -27,6 +27,9 @@
         char[] text = StringD.toDString(cText);
                 
     ---
+
+    FIXME: the functions here are not memory safe, they need to be re-written to
+    accept ref char[].
     
  ******************************************************************************/
 
