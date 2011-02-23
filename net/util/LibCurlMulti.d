@@ -115,6 +115,7 @@ class CurlConnection : LibCurl, Resettable
         if ( this.curlm )
         {
             curl_multi_remove_handle(this.curlm, this.curl);
+            this.curlm = null;
         }
     }
 }
