@@ -57,7 +57,7 @@ module  ocean.net.util.LibCurl;
 
 ********************************************************************************/
 
-private import ocean.core.Array;
+private     import      ocean.core.Array;
 
 public      import      ocean.core.Exception: CurlException;
 
@@ -141,6 +141,15 @@ class LibCurl
     
 	private    		char[CURL_ERROR_SIZE + 1]	error_msg;
 	private        	int                         errorCode;
+
+    /***************************************************************************
+
+        String buffer used to convert an option parameter from a D char[] to a
+        C style null-terminated string.
+
+     **************************************************************************/
+
+    private char[] option_buffer;
 
     /***************************************************************************
         
@@ -363,9 +372,9 @@ class LibCurl
     public void encode ( ref char[] str )
     {
     	char* cvalue = curl_easy_escape(this.curl, str.ptr, str.length);
-        
-    	str = StringC.toDString(cvalue).dup;
-        
+
+        str.copy(StringC.toDString(cvalue));
+
         free(cvalue);
     }
 
@@ -472,15 +481,16 @@ class LibCurl
     /***************************************************************************
         
         Close curl session
-        
-         Returns:
-             void
-             
+
      **************************************************************************/
-    
+
     public void close ()
     {
-        curl_easy_cleanup(this.curl);
+        if ( !(this.curl is null) )
+        {
+            curl_easy_cleanup(this.curl);
+            this.curl = null;
+        }
     }
 
     /***************************************************************************
@@ -501,8 +511,6 @@ class LibCurl
 
         this.request_callback = read_dg;
 
-        auto callback = &this.receivedContent;
-        
         this.setOption(CURLoption.WRITEDATA, cast(void*)this);
         this.setOption(CURLoption.URL, this.request_url.ptr);
     }
@@ -539,10 +547,11 @@ class LibCurl
             0 on success or Curl error code on failure
         
      **************************************************************************/
-    
+
 	private CurlCode setOption ( CURLoption option, char[] str ) 
     {
-		return curl_easy_setopt(this.curl, option, StringC.toCstring(str));
+        this.option_buffer.concat(str, "\0");
+		return curl_easy_setopt(this.curl, option, this.option_buffer.ptr);
 	}
     
     /***************************************************************************
@@ -609,11 +618,11 @@ class LibCurl
         
     	private size_t writeCallback ( void* ptr, size_t size, size_t nmemb, void* obj ) 
         {
-            if (!ptr || !obj) return 0;            
-            
+            if (!ptr || !obj) return 0;
+
             auto curlobj = cast(LibCurl) obj;
-            
-            char[] content = (cast (char*) ptr)[0 .. size * nmemb].dup;
+
+            char[] content = (cast (char*) ptr)[0 .. size * nmemb];
 
             return curlobj.receivedContent(content);
     	}
