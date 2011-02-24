@@ -45,6 +45,8 @@ module ocean.text.entities.model.MarkupEntityCodec;
 
 *******************************************************************************/
 
+private import ocean.core.Array;
+
 private import ocean.text.entities.model.IEntityCodec;
 private import ocean.text.entities.model.IEntitySet;
 
@@ -81,6 +83,20 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 	
 	public alias typeof(this) This;
 	
+
+    /***************************************************************************
+
+        Buffers for each character type, used by the utf8 encoder in the method
+        dcharTo().
+
+    ***************************************************************************/
+
+    private char[] char_buffer;
+
+    private wchar[] wchar_buffer;
+
+    private dchar[] dchar_buffer;
+
 	
 	/***************************************************************************
 	
@@ -444,12 +460,12 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 			auto entity = this.sliceEncodedEntity(text[i..$]);
 			if ( entity.length )
 			{
-				decoded ~= text[last_special_char..i];
+				decoded.append(text[last_special_char..i]);
 	
 				dchar unicode = this.decodeEntity(entity);
 				if ( unicode != InvalidUnicode )
 				{
-					decoded ~= super.dcharTo!(Char)([unicode]);
+                    decoded.append(this.dcharTo!(Char)(unicode));
 				}
 	
 				i += entity.length;
@@ -463,11 +479,11 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 			}
 		}
 	
-		decoded ~= text[last_special_char..$];
+		decoded.append(text[last_special_char..$]);
 		return decoded;
 	}
 	
-	
+
 	/***************************************************************************
 	
 		Internal method for checking whether the passed string contains any
@@ -737,5 +753,60 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 	
 	    return unicode;
 	}
+
+
+    /***************************************************************************
+    
+        Converts from a unicode dchar to an array of the specified character
+        type, doing utf8 encoding if applicable.
+    
+        Params:
+            unicode = unicode character to convert
+    
+        Returns:
+            converted character string
+    
+    ***************************************************************************/
+
+    private Char[] dcharTo ( Char ) ( dchar unicode )
+    {
+        dchar[1] str;
+        str[0] = unicode;
+        return this.dcharTo!(Char)(str);
+    }
+
+
+    /***************************************************************************
+    
+        Converts from a unicode dchar[] to an array of the specified character
+        type, doing utf8 encoding if applicable.
+    
+        Params:
+            unicode = unicode string to convert
+    
+        Returns:
+            converted character string
+    
+    ***************************************************************************/
+
+    private Char[] dcharTo ( Char ) ( dchar[] unicode )
+    {
+        static if ( is(Char == char) )
+        {
+            return super.dcharTo!(Char)(unicode, this.char_buffer);
+        }
+        else static if ( is(Char == wchar) )
+        {
+            return super.dcharTo!(Char)(unicode, this.wchar_buffer);
+        }
+        else static if ( is(Char == dchar) )
+        {
+            return super.dcharTo!(Char)(unicode, this.dchar_buffer);
+        }
+        else
+        {
+            static assert(false, typeof(this).stringof ~ ".dcharTo - method template can only handle char types");
+        }
+    }
 }
 
