@@ -338,7 +338,7 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
     {
         return this.get();
     }
-    
+
     /**************************************************************************
     
         Puts item back to the pool.
@@ -382,6 +382,25 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
         return this.recycle(item);
     }
     
+    /**************************************************************************
+
+        Removes all items from the pool.
+
+        Returns:
+            this instance
+        
+    **************************************************************************/
+
+    public This clear ( )
+    {
+        foreach ( item, ref info; this.items )
+        {
+            this.recycle_(item);
+        }
+
+        return this;
+    }
+
     /**************************************************************************
     
         Enables/disables limitation of number of items in pool.
