@@ -578,17 +578,17 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 			{
 				return "";
 			}
-	
+
 			static if ( is(Char == dchar) )
 			{
 				width = 1;
-				return [text[0]];
 			}
 			else
 			{
 				dchar unicode = Utf.decode(text, width);
-				return text[0..width];
 			}
+
+            return text[0..width];
 		}
 	}
 }
