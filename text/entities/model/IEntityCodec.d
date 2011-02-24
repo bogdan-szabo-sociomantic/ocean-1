@@ -243,12 +243,11 @@ public abstract class IEntityCodec ( E : IEntitySet )
 	
 	***************************************************************************/
 
-	protected static Char[] dcharTo ( Char ) ( dchar c )
+	protected static Char[] dcharTo ( Char ) ( dchar c, ref Char[] output )
 	{
-		dchar[] str;
-		str.length = 1;
+		dchar[1] str;
 		str[0] = c;
-		return this.dcharTo!(Char)(str);
+		return this.dcharTo!(Char)(str, output);
 	}
 
 	/***************************************************************************
@@ -266,19 +265,21 @@ public abstract class IEntityCodec ( E : IEntitySet )
 	
 	***************************************************************************/
 
-	protected static Char[] dcharTo ( Char ) ( dchar[] text )
+	protected static Char[] dcharTo ( Char ) ( dchar[] text, ref Char[] output )
 	{
-		static if ( is(Char == dchar) )
+        output.length = text.length * 4; // Maximum one unicode character -> 4 bytes
+
+        static if ( is(Char == dchar) )
 		{
 			return text;
 		}
 		else static if ( is(Char == wchar) )
 		{
-			return Utf.toString16(text);
+			return Utf.toString16(text, output);
 		}
 		else static if ( is(Char == char) )
 		{
-			return Utf.toString(text);
+			return Utf.toString(text, output);
 		}
 		else
 		{
