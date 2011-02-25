@@ -178,6 +178,11 @@ class Config
         iii. Property
         key = value
 
+        iv. Multi-value property
+        key = value1
+              value2
+              value3
+
         Usage Example:
 
         ---
