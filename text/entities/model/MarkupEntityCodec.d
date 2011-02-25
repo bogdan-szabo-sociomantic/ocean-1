@@ -86,8 +86,8 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     /***************************************************************************
 
-        Buffers for each character type, used by the utf8 encoder in the method
-        dcharTo().
+        Buffers for each character type, used by the utf8 encoder in the methods
+        charTo() & dcharTo().
 
     ***************************************************************************/
 
@@ -418,7 +418,7 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
             if ( this.isUnencodedEntity(process) )
 			{
-				encoded ~= text[last_special_char..i];
+				encoded.append(text[last_special_char..i]);
 	
 				this.appendEncodedEntity(encoded, c);
 
@@ -428,7 +428,7 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
             i += width;
 		}
 
-		encoded ~= text[last_special_char..$];
+		encoded.append(text[last_special_char..$]);
 		return encoded;
 	}
 	
@@ -564,11 +564,11 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 	{
 		static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
 				This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
-		
+
 		auto name = this.entities.getName(c);
 		if ( name.length )
 		{
-			text ~= super.charTo!(Char)(this.entities.getEncodedEntity(c));
+			text.append(this.charTo!(Char)(this.entities.getEncodedEntity(c)));
 		}
 
 		return text;
@@ -750,7 +750,7 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 	        }
 	    }
 	    catch {}
-	
+
 	    return unicode;
 	}
 
@@ -806,6 +806,60 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
         else
         {
             static assert(false, typeof(this).stringof ~ ".dcharTo - method template can only handle char types");
+        }
+    }
+
+
+    /***************************************************************************
+    
+        Converts from a single char to an array of the specified character type.
+    
+        Params:
+            text = character to convert
+    
+        Returns:
+            converted character string
+    
+    ***************************************************************************/
+
+    private Char[] charTo ( Char ) ( char text )
+    {
+        dchar[1] str;
+        str[0] = text;
+        return this.charTo!(Char)(str);
+    }
+
+
+    /***************************************************************************
+    
+        Converts from a utf8 char array to an array of the specified character
+        type.
+    
+        Params:
+            text = string to convert
+    
+        Returns:
+            converted character string
+    
+    ***************************************************************************/
+
+    private Char[] charTo ( Char ) ( char[] text )
+    {
+        static if ( is(Char == char) )
+        {
+            return super.charTo!(Char)(text, this.char_buffer);
+        }
+        else static if ( is(Char == wchar) )
+        {
+            return super.charTo!(Char)(text, this.wchar_buffer);
+        }
+        else static if ( is(Char == dchar) )
+        {
+            return super.charTo!(Char)(text, this.dchar_buffer);
+        }
+        else
+        {
+            static assert(false, typeof(this).stringof ~ ".charTo - method template can only handle char types");
         }
     }
 }
