@@ -177,8 +177,7 @@ public abstract class IEntityCodec ( E : IEntitySet )
 
 	protected static Char[] charTo ( Char ) ( char c )
 	{
-		char[] str;
-		str.length = 1;
+		char[1] str;
 		str[0] = c;
 		return this.charTo!(Char)(str);
 	}
@@ -199,17 +198,19 @@ public abstract class IEntityCodec ( E : IEntitySet )
 	
 	***************************************************************************/
 
-	protected static Char[] charTo ( Char ) ( char[] text )
+	protected static Char[] charTo ( Char ) ( char[] text, ref Char[] output )
 	{
+        output.length = text.length;
+
         try
         {
     		static if ( is(Char == dchar) )
     		{
-    			return Utf.toString32(text);
+    			return Utf.toString32(text, output);
     		}
     		else static if ( is(Char == wchar) )
     		{
-    			return Utf.toString16(text);
+    			return Utf.toString16(text, output);
     		}
     		else static if ( is(Char == char) )
     		{
