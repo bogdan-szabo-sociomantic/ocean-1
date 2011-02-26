@@ -72,15 +72,15 @@ class MySQL
         if ( !Config.isRead )
             Config.init();
 
-        if ( Config.getChar("Database_" ~ dbname, "type") == "mysql" )
+        if ( Config.Char["Database_" ~ dbname, "type"] == "mysql" )
         {
             this.connection[dbname] = new MysqlDatabase();
 
             this.connection[dbname].connect(
-                Config.getChar("Database_" ~ dbname, "db"),
-                Config.getChar("Database_" ~ dbname, "user"),
-                Config.getChar("Database_" ~ dbname, "passwd"),
-                ["host": Config.getChar("Database_" ~ dbname, "host")]
+                Config.Char["Database_" ~ dbname, "db"],
+                Config.Char["Database_" ~ dbname, "user"],
+                Config.Char["Database_" ~ dbname, "passwd"],
+                ["host": Config.Char["Database_" ~ dbname, "host"]]
                 );
             Trace.formatln("new fresh mysql connection; done!");
             return this.connection[dbname];

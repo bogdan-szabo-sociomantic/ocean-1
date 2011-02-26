@@ -74,14 +74,14 @@ class SQLite
         if ( !Config.isRead )
             Config.init();
 
-        if ( Config.getChar("DATABASE_" ~ toUpper(dbname), "type") == "sqlite" )
+        if ( Config.Char["DATABASE_" ~ toUpper(dbname), "type"] == "sqlite" )
         {
             this.connection[dbname] = new SqliteDatabase();
 
             this.connection[dbname].connect(
-                Config.getChar("DATABASE_" ~ toUpper(dbname), "db"),
-                Config.getChar("DATABASE_" ~ toUpper(dbname), "user"),
-                Config.getChar("DATABASE_" ~ toUpper(dbname), "passwd")
+                Config.Char["DATABASE_" ~ toUpper(dbname), "db"],
+                Config.Char["DATABASE_" ~ toUpper(dbname), "user"],
+                Config.Char["DATABASE_" ~ toUpper(dbname), "passwd"]
                 );
 
             return this.connection[dbname];
