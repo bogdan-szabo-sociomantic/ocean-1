@@ -27,6 +27,8 @@ private     import      ocean.util.OceanException;
 
 private     import      ocean.core.Array;
 
+private     import      ocean.io.serialize.SimpleSerializer;
+
 private     import      tango.net.http.HttpConst;
 
 private     import      tango.net.device.Socket: Socket;
@@ -105,11 +107,19 @@ struct HttpResponse
 {
     /**************************************************************************
     
-        Cookie
+        Type alias
     
      **************************************************************************/    
 
-    public              HttpCookie                  cookie;
+    public alias        .HttpCookie                 Cookie;
+    
+    /**************************************************************************
+    
+        Cookies
+    
+     **************************************************************************/    
+    
+    public              Cookie[]                    cookies;
     
     /**************************************************************************
         
@@ -127,14 +137,6 @@ struct HttpResponse
 
     private              bool                       send_date = false;
     
-    /**************************************************************************
-    
-        Cookie header line 
-    
-     **************************************************************************/    
-
-   private              char[]                      cookie_header;
-   
    /***************************************************************************
        
        Output buffer
@@ -299,15 +301,19 @@ struct HttpResponse
             this.setDefaultHeader();
             this.setHeaderValue(HttpHeader.ContentLength.value, data.length);
 
-            if ( this.send_date )
+            if (this.send_date)
             {
                 this.setHeaderValue(HttpHeader.Date.value, this.getGmtDate());
             }
             
-            if ( this.cookie.isSet() )
+            foreach (cookie; this.cookies)
             {
-                this.cookie.write(this.cookie_header);
-                this.setHeaderValue(HttpHeader.SetCookie.value, this.cookie_header);
+                char[] cookie_header_line;                                      // HttpCookie.write() 
+                                                                                // cookie_header_line to a 
+                if (cookie.write(cookie_header_line))                           // reference to its internal buffer
+                {                                                               
+                    this.header[HttpHeader.SetCookie.value] = cookie_header_line;
+                }
             }
             
             this.setHeader(status, msg);
@@ -335,10 +341,12 @@ struct HttpResponse
     
     public void reset ()
     {
-        this.cookie.reset();
-        this.header.reset();
+        foreach (cookie; this.cookies)
+        {
+            cookie.reset();
+        }
         
-        this.cookie_header.length = 0;
+        this.header.reset();
         this.buf.length           = 0;
     }
     
@@ -364,7 +372,11 @@ struct HttpResponse
          Params:
              name  = header parameter name
              value = value of header parameter
-             
+         
+         FIXME: Integer.toString() returns a .dup. However, considering that
+         HeaderValues .dups everything, fixing this won't currently make things
+         much better.
+         
      **************************************************************************/
     
     public void setHeaderValue ( in char[] name, int value )
@@ -395,36 +407,14 @@ struct HttpResponse
      
          Write response to socket
      
-         Params:
-             socket = output socket conduit
-             
-         Returns:
-             void
+         Throws:
+             IOException on end of flow condition
          
      **************************************************************************/
 
-    private void write ()
+    private void write ( )
     {
-        // TODO: this.socket.write usually returns the number of written 
-        //       bytes. are we missing something????? do we have to 
-        //       bug fix this?
-        //
-        // David, 2010-11-17:
-        //
-        // FIXME: Yes, we should fix this for three reasons:
-        //        1. write() returns the number written bytes because it does
-        //           not guarantee that all data are written. It is the
-        //           invoker's responsibility to wrap write() in a loop.
-        //        2. On EOF condition, write() returns Conduit.Eof; write() does
-        //           not throw an exception in that case. It is the invoker's
-        //           responsibility to check and handle this.
-        //        3. Socket.flush is a fake (no-op).
-        //        
-        //        SimpleSerializer.writeData() exactly implements 1. and 2. so
-        //        the fix will be using SimpleSerializer.writeData().
-        
-        this.socket.write(this.buf);
-        this.socket.flush();
+        SimpleSerializer.writeData(this.socket, this.buf);
     }
      
     /**************************************************************************
@@ -456,6 +446,11 @@ struct HttpResponse
          Returns:
              void
          
+         
+         FIXME: Integer.toString returns a .dup. However, considering that
+         HeaderValues .dups everything, fixing this won't currently make things
+         much better.
+         
      **************************************************************************/
     
     private void setHeader ( HttpStatus status, char[] msg = `` )
@@ -476,7 +471,6 @@ struct HttpResponse
 
         this.buf.append(HttpConst.Eol);
     }
-    
     /**************************************************************************
     
         Returns GMT formatted date/time stamp
