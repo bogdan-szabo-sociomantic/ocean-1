@@ -55,11 +55,9 @@ module ocean.net.http.HttpCookie;
 
 private import ocean.net.http.HttpConstants: HttpCookieAttr;
 
-private import Integer = tango.text.convert.Integer: toString, toInt;
-
 private import ocean.text.util.StringSearch;
 
-private import tango.util.log.Trace;
+private import ocean.core.Array: copy;
 
 /******************************************************************************
 
@@ -105,15 +103,15 @@ struct HttpCookie
     
     /**************************************************************************
 
-        Temporary string buffer
+        HTTP cookie header line buffer, shared between read() and write()
     
      **************************************************************************/
 
-    private char[] tmp;
+    private char[] line;
     
     /**************************************************************************
 
-        Temporary split buffer
+        Reused array of slices to line, used by read()
     
      **************************************************************************/
     
@@ -121,38 +119,43 @@ struct HttpCookie
 
     /**************************************************************************
 
-        Writes the cookie header line and formats the attributes into it.
+        Generates the cookie header line.
         
         Params:
-            line: cookie header line output
+            line_out: cookie header line output: exposes an internal buffer
+                      which is overwritten by read() and reset(), do not modify
         
         Returns:
             true if any attribute was set or false otherwise. In case of false
-            line remains empty.
+            line_out is an empty string.
     
      **************************************************************************/
 
-    bool write ( ref char[] line )
+    public bool write ( out char[] line_out )
     {
-        line.length = 0;
+        this.line.length = 0;
         
         bool is_set = this.isSet();
+        
+        const separator = [HttpCookieAttr.Delim.Attributes, ' '];
         
         if (is_set)
         {
             foreach (name, value; this.attributes)
             {
-                line ~= this.formatAttr(name, value);
+                this.appendAttribute(name, value);
             }
             
-            line ~= this.formatStdAttr(HttpCookieAttr.Name.Comment, this.comment);
-            line ~= this.formatStdAttr(HttpCookieAttr.Name.Expires, this.expires);
-            line ~= this.formatStdAttr(HttpCookieAttr.Name.Path,    this.path);
-            line ~= this.formatStdAttr(HttpCookieAttr.Name.Domain,  this.domain);
-            line ~= this.formatAttr(HttpCookieAttr.Name.Secure, ``, !this.secure);
+            this.appendStdAttribute(HttpCookieAttr.Name.Comment, this.comment);
+            this.line ~= separator;
+            this.appendStdAttribute(HttpCookieAttr.Name.Expires, this.expires);
+            this.line ~= separator;
+            this.appendStdAttribute(HttpCookieAttr.Name.Path,    this.path);
+            this.line ~= separator;
+            this.appendStdAttribute(HttpCookieAttr.Name.Domain,  this.domain);
+            this.line ~= separator;
+            this.appendAttribute(HttpCookieAttr.Name.Secure, ``, !this.secure);
             //line ~= this.formatAttr(HttpCookieAttr.Name.Version, [this.Version]);
-            
-            line.length = line.length - 1; // removing the last ;
         }
         
         return is_set;
@@ -172,34 +175,33 @@ struct HttpCookie
     
      **************************************************************************/
 
-    bool read ( char[] line )
+    public bool read ( char[] line_in )
     {
         bool is_set = false;
         
         this.reset();
         
-        if (line.length)
+        if (line_in.length)
         {
-            StringSearch!().split(this.slices, line, HttpCookieAttr.Delim.Attributes);
+            this.line.copy(line_in);
             
-            foreach (item; this.slices)
+            foreach (item; StringSearch!().split(this.slices, this.line, HttpCookieAttr.Delim.Attributes))
             {
-                this.tmp = StringSearch!().trim(item).dup;
+                char[] chunk = StringSearch!().trim(item);
                 
-                StringSearch!().strToLower(this.tmp);
+                StringSearch!().strToLower(chunk);
                 
-                if (this.tmp.length)
+                if (chunk.length)
                 {
-                    size_t v = StringSearch!().locateChar(this.tmp, HttpCookieAttr.Delim.AttrValue);
+                    size_t v = StringSearch!().locateChar(chunk, HttpCookieAttr.Delim.AttrValue);
                     
-                    bool has_value = v < this.tmp.length;
-                    
-                    this.attributes[this.tmp[0 .. v].dup] = has_value? this.tmp[v + 1 .. $].dup : "";
+                    this.attributes[chunk[0 .. v]] = (v < chunk.length)? chunk[v + 1 .. $] : "";
                     
                     is_set = true;
                 }
             }
         }
+        
         return is_set;
     }
     
@@ -209,7 +211,7 @@ struct HttpCookie
      
      **************************************************************************/
     
-    bool isSet ()
+    public bool isSet ()
     {
         return !!this.attributes.length;
     }
@@ -220,22 +222,49 @@ struct HttpCookie
      
      **************************************************************************/
 
-    void reset ()
+    public typeof (this) reset ()
     {
-        this.attributes = this.attributes.init;
+        foreach (key; this.attributes.keys)
+        {
+            this.attributes.remove(key);
+        }
         
-        this.comment.length    =
-        this.domain.length     =
-        this.path.length       = 
+        this.line.length = 0;
+        
+        this.comment.length    = 0;
+        this.domain.length     = 0;
+        this.path.length       = 0;
         this.expires.length    = 0;
-            
+        this.slices.length     = 0;
+        
         this.secure = false;
+        
+        return this;
     }
     
     /**************************************************************************
     
-        Returns "name=value; " (if value is not empty) or "name;" (if value is
-        empty) if skip is false. Returns an empty string if skip is true.
+        Appends "name=value" (if value is not empty) to this.line. Does nothing
+        if value is empty.
+        
+        Params:
+            name  = attribute name
+            value = attribute value
+         
+         Returns:
+             appended string which is empty if value is empty (but never null)
+         
+     **************************************************************************/
+    
+    private char[] appendStdAttribute ( char[] name, char[] value )
+    {
+        return this.appendAttribute(name, value, !value.length);
+    }
+    
+    /**************************************************************************
+    
+        If skip is false, appends "name=value" (if value is not empty) or "name"
+        (if value is empty) to this.line. Does nothing if skip is true.
         
         Params:
             name  = attribute name
@@ -243,34 +272,26 @@ struct HttpCookie
             skip  = set to true to return an empty string.
          
          Returns:
-             formatted name/value pair or an empty string 
+             appended string which is empty if skip is true (but never null)
          
      **************************************************************************/
-
-    private char[] formatAttr ( char[] name, char[] value, bool skip = false )
+    
+    private char[] appendAttribute ( char[] name, char[] value, bool skip = false )
     {
-        return skip? "": name ~ (!value.length? value:
-                                                HttpCookieAttr.Delim.AttrValue  ~ value) ~
-                                HttpCookieAttr.Delim.Attributes ~ ' ';
-    }
-    
-    /**************************************************************************
-    
-        Returns "name=value; " (if value is not empty) or "name;" (if value is
-        empty).
+        size_t pos = this.line.length;
         
-        Params:
-            name  = attribute name
-            value = attribute value
-         
-         Returns:
-             formatted name/value pair 
-         
-     **************************************************************************/
-
-    private char[] formatStdAttr ( char[] name, char[] value )
-    {
-        return this.formatAttr(name, value, !value.length);
+        if (!skip)
+        {
+            this.line ~= name;
+            
+            if (value.length != 0)
+            {
+                this.line ~= HttpCookieAttr.Delim.AttrValue;
+            }
+            
+            this.line ~= value;
+        }
+        
+        return this.line[pos .. $];
     }
-
 }
