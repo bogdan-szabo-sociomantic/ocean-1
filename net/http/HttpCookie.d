@@ -55,9 +55,13 @@ module ocean.net.http.HttpCookie;
 
 private import ocean.net.http.HttpConstants: HttpCookieAttr;
 
+private import ocean.net.http.HttpTime;
+
 private import ocean.text.util.StringSearch;
 
 private import ocean.core.Array: copy;
+
+private import tango.stdc.string: memchr;
 
 /******************************************************************************
 
@@ -73,7 +77,7 @@ struct HttpCookie
     
      **************************************************************************/
 
-    const  Version = '1';
+    public const  Version = '1';
     
     /**************************************************************************
 
@@ -83,12 +87,11 @@ struct HttpCookie
     
      **************************************************************************/
 
-    char[] comment = ``,
-           expires = ``,
-           domain  = ``,
-           path    = ``;
+    public char[] comment = ``,
+                  domain  = ``,
+                  path    = ``;
     
-    bool   secure  = false;
+    public bool   secure  = false;
     
     /**************************************************************************
 
@@ -100,6 +103,22 @@ struct HttpCookie
      **************************************************************************/
 
     char[][char[]] attributes;
+    
+    /**************************************************************************
+
+        Cookie expiration time (UNIX time)
+    
+     **************************************************************************/
+
+    private time_t expires_;
+    
+    /**************************************************************************
+
+        Cookie expiration set flag
+    
+     **************************************************************************/
+
+    private bool   expires_enabled_ = false;
     
     /**************************************************************************
 
@@ -116,7 +135,67 @@ struct HttpCookie
      **************************************************************************/
     
     private char[][] slices;
+    
+    /**************************************************************************
 
+        Sets end enables the cookie expiration time
+        
+        Params:
+            expires_ = cookie expiration time (UNIX time)
+            
+        Returns:
+            cookie expiration time (UNIX time)
+    
+     **************************************************************************/
+
+    public time_t expires ( time_t expires_ )
+    {
+        this.expires_     = expires_;
+        this.expires_enabled_ = true;
+        
+        return expires_;
+    }
+    
+    /**************************************************************************
+
+        Returns:
+            cookie expiration time (UNIX time); valid only if expires_enabled()
+            returns true
+    
+     **************************************************************************/
+
+    public time_t expires ( )
+    {
+        return this.expires_;
+    }
+    
+    /**************************************************************************
+
+        Returns:
+            true if cookie expiration is enabled or false otherwise
+    
+     **************************************************************************/
+
+    public bool expires_enabled ( )
+    {
+        return this.expires_enabled_;
+    }
+    
+    /**************************************************************************
+
+        Clears the cookie expiration
+        
+        Returns:
+            true if cookie expiration was enabled or false otherwise
+    
+     **************************************************************************/
+
+    public bool disableExpires ( )
+    {
+        scope (exit) this.expires_enabled_ = false;
+        return this.expires_enabled_;
+    }
+    
     /**************************************************************************
 
         Generates the cookie header line.
@@ -131,36 +210,37 @@ struct HttpCookie
     
      **************************************************************************/
 
-    public bool write ( out char[] line_out )
+    public char[] write ( )
     {
         this.line.length = 0;
         
-        bool is_set = this.isSet();
-        
-        const separator = [HttpCookieAttr.Delim.Attributes, ' '];
-        
-        if (is_set)
+        if (this.isSet())
         {
+            bool subsequent = false;
+            
             foreach (name, value; this.attributes)
             {
-                this.appendAttribute(name, value);
+                this.appendAttribute(subsequent, name, value);
             }
             
-            this.appendStdAttribute(HttpCookieAttr.Name.Comment, this.comment);
-            this.line ~= separator;
-            this.appendStdAttribute(HttpCookieAttr.Name.Expires, this.expires);
-            this.line ~= separator;
-            this.appendStdAttribute(HttpCookieAttr.Name.Path,    this.path);
-            this.line ~= separator;
-            this.appendStdAttribute(HttpCookieAttr.Name.Domain,  this.domain);
-            this.line ~= separator;
-            this.appendAttribute(HttpCookieAttr.Name.Secure, ``, !this.secure);
+            this.appendStdAttribute(subsequent, HttpCookieAttr.Name.Comment, this.comment);
+            
+            if (this.expires_enabled_)
+            {
+                this.appendExpires(subsequent);
+            }
+            
+            this.appendStdAttribute(subsequent, HttpCookieAttr.Name.Path,    this.path);
+            this.appendStdAttribute(subsequent, HttpCookieAttr.Name.Domain,  this.domain);
+            
+            if (this.secure)
+            {
+                this.appendAttribute(subsequent, HttpCookieAttr.Name.Secure);
+            }
             //line ~= this.formatAttr(HttpCookieAttr.Name.Version, [this.Version]);
         }
         
-        line_out = this.line;
-        
-        return is_set;
+        return this.line;
     }
     
     
@@ -191,15 +271,22 @@ struct HttpCookie
             {
                 char[] chunk = StringSearch!().trim(item);
                 
-                StringSearch!().strToLower(chunk);
-                
                 if (chunk.length)
                 {
-                    size_t v = StringSearch!().locateChar(chunk, HttpCookieAttr.Delim.AttrValue);
+                    StringSearch!().strToLower(chunk);
                     
-                    this.attributes[chunk[0 .. v]] = (v < chunk.length)? chunk[v + 1 .. $] : "";
+                    char* delim = cast (char*) memchr(chunk.ptr, HttpCookieAttr.Delim.AttrValue, chunk.length);
                     
-                    is_set = true;
+                    if (delim)
+                    {
+                        size_t n = delim - chunk.ptr;
+                        
+                        this.attributes[chunk[0 .. n]] = chunk[n + 1 .. $];
+                    }
+                    else
+                    {
+                        this.attributes[chunk] = "";
+                    }
                 }
             }
         }
@@ -236,64 +323,301 @@ struct HttpCookie
         this.comment.length    = 0;
         this.domain.length     = 0;
         this.path.length       = 0;
-        this.expires.length    = 0;
         this.slices.length     = 0;
         
-        this.secure = false;
+        this.secure            = false;
+        this.expires_enabled_  = false;
         
         return this;
     }
     
     /**************************************************************************
     
-        Appends "name=value" (if value is not empty) to this.line. Does nothing
-        if value is empty.
+        Appends "name=value" (if value is not empty) or "name" (if value is
+        empty) to this.line, prepending a delimiter if subsequent is true. Does
+        nothing if value is empty.
         
         Params:
-            name  = attribute name
-            value = attribute value
+            subsequent = true input indicates that a delimiter must be
+                         prepended; will be changed to true if false and value
+                         non-empty. 
+            name       = attribute name
+            value      = attribute value (optional)
          
          Returns:
-             appended string which is empty if value is empty (but never null)
+             appended string which is empty if value is an empty string (but
+             never null)
          
      **************************************************************************/
-    
-    private char[] appendStdAttribute ( char[] name, char[] value )
+
+    private char[] appendStdAttribute ( ref bool subsequent, char[] name, char[] value )
     {
-        return this.appendAttribute(name, value, !value.length);
+        return value.length? this.appendAttribute(subsequent, name, value): "";
     }
     
     /**************************************************************************
     
-        If skip is false, appends "name=value" (if value is not empty) or "name"
-        (if value is empty) to this.line. Does nothing if skip is true.
+        Appends "name=value" (if value is not empty) or "name" (if value is
+        empty) to this.line, prepending a delimiter if subsequent is true.
         
         Params:
-            name  = attribute name
-            value = attribute value
-            skip  = set to true to return an empty string.
+            subsequent = true input indicates that a delimiter must be
+                         prepended; will be changed to true if false. 
+            name       = attribute name
+            value      = attribute value (optional)
          
          Returns:
-             appended string which is empty if skip is true (but never null)
+             appended string
          
      **************************************************************************/
     
-    private char[] appendAttribute ( char[] name, char[] value, bool skip = false )
+    private char[] appendAttribute ( ref bool subsequent, char[] name, char[] value = "" )
     {
         size_t pos = this.line.length;
         
-        if (!skip)
+        if (subsequent)
         {
-            this.line ~= name;
+             const separator = [HttpCookieAttr.Delim.Attributes, ' '];
             
-            if (value.length != 0)
-            {
-                this.line ~= HttpCookieAttr.Delim.AttrValue;
-            }
-            
-            this.line ~= value;
+             this.line ~= separator;
+        }
+        else
+        {
+            subsequent = true;
         }
         
+        this.line ~= name;
+        
+        if (value.length != 0)
+        {
+            this.line ~= HttpCookieAttr.Delim.AttrValue;
+        }
+        
+        this.line ~= value;
+        
         return this.line[pos .. $];
+    }
+    
+    
+    /**************************************************************************
+    
+        If expiration is enabled, appends the expiration standard cookie
+        argument to this line, using the current expiration time, prepending a
+        delimiter if subsequent is true. Does nothing if expiration is disabled.
+        
+        Params:
+            subsequent = true input indicates that a delimiter must be
+                         prepended; will be changed to true if false and
+                         expiration enabled. 
+         
+         Returns:
+             appended string which is empty if expiration was disabled (but
+             never null)
+         
+     **************************************************************************/
+
+    private char[] appendExpires ( ref bool subsequent )
+    {
+        size_t pos = this.line.length;
+        
+        if (subsequent)
+        {
+             const Prefix = HttpCookieAttr.Delim.Attributes ~ (' ' ~
+                            HttpCookieAttr.Name.Expires) ~
+                            HttpCookieAttr.Delim.AttrValue;
+            
+             this.line ~= Prefix;
+        }
+        else
+        {
+            const Prefix = HttpCookieAttr.Name.Expires ~ HttpCookieAttr.Delim.AttrValue;
+            this.line ~= Prefix;
+            
+            subsequent = true;
+        }
+
+        return HttpTime.append(this.line, this.expires_)[pos .. $];
+    }
+}
+
+/******************************************************************************
+
+    Unittest
+
+ ******************************************************************************/
+
+unittest
+{
+    HttpCookie cookie;
+    
+    cookie.read("sonar=1127529181; sonar-expires=1362077071; spam");
+    
+    char[]* value = "sonar" in cookie.attributes;
+    assert (value !is null);
+    assert (*value  == "1127529181");
+    
+    value = "sonar-expires" in cookie.attributes;
+    assert (value !is null);
+    assert (*value  == "1362077071");
+    
+    value = "spam" in cookie.attributes;
+    assert (value !is null);
+    assert ((*value).length == 0);
+    
+    cookie.reset();
+    
+    assert (!("sonar" in cookie.attributes));
+    assert (!("sonar-expires" in cookie.attributes));
+    assert (!("spam" in cookie.attributes));
+    
+    cookie.attributes["eggs"]    = "abc";
+    cookie.attributes["spam"]    = "xyz";
+    cookie.attributes["sausage"] = "";
+    
+    cookie.expires = 352716455;
+    cookie.domain  = "example.net";
+    
+    assert (cookie.expires_enabled);
+    
+    char[] cookie_line = cookie.write().dup;
+    
+    assert (cookie_line.length);
+    
+    cookie.disableExpires();
+    
+    assert (!cookie.expires_enabled);
+    
+    cookie.reset();
+    
+    assert (cookie.write().length == 0);
+    
+    cookie.read(cookie_line);
+    
+    value = "sausage" in cookie.attributes;
+    assert (value !is null);
+    assert ((*value).length == 0);
+    
+    value = "eggs" in cookie.attributes;
+    assert (value !is null);
+    assert (*value == "abc");
+    
+    value = "spam" in cookie.attributes;
+    assert (value !is null);
+    assert (*value == "xyz");
+    
+    
+}
+
+/******************************************************************************
+
+    Performance test and example cookie header line output
+
+ ******************************************************************************/
+
+debug (OceanUnitTest)
+{
+    import tango.io.Stdout;
+    
+    import tango.core.internal.gcInterface: gc_disable, gc_enable;
+    
+    unittest
+    {
+        HttpCookie cookie;
+        
+        /**********************************************************************
+
+            Example cookie header line output. The cookies header line write()
+            generates cannot be checked by comparing against an expected string
+            constant because the order of attributes is not specified. So it is
+            much easier for a human to read the line printed to the console and
+            check for correctness. 
+    
+         **********************************************************************/
+        
+        HttpTime   httptime;
+        
+        cookie.domain  = "example.net";
+        cookie.path    = "/";
+        cookie.comment = "Want a cookie?";
+        cookie.expires = 352716455;
+        cookie.secure  = true;
+        
+        cookie.attributes["eggs"]    = "abc";
+        cookie.attributes["spam"]    = "xyz";
+        cookie.attributes["sausage"] = "";
+        
+        Stderr.formatln("\nHttpCookie attributes:\n"
+                        "\tdomain  = {}\n"
+                        "\tpath    = {}\n"
+                        "\tcomment = {}\n"
+                        "\texpires = {} ({})\n"
+                        "\tsecure  = {}\n"
+                        "\tfurther attributes: {}\n"
+                        "\ncookie header line:\n\t{}\n",
+                        cookie.domain, cookie.path, cookie.comment,
+                        cookie.expires, httptime(cookie.expires), cookie.secure,
+                        cookie.attributes, cookie.write());
+                
+        /**********************************************************************
+
+            Read performance test. Note that this does not work with the GC
+            disabled because the associative array of attributes is cleared and
+            newly populated on each read(). However, this test at least ensures
+            that the memory consumption does not increase under full load. 
+            
+         **********************************************************************/
+        
+        const N = 50_000;
+        
+        Stderr.formatln("HttpCookie performance test: {} read cycles", N * 100).flush();
+        
+        for (uint i = 0; i < 100; i++)
+        {
+            for (uint j = 0; j < N; j++)
+            {
+                cookie.read("sonar=1127529181; sonar-expires=1362077071; spam");
+            }
+            
+            Stderr.format("{,8}", (i + 1) * N);
+            Stderr("\b\b\b\b\b\b\b\b").flush();
+        }
+        
+        /**********************************************************************
+
+            Write performance test with disabled GC
+            
+         **********************************************************************/
+        
+        Stderr.formatln("HttpCookie performance test: {} write cycles", N * 100).flush();
+        
+        cookie.reset();
+        
+        cookie.domain  = "example.net";
+        cookie.path    = "/";
+        cookie.comment = "Want a cookie?";
+        cookie.expires = 352716455;
+        cookie.secure  = true;
+        
+        cookie.attributes["eggs"]    = "abc";
+        cookie.attributes["spam"]    = "xyz";
+        cookie.attributes["sausage"] = "";
+        
+        {
+            gc_disable();
+            scope (exit) gc_enable();
+            
+            for (uint i = 0; i < 100; i++)
+            {
+                for (uint j = 0; j < N; j++)
+                {
+                    char[] header_line = cookie.write();
+                }
+                
+                Stderr.format("{,8}", (i + 1) * N);
+                Stderr("\b\b\b\b\b\b\b\b").flush();
+            }
+        }
+        
+        Stderr("HttpCookie performance test finished\n").flush();
     }
 }
