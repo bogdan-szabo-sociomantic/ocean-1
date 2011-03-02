@@ -158,6 +158,8 @@ struct HttpCookie
             //line ~= this.formatAttr(HttpCookieAttr.Name.Version, [this.Version]);
         }
         
+        line_out = this.line;
+        
         return is_set;
     }
     
