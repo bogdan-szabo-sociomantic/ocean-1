@@ -32,6 +32,8 @@ private     import      tango.stdc.string:     strlen;
 
 struct HttpTime
 {
+    public const size_t MaxResultLength = 26;
+    
     /**************************************************************************
     
         Date/time string destination buffer. asctime_r result length is
@@ -41,14 +43,16 @@ struct HttpTime
     
      **************************************************************************/
     
-    private char[26] buf;
+    private char[this.MaxResultLength] buf;
     
     /**************************************************************************
         
-        Returns HTTP compliant date/time string (asctime) from UNIX time value.
+        Generates a HTTP compliant date/time string (asctime) from t or the
+        current wall clock time.
         
         Params:
             t = UNIX time value to be formatted as HTTP date/time string
+                (optional, omit to use the current wall clock time)
         
         Returns:
             HTTP date/time string from UNIX time value t. Do not modify (exposes
@@ -59,59 +63,138 @@ struct HttpTime
         
      **************************************************************************/
     
-    public char[] toString ( time_t t )
+    public char[] opCall ( time_t t )
     { 
-        tm datetime;
-        
-        char* result = asctime_r(this.gmtime_safe(t, datetime), this.buf.ptr);
-        
-        if (!result) throw new Exception("time formatting failed");
-        
-        return result[0 .. strlen(result) - 1];                                 // strip tailing '\n'
+        return this.format(this.buf, t);
+    }
+    
+    public char[] opCall ( )
+    {
+        return this.format(this.buf);
     }
     
     /**************************************************************************
     
-        Returns HTTP compliant date/time string (asctime) of current wall clock
-        time.
+        Generates a HTTP compliant date/time string (asctime) from t or the
+        current wall clock time.
+        
+        Params:
+            dst = destination string
+            t   = UNIX time value to be formatted as HTTP date/time string
+                  (optional, omit to use the current wall clock time)
         
         Returns:
-            current wall clock time formatted as HTTP date/time string
+            dst
+        
+        Throws:
+            Exception if formatting failed (supposed never to happen)
+        
+     **************************************************************************/
+
+    public static char[] opCall ( ref char[] dst, time_t t )
+    { 
+        if (dst.length < this.MaxResultLength)
+        {
+            dst.length = this.MaxResultLength;
+        }
+        
+        dst.length = format(dst, t).length;
+        
+        return dst;
+    }
+    
+    public static char[] opCall ( char[] dst )
+    {
+        return opCall(dst, time(null));
+    }
+    
+    /**************************************************************************
+    
+        Generates a HTTP compliant date/time string (asctime) from t or the
+        current wall clock time and appends it to dst.
+        
+        Params:
+            dst = destination string
+            t   = UNIX time value to be formatted as HTTP date/time string
+                  (optional, omit to use the current wall clock time)
+        
+        Returns:
+            dst
         
         Throws:
             Exception if formatting failed (supposed never to happen)
         
      **************************************************************************/
     
-    public char[] toString ( )
+    public static char[] append ( ref char[] dst, time_t t )
     {
-        return toString(time(null));
+        size_t len = dst.length;
+        
+        dst.length = len + this.MaxResultLength;
+        
+        dst.length = format(dst[len .. $], t).length + len;
+        
+        return dst;
+    }
+
+    public static char[] append ( ref char[] dst )
+    {
+        return append(dst, time(null));
     }
     
     /**************************************************************************
+    
+        Generates a HTTP compliant date/time string (asctime) from t or the
+        current wall clock time.
         
-        Safe version of gmtime_r, checks if returned pointer is null (which
-        is supposed never to happen when invoked from toString()).
+        Notes: dst.length must be at least 26. A slice to the valid data in dst,
+        starting from dst[0], is returned. dst.length is not changed so dst will
+        contain tailing garbage.
         
         Params:
-            t        = UNIX time value to convert to tm struct
-            datetime = broken-down date/time output
+            dst = destination string
+            t   = UNIX time value to be formatted as HTTP date/time string
+                  (optional, omit to use the current wall clock time)
         
         Returns:
-            pointer to datetime
+            slice to valid result data in dst, starting at dst[0]
     
          Throws:
-            Exception if conversion failed
+            Exception if formatting failed (supposed never to happen)
         
     **************************************************************************/
-    
-    public static tm* gmtime_safe ( time_t t, out tm datetime )
+
+    public static char[] format ( char[] dst, time_t t )
+    in
     {
+        assert (dst.length >= this.MaxResultLength);
+    }
+    out (result)
+    {
+        assert (dst.ptr is result.ptr);
+    }
+    body
+    {
+        tm datetime;
+        
         if (!gmtime_r(&t, &datetime))
         {
             throw new Exception("time conversion failed");
         }
         
-        return &datetime;
+        char* result = asctime_r(&datetime, dst.ptr);
+        
+        if (!result) throw new Exception("time formatting failed");
+        
+        size_t len = strlen(result);
+        
+        assert (len);
+        
+        return dst[0 .. len - 1];                                               // strip tailing '\n'
+    }
+    
+    public static char[] format ( char[] dst )
+    {
+        return format(dst, time(null));
     }
 }
