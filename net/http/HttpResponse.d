@@ -303,7 +303,7 @@ struct HttpResponse
 
             if (this.send_date)
             {
-                this.setHeaderValue(HttpHeader.Date.value, this.getGmtDate());
+                this.header[HttpHeader.Date.value] = this.getGmtDate();
             }
             
             foreach (cookie; this.cookies)
@@ -489,6 +489,6 @@ struct HttpResponse
     
     public char[] getGmtDate ()
     {
-        return this.httptime.toString();
+        return this.httptime();
     }
 }
