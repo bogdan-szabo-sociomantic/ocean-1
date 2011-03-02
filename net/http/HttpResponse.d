@@ -308,9 +308,9 @@ struct HttpResponse
             
             foreach (cookie; this.cookies)
             {
-                char[] cookie_header_line;                                      // HttpCookie.write() 
+                char[] cookie_header_line = cookie.write();                     // HttpCookie.write() 
                                                                                 // cookie_header_line to a 
-                if (cookie.write(cookie_header_line))                           // reference to its internal buffer
+                if (cookie_header_line.length)                                  // reference to its internal buffer
                 {                                                               
                     this.header[HttpHeader.SetCookie.value] = cookie_header_line;
                 }
