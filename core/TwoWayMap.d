@@ -14,10 +14,9 @@
     It is designed to have the same interface as a standard associative array.
 
     TODO: opApply
-    TODO: opAssign from A[B] or B[A] associative array
-    TODO: invariant that a_to_b.length == b_to_a.length
 	TODO: use ArrayMap instead of associative array, if remove() or clear()
- 		  methods are required
+ 		  methods are required. (Another advantage would be that the copy array
+          flag could be used.)
 
 *******************************************************************************/
 
@@ -46,6 +45,47 @@ struct TwoWayMap ( A, B )
 
     private B[A] a_to_b;
     private A[B] b_to_a;
+
+
+    /***************************************************************************
+
+        Invariant checking that the length of both mappings should always be
+        identical.
+
+    ***************************************************************************/
+
+    invariant
+    {
+        assert(this.a_to_b.length == this.b_to_a.length);
+    }
+
+
+    /***************************************************************************
+
+        Assigns a set of mappings from an associative array.
+
+        Params:
+            assoc_array = associative array to assign
+
+    ***************************************************************************/
+
+    public void opAssign ( B[A] assoc_array )
+    {
+        this.a_to_b = assoc_array;
+        foreach ( a, b; this.a_to_b )
+        {
+            this.b_to_a[b] = a;
+        }
+    }
+    
+    public void opAssign ( A[B] assoc_array )
+    {
+        this.b_to_a = assoc_array;
+        foreach ( b, a; this.b_to_a )
+        {
+            this.a_to_b[a] = b;
+        }
+    }
 
 
     /***************************************************************************
