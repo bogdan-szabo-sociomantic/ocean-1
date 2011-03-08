@@ -24,12 +24,18 @@
             return content.length;
         }
 
-        scope curl = new LibCurlMulti();
-        const char[] user_agent = "User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.3; de; rv:1.9.1.10) Gecko/2009102316 Firefox/3.1.10";
-        curl.setUserAgent(user_agent);
+        void initConnection ( LibCurl connection )
+        {
+            const user_agent = "User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.3; de; rv:1.9.1.10) Gecko/2009102316 Firefox/3.1.10";
 
-        curl.read("http://www.sociomantic.com/", &receiveContent);
-        curl.read("http://curl.haxx.se/libcurl/c/libcurl-multi.html", &receiveContent);
+            connection.setUserAgent(user_agent);
+            connection.setGzipEncoding();
+        }
+
+        scope curl = new LibCurlMulti();
+
+        curl.read("http://www.sociomantic.com/", &initConnection, &receiveContent);
+        curl.read("http://curl.haxx.se/libcurl/c/libcurl-multi.html", &initConnection, &receiveContent);
 
         curl.eventLoop(); // execution blocks until all requests processed
 
@@ -47,13 +53,15 @@ module net.util.LibCurlMulti;
 
 *******************************************************************************/
 
-private import ocean.net.util.LibCurl;
-
-private import ocean.net.util.c.multi;
-
 private import ocean.core.Array;
 
 private import ocean.core.ObjectPool;
+
+public import ocean.core.Exception: assertEx, CurlException;
+
+private import ocean.net.util.LibCurl;
+
+private import ocean.net.util.c.multi;
 
 private import tango.stdc.posix.sys.select;
 
@@ -161,15 +169,6 @@ class LibCurlMulti
 
     /***************************************************************************
 
-        User agent for curl requests
-    
-    ***************************************************************************/
-
-    private char[] user_agent;
-
-    
-    /***************************************************************************
-
         Timeout (in milliseconds) for asynchronous transfer (select).
     
     ***************************************************************************/
@@ -183,7 +182,6 @@ class LibCurlMulti
     
     ***************************************************************************/
 
-    // TODO: lower values seem better - 200 seems slow - test this
     public const DEFAULT_MAX_CONNECTIONS = 20;
 
 
@@ -223,30 +221,40 @@ class LibCurlMulti
 
         Constructor - init curl multi and set options
 
+        Throws:
+            if initialisation of libcurl multi fails
+
     ***************************************************************************/
 
     public this ( uint max_connections = DEFAULT_MAX_CONNECTIONS )
     {
         this.curlm = curl_multi_init();
-        assert(this.curlm, typeof(this).stringof ~ ".this - Error on curl_multi_init!");
+
+        assertEx!(CurlException)(this.curlm, typeof(this).stringof ~ ".this - Error on curl_multi_init!");
 
         this.setOption(CURLMoption.PIPELINING, 1);
         this.setOption(CURLMoption.MAXCONNECTS, max_connections);
 
-        this.conn_pool = new ConnectionPool();
+        this.conn_pool = new ConnectionPool;
         this.conn_pool.limit(max_connections);
     }
 
 
     /***************************************************************************
-    
-        Desctructor - close curl session
-            
+
+        Desctructor - close curl session. (Note that the pool of curl easy
+        connections will be automatically cleaned up when the object pool is
+        destroyed.)
+
     ***************************************************************************/
 
     public ~this ( )
     {
-        this.close();
+        if ( !(this.curlm is null) )
+        {
+            curl_multi_cleanup(this.curlm);
+            this.curlm = null;
+        }
     }
 
 
@@ -257,14 +265,17 @@ class LibCurlMulti
 
         Params:
             url = url to download content from
+            init_dg = delegate which is passed the curl easy connection for
+                initialisation (setting up authorisation or encoding options,
+                for example)
             read_dg = delegate to call upon receiving content
 
         Returns:
             true if the request could be added
-            
+
     ***************************************************************************/
 
-    public bool read ( char[] url, LibCurl.ReadDg read_dg )
+    public bool read ( char[] url, void delegate ( LibCurl ) init_dg, LibCurl.ReadDg read_dg )
     {
         if ( this.conn_pool.getNumAvailableItems() == 0 )
         {
@@ -272,39 +283,7 @@ class LibCurlMulti
         }
 
         auto connection = this.conn_pool.get();
-        connection.setUserAgent(this.user_agent);
-        connection.addToCurlMulti(this.curlm, url, read_dg);
-
-        return true;
-    }
-
-
-    /***************************************************************************
-
-        Sets up a request to read content from Url with authorisation, if there
-        is a free connection.
-    
-        Params:
-            url = url to download content from
-            username = username for url authorisation
-            password = password for url authorisation
-            read_dg = delegate to call upon receiving content
-
-        Returns:
-            true if the request could be added
-            
-    ***************************************************************************/
-
-    public bool read ( char[] url, char[] username, char[] password, LibCurl.ReadDg read_dg )
-    {
-        if ( this.conn_pool.getNumAvailableItems() == 0 )
-        {
-            return false;
-        }
-
-        auto connection = this.conn_pool.get();
-        connection.setUserAgent(this.user_agent);
-        connection.setAuth(username, password);
+        init_dg(connection);
         connection.addToCurlMulti(this.curlm, url, read_dg);
 
         return true;
@@ -390,21 +369,6 @@ class LibCurlMulti
 
     /***************************************************************************
 
-        Sets the user agent string for all requests registered in the future.
-
-        Params:
-            user_agent = user agent string
-    
-    ***************************************************************************/
-
-    public void setUserAgent ( char[] user_agent )
-    {
-        this.user_agent.copy(user_agent);
-    }
-
-
-    /***************************************************************************
-
         Sets the timeout value for all requests registered in the future.
     
         Params:
@@ -441,25 +405,6 @@ class LibCurlMulti
     public size_t getNumFreeRequests ( )
     {
         return this.conn_pool.getNumAvailableItems();
-    }
-
-
-    /***************************************************************************
-    
-        Close curl session. Cleans up all curl easy connections.
-        
-    ***************************************************************************/
-
-    public void close ( )
-    {
-        foreach ( conn; this.conn_pool )
-        {
-            auto handle = conn.curl;
-            conn.recycle(); // calls curl_multi_remove_handle
-            curl_easy_cleanup(handle);
-        }
-
-        curl_multi_cleanup(this.curlm);
     }
 
 
