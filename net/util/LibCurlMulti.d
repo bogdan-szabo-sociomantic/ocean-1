@@ -59,7 +59,7 @@ private import ocean.core.ObjectPool;
 
 public import ocean.core.Exception: assertEx, CurlException;
 
-private import ocean.net.util.LibCurl;
+public import ocean.net.util.LibCurl;
 
 private import ocean.net.util.c.multi;
 
