@@ -57,15 +57,17 @@ module  ocean.net.util.LibCurl;
 
 ********************************************************************************/
 
-private     import      ocean.core.Array;
+private import          ocean.core.Array;
 
-public      import      ocean.core.Exception: CurlException;
+public import           ocean.core.Exception: assertEx, CurlException;
 
-public      import      ocean.net.util.c.curl;
+private import          ocean.net.util.c.curl;
 
-private     import      ocean.text.util.StringC;
+private import          ocean.text.util.StringC;
 
-private     import  	tango.stdc.stdlib: free;
+private import          tango.stdc.stdlib: free;
+
+debug private import    tango.util.log.Trace;
 
 /*******************************************************************************
 
@@ -152,16 +154,19 @@ class LibCurl
     private char[] option_buffer;
 
     /***************************************************************************
-        
-        Constructor; init curl and set options
-            
+
+        Constructor - init curl and set options
+
+        Throws:
+            if initialisation of libcurl fails
+
      **************************************************************************/
     
 	public this ( ) 
     {
 		this.curl = curl_easy_init();
 
-		assert (this.curl, "Error on curl_easy_init!");
+		assertEx!(CurlException)(this.curl, typeof(this).stringof ~ ".this - Error on curl_easy_init!");
 
 		this.setOption(CURLoption.ERRORBUFFER, this.error_msg.ptr);
 		this.setOption(CURLoption.WRITEHEADER, cast(void*)this);
@@ -178,16 +183,19 @@ class LibCurl
     
     /***************************************************************************
     
-        Desctructor; close curl session
+        Desctructor - close curl session
             
      **************************************************************************/
 	
     public ~this ( )
     {
-        this.close();
+        if ( !(this.curl is null) )
+        {
+            curl_easy_cleanup(this.curl);
+            this.curl = null;
+        }
     }
 
-    
     /***************************************************************************
         
         Returns Error String
@@ -447,17 +455,6 @@ class LibCurl
     
     /***************************************************************************
     
-        Set Encoding 
-            
-        Params:
-            value = encoding type (identity|gzip|deflate)
-            
-     **************************************************************************/
-    
-    alias setOptionT!(CURLoption.ENCODING, char[]) setEncoding;
-    
-    /***************************************************************************
-    
         Set request timeout
             
         Params:
@@ -479,18 +476,27 @@ class LibCurl
     alias setOptionT!(CURLoption.FORBID_REUSE, int) setForbidReuse;
 
     /***************************************************************************
-        
-        Close curl session
+
+        Set Encoding 
+
+        Params:
+            value = encoding type (identity|gzip|deflate)
 
      **************************************************************************/
 
-    public void close ()
+    public CurlCode setNoEncoding ( )
     {
-        if ( !(this.curl is null) )
-        {
-            curl_easy_cleanup(this.curl);
-            this.curl = null;
-        }
+        return this.setOptionT!(CURLoption.ENCODING, char[])("identity");
+    }
+    
+    public CurlCode setZlibEncoding ( )
+    {
+        return this.setOptionT!(CURLoption.ENCODING, char[])("deflate");
+    }
+    
+    public CurlCode setGzipEncoding ( )
+    {
+        return this.setOptionT!(CURLoption.ENCODING, char[])("gzip");
     }
 
     /***************************************************************************
