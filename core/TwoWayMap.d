@@ -13,6 +13,12 @@
 
     It is designed to have the same interface as a standard associative array.
 
+    TODO: opApply
+    TODO: opAssign from A[B] or B[A] associative array
+    TODO: invariant that a_to_b.length == b_to_a.length
+	TODO: use ArrayMap instead of associative array, if remove() or clear()
+ 		  methods are required
+
 *******************************************************************************/
 
 module ocean.core.TwoWayMap;
@@ -21,6 +27,17 @@ module ocean.core.TwoWayMap;
 
 struct TwoWayMap ( A, B )
 {
+    /***************************************************************************
+
+        Type aliases.
+    
+    ***************************************************************************/
+
+    public alias A TypeA;
+
+    public alias B TypeB;
+
+
     /***************************************************************************
 
         Associative arrays which store the mappings.
@@ -168,7 +185,7 @@ struct TwoWayMap ( A, B )
 
         Returns:
             dynamic array containing all map elements of type A
-    
+
     ***************************************************************************/
 
     public A[] keys ( )
@@ -181,7 +198,7 @@ struct TwoWayMap ( A, B )
 
         Returns:
             dynamic array containing all map elements of type B
-    
+
     ***************************************************************************/
 
     public B[] values ( )
