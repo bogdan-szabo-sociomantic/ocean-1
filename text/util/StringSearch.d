@@ -785,9 +785,9 @@ struct StringSearch ( bool wide_char = false )
     
      **************************************************************************/
 
-    void split ( ref Char[][] slices, Char[] str, Char delim, uint n = 0, bool collapse = false )
+    Char[][] split ( ref Char[][] slices, Char[] str, Char delim, uint n = 0, bool collapse = false )
     {
-        split_!(Char)(slices, str, delim, &locateChar, n, collapse);
+        return split_!(Char)(slices, str, delim, &locateChar, n, collapse);
     }
     
     /**************************************************************************
@@ -834,9 +834,9 @@ struct StringSearch ( bool wide_char = false )
      
      **************************************************************************/
     
-    void splitCollapse ( ref Char[][] slices, Char[] str, Char delim, uint n = 0 )
+    Char[][] splitCollapse ( ref Char[][] slices, Char[] str, Char delim, uint n = 0 )
     {
-        split(slices,  str, delim, n, true);
+        return split(slices,  str, delim, n, true);
     }
     
     /**************************************************************************
@@ -877,7 +877,7 @@ struct StringSearch ( bool wide_char = false )
     
      **************************************************************************/
 
-    void split ( ref Char[][] slices, Char[] str, Char[] delims, uint n = 0, bool collapse = false )
+    Char[][] split ( ref Char[][] slices, Char[] str, Char[] delims, uint n = 0, bool collapse = false )
     {
         return split_!(Char[])(slices, str, delims, &locateCharSet, n, collapse);
     }
@@ -927,7 +927,7 @@ struct StringSearch ( bool wide_char = false )
      
      **************************************************************************/
     
-    void splitCollapse ( ref Char[][] slices, Char[] str, Char[] delim, uint n = 0 )
+    Char[][] splitCollapse ( ref Char[][] slices, Char[] str, Char[] delim, uint n = 0 )
     {
         return split(slices, str, delim, n, true);
     }
@@ -993,7 +993,7 @@ struct StringSearch ( bool wide_char = false )
      
      **************************************************************************/
 
-    private void split_  ( T ) ( ref Char[][] slices, Char[] str, T delim, LocateDelimDg!(T) locateDelim, uint n, bool collapse )
+    private Char[][] split_  ( T ) ( ref Char[][] slices, Char[] str, T delim, LocateDelimDg!(T) locateDelim, uint n, bool collapse )
     {
         uint   i     = 0;
         
@@ -1021,6 +1021,8 @@ struct StringSearch ( bool wide_char = false )
         {
             slices ~= str[start .. $];                                          // append tail
         }
+        
+        return slices;
     }
     
     /**************************************************************************
