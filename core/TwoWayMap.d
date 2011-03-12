@@ -24,6 +24,42 @@ module ocean.core.TwoWayMap;
 
 
 
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+private import tango.core.Traits;
+
+
+
+/*******************************************************************************
+
+    Template to create a two way map from an associative array type.
+
+*******************************************************************************/
+
+template TwoWayMap ( T )
+{
+    static if ( isAssocArrayType!(T) )
+    {
+        public alias TwoWayMap!(typeof(T.init.values[0]), typeof(T.init.keys[0])) TwoWayMap;
+    }
+    else
+    {
+        static assert(false, "'" ~ T.stringof ~ "' isn't an associative array type, cannot create two way map");
+    }
+}
+
+
+
+/*******************************************************************************
+
+    Two way map struct template
+
+*******************************************************************************/
+
 struct TwoWayMap ( A, B )
 {
     /***************************************************************************
