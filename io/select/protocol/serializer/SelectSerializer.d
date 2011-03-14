@@ -13,7 +13,7 @@
     
  ******************************************************************************/
 
-module ocean.io.protocol.serializer.SelectSerializer;
+module ocean.io.select.protocol.serializer.SelectSerializer;
 
 /******************************************************************************
 
