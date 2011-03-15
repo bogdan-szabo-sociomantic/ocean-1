@@ -13,10 +13,27 @@
 
     It is designed to have the same interface as a standard associative array.
 
-    TODO: opApply
-	TODO: use ArrayMap instead of associative array, if remove() or clear()
- 		  methods are required. (Another advantage would be that the copy array
-          flag could be used.)
+	TODO: if remove() or clear() methods are required, use ArrayMap instead of
+    associative array. (Another advantage would be that the copy array flag
+    could be used.)
+
+    Usage example:
+
+    ---
+
+        import ocean.core.TwoWayMap;
+
+        TwoWayMap!(char[], uint) map;
+
+        map["one"] = 1;
+        map["two"] = 2;
+        map["three"] = 3;
+        map.rehash;
+
+        assert(map[1] == "one");
+        assert(map["three"] == 3);
+
+    ---
 
 *******************************************************************************/
 
@@ -30,13 +47,22 @@ module ocean.core.TwoWayMap;
 
 *******************************************************************************/
 
-private import tango.core.Traits;
+private import ocean.core.Exception;
+
+private import tango.core.Array : find;
+
+private import tango.core.Traits : isAssocArrayType;
+
+debug private import tango.util.log.Trace;
 
 
 
 /*******************************************************************************
 
     Template to create a two way map from an associative array type.
+
+    Template params:
+        T = associative array map type
 
 *******************************************************************************/
 
@@ -58,25 +84,35 @@ template TwoWayMap ( T )
 
     Two way map struct template
 
+    Template params:
+        A = key type
+        B = value type
+        Indexed = true to include methods for getting the index of keys or
+            values in the internal arrays
+
+    Note: 'key' and 'value' types are arbitrarily named, as the mapping goes
+    both ways. They are just named this way for convenience and to present the
+    same interface as the standard associative array.
+
 *******************************************************************************/
 
-struct TwoWayMap ( A, B )
+struct TwoWayMap ( A, B, bool Indexed = false )
 {
     /***************************************************************************
 
         Type aliases.
-    
+
     ***************************************************************************/
 
-    public alias A TypeA;
+    public alias A KeyType;
 
-    public alias B TypeB;
+    public alias B ValueType;
 
 
     /***************************************************************************
 
         Associative arrays which store the mappings.
-    
+
     ***************************************************************************/
 
     private B[A] a_to_b;
@@ -85,14 +121,35 @@ struct TwoWayMap ( A, B )
 
     /***************************************************************************
 
+        Optional indices for mapped items.
+
+    ***************************************************************************/
+
+    static if ( Indexed )
+    {
+        private size_t[A] a_to_index; // A to index in a_to_b.keys
+        private size_t[B] b_to_index; // B to index in a_to_b.values
+    }
+
+
+    /***************************************************************************
+
         Invariant checking that the length of both mappings should always be
-        identical.
+        identical, and that the indices of mapped items are consistent.
 
     ***************************************************************************/
 
     invariant
     {
         assert(this.a_to_b.length == this.b_to_a.length);
+
+        static if ( Indexed )
+        {
+            foreach ( a, b; this.a_to_b )
+            {
+                assert(this.a_to_index[a] == this.b_to_index[b]);
+            }
+        }
     }
 
 
@@ -112,6 +169,11 @@ struct TwoWayMap ( A, B )
         {
             this.b_to_a[b] = a;
         }
+
+        static if ( Indexed )
+        {
+            this.updateIndices();
+        }
     }
     
     public void opAssign ( A[B] assoc_array )
@@ -120,6 +182,11 @@ struct TwoWayMap ( A, B )
         foreach ( b, a; this.b_to_a )
         {
             this.a_to_b[a] = b;
+        }
+
+        static if ( Indexed )
+        {
+            this.updateIndices();
         }
     }
 
@@ -135,18 +202,46 @@ struct TwoWayMap ( A, B )
     ***************************************************************************/
 
     public void opIndexAssign ( A a, B b )
+    out
+    {
+        static if ( Indexed )
+        {
+            assert(this.a_to_index[a] < this.a_to_b.keys.length);
+            assert(this.b_to_index[b] < this.a_to_b.values.length);
+        }
+    }
+    body
     {
         this.a_to_b[a] = b;
         this.b_to_a[b] = a;
+
+        static if ( Indexed )
+        {
+            this.updateIndices();
+        }
     }
 
     public void opIndexAssign ( B b, A a )
+    out
+    {
+        static if ( Indexed )
+        {
+            assert(this.a_to_index[a] < this.a_to_b.keys.length);
+            assert(this.b_to_index[b] < this.a_to_b.values.length);
+        }
+    }
+    body
     {
         this.a_to_b[a] = b;
         this.b_to_a[b] = a;
+
+        static if ( Indexed )
+        {
+            this.updateIndices();
+        }
     }
 
-    
+
     /***************************************************************************
 
         Rehashes the mappings.
@@ -157,6 +252,11 @@ struct TwoWayMap ( A, B )
     {
         this.a_to_b.rehash;
         this.b_to_a.rehash;
+
+        static if ( Indexed )
+        {
+            this.updateIndices();
+        }
     }
 
 
@@ -280,6 +380,101 @@ struct TwoWayMap ( A, B )
     public B[] values ( )
     {
         return this.a_to_b.values;
+    }
+
+
+    /***************************************************************************
+
+        foreach iterator over the mapping.
+
+    ***************************************************************************/
+
+    public int opApply ( int delegate ( ref A a, ref B b ) dg )
+    {
+        int res;
+        foreach ( a, b; this.a_to_b )
+        {
+            res = dg(a, b);
+        }
+        return res;
+    }
+
+
+    /***************************************************************************
+
+        foreach iterator over the mapping, including each value's index.
+
+    ***************************************************************************/
+
+    static if ( Indexed )
+    {
+        public int opApply ( int delegate ( ref size_t index, ref A a, ref B b ) dg )
+        {
+            int res;
+            foreach ( a, b; this.a_to_b )
+            {
+                auto index = this.indexOf(a);
+                assert(index);
+    
+                res = dg(*index, a, b);
+            }
+            return res;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Returns:
+            the index of an element of type A in this.a_to_b.keys
+
+    ***************************************************************************/
+
+    static if ( Indexed )
+    {
+        public size_t* indexOf ( A a )
+        {
+            auto index = a in this.a_to_index;
+            assertEx(index, typeof(this).stringof ~ ".indexOf - element not present in map");
+            return index;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Returns:
+            the index of an element of type B in this.a_to_b.values
+    
+    ***************************************************************************/
+    
+    static if ( Indexed )
+    {
+        public size_t* indexOf ( B b )
+        {
+            auto index = b in this.b_to_index;
+            assertEx(index, typeof(this).stringof ~ ".indexOf - element not present in map");
+            return index;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Updates the index arrays when the mapping is altered.
+
+    ***************************************************************************/
+
+    static if ( Indexed )
+    {
+        private void updateIndices ( )
+        {
+            foreach ( a, b; this.a_to_b )
+            {
+                this.a_to_index[a] = this.a_to_b.keys.find(a);
+                this.b_to_index[b] = this.a_to_b.values.find(b);
+            }
+        }
     }
 }
 
