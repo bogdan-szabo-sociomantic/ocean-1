@@ -425,8 +425,15 @@ struct TwoWayMap ( A, B, bool Indexed = false )
 
     /***************************************************************************
 
+        Gets the index of an element of type A in the list of all elements of
+        type A.
+
+        Params:
+            a = element to look up
+
         Returns:
-            the index of an element of type A in this.a_to_b.keys
+            pointer to the index of an element of type A in this.a_to_b.keys, or
+            null if the element is not in the map
 
     ***************************************************************************/
 
@@ -443,8 +450,15 @@ struct TwoWayMap ( A, B, bool Indexed = false )
 
     /***************************************************************************
 
+        Gets the index of an element of type B in the list of all elements of
+        type B.
+
+        Params:
+            b = element to look up
+
         Returns:
-            the index of an element of type B in this.a_to_b.values
+            pointer to the index of an element of type B in this.a_to_b.values,
+            or null if the element is not in the map
     
     ***************************************************************************/
     
