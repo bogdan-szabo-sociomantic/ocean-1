@@ -71,24 +71,10 @@ private import tango.text.Util : patterns;
 
 public T[] concat ( T ) ( ref T[] dest, T[][] arrays ... )
 {
-	size_t total_len;
-	foreach ( array; arrays )
-	{
-		total_len += array.length;
-	}
-
-	dest.length = total_len;
-
-	auto write_slice = dest;
-	foreach ( array; arrays )
-	{
-		write_slice[0..array.length] = array;
-		write_slice = write_slice[array.length .. $];
-	}
-
-	return dest;
+    dest.length = totalLength(arrays);
+    
+    return dest.concat_(arrays);
 }
-
 
 /*******************************************************************************
 
@@ -120,23 +106,11 @@ public T[] concat ( T ) ( ref T[] dest, T[][] arrays ... )
 
 public T[] append ( T ) ( ref T[] dest, T[][] arrays ... )
 {
-	size_t total_len;
-	foreach ( array; arrays )
-	{
-		total_len += array.length;
-	}
-
-	auto old_len = dest.length;
-	dest.length = old_len + total_len;
-
-	auto write_slice = dest[old_len..$];
-	foreach ( array; arrays )
-	{
-		write_slice[0..array.length] = array;
-		write_slice = write_slice[array.length .. $];
-	}
-
-	return dest;
+    size_t old_len = dest.length;
+    
+    dest.length = old_len + totalLength(arrays);
+    
+    return dest.concat_(arrays, old_len);
 }
 
 
@@ -152,7 +126,7 @@ public T[] append ( T ) ( ref T[] dest, T[][] arrays ... )
 
     Params:
         dest = reference to the destination array
-        array = array to copy
+        array = array to copy; null has the same effect as an empty array
 
     Returns:
         dest
@@ -169,7 +143,11 @@ public T[] append ( T ) ( ref T[] dest, T[][] arrays ... )
 public T[] copy ( T ) ( ref T[] dest, T[] src )
 {
     dest.length = src.length;
-    dest[] = src[];
+    
+    if (src.length)
+    {
+        dest[] = src[];
+    }
     
     return dest;
 }
@@ -342,6 +320,63 @@ public T[] uniq ( T ) ( ref T[] array )
     return array;
 }
 
+/*******************************************************************************
+
+    Calculates the sum of the lengths of arrays
+    
+    Params:
+        arrays = arrays to add lengths
+        
+    Returns:
+        sum of the lengths of arrays
+
+*******************************************************************************/
+
+public size_t totalLength ( T ) ( T[][] arrays ... )
+{
+    size_t total_len = 0;
+    
+    foreach ( array; arrays )
+    {
+        total_len += array.length;
+    }
+    
+    return total_len;
+}
+
+/*******************************************************************************
+
+    Concatenates arrays, using dest[start .. $] as destination array.
+    dest[start .. $].length must equal the sum of the lengths of arrays.
+    
+    Params:
+        dest   = destination array
+        arrays = arrays to concatenate
+        start  = start index on dest
+        
+    Returns:
+        dest
+
+*******************************************************************************/
+
+private T[] concat_ ( T ) ( T[] dest, T[][] arrays, size_t start = 0 )
+{
+    T[] write_slice = dest[start .. $];
+    
+    foreach ( array; arrays )
+    {
+        if (array)
+        {
+            write_slice[0 .. array.length] = array[];
+        }
+        write_slice                        = write_slice[array.length .. $];
+    }
+    
+    assert (!write_slice.length);
+    
+    return dest;
+}
+
 
 
 /*******************************************************************************
@@ -349,6 +384,21 @@ public T[] uniq ( T ) ( ref T[] array )
     Unittest
 
 *******************************************************************************/
+
+unittest
+{
+    char[] str;
+    assert (str.copy("Die Katze tritt die Treppe krumm.") == "Die Katze tritt die Treppe krumm.");
+    
+    str.length = 0;
+    assert (str.concat("Die ", "Katze ", "tritt ", "die ", "Treppe ", "krumm.") == "Die Katze tritt die Treppe krumm.");
+    
+    str.length = 0;
+    str.append("Die Katze ");
+    assert (str == "Die Katze ");
+    str.append("tritt ", "die ");
+    assert (str.append("Treppe ", "krumm.") == "Die Katze tritt die Treppe krumm.");
+}
 
 debug ( OceanUnitTest )
 {
