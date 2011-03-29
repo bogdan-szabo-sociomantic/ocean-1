@@ -20,6 +20,8 @@ module ocean.core.ArrayMap;
 
 private     import      ocean.core.Exception: ArrayMapException, assertEx;
 
+private     import      ocean.core.Array: copy;
+
 private     import      ocean.io.digest.Fnv1;
 
 private     import      tango.io.model.IConduit:  InputStream,   OutputStream;
@@ -34,8 +36,10 @@ private     import      tango.stdc.posix.pthread: pthread_rwlock_t,
                                                   pthread_rwlock_wrlock,
                                                   pthread_rwlock_unlock;
 
-debug private import tango.util.log.Trace;
-
+debug 
+{
+    private import tango.util.log.Trace;
+}
 
 
 /*******************************************************************************
@@ -477,8 +481,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         {
             if ( dup_arrays ) synchronized (this)
             {
-                this.v_map[p].value.length = value.length;
-                this.v_map[p].value[]      = value[];
+                this.v_map[p].copy(value);
             }
             else
             {
@@ -518,10 +521,6 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             this.v_map[p].key = key;
         }
 
-        public V get ( K key, ref V value )
-        {
-            return this.get_(this.findValueSync(key), value);
-        }
         
         /***********************************************************************
         
@@ -530,13 +529,34 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             
             Params:
                 key = array key
-                hash = hash value of key
+                value = value of key
                 
             Returns:
                 value of array element
             
          **********************************************************************/
-    
+
+        public V get ( K key, ref V value )
+        {
+            return this.get_(this.findValueSync(key), value);
+        }
+        
+        
+        /***********************************************************************
+            
+            Returns value associated with key; copying it into the provided
+            destination array, maintaining thread-safety.
+            
+            Params:
+                key   = array key
+                hash  = hash for bucket lookup (prevents internal key hashing)
+                value = value of key
+                
+            Returns:
+                value of array element
+            
+         **********************************************************************/
+        
         public V get ( K key, hash_t hash, ref V value )
         {
             return this.get_(this.findValueSync(key, hash % this.buckets_length), value);
@@ -1094,10 +1114,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         }
         body
         {
-            V val = this.v_map[v].value;
-            
-            value.length = val.length;
-            value[] = val[];
+            value.copy(this.v_map[v].value);
         }
     }
     
@@ -1420,15 +1437,24 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             if (oldpos != this.len - 1)
             {
                 this.findBucket(this.v_map[this.len - 1].key,
-                  toHash(this.v_map[this.len - 1].key) % this.buckets_length,
-                  nk,nv);
+                  toHash(this.v_map[this.len - 1].key) % this.buckets_length, nk, nv);
 
                 assert(nk !is null && nv !is null);
                 
                 nk.pos = oldpos;
             }
 
-            if ( this.len > 1 ) this.v_map[oldpos] = this.v_map[this.len - 1];
+            if ( this.len > 1 )
+            {
+                static if (this.VisArray)
+                {
+                    this.v_map[oldpos].copy(this.v_map[this.len - 1]);
+                }
+                else
+                {
+                    this.v_map[oldpos] = this.v_map[this.len - 1];
+                }
+            }
             
             assert(oldpos == this.len -1 || v_map[oldpos].key == nk.key);
             
@@ -1901,7 +1927,8 @@ debug (OceanUnitTest)
     private import  tango.math.random.Random;
 
     
-    struct slowdown { 
+    struct slowdown 
+    { 
         int a,b,c; 
         static slowdown opCall(int a, int b, int c){ slowdown f; return f; }
     }
