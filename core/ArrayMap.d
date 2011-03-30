@@ -479,9 +479,16 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         static if (this.VisArray)
         {
-            if ( dup_arrays ) synchronized (this)
+            if ( dup_arrays )
             {
-                .copy(this.v_map[p].value, value);
+                static if (M) synchronized (this)
+                {
+                    .copy(this.v_map[p].value, value);
+                }
+                else
+                {
+                    .copy(this.v_map[p].value, value);
+                }
             }
             else
             {
