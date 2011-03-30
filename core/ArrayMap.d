@@ -1478,22 +1478,21 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
                 *k = bucket.elements[bucket.length - 1];
                 bucket.length = bucket.length - 1;
             }
-            
+
             if (oldpos != this.len - 1)
             {
                 this.findBucket(this.v_map[this.len - 1].key,
                   toHash(this.v_map[this.len - 1].key) % this.buckets_length, nk, nv);
 
-                assert(nk !is null && nv !is null);
-                
-                nk.pos = oldpos;
-            }
+                assert(nk !is null && nv !is null, "ArrayMap: nk or nv is null");
 
-            if ( this.len > 1 )
-            {
+                nk.pos = oldpos;
+
                 static if (this.VisArray)
                 {
                     .copy(this.v_map[oldpos].value, this.v_map[this.len - 1].value);
+
+                    this.v_map[oldpos].key = this.v_map[this.len - 1].key;
                 }
                 else
                 {
@@ -1501,7 +1500,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
                 }
             }
             
-            assert(oldpos == this.len -1 || v_map[oldpos].key == nk.key);
+            assert(oldpos == this.len -1 || v_map[oldpos].key == nk.key, "ArrayMap: Error while swapping keys/values");
             
             static if (M) synchronized (this)
             {
@@ -1517,7 +1516,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         return false;
     }
-    
+    import tango.util.log.Trace;
     
     /***************************************************************************
         
