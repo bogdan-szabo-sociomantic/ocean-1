@@ -1516,8 +1516,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         return false;
     }
-    import tango.util.log.Trace;
-    
+
     /***************************************************************************
         
         Set allocation size
