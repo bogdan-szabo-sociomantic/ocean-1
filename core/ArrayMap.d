@@ -481,7 +481,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         {
             if ( dup_arrays ) synchronized (this)
             {
-                this.v_map[p].copy(value);
+                .copy(this.v_map[p].value, value);
             }
             else
             {
@@ -1114,7 +1114,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         }
         body
         {
-            value.copy(this.v_map[v].value);
+            .copy(value, this.v_map[v].value);
         }
     }
     
@@ -1448,7 +1448,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             {
                 static if (this.VisArray)
                 {
-                    this.v_map[oldpos].copy(this.v_map[this.len - 1]);
+                    .copy(this.v_map[oldpos].value, this.v_map[this.len - 1].value);
                 }
                 else
                 {
