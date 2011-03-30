@@ -879,13 +879,49 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     {
         alias exists opIn_r;
     }
-    else public V* opIn_r ( K key )
+    else 
     {
-        size_t v = this.findValueSync(key);
+        public V* opIn_r ( K key )
+        {
+            size_t v = this.findValueSync(key);
+            
+            return (v == v.max)? null : &(this.v_map.ptr + v).value; 
+        }
         
-        return (v == v.max)? null : &(this.v_map.ptr + v).value; 
+        /***********************************************************************
+            
+            Returns a pointer to the element associated with the key. If
+            it does not exist, it is created and initialized with the val
+            parameter or the default value for that type
+            and then the pointer returned.
+            
+            Params:
+                key   = key
+                value = (optional) lazy init value
+                
+            Returns:
+                a pointer to the value
+            
+            TODO: Rewrite this so it doesn't use both findValue and getPutIndex
+                  as getPutIndex uses findValue itself, again.
+            
+         **********************************************************************/
+    
+        public V* getPut ( K key, lazy V val = V.init )
+        {
+            size_t v = this.findValueSync(key);
+                        
+            if (v == v.max) 
+            {
+                v = this.getPutIndex(key);
+                
+                this.v_map[v] = KeyVal(val,key);
+            }
+            
+            return &(this.v_map.ptr + v).value; 
+        }        
     }
-     
+    
     /***************************************************************************
          
          Returns iterator with value as reference
@@ -1413,6 +1449,8 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
         FIXME: Not reentrant/thread-safe with put() -- may cause wrong values
         in v_map.
+
+		TODO: instead of copying the array, mabye swapping it is enough?
         
         Returns:
             true on success, false on failure
