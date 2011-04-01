@@ -122,6 +122,15 @@ public alias char[] delegate ( ) InputDg;
 class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
 {
     /***************************************************************************
+
+        Maximum amount of input data per compressed chunk.
+
+    ***************************************************************************/
+
+    public const size_t ChunkSize = 1024 * 64;
+
+
+    /***************************************************************************
     
         Processing state.
     
@@ -448,15 +457,6 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
         ***********************************************************************/
 
         private size_t chunk_pos;
-
-
-        /***********************************************************************
-        
-            Maximum amount of input data per chunk.
-        
-        ***********************************************************************/
-
-        private const size_t ChunkSize = 1024;
 
 
         /***********************************************************************
