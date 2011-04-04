@@ -626,13 +626,20 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Params:
             key = key of element to remove
         
+        Returns:
+            true when the element was removed, false when it did not exist
+        
      **************************************************************************/
     
-    public void remove ( K key )
+    public bool remove ( K key )
     {
         hash_t h = (toHash(key) % this.buckets_length);
 
-        this.writeLock(h, delegate void () {this.remove_(h, key);});
+        bool result = false;
+        
+        this.writeLock(h, delegate void () { result = this.remove_(h, key);});
+        
+        return result;
     }
     
     /***************************************************************************
