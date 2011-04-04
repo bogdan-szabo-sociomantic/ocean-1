@@ -471,9 +471,12 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
                 contents of value should be copied into the array map (if false
                 the array map just contains a slice)
 
+        Returns:
+            a pointer to the just added element
+            
      **************************************************************************/
     
-    public void put ( K key, V value, bool dup_arrays = false )
+    public V* put ( K key, V value, bool dup_arrays = false )
     {
         size_t p = this.getPutIndex(key);
         
@@ -501,6 +504,8 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         {
             this.v_map[p] = KeyVal(value,key);
         }
+        
+        return &(this.v_map.ptr + p).value; 
     }
 
 
@@ -902,20 +907,15 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             Returns:
                 a pointer to the value
             
-            TODO: Rewrite this so it doesn't use both findValue and getPutIndex
-                  as getPutIndex uses findValue itself, again.
-            
          **********************************************************************/
     
-        public V* getPut ( K key, lazy V val = V.init )
+        public V* getPut ( K key, lazy V val = V.init, bool dup_arrays = false )
         {
             size_t v = this.findValueSync(key);
                         
             if (v == v.max) 
             {
-                v = this.getPutIndex(key);
-                
-                this.v_map[v] = KeyVal(val,key);
+                return put(key,val,dup_arrays);
             }
             
             return &(this.v_map.ptr + v).value; 
