@@ -8,10 +8,13 @@
     authors:        Gavin Norman
 
     A struct template which implements a two-way mapping between items of two
-    types, including opIn_r, opIndex and opIndexAssign methods which
+    types. Includes opIn_r, opIndex and opIndexAssign methods which
     automatically update the mappings both ways.
 
     It is designed to have the same interface as a standard associative array.
+
+    Note that the two mapped types may not be the same. (ie TwoWayMap!(int, int)
+    is not possible.)
 
 	TODO: if remove() or clear() methods are required, use ArrayMap instead of
     associative array. (Another advantage would be that the copy array flag
@@ -98,6 +101,19 @@ template TwoWayMap ( T )
 
 struct TwoWayMap ( A, B, bool Indexed = false )
 {
+    /***************************************************************************
+
+        Ensure that the template is mapping between two different types. Most of
+        the methods won't compile otherwise.
+
+    ***************************************************************************/
+
+    static if ( is(A == B) )
+    {
+        static assert(false, "TwoWayMap only supports mapping between two different types, not " ~ A.stringof ~ " <-> " ~ B.stringof);
+    }
+
+
     /***************************************************************************
 
         Type aliases.
