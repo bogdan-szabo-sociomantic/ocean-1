@@ -29,11 +29,6 @@
 
 module ocean.io.select.EpollSelectDispatcher;
 
-//public import ocean.io.select.epoll.Epoll;
-
-//alias Epoll EpollSelectDispatcher;
-
-
 /*******************************************************************************
 
     Imports
