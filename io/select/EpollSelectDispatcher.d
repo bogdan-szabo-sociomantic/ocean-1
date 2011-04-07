@@ -281,15 +281,15 @@ class EpollSelectDispatcher
 
     public bool eventLoop ( )
     {
-        bool not_timed_out = true;
+        bool timed_out;
         
-        while (this.selector.count() && not_timed_out)
+        while (this.selector.count() && !timed_out)
         {
             int event_count = this.selector.select(this.timeout_);
-            
-            not_timed_out = event_count >= 0;
-            
-            if (not_timed_out) foreach (key; this.selector.selectedSet())
+
+            timed_out = event_count == 0;
+
+            if ( !timed_out ) foreach (key; this.selector.selectedSet())
             {
                 bool unregister_key = false;
                 
@@ -324,12 +324,12 @@ class EpollSelectDispatcher
             }
         }
 
-        if ( !not_timed_out )
+        if ( timed_out )
         {
             // TODO: call error delegate with timeout code
         }
 
-        return not_timed_out;
+        return !timed_out;
     }
     
     /***************************************************************************
