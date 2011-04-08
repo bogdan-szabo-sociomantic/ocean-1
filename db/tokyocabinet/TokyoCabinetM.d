@@ -129,17 +129,6 @@ class TokyoCabinetM
     }
     
     /**************************************************************************
-        
-        Invariant: called every time a public class method is called
-                             
-     **************************************************************************/
-    
-    invariant ( )
-    {
-        assert (this.db, typeof (this).stringof ~ ": invalid TokyoCabinet Hash core object");
-    }
-    
-    /**************************************************************************
      
         Puts a record to database; overwrites an existing record
        
@@ -150,6 +139,11 @@ class TokyoCabinetM
     ***************************************************************************/
     
     public void put ( char[] key, char[] value )
+    in
+    {
+        this.assertDb();
+    }
+    body
     {
         tcmdbput(this.db, key.ptr, key.length, value.ptr, value.length);
     }
@@ -165,6 +159,11 @@ class TokyoCabinetM
     ***************************************************************************/
     
     public void putkeep ( char[] key, char[] value )
+    in
+    {
+        this.assertDb();
+    }
+    body
     {
         tcmdbputkeep(this.db, key.ptr, key.length, value.ptr, value.length);
     }
@@ -181,6 +180,11 @@ class TokyoCabinetM
     ***************************************************************************/
     
     public void putcat ( char[] key, char[] value )
+    in
+    {
+        this.assertDb();
+    }
+    body
     {
         tcmdbputcat(this.db, key.ptr, key.length, value.ptr, value.length);
     }
@@ -199,6 +203,11 @@ class TokyoCabinetM
     ***************************************************************************/
 
     public bool get ( char[] key, ref char[] value )
+    in
+    {
+        this.assertDb();
+    }
+    body
     {
         value.length = 0;
 
@@ -235,6 +244,11 @@ class TokyoCabinetM
     ***************************************************************************/
 
     synchronized public bool getFirstKey ( ref char[] key )
+    in
+    {
+        this.assertDb();
+    }
+    body
     {
         tcmdbiterinit(this.db);
         return iterateNextKey(key);
@@ -258,6 +272,11 @@ class TokyoCabinetM
     ***************************************************************************/
 
     synchronized public bool getNextKey ( char[] last_key, ref char[] key )
+    in
+    {
+        this.assertDb();
+    }
+    body
     {
         key.length = 0;
 
@@ -289,6 +308,11 @@ class TokyoCabinetM
     ***************************************************************************/
 
     public bool exists ( char[] key )
+    in
+    {
+        this.assertDb();
+    }
+    body
     {
         return (tcmdbvsiz(this.db, key.ptr, key.length) >= 0);
     }
@@ -306,6 +330,11 @@ class TokyoCabinetM
     ***************************************************************************/
 
     public bool remove ( char[] key )
+    in
+    {
+        this.assertDb();
+    }
+    body
     {
         return tcmdbout(this.db, key.ptr, key.length);
     }
@@ -320,6 +349,11 @@ class TokyoCabinetM
      ***************************************************************************/
     
     public ulong numRecords ()
+    in
+    {
+        this.assertDb();
+    }
+    body
     {
         return tcmdbrnum(this.db);
     }
@@ -334,6 +368,11 @@ class TokyoCabinetM
     ***************************************************************************/
     
     public ulong dbSize ()
+    in
+    {
+        this.assertDb();
+    }
+    body
     {
         return tcmdbmsiz(this.db);
     }
@@ -345,6 +384,11 @@ class TokyoCabinetM
     ***************************************************************************/
 
     public void clear ()
+    in
+    {
+        this.assertDb();
+    }
+    body
     {
         tcmdbvanish(this.db);
     }
@@ -358,6 +402,11 @@ class TokyoCabinetM
      ***************************************************************************/
     
     public int opApply ( TcIterator.KeyValIterDg delg )
+    in
+    {
+        this.assertDb();
+    }
+    body
     {
         int result;
         
@@ -374,6 +423,11 @@ class TokyoCabinetM
      ***************************************************************************/
     
     public int opApply ( TcIterator.KeyIterDg delg )
+    in
+    {
+        this.assertDb();
+    }
+    body
     {
         int result;
         
@@ -396,6 +450,11 @@ class TokyoCabinetM
     ***************************************************************************/
     
     private bool iterateNextKey ( ref char[] key )
+    in
+    {
+        this.assertDb();
+    }
+    body
     {
         int len;
     
@@ -412,6 +471,23 @@ class TokyoCabinetM
     
         return found;
     }
+
+    /**************************************************************************
+
+        Asserts that the tokyocabinet database object has been initialised.
+
+        FIXME: this used to be a class invariant, but had to be replaced with an
+        in contract in all methods due to a compiler bug on linux for classes
+        with invariants and synchronized methods. See:
+
+        http://d.puremagic.com/issues/show_bug.cgi?id=235#c2
+
+    ***************************************************************************/
+
+    private void assertDb ( )
+    {
+        assert(this.db, typeof (this).stringof ~ ": invalid TokyoCabinet Hash core object");
+    }
 }
 
 
@@ -419,7 +495,7 @@ class TokyoCabinetM
 
     Unittest
 
-********************************************************************************/
+*******************************************************************************/
 
 debug (OceanUnitTest)
 {
