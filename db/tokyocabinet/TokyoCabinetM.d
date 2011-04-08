@@ -223,6 +223,9 @@ class TokyoCabinetM
         Gets the key of first record in the database. (The database's internal
         iteration position is reset to the first record.)
     
+        Note: this method is synchronized as it relies on calling tcmdbiterinit2
+        directly followed by tcmdbiternext.
+
         Params:
             key   = record key output
     
@@ -231,7 +234,7 @@ class TokyoCabinetM
 
     ***************************************************************************/
 
-    public bool getFirstKey ( ref char[] key )
+    synchronized public bool getFirstKey ( ref char[] key )
     {
         tcmdbiterinit(this.db);
         return iterateNextKey(key);
@@ -242,6 +245,9 @@ class TokyoCabinetM
         Iterates from the given key, getting the key of next record in the
         database.
 
+        Note: this method is synchronized as it relies on calling tcmdbiterinit2
+        directly followed by tcmdbiternext.
+
         Params:
             last_key = key to iterate from
             key      = record key output
@@ -251,7 +257,7 @@ class TokyoCabinetM
 
     ***************************************************************************/
 
-    public bool getNextKey ( char[] last_key, ref char[] key )
+    synchronized public bool getNextKey ( char[] last_key, ref char[] key )
     {
         key.length = 0;
 
