@@ -64,9 +64,9 @@ private import ocean.io.select.model.ISelectClient;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
-//private import ISelect = tango.io.selector.model.ISelector: Event;
-
 private import tango.io.model.IConduit: ISelectable, IConduit;
+
+private import tango.io.selector.SelectorException : UnregisteredConduitException;
 
 debug private import tango.util.log.Trace;
 
@@ -328,18 +328,47 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     /**************************************************************************
 
         Unregisters the chain of io handlers with the select dispatcher. The
-        internal data buffer is cleared.
+        internal data buffer is cleared. An exception is thrown (in
+        tango.io.selector.EpollSelector) if the chain is not regitsered.
 
         Returns:
             this instance
+
+        Throws:
+            UnregisteredConduitException if the conduit had not been previously
+            registered to the selector
 
      **************************************************************************/
 
     public typeof(this) unregister ( )
     {
         this.data.length = 0;
-        
+
         this.dispatcher.unregister(this);
+
+        return this;
+    }
+
+    /**************************************************************************
+
+        Unregisters the chain of io handlers with the select dispatcher. The
+        internal data buffer is cleared. An exception is not thrown if the chain
+        is not registered.
+
+        Returns:
+            this instance
+
+     **************************************************************************/
+
+    public typeof(this) safeUnregister ( )
+    {
+        try
+        {
+            this.unregister();
+        }
+        catch ( UnregisteredConduitException e )
+        {
+        }
 
         return this;
     }
