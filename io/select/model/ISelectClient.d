@@ -27,14 +27,11 @@ module ocean.io.select.model.ISelectClient;
 
  ******************************************************************************/
 
-//private import ocean.io.select.epoll.Epoll;
-
 private import tango.sys.linux.epoll: EPOLLIN, EPOLLOUT, EPOLLPRI,
                                       EPOLLONESHOT, EPOLLET,
                                       EPOLLHUP, EPOLLERR;
 
 private const EPOLLRDHUP = 0x2000;
-
 
 private import tango.io.model.IConduit: ISelectable;
 
@@ -60,6 +57,13 @@ abstract class ISelectClient
         Hangup          = EPOLLHUP,
         Error           = EPOLLERR
     }
+
+    /**************************************************************************
+
+        Flag telling whether this client is registered with the select
+        dispatcher.
+
+     **************************************************************************/
 
     public bool registered = false;
     
@@ -154,7 +158,16 @@ abstract class ISelectClient
      **************************************************************************/
 
     abstract public bool handle ( Event event );
-    
+
+    /**************************************************************************
+
+        Timeout method, called after a timeout occurs in the SelectDispatcher
+        eventLoop. Intended to be overloaded by a subclass if required.
+
+     **************************************************************************/
+
+    public void timeout ( ) { }
+
     /**************************************************************************
 
         Finalize method, called after this instance has been unregistered from
@@ -306,30 +319,67 @@ abstract class IAdvancedSelectClient : ISelectClient
         void connectionInfo ( ref char[] buffer );
     }
 
+    /**************************************************************************/
+
+    public interface ITimeoutReporter
+    {
+        void timeout ( );
+    }
+
     /**************************************************************************
 
-        IFinalizer and IErrorReporter instance
-    
+        Interface instance
+
      **************************************************************************/
 
-    private IFinalizer     finalizer_ = null;
-    private IErrorReporter error_reporter_ = null;
-    private IConnectionInfo connection_info_ = null;
-    
+    private IFinalizer       finalizer_        = null;
+    private IErrorReporter   error_reporter_   = null;
+    private IConnectionInfo  connection_info_  = null;
+    private ITimeoutReporter timeout_reporter_ = null;
+
     /**************************************************************************
 
         Constructor
-        
+
         Params:
             conduit     = I/O device instance
-    
+
      **************************************************************************/
 
     protected this ( ISelectable conduit )
     {
         super (conduit);
     }
-    
+
+    /**************************************************************************
+
+        Destructor
+
+     **************************************************************************/
+
+    ~this ( )
+    {
+        this.finalizer_        = null;
+        this.error_reporter_   = null;
+        this.connection_info_  = null;
+        this.timeout_reporter_ = null;
+    }
+
+    /**************************************************************************
+
+        Sets the TimeoutReporter. May be set to null to disable timeout
+        reporting.
+
+        Params:
+            timeout_reporter_ = ITimeoutReporter instance
+
+     **************************************************************************/
+
+    final public void timeout_reporter ( ITimeoutReporter timeout_reporter_ )
+    {
+        this.timeout_reporter_ = timeout_reporter_;
+    }
+
     /**************************************************************************
 
         Sets the Finalizer. May be set to null to disable finalizing.
@@ -371,6 +421,21 @@ abstract class IAdvancedSelectClient : ISelectClient
     final public void connection_info ( IConnectionInfo connection_info_ )
     {
         this.connection_info_ = connection_info_;
+    }
+
+    /**************************************************************************
+
+        Timeout method, called after this a timeout has occurred in the
+        SelectDispatcher.
+
+     **************************************************************************/
+
+    final override public void timeout ( )
+    {
+        if (this.timeout_reporter_)
+        {
+            this.timeout_reporter_.timeout();
+        }
     }
 
     /**************************************************************************
@@ -422,17 +487,5 @@ abstract class IAdvancedSelectClient : ISelectClient
         {
             this.connection_info_.connectionInfo(buffer);
         }
-    }
-
-    /**************************************************************************
-
-        Destructor
-        
-     **************************************************************************/
-
-    ~this ( )
-    {
-        this.finalizer_      = null;
-        this.error_reporter_ = null;
     }
 }
