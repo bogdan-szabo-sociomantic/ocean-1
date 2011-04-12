@@ -262,6 +262,7 @@ struct StructSerializer
      **************************************************************************/
 
     S loadSlice ( S, D ) ( D[] data, out size_t n )
+    in
     {
         static if (is (S T == T*))
         {
@@ -276,8 +277,9 @@ struct StructSerializer
         }
         else static assert (false, typeof (*this).stringof ~ ".loadSlice: need "
                             "a pointer to struct, not '" ~ S.stringof ~ '\'');
-
-        
+    }
+    body
+    {
         S s;
         
         n = loadSlice(s, data);
@@ -541,7 +543,7 @@ struct StructSerializer
             {
                 mixin AssertSupportedArray!(T, U, S, i);
                 
-                result = arrayLength(*field);
+                result += arrayLength(*field);
             }
             else mixin AssertSupportedType!(T, S, i);
         }
@@ -569,9 +571,16 @@ struct StructSerializer
         
         static if (is (T U == U[]))
         {
-            foreach (element; array)
+            foreach (i, element; array)
             {
-                len += arrayLength(element);                                    // recursive call
+                static if (is (U == struct))
+                {
+                    len += subArrayLength(array.ptr + i);                       // recursive call
+                }
+                else
+                {
+                    len += arrayLength(element);                                // recursive call
+                }
             }
         }
         else
