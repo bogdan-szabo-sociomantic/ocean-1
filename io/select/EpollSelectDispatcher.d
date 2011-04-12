@@ -446,11 +446,11 @@ class EpollSelectDispatcher
             }
             catch (Exception e)
             {
+                unregister_key = true;
+                
                 debug (ISelectClient) Trace.formatln("{}: {}", client.id, e.msg);
 
                 client.error(e, events);
-
-                unregister_key = true;
             }
             finally if (unregister_key)
             {
