@@ -40,6 +40,8 @@ private import tango.io.selector.EpollSelector;
 private import tango.io.selector.model.ISelector: Event, SelectionKey;
 private import tango.io.model.IConduit: ISelectable;
 
+private import tango.io.selector.SelectorException : UnregisteredConduitException;
+
 private import tango.core.Exception: SocketException;
 
 private import tango.time.Time: TimeSpan;
@@ -317,6 +319,30 @@ class EpollSelectDispatcher
         return this;
     }
 
+    /**************************************************************************
+
+        Unregisters the chain of io handlers with the select dispatcher. The
+        internal data buffer is cleared. An exception is not thrown if the chain
+        is not registered.
+    
+        Returns:
+            this instance
+    
+     **************************************************************************/
+    
+    public This safeUnregister ( ISelectClient client )
+    {
+        try
+        {
+            this.unregister(client);
+        }
+        catch ( UnregisteredConduitException e )
+        {
+        }
+    
+        return this;
+    }
+
     /***************************************************************************
 
         While there are clients registered, repeatedly waits for registered
@@ -368,6 +394,16 @@ class EpollSelectDispatcher
 
     private bool select ( )
     {
+        debug ( ISelectClient )
+        {
+            Trace.formatln("{}.select:", typeof(this).stringof);
+            foreach ( key; this.selector )
+            {
+                auto client = cast(ISelectClient)key.attachment;
+                Trace.formatln("   {}", client.id);
+            }
+        }
+
         StopWatch sw;
         bool not_timed_out;
 
@@ -447,7 +483,7 @@ class EpollSelectDispatcher
             catch (Exception e)
             {
                 unregister_key = true;
-                
+
                 debug (ISelectClient) Trace.formatln("{}: {}", client.id, e.msg);
 
                 client.error(e, events);
