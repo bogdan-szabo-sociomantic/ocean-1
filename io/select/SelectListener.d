@@ -243,11 +243,12 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient
 
     /**************************************************************************
 
-        Returns connection into the object pool.
-        
+        Called as the finalizer of class T. Returns connection into the object
+        pool.
+
         Params:
             connection = connection hander instance to return into pool
-    
+
      **************************************************************************/
 
     private void returnToPool ( IConnectionHandler connection )
