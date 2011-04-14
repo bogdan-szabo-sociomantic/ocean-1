@@ -456,6 +456,8 @@ class TokyoCabinetM
     }
     body
     {
+        key.length = 0;
+
         int len;
     
         void* key_ = cast(void*)tcmdbiternext(this.db, &len); 
