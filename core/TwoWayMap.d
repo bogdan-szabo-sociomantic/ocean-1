@@ -20,6 +20,8 @@
     associative array. (Another advantage would be that the copy array flag
     could be used.)
 
+    TODO: synchronize any methods which need it
+
     Usage example:
 
     ---
