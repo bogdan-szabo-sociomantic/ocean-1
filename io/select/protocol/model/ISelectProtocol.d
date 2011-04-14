@@ -66,8 +66,6 @@ private import ocean.io.select.EpollSelectDispatcher;
 
 private import tango.io.model.IConduit: ISelectable, IConduit;
 
-private import tango.io.selector.SelectorException : UnregisteredConduitException;
-
 debug private import tango.util.log.Trace;
 
 /******************************************************************************
@@ -171,7 +169,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
      **************************************************************************/
 
     private   EpollSelectDispatcher dispatcher;
-    
+
     /**************************************************************************
 
         IOHandler chain
@@ -362,13 +360,9 @@ abstract class ISelectProtocol : IAdvancedSelectClient
 
     public typeof(this) safeUnregister ( )
     {
-        try
-        {
-            this.unregister();
-        }
-        catch ( UnregisteredConduitException e )
-        {
-        }
+        this.data.length = 0;
+
+        this.dispatcher.safeUnregister(this);
 
         return this;
     }
@@ -444,7 +438,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         do
         {
             bool more = this.handle() || this.pending;
-            
+
             status = more ? status.Select : this.finalize();
         }
         while (status == status.Continue);
