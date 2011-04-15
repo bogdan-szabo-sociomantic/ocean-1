@@ -189,7 +189,7 @@ class SelectEvent : IAdvancedSelectClient
     
     ***************************************************************************/
 
-    public alias void delegate ( ) Handler;
+    public alias bool delegate ( ) Handler;
 
 
     /***************************************************************************
@@ -243,8 +243,9 @@ class SelectEvent : IAdvancedSelectClient
             event = select event which fired, must be Read
 
         Returns:
-            always false, indicating that this event handler has finished and
-            should be unregistered from the selector
+            forwards return value of event handler -- false indicates that the
+            event should be unregistered with the selector, true indicates that
+            it should remain registered and able to fire again
 
     ***************************************************************************/
 
@@ -259,9 +260,7 @@ class SelectEvent : IAdvancedSelectClient
         ubyte[ulong.sizeof] receive;
         this.fd_event.read(receive);
 
-        this.handler();
-
-        return false;
+        return this.handler();
     }
 
 
