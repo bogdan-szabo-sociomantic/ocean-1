@@ -42,14 +42,9 @@ module ocean.util.TraceLog;
 
     Imports
 
-********************************************************************************/
+*******************************************************************************/
 
-private     import      tango.util.log.Log, tango.util.log.LayoutDate, 
-                        tango.util.log.AppendFile;
-
-private     import      tango.text.convert.Layout;
-
-private     import      tango.util.log.Trace;
+private import ocean.util.log.MessageLogger;
 
 
 
@@ -59,66 +54,62 @@ private     import      tango.util.log.Trace;
 
 ********************************************************************************/
 
-struct TraceLog
+class TraceLog
 {
-static:
-
     /***************************************************************************
 
-        Struct type alias
+        This type alias
 
     ***************************************************************************/
-
-    public alias            typeof(*this)        This;
+    
+    public alias typeof(this) This;
 
 
     /***************************************************************************
-        
-        Log file logging Activated/Deactivated
-    
-    ***************************************************************************/
 
-    public                  bool                enabled = true;
-
-
-    /***************************************************************************
-        
-        Console logging Activated/Deactivated
-    
-    ***************************************************************************/
-
-    public                  bool                console_enabled = false;
-
-
-    /***************************************************************************
-        
-        Trace Log File Location
-    
-    ***************************************************************************/
-    
-    private                 char[]              traceLogFile;
-
-    
-    /***************************************************************************
-        
         Logger Instance
-    
+
     ***************************************************************************/
-    
-    private synchronized    Logger              logger = null;
-    
-    
-    /***************************************************************************
-        
-        Layout Instance
-    
-    ***************************************************************************/
-    
-    private synchronized    Layout!(char)       layout;
+
+    static private MessageLogger logger;
 
 
     /***************************************************************************
-        
+
+        Logging to file enabled getter / setter
+    
+    ***************************************************************************/
+
+    static public bool enabled ( )
+    {
+        return This.logger.enabled;
+    }
+
+    static public void enabled ( bool enabled )
+    {
+        return This.logger.enabled = enabled;
+    }
+
+
+    /***************************************************************************
+
+        Logging to console enabled getter / setter
+    
+    ***************************************************************************/
+
+    static public bool console_enabled ( )
+    {
+        return This.logger.console_enabled;
+    }
+
+    static public void console_enabled ( bool console_enabled )
+    {
+        return This.logger.console_enabled = console_enabled;
+    }
+
+
+    /***************************************************************************
+    
         Initialization of TraceLog
     
         Sets the file to write TraceInformation to
@@ -136,24 +127,15 @@ static:
             id = name of logger
        
     ***************************************************************************/
-    
-    public void init( char[] file, char[] id = "TraceLog" )
+
+    static public void init ( char[] file, char[] id = "TraceLog" )
     {
-        This.traceLogFile = file;
-
-        auto appender = new AppendFile(file);
-        appender.layout(new LayoutDate);
-
-        This.logger = Log.getLogger(id);
-        logger.additive(false); // disable default console output
-        This.logger.add(appender);
-
-        This.layout = new Layout!(char);
+        This.logger = new MessageLogger(file, id);
     }
 
 
     /***************************************************************************
-        
+    
         Writes Trace Message
     
         Writes a message string or a formatted string to the trace log file.
@@ -178,44 +160,19 @@ static:
        
     ***************************************************************************/
 
-    public void write ( char[] fmt, ... )
+    static public void write ( char[] fmt, ... )
+    in
     {
-        static char[] buffer;
-        
-        uint layoutSink ( char[] s )
-        {
-            buffer ~= s;
-            return s.length;
-        }
-
-        synchronized
-        {
-            auto log_output = This.enabled && This.logger;
-            auto console_output = This.console_enabled;
-
-            char[] out_str = fmt;
-            if ( _arguments.length && (log_output || console_output) )
-            {
-                buffer.length = 0;
-                This.layout.convert(&layoutSink, _arguments, _argptr, fmt);
-                out_str = buffer;
-            }
-
-            if ( log_output )
-            {
-                This.logger.append(Logger.Level.Trace, out_str);
-            }
-    
-            if ( console_output )
-            {
-                Trace.formatln(out_str);
-            }
-        }
+        assert(This.logger);
     }
-    
-    
+    body
+    {
+        This.logger.write(fmt, _arguments, _argptr);
+    }
+
+
     /***************************************************************************
-        
+    
         Returns Logger Instance
         
         ---
@@ -232,8 +189,14 @@ static:
        
     ***************************************************************************/
 
-    public Logger getLogger ()
+    static public MessageLogger.TangoLogger getLogger ( )
+    in
     {
-        return This.logger;
+        assert(This.logger);
+    }
+    body
+    {
+        return This.logger.getLogger();
     }
 }
+
