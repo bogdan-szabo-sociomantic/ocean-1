@@ -14,9 +14,14 @@
     Tracing to log is on by default, while tracing to the console is off by
     default. Both can be individually enabled and disabled.
 
-    --
+    Note that the static init() method *must* be called before any other methods
+    can be used.
 
     Usage example:
+
+    ---
+
+        private import ocean.util.TraceLog;
 
         TraceLog.init("etc/my_config.ini");
 
@@ -30,7 +35,7 @@
 
         TraceLog.write("This message is written to the console only");
 
-    --
+    ---
 
 ********************************************************************************/
 
@@ -81,11 +86,21 @@ class TraceLog
     ***************************************************************************/
 
     static public bool enabled ( )
+    in
+    {
+        assert(This.logger, This.stringof ~ ".enabled: logger not initialised, call init() before you use it!");
+    }
+    body
     {
         return This.logger.enabled;
     }
 
     static public void enabled ( bool enabled )
+    in
+    {
+        assert(This.logger, This.stringof ~ ".enabled: logger not initialised, call init() before you use it!");
+    }
+    body
     {
         return This.logger.enabled = enabled;
     }
@@ -98,11 +113,21 @@ class TraceLog
     ***************************************************************************/
 
     static public bool console_enabled ( )
+    in
+    {
+        assert(This.logger, This.stringof ~ ".console_enabled: logger not initialised, call init() before you use it!");
+    }
+    body
     {
         return This.logger.console_enabled;
     }
 
     static public void console_enabled ( bool console_enabled )
+    in
+    {
+        assert(This.logger, This.stringof ~ ".console_enabled: logger not initialised, call init() before you use it!");
+    }
+    body
     {
         return This.logger.console_enabled = console_enabled;
     }
@@ -163,7 +188,7 @@ class TraceLog
     static public void write ( char[] fmt, ... )
     in
     {
-        assert(This.logger);
+        assert(This.logger, This.stringof ~ ".write: logger not initialised, call init() before you use it!");
     }
     body
     {
@@ -192,7 +217,7 @@ class TraceLog
     static public MessageLogger.TangoLogger getLogger ( )
     in
     {
-        assert(This.logger);
+        assert(This.logger, This.stringof ~ ".getLogger: logger not initialised, call init() before you use it!");
     }
     body
     {
