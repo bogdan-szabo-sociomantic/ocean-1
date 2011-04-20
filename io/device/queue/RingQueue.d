@@ -318,7 +318,7 @@ class RingQueue : PersistQueue
     body
     {
         if (super.state.read_from >= this.gap)                                  // check whether there is an item at this offset
-        {               
+        {
             super.state.read_from = 0;                                          // if no, set it to the beginning (wrapping around)
             this.gap = super.state.dimension;
         }
@@ -547,7 +547,7 @@ class RingQueue : PersistQueue
     
     override protected size_t writeState ( OutputStream output )
     {
-        size_t bytes_written = SimpleSerializer.write(output, &this.gap);
+        size_t bytes_written = SimpleSerializer.write(output, this.gap);
 
         // Write super class' state
         bytes_written += super.writeState(output);
@@ -575,15 +575,9 @@ class RingQueue : PersistQueue
     override protected size_t readState ( InputStream input )
     {
         size_t bytes_read = SimpleSerializer.read(input, this.gap);
-        
+
         // Read super class' state
         bytes_read += super.readState(input);
-        
-        if (!this.state.items)                                                  // reset read/write positions
-        {                                                                       // to prevent invariant to fail
-            this.state.read_from = 0;
-            this.state.write_to  = 0;
-        }
         
         return bytes_read;
     }
