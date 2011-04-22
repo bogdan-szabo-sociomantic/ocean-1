@@ -1,8 +1,7 @@
 /*******************************************************************************
 
     Class for get array forwarding. Receives arrays from a data input buffer,
-    possibly decompresses compressed data, and forwards to an output destination
-    (a stream buffer, delegate, etc).
+    possibly decompresses compressed data, and forwards to an output delegate.
 
     Gets single arrays, lists of arrays and lists of pairs.
     
@@ -510,7 +509,7 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
     
     ***************************************************************************/
 
-    override protected void reset_()
+    override protected void reset_ ( )
     {
         this.array.length = 0;
         this.output_array.length = 0;
