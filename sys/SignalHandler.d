@@ -70,7 +70,7 @@ private import tango.stdc.signal: signal, raise, SIGABRT, SIGFPE,  SIGILL,
                                           SIGINT,  SIGSEGV, SIGTERM, SIG_DFL;
 
 private import ocean.core.UniStruct,
-               ocean.core.StringEnum;
+               ocean.core.SmartEnum;
 
 version (Posix) private import tango.stdc.posix.signal: SIGALRM, SIGBUS,  SIGCHLD,
                                                         SIGCONT, SIGHUP,  SIGKILL,
@@ -87,10 +87,24 @@ debug
 
 class SignalHandler
 {
+    /**************************************************************************
+
+        Signal handler delegate / function alias definitions
+
+        Signal handler delegates / functions should return false to prevent the
+        calling of the default signal handler for the signal being handled.
+
+     **************************************************************************/
+
     public alias bool delegate ( int ) DgHandler;
     public alias bool function ( int ) FnHandler;
+
+    /**************************************************************************
     
-    
+        Everything static
+     
+     **************************************************************************/
+
     static:
 
     /**************************************************************************
@@ -101,18 +115,17 @@ class SignalHandler
 
     extern (C) alias void function ( int code ) SignalHandler;
 
-
     /**************************************************************************
     
         Signal enumerator and identifier strings
      
      **************************************************************************/
 
-    alias StringEnumValue!(int) Sig;
+    alias SmartEnumValue!(int) Sig;
 
     version (Posix)
     {
-        StringEnum!(
+        mixin(SmartEnum!("Signals",
                     Sig("SIGABRT", .SIGABRT), // Abnormal termination
                     Sig("SIGFPE ", .SIGFPE),  // Floating-point error
                     Sig("SIGILL ", .SIGILL),  // Illegal hardware instruction
@@ -135,18 +148,18 @@ class SignalHandler
                     Sig("SIGUSR1", .SIGUSR1),
                     Sig("SIGUSR2", .SIGUSR2),
                     Sig("SIGURG ", .SIGURG)
-                ) Signals;
+                ));
     }
     else
     {
-        StringEnum!(
+        mixin(SmartEnum!("Signals",
                     Sig("SIGABRT", .SIGABRT), // Abnormal termination
                     Sig("SIGFPE ", .SIGFPE),  // Floating-point error
                     Sig("SIGILL ", .SIGILL),  // Illegal hardware instruction
                     Sig("SIGINT ", .SIGINT),  // Terminal interrupt character
                     Sig("SIGSEGV", .SIGSEGV), // Invalid memory reference
-                    Sig("SIGTERM", .SIGTERM) // Termination
-                ) Signals;
+                    Sig("SIGTERM", .SIGTERM)  // Termination
+                ));
     }
     
     /***************************************************************************
@@ -304,7 +317,7 @@ class SignalHandler
            
     ***************************************************************************/
     
-    void unregister ( T )( int code, T handler )
+    public void unregister ( T )( int code, T handler )
     {
        unregister([code], handler);
     }
@@ -333,9 +346,7 @@ class SignalHandler
         {
             static assert (false, "unregister template only usable for DgHandler or FnHandler!");
         }
-        
-        
-        
+
         foreach (code ; codes)
         {
             if (auto hler = code in handlers)
@@ -392,10 +403,10 @@ class SignalHandler
        General signal handler. 
        This function is registered as signal handler for every signal that
        a callback has registered for. 
-       
+
        It calls all callbacks for the signal and then — if none of the callbacks
        returned false — calls the default handler.
-       
+
        Params:
            signal = the signal code
            
@@ -439,9 +450,7 @@ class SignalHandler
                assert(false, "Handler not registered");
            }
        }
-           
    }
-   
    
    /**************************************************************************
    
@@ -510,7 +519,7 @@ class SignalHandler
 
     char[] getId ( int code )
     {
-        return Signals.description(code);
+        return *Signals.description(code);
     }
 }
 
