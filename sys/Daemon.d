@@ -49,6 +49,9 @@
     http://www.dsource.org/projects/tutorials/wiki/ThreadsAndDelegatesExample
 
 
+    TODO: the signal handling code should be re-written to use
+    ocean.sys.SignalHandler. Currently it's not possible to use them together.
+
 ********************************************************************************/
 
 module      ocean.sys.Daemon;
