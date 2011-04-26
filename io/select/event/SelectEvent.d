@@ -40,7 +40,7 @@
 
 *******************************************************************************/
 
-module ocean.io.select.event.model.SelectEvent;
+module ocean.io.select.event.SelectEvent;
 
 
 
@@ -51,6 +51,8 @@ module ocean.io.select.event.model.SelectEvent;
 *******************************************************************************/
 
 private import tango.io.model.IConduit;
+
+private import tango.stdc.posix.sys.types: ssize_t;
 
 private import ocean.io.select.model.ISelectClient;
 
@@ -63,8 +65,6 @@ debug private import tango.util.log.Trace;
     Definitions of C functions required to manage custom events.
 
 *******************************************************************************/
-
-private typedef int ssize_t;
 
 private extern ( C )
 {
