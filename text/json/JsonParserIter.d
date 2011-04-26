@@ -50,7 +50,7 @@ private import Float = tango.text.convert.Float;
 
 debug private import tango.util.log.Trace;
 
-
+version (none) import tango.io.Stdout;
 
 /******************************************************************************/
 
@@ -268,7 +268,37 @@ class JsonParserIter : JsonParser!(char)
                             });
     }
 
+    
+    /**************************************************************************
 
+        'foreach' iteration over type/name/value triples in the current content
+    
+     **************************************************************************/
+
+    public int opApply ( int delegate ( ref Token type, ref char[] name, ref char[] value ) dg )
+    {
+        int result = 0;
+        
+        char[] name = null;
+        
+        do
+        {
+            Token type = super.type;
+            
+            char[] value = super.value;
+            
+            if (name)
+            {
+                result = dg(type, name, value);
+            }
+            
+            name = (type == Token.Name)? value : null;
+        }
+        while (!result && super.next())
+        
+        return result;
+    }
+    
     /**************************************************************************
 
         Iterates over the json string looking for the named element and
