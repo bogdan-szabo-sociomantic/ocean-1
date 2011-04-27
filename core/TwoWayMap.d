@@ -123,7 +123,6 @@ struct TwoWayMap ( A, B, bool Indexed = false )
     ***************************************************************************/
 
     public alias A KeyType;
-
     public alias B ValueType;
 
 
@@ -139,14 +138,28 @@ struct TwoWayMap ( A, B, bool Indexed = false )
 
     /***************************************************************************
 
+        Dynamic arrays storing all keys and values added to the mappings.
+        Storing these locally avoids calling the associative array .key and
+        .value properties, which cause a memory allocation on each use.
+
+        TODO: maybe this should be optional, controlled by a template parameter
+
+    ***************************************************************************/
+
+    private A[] keys_list;
+    private B[] values_list;
+
+
+    /***************************************************************************
+
         Optional indices for mapped items.
 
     ***************************************************************************/
 
     static if ( Indexed )
     {
-        private size_t[A] a_to_index; // A to index in a_to_b.keys
-        private size_t[B] b_to_index; // B to index in a_to_b.values
+        private size_t[A] a_to_index; // A to index in keys_list
+        private size_t[B] b_to_index; // B to index in values_list
     }
 
 
@@ -182,10 +195,17 @@ struct TwoWayMap ( A, B, bool Indexed = false )
 
     public void opAssign ( B[A] assoc_array )
     {
+        this.keys_list.length = 0;
+        this.values_list.length = 0;
+
         this.a_to_b = assoc_array;
+
         foreach ( a, b; this.a_to_b )
         {
             this.b_to_a[b] = a;
+
+            this.keys_list ~= *(b in this.b_to_a);
+            this.values_list ~= *(a in this.a_to_b);
         }
 
         static if ( Indexed )
@@ -196,10 +216,17 @@ struct TwoWayMap ( A, B, bool Indexed = false )
     
     public void opAssign ( A[B] assoc_array )
     {
+        this.keys_list.length = 0;
+        this.values_list.length = 0;
+
         this.b_to_a = assoc_array;
+
         foreach ( b, a; this.b_to_a )
         {
             this.a_to_b[a] = b;
+
+            this.keys_list ~= *(b in this.b_to_a);
+            this.values_list ~= *(a in this.a_to_b);
         }
 
         static if ( Indexed )
@@ -224,14 +251,22 @@ struct TwoWayMap ( A, B, bool Indexed = false )
     {
         static if ( Indexed )
         {
-            assert(this.a_to_index[a] < this.a_to_b.keys.length);
-            assert(this.b_to_index[b] < this.a_to_b.values.length);
+            assert(this.a_to_index[a] < this.keys_list.length);
+            assert(this.b_to_index[b] < this.values_list.length);
         }
     }
     body
     {
+        auto already_exists = !!(a in this.a_to_b);
+
         this.a_to_b[a] = b;
         this.b_to_a[b] = a;
+
+        if ( !already_exists )
+        {
+            this.keys_list ~= *(b in this.b_to_a);
+            this.values_list ~= *(a in this.a_to_b);
+        }
 
         static if ( Indexed )
         {
@@ -244,14 +279,22 @@ struct TwoWayMap ( A, B, bool Indexed = false )
     {
         static if ( Indexed )
         {
-            assert(this.a_to_index[a] < this.a_to_b.keys.length);
-            assert(this.b_to_index[b] < this.a_to_b.values.length);
+            assert(this.a_to_index[a] < this.keys_list.length);
+            assert(this.b_to_index[b] < this.values_list.length);
         }
     }
     body
     {
+        auto already_exists = !!(a in this.a_to_b);
+
         this.a_to_b[a] = b;
         this.b_to_a[b] = a;
+
+        if ( !already_exists )
+        {
+            this.keys_list ~= *(b in this.b_to_a);
+            this.values_list ~= *(a in this.a_to_b);
+        }
 
         static if ( Indexed )
         {
@@ -384,7 +427,7 @@ struct TwoWayMap ( A, B, bool Indexed = false )
 
     public A[] keys ( )
     {
-        return this.a_to_b.keys;
+        return this.keys_list;
     }
 
 
@@ -397,7 +440,7 @@ struct TwoWayMap ( A, B, bool Indexed = false )
 
     public B[] values ( )
     {
-        return this.a_to_b.values;
+        return this.values_list;
     }
 
 
@@ -450,7 +493,7 @@ struct TwoWayMap ( A, B, bool Indexed = false )
             a = element to look up
 
         Returns:
-            pointer to the index of an element of type A in this.a_to_b.keys, or
+            pointer to the index of an element of type A in this.keys_list, or
             null if the element is not in the map
 
     ***************************************************************************/
@@ -475,7 +518,7 @@ struct TwoWayMap ( A, B, bool Indexed = false )
             b = element to look up
 
         Returns:
-            pointer to the index of an element of type B in this.a_to_b.values,
+            pointer to the index of an element of type B in this.values_list,
             or null if the element is not in the map
     
     ***************************************************************************/
@@ -503,8 +546,8 @@ struct TwoWayMap ( A, B, bool Indexed = false )
         {
             foreach ( a, b; this.a_to_b )
             {
-                this.a_to_index[a] = this.a_to_b.keys.find(a);
-                this.b_to_index[b] = this.a_to_b.values.find(b);
+                this.a_to_index[a] = this.keys_list.find(a);
+                this.b_to_index[b] = this.values_list.find(b);
             }
         }
     }
