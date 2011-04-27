@@ -60,7 +60,7 @@
     ---
 
     ArrayPool classes are also designed to be safe to use in an ObjectPool (for
-    lists of lists of arrays), having a reset method, called up recycle, which
+    lists of lists of arrays), having a reset method, called by recycle, which
     clears all arrays in the pool.
 
     TODO: possibly move the Indexable stuff into ObjectPool...
