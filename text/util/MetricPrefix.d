@@ -84,7 +84,7 @@ struct MetricPrefix
 
     typeof (this) bin ( T : float ) ( T n )
     {
-        const P = [' ', 'k', 'M', 'G', 'T'];
+        const P = [' ', 'K', 'M', 'G', 'T', 'P'];
         
         this.scaled = n;
         
@@ -115,15 +115,14 @@ struct MetricPrefix
         Converts n into a metric prefixed representation.
         Example: For n == 12345678 this.scaled is about 12.35 and this.prefix is
                  'M'.
-        
+
         Params:
             n = number to convert
-            p = prefix output
             e = input prefix: 0 = None, 1 = 'k', -1 = 'm', 2 = 'M', -2 = 'µ' etc.,
                               up to +/- 4
-            
+
         Returns:
-            number scaled to prefix
+            this instance
 
     **************************************************************************/
 
