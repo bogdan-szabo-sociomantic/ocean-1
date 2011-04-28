@@ -137,8 +137,10 @@ abstract class IStringEnum
     
 *******************************************************************************/
 
-class StringEnum ( V ... ) : IStringEnum
+deprecated class StringEnum ( V ... ) : IStringEnum
 {
+	pragma(msg, "StringEnum is deprecated -- use ocean.core.SmartEnum instead");
+
     // FIXME: for some reason neither of these asserts fires...
     static assert( !is( V == void ), "cannot create a StringEnum with no enum values!" );
     static assert( V.length > 0, "cannot create a StringEnum with no enum values!" );
