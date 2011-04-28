@@ -448,6 +448,9 @@ struct TwoWayMap ( A, B, bool Indexed = false )
 
         foreach iterator over the mapping.
 
+        Note that the order of iteration over the map is determined by the
+        elements of type A (the keys).
+
     ***************************************************************************/
 
     public int opApply ( int delegate ( ref A a, ref B b ) dg )
@@ -464,6 +467,9 @@ struct TwoWayMap ( A, B, bool Indexed = false )
     /***************************************************************************
 
         foreach iterator over the mapping, including each value's index.
+
+        Note that the order of iteration over the map is determined by the
+        elements of type A (the keys).
 
     ***************************************************************************/
 
