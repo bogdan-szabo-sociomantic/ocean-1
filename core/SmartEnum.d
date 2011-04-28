@@ -121,6 +121,8 @@ module ocean.core.SmartEnum;
 public import ocean.core.TwoWayMap;
 public import ocean.core.Exception;
 
+private import ocean.core.Traits;
+
 private import tango.core.Traits;
 private import tango.core.Tuple;
 
@@ -672,6 +674,29 @@ private template MixinCore ( T ... )
 
 /*******************************************************************************
 
+    Template to check whether any of the names of the tuple of SmartEnumValues
+    is a D keyword (which would produce un-compilable code).
+
+    Template params:
+        T = variadic list of one or more SmartEnumValues
+
+*******************************************************************************/
+
+private template AllValuesOk ( T ... )
+{
+    static if ( T.length == 1 )
+    {
+        const bool AllValuesOk = !isKeyword(T[0].name);
+    }
+    else
+    {
+        const bool AllValuesOk = !isKeyword(T[0].name) && AllValuesOk!(T[1..$]);
+    }
+}
+
+
+/*******************************************************************************
+
     Template to mixin a SmartEnum class.
 
     Template params:
@@ -691,14 +716,23 @@ private template MixinCore ( T ... )
 
 public template SmartEnum ( char[] Name, T ... )
 {
-    static if ( T.length > 0 )
+    pragma(msg, "Expanding SmartEnum template: " ~ Name);
+
+    static if ( AllValuesOk!(T) )
     {
-        const char[] SmartEnum = "class " ~ Name ~ " : ISmartEnum { " ~ DeclareEnum!(T) ~
-            DeclareConstants!(T) ~ StaticThis!(T) ~ MixinCore!(T) ~ "}";
+        static if ( T.length > 0 )
+        {
+            const char[] SmartEnum = "class " ~ Name ~ " : ISmartEnum { " ~ DeclareEnum!(T) ~
+                DeclareConstants!(T) ~ StaticThis!(T) ~ MixinCore!(T) ~ "}";
+        }
+        else
+        {
+            static assert(false, "Cannot create a SmartEnum with no entries!");
+        }
     }
     else
     {
-        static assert(false, "Cannot create a SmartEnum with no entries!");
+        static assert(false, "One or more of your enum strings is a D keyword. Cannot compile SmartEnum " ~ Name ~ ".");
     }
 }
 
