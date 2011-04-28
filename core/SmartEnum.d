@@ -180,7 +180,7 @@ private template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public TwoWayMap!(char[], BaseType, true) map;
+    static public TwoWayMap!(BaseType, char[], true) map;
 
 
     /***************************************************************************
@@ -329,7 +329,7 @@ private template SmartEnumCore ( BaseType )
 
     static public BaseType codeFromIndex ( size_t index )
     {
-        return map.values[index];
+        return map.keys[index];
     }
 
 
@@ -351,7 +351,7 @@ private template SmartEnumCore ( BaseType )
 
     static public char[] descriptionFromIndex ( size_t index )
     {
-        return map.keys[index];
+        return map.values[index];
     }
 
 
@@ -364,7 +364,7 @@ private template SmartEnumCore ( BaseType )
     static public int opApply ( int delegate ( ref BaseType code, ref char[] desc ) dg )
     {
         int res;
-        foreach ( description, code; map )
+        foreach ( code, description; map )
         {
             res = dg(code, description);
         }
@@ -382,7 +382,7 @@ private template SmartEnumCore ( BaseType )
     static public int opApply ( int delegate ( ref size_t index, ref BaseType code, ref char[] desc ) dg )
     {
         int res;
-        foreach ( index, description, code; map )
+        foreach ( index, code, description; map )
         {
             res = dg(index, code, description);
         }
