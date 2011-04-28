@@ -847,12 +847,15 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         Params:
             key = array key
             value = array value
+            
+        Returns:
+            pointer to the just added value
         
      **************************************************************************/
     
-    public void opIndexAssign ( V value, K key )
+    public V* opIndexAssign ( V value, K key )
     {
-        this.put(key, value);
+        return this.put(key, value);
     }
     
     /***************************************************************************

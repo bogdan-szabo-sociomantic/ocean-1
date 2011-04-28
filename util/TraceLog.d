@@ -88,7 +88,7 @@ class TraceLog
     static public bool enabled ( )
     in
     {
-        assert(This.logger, This.stringof ~ ".enabled: logger not initialised, call init() before you use it!");
+        assert(This.logger !is null, This.stringof ~ ".enabled: logger not initialised, call init() before you use it!");
     }
     body
     {
@@ -98,7 +98,7 @@ class TraceLog
     static public void enabled ( bool enabled )
     in
     {
-        assert(This.logger, This.stringof ~ ".enabled: logger not initialised, call init() before you use it!");
+        assert(This.logger !is null, This.stringof ~ ".enabled: logger not initialised, call init() before you use it!");
     }
     body
     {
@@ -115,7 +115,7 @@ class TraceLog
     static public bool console_enabled ( )
     in
     {
-        assert(This.logger, This.stringof ~ ".console_enabled: logger not initialised, call init() before you use it!");
+        assert(This.logger !is null, This.stringof ~ ".console_enabled: logger not initialised, call init() before you use it!");
     }
     body
     {
@@ -125,7 +125,7 @@ class TraceLog
     static public void console_enabled ( bool console_enabled )
     in
     {
-        assert(This.logger, This.stringof ~ ".console_enabled: logger not initialised, call init() before you use it!");
+        assert(This.logger !is null, This.stringof ~ ".console_enabled: logger not initialised, call init() before you use it!");
     }
     body
     {
@@ -188,7 +188,7 @@ class TraceLog
     static public void write ( char[] fmt, ... )
     in
     {
-        assert(This.logger, This.stringof ~ ".write: logger not initialised, call init() before you use it!");
+        assert(This.logger !is null, This.stringof ~ ".write: logger not initialised, call init() before you use it!");
     }
     body
     {
@@ -217,7 +217,7 @@ class TraceLog
     static public MessageLogger.TangoLogger getLogger ( )
     in
     {
-        assert(This.logger, This.stringof ~ ".getLogger: logger not initialised, call init() before you use it!");
+        assert(This.logger !is null, This.stringof ~ ".getLogger: logger not initialised, call init() before you use it!");
     }
     body
     {
