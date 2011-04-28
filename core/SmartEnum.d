@@ -98,7 +98,7 @@
     
     ---
 
-        import ocean.core.StringEnum;
+        import ocean.core.SmartEnum;
 
         mixin(AutoSmartEnum!("Commands", int,
             "first",
