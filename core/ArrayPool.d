@@ -170,6 +170,9 @@ public class ArrayPool ( T, bool Indexable = true ) : Resettable
 
         Params:
             array = array to add
+        
+        Returns:
+            array that was added
 
     ***************************************************************************/
 
