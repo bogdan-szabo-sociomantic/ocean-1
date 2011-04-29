@@ -173,7 +173,7 @@ public class ArrayPool ( T, bool Indexable = true ) : Resettable
 
     ***************************************************************************/
 
-    public void add ( T[] array )
+    public T[] add ( T[] array )
     {
         static if ( Indexable )
         {
@@ -187,6 +187,8 @@ public class ArrayPool ( T, bool Indexable = true ) : Resettable
         {
             this.pool_index.put(len, new_array);
         }
+        
+        return new_array.content;
     }
 
 
