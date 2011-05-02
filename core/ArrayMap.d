@@ -304,7 +304,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         
      **************************************************************************/
 
-    class RwLock
+    static class RwLock
     {
         private pthread_rwlock_t _lock;
         
