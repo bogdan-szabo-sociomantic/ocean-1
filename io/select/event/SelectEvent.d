@@ -38,6 +38,9 @@
 
     ---
 
+    TODO: either here, or in a new module, add timed event support, perhaps
+    using timerfd_create.
+
 *******************************************************************************/
 
 module ocean.io.select.event.SelectEvent;
