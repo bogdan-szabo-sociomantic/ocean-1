@@ -24,8 +24,6 @@ private import ocean.io.select.EpollSelectDispatcher;
     
 private import ocean.io.select.model.ISelectClient : IAdvancedSelectClient;
 
-private import tango.net.device.Socket : Socket;
-
 private import tango.io.model.IConduit : ISelectable;
 
 debug private import tango.util.log.Trace;
@@ -68,7 +66,7 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
     
     ***************************************************************************/
 
-    private FinalizeDg finalize_dg;
+    private FinalizeDg finalize_dg_ = null;
 
 
     /***************************************************************************
@@ -88,33 +86,77 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
 
     ***************************************************************************/
 
-    private ErrorDg error_dg;
+    private ErrorDg error_dg_ = null;
 
 
     /***************************************************************************
 
-        Constructor.
-
-        Opens a socket, sets it to non-blocking, disables Nagle algorithm.
-        Connects the socket, the asynchronous reader and writer, and the
-        provided epoll select dispatcher.
-
+        Constructor
+        
         Params:
-            dispatcher = epoll select dispatcher which this connection should
-                use for i/o
-            finalize_dg = user-specified finalizer, called when the connection
-                is shut down
-            error_dg = user-specified error handler, called when a connection
-                error occurs
+            error_dg_    = optional user-specified error handler, called when a
+                           connection error occurs
+
+     ***************************************************************************/
+    
+    public this ( ErrorDg error_dg_ = null )
+    {
+        this(null, error_dg_);
+    }
+    
+    /***************************************************************************
+
+        Constructor
+        
+        Params:
+            finalize_dg_ = optional user-specified finalizer, called when the
+                           connection is shut down
+            error_dg_    = optional user-specified error handler, called when a
+                           connection error occurs
 
     ***************************************************************************/
 
-    public this ( FinalizeDg finalize_dg, ErrorDg error_dg )
+    public this ( FinalizeDg finalize_dg_ = null, ErrorDg error_dg_ = null )
     {
-        this.finalize_dg = finalize_dg;
-        this.error_dg = error_dg;
+        this.finalize_dg_ = finalize_dg_;
+        this.error_dg_ = error_dg_;
     }
+    
+    /***************************************************************************
 
+        Sets the finalizer callback delegate which is called when the
+        connection is shut down. Setting to null disables the finalizer.
+        
+        Params:
+            finalize_dg_ = finalizer callback delegate
+        
+        Returns:
+            finalize_dg_
+        
+    ***************************************************************************/
+
+    public FinalizeDg finalize_dg ( FinalizeDg finalize_dg_ )
+    {
+        return this.finalize_dg_ = finalize_dg_;
+    }
+    
+    /***************************************************************************
+
+        Sets the error handler callback delegate which is called when a
+        connection error occurs. Setting to null disables the error handler.
+        
+        Params:
+            error_dg_ = error callback delegate
+        
+        Returns:
+            error_dg_
+        
+    ***************************************************************************/
+
+    public ErrorDg error_dg ( ErrorDg error_dg_ )
+    {
+        return this.error_dg_ = error_dg_;
+    }
 
     /***************************************************************************
 
@@ -137,16 +179,24 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
 
     ***************************************************************************/
 
-    public typeof (this) assign ( void delegate ( ISelectable ) assign_to_conduit )
+    version (all)
     {
-    	this.init();
-
-        this.assign_(assign_to_conduit);
-        return this;
+        abstract void assign ( void delegate ( ISelectable ) );
     }
+    else
+    {
+        public typeof (this) assign ( void delegate ( ISelectable ) assign_to_conduit )
+        {
+        	this.init();
+    
+            this.assign_(assign_to_conduit);
+            return this;
+        }
+    
+        abstract protected void assign_ ( void delegate ( ISelectable ) );
 
-    abstract protected void assign_ ( void delegate ( ISelectable ) );
-
+        abstract protected void init ( );
+    }
 
     /***************************************************************************
 
@@ -157,9 +207,9 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
     
     protected void finalize ( )
     {
-        if ( this.finalize_dg )
+        if ( this.finalize_dg_ )
         {
-            this.finalize_dg(this);
+            this.finalize_dg_(this);
         }
     }
 
@@ -177,13 +227,10 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
 
     protected void error ( Exception exception, IAdvancedSelectClient.EventInfo event )
     {
-        if ( this.error_dg )
+        if ( this.error_dg_ )
         {
-            this.error_dg(exception, event);
+            this.error_dg_(exception, event);
         }
     }
-
-
-    abstract protected void init ( );
 }
 
