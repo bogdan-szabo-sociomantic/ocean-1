@@ -1,5 +1,3 @@
-// Note: very basic, just checked in so it's in source control.
-
 module ocean.net.util.LibCurlEpoll;
 
 private import ocean.core.Array;
@@ -8,10 +6,13 @@ private import ocean.core.ObjectPool;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
+private import ocean.io.select.model.ISelectClient;
+
 private import ocean.net.util.c.multi;
 private import ocean.net.util.c.curl;
 
-private import tango.io.selector.EpollSelector;
+private import tango.io.selector.SelectorException;
+//private import tango.io.selector.EpollSelector;
 
 private import tango.time.Time: TimeSpan;
 
@@ -23,8 +24,67 @@ private import tango.util.log.Trace;
 
 //TODO: this should basically be a class which extends LibCurl. ???
 
-class CurlConnection : ISelectable
+class CurlConnection : ISelectClient // TODO: does it need to be Advanced?
 {
+    private class Conduit : ISelectable
+    {
+        Handle fd;
+
+        Handle fileHandle ( )
+        {
+            return this.fd;
+        }
+    }
+
+    private Conduit conduit;
+
+    public void setHandle ( curl_socket_t fd )
+    {
+        this.conduit.fd = cast(Handle)fd;
+    }
+    
+    private Event events_;
+
+    public Event events ( )
+    {
+        return this.events_;
+    }
+
+    public void setEvents ( Event events_ )
+    {
+        this.events_ = events_;
+    }
+
+    public bool handle ( Event events )
+    {
+        auto fd = this.conduit.fileHandle;
+
+        int mask = 0;
+
+        Trace.formatln("Handling key {} : {}", fd, events);
+
+        if ( events & Event.Read )      mask |= CURL_CSELECT_IN;
+        if ( events & Event.Write )     mask |= CURL_CSELECT_OUT;
+        if ( events & Event.Error )     mask |= CURL_CSELECT_ERR;
+        if ( events & Event.Hangup )    mask |= CURL_CSELECT_ERR;
+
+//        Trace.formatln("curl_multi_socket_action socket {}", fd);
+        this.curl_multi.socketAction(cast(curl_socket_t)fd, mask);
+
+        return true;
+    }
+
+    CurlMulti curl_multi;
+
+    public this ( CurlMulti curl_multi )
+    {
+        this.curl_multi = curl_multi;
+
+        this.conduit = new Conduit;
+
+        super(this.conduit);
+    }
+    
     public alias void delegate ( char[] url, char[] data ) Callback;
 
     private Callback receiver;
@@ -35,13 +95,8 @@ class CurlConnection : ISelectable
 
     CURL curl_handle;
 
-    Handle fd;
-
-    Handle fileHandle ( )
-    {
-        return this.fd;
-    }
-
+    alias ISelectable.Handle Handle;
+    
     void read ( char[] url, Callback finalizer, Callback receiver = null )
     in
     {
@@ -90,6 +145,14 @@ class CurlConnection : ISelectable
     {
         // TODO: curl_reset ?
     }
+
+    debug ( ISelectClient )
+    {
+        public char[] id ( )
+        {
+            return typeof(this).stringof ~ " " ~ this.url; // TODO: memory bad
+        }
+    }
     
     static extern ( C )
     {
@@ -120,20 +183,21 @@ class CurlMulti
     alias ArrayMap!(CurlConnection, CURL) ConnectionMap;
     ConnectionMap connection_map;
 
-    alias ObjectPool!(CurlConnection) ConnectionPool;
+    alias ObjectPool!(CurlConnection, CurlMulti) ConnectionPool;
     ConnectionPool connection_pool;
 
-    EpollSelector epoll;
+    EpollSelectDispatcher epoll;
 
-    long timeout_ms;
+    int timeout_ms;
 
-    public this ( )
+    public this ( EpollSelectDispatcher epoll )
     {
-        this.connection_pool = new ConnectionPool;
-        this.connection_map = new ConnectionMap;
+//        this.epoll = new EpollSelector;
+//        this.epoll.open();
+        this.epoll = epoll;
 
-        this.epoll = new EpollSelector;
-        this.epoll.open();
+        this.connection_pool = new ConnectionPool(this);
+        this.connection_map = new ConnectionMap;
 
         this.multi_handle = curl_multi_init();
         assert(this.multi_handle);
@@ -162,71 +226,50 @@ class CurlMulti
 
     public CurlConnection* getConnection ( CURL curl_handle )
     {
-//        Trace.formatln("Searching for {:x}", curl_handle);
-//        Trace.formatln("Active connections:");
-//        foreach ( k, v; this.connection_map )
-//        {
-//            Trace.formatln("   {:x}: {}", k, v);
-//        }
         return curl_handle in this.connection_map;
     }
 
 
+    private int running_handles;
+
     public void eventLoop ( )
     {
-        int running_handles;
-
-        // This shouldn't be necessary, apparently, but it doesn't work otherwise.
-        // It works without it if the timeout callback receives an int rather than a long
-//        curl_multi_socket_action(this.multi_handle, CURL_SOCKET_TIMEOUT, 0, &running_handles);
+        this.running_handles = 0;
 
         do
         {
-            // nfds = number of file descriptors with events
-            TimeSpan timeout = TimeSpan.fromMillis(this.timeout_ms);
-//            Trace.formatln("entering epoll_wait with timeout of {}ms", this.timeout_ms);
-            auto nfds = this.epoll.select(timeout);
-//            Trace.formatln("epoll selected {} fds", nfds);
+            this.epoll.timeout(this.timeout_ms);
+            auto timeout = !this.epoll.eventLoop;
 
-            if ( nfds == 0 )
+            if ( timeout )
             {
-//                Trace.formatln("curl_multi_socket_action - CURL_SOCKET_TIMEOUT");
-                curl_multi_socket_action(this.multi_handle, CURL_SOCKET_TIMEOUT, 0, &running_handles);
-            }
-            else
-            {
-                foreach ( key; this.epoll.selectedSet() )
-                {
-                    auto fd = key.conduit.fileHandle;
-
-                    Event events = cast(Event)key.events;
-                    int mask = 0;
-
-//                    Trace.formatln("Handling key {} : {}", fd, events);
-
-                    if ( events & Event.Read )      mask |= CURL_CSELECT_IN;
-                    if ( events & Event.Write )     mask |= CURL_CSELECT_OUT;
-                    if ( events & Event.Error )     mask |= CURL_CSELECT_ERR;
-                    if ( events & Event.Hangup )    mask |= CURL_CSELECT_ERR;
-
-//                    Trace.formatln("curl_multi_socket_action socket {}", fd);
-                    curl_multi_socket_action(this.multi_handle, cast(curl_socket_t)fd, mask, &running_handles);
-                }
+                this.socketAction(CURL_SOCKET_TIMEOUT, 0);
             }
         }
-        while ( running_handles > 0 );
+        while ( this.running_handles > 0 );
 
         Trace.formatln("Event loop end ---------------------------------------------");
 
-        foreach ( curl_handle, conn; this.connection_map )
-        {
-            conn.finalize();
-        }
+        assert(this.connection_map.length == 0);
+    }
+
+    public void socketAction ( curl_socket_t fd, int mask )
+    {
+        Trace.formatln("Socket action {} : {}", fd, mask);
+        curl_multi_socket_action(this.multi_handle, fd, mask, &running_handles);
     }
 
 
-    private void finalize ( CurlConnection conn )
+    private void addModifyConnection ( CurlConnection conn )
     {
+        Trace.formatln("Add/modify {}", conn.conduit.fileHandle);
+        this.epoll.register(conn);
+    }
+
+
+    private void finalizeConnection ( CurlConnection conn )
+    {
+        Trace.formatln("Finalize {}", conn.conduit.fileHandle);
         this.connection_pool.recycle(conn);
         this.connection_map.remove(conn.curl_handle);
         conn.finalize();
@@ -238,80 +281,84 @@ class CurlMulti
 
     static extern ( C )
     {
-        // TODO: it seems like I should ignore the top 32 bits of ms...
-        // maybe have a look in the libcurl source code to see if there's any notes on this
-
-        // changing it from a long to an int makes it work... very weird
-
         // Called by curl_multi_socket_action
 
         int timer_callback ( CURLM multi, int ms, void* userp )
         {
+            Trace.formatln("timer_callback: {}ms", ms);
+            scope ( failure ) Trace.formatln("ERROR: in timer_callback");
+
             auto multi_obj = cast(CurlMulti)userp;
-            assert(multi == multi_obj.multi_handle);
-
-//            Trace.formatln("Timeout CurlMulti object pointer = {:x}", userp);
-
-//            Trace.formatln("Timer callback: {}ms ({:x})", ms, ms);
-            multi_obj.timeout_ms = ms;
+            if ( multi == multi_obj.multi_handle )
+            {
+                multi_obj.timeout_ms = ms;
+            }
 
             return 0; // obligatory
         }
 
         
-        // Called by curl_multi_socket_action
+        // Called by curl_multi_socket_action when something needs doing with a socket
 
         int socket_callback ( CURL curl_handle, curl_socket_t socket_fd, int action, void* userp, void* socketp )
         {
-//            Trace.formatln("Socket callback");
-
+            Trace.formatln("socket_callback");
+            scope ( failure ) Trace.formatln("ERROR: in socket_callback");
+            
             auto multi_obj = cast(CurlMulti)userp;
-//            Trace.formatln("Socket CurlMulti object pointer = {:x}", userp);
+            Trace.formatln("Socket callback: CurlMulti object pointer = {:x}", userp);
 
             auto conn = multi_obj.getConnection(curl_handle);
-            assert(conn);
-            conn.fd = cast(ISelectable.Handle)socket_fd;
-
-//            conduit.fd = cast(ISelectable.Handle)socket_fd;
-
-            if( action == CURL_POLL_REMOVE )
+            if ( conn )
             {
-                try
-                {
-//                    multi_obj.epoll.unregister(*conn);
-                    multi_obj.finalize(*conn);
-                }
-                catch ( Exception e )
-                {
-                    Trace.formatln("Epoll unregistration error: {}", e.msg);
-                }
+                conn.setHandle(socket_fd);
 
-//                conn.finalize();
+                if( action == CURL_POLL_REMOVE )
+                {
+                    try
+                    {
+                        Trace.formatln("File descriptor {} has finished", socket_fd);
+                        multi_obj.finalizeConnection(*conn);
+                    }
+                    catch ( UnregisteredConduitException e )
+                    {
+                        Trace.formatln("Epoll unregistration error: fd not registered - {}", e.msg);
+                    }
+                    catch ( SelectorException e )
+                    {
+                        Trace.formatln("Epoll unregistration error: {}", e.msg);
+                    }
+                    catch ( Exception e )
+                    {
+                        Trace.formatln("Epoll unregistration error: {}", e.msg);
+                    }
+                }
+                else
+                {
+                    ISelectClient.Event events;
 
-                // TODO: recycle connection into pool & remove from map
+                    if ( action == CURL_POLL_IN || action == CURL_POLL_INOUT )
+                        events |= Event.Read;
+                    if ( action == CURL_POLL_OUT || action == CURL_POLL_INOUT )
+                        events |= Event.Write;
+
+                    conn.setEvents(events);
+
+                    try
+                    {
+                        multi_obj.addModifyConnection(*conn);
+                    }
+                    catch ( Exception e )
+                    {
+                        Trace.formatln("Epoll registration error: {}", e.msg);
+                    }
+                }
             }
             else
             {
-  //              Trace.formatln("add/mod socket {}, action {}", socket_fd, action);
-
-                Event events;
-
-                if ( action == CURL_POLL_IN || action == CURL_POLL_INOUT )
-                    events |= Event.Read;
-                if ( action == CURL_POLL_OUT || action == CURL_POLL_INOUT )
-                    events |= Event.Write;
-
-                try
-                {
-                    multi_obj.epoll.register(*conn, events);
-                }
-                catch ( Exception e )
-                {
-                    Trace.formatln("Epoll registration error: {}", e.msg);
-                }
+                Trace.formatln("ERROR: no conn");
             }
 
-//            Trace.formatln("Socket callback done");
             return 0; // obligatory
         }
     }
