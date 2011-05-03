@@ -90,7 +90,7 @@ class IFiberConnectionHandler : IConnectionHandler
     
     protected void assign_ ( void delegate ( ISelectable ) assign_to_conduit )
     {
-        Trace.formatln("Assign");
+        debug Trace.formatln("Assign");
 
         this.fiber.reset();
 

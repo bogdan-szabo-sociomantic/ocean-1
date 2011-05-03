@@ -24,9 +24,9 @@ class ISelectProtocol : IAdvancedSelectClient
 
     bool handle ( Event event )
     {
-        Trace.formatln("call state = {}", this.fiber.state);
+        debug Trace.formatln("call state = {}", this.fiber.state);
         this.fiber.call();
-        Trace.formatln("call DONE");
+        debug Trace.formatln("call DONE");
         return this.fiber.state != this.fiber.State.TERM;
     }
 
