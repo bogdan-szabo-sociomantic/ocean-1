@@ -132,6 +132,27 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient
     {
         this(new IPv4Address(address, port), dispatcher, args, backlog, reuse);
     }
+    
+    /**************************************************************************
+
+        Constructor
+        
+        Creates the server socket and registers it for incoming connections.
+        
+        Params:
+            port       = listening port
+            dispatcher = SelectDispatcher instance to use
+            args       = additional T constructor arguments, might be empty
+            backlog    = (see ServerSocket constructor in tango.net.device.Socket)
+            reuse      = (see ServerSocket constructor in tango.net.device.Socket)
+        
+     **************************************************************************/
+
+    this ( ushort port, EpollSelectDispatcher dispatcher,
+           Args args, int backlog = 32, bool reuse = true )
+    {
+        this(new IPv4Address(port), dispatcher, args, backlog, reuse);
+    }
 
     /**************************************************************************
 
