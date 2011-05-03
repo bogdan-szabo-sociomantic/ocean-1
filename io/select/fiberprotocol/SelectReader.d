@@ -1,13 +1,8 @@
 module ocean.io.select.fiberprotocol.SelectReader;
 
-private import ocean.core.Exception;
-
 private import ocean.io.select.fiberprotocol.model.ISelectProtocol;
 
-private import tango.io.model.IConduit;
-private import tango.core.Exception;
-
-private import tango.core.Thread : Fiber;
+private import tango.io.model.IConduit: InputStream;
 
 private import tango.stdc.errno;
 
@@ -24,36 +19,36 @@ class SelectReader : ISelectProtocol
     {
         super.data.length = super.buffer_size;
         
-        super.data.length = this.receive(super.data, cast (InputStream) super.conduit);
+        super.data.length = this.receive();
         
         debug (Raw) Trace.formatln(">>> {:X2}", super.data);
 
         return super.data.length < 5;
     }
 
-    private static size_t receive ( void[] data, InputStream conduit )
+    private size_t receive ( )
     out (received)
     {
         assert(received <= data.length, typeof(this).stringof ~ ": received length too high");
     }
     body
     {
-        size_t received = conduit.read(data);
+        size_t received = (cast (InputStream) super.conduit).read(super.data);
 
-        if ( received == conduit.Eof )
+        if ( received == InputStream.Eof )
         {
             switch (errno)
             {
+                default:
+                    throw super.exception("end of flow whilst reading", __FILE__, __LINE__);
+                
                 case EAGAIN:
-                static if ( EAGAIN != EWOULDBLOCK )
-                {
-                    case EWOULDBLOCK:
-                }
+                    static if ( EAGAIN != EWOULDBLOCK )
+                    {
+                        case EWOULDBLOCK:
+                    }
                     received = 0;
                     break;
-
-                default:
-                    assertEx!(IOException)(false, typeof(this).stringof ~ ": end of flow whilst reading");
             }
         }
 

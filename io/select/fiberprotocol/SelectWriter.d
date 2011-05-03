@@ -1,13 +1,9 @@
 module ocean.io.select.fiberprotocol.SelectWriter;
 
-private import ocean.core.Exception;
-
 private import ocean.io.select.fiberprotocol.model.ISelectProtocol;
 
-private import tango.io.model.IConduit;
-private import tango.core.Exception;
-
-private import tango.core.Thread : Fiber;
+private import tango.io.model.IConduit: OutputStream;
+private import ocean.core.Exception: assertEx;
 
 debug ( Raw ) private import tango.util.log.Trace;
 
@@ -25,7 +21,7 @@ class SelectWriter : ISelectProtocol
 
         size_t sent = (cast(OutputStream)conduit).write(data);
 
-        assertEx!(IOException)(sent != OutputStream.Eof, typeof(this).stringof ~ ": end of flow whilst writing");
+        assertEx(sent != OutputStream.Eof, super.exception("end of flow whilst writing", __FILE__, __LINE__));
 
         return sent < super.data.length;
     }
