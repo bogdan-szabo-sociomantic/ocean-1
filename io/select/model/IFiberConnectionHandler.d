@@ -9,8 +9,9 @@ private import ocean.io.select.fiberprotocol.SelectReader,
 
 private import tango.core.Thread : Fiber;
 
-debug private import tango.util.log.Trace;
+private import tango.net.device.Socket : Socket;
 
+debug private import tango.util.log.Trace;
 
 class IFiberConnectionHandler : IConnectionHandler
 {
@@ -55,7 +56,7 @@ class IFiberConnectionHandler : IConnectionHandler
     
     ***************************************************************************/
     
-    public this ( EpollSelectDispatcher dispatcher, FinalizeDg finalize_dg, ErrorDg error_dg )
+    public this ( EpollSelectDispatcher dispatcher, FinalizeDg finalize_dg = null, ErrorDg error_dg = null )
     {
         super(finalize_dg, error_dg);
 
@@ -84,11 +85,11 @@ class IFiberConnectionHandler : IConnectionHandler
     body
     {
         this.dispatcher.register(prot);
-        this.fiber.cede;
+        this.fiber.cede();
     }
 
     
-    protected void assign_ ( void delegate ( ISelectable ) assign_to_conduit )
+    public void assign ( void delegate ( ISelectable ) assign_to_conduit )
     {
         debug Trace.formatln("Assign");
 
@@ -99,22 +100,6 @@ class IFiberConnectionHandler : IConnectionHandler
         this.dispatcher.register(this.reader);
     }
 
-
     abstract protected void handle ( );
-
-
-    /***************************************************************************
-
-        Initialises the reader and writer. Called whenever a connection is
-        assigned, to ensure that the reader & writer states are clean.
-    
-    ***************************************************************************/
-    
-    protected void init ( )
-    {
-        this.reader.init();
-        this.writer.init();
-    }
-    
 }
 
