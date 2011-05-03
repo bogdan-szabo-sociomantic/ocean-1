@@ -20,9 +20,6 @@ module ocean.io.select.model.IConnectionHandler;
 
 *******************************************************************************/
 
-private import ocean.io.select.protocol.SelectReader,
-               ocean.io.select.protocol.SelectWriter;
-
 private import ocean.io.select.EpollSelectDispatcher;
     
 private import ocean.io.select.model.ISelectClient : IAdvancedSelectClient;
@@ -96,26 +93,6 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
 
     /***************************************************************************
 
-        Local aliases for SelectReader and SelectWriter.
-    
-    ***************************************************************************/
-
-    public alias .SelectReader SelectReader;
-    public alias .SelectWriter SelectWriter;
-
-
-    /***************************************************************************
-
-        SelectReader and SelectWriter used for asynchronous protocol i/o.
-
-    ***************************************************************************/
-
-    protected SelectReader reader;
-    protected SelectWriter writer;
-
-
-    /***************************************************************************
-
         Constructor.
 
         Opens a socket, sets it to non-blocking, disables Nagle algorithm.
@@ -132,21 +109,10 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
 
     ***************************************************************************/
 
-    public this ( EpollSelectDispatcher dispatcher, FinalizeDg finalize_dg, ErrorDg error_dg )
+    public this ( FinalizeDg finalize_dg, ErrorDg error_dg )
     {
-        Socket socket = new Socket;
-        socket.socket.noDelay(true).blocking(false);
-
         this.finalize_dg = finalize_dg;
         this.error_dg = error_dg;
-
-        this.reader = new SelectReader(socket, dispatcher);
-        this.reader.finalizer = this;
-        this.reader.error_reporter = this;
-
-        this.writer = new SelectWriter(socket, dispatcher);
-        this.writer.finalizer = this;
-        this.writer.error_reporter = this;
     }
 
 
@@ -218,17 +184,6 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
     }
 
 
-    /***************************************************************************
-
-        Initialises the reader and writer. Called whenever a connection is
-        assigned, to ensure that the reader & writer states are clean.
-
-    ***************************************************************************/
-    
-    private void init ( )
-    {
-        this.reader.init();
-        this.writer.init();
-    }
+    abstract protected void init ( );
 }
 
