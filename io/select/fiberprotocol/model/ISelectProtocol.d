@@ -44,7 +44,5 @@ class ISelectProtocol : IAdvancedSelectClient
     alias transmit opCall;
     
     abstract protected bool transmit_ ( );
-
-    abstract public void init ( );
 }
 

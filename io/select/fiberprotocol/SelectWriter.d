@@ -34,10 +34,5 @@ class SelectWriter : ISelectProtocol
     {
         return Event.Write;
     }
-
-    public void init ( )
-    {
-        
-    }
 }
 

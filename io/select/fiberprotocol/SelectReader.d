@@ -64,9 +64,4 @@ class SelectReader : ISelectProtocol
     {
         return Event.Read;
     }
-
-    public void init ( )
-    {
-        
-    }
 }
