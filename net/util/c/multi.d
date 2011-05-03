@@ -286,7 +286,7 @@ typedef int (*curl_multi_timer_callback)(CURLM *multi,    /* multi handle */
                                                              pointer */
 +/
 
-alias int function (CURLM multi, long timeout_ms, void* userp) curl_multi_timer_callback;
+alias int function (CURLM multi, int timeout_ms, void* userp) curl_multi_timer_callback;
 
 
 CURLMcode curl_multi_socket(CURLM multi_handle, curl_socket_t s,
@@ -319,7 +319,7 @@ TODO: removed +/
  * Returns: CURLM error code.
  */
 CURLMcode curl_multi_timeout(CURLM multi_handle,
-                             long* milliseconds);
+                             int* milliseconds);
 
 
 /*
