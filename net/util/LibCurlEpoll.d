@@ -1,13 +1,39 @@
+/*******************************************************************************
+
+    Parallel asynchronous file download with libcurl and epoll.
+
+    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
+
+    version:        May 2011: Initial release
+
+    authors:        Gavin Norman
+
+    Uses the libcurl multi socket interface
+    (http://curl.haxx.se/libcurl/c/curl_multi_socket_action.html).
+
+    Link with:
+        -L/usr/lib/libcurl.so    
+
+*******************************************************************************/
+
 module ocean.net.util.LibCurlEpoll;
+
+
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
 
 private import ocean.core.Array;
 private import ocean.core.ArrayMap;
 private import ocean.core.ObjectPool;
 private import ocean.core.SmartEnum;
 
-private import ocean.io.select.EpollSelectDispatcher;
-
 private import ocean.io.select.model.ISelectClient;
+
+private import ocean.io.select.EpollSelectDispatcher;
 
 private import ocean.net.util.c.multi;
 private import ocean.net.util.c.curl;
@@ -18,152 +44,429 @@ private import tango.time.Time: TimeSpan;
 
 private import Integer = tango.text.convert.Integer;
 
-private import tango.util.log.Trace;
+debug private import tango.util.log.Trace;
 
 
 
-class CurlConnection : ISelectClient, ISelectable // TODO: does it need to be Advanced?
+/*******************************************************************************
+
+    Curl connection class -- manages a single download.
+
+    Note: this class would be nested in LibCurlEpoll, below, but nested classes
+    cannot be put in an ObjectPool.
+
+*******************************************************************************/
+
+private class CurlConnection : ISelectClient, ISelectable
 {
-    public mixin(AutoSmartEnum!("FinalizeState", ubyte,
-        "Success",
-        "TimedOut"
-    ));
+    /***************************************************************************
+
+        Alias for a Handle (fd)
+
+    ***************************************************************************/
+
+    public alias ISelectable.Handle Handle;
+
+
+    /***************************************************************************
+
+        Receiver delegate & alias
+    
+    ***************************************************************************/
 
     public alias void delegate ( char[] url, char[] data ) Receiver;
-    public alias void delegate ( char[] url, FinalizeState.BaseType state ) Finalizer;
 
     private Receiver receiver_dg;
-    private Finalizer finalizer_dg;
-    private Finalizer timeout_dg;
 
-    private char[] url;
+
+    /***************************************************************************
+
+        Finalizer status enum
+
+    ***************************************************************************/
+
+    public mixin(AutoSmartEnum!("FinalizeState", ubyte,
+        "Success",
+        "TimedOut",
+        "Error"
+    ));
+
+
+    /***************************************************************************
+
+        Finalizer delegate & alias
+
+    ***************************************************************************/
+
+    public alias void delegate ( char[] url, FinalizeState.BaseType state ) Finalizer;
+
+    private Finalizer finalizer_dg;
+
+
+    /***************************************************************************
+
+        Handler delegate & alias
+
+    ***************************************************************************/
+
+    public alias void delegate ( typeof(this) conn, Event events ) Handler;
+
+    private Handler handler_dg;
+
+
+    /***************************************************************************
+
+        Abort delegate & alias
+    
+    ***************************************************************************/
+    
+    public alias void delegate ( typeof(this) conn ) Aborter;
+    
+    private Aborter aborter_dg;
+
+
+    /***************************************************************************
+
+        Curl easy handle for this connection
+
+    ***************************************************************************/
 
     private CURL curl_handle;
 
-    private CurlMulti curl_multi;
+
+    /***************************************************************************
+
+        File descriptor for this connection (registered with epoll)
+
+    ***************************************************************************/
 
     private Handle fd;
-    
-    Handle fileHandle ( )
+
+
+    /***************************************************************************
+
+        Epoll events which this connection is waiting on
+
+    ***************************************************************************/
+
+    private Event events_;
+
+
+    /***************************************************************************
+
+        Url being downloaded
+
+    ***************************************************************************/
+
+    private char[] url;
+
+
+    /***************************************************************************
+
+        Transfer state (defaults to success, unless an error or timeout occurs)
+
+    ***************************************************************************/
+
+    private FinalizeState.BaseType state;
+
+
+    /***************************************************************************
+
+        Constructor.
+
+        This instance is passed to the super class as an ISelectable.
+
+        Params:
+            handler_dg = delegate to be called when this connection fires in
+                epoll
+
+    ***************************************************************************/
+
+    public this ( Handler handler_dg, Aborter aborter_dg )
+    in
     {
-        return this.fd;
+        assert(handler_dg !is null, typeof(this).stringof ~ ".ctor: handler delegate must not be null");
+        assert(aborter_dg !is null, typeof(this).stringof ~ ".ctor: aborter delegate must not be null");
+    }
+    body
+    {
+        this.handler_dg = handler_dg;
+        this.aborter_dg = aborter_dg;
+
+        super(this);
     }
 
-    override public void timeout ( )
+
+    /***************************************************************************
+
+        Destructor. Cleans up the curl handle.
+
+    ***************************************************************************/
+
+    ~this ( )
     {
-        if ( this.finalizer_dg )
+        if ( this.curl_handle !is null )
         {
-            this.finalizer_dg(this.url, FinalizeState.TimedOut);
+            curl_easy_cleanup(this.curl_handle);
         }
     }
 
-    public void setFileHandle ( curl_socket_t fd )
+
+    /***************************************************************************
+
+        Initiates this connection to download a url.
+
+        Params:
+            url = url to download
+            receiver_dg = delegate to be called when data is received
+            finalizer_dg = delegate to be called when the download has finished
+                (this may be due to success or a timeout)
+
+    ***************************************************************************/
+
+    public void download ( char[] url, Receiver receiver_dg, Finalizer finalizer_dg )
+    in
     {
-        this.fd = cast(Handle)fd;
+        assert(url[$-1] == '\0', typeof(this).stringof ~ ".read: url must be null terminated (C style)");
+        assert(receiver_dg !is null, typeof(this).stringof ~ ".read: receiver delegate must not be null");
     }
-    
-    private Event events_;
+    body
+    {
+        this.state = FinalizeState.Success;
+
+        this.url.copy(url);
+
+        this.receiver_dg = receiver_dg;
+        this.finalizer_dg = finalizer_dg;
+
+        if ( this.curl_handle is null )
+        {
+            this.curl_handle = curl_easy_init();
+        }
+        else
+        {
+            curl_easy_reset(this.curl_handle);
+        }
+        assert(this.curl_handle);
+
+        curl_easy_setopt(this.curl_handle, CURLoption.URL, url.ptr);
+        curl_easy_setopt(this.curl_handle, CURLoption.WRITEFUNCTION, &writeCallback);
+        curl_easy_setopt(this.curl_handle, CURLoption.WRITEDATA, cast(void*)this);
+
+        // TODO: more curl easy setup options (copy from LibCurl module)
+    }
+
+
+    /***************************************************************************
+
+        ISelectClient method.
+
+        Returns:
+            the events with which this connection is registered to epoll
+
+    ***************************************************************************/
 
     public Event events ( )
     {
         return this.events_;
     }
 
+
+    /***************************************************************************
+
+        Sets the events with which this connection is registered to epoll.
+
+        Params:
+            events_ = the events with which this connection is registered to
+                epoll
+
+    ***************************************************************************/
+
     public void setEvents ( Event events_ )
     {
         this.events_ = events_;
     }
 
-    public bool handle ( Event events )
+
+    /***************************************************************************
+
+        Returns:
+            the curl handle for this connection
+    
+    ***************************************************************************/
+    
+    public CURL curlHandle ( )
     {
-        auto fd = this.conduit.fileHandle;
+        return this.curl_handle;
+    }
 
-        int mask = 0;
 
-//        Trace.formatln("Handling key {} : {}", fd, events);
+    /***************************************************************************
 
-        if ( events & Event.Read )      mask |= CURL_CSELECT_IN;
-        if ( events & Event.Write )     mask |= CURL_CSELECT_OUT;
-        if ( events & Event.Error )     mask |= CURL_CSELECT_ERR;
-        if ( events & Event.Hangup )    mask |= CURL_CSELECT_ERR;
+        ISelectable interface method.
+    
+        Returns:
+            this connection's file descriptor
+    
+    ***************************************************************************/
+    
+    Handle fileHandle ( )
+    {
+        return this.fd;
+    }
 
-//        Trace.formatln("curl_multi_socket_action socket {}", fd);
-        this.curl_multi.socketAction(cast(curl_socket_t)fd, mask);
+
+    /***************************************************************************
+
+        Sets the file descriptor this connection uses.
+
+        Params:
+            fd = file descriptor
+
+    ***************************************************************************/
+
+    public void setFileHandle ( curl_socket_t fd )
+    {
+        this.fd = cast(Handle)fd;
+    }
+
+
+    /***************************************************************************
+
+        ISelectClient method. Called when one of this connection's registered
+        epoll events fires.
+
+        Params:
+            events = events which fired
+
+        Returns:
+            Always true, to stay registered with epoll. (The epoll events are
+            unregistered by hand in LibCurlEpoll.socket_callback.)
+
+    ***************************************************************************/
+
+    public bool handle ( Event events )
+    in
+    {
+        assert(this.handler_dg !is null, typeof(this).stringof ~ ".handle: handler delegate not set");
+    }
+    body
+    {
+        this.handler_dg(this, events);
 
         return true;
     }
 
 
-    public this ( CurlMulti curl_multi )
-    {
-        this.curl_multi = curl_multi;
+    /***************************************************************************
 
-        super(this);
-    }
+        ISelectClient method override. Called when an epoll timeout occurs for
+        this connection. Aborts the connection.
     
-    alias ISelectable.Handle Handle;
-    
-    void read ( char[] url, Receiver receiver_dg, Finalizer finalizer_dg )
-    in
+    ***************************************************************************/
+
+    override public void timeout ( )
     {
-        assert(url[$-1] == '\0', typeof(this).stringof ~ ".read: url must be null terminated (C style)");
-        assert(receiver_dg, typeof(this).stringof ~ ".read: receiver delegate must not be null");
+        this.state = FinalizeState.TimedOut;
+        this.aborter_dg(this);
     }
-    body
+
+
+    /***************************************************************************
+
+        ISelectClient method override. Called when an error occurs during the
+        handling of an event for this connection. Aborts the connection.
+
+        Params:
+            exception: Exception thrown by handle()
+            event:     Seletor event while exception was caught
+
+    ***************************************************************************/
+
+    override public void error ( Exception exception, Event event )
     {
-        this.url.copy(url);
-
-        this.receiver_dg = receiver_dg;
-        this.finalizer_dg = finalizer_dg;
-
-        this.curl_handle = curl_easy_init();
-        assert(this.curl_handle);
-
-//        Trace.formatln("New curl easy handle {:x}", this.curl_handle);
-
-        curl_easy_setopt(this.curl_handle, CURLoption.URL, url.ptr);
-        curl_easy_setopt(this.curl_handle, CURLoption.WRITEFUNCTION, &write_callback);
-        curl_easy_setopt(this.curl_handle, CURLoption.WRITEDATA, cast(void*)this);
-
-        // TODO: more easy setup options (copy from LibCurl module)
+        this.state = FinalizeState.Error;
+        this.aborter_dg(this);
     }
+
+
+    /***************************************************************************
+
+        Returns an identifier string of this instance. (Note: not memory safe,
+        but only exists in debug builds anyway, so no worries.)
+
+        Returns:
+             identifier string of this instance
+
+    ***************************************************************************/
+
+    debug ( ISelectClient )
+    {
+        public char[] id ( )
+        {
+            return typeof(this).stringof ~ " " ~ this.url;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Calls the finalizer delegate (if it exists) with the specified status.
+
+        Params:
+             status
+
+    ***************************************************************************/
+
+    public void callFinalizer ( )
+    {
+        if ( this.finalizer_dg !is null )
+        {
+            this.finalizer_dg(this.url, this.state);
+        }
+    }
+
+
+    /***************************************************************************
+
+        Called when data is received, passing it on to the receiver delegate.
+
+        Params:
+            data = data received
+
+    ***************************************************************************/
 
     private void receive ( char[] data )
     in
     {
-        assert(receiver_dg, typeof(this).stringof ~ ".receive: receiver delegate must not be null");
+        assert(this.receiver_dg !is null, typeof(this).stringof ~ ".receive: receiver delegate not set");
     }
     body
     {
         this.receiver_dg(this.url, data);
     }
 
-    public void finalize ( )
-    {
-        if ( this.finalizer_dg )
-        {
-            this.finalizer_dg(this.url, FinalizeState.Success);
-        }
 
-        this.clear();
-    }
-
-    public void clear ( )
-    {
-        // TODO: curl_reset ?
-    }
-
-    debug ( ISelectClient )
-    {
-        public char[] id ( )
-        {
-            return typeof(this).stringof ~ " " ~ this.url; // TODO: memory bad
-        }
-    }
-    
     static extern ( C )
     {
-        size_t write_callback ( char* ptr, size_t size, size_t nmemb, void* userp )
+        /***********************************************************************
+
+            Libcurl write callback. Called when data is received. Passes it on
+            to the receiving connection object.
+
+            Params:
+                ptr = pointer to buffer containing received data
+                size = number of bytes in one member of the data buffer
+                nmemb = number of members in data buffer
+                userp = user-defined pointer, in this case a reference to a
+                    CurlConnection instance
+
+            Returns:
+                number of bytes consumed
+
+        ***********************************************************************/
+
+        private size_t writeCallback ( char* ptr, size_t size, size_t nmemb, void* userp )
         {
             size_t len = size * nmemb;
 
@@ -183,28 +486,112 @@ class CurlConnection : ISelectClient, ISelectable // TODO: does it need to be Ad
 }
 
 
-class CurlMulti
+
+/*******************************************************************************
+
+    Curl multi connection class -- manages a set of downloads
+
+*******************************************************************************/
+
+public class LibCurlEpoll
 {
-    CURLM multi_handle;
+    /***************************************************************************
 
-    alias ArrayMap!(CurlConnection, CURL) ConnectionMap;
-    ConnectionMap connection_map;
+        Curl multi handle
 
-    alias ObjectPool!(CurlConnection, CurlMulti) ConnectionPool;
-    ConnectionPool connection_pool;
+    ***************************************************************************/
 
-    EpollSelectDispatcher epoll;
+    private CURLM multi_handle;
 
-    int timeout_ms;
+
+    /***************************************************************************
+
+        Epoll selector instance, passed as a reference to the constructor.
+
+    ***************************************************************************/
+
+    private EpollSelectDispatcher epoll;
+
+
+    /***************************************************************************
+
+        Connection pool & alias
+
+    ***************************************************************************/
+
+    private alias ObjectPool!(CurlConnection, CurlConnection.Handler, CurlConnection.Aborter) ConnectionPool;
+    private ConnectionPool connection_pool;
+
+
+    /***************************************************************************
+
+        Connection map & alias. (Maps from a libcurl easy handle to a connection
+        instancei n the pool.)
+
+    ***************************************************************************/
+
+    private alias ArrayMap!(CurlConnection, CURL) ConnectionMap;
+    private ConnectionMap connection_map;
+
+
+    /***************************************************************************
+
+        Urls map & alias. (Maintains a list of the urls which are being
+        downloaded.)
+
+        TODO: could be a Set, but we don't have Set yet...
+
+    ***************************************************************************/
+
+    private alias ArrayMap!(bool, char[]) UrlsSet;
+    private UrlsSet urls_set;
+
+
+    /***************************************************************************
+
+        Finalizer delegate to be called when a connection finishes.
+
+    ***************************************************************************/
+
+    private CurlConnection.Finalizer finalizer_dg;
+
+
+    /***************************************************************************
+
+        Curl-specified connection timeout in millseconds.
+
+    ***************************************************************************/
+
+    private int curl_timeout_ms;
+
+
+    /***************************************************************************
+
+        User-specified connection timeout in millseconds. (Defaults to no
+        timeout.) The smaller of the two (user- vs curl-specified) timeouts is
+        used.
+
+    ***************************************************************************/
+
+    private int timeout_ms = -1;
+
+
+    /***************************************************************************
+
+        Constructor.
+
+        Params:
+            epoll = epoll select dispatcher to use
+
+    ***************************************************************************/
 
     public this ( EpollSelectDispatcher epoll )
     {
-//        this.epoll = new EpollSelector;
-//        this.epoll.open();
         this.epoll = epoll;
 
-        this.connection_pool = new ConnectionPool(this);
+        this.connection_pool = new ConnectionPool(&this.handleConnection, &this.abortConnection);
         this.connection_map = new ConnectionMap;
+        this.urls_set = new UrlsSet;
 
         this.multi_handle = curl_multi_init();
         assert(this.multi_handle);
@@ -213,31 +600,76 @@ class CurlMulti
         curl_multi_setopt(this.multi_handle, CURLMoption.SOCKETDATA, cast(void*)this);
         curl_multi_setopt(this.multi_handle, CURLMoption.TIMERFUNCTION, &timer_callback);
         curl_multi_setopt(this.multi_handle, CURLMoption.TIMERDATA, cast(void*)this);
-
-        Trace.formatln("CurlMulti object pointer = {:x}", cast(void*)this);
     }
 
 
-    public void read ( char[] url, CurlConnection.Receiver receiver, CurlConnection.Finalizer finalizer)
+    /***************************************************************************
+
+        Destructor. Cleans up the curl handle.
+    
+    ***************************************************************************/
+    
+    ~this ( )
     {
-        auto conn = this.connection_pool.get();
-
-        conn.read(url, receiver, finalizer);
-
-        this.connection_map.put(conn.curl_handle, cast(CurlConnection)conn);
-        Trace.formatln("New connection: handle = {}", conn.curl_handle);
-
-        curl_multi_add_handle(this.multi_handle, conn.curl_handle);
-
-        // Calling socket action will cause the epoll events for this connection to be registered
-        this.socketAction(CURL_SOCKET_TIMEOUT, 0);
+        if ( this.multi_handle !is null )
+        {
+            curl_multi_cleanup(this.multi_handle);
+        }
     }
 
-    public CurlConnection* getConnection ( CURL curl_handle )
+
+    /***************************************************************************
+
+        Requests a url to be downloaded.
+
+        Params:
+            url = url to download
+            receiver_dg = delegate to be called when data is received
+            finalizer_dg = delegate to be called when the download has finished
+                (this may be due to success or a timeout)
+
+        Returns:
+            true on success, or false if the requested url is already being
+            downloaded.
+
+    ***************************************************************************/
+
+    public bool download ( char[] url, CurlConnection.Receiver receiver_dg, CurlConnection.Finalizer finalizer_dg )
     {
-        return curl_handle in this.connection_map;
+        if ( url in this.urls_set )
+        {
+            return false;
+        }
+        else
+        {
+            auto conn = this.connection_pool.get();
+
+            conn.download(url, receiver_dg, finalizer_dg);
+            this.setConnectionTimeout(conn);
+
+            this.connection_map.put(conn.curlHandle, cast(CurlConnection)conn);
+            this.urls_set.put(url, true);
+
+            curl_multi_add_handle(this.multi_handle, conn.curlHandle);
+
+            // Calling socket action will cause the epoll events for this connection to be registered
+            this.socketAction(CURL_SOCKET_TIMEOUT, 0);
+
+            // TODO: I think there's a blocking DNS lookup when
+            // multi_socket_action is called. If this becomes problematic then
+            // we should try setting CURLOPT_DNS_CACHE_TIMEOUT to a higher value.
+
+            return true;
+        }
     }
 
+
+    /***************************************************************************
+
+        Returns:
+            the number of active connections
+    
+    ***************************************************************************/
 
     public size_t activeConnections ( )
     {
@@ -245,91 +677,319 @@ class CurlMulti
     }
 
 
+    /***************************************************************************
+
+        Checks whether a url is already downloading.
+
+        Params:
+            url = url to check for
+
+        Returns:
+            true if the url is already downloading
+
+    ***************************************************************************/
+
+    public bool downloading ( char[] url )
+    {
+        return (url in this.urls_set) !is null;
+    }
+
+
+    /***************************************************************************
+
+        foreach iterator over the names of the currently downloading urls.
+
+    ***************************************************************************/
+
+    public int opApply ( int delegate ( ref char[] url ) dg )
+    {
+        int res;
+
+        foreach ( url, b; this.urls_set )
+        {
+            res = dg(url);
+            if ( !res ) break;
+        }
+
+        return res;
+    }
+
+
+    /***************************************************************************
+
+        Sets the timeout for all current and future connections.
+
+        Params:
+            ms = milliseconds timeout to set (must be >= 0)
+
+    ***************************************************************************/
+
     public void setConnectionsTimeout ( int ms )
+    in
+    {
+        assert(ms >= 0, typeof(this).stringof ~ ".setConnectionsTimeout: negative timeout values have no meaning");
+    }
+    body
+    {
+        this.timeout_ms = ms;
+        this.setConnectionsTimeout_();
+    }
+
+
+    /***************************************************************************
+
+        Disables the timeout for all current and future connections.
+
+    ***************************************************************************/
+
+    public void disableConnectionsTimeout ( )
+    {
+        this.timeout_ms = -1;
+        this.setConnectionsTimeout_();
+    }
+
+
+    /***************************************************************************
+
+        Sets the curl timeout for all current and future connections.
+    
+        Params:
+            ms = milliseconds timeout to set
+
+    ***************************************************************************/
+
+    private void setCurlTimeout ( int ms )
+    {
+        this.curl_timeout_ms = ms;
+        this.setConnectionsTimeout_();
+    }
+
+
+    /***************************************************************************
+
+        Sets the timeout for all current and future connections.
+
+        Params:
+            ms = milliseconds timeout to set
+
+    ***************************************************************************/
+
+    private void setConnectionsTimeout_ ( )
     {
         foreach ( conn; this.connection_pool )
         {
-            conn.setTimeout(ms);
+            this.setConnectionTimeout(conn);
         }
     }
 
 
-    public void socketAction ( curl_socket_t fd, int mask )
-    {
-        int running_handles;
+    /***************************************************************************
 
-//        Trace.formatln("Socket action {} : {}", fd, mask);
-        curl_multi_socket_action(this.multi_handle, fd, mask, &running_handles);
+        Sets the timeout for a specific connection. The smaller of the curl-
+        specified and the user-specified timeouts is used.
+
+        Params:
+            conn = connection to set timeout of
+    
+    ***************************************************************************/
+
+    private void setConnectionTimeout ( CurlConnection conn )
+    {
+        int timeout = this.curl_timeout_ms;
+
+        if ( this.timeout_ms >= 0 )
+        {
+            timeout = this.timeout_ms < this.curl_timeout_ms ? this.timeout_ms : this.curl_timeout_ms;
+        }
+
+        if ( timeout >= 0 )
+        {
+            conn.setTimeout(timeout);
+        }
+        else
+        {
+            conn.disableTimeout();
+        }
     }
 
 
+    /***************************************************************************
+
+        Gets the connection corresponding to a specific curl easy handle.
+
+        Params:
+            curl_handle = curl handle to get connection for
+
+        Returns:
+            pointer to connection corresponding to curl_handle, can be null
+
+    ***************************************************************************/
+
+    private CurlConnection* getConnection ( CURL curl_handle )
+    {
+        return curl_handle in this.connection_map;
+    }
+
+
+    /***************************************************************************
+
+        Handles an event on a curl managed socket.
+
+        Params:
+            conn = connection in which event occurred
+            events = epoll events which fired
+
+    ***************************************************************************/
+
+    private void handleConnection ( CurlConnection conn, ISelectClient.Event events )
+    {
+        int mask;
+        if ( events & Event.Read )      mask |= CURL_CSELECT_IN;
+        if ( events & Event.Write )     mask |= CURL_CSELECT_OUT;
+        if ( events & Event.Error )     mask |= CURL_CSELECT_ERR;
+        if ( events & Event.Hangup )    mask |= CURL_CSELECT_ERR;
+
+        this.socketAction(cast(curl_socket_t)conn.fileHandle, mask);
+    }
+
+
+    /***************************************************************************
+
+        Aborts the processing of a connection. Called by a connection when an
+        error or timeout occurs.
+
+        Params:
+            conn = connection to abort
+    
+    ***************************************************************************/
+
+    private void abortConnection ( CurlConnection conn )
+    {
+        curl_multi_remove_handle(this.multi_handle, conn.curlHandle);
+    }
+
+
+    /***************************************************************************
+
+        Adds a new connection to epoll, or modifies an already registered
+        connection. Called by socketCallback().
+
+        Params:
+            conn = connection to add / modify
+
+    ***************************************************************************/
+
     private void addModifyConnection ( CurlConnection conn )
     {
-//        Trace.formatln("Add/modify {}", conn.conduit.fileHandle);
         this.epoll.register(conn);
     }
 
 
-    private void finalizeConnection ( CurlConnection conn )
+    /***************************************************************************
+
+        Removes a connection from epoll, and the various internal maps. The
+        connection's finalizer delegate is also called. Called by
+        socketCallback().
+
+        Params:
+            conn = connection to remove
+
+    ***************************************************************************/
+
+    private void removeConnection ( CurlConnection conn )
     {
-//        Trace.formatln("Finalize {}", conn.conduit.fileHandle);
+        conn.callFinalizer();
+
         this.connection_pool.recycle(conn);
         this.connection_map.remove(conn.curl_handle);
-        conn.finalize();
+        this.urls_set.remove(conn.url);
 
         // do this last as it can throw an exception
         this.epoll.unregister(conn);
     }
 
 
+    /***************************************************************************
+
+        Informs curl of action on a socket it is managing.
+
+        Params:
+            fd = file descriptor of socket on which action occurred
+            mask = events which occurred
+
+    ***************************************************************************/
+
+    private void socketAction ( curl_socket_t fd, int mask )
+    {
+        int running_handles;
+        curl_multi_socket_action(this.multi_handle, fd, mask, &running_handles);
+    }
+
+
     static extern ( C )
     {
-        // Called by curl_multi_socket_action
+        /***********************************************************************
+
+            At the request of curl_multi_socket_action, sets the timeout value
+            for running connections.
+
+            Params:
+                multi = curl multi handle
+                ms = timeout value in milliseconds
+                userp = user defined pointer (reference to a LibCurlEpoll
+                    instance, in this case)
+
+            Returns:
+                0 (obligatory)
+
+        ***********************************************************************/
 
         int timer_callback ( CURLM multi, int ms, void* userp )
         {
-//            Trace.formatln("timer_callback: {}ms", ms);
-//            scope ( failure ) Trace.formatln("ERROR: in timer_callback");
+            auto multi_obj = cast(LibCurlEpoll)userp;
 
-            auto multi_obj = cast(CurlMulti)userp;
             if ( multi == multi_obj.multi_handle )
             {
-                multi_obj.setConnectionsTimeout(ms);
+                multi_obj.setCurlTimeout(ms);
             }
 
             return 0; // obligatory
         }
 
         
-        // Called by curl_multi_socket_action when something needs doing with a socket
+        /***********************************************************************
+
+            At the request of curl_multi_socket_action, performs various actions
+            on a connection.
+
+            Params:
+                curl_handle = connection's curl easy handle
+                fd = connection's file descriptor
+                action = action required
+                userp = user defined pointer (reference to a LibCurlEpoll
+                    instance, in this case)
+                socketp = unused
+
+            Returns:
+                0 (obligatory)
+
+        ***********************************************************************/
 
         int socket_callback ( CURL curl_handle, curl_socket_t socket_fd, int action, void* userp, void* socketp )
         {
-//            Trace.formatln("socket_callback");
-//            scope ( failure ) Trace.formatln("ERROR: in socket_callback");
-            
-            auto multi_obj = cast(CurlMulti)userp;
-//            Trace.formatln("Socket callback: CurlMulti object pointer = {:x}", userp);
+            auto multi_obj = cast(LibCurlEpoll)userp;
 
             auto conn = multi_obj.getConnection(curl_handle);
             if ( conn )
             {
                 conn.setFileHandle(socket_fd);
 
-                if( action == CURL_POLL_REMOVE )
+                if ( action == CURL_POLL_REMOVE )
                 {
                     try
                     {
-//                        Trace.formatln("File descriptor {} has finished", socket_fd);
-                        multi_obj.finalizeConnection(*conn);
-                    }
-                    catch ( UnregisteredConduitException e )
-                    {
-                        Trace.formatln("Epoll unregistration error: fd not registered - {}", e.msg);
-                    }
-                    catch ( SelectorException e )
-                    {
-//                        Trace.formatln("Epoll unregistration error: {}", e.msg);
+                        Trace.formatln("File descriptor {} has finished", socket_fd);
+                        multi_obj.removeConnection(*conn);
                     }
                     catch ( Exception e )
                     {
@@ -366,6 +1026,4 @@ class CurlMulti
         }
     }
 }
-
-
 
