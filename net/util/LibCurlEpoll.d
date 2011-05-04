@@ -3,6 +3,7 @@ module ocean.net.util.LibCurlEpoll;
 private import ocean.core.Array;
 private import ocean.core.ArrayMap;
 private import ocean.core.ObjectPool;
+private import ocean.core.SmartEnum;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
@@ -12,7 +13,6 @@ private import ocean.net.util.c.multi;
 private import ocean.net.util.c.curl;
 
 private import tango.io.selector.SelectorException;
-//private import tango.io.selector.EpollSelector;
 
 private import tango.time.Time: TimeSpan;
 
@@ -22,25 +22,44 @@ private import tango.util.log.Trace;
 
 
 
-//TODO: this should basically be a class which extends LibCurl. ???
-
-class CurlConnection : ISelectClient // TODO: does it need to be Advanced?
+class CurlConnection : ISelectClient, ISelectable // TODO: does it need to be Advanced?
 {
-    private class Conduit : ISelectable
-    {
-        Handle fd;
+    public mixin(AutoSmartEnum!("FinalizeState", ubyte,
+        "Success",
+        "TimedOut"
+    ));
 
-        Handle fileHandle ( )
+    public alias void delegate ( char[] url, char[] data ) Receiver;
+    public alias void delegate ( char[] url, FinalizeState.BaseType state ) Finalizer;
+
+    private Receiver receiver_dg;
+    private Finalizer finalizer_dg;
+    private Finalizer timeout_dg;
+
+    private char[] url;
+
+    private CURL curl_handle;
+
+    private CurlMulti curl_multi;
+
+    private Handle fd;
+    
+    Handle fileHandle ( )
+    {
+        return this.fd;
+    }
+
+    override public void timeout ( )
+    {
+        if ( this.finalizer_dg )
         {
-            return this.fd;
+            this.finalizer_dg(this.url, FinalizeState.TimedOut);
         }
     }
 
-    private Conduit conduit;
-
-    public void setHandle ( curl_socket_t fd )
+    public void setFileHandle ( curl_socket_t fd )
     {
-        this.conduit.fd = cast(Handle)fd;
+        this.fd = cast(Handle)fd;
     }
     
     private Event events_;
@@ -61,7 +80,7 @@ class CurlConnection : ISelectClient // TODO: does it need to be Advanced?
 
         int mask = 0;
 
-        Trace.formatln("Handling key {} : {}", fd, events);
+//        Trace.formatln("Handling key {} : {}", fd, events);
 
         if ( events & Event.Read )      mask |= CURL_CSELECT_IN;
         if ( events & Event.Write )     mask |= CURL_CSELECT_OUT;
@@ -74,68 +93,56 @@ class CurlConnection : ISelectClient // TODO: does it need to be Advanced?
         return true;
     }
 
-    CurlMulti curl_multi;
 
     public this ( CurlMulti curl_multi )
     {
         this.curl_multi = curl_multi;
 
-        this.conduit = new Conduit;
-
-        super(this.conduit);
+        super(this);
     }
     
-    public alias void delegate ( char[] url, char[] data ) Callback;
-
-    private Callback receiver;
-    private Callback finalizer;
-
-    char[] url;
-    char[] received;
-
-    CURL curl_handle;
-
     alias ISelectable.Handle Handle;
     
-    void read ( char[] url, Callback finalizer, Callback receiver = null )
+    void read ( char[] url, Receiver receiver_dg, Finalizer finalizer_dg )
     in
     {
-        assert(url[$-1] == '\0', "url must be null terminated (C style)");
+        assert(url[$-1] == '\0', typeof(this).stringof ~ ".read: url must be null terminated (C style)");
+        assert(receiver_dg, typeof(this).stringof ~ ".read: receiver delegate must not be null");
     }
     body
     {
         this.url.copy(url);
 
-        this.finalizer = finalizer;
-        this.receiver = receiver;
-
-        this.received.length = 0;
+        this.receiver_dg = receiver_dg;
+        this.finalizer_dg = finalizer_dg;
 
         this.curl_handle = curl_easy_init();
         assert(this.curl_handle);
 
-        Trace.formatln("New curl easy handle {:x}", this.curl_handle);
+//        Trace.formatln("New curl easy handle {:x}", this.curl_handle);
 
         curl_easy_setopt(this.curl_handle, CURLoption.URL, url.ptr);
         curl_easy_setopt(this.curl_handle, CURLoption.WRITEFUNCTION, &write_callback);
         curl_easy_setopt(this.curl_handle, CURLoption.WRITEDATA, cast(void*)this);
+
+        // TODO: more easy setup options (copy from LibCurl module)
     }
 
-    public void receive ( char[] data )
+    private void receive ( char[] data )
+    in
     {
-        this.received.append(data);
-
-        if ( this.receiver )
-        {
-            this.receiver(this.url, data);
-        }
+        assert(receiver_dg, typeof(this).stringof ~ ".receive: receiver delegate must not be null");
+    }
+    body
+    {
+        this.receiver_dg(this.url, data);
     }
 
     public void finalize ( )
     {
-        if ( this.finalizer )
+        if ( this.finalizer_dg )
         {
-            this.finalizer(this.url, this.received);
+            this.finalizer_dg(this.url, FinalizeState.Success);
         }
 
         this.clear();
@@ -211,18 +218,20 @@ class CurlMulti
     }
 
 
-    public void read ( char[] url, CurlConnection.Callback finalizer, CurlConnection.Callback receiver = null )
+    public void read ( char[] url, CurlConnection.Receiver receiver, CurlConnection.Finalizer finalizer)
     {
         auto conn = this.connection_pool.get();
 
-        conn.read(url, finalizer, receiver);
+        conn.read(url, receiver, finalizer);
 
         this.connection_map.put(conn.curl_handle, cast(CurlConnection)conn);
         Trace.formatln("New connection: handle = {}", conn.curl_handle);
 
         curl_multi_add_handle(this.multi_handle, conn.curl_handle);
-    }
 
+        // Calling socket action will cause the epoll events for this connection to be registered
+        this.socketAction(CURL_SOCKET_TIMEOUT, 0);
+    }
 
     public CurlConnection* getConnection ( CURL curl_handle )
     {
@@ -230,46 +239,40 @@ class CurlMulti
     }
 
 
-    private int running_handles;
-
-    public void eventLoop ( )
+    public size_t activeConnections ( )
     {
-        this.running_handles = 0;
-
-        do
-        {
-            this.epoll.timeout(this.timeout_ms);
-            auto timeout = !this.epoll.eventLoop;
-
-            if ( timeout )
-            {
-                this.socketAction(CURL_SOCKET_TIMEOUT, 0);
-            }
-        }
-        while ( this.running_handles > 0 );
-
-        Trace.formatln("Event loop end ---------------------------------------------");
-
-        assert(this.connection_map.length == 0);
+        return this.connection_map.length;
     }
+
+
+    public void setConnectionsTimeout ( int ms )
+    {
+        foreach ( conn; this.connection_pool )
+        {
+            conn.setTimeout(ms);
+        }
+    }
+
 
     public void socketAction ( curl_socket_t fd, int mask )
     {
-        Trace.formatln("Socket action {} : {}", fd, mask);
+        int running_handles;
+
+//        Trace.formatln("Socket action {} : {}", fd, mask);
         curl_multi_socket_action(this.multi_handle, fd, mask, &running_handles);
     }
 
 
     private void addModifyConnection ( CurlConnection conn )
     {
-        Trace.formatln("Add/modify {}", conn.conduit.fileHandle);
+//        Trace.formatln("Add/modify {}", conn.conduit.fileHandle);
         this.epoll.register(conn);
     }
 
 
     private void finalizeConnection ( CurlConnection conn )
     {
-        Trace.formatln("Finalize {}", conn.conduit.fileHandle);
+//        Trace.formatln("Finalize {}", conn.conduit.fileHandle);
         this.connection_pool.recycle(conn);
         this.connection_map.remove(conn.curl_handle);
         conn.finalize();
@@ -285,13 +288,13 @@ class CurlMulti
 
         int timer_callback ( CURLM multi, int ms, void* userp )
         {
-            Trace.formatln("timer_callback: {}ms", ms);
-            scope ( failure ) Trace.formatln("ERROR: in timer_callback");
+//            Trace.formatln("timer_callback: {}ms", ms);
+//            scope ( failure ) Trace.formatln("ERROR: in timer_callback");
 
             auto multi_obj = cast(CurlMulti)userp;
             if ( multi == multi_obj.multi_handle )
             {
-                multi_obj.timeout_ms = ms;
+                multi_obj.setConnectionsTimeout(ms);
             }
 
             return 0; // obligatory
@@ -302,22 +305,22 @@ class CurlMulti
 
         int socket_callback ( CURL curl_handle, curl_socket_t socket_fd, int action, void* userp, void* socketp )
         {
-            Trace.formatln("socket_callback");
-            scope ( failure ) Trace.formatln("ERROR: in socket_callback");
+//            Trace.formatln("socket_callback");
+//            scope ( failure ) Trace.formatln("ERROR: in socket_callback");
             
             auto multi_obj = cast(CurlMulti)userp;
-            Trace.formatln("Socket callback: CurlMulti object pointer = {:x}", userp);
+//            Trace.formatln("Socket callback: CurlMulti object pointer = {:x}", userp);
 
             auto conn = multi_obj.getConnection(curl_handle);
             if ( conn )
             {
-                conn.setHandle(socket_fd);
+                conn.setFileHandle(socket_fd);
 
                 if( action == CURL_POLL_REMOVE )
                 {
                     try
                     {
-                        Trace.formatln("File descriptor {} has finished", socket_fd);
+//                        Trace.formatln("File descriptor {} has finished", socket_fd);
                         multi_obj.finalizeConnection(*conn);
                     }
                     catch ( UnregisteredConduitException e )
@@ -326,7 +329,7 @@ class CurlMulti
                     }
                     catch ( SelectorException e )
                     {
-                        Trace.formatln("Epoll unregistration error: {}", e.msg);
+//                        Trace.formatln("Epoll unregistration error: {}", e.msg);
                     }
                     catch ( Exception e )
                     {
