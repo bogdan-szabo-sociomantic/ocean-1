@@ -31,6 +31,86 @@ struct eb64_node
 {
     eb_node node; /* the tree node, must be at the beginning */
     ulong key;
+
+    /* Return leftmost node in the tree, or NULL if none */
+    alias .eb64_first first;
+
+    /* Return rightmost node in the tree, or NULL if none */
+    alias .eb64_last last;
+
+    /* Return next node in the tree, or NULL if none */
+    typeof (this) next ( )
+    {
+        return eb64_next(this);
+    }
+
+    /* Return previous node in the tree, or NULL if none */
+    typeof (this) prev ( )
+    {
+        return eb64_prev(this);
+    }
+
+    /* Return next node in the tree, skipping duplicates, or NULL if none */
+    typeof (this) next_unique ( )
+    {
+        return eb64_next_unique(this);
+    }
+
+    /* Return previous node in the tree, skipping duplicates, or NULL if none */
+    typeof (this) prev_unique ( )
+    {
+        return eb64_prev_unique(this);
+    }
+
+    /* Delete node from the tree if it was linked in. Mark the node unused. Note
+     * that this function relies on a non-inlined generic function: eb_delete.
+     */
+    void remove ( )
+    {
+        eb64_delete(this);
+    }
+
+    /*
+     * Find the first occurence of a key in the tree <root>. If none can be
+     * found, return NULL.
+     */
+    alias .eb64_lookup lookup;
+
+    /*
+     * Find the first occurence of a signed key in the tree <root>. If none can
+     * be found, return NULL.
+     */
+    alias .eb64i_lookup lookup;
+
+    /*
+     * Find the last occurrence of the highest key in the tree <root>, which is
+     * equal to or less than <x>. NULL is returned is no key matches.
+     */
+    alias .eb64_lookup_le lookup_le;
+
+    /*
+     * Find the first occurrence of the lowest key in the tree <root>, which is
+     * equal to or greater than <x>. NULL is returned is no key matches.
+     */
+    alias .eb64_lookup_ge lookup_ge;
+
+    /* Insert eb32_node <new> into subtree starting at node root <root>.
+     * Only new->key needs be set with the key. The eb32_node is returned.
+     * If root->b[EB_RGHT]==1, the tree may only contain unique keys.
+     */
+    typeof (this) insert ( eb_root* root )
+    {
+        return eb64_insert(root, this);
+    }
+
+    /* Insert eb32_node <new> into subtree starting at node root <root>, using
+     * signed keys. Only new->key needs be set with the key. The eb32_node
+     * is returned. If root->b[EB_RGHT]==1, the tree may only contain unique keys.
+     */
+    typeof (this) insert_signed ( eb_root* root )
+    {
+        return eb64i_insert(root, this);
+    }
 };
 
 /*
