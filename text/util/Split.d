@@ -8,6 +8,10 @@
     
     author:         David Eckardt
     
+    - The SplitStr class splits a string by occurrences of a delimiter string.
+    - The SplitChr class splits a string by occurrences of a delimiter
+      character.
+    
     Build note: Requires linking against libglib-2.0: add
     
         -L-lglib-2.0
@@ -15,7 +19,7 @@
     to the DMD build parameters.
     
     TODO: coordinate with ocean.core.Array and ocean.text.util.StringReplace
-
+    
  ******************************************************************************/
 
 module text.util.Split;
@@ -51,7 +55,11 @@ private import tango.io.Stdout;
 
 extern (C) private char* g_strstr_len ( char* haystack, ssize_t haystack_len, char* needle );
 
-/******************************************************************************/
+/******************************************************************************
+
+    Splits a string by occurrences of a delimiter string
+
+ ******************************************************************************/
 
 class SplitStr : ISplit
 {
@@ -255,10 +263,13 @@ class SplitStr : ISplit
             Stderr(split("abcd123ghi"))("\n").flush();
         }
     }
-    
 }
 
-/******************************************************************************/
+/******************************************************************************
+
+    Splits a string by occurrences of a delimiter character
+
+ ******************************************************************************/
 
 class SplitChr : ISplit
 {
@@ -311,12 +322,21 @@ class SplitChr : ISplit
      **************************************************************************/
 
     protected size_t skipDelim ( char[] str )
+    in
+    {
+        assert (str.length >= 1);
+    }
+    body
     {
         return 1;
     }
 }
 
-/******************************************************************************/
+/******************************************************************************
+
+    Base class
+
+ ******************************************************************************/
 
 abstract class ISplit
 {
@@ -490,9 +510,11 @@ abstract class ISplit
     /**************************************************************************
     
         Skips the delimiter which str starts with.
-        str should start with a delimiter so a subclass may return an undefined
-        result less than str.length otherwise or ensure this with an 'in'
-        contract. 
+        The return value is at most str.length.
+        It is assured that str starts with a delimiter so a subclass may return
+        an undefined result otherwise. Additionally, a subclass is encouraged to
+        use an 'in' contract to ensure str starts with a delimiter and/or is
+        long enought to skip a leading delimiter. 
         
         Params:
             str = string starting with delimiter
