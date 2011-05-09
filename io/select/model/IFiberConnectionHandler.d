@@ -15,9 +15,9 @@ debug private import tango.util.log.Trace;
 
 class IFiberConnectionHandler : IConnectionHandler
 {
-    Fiber fiber;
+    protected Fiber fiber;
 
-    EpollSelectDispatcher dispatcher;
+    protected EpollSelectDispatcher dispatcher;
 
     /***************************************************************************
 
@@ -91,8 +91,6 @@ class IFiberConnectionHandler : IConnectionHandler
     
     public void assign ( void delegate ( ISelectable ) assign_to_conduit )
     {
-        debug Trace.formatln("Assign");
-
         this.fiber.reset();
 
         assign_to_conduit(this.reader.conduit);
