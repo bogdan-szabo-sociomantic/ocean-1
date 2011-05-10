@@ -211,7 +211,11 @@ public class EBTree ( T )
     
     public void remove ( Node* node )
     {
-        node.remove();
+        if ( node !is null )
+        {
+            node.remove();
+            this.node_pool.recycle(node);
+        }
     }
     
     
@@ -225,7 +229,14 @@ public class EBTree ( T )
     public KeyType first ( )
     {
         auto node = getFirst(&this.root);
-        return node.key;
+        if ( node !is null )
+        {
+            return node.key;
+        }
+        else
+        {
+            return KeyType.min;
+        }
     }
     
     
@@ -239,7 +250,14 @@ public class EBTree ( T )
     public KeyType last ( )
     {
         auto node = getLast(&this.root);
-        return node.key;
+        if ( node !is null )
+        {
+            return node.key;
+        }
+        else
+        {
+            return KeyType.max;
+        }
     }
     
     
@@ -252,7 +270,7 @@ public class EBTree ( T )
 
     size_t length ( )
     {
-        return this.node_pool.length;
+        return this.node_pool.getNumBusyItems;
     }
 
 
