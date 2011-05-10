@@ -21,11 +21,15 @@
 
 module ocean.io.select.model.ISelectClient;
 
+
+
 /******************************************************************************
 
     Imports
 
  ******************************************************************************/
+
+private import ocean.io.select.timeout.ExpiryRegistry;
 
 private import tango.sys.linux.epoll: EPOLLIN, EPOLLOUT, EPOLLPRI,
                                       EPOLLONESHOT, EPOLLET,
@@ -34,6 +38,10 @@ private import tango.sys.linux.epoll: EPOLLIN, EPOLLOUT, EPOLLPRI,
 private const EPOLLRDHUP = 0x2000;
 
 private import tango.io.model.IConduit: ISelectable;
+
+debug private import tango.util.log.Trace;
+
+
 
 /******************************************************************************
 
@@ -44,7 +52,7 @@ private import tango.io.model.IConduit: ISelectable;
 abstract class ISelectClient
 {
     public alias .ISelectable ISelectable;
-    
+
     public enum Event
     {
         None            = 0,
@@ -70,7 +78,7 @@ abstract class ISelectClient
     /**************************************************************************
 
         I/O device instance
-        
+
         Note: Conforming to the name convention used in tango.io.selector, the
         ISelectable instance is named "conduit" although ISelectable and
         IConduit are distinct from each other. However, in most application
@@ -79,9 +87,19 @@ abstract class ISelectClient
         tango.net.device.Socket). 
 
      **************************************************************************/
-    
+
     private ISelectable conduit_;
-    
+
+    /**************************************************************************
+
+        Instance of expiry registration struct -- used to register this client
+        with a timeout / expiry registry, and to keep track of this client's
+        timeout values.
+
+     **************************************************************************/
+
+    public ExpiryRegistration expiry_registration;
+
     /**************************************************************************
 
         Constructor
@@ -93,9 +111,54 @@ abstract class ISelectClient
 
     protected this ( ISelectable conduit_ )
     {
-        this.conduit_     = conduit_;
+        this.conduit_ = conduit_;
     }
     
+    /***************************************************************************
+
+        Sets the timeout in ms
+
+        Note: this method accepts timeout values as an int, as this is what the
+        epoll_wait function (called in tango.io.selector.EpollSelector) expects.
+
+        Params:
+            ms = new timeout in ms (< 0 means timeout is disabled)
+
+        Returns:
+            this instance
+
+     **************************************************************************/
+
+    public typeof(this) setTimeout ( int ms )
+    {
+        if ( ms >= 0 )
+        {
+            this.expiry_registration.setTimeout(ms * 1000);
+        }
+        else
+        {
+            this.expiry_registration.disableTimeout();
+        }
+
+        return this;
+    }
+
+    /***************************************************************************
+
+        Disables the timeout
+
+        Returns:
+            this instance
+
+     **************************************************************************/
+
+    public typeof(this) disableTimeout ( )
+    {
+        this.setTimeout(-1);
+
+        return this;
+    }
+
     /**************************************************************************
 
         Returns the I/O device instance

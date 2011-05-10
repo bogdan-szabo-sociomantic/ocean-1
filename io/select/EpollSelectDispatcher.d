@@ -21,12 +21,13 @@
     that handler is unregistered immediately and finalize() is invoked.
     Exceptions thrown by the ISelectClient's finalize() methods are not caught. 
 
-    An eventloop timeout setting is available, through the timeout() method. A
-    timeout is considered to have happened if the *whole eventloop* takes longer
-    than the specified time to finish -- it is not a timeout per individual
-    registered event.
-
  ******************************************************************************/
+
+// TODO: it'd be cool to have a base class select dispatcher without any of the timeout
+// management (a dht node, for example, has no need of this stuff at all). Then
+// a more complex dispatcher could be derived from the base, adding the extra
+// timeout functionality.
+
 
 module ocean.io.select.EpollSelectDispatcher;
 
@@ -37,20 +38,22 @@ module ocean.io.select.EpollSelectDispatcher;
  ******************************************************************************/
 
 private import tango.io.selector.EpollSelector;
-private import tango.io.selector.model.ISelector: Event, SelectionKey;
+private import tango.io.selector.model.ISelector : Event, SelectionKey;
 private import tango.io.model.IConduit: ISelectable;
 
 private import tango.io.selector.SelectorException : UnregisteredConduitException;
 
-private import tango.core.Exception: SocketException;
+private import tango.core.Exception : SocketException;
 
 private import tango.time.Time: TimeSpan;
 private import tango.time.StopWatch;
 
 private import ocean.io.select.model.ISelectClient;
 
-private import ocean.core.Array:     copy;
-private import ocean.core.Exception: assertEx;
+private import ocean.io.select.timeout.TimeoutManager;
+
+private import ocean.core.Array : copy;
+private import ocean.core.Exception : assertEx;
 
 debug private import tango.util.log.Trace;
 
@@ -82,13 +85,11 @@ class EpollSelectDispatcher
 
     /***************************************************************************
 
-        Timeout: disabled by default
+        Timeout manager instance
 
      **************************************************************************/
 
-    private const NoTimeout = TimeSpan.max;
-
-    private TimeSpan timeout_ = NoTimeout;
+    private TimeoutManager timeout_manager;
 
     /***************************************************************************
 
@@ -101,11 +102,12 @@ class EpollSelectDispatcher
 
     /***************************************************************************
 
-        Re-usable list of registered clients, used by the timedOut() method.
+        Re-usable list of clients to be unregistered clients, used by the
+        unregisterAfterSelect() method.
 
      **************************************************************************/
 
-    private ISelectClient[] clients;
+    private ISelectClient[] clients_to_unregister;
 
     /***************************************************************************
 
@@ -143,22 +145,12 @@ class EpollSelectDispatcher
            uint max_events = EpollSelector.DefaultMaxEvents )
     {
         this.selector = new EpollSelector;
-        
+
+        this.timeout_manager = new TimeoutManager;
+
         this.exception = new KeyException;
         
         this.selector.open(size, max_events);
-    }
-    
-    /***************************************************************************
-
-        Destructor
-    
-     **************************************************************************/
-    
-    ~this ()
-    {
-        delete this.selector;
-        delete this.exception;
     }
 
     /***************************************************************************
@@ -186,90 +178,21 @@ class EpollSelectDispatcher
         
         return this;
     }
-    
+
     /***************************************************************************
 
         Closes the selector instance
-    
+
         Returns:
             this instance
-    
+
      **************************************************************************/
-    
-    public This close ()
+
+    public This close ( )
     {
         this.selector.close();
         
         return this;
-    }
-
-    /***************************************************************************
-
-        Sets the timeout in ms
-
-        Note: this method accepts timeout values as an int, as this is what the
-        epoll_wait function (called in tango.io.selector.EpollSelector) expects.
-
-        Params:
-            ms = new timeout in ms
-
-        Returns:
-            this instance
-
-     **************************************************************************/
-
-    public This timeout ( int ms )
-    in
-    {
-        assert(ms >= 0, typeof(this).stringof ~ ".timeout: negative timeout values have no meaning");
-    }
-    body
-    {
-        this.timeout_ = this.timeout_.fromMillis(ms);
-
-        return this;
-    }
-
-    /***************************************************************************
-
-        Gets the timeout in ms
-
-        Returns:
-            timeout in ms
-
-     **************************************************************************/
-
-    public int timeout ( )
-    {
-        return this.timeout_.millis();
-    }
-
-    /***************************************************************************
-
-        Disables the timeout
-
-        Returns:
-            this instance
-
-     **************************************************************************/
-
-    public This disableTimeout ( )
-    {
-        this.timeout_ = NoTimeout;
-
-        return this;
-    }
-
-    /***************************************************************************
-
-        Returns:
-            true if timeout is disabled
-    
-     **************************************************************************/
-
-    public bool timeoutEnabled ( )
-    {
-        return this.timeout_ != NoTimeout;
     }
 
     /***************************************************************************
@@ -286,12 +209,15 @@ class EpollSelectDispatcher
 
     public This register ( ISelectClient client )
     {
+        debug ( ISelectClient ) Trace.formatln("{}: Registering client with epoll, client's timeout is {}ms", client.id, client.getTimeout);
         this.selector.register( client.conduit,
                                 cast (.Event) (client.events   |
                                                Event.Hangup    |
                                                Event.Error),
                                 cast (Object) client);
-        
+
+        this.timeout_manager.register(client);
+
         return this;
     }
 
@@ -316,30 +242,64 @@ class EpollSelectDispatcher
     {
         this.selector.unregister(client.conduit);
 
+        this.timeout_manager.unregister(client);
+
         return this;
     }
 
     /**************************************************************************
 
         Unregisters the chain of io handlers with the select dispatcher. The
-        internal data buffer is cleared. An exception is not thrown if the chain
-        is not registered.
-    
+        internal data buffer is cleared. An exception is not thrown on
+        unregistration error (which may occur if the chain is not registered).
+
+        Params:
+            client = client to unregister
+
         Returns:
             this instance
     
      **************************************************************************/
-    
+
     public This safeUnregister ( ISelectClient client )
     {
         try
         {
             this.unregister(client);
         }
-        catch ( UnregisteredConduitException e )
+        catch ( Exception e )
         {
         }
-    
+
+        return this;
+    }
+
+    /**************************************************************************
+
+        Requests that the specified client should be unregistered the next time
+        an eventLoop cycle ends (ie after the call to epoll_wait and the
+        handling of fired events).
+
+        Note that this method should only be used in unusual circumstances. The
+        general method of notifying that a client should be unregistered is via
+        the return value of its handle() method. It can be used, however, in
+        situations where you want to unregister *other* clients from the
+        selector during a client's handler. In this case it is unsafe to simply
+        call unregister() for the other clients, as this can cause a segfault in
+        the foreach loop in handleSelectedKeys().
+
+        Params:
+            client = client to unregister
+
+        Returns:
+            this instance
+
+     **************************************************************************/
+
+    public This unregisterAfterSelect ( ISelectClient client )
+    {
+        this.clients_to_unregister ~= client;
+
         return this;
     }
 
@@ -349,36 +309,17 @@ class EpollSelectDispatcher
         events to happen, invokes the corresponding event handlers of the
         registered clients and unregisters the clients if they desire so.
 
-        Returns:
-            true on normal exit after completion of all registered events, false
-            on timeout
-
      **************************************************************************/
 
-    public bool eventLoop ( )
+    public void eventLoop ( )
     {
-        if ( this.timeoutEnabled )
+        while ( this.selector.count() )
         {
-            this.microsecs_in_select = 0;
+            this.select();
+            this.timeout_manager.checkTimeouts();
+            this.handleSelectedKeys();
+            this.removeUnregisteredClients();
         }
-
-        bool not_timed_out = true;
-
-        while (this.selector.count() && not_timed_out)
-        {
-            not_timed_out = this.select();
-
-            if ( not_timed_out )
-            {
-                this.handleSelectedKeys();
-            }
-            else
-            {
-                this.timedOut();
-            }
-        }
-
-        return not_timed_out;
     }
 
     /***************************************************************************
@@ -386,13 +327,9 @@ class EpollSelectDispatcher
         Executes an epoll select, including logic for timeout detection, if
         requested.
 
-        Returns:
-            true on normal exit after completion of all registered events, false
-            on timeout
-
      **************************************************************************/
 
-    private bool select ( )
+    private void select ( )
     {
         debug ( ISelectClient )
         {
@@ -400,58 +337,11 @@ class EpollSelectDispatcher
             foreach ( key; this.selector )
             {
                 auto client = cast(ISelectClient)key.attachment;
-                Trace.formatln("   {}", client.id);
+                Trace.formatln("   {}: {}", client.id, client.conduit.fileHandle);
             }
         }
 
-        StopWatch sw;
-        bool not_timed_out;
-
-        if ( this.timeoutEnabled )
-        {
-            sw.start;
-        }
-
-        int event_count = this.selector.select(this.timeout_);
-        not_timed_out = event_count > 0;
-
-        if ( this.timeoutEnabled )
-        {
-            this.microsecs_in_select += sw.microsec;
-            if ( this.microsecs_in_select > this.timeout_.micros )
-            {
-                not_timed_out = false;
-            }
-        }
-
-        return not_timed_out;
-    }
-
-    /***************************************************************************
-
-        Calls the timeout() method of all registered clients, after a select
-        timeout has occurred.
-
-     **************************************************************************/
-
-    private void timedOut ( )
-    {
-        // Build up a list of all registered clients before calling their
-        // timeout() handlers. This needs to be done as the timeout() handler
-        // for a client may unregister one or more clients with the select
-        // dispatcher, thus causing the list of registered clients to be
-        // modified, thus disrupting a normal foreach loop over this.selector.
-        this.clients.length = 0;
-        foreach ( key; this.selector )
-        {
-            this.clients ~= cast(ISelectClient)key.attachment;
-        }
-
-        // Notify each client that a timeout occurred.
-        foreach ( client; this.clients )
-        {
-            client.timeout();
-        }
+        int event_count = this.selector.select(this.timeout_manager.getTimeout);
     }
 
     /***************************************************************************
@@ -462,41 +352,72 @@ class EpollSelectDispatcher
 
     private void handleSelectedKeys ( )
     {
-        foreach (key; this.selector.selectedSet())
+        auto selected_keys = this.selector.selectedSet();
+
+        if ( selected_keys ) // EpollSelector.selectedSet() can return null
         {
-            bool unregister_key = false;
-            
-            ISelectClient client = cast (ISelectClient) key.attachment;
-            
-            Event events = cast (Event) key.events;
-            
-            debug (ISelectClient)
+            foreach ( key; selected_keys )
             {
-                client.connectionInfo(this.connection_info_buffer);
-                Trace.formatln("{}: {}: {:X8}", this.connection_info_buffer, client.id, key.events);
-            }
+                bool unregister_key = false;
+                
+                ISelectClient client = cast (ISelectClient) key.attachment;
+                
+                Event events = cast (Event) key.events;
+                
+                debug (ISelectClient)
+                {
+                    client.connectionInfo(this.connection_info_buffer);
+                    Trace.formatln("{}: {}: {:X8}", this.connection_info_buffer, client.id, key.events);
+                }
 
-            try
-            {
-                unregister_key = !client.handle(this.checkKeyError(events));
-            }
-            catch (Exception e)
-            {
-                unregister_key = true;
+                try
+                {
+                    if ( this.timeout_manager.timedOut(client) )
+                    {
+                        unregister_key = true;
+                    }
+                    else
+                    {
+                        unregister_key = !client.handle(this.checkKeyError(events));
+                    }
+                }
+                catch (Exception e)
+                {
+                    unregister_key = true;
+    
+                    debug (ISelectClient) Trace.formatln("{}: {}", client.id, e.msg);
+    
+                    client.error(e, events);
+                }
+                finally if (unregister_key)
+                {
+                    this.safeUnregister(client);
 
-                debug (ISelectClient) Trace.formatln("{}: {}", client.id, e.msg);
-
-                client.error(e, events);
-            }
-            finally if (unregister_key)
-            {
-                this.selector.unregister(key.conduit);
-
-                client.finalize();
+                    client.finalize();
+                }
             }
         }
     }
     
+    /***************************************************************************
+
+        Unregisters any clients which were requested for removal by the
+        unregisterAfterSelect() method.
+
+     **************************************************************************/
+
+    private void removeUnregisteredClients ( )
+    {
+        foreach ( client; this.clients_to_unregister )
+        {
+            this.safeUnregister(client);
+
+            client.finalize();
+        }
+
+        this.clients_to_unregister.length = 0;
+    }
+
     /***************************************************************************
 
         Checks if key is in an erroneous state (ie a Hangup, Error or ReadHangup
