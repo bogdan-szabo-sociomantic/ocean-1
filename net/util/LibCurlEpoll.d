@@ -599,7 +599,7 @@ public class LibCurlEpoll
 
     ***************************************************************************/
 
-    public this ( EpollSelectDispatcher epoll )
+    public this ( TimeoutEpollSelectDispatcher epoll )
     {
         this.epoll = epoll;
 

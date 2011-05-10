@@ -23,13 +23,9 @@
 
  ******************************************************************************/
 
-// TODO: it'd be cool to have a base class select dispatcher without any of the timeout
-// management (a dht node, for example, has no need of this stuff at all). Then
-// a more complex dispatcher could be derived from the base, adding the extra
-// timeout functionality.
-
-
 module ocean.io.select.EpollSelectDispatcher;
+
+
 
 /*******************************************************************************
 
@@ -57,13 +53,15 @@ private import ocean.core.Exception : assertEx;
 
 debug private import tango.util.log.Trace;
 
+
+
 /*******************************************************************************
 
-    SelectDispatcher
+    EpollSelectDispatcher
 
  ******************************************************************************/
 
-class EpollSelectDispatcher
+public class EpollSelectDispatcher
 {
     alias ISelectClient.Event Event;
     
@@ -85,32 +83,6 @@ class EpollSelectDispatcher
 
     /***************************************************************************
 
-        Timeout manager instance
-
-     **************************************************************************/
-
-    private TimeoutManager timeout_manager;
-
-    /***************************************************************************
-
-        Count of the number of microseconds spent waiting in select. This
-        counter is used to detect when a timeout has occurred.
-
-     **************************************************************************/
-
-    private ulong microsecs_in_select;
-
-    /***************************************************************************
-
-        Re-usable list of clients to be unregistered clients, used by the
-        unregisterAfterSelect() method.
-
-     **************************************************************************/
-
-    private ISelectClient[] clients_to_unregister;
-
-    /***************************************************************************
-
         Re-usable exception
 
      **************************************************************************/
@@ -126,13 +98,19 @@ class EpollSelectDispatcher
     debug (ISelectClient) private char[] connection_info_buffer;
 
     /***************************************************************************
+    
+        Re-usable list of clients to be unregistered clients, used by the
+        unregisterAfterSelect() method.
+    
+     **************************************************************************/
+    
+    private ISelectClient[] clients_to_unregister;
+
+    /***************************************************************************
 
         Constructor
 
         Params:
-            selector =   Selector instance to use. This instance is considered
-                         to be owned by the SelectDispatcher and deleted in the
-                         destructor; do not use it otherwise nor delete it.
             size       = value that provides a hint for the maximum amount of
                          conduits that will be registered
             max_events = value that provides a hint for the maximum amount of
@@ -145,8 +123,6 @@ class EpollSelectDispatcher
            uint max_events = EpollSelector.DefaultMaxEvents )
     {
         this.selector = new EpollSelector;
-
-        this.timeout_manager = new TimeoutManager;
 
         this.exception = new KeyException;
         
@@ -197,7 +173,9 @@ class EpollSelectDispatcher
 
     /***************************************************************************
 
-        Adds a client registration or overwrites an existing one
+        Adds a client registration or overwrites an existing one. Calls the
+        protected register_() method, which by default does nothing, but allows
+        derived classes to add special client registration behaviour.
 
         Params:
             client = client to register
@@ -207,23 +185,29 @@ class EpollSelectDispatcher
 
      **************************************************************************/
 
-    public This register ( ISelectClient client )
+    final public This register ( ISelectClient client )
     {
-        debug ( ISelectClient ) Trace.formatln("{}: Registering client with epoll, client's timeout is {}ms", client.id, client.getTimeout);
+        debug ( ISelectClient ) Trace.formatln("{}: Registering client with epoll", client.id);
         this.selector.register( client.conduit,
                                 cast (.Event) (client.events   |
                                                Event.Hangup    |
                                                Event.Error),
                                 cast (Object) client);
 
-        this.timeout_manager.register(client);
+        this.register_(client);
 
         return this;
     }
 
+    protected void register_ ( ISelectClient client )
+    {
+    }
+    
    /****************************************************************************
 
-       Removes a client registration
+       Removes a client registration. Calls the protected unregister_() method,
+       which by default does nothing, but allows derived classes to add special
+       client unregistration behaviour.
 
        Params:
            client = client to unregister
@@ -242,9 +226,13 @@ class EpollSelectDispatcher
     {
         this.selector.unregister(client.conduit);
 
-        this.timeout_manager.unregister(client);
+        this.unregister_(client);
 
         return this;
+    }
+
+    protected void unregister_ ( ISelectClient client )
+    {
     }
 
     /**************************************************************************
@@ -316,7 +304,6 @@ class EpollSelectDispatcher
         while ( this.selector.count() )
         {
             this.select();
-            this.timeout_manager.checkTimeouts();
             this.handleSelectedKeys();
             this.removeUnregisteredClients();
         }
@@ -324,12 +311,11 @@ class EpollSelectDispatcher
 
     /***************************************************************************
 
-        Executes an epoll select, including logic for timeout detection, if
-        requested.
+        Executes an epoll select.
 
      **************************************************************************/
 
-    private void select ( )
+    protected void select ( )
     {
         debug ( ISelectClient )
         {
@@ -341,7 +327,19 @@ class EpollSelectDispatcher
             }
         }
 
-        int event_count = this.selector.select(this.timeout_manager.getTimeout);
+        int event_count = this.selector.select(this.getTimeout());
+    }
+
+    /***************************************************************************
+
+        Returns:
+            desired epoll timeout
+
+     **************************************************************************/
+
+    protected TimeSpan getTimeout ( )
+    {
+        return TimeSpan.max; // no timeout
     }
 
     /***************************************************************************
@@ -350,7 +348,7 @@ class EpollSelectDispatcher
 
      **************************************************************************/
 
-    private void handleSelectedKeys ( )
+    protected void handleSelectedKeys ( )
     {
         auto selected_keys = this.selector.selectedSet();
 
@@ -372,14 +370,7 @@ class EpollSelectDispatcher
 
                 try
                 {
-                    if ( this.timeout_manager.timedOut(client) )
-                    {
-                        unregister_key = true;
-                    }
-                    else
-                    {
-                        unregister_key = !client.handle(this.checkKeyError(events));
-                    }
+                    unregister_key = !this.handleClient(client, events);
                 }
                 catch (Exception e)
                 {
@@ -398,7 +389,25 @@ class EpollSelectDispatcher
             }
         }
     }
-    
+
+    /***************************************************************************
+
+        Handles a client for which one or more events fired in epoll.
+
+        Params:
+            client = client which events fired for
+            events = evnts which fired
+
+        Returns:
+            true to continue, false to unregister the client from epoll
+
+     **************************************************************************/
+
+    protected bool handleClient ( ISelectClient client, Event events )
+    {
+        return client.handle(this.checkKeyError(events));
+    }
+
     /***************************************************************************
 
         Unregisters any clients which were requested for removal by the
@@ -406,7 +415,7 @@ class EpollSelectDispatcher
 
      **************************************************************************/
 
-    private void removeUnregisteredClients ( )
+    protected void removeUnregisteredClients ( )
     {
         foreach ( client; this.clients_to_unregister )
         {
@@ -431,7 +440,7 @@ class EpollSelectDispatcher
 
      **************************************************************************/
 
-    private Event checkKeyError ( Event events )
+    protected Event checkKeyError ( Event events )
     {
         if (!(events & (events.Read | events.Write)))
         {
@@ -469,3 +478,131 @@ class EpollSelectDispatcher
         }
     }
 }
+
+
+
+/*******************************************************************************
+
+    EpollSelectDispatcher with per client timeout functionality.
+
+******************************************************************************/
+
+public class TimeoutEpollSelectDispatcher : EpollSelectDispatcher
+{
+    /***************************************************************************
+
+        Timeout manager instance
+    
+     **************************************************************************/
+    
+    private TimeoutManager timeout_manager;
+    
+    /***************************************************************************
+
+        Constructor
+    
+        Params:
+            size       = value that provides a hint for the maximum amount of
+                         conduits that will be registered
+            max_events = value that provides a hint for the maximum amount of
+                         conduit events that will be returned in the selection
+                         set per call to select.
+    
+     **************************************************************************/
+
+    this ( uint size       = EpollSelector.DefaultSize,
+           uint max_events = EpollSelector.DefaultMaxEvents )
+    {
+        this.timeout_manager = new TimeoutManager;
+
+        super(size, max_events);
+    }
+
+    /***************************************************************************
+
+        Handles a client for which one or more events fired in epoll. Requests
+        the unregistration (without handling) of any event which has timed out.
+
+        Params:
+            client = client which events fired for
+            events = evnts which fired
+
+        Returns:
+            true to continue, false to unregister the client from epoll
+
+     **************************************************************************/
+
+    override protected bool handleClient ( ISelectClient client, Event events )
+    {
+        if ( this.timeout_manager.timedOut(client) )
+        {
+            return false;
+        }
+        else
+        {
+            return super.handleClient(client, events);
+        }
+    }
+
+    /***************************************************************************
+
+        Adds a client registration or overwrites an existing one. Registers the
+        client with the timeout manager.
+
+        Params:
+            client = client to register
+
+     **************************************************************************/
+
+    override protected void register_ ( ISelectClient client )
+    {
+        this.timeout_manager.register(client);
+    }
+
+    /***************************************************************************
+
+        Removes a client registration. Unregisters the client with the timeout
+        manager.
+    
+        Params:
+            client = client to unregister
+    
+     **************************************************************************/
+
+    override protected void unregister_ ( ISelectClient client )
+    {
+        this.timeout_manager.unregister(client);
+    }
+
+    /***************************************************************************
+
+        While there are clients registered, repeatedly waits for registered
+        events to happen, invokes the corresponding event handlers of the
+        registered clients and unregisters the clients if they desire so.
+    
+     **************************************************************************/
+    
+    override public void eventLoop ( )
+    {
+        while ( super.selector.count() )
+        {
+            super.select();
+            this.timeout_manager.checkTimeouts();
+            super.handleSelectedKeys();
+            super.removeUnregisteredClients();
+        }
+    }
+
+    /***************************************************************************
+
+        Returns:
+            desired epoll timeout
+    
+     **************************************************************************/
+
+    override protected TimeSpan getTimeout ( )
+    {
+        return this.timeout_manager.getTimeout();
+    }
+}
+
