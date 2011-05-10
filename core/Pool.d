@@ -88,6 +88,13 @@ public class Pool ( T )
         return this.pool.getNumItems;
     }
 
+    public size_t getNumBusyItems ( )
+    {
+        return this.pool.getNumBusyItems;
+    }
+
+    public alias getNumBusyItems length;
+    
     public size_t getNumIdleItems ( )
     {
         return this.pool.getNumIdleItems;
