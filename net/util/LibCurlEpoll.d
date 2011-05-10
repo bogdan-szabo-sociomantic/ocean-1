@@ -233,6 +233,8 @@ private class CurlConnection : ISelectClient, ISelectable
     body
     {
         this.state = FinalizeState.Success;
+        this.unregister = false;
+        this.finalized = false;
 
         this.url.copy(url);
 
@@ -345,6 +347,9 @@ private class CurlConnection : ISelectClient, ISelectable
 
     ***************************************************************************/
 
+    public bool unregister;
+    public bool finalized;
+
     public bool handle ( Event events )
     in
     {
@@ -352,9 +357,16 @@ private class CurlConnection : ISelectClient, ISelectable
     }
     body
     {
-        this.handler_dg(this, events);
+        if ( this.unregister )
+        {
+            return false;
+        }
+        else
+        {
+            this.handler_dg(this, events);
 
-        return true;
+            return !this.unregister;
+        }
     }
 
 
@@ -418,12 +430,14 @@ private class CurlConnection : ISelectClient, ISelectable
 
     ***************************************************************************/
 
-    public void callFinalizer ( )
+    public void finalize ( )
     {
-        if ( this.finalizer_dg !is null )
+        if ( !this.finalized && this.finalizer_dg !is null )
         {
             this.finalizer_dg(this.url, this.state);
         }
+
+        this.finalized = true;
     }
 
 
@@ -645,7 +659,7 @@ public class LibCurlEpoll
             auto conn = this.connection_pool.get();
 
             conn.download(url, receiver_dg, finalizer_dg);
-            this.setConnectionTimeout(conn);
+            this.updateConnectionTimeout(conn);
 
             this.connection_map.put(conn.curlHandle, cast(CurlConnection)conn);
             this.urls_set.put(url, true);
@@ -657,7 +671,8 @@ public class LibCurlEpoll
 
             // TODO: I think there's a blocking DNS lookup when
             // multi_socket_action is called. If this becomes problematic then
-            // we should try setting CURLOPT_DNS_CACHE_TIMEOUT to a higher value.
+            // we should try setting CURLOPT_DNS_CACHE_TIMEOUT to a higher value
+            // or compile libcurl with the c_ares asyn DNS library.
 
             return true;
         }
@@ -697,7 +712,7 @@ public class LibCurlEpoll
 
     /***************************************************************************
 
-        foreach iterator over the names of the currently downloading urls.
+        foreach iterator over the currently downloading urls.
 
     ***************************************************************************/
 
@@ -724,7 +739,7 @@ public class LibCurlEpoll
 
     ***************************************************************************/
 
-    public void setConnectionsTimeout ( int ms )
+    public void setConnectionTimeout ( int ms )
     in
     {
         assert(ms >= 0, typeof(this).stringof ~ ".setConnectionsTimeout: negative timeout values have no meaning");
@@ -732,7 +747,7 @@ public class LibCurlEpoll
     body
     {
         this.timeout_ms = ms;
-        this.setConnectionsTimeout_();
+        this.updateConnectionsTimeout_();
     }
 
 
@@ -742,10 +757,10 @@ public class LibCurlEpoll
 
     ***************************************************************************/
 
-    public void disableConnectionsTimeout ( )
+    public void disableConnectionTimeout ( )
     {
         this.timeout_ms = -1;
-        this.setConnectionsTimeout_();
+        this.updateConnectionsTimeout_();
     }
 
 
@@ -761,7 +776,7 @@ public class LibCurlEpoll
     private void setCurlTimeout ( int ms )
     {
         this.curl_timeout_ms = ms;
-        this.setConnectionsTimeout_();
+        this.updateConnectionsTimeout_();
     }
 
 
@@ -774,11 +789,11 @@ public class LibCurlEpoll
 
     ***************************************************************************/
 
-    private void setConnectionsTimeout_ ( )
+    private void updateConnectionsTimeout_ ( )
     {
         foreach ( conn; this.connection_pool )
         {
-            this.setConnectionTimeout(conn);
+            this.updateConnectionTimeout(conn);
         }
     }
 
@@ -793,7 +808,7 @@ public class LibCurlEpoll
     
     ***************************************************************************/
 
-    private void setConnectionTimeout ( CurlConnection conn )
+    private void updateConnectionTimeout ( CurlConnection conn )
     {
         int timeout = this.curl_timeout_ms;
 
@@ -898,14 +913,15 @@ public class LibCurlEpoll
 
     private void removeConnection ( CurlConnection conn )
     {
-        conn.callFinalizer();
-
         this.connection_pool.recycle(conn);
         this.connection_map.remove(conn.curl_handle);
         this.urls_set.remove(conn.url);
 
-        // do this last as it can throw an exception
-        this.epoll.unregister(conn);
+        conn.unregister = true;
+
+        // ensure that the client is removed after this select cycle
+        // (otherwise dead fds can remain registered with epoll)
+         this.epoll.unregisterAfterSelect(conn);
     }
 
 
@@ -988,7 +1004,6 @@ public class LibCurlEpoll
                 {
                     try
                     {
-                        Trace.formatln("File descriptor {} has finished", socket_fd);
                         multi_obj.removeConnection(*conn);
                     }
                     catch ( Exception e )
