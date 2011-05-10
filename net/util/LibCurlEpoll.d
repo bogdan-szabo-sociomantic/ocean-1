@@ -120,9 +120,9 @@ private class CurlConnection : ISelectClient, ISelectable
     
     ***************************************************************************/
     
-    public alias void delegate ( typeof(this) conn ) Aborter;
+    public alias void delegate ( typeof(this) conn ) MultiCleaner;
     
-    private Aborter aborter_dg;
+    private MultiCleaner multi_cleaner_dg;
 
 
     /***************************************************************************
@@ -182,16 +182,16 @@ private class CurlConnection : ISelectClient, ISelectable
 
     ***************************************************************************/
 
-    public this ( Handler handler_dg, Aborter aborter_dg )
+    public this ( Handler handler_dg, MultiCleaner multi_cleaner_dg )
     in
     {
         assert(handler_dg !is null, typeof(this).stringof ~ ".ctor: handler delegate must not be null");
-        assert(aborter_dg !is null, typeof(this).stringof ~ ".ctor: aborter delegate must not be null");
+        assert(multi_cleaner_dg !is null, typeof(this).stringof ~ ".ctor: multi cleaner delegate must not be null");
     }
     body
     {
         this.handler_dg = handler_dg;
-        this.aborter_dg = aborter_dg;
+        this.multi_cleaner_dg = multi_cleaner_dg;
 
         super(this);
     }
@@ -256,6 +256,7 @@ private class CurlConnection : ISelectClient, ISelectable
         curl_easy_setopt(this.curl_handle, CURLoption.WRITEDATA, cast(void*)this);
 
         // TODO: more curl easy setup options (copy from LibCurl module)
+        // could this class actually be an extended version of that?
     }
 
 
@@ -380,7 +381,7 @@ private class CurlConnection : ISelectClient, ISelectable
     override public void timeout ( )
     {
         this.state = FinalizeState.TimedOut;
-        this.aborter_dg(this);
+        this.multi_cleaner_dg(this);
     }
 
 
@@ -398,7 +399,7 @@ private class CurlConnection : ISelectClient, ISelectable
     override public void error ( Exception exception, Event event )
     {
         this.state = FinalizeState.Error;
-        this.aborter_dg(this);
+        this.multi_cleaner_dg(this);
     }
 
 
@@ -436,6 +437,7 @@ private class CurlConnection : ISelectClient, ISelectable
         {
             this.finalizer_dg(this.url, this.state);
         }
+        this.multi_cleaner_dg(this);
 
         this.finalized = true;
     }
@@ -533,7 +535,7 @@ public class LibCurlEpoll
 
     ***************************************************************************/
 
-    private alias ObjectPool!(CurlConnection, CurlConnection.Handler, CurlConnection.Aborter) ConnectionPool;
+    private alias ObjectPool!(CurlConnection, CurlConnection.Handler, CurlConnection.MultiCleaner) ConnectionPool;
     private ConnectionPool connection_pool;
 
 
@@ -553,11 +555,9 @@ public class LibCurlEpoll
         Urls map & alias. (Maintains a list of the urls which are being
         downloaded.)
 
-        TODO: could be a Set, but we don't have Set yet...
-
     ***************************************************************************/
 
-    private alias ArrayMap!(bool, char[]) UrlsSet;
+    private alias Set!(char[]) UrlsSet;
     private UrlsSet urls_set;
 
 
@@ -603,7 +603,7 @@ public class LibCurlEpoll
     {
         this.epoll = epoll;
 
-        this.connection_pool = new ConnectionPool(&this.handleConnection, &this.abortConnection);
+        this.connection_pool = new ConnectionPool(&this.handleConnection, &this.cleanupConnection);
         this.connection_map = new ConnectionMap;
         this.urls_set = new UrlsSet;
 
@@ -652,6 +652,7 @@ public class LibCurlEpoll
     {
         if ( url in this.urls_set )
         {
+            Trace.formatln("Already downloading {}", url);
             return false;
         }
         else
@@ -878,8 +879,9 @@ public class LibCurlEpoll
     
     ***************************************************************************/
 
-    private void abortConnection ( CurlConnection conn )
+    private void cleanupConnection ( CurlConnection conn )
     {
+        this.urls_set.remove(conn.url);
         curl_multi_remove_handle(this.multi_handle, conn.curlHandle);
     }
 
