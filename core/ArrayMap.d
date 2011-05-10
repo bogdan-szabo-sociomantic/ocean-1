@@ -1962,6 +1962,39 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     }
 }
 
+
+
+/*******************************************************************************
+
+    Set class, for the moment just wraps an array map with a bool stored as the
+    (ignored) value. Replace with a proper valueless set when we have one.
+
+******************************************************************************/
+
+class Set ( T ) : ArrayMap!(bool, T)
+{
+    /***************************************************************************
+
+        Constructor.
+
+        Params:
+            default_size = estimated number of elements to be stored
+            load_factor  = Determines the ratio of default_size to the number of
+                           internal buckets. For example, 0.5 sets the number of
+                           buckets to the double of default_size; for 2 the
+                           number of buckets is the half of default_size.
+                           load_factor must be greater than 0.
+
+     **************************************************************************/
+    
+    public this ( size_t default_size = 10_000, float load_factor = 0.75 )
+    {
+        super(default_size, load_factor);
+    }
+}
+
+
+
 /*******************************************************************************
 
     Unittest
