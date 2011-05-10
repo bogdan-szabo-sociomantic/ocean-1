@@ -85,9 +85,12 @@ module ocean.core.ObjectPool;
 
 private import ocean.core.Exception: ObjectPoolException, assertEx;
 
+private import ocean.core.ArrayMap;
+
 private import tango.core.Tuple;
 
 debug private import tango.util.log.Trace;
+
 
 
 /*******************************************************************************
@@ -189,6 +192,152 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
 {
     /**************************************************************************
     
+        PoolItem class
+        
+        According to the D specification, a class used as associative array
+        index shall override toHash(), opEquals() and opCmp(). The PoolItem
+        class extends the supplied class T in this manner. Comparison and hash
+        use the same private "hash" property whose value is supplied on
+        instantiation.
+     
+    **************************************************************************/
+    
+    private static class PoolItem : T
+    {
+       /**********************************************************************
+       
+           Recycler callback type alias
+       
+       **********************************************************************/
+       
+       private alias void delegate ( typeof (this) ) Recycler;
+       
+       /**********************************************************************
+       
+           Recycler callback
+       
+       **********************************************************************/
+       
+       private Recycler recycle_;
+       
+       /**********************************************************************
+       
+           recycling/recycled properties and invariant: Throws an exception if
+           any public method of this or super is called after recycle().
+       
+        **********************************************************************/
+       
+       private bool recycling = false;
+       
+       invariant
+       {
+           assert (!this.recycling, T.stringof ~ ": attempted to use idle item");
+       }
+       
+       /**********************************************************************
+        
+           Hash value, also used for comparison (opCmp())
+         
+        **********************************************************************/
+       
+       private hash_t hash;
+       
+       /**********************************************************************
+        
+            Constructor
+            
+            Params:
+                hash    = hash value
+                recycle = method to call to put this instance back into pool
+                args    = super class constructor arguments
+        
+        **********************************************************************/
+       
+       this ( hash_t hash, Recycler recycle, A args )
+       {
+           static if (A.length)
+           {                   // explicitely invoke super constructor only if
+               super(args);    // arguments are to be passed to it
+           }
+           
+           this.hash = hash;
+           
+           this.recycle_ = recycle;
+       }
+       
+       
+       /**********************************************************************
+       
+           Puts this instance back into the pool it was taken from.
+           Calls objects reset method if the Resettable interface
+            is implemented.
+       
+       **********************************************************************/
+       
+       void recycle ( )
+       {
+           this.recycle_(this);
+       }
+       
+       /**********************************************************************
+       
+           Returns the hash value.
+           
+           Returns:
+               the hash value
+       
+       **********************************************************************/
+      
+       hash_t toHash()
+       {
+           return this.hash;
+       }
+       
+       /**********************************************************************
+       
+           Checks this instance for identitiy to obj.
+           
+           Returns:
+               true if obj is identical to this instance or false otherwise
+       
+       **********************************************************************/
+      
+       int opEquals(Object obj)
+       {
+           return this is obj;
+       }
+       
+       /**********************************************************************
+       
+           Compares this instance to obj.
+           
+           Returns:
+               - 0 if if obj is identical to this instance,
+               - the difference between the hashes of this instance and obj
+                 if comparison in this manner is possible or
+               - the least possible value otherwise.
+       
+       **********************************************************************/
+      
+       int opCmp(Object obj)
+       {
+           if (this.opEquals(obj)) return 0;
+           
+           auto item = cast (typeof (this)) obj;
+           
+           if (item)
+           {
+               return cast (int) (this.toHash() - item.toHash());
+           }
+           else
+           {
+               return int.min;
+           }
+       }
+    } // PoolItem
+
+    /**************************************************************************
+    
         Convenience This alias
     
      **************************************************************************/
@@ -240,7 +389,17 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
      **************************************************************************/
 
     private ItemInfo[PoolItem] items;
-    
+
+    /**************************************************************************
+
+        Set of idle pool items, ready to be used by the get() method.
+
+     **************************************************************************/
+
+    private alias Set!(PoolItem) IdleSet;
+
+    private IdleSet idle_set;
+
     /**************************************************************************
     
         Serial number as unique identifier for pool items. As the PoolItem class
@@ -279,13 +438,15 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
     public this ( A args )
     {
         static assert ((void*).sizeof >= hash_t.sizeof);
-        
+
         this.serial = cast (hash_t) (cast (void*) this);
-        
+
         static if (A.length) this.args = args; 
+
+        this.idle_set = new IdleSet;
     }
-    
-    
+
+
     /**************************************************************************
     
         Factory method; creates a pool instance
@@ -319,18 +480,16 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
 
     public PoolItem get ( )
     {
-        foreach (item, ref info; this.items)
+        if ( this.idle_set.length )
         {
-            if (info.idle)
-            {
-                info.idle = false;
-                
-                item.recycling = false;
-                
-                return item;
-            }
+            auto item = this.popIdleItem();
+
+            this.items[item].idle = false;
+            item.recycling = false;
+
+            return item;
         }
-        
+
         return this.create(this.args);
     }
     
@@ -375,10 +534,15 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
         
     **************************************************************************/
 
+    public This remove ( T item )
+    {
+        return this.remove(cast(PoolItem) item);
+    }
+
     public This remove ( PoolItem item )
     {
         scope (success) this.removeItem(item);
-        
+
         return this.recycle(item);
     }
     
@@ -393,6 +557,8 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
 
     public This clear ( )
     {
+        this.idle_set.clear;
+
         foreach ( item, ref info; this.items )
         {
             this.recycle_(item);
@@ -503,14 +669,7 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
 
     public size_t getNumIdleItems ( )
     {
-        size_t result = 0;
-        
-        foreach (info; this.items)
-        {
-            result += info.idle;
-        }
-        
-        return result;
+        return this.idle_set.length;
     }
     
     /**************************************************************************
@@ -621,6 +780,33 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
     }
     
     /**************************************************************************
+
+        Gets the first available item from the idle set.
+
+        Returns:
+            item popped from idle set, or null if idle set was empty
+
+    **************************************************************************/
+
+    private PoolItem popIdleItem ( )
+    {
+        PoolItem item = null;
+
+        if ( this.idle_set.length )
+        {
+            foreach ( i, v; this.idle_set ) // using foreach to emulate getFirst()
+            {
+                item = i;
+                break;
+            }
+
+            this.idle_set.remove(item);
+        }
+
+        return item;
+    }
+
+    /**************************************************************************
     
         Checks whether the number of items in pool is less or equal
         (less == false) or is less (less == true) than the limit and throws an
@@ -669,15 +855,17 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
     private void recycle_ ( PoolItem item )
     {
         auto info = item in this.items;                                         
-        
+
         assertEx!(ObjectPoolException)(info, this.CLASS_ID_STRING ~ ": recycled item not registered");
-        
+
         static if(is(T:Resettable))
         {
             item.reset();         
         }
-        
+
         info.idle = true;
+
+        this.idle_set.put(item, true);
     }
 
     /**************************************************************************
@@ -698,14 +886,19 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
         this.checkLimit("no more items available", true);
 
         this.serial++;
-        
+
         PoolItem item = new PoolItem(serial, &this.recycle_, args);
-        
+
         this.items[item] = ItemInfo(idle);
-        
+
+        if ( idle )
+        {
+            this.idle_set.put(item, true);
+        }
+
         return item;
     }
-    
+
     /**************************************************************************
      
          Destructor
@@ -721,152 +914,6 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
 
         this.items = this.items.init;
     }
-
-    /**************************************************************************
-         
-         PoolItem class
-         
-         According to the D specification, a class used as associative array
-         index shall override toHash(), opEquals() and opCmp(). The PoolItem
-         class extends the supplied class T in this manner. Comparison and hash
-         use the same private "hash" property whose value is supplied on
-         instantiation.
-      
-     **************************************************************************/
-     
-    private static class PoolItem : T
-    {
-        /**********************************************************************
-        
-            Recycler callback type alias
-        
-        **********************************************************************/
-        
-        private alias void delegate ( typeof (this) ) Recycler;
-        
-        /**********************************************************************
-        
-            Recycler callback
-        
-        **********************************************************************/
-        
-        private Recycler recycle_;
-        
-        /**********************************************************************
-        
-            recycling/recycled properties and invariant: Throws an exception if
-            any public method of this or super is called after recycle().
-        
-         **********************************************************************/
-        
-        private bool recycling = false;
-        
-        invariant
-        {
-            assert (!this.recycling, T.stringof ~ ": attempted to use idle item");
-        }
-        
-        /**********************************************************************
-         
-            Hash value, also used for comparison (opCmp())
-          
-         **********************************************************************/
-        
-        private hash_t hash;
-        
-        /**********************************************************************
-         
-             Constructor
-             
-             Params:
-                 hash    = hash value
-                 recycle = method to call to put this instance back into pool
-                 args    = super class constructor arguments
-         
-         **********************************************************************/
-        
-        this ( hash_t hash, Recycler recycle, A args )
-        {
-            static if (A.length)
-            {                   // explicitely invoke super constructor only if
-                super(args);    // arguments are to be passed to it
-            }
-            
-            this.hash = hash;
-            
-            this.recycle_ = recycle;
-        }
-        
-        
-        /**********************************************************************
-        
-            Puts this instance back into the pool it was taken from.
-            Calls objects reset method if the Resettable interface
-			is implemented.
-        
-        **********************************************************************/
-        
-        void recycle ( )
-        {
-            this.recycle_(this);
-        }
-        
-        /**********************************************************************
-        
-            Returns the hash value.
-            
-            Returns:
-                the hash value
-        
-        **********************************************************************/
-       
-        hash_t toHash()
-        {
-            return this.hash;
-        }
-        
-        /**********************************************************************
-        
-            Checks this instance for identitiy to obj.
-            
-            Returns:
-                true if obj is identical to this instance or false otherwise
-        
-        **********************************************************************/
-       
-        int opEquals(Object obj)
-        {
-            return this is obj;
-        }
-        
-        /**********************************************************************
-        
-            Compares this instance to obj.
-            
-            Returns:
-                - 0 if if obj is identical to this instance,
-                - the difference between the hashes of this instance and obj
-                  if comparison in this manner is possible or
-                - the least possible value otherwise.
-        
-        **********************************************************************/
-       
-        int opCmp(Object obj)
-        {
-            if (this.opEquals(obj)) return 0;
-            
-            auto item = cast (typeof (this)) obj;
-            
-            if (item)
-            {
-                return cast (int) (this.toHash() - item.toHash());
-            }
-            else
-            {
-                return int.min;
-            }
-        }
-    } // PoolItem
 }
 
 
