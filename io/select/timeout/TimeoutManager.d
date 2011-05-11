@@ -8,6 +8,9 @@
 
     authors:        Gavin Norman
 
+    Link with:
+        -Llibebtree.a
+
 *******************************************************************************/
 
 module ocean.io.select.timeout.TimeoutManager;
