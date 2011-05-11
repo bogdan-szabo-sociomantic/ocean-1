@@ -599,7 +599,7 @@ public class LibCurlEpoll
 
     ***************************************************************************/
 
-    public this ( TimeoutEpollSelectDispatcher epoll )
+    public this ( EpollSelectDispatcher epoll )
     {
         this.epoll = epoll;
 
@@ -689,7 +689,7 @@ public class LibCurlEpoll
 
     public size_t activeConnections ( )
     {
-        return this.connection_map.length;
+        return this.urls_set.length;
     }
 
 
