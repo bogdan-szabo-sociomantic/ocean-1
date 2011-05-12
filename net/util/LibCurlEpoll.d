@@ -14,6 +14,23 @@
     Link with:
         -L/usr/lib/libcurl.so    
 
+    Note about timeouts: there is some conflict between the libcurl managed
+    connection timeouts and the timeouts in our epoll selector. The recommended
+    way of using libcurl's socket interface is to allow it to completely manage
+    connection timeouts. However, it does not simply set a timeout value for a
+    connection at startup, it actually always sets a 1ms timeout for a new
+    connection, then when that 1ms times out sets the correct timeout value for
+    the connection. This behaviour is incompatible with our select dispatcher,
+    which automatically unregisters timed out clients. So this module ignores
+    the libcurl specified timeouts, and relies on our own timeouts, as defined
+    in ISelectClient. This behaviour is safe, as when a connection times out,
+    its timeout() method is called, which in this case calls
+    curl_multi_remove_handle(), ensuring that libcurl does not think the
+    connection is still active. On the other hand, if libcurl cancels a
+    connection (for whatever reason), this will be handled correctly in the
+    event loop, as the connection's file descriptor will now be invalid, thus
+    the client will be unregistered.
+
 *******************************************************************************/
 
 module ocean.net.util.LibCurlEpoll;
@@ -572,15 +589,6 @@ public class LibCurlEpoll
 
     /***************************************************************************
 
-        Curl-specified connection timeout in millseconds.
-
-    ***************************************************************************/
-
-    private int curl_timeout_ms;
-
-
-    /***************************************************************************
-
         User-specified connection timeout in millseconds. (Defaults to no
         timeout.) The smaller of the two (user- vs curl-specified) timeouts is
         used.
@@ -612,8 +620,6 @@ public class LibCurlEpoll
 
         curl_multi_setopt(this.multi_handle, CURLMoption.SOCKETFUNCTION, &socket_callback);
         curl_multi_setopt(this.multi_handle, CURLMoption.SOCKETDATA, cast(void*)this);
-        curl_multi_setopt(this.multi_handle, CURLMoption.TIMERFUNCTION, &timer_callback);
-        curl_multi_setopt(this.multi_handle, CURLMoption.TIMERDATA, cast(void*)this);
     }
 
 
@@ -767,22 +773,6 @@ public class LibCurlEpoll
 
     /***************************************************************************
 
-        Sets the curl timeout for all current and future connections.
-    
-        Params:
-            ms = milliseconds timeout to set
-
-    ***************************************************************************/
-
-    private void setCurlTimeout ( int ms )
-    {
-        this.curl_timeout_ms = ms;
-        this.updateConnectionsTimeout_();
-    }
-
-
-    /***************************************************************************
-
         Sets the timeout for all current and future connections.
 
         Params:
@@ -811,16 +801,10 @@ public class LibCurlEpoll
 
     private void updateConnectionTimeout ( CurlConnection conn )
     {
-        int timeout = this.curl_timeout_ms;
 
         if ( this.timeout_ms >= 0 )
         {
-            timeout = this.timeout_ms < this.curl_timeout_ms ? this.timeout_ms : this.curl_timeout_ms;
-        }
-
-        if ( timeout >= 0 )
-        {
-            conn.setTimeout(timeout);
+            conn.setTimeout(this.timeout_ms);
         }
         else
         {
@@ -946,35 +930,6 @@ public class LibCurlEpoll
 
     static extern ( C )
     {
-        /***********************************************************************
-
-            At the request of curl_multi_socket_action, sets the timeout value
-            for running connections.
-
-            Params:
-                multi = curl multi handle
-                ms = timeout value in milliseconds
-                userp = user defined pointer (reference to a LibCurlEpoll
-                    instance, in this case)
-
-            Returns:
-                0 (obligatory)
-
-        ***********************************************************************/
-
-        int timer_callback ( CURLM multi, int ms, void* userp )
-        {
-            auto multi_obj = cast(LibCurlEpoll)userp;
-
-            if ( multi == multi_obj.multi_handle )
-            {
-                multi_obj.setCurlTimeout(ms);
-            }
-
-            return 0; // obligatory
-        }
-
-        
         /***********************************************************************
 
             At the request of curl_multi_socket_action, performs various actions
