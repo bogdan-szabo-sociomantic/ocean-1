@@ -256,11 +256,24 @@ class SplitStr : ISplit
     {
         with (new typeof (this))
         {
-            collapse = true;
-            
+//            collapse = true;
+//            
             delim = "123";
+//            
+//            Stderr(split("123ab123123cd123efg123"))("\n").flush();
+//            
+//            collapse = false;
+//            
+//            Stderr(split("123ab123123cd123efg123"))("\n").flush();
+//            Stderr(split("ab123123cd123efg123"))("\n").flush();
+//            Stderr(split("123ab123123cd123efg"))("\n").flush();
+//            Stderr(split("ab123123cd123efg"))("\n").flush();
             
-            Stderr(split("abcd123ghi"))("\n").flush();
+            collapse = true;
+//            n = 2;
+//            
+//            Stderr(split("123ab123123cd123efg"));
+//            Stderr(" ")(remaining)("\n").flush();
         }
     }
 }
@@ -349,118 +362,103 @@ abstract class ISplit
 
     public bool collapse = false;
     
-    /**************************************************************************
-    
-        Maximum number of resulting segments
-         
-     **************************************************************************/
-
-    public uint n = uint.max;
+    public bool include_remaining = true;
     
     /**************************************************************************
     
-        List of resulting segments
+        String to split on next iteration
          
      **************************************************************************/
 
-    protected char[][] segments_;
+    private char[] str, remaining_;
     
-    /**************************************************************************
+    private uint n_ = 0;
     
-        Ensures that the maximum number of resulting segments is observed.
-         
-     **************************************************************************/
-
-    invariant
+    public uint n ( )
     {
-        assert (this.n <= this.segments.length);
+        return this.n_;
+    }
+    
+    public char[] remaining ( )
+    {
+        return this.remaining_;
     }
     
     /**************************************************************************
     
-        Returns:
-            split segments resulting from last split() invocation or null if
-            split() has not been invoked yet
-         
-     **************************************************************************/
-
-    public char[][] segments ( )
-    {
-        return this.segments_;
-    }
-    
-    /**************************************************************************
-    
-        Resets the resulting split segments to an empty list.
+        Sets the string to split on next iteration.
+        
+        Params:
+            str = string to split; pass null to clear the string
         
         Returns:
             this instance
          
      **************************************************************************/
 
-    public typeof (this) reset ( )
+    public typeof (this) reset ( char[] str = null )
     {
-        this.segments_.length = 0;
+        this.str        = str;
+        this.remaining_ = this.str;
+        this.n_         = 0;
         
         return this;
     }
-
+    
     /**************************************************************************
     
-        Splits str into at most n segments on each delimiter occurrence.
-        
-        Params:
-             str = string to split
-         
-        Returns:
-            resulting split segments
+        'foreach' iteration over
+            i         = counter
+            segment   = string slice between the current and the next delimiter
+                        occurrence
+            remaining = string slice after the next delimiter occurence
          
      **************************************************************************/
 
-    char[][] split ( char[] str )
+   int opApply ( int delegate ( ref char[] segment ) dg )
     {
-        this.segments_.length = 0;
+        int result = 0;
         
-        if (str.length)
+        if (this.str.length)
         {
-            uint   i     = 0;
+            this.n_  = 0;
             
-            size_t start = this.collapse? this.skipLeadingDelims(str) : 0;
+            size_t start = this.collapse? this.skipLeadingDelims(this.str) : 0;
             
-            size_t pos   = this.locateDelim(str, start);
-            
-            while ((pos < str.length) && (!this.n || (i < this.n)))
+            for (size_t pos = this.locateDelim(this.str, start);
+                        pos < this.str.length;
+                        pos = this.locateDelim(this.str, start))
             {
-                if (!((pos == start) && collapse))
+                size_t next = pos + this.skipDelim(this.str[pos .. $]);
+                
+                if (!(pos == start && collapse))
                 {
-                    this.segments_ ~= str[start .. pos];
+                    this.n_++;
                     
-                    i++;
-                }
-            
-                version (all)
-                {
-                    start = pos + this.skipDelim(str[pos .. $]);
-                }
-                else
-                {
-                    start = pos + 1;
+                    char[] segment   = this.str[start ..  pos];
+                    this.remaining_ = this.str[next .. $];
+                    
+                    result = dg(segment);
                 }
                 
-                pos = this.locateDelim(str, start);
+                start = next;
+                
+                if (result || start >= this.str.length) break;
             }
             
-            if ((!this.n || (i < this.n)) &&
-                (!((start == str.length) && this.collapse)))
+            if (this.include_remaining &&
+                !(result || (start >= this.str.length && this.collapse)))
             {
-                this.segments_ ~= str[start .. $];                              // append tail
+                this.n_++;
+                
+                result = dg(this.remaining_);
+                
+                this.remaining_ = "";
             }
         }
         
-        return this.segments_;
+        return result;
     }
-    
-    alias split opCall;
     
     /**************************************************************************
     
@@ -561,23 +559,3 @@ abstract class ISplit
     }
 
 }
-
-/+
-import tango.io.Stdout;
-import tango.io.Console;
-
-unittest
-{
-Substitute substitute;
-
-substitute.delims = "Katze";
-
-scope str = "Katze tritt Katze die Treppe Katze krumm. Katze".dup;
-
-Cout(substitute(str, "Klaus"))("\n");
-
-//substitute.delims = "";
-
-//Cout(substitute(str, ""))("\n");
-}
-+/
