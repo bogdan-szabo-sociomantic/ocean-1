@@ -50,7 +50,7 @@
     
  *****************************************************************************/
 
-module io.compress.lzo.c.lzo_crc;
+module ocean.io.compress.lzo.c.lzo_crc;
 
 extern (C)
 {
