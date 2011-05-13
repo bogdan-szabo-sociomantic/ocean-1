@@ -20,8 +20,6 @@ abstract class ISelectProtocol : IAdvancedSelectClient
 {
     alias .Fiber Fiber;
     
-    public void[] data;
-    
     const buffer_size = 0x4000;
     
     protected Fiber fiber;
@@ -36,30 +34,23 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         
         this.exception = new IOException;
     }
-
-    bool handle ( Event event )
+    
+    final bool handle ( Event event )
     {
         this.fiber.call();
         return this.fiber.state != this.fiber.State.TERM;
     }
-
-    void transmit ( )
-    {
-        for (bool more = this.transmit_(); more; more = this.transmit_())
-        {
-            this.fiber.cede();
-        }
-    }
-
-    alias transmit opCall;
-    
-    abstract protected bool transmit_ ( );
     
     static class IOException : TangoException.IOException
     {
         int errnum = 0;
         
         this ( ) {super("");}
+        
+        void assertEx ( T ) ( T ok, char[] msg, char[] file = "", long line = 0 )
+        {
+            if (!ok) throw this.opCall(msg, file, line);
+        }
         
         typeof (this) opCall ( char[] msg, char[] file = "", long line = 0 )
         {
