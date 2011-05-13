@@ -1,0 +1,499 @@
+/******************************************************************************
+
+    Manages a set of parameters where each parameter is a string key/value pair.
+
+    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
+
+    version:        May 2011: Initial release
+
+    authors:        David Eckardt
+    
+    Wraps an associative array serving as map of parameter key and value
+    strings.
+    The parameter keys are set on instantiation; that is, a key list is passed
+    to the constructor. The keys cannot be changed, added or removed later
+    (except that a subclass can add keys).
+    All methods that accept a key handle the key case insensitively (except the
+    constructor). When keys are output, the original keys are used.
+    Note that keys and values are meant to slice string buffers in a subclass or
+    external to this class.
+    
+ ******************************************************************************/
+
+module ocean.net.util.ParamSet;
+
+/******************************************************************************
+
+    Imports
+
+ ******************************************************************************/
+
+//private import ocean.net.http2.header.Element;
+
+private import ocean.text.util.Split: SplitChr;
+
+private import tango.stdc.string: memchr;
+private import tango.stdc.ctype:  tolower;
+
+private import tango.stdc.stdlib: div;
+
+debug = 1;
+
+debug private import tango.io.Stdout;
+
+/******************************************************************************/
+
+class ParamSet
+{
+    struct Element
+    {
+        char[] key, val;
+    }
+    
+    /**************************************************************************
+
+        Set to true to skip key/value pairs with a null value on 'foreach'
+        iteration.
+    
+     **************************************************************************/
+
+    public bool skip_null_values_on_iteration = false;
+    
+    /**************************************************************************
+
+        Key/value map of the parameter set
+        
+        Keys are the parameter keys in lower case, values are structs containing
+        the original key and the parameter value. The value stored in the struct
+        is set to null initially and by reset().
+    
+     **************************************************************************/
+
+    private Element[char[]] paramset;
+    
+    /**************************************************************************
+
+        Reused buffer for case conversion
+    
+     **************************************************************************/
+
+    private char[] tolower_buf;
+    
+    /**************************************************************************
+
+        Constructor
+        
+        Note that this is the only place where parameter keys can be modified.
+        The last character of each key may be ':' which will be removed; this is
+        the only place where a ':' may appear in a key.
+        
+        Params:
+            key_lists = arrays of parameter keys (elements will be sliced)
+    
+     **************************************************************************/
+
+    public this ( char[][][] key_lists ... )
+    {
+        foreach (keys; key_lists)
+        {
+            foreach (key; keys)
+            {
+                this.addKey(key);
+            }
+        }
+    }
+    
+    /**************************************************************************
+
+        Obtains the parameter value corresponding to key. key must be one of
+        the parameter keys passed on instantiation.
+        
+        Params:
+            key = parameter key (case insensitive)
+            
+        Returns:
+            parameter value; null indicates that no value is currently set for
+            this key
+            
+        Throws:
+            Behaves like regular associative array indexing.
+        
+     **************************************************************************/
+
+    char[] opIndex ( char[] key )
+    {
+        return this.paramset[this.tolower(key)].val;
+    }
+    
+    /**************************************************************************
+
+        Obtains the parameter value corresponding to key.
+        
+        Params:
+            key = parameter key (case insensitive)
+            
+        Returns:
+            pointer to the corresponding parameter value or null if the key is
+            unknown. A pointer to null indicates that no value is currently set
+            for this key.
+        
+     **************************************************************************/
+
+    char[]* opIn_r ( char[] key )
+    {
+        Element* element = this.get_(key);
+        
+        return element? &element.val : null;
+    }
+    
+    /**************************************************************************
+
+        Obtains the parameter value corresponding to key, bundled with the
+        original key,.
+        
+        Params:
+            key = parameter key (case insensitive)
+            
+        Returns:
+            Struct containing original key and parameter value or null for key
+            and value if the key was not found. A non-null key with a null value
+            indicates that no value is currently set for this key.
+        
+     **************************************************************************/
+
+    Element getElement ( char[] key )
+    out (element)
+    {
+       assert (element.key || !element.val); 
+    }
+    body
+    {
+        Element* element = this.get_(key);
+        
+        return element? *element : Element.init;
+    }
+    
+    bool getUint ( char[] key, ref uint n, out bool is_set )
+    {
+        char[] val = this[key];
+        
+        is_set = val !is null;
+        
+        return is_set? !this.readUint(val, n).length && val.length : false;
+    }
+    
+    /**************************************************************************
+
+        Sets the parameter value for key if key is one of the parameter keys
+        passed on instantiation.
+        
+        Params:
+            key = parameter key (case insensitive)
+            val = parameter value (will be sliced)
+            
+        Returns:
+            true if key is one of parameter keys passed on instantiation or
+            false otherwise. In case of false nothing has changed.
+        
+     **************************************************************************/
+
+    bool set ( char[] key, char[] val )
+    {
+        return this.access(key, (char[], ref char[] dst){dst = val;});
+    }
+    
+    /**************************************************************************
+        
+        ditto
+        
+        Params:
+            key     = parameter kay (case insensitive)
+            val     = parameter value
+            str_val = destination string for number to string conversion; will
+                      be resized where required and sliced
+            
+        Returns:
+            true if key is one of parameter keys passed on instantiation or
+            false otherwise. In case of false nothing has changed.
+        
+     **************************************************************************/
+
+    bool set ( char[] key, uint val, ref char[] str_val )
+    {
+        return this.access(key, (char[], ref char[] dst)
+                                {
+                                    dst = this.writeUint(str_val, val);
+                                });
+    }
+    
+    /**************************************************************************
+
+        Invokes dg with the original key and a reference to the parameter value
+        for key if key is one of parameter keys passed on instantiation.
+        
+        Params:
+            key = parameter key (case insensitive)
+            dg  = callback delegate
+            
+        Returns:
+            true if key is one of the parameter keys passed on instantiation or
+            false otherwise. In case of false dg was not invoked.
+        
+     **************************************************************************/
+
+    bool access ( char[] key, void delegate ( char[] key, ref char[] val ) dg )
+    {
+        Element* element = this.get_(key);
+        
+        if (element) with (*element)
+        {
+            dg(key, val);
+        }
+        
+        return element !is null;
+    }
+    
+    /**************************************************************************
+
+        'foreach' iteration over parameter key/value pairs
+        
+     **************************************************************************/
+
+    public int opApply ( int delegate ( ref char[] key, ref char[] val ) dg )
+    {
+        int result = 0;
+        
+        foreach (ref element; this.paramset) with (element)
+        {
+            if (val || !skip_null_values_on_iteration)
+            {
+                result = dg(key, val);
+                
+                if (result) break;
+            }
+        }
+        
+        return result;
+    }
+    
+    /**************************************************************************
+
+        Resets all parameter values to null.
+        
+     **************************************************************************/
+
+    final void reset ( )
+    {
+        this.reset_();
+        
+        foreach (ref element; this.paramset)
+        {
+            element.val = null;
+        }
+    }
+    
+    /**************************************************************************
+
+        Custom reset method for a subclass, will be invoked by reset() before
+        doing anything else.
+        
+     **************************************************************************/
+
+    protected void reset_ ( ) { }
+    
+    /**************************************************************************
+
+        Adds an entry for key.
+
+        Params:
+            key = parameter key to add
+        
+     **************************************************************************/
+
+    protected void addKey ( char[] key )
+    {
+        this.paramset[this.tolower(key).dup] = Element(key);
+    }
+    
+    /**************************************************************************
+
+        Looks up key in a case-insensitive manner.
+        
+        Params:
+            key = parameter key
+            
+        Returns:
+            - Pointer to a a struct which contains the original key and the
+              parameter value, where a null value indicates that no value is
+              currently set for this key, or
+            - null if the key was not found.
+            
+     **************************************************************************/
+
+    protected Element* get_ ( char[] key )
+    out (element)
+    {
+        if (element) with (*element) assert (key || !val);
+    }
+    body
+    {
+        return this.tolower(key) in this.paramset;
+    }
+    
+    /**************************************************************************
+
+        Converts key to lower case, writing to a separate buffer so that key is
+        left untouched.
+        
+        Params:
+            key = key to convert to lower case
+            
+        Returns:
+            result (references an internal buffer)
+            
+     **************************************************************************/
+
+    protected char[] tolower ( char[] key )
+    {
+        this.tolower_buf.length = key.length;
+        
+        foreach (i, c; key)
+        {
+            this.tolower_buf[i] = .tolower(c);
+        }
+        
+        return this.tolower_buf;
+    }
+    
+    /**************************************************************************
+
+        Converts n to decimal representation, writing to dst, resizing dst as
+        required.
+        
+        Params:
+            dst = destination string
+            n   = number to convert to decimal representation
+        
+        Returns:
+            result (dst)
+        
+     **************************************************************************/
+
+    protected static char[] writeUint ( ref char[] dst, uint n )
+    {
+        size_t len = 0;
+        
+        for (uint p = 1; p < n; p *= 10)
+        {
+            len++;
+        }
+        
+        dst.length = len? len : 1;
+        
+        return writeUintFixed(dst, n);
+    }
+    
+    /**************************************************************************
+
+        Converts n to decimal representation, writing to dst. dst must be long
+        enough to hold the result; the result will be padded with ' '
+        characters from thhe left where required.
+        
+        Params:
+            dst = destination string
+            n   = number to convert to decimal representation
+        
+        Returns:
+            result (dst)
+        
+     **************************************************************************/
+
+    protected static char[] writeUintFixed ( char[] dst, uint n )
+    out
+    {
+        assert (!n);
+    }
+    body
+    {
+        foreach_reverse (i, ref c; dst) with (div(n, 10))
+        {
+            c = rem + '0';
+            n = quot;
+            
+            if (!n)
+            {
+                dst[0 .. i] = ' ';
+                break;
+            }
+        }
+        
+        return dst;
+    }
+    
+    /**************************************************************************
+
+        Converts str, which is expected to contain a decimal number, to the
+        number it represents. Tailing and leading whitespace is allowed and will
+        be trimmed. If src contains non-decimal digit characters after trimming,
+        conversion will be stopped at the first non-decimal digit character.
+        
+        Example:
+        
+        ---
+        
+            uint n;
+        
+            char[] remaining = readUint("  123abc45  ", n);
+            
+            // n is now 123
+            // remaining is now "abc45"
+            
+        ---
+        
+        Params:
+            src = source string
+            n   = result output
+        
+        Returns:
+            slice of src starting with the first character that is not a decimal
+            digit or an empty string if src contains only decimal digits
+        
+     **************************************************************************/
+
+    protected static char[] readUint ( char[] src, out uint n )
+    {
+        char[] trimmed = SplitChr.trim(src);
+        
+        foreach (i, c; trimmed)
+        {
+            if ('0' <= c && c <= '9')
+            {
+                n = n * 10 + (c - '0');
+            }
+            else
+            {
+                return trimmed[i .. $];
+            }
+        }
+        
+        return src? "" : null;
+    }
+    
+    debug unittest
+    {
+        char[10] str;
+        
+        Stderr(writeUintFixed(str, 4711))("\n");
+        
+        char[] str2;
+        Stderr(writeUint(str2, 4711))("\n");
+        Stderr(writeUint(str2, 0))("\n").flush();
+        
+        uint n;
+        
+        str2 = readUint("\t12 345\r\n", n);
+        
+        Stderr(str2.length);
+        Stderr(" > ")(n)(", ")(str2)("\n");
+    }
+}
