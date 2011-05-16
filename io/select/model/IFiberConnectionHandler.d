@@ -109,6 +109,8 @@ class IFiberConnectionHandler : IConnectionHandler
 
     private void handleLoop ( )
     {
+        scope (exit) super.finalize();
+        
         uint n = 0;
         
         do
@@ -116,8 +118,6 @@ class IFiberConnectionHandler : IConnectionHandler
             this.register(this.reader);
         }
         while (this.handle(n++))
-            
-        super.finalize();
     }
     
     /***************************************************************************
