@@ -59,11 +59,11 @@
 
     ---
 
-    ArrayPool classes are also designed to be safe to use in an ObjectPool (for
-    lists of lists of arrays), having a reset method, called by recycle, which
-    clears all arrays in the pool.
-
-    TODO: possibly move the Indexable stuff into ObjectPool...
+    ArrayPool is simple a wrapper around the Pool class, with the addition of
+    the add() method, for convenience. Pool is designed to be safe to use in an
+    ObjectPool (for lists of lists of items), having a reset method, called by
+    recycle, which clears all items in the pool. Thus, ArrayPool can be safely
+    used for a list of lists of arrays.
 
 *******************************************************************************/
 
@@ -77,29 +77,11 @@ module ocean.core.ArrayPool;
 
 *******************************************************************************/
 
-private import ocean.core.Array;
+private import ocean.core.Array : copy;
 
-private import ocean.core.ArrayMap;
-
-private import ocean.core.ObjectPool;
+private import ocean.core.Pool;
 
 debug private import tango.util.log.Trace;
-
-
-
-/*******************************************************************************
-
-    Class to be contained in an ObjectPool -- just stores an array.
-
-    Template params:
-        T = type of array element
-
-*******************************************************************************/
-
-private class ArrayObject ( T )
-{
-    T[] content;
-}
 
 
 
@@ -109,43 +91,11 @@ private class ArrayObject ( T )
 
     Template params:
         T = type of array element
-        Indexable = boolean specifying whether an opIndex method is needed over
-                    the array pool.
 
 *******************************************************************************/
 
-public class ArrayPool ( T, bool Indexable = true ) : Resettable
+class ArrayPool ( T ) : Pool!(T[])
 {
-    /***************************************************************************
-
-        Object pool of arrays.
-
-    ***************************************************************************/
-
-    private alias ObjectPool!(ArrayObject!(T)) Pool;
-
-    private Pool pool;
-
-    
-    /***************************************************************************
-
-        Optional array map, mapping from index -> array.
-
-    ***************************************************************************/
-
-    static if ( Indexable )
-    {
-        private alias ArrayMap!(Pool.PoolItem, size_t) PoolIndex;
-    
-        private PoolIndex pool_index;
-
-        invariant ( )
-        {
-            assert(this.pool.getNumBusyItems == this.pool_index.length);
-        }
-    }
-
-
     /***************************************************************************
 
         Constructor.
@@ -154,12 +104,7 @@ public class ArrayPool ( T, bool Indexable = true ) : Resettable
 
     public this ( )
     {
-        this.pool = new Pool;
-
-        static if ( Indexable )
-        {
-            this.pool_index = new PoolIndex;
-        }
+        super();
     }
 
 
@@ -170,119 +115,18 @@ public class ArrayPool ( T, bool Indexable = true ) : Resettable
 
         Params:
             array = array to add
-        
+
         Returns:
             array that was added
 
     ***************************************************************************/
-
-    public T[] add ( T[] array )
+    
+    public T[]* add ( T[] array )
     {
-        static if ( Indexable )
-        {
-            auto len = this.length;
-        }
+        auto new_array = super.get;
+        (*new_array).copy(array);
 
-        auto new_array = this.pool.get;
-        new_array.content.copy(array);
-
-        static if ( Indexable )
-        {
-            this.pool_index.put(len, new_array);
-        }
-        
-        return new_array.content;
-    }
-
-
-    /***************************************************************************
-
-        Returns:
-            number of arrays in the pool
-
-    ***************************************************************************/
-
-    public size_t length ( )
-    {
-        return this.pool.getNumBusyItems;
-    }
-
-
-    /***************************************************************************
-
-        Removes all arrays from the pool.
-
-    ***************************************************************************/
-
-    public void clear ( )
-    {
-        this.pool.clear;
-
-        static if ( Indexable )
-        {
-            this.pool_index.clear;
-        }
-    }
-
-
-    /***************************************************************************
-
-        Reset method, called by ObjectPool.recycle_(). Allows ObjectPools of
-        ArrayPools to be created.
-
-    ***************************************************************************/
-
-    public void reset ( )
-    {
-        this.clear;
-    }
-
-
-    /***************************************************************************
-
-        Gets the nth array in the pool.
-
-        Params:
-            index = index of array to get
-
-        Returns:
-            nth array in pool
-
-    ***************************************************************************/
-
-    static if ( Indexable )
-    {
-        public T[] opIndex ( size_t index )
-        in
-        {
-            assert(index < this.length, typeof(this).stringof ~ ".opIndex -- array index out of bounds");
-        }
-        body
-        {
-            return this.pool_index[index].content;
-        }
-    }
-
-
-    /***************************************************************************
-
-        foreach iterator over arrays in the pool.
-
-    ***************************************************************************/
-
-    public int opApply ( int delegate ( ref T[] ) dg )
-    {
-        int ret;
-        foreach ( item; this.pool )
-        {
-            ret = dg(item.content);
-            if ( ret )
-            {
-                break;
-            }
-        }
-
-        return ret;
+        return new_array;
     }
 }
 
