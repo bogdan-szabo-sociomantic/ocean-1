@@ -35,7 +35,7 @@ private class Item ( T )
     T data;
 }
 
-public class Pool ( T )
+public class Pool ( T ) : Resettable
 {
     private alias typeof(this) This;
 
@@ -83,6 +83,18 @@ public class Pool ( T )
         return this;
     }
 
+    /***************************************************************************
+
+        Reset method, called by ObjectPool.recycle_(). Allows ObjectPools of
+        Pools to be created.
+
+    ***************************************************************************/
+
+    public void reset ( )
+    {
+        this.clear;
+    }
+
     public size_t getNumItems ( )
     {
         return this.pool.getNumItems;
@@ -128,6 +140,17 @@ public class Pool ( T )
         }
 
         return ret;
+    }
+
+    public T* opIndex ( size_t index )
+    in
+    {
+        assert(index < this.pool.getNumItems);
+    }
+    body
+    {
+        auto item = this.pool[index];
+        return &item.data;
     }
 }
 
