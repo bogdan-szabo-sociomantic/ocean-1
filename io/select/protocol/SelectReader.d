@@ -199,7 +199,7 @@ class SelectReader : ISelectProtocol
      
      **************************************************************************/
 
-    private static size_t receive ( void[] data, InputStream conduit )
+    private size_t receive ( void[] data, InputStream conduit )
     out (received)
     {
         assert(received <= data.length, this.ClassId ~ ": received length too high");
@@ -217,6 +217,9 @@ class SelectReader : ISelectProtocol
                 {
                     case EWOULDBLOCK:
                 }
+                
+                    assertEx!(IOException)(!super.hangup, this.ClassId ~ ": connection hung up");
+                
                     received = 0;
                     break;
 

@@ -191,8 +191,16 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         FinalizeDg
     
      **************************************************************************/
-
+    
     private   FinalizeDg session_finalizer = null;
+    
+    /**************************************************************************
+
+        Indicates whether a hangup event was reported; set by handle(event)
+    
+     **************************************************************************/
+
+    protected bool hangup;
     
     /**************************************************************************
 
@@ -434,7 +442,9 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     body
     {
         FinalizerStatus status;
-
+        
+        this.hangup = (events_in & events_in.Hangup) != 0;
+        
         do
         {
             bool more = this.handle() || this.pending;
