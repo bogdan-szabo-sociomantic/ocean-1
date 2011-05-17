@@ -43,7 +43,7 @@
 
 *******************************************************************************/
 
-module net.util.LibCurlMulti;
+module ocean.net.util.LibCurlMulti;
 
 
 
