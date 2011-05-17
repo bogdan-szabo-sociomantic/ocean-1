@@ -198,7 +198,32 @@ class JsonParserIter : JsonParser!(char)
     {
         return this.tokenClass(super.type);
     }
+
     
+    /**************************************************************************
+
+        Debug only token name lookup
+
+     **************************************************************************/
+
+    debug
+    {
+        static private const char[][] token_names = [
+            "Empty", "Name", "String", "Number", "BeginObject", "EndObject", 
+            "BeginArray", "EndArray", "True", "False", "Null"
+            ];
+
+        public char[] tokenName ( Token token )
+        {
+            return token_names[token];
+        }
+    
+        public char[] tokenName ( )
+        {
+            return this.tokenName(super.type);
+        }
+    }
+
     /**************************************************************************
 
         Steps to the next token in the current JSON content.
@@ -321,6 +346,50 @@ class JsonParserIter : JsonParser!(char)
         return this.nextNamedValue(name, ( Token token ) { return true; });
     }
 
+
+    /**************************************************************************
+
+        Iterates over the json string looking for the named object and
+        halting iteration if it is found.
+
+        Note that the search takes place from the current iteration position,
+        and all iterations are cumulative. The iteration position is reset using
+        the 'reset' method (in super).
+
+        Params:
+            name = name to search for
+
+        Returns:
+            true if named object found
+ 
+     **************************************************************************/
+
+    public bool nextNamedObject ( char[] name )
+    {
+        bool in_object;
+        do
+        {
+            if ( in_object )
+            {
+                if ( super.value == name )
+                {
+                    return true;
+                }
+                else
+                {
+                    in_object = false;
+                }
+            }
+            else
+            {
+                if ( super.type == Token.BeginObject )
+                {
+                    in_object = true;
+                }
+            }
+        }
+        while ( super.next );
+    }
 
     /**************************************************************************
 
