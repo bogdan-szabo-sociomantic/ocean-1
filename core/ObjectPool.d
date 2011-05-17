@@ -392,6 +392,15 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
 
     /**************************************************************************
 
+        Array of references to items in the pool, allowing them to be accessed
+        sequentially by index.
+
+     **************************************************************************/
+
+    private PoolItem[] index;
+
+    /**************************************************************************
+
         Set of idle pool items, ready to be used by the get() method.
 
      **************************************************************************/
@@ -558,6 +567,8 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
     public This clear ( )
     {
         this.idle_set.clear;
+
+        this.index.length = 0;
 
         foreach ( item, ref info; this.items )
         {
@@ -778,6 +789,31 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
 
         return ret;
     }
+
+    /**************************************************************************
+
+        Gets the nth item in the pool.
+
+        Params:
+            index = index of item to get
+
+        Returns:
+            item popped from idle set, or null if idle set was empty
+
+        Throws:
+            array out of bounds exception, if index is > this.index.length
+
+    **************************************************************************/
+
+    public PoolItem opIndex ( size_t index )
+    in
+    {
+        assert(index < this.items.length);
+    }
+    body
+    {
+        return this.index[index];
+    }
     
     /**************************************************************************
 
@@ -891,6 +927,8 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
 
         this.items[item] = ItemInfo(idle);
 
+        this.index ~= item;
+
         if ( idle )
         {
             this.idle_set.put(item, true);
@@ -915,6 +953,7 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
         this.items = this.items.init;
     }
 }
+
 
 
 /*******************************************************************************
