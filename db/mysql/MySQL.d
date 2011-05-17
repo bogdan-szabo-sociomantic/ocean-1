@@ -25,7 +25,7 @@
 
 *******************************************************************************/
 
-module ocean.db.MySQL;
+module ocean.db.mysql.MySQL;
 
 public  import ocean.core.Exception: MySQLException;
 
