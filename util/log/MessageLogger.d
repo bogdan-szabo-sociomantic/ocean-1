@@ -173,7 +173,7 @@ class MessageLogger
     
         synchronized
         {
-            auto log_output = this.enabled && this.logger;
+            auto log_output = this.enabled && this.logger !is null;
             auto console_output = this.console_enabled;
 
             char[] out_str = fmt;
