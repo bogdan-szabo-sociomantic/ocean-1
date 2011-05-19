@@ -9,7 +9,7 @@
     authors:        Gavin Norman
     
     Fast, ordered, 32-bit key, 32-bit value map. The map is ordered by the key
-    type.
+    type, and all iterators return key->value pairs in key order.
     
     At present both the keys and values in the mapping are restricted to 32
     bits. This is sufficient for the storage of hash_t, time_t, pointers and
@@ -389,7 +389,7 @@ class EBTreeMap ( Key, Value )
 
     /***************************************************************************
 
-        foreach iterator over all keys in the map.
+        foreach iterator over all keys in the map, in key order.
     
     ***************************************************************************/
 
@@ -413,7 +413,7 @@ class EBTreeMap ( Key, Value )
 
     /***************************************************************************
 
-        foreach iterator over all values in the map.
+        foreach iterator over all values in the map, in key order.
 
     ***************************************************************************/
 
@@ -437,7 +437,7 @@ class EBTreeMap ( Key, Value )
 
     /***************************************************************************
 
-        foreach iterator over all keys & values in the map.
+        foreach iterator over all keys & values in the map, in key order.
 
     ***************************************************************************/
 
@@ -462,7 +462,7 @@ class EBTreeMap ( Key, Value )
     /***************************************************************************
 
         foreach iterator over all nodes in the tree and their corresponding
-        keys & values.
+        keys & values, in key order.
 
     ***************************************************************************/
 
