@@ -1967,12 +1967,25 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 /*******************************************************************************
 
     Set class, for the moment just wraps an array map with a bool stored as the
-    (ignored) value. Replace with a proper valueless set when we have one.
+    (ignored) value.
+
+    TODO: Replace with a proper valueless set when we have one.
 
 ******************************************************************************/
 
-class Set ( T ) : ArrayMap!(bool, T)
+class Set ( T )
 {
+    /***************************************************************************
+
+        Internal array map & alias
+
+     **************************************************************************/
+
+    private alias ArrayMap!(bool, T) Map;
+
+    private Map map;
+
+
     /***************************************************************************
 
         Constructor.
@@ -1986,10 +1999,112 @@ class Set ( T ) : ArrayMap!(bool, T)
                            load_factor must be greater than 0.
 
      **************************************************************************/
-    
+
     public this ( size_t default_size = 10_000, float load_factor = 0.75 )
     {
-        super(default_size, load_factor);
+        this.map = new Map(default_size, load_factor);
+    }
+
+
+    /***************************************************************************
+
+        Put element into set
+
+        Params:
+            item = set item
+    
+        Returns:
+            a pointer to the just added element
+
+     **************************************************************************/
+
+    public void put ( T item )
+    {
+        this.map.put(item, true);
+    }
+
+    
+    /***************************************************************************
+
+        Remove element from set
+
+        Params:
+            item = element to remove
+
+        Returns:
+            true if the element was removed, false if it did not exist
+
+     **************************************************************************/
+
+    public bool remove ( T item )
+    {
+        return this.map.remove(item);
+    }
+    
+
+    /***************************************************************************
+
+        Return number of elements stored in set
+
+        Returns:
+            number of elements
+
+     **************************************************************************/
+
+    public size_t length ( )
+    {
+        return this.map.length;
+    }
+
+    
+    /***************************************************************************
+
+        Clear set
+
+     **************************************************************************/
+
+    public void clear ( )
+    {
+        this.map.clear;
+    }
+
+    
+    /***************************************************************************
+
+        Tells whether an element exists in the set
+
+        Params:
+            item = item to check
+
+        Returns:
+            true if item exists
+
+     **************************************************************************/
+
+    public bool opIn_r ( T item )
+    {
+        return (item in this.map) !is null;
+    }
+
+    
+    /***************************************************************************
+
+        foreach iteration over the elements of the set
+
+     **************************************************************************/
+
+    public int opApply ( int delegate ( ref T item ) dg )
+    {
+        int ret;
+
+        foreach ( item, ignore; this.map )
+        {
+            ret = dg(item);
+
+            if ( ret ) break;
+        }
+
+        return ret;
     }
 }
 
@@ -2001,7 +2116,7 @@ class Set ( T ) : ArrayMap!(bool, T)
 
  ******************************************************************************/
 
-debug (OceanUnitTest)
+debug ( OceanPerformanceTest )
 {
     import tango.util.log.Trace;
     import tango.core.Memory;
