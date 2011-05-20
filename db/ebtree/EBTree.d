@@ -69,6 +69,8 @@ private import ocean.db.ebtree.c.eb64tree;
 
 private import tango.core.Traits;
 
+debug private import tango.util.log.Trace;
+
 
 
 /*******************************************************************************
@@ -84,13 +86,22 @@ public class EBTree ( T )
 {
     /***************************************************************************
 
+        This alias
+
+    ***************************************************************************/
+
+    private alias typeof(this) This;
+
+
+    /***************************************************************************
+
         Check template type is an integer.
 
     ***************************************************************************/
 
     static if ( !isIntegerType!(T) )
     {
-        static assert(false, typeof(this).stringof ~ ": internal type must be an integer type, not " ~ T.stringof);
+        static assert(false, This.stringof ~ ": internal type must be an integer type, not " ~ T.stringof);
     }
 
 
@@ -107,12 +118,16 @@ public class EBTree ( T )
         public alias eb32_node Node;
         private alias eb32_first getFirst;
         private alias eb32_last getLast;
+        private alias eb32_lookup_le lookupLE;
+        private alias eb32_lookup_ge lookupGE;
     }
     else static if ( T.sizeof == 8 )
     {
         public alias eb64_node Node;
         private alias eb64_first getFirst;
         private alias eb64_last getLast;
+        private alias eb64_lookup_le lookupLE;
+        private alias eb64_lookup_ge lookupGE;
     }
     else
     {
@@ -177,17 +192,17 @@ public class EBTree ( T )
         correct location to keep the tree sorted.
     
         Params:
-            i = value to add
+            key = value to add
     
         Returns:
             pointer to newly added node
     
     ***************************************************************************/
     
-    public Node* add ( KeyType i )
+    public Node* add ( KeyType key )
     {
         auto node = this.node_pool.get();
-        node.key = i;
+        node.key = key;
     
         static if ( Signed )
         {
@@ -223,19 +238,22 @@ public class EBTree ( T )
     
         Returns:
             lowest value in the tree
+
+        Throws:
+            exception if tree is empty
     
     ***************************************************************************/
     
     public KeyType first ( )
     {
         auto node = getFirst(&this.root);
-        if ( node !is null )
+        if ( node is null )
         {
-            return node.key;
+            throw new Exception(typeof(this).stringof ~ ".first: tree is empty, no first entry");
         }
         else
         {
-            return KeyType.min;
+            return node.key;
         }
     }
     
@@ -245,22 +263,169 @@ public class EBTree ( T )
         Returns:
             highest value in the tree
     
+        Throws:
+            exception if tree is empty
+    
     ***************************************************************************/
     
     public KeyType last ( )
     {
         auto node = getLast(&this.root);
-        if ( node !is null )
+        if ( node is null )
         {
-            return node.key;
+            throw new Exception(typeof(this).stringof ~ ".last: tree is empty, no last entry");
         }
         else
         {
-            return KeyType.max;
+            return node.key;
         }
     }
+
+
+    /***************************************************************************
+
+        Searches the tree for the first node whose key is <= the specified key,
+        and returns the node's key.
+
+        Params:
+            key = key to search for
+
+        Returns:
+            key of first node <= than specified key
+
+        Throws:
+            exception if no node found
     
+    ***************************************************************************/
     
+    public KeyType firstLessEqual ( KeyType key )
+    {
+        auto node = lookupLE(&this.root, key);
+        if ( node is null )
+        {
+            throw new Exception(typeof(this).stringof ~ ".firstLessEqual: no entry <= specified key");
+        }
+        else
+        {
+            return node.key;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Searches the tree for the first node whose key is >= the specified key,
+        and returns the node's key.
+
+        Params:
+            key = key to search for
+
+        Returns:
+            key of first node >= than specified key
+
+        Throws:
+            exception if no node found
+
+    ***************************************************************************/
+
+    public KeyType firstGreaterEqual ( KeyType key )
+    {
+        auto node = lookupGE(&this.root, key);
+        if ( node is null )
+        {
+            throw new Exception(typeof(this).stringof ~ ".firstGreaterEqual: no entry >= specified key");
+        }
+        else
+        {
+            return node.key;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Returns:
+            pointer to node with lowest value in the tree
+
+    ***************************************************************************/
+
+    public Node* firstNode ( )
+    {
+        return getFirst(&this.root);
+    }
+
+
+    /***************************************************************************
+
+        Returns:
+            pointer to node with highest value in the tree
+
+    ***************************************************************************/
+
+    public Node* lastNode ( )
+    {
+        return getLast(&this.root);
+    }
+
+
+    /***************************************************************************
+
+        Searches the tree for the first node whose key is <= the specified key,
+        and returns it.
+
+        Params:
+            key = key to search for
+
+        Returns:
+            first node <= than specified key, may be null if no node found
+
+    ***************************************************************************/
+
+    public Node* firstNodeLessEqual ( KeyType key )
+    {
+        return lookupLE(&this.root, key);
+    }
+
+
+    /***************************************************************************
+
+        Searches the tree for the first node whose key is >= the specified key,
+        and returns it.
+
+        Params:
+            key = key to search for
+
+        Returns:
+            first node >= than specified key, may be null if no node found
+
+    ***************************************************************************/
+
+    public Node* firstNodeGreaterEqual ( KeyType key )
+    {
+        return lookupGE(&this.root, key);
+    }
+
+
+    /***************************************************************************
+
+        Searches the tree for the specified key, and returns the first node with
+        that key.
+
+        Params:
+            key = key to search for
+
+        Returns:
+            pointer to first node in tree with specified key, may be null if no
+            nodes found
+
+    ***************************************************************************/
+
+    public Node* lookup ( KeyType key )
+    {
+        return Node.lookup(&this.root, key);
+    }
+
+
     /***************************************************************************
 
         Returns:
@@ -285,8 +450,53 @@ public class EBTree ( T )
         this.node_pool.clear();
         this.root = root.init;
     }
-    
-    
+
+
+    /***************************************************************************
+
+        foreach iterator over keys.
+
+    ***************************************************************************/
+
+    public int opApply ( int delegate ( ref KeyType key ) dg )
+    {
+        int ret;
+
+        foreach ( node, key; this )
+        {
+            ret = dg(key);
+            
+            if ( ret ) break;
+        }
+
+        return ret;
+    }
+
+
+    /***************************************************************************
+
+        foreach iterator over nodes & keys.
+
+    ***************************************************************************/
+
+    public int opApply ( int delegate ( ref Node* node, ref KeyType key ) dg )
+    {
+        Node* node = this.firstNode;
+
+        int ret;
+
+        while ( node !is null )
+        {
+            ret = dg(node, node.key);
+            if ( ret ) break;
+
+            node = node.next;
+        }
+
+        return ret;
+    }
+
+
     /***************************************************************************
     
         Gets a 'less than or equal' iterator over the tree's nodes.
@@ -303,7 +513,7 @@ public class EBTree ( T )
     public LEIterator lessEqual ( KeyType key )
     {
         LEIterator it;
-        it.node = getFirst(&this.root);
+        it.node = this.firstNode;
         it.key = key;
     
         return it;
@@ -326,7 +536,7 @@ public class EBTree ( T )
     public GEIterator greaterEqual ( KeyType key )
     {
         GEIterator it;
-        it.node = getLast(&this.root);
+        it.node = this.lastNode;
         it.key = key;
     
         return it;
@@ -343,22 +553,21 @@ public class EBTree ( T )
     {
         private Node* node;
         private KeyType key;
-    
+
         public int opApply ( int delegate ( ref KeyType ) dg )
         {
             int ret;
-    
-            while ( node !is null && cast(KeyType)node.key <= this.key )
+
+            foreach ( node, key; *this )
             {
-                ret = dg(node.key);
+                ret = dg(key);
+                
                 if ( ret ) break;
-    
-                node = node.next;
             }
-    
+
             return ret;
         }
-    
+
         public int opApply ( int delegate ( ref Node*, ref KeyType ) dg )
         {
             int ret;
@@ -386,22 +595,21 @@ public class EBTree ( T )
     {
         private Node* node;
         private KeyType key;
-    
+
         public int opApply ( int delegate ( ref KeyType ) dg )
         {
             int ret;
-    
-            while ( node !is null && cast(KeyType)node.key >= this.key )
+
+            foreach ( node, key; *this )
             {
-                ret = dg(node.key);
+                ret = dg(key);
+                
                 if ( ret ) break;
-    
-                node = node.prev;
             }
-    
+
             return ret;
         }
-    
+
         public int opApply ( int delegate ( ref Node*, ref KeyType ) dg )
         {
             int ret;
