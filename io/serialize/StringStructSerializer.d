@@ -156,8 +156,11 @@ class StringStructSerializer ( Char )
     
     /***************************************************************************
     
-        Appends a named item to the output string
-    
+        Appends a named item to the output string.
+        
+        Note: the main method to use from the outside is the first serialize()
+        method above. This method is for the use of the StructSerializer.
+
         Template params:
             T = type of item
         
