@@ -61,8 +61,6 @@ module ocean.db.ebtree.EBTree;
 
 *******************************************************************************/
 
-private import ocean.core.Pool;
-
 private import ocean.db.ebtree.c.ebtree;
 private import ocean.db.ebtree.c.eb32tree;
 private import ocean.db.ebtree.c.eb64tree;
@@ -165,15 +163,23 @@ public class EBTree ( T )
     
     /***************************************************************************
     
-        Pool of tree nodes & alias.
-    
+        Number of nodes in the tree.
+
     ***************************************************************************/
-    
-    private alias Pool!(Node) NodePool;
-    
-    private NodePool node_pool;
-    
-    
+
+    private size_t count;
+
+
+    /***************************************************************************
+
+        List of free nodes. When a node is removed it is added to this list, so
+        that it can be re-used when a new node is added.
+
+    ***************************************************************************/
+
+    private Node*[] free_nodes;
+
+
     /***************************************************************************
     
         Constructor.
@@ -182,10 +188,9 @@ public class EBTree ( T )
     
     public this ( )
     {
-        this.node_pool = new NodePool;
     }
-    
-    
+
+
     /***************************************************************************
     
         Adds a value to the tree, automatically inserting a new node in the
@@ -198,10 +203,21 @@ public class EBTree ( T )
             pointer to newly added node
     
     ***************************************************************************/
-    
+
     public Node* add ( KeyType key )
     {
-        auto node = this.node_pool.get();
+        Node* node;
+        if ( this.free_nodes.length )
+        {
+            node = this.free_nodes[$-1];
+            this.free_nodes.length = this.free_nodes.length - 1;
+        }
+        else
+        {
+            node = new Node;
+        }
+        this.count++;
+
         node.key = key;
     
         static if ( Signed )
@@ -229,7 +245,9 @@ public class EBTree ( T )
         if ( node !is null )
         {
             node.remove();
-            this.node_pool.recycle(node);
+            this.free_nodes.length = this.free_nodes.length + 1;
+            this.free_nodes[$-1] = node;
+            this.count--;
         }
     }
     
@@ -435,7 +453,7 @@ public class EBTree ( T )
 
     size_t length ( )
     {
-        return this.node_pool.getNumBusyItems;
+        return this.count;
     }
 
 
@@ -447,7 +465,14 @@ public class EBTree ( T )
     
     public void clear ( )
     {
-        this.node_pool.clear();
+        foreach ( node, key; this )
+        {
+            this.free_nodes.length = this.free_nodes.length + 1;
+            this.free_nodes[$-1] = node;
+        }
+
+        this.count = 0;
+
         this.root = root.init;
     }
 
