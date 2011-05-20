@@ -9,7 +9,13 @@
     authors:        David Eckardt
     
     The ObjectPool manages a pool of class instance objects.
-    
+
+    Warning: The ObjectPool is *not* thread safe. If you need to use it in a
+    multi-threaded environment it must be syncrhonized externally. In this case
+    synchronization must occur over the ObjectPool instance, to ensure that the
+    get() and recycle() methods are synchronized with eachother. (See the last
+    usage example, below.)
+
     Usage:
     
     To manage instances of a class MyClass using ObjectPool, MyClass and its
@@ -72,7 +78,62 @@
         pool = pool.newPool(x, y);
     
     ---
-   
+
+    Multi-threaded usage example, with a single ObjectPool shared safely between
+    multiple threads:
+
+    ---
+
+        import $(TITLE)
+        import tango.core.Thread;
+
+        class PoolClass
+        {
+        }
+
+        alias ObjectPool!(PoolClass) Pool;
+
+        class ThreadClass : Thread
+        {
+            Pool pool;
+
+            this ( Pool pool )
+            {
+                this.pool = pool;
+
+                super(&this.run);
+            }
+
+            void run ( )
+            {
+                // Get an object from the pool.
+                Pool.PoolItem obj;
+                synchronized ( this.pool )
+                {
+                    obj = this.pool.get();
+                }
+                
+                // Do something with it
+                // ...
+
+                // Return the object to the poll.
+                synchronized ( this.pool )
+                {
+                    obj.recycle();
+                }
+            }
+        }
+
+        auto pool = new Pool;
+
+        auto t1 = new ThreadClass(pool);
+        auto t2 = new ThreadClass(pool);
+
+        t1.start;
+        t2.start;
+
+    ---
+
 *******************************************************************************/
 
 module ocean.core.ObjectPool;
