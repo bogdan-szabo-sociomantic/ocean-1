@@ -830,7 +830,7 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
 
         if ( this.idle_set.length )
         {
-            foreach ( i, v; this.idle_set ) // using foreach to emulate getFirst()
+            foreach ( i; this.idle_set ) // using foreach to emulate getFirst()
             {
                 item = i;
                 break;
@@ -901,7 +901,7 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
 
         info.idle = true;
 
-        this.idle_set.put(item, true);
+        this.idle_set.put(item);
     }
 
     /**************************************************************************
@@ -931,7 +931,7 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
 
         if ( idle )
         {
-            this.idle_set.put(item, true);
+            this.idle_set.put(item);
         }
 
         return item;
