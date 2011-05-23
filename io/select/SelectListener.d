@@ -351,9 +351,7 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListener
 
     protected IConnectionHandler getConnectionHandler ( )
     {
-        IConnectionHandler ch = this.receiver_pool.get();
-        ch.listener = this;
-        return ch;
+        return this.receiver_pool.get();
     }
     
     /**************************************************************************
