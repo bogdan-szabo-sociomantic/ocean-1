@@ -18,11 +18,9 @@
         
     to the DMD build parameters.
     
-    TODO: coordinate with ocean.core.Array and ocean.text.util.StringReplace
-    
  ******************************************************************************/
 
-module text.util.Split;
+module ocean.text.util.SplitIterator;
 
 /******************************************************************************
 
@@ -61,7 +59,7 @@ extern (C) private char* g_strstr_len ( char* haystack, ssize_t haystack_len, ch
 
  ******************************************************************************/
 
-class SplitStr : ISplit
+class StrSplitIterator : ISplitIterator
 {
     /**************************************************************************
         
@@ -252,9 +250,74 @@ class SplitStr : ISplit
         return item? item - str.ptr : str.length;
     }
     
-    unittest
+    /**************************************************************************/
+    
+    version (none) unittest
     {
-        with (new typeof (this))
+        scope split = new typeof (this);
+        
+        void check ( char[] str, char[][] elements, char[] line )
+        {
+            foreach (element; split.reset(str)) try
+            {
+                assert (split.n, test_id);
+                assert (split.n <= elements.length, test_id);
+                assert (element == elements[split.n - 1], test_id);
+            }
+            catch (Exception e)
+            {
+                e.msg ~= " at line  ";
+                e.msg ~= line;
+            }
+        }
+        
+        split.delim    = "123";
+
+        split.collapse = true;
+                
+        foreach (str; ["123""ab""123"     "cd""123""efg""123",
+                       "123""ab""123""123""cd""123""efg""123",
+                       "123""ab""123""123""cd""123""efg",
+                            "ab""123""123""cd""123""efg",
+                       
+                       "123""123""ab""123""123""cd""123""efg",
+                       "ab""123""123""cd""123""efg""123""123"])
+        {
+            version (all)
+            {
+                check(str, ["ab", "cd", "efg"]);
+            }
+            else foreach (element; split.reset(str))
+            {
+                const char[][] elements = ["ab", "cd", "efg"];
+                
+                assert (split.n);
+                assert (split.n <= elements.length);
+                assert (element == elements[split.n - 1]);
+            }
+        }
+        
+        split.collapse = false;
+        
+        foreach (element; split.reset("ab""123""cd""123""efg"))
+        {
+            const char[][] elements = ["ab", "cd", "efg"];
+            
+            assert (split.n);
+            assert (split.n <= elements.length);
+            assert (element == elements[split.n - 1]);
+        }
+        
+        foreach (element; split.reset("123""ab""123""cd""123""efg""123"))
+        {
+            const char[][] elements = ["", "ab", "cd", "efg", ""];
+            
+            assert (split.n);
+            assert (split.n <= elements.length);
+            assert (element == elements[split.n - 1]);
+        }
+        
+        version (none)
         {
 //            collapse = true;
 //            
@@ -284,7 +347,7 @@ class SplitStr : ISplit
 
  ******************************************************************************/
 
-class SplitChr : ISplit
+class ChrSplitIterator : ISplitIterator
 {
     /**************************************************************************
         
@@ -351,7 +414,7 @@ class SplitChr : ISplit
 
  ******************************************************************************/
 
-abstract class ISplit
+abstract class ISplitIterator
 {
     /**************************************************************************
     
