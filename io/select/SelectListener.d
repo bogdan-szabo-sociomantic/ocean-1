@@ -77,7 +77,176 @@ import tango.net.device.Socket,
 
 debug private import tango.util.log.Trace;
 
+/******************************************************************************
 
+    SelectListener base class
+    
+    Contains all base functionality which is not related to the particular
+    IConnectionHandler subclass used in SelectListener.
+
+ ******************************************************************************/
+
+abstract class ISelectListener : ISelectClient
+{
+    /**************************************************************************
+
+        SelectDispatcher instance
+    
+     **************************************************************************/
+    
+    private EpollSelectDispatcher dispatcher;
+    
+    /**************************************************************************
+
+        Termination flag; true prevents accepting new connections
+    
+     **************************************************************************/
+
+    private bool terminated = false;
+    
+    /**************************************************************************
+    
+        Constructor
+        
+        Creates the server socket and registers it for incoming connections.
+        
+        Params:
+            address    = server address
+            dispatcher = SelectDispatcher instance to use
+            args       = additional T constructor arguments, might be empty
+            backlog    = (see ServerSocket constructor in tango.net.device.Socket)
+            reuse      = (see ServerSocket constructor in tango.net.device.Socket)
+        
+     **************************************************************************/
+    
+    protected this ( IPv4Address address, EpollSelectDispatcher dispatcher,
+                     int backlog = 32, bool reuse = true )
+    {
+        auto socket = new ServerSocket(address, backlog, reuse);
+        socket.socket.noDelay(true).blocking(false);
+        
+        super(socket);
+        
+        this.dispatcher = dispatcher;
+        
+        dispatcher.register(this);
+    }
+
+    /**************************************************************************
+
+        Runs the server event loop.
+        
+        Returns:
+            this instance
+        
+     **************************************************************************/
+    
+    final typeof (this) eventLoop ( )
+    {
+        this.dispatcher.eventLoop();
+        
+        return this;
+    }
+    
+    /**************************************************************************
+    
+        Returns the I/O events to register the device for.
+        
+        Called from SelectDispatcher during event loop.
+        
+        Returns:
+             the I/O events to register the device for (Event.Read)
+    
+     **************************************************************************/
+    
+    final Event events ( )
+    {
+        return Event.Read;
+    }
+    
+    /**************************************************************************
+    
+        I/O event handler
+    
+        Called from SelectDispatcher during event loop.
+    
+        Params:
+             event = identifier of I/O event that just occured on the device
+    
+        Returns:
+            true if the handler should be called again on next event occurrence
+            or false if this instance should be unregistered from the
+            SelectDispatcher (this is effectively a server shutdown).
+    
+     **************************************************************************/
+    
+    final bool handle ( Event event )
+    {
+        if (!this.terminated)
+        {
+            this.getConnectionHandler().assign((ISelectable connection_conduit)
+            {
+                Socket connection_socket = cast (Socket) connection_conduit;
+                (cast (ServerSocket) super.conduit).accept(connection_socket);
+                connection_socket.socket.noDelay(true).blocking(false);
+            });
+        }
+        
+        return !this.terminated;
+    }
+    
+    /**************************************************************************
+    
+        Closes the server socket and sets this instance to terminated mode.
+        
+        TODO: Make it possible to reopen the server socket and resume operation? 
+        
+        Returns:
+            true if this instance was already in to terminated mode or false
+            otherwise
+    
+     **************************************************************************/
+
+    final bool terminate ( )
+    {
+        scope (exit) if (!this.terminated)
+        {
+            this.terminated = true;
+            
+            (cast (Socket) super.conduit).shutdown().close();
+        }
+        
+        return this.terminated;
+    }
+    
+    /**************************************************************************
+    
+        Returns:
+            information interface to the connections pool
+    
+     **************************************************************************/
+    
+    abstract IObjectPoolInfo poolInfo ( );
+    
+    /**************************************************************************
+        
+        Obtains a connection handler instance from the pool.
+        
+        Returns:
+            connection handler
+    
+     **************************************************************************/
+    
+    abstract protected IConnectionHandler getConnectionHandler ( );
+    
+    /**************************************************************************
+    
+        Class ID string for debugging
+    
+     **************************************************************************/
+    
+    debug (ISelectClient) abstract char[] id ( );
+}
 
 /******************************************************************************
 
@@ -92,16 +261,8 @@ debug private import tango.util.log.Trace;
 
  ******************************************************************************/
 
-class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient
+class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListener
 {
-    /**************************************************************************
-
-        SelectDispatcher instance
-    
-     **************************************************************************/
-
-    private EpollSelectDispatcher dispatcher;
-    
     /**************************************************************************
 
         ObjectPool of connection handlers
@@ -172,84 +333,29 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient
     this ( IPv4Address address, EpollSelectDispatcher dispatcher,
            Args args, int backlog = 32, bool reuse = true )
     {
-        this.dispatcher = dispatcher;
-        
-        auto socket = new ServerSocket(address, backlog, reuse);
-        socket.socket.noDelay(true).blocking(false);
-        
-        super(socket);
+        super(address, dispatcher, backlog, reuse);
         
         this.receiver_pool = this.receiver_pool.newPool(dispatcher,
                                                         &this.returnToPool,
                                                         args);
-        
-        dispatcher.register(this);
     }
     
     /**************************************************************************
-
-        Runs the server event loop.
-        
-        Returns:
-            this instance
-        
-     **************************************************************************/
-
-    public typeof (this) eventLoop ( )
-    {
-        this.dispatcher.eventLoop();
-        
-        return this;
-    }
     
-    /**************************************************************************
-
-        Returns the I/O events to register the device for.
-        
-        Called from SelectDispatcher during event loop.
+        Obtains a connection handler instance from the pool.
         
         Returns:
-             the I/O events to register the device for (Event.Read)
+            connection handler
     
      **************************************************************************/
 
-    public Event events ( )
+    protected IConnectionHandler getConnectionHandler ( )
     {
-        return Event.Read;
+        IConnectionHandler ch = this.receiver_pool.get();
+        ch.listener = this;
+        return ch;
     }
     
-    /**************************************************************************
-
-        I/O event handler
-
-        Called from SelectDispatcher during event loop.
-
-        Params:
-             event = identifier of I/O event that just occured on the device
-
-        Returns:
-            true if the handler should be called again on next event occurrence
-            or false if this instance should be unregistered from the
-            SelectDispatcher (this is effectively a server shutdown).
-
-     **************************************************************************/
-
-    public bool handle ( Event event )
-    {
-        auto new_connection = this.receiver_pool.get();
-
-        new_connection.assign(
-            (ISelectable connection_conduit)
-            {
-                Socket connection_socket = cast (Socket) connection_conduit;
-    
-                (cast (ServerSocket) super.conduit).accept(connection_socket);
-                connection_socket.socket.noDelay(true).blocking(false);
-            });
-
-        return true;
-    }
-
     /**************************************************************************
 
         Returns:
@@ -274,7 +380,11 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient
 
     private void returnToPool ( IConnectionHandler connection )
     {
-        this.receiver_pool.recycle(cast (T) connection);
+        T item = cast (T) connection;
+        
+        assert (item);
+        
+        this.receiver_pool.recycle(item);
     }
     
     /**************************************************************************
@@ -293,4 +403,3 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectClient
         }
     }
 }
-
