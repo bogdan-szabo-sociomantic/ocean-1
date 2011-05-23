@@ -12,7 +12,7 @@
 
 *******************************************************************************/
 
-module io.device.queue.model.ILoggable;
+module ocean.io.device.queue.model.ILoggable;
 
 
 

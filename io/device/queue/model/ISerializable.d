@@ -13,7 +13,7 @@
 
 *******************************************************************************/
 
-module io.device.queue.model.ISerializable;
+module ocean.io.device.queue.model.ISerializable;
 
 
 
