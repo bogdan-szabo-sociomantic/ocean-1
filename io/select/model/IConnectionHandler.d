@@ -179,24 +179,7 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
 
     ***************************************************************************/
 
-    version (all)
-    {
-        abstract void assign ( void delegate ( ISelectable ) );
-    }
-    else
-    {
-        public typeof (this) assign ( void delegate ( ISelectable ) assign_to_conduit )
-        {
-        	this.init();
-    
-            this.assign_(assign_to_conduit);
-            return this;
-        }
-    
-        abstract protected void assign_ ( void delegate ( ISelectable ) );
-
-        abstract protected void init ( );
-    }
+    abstract void assign ( void delegate ( ISelectable ) );
 
     /***************************************************************************
 
@@ -205,15 +188,14 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
     
     ***************************************************************************/
     
-    protected void finalize ( )
+    public void finalize ( )
     {
         if ( this.finalize_dg_ )
         {
             this.finalize_dg_(this);
         }
     }
-
-
+    
     /***************************************************************************
 
         IAdvancedSelectClient.IErrorReporter interface method. Called when a
