@@ -377,7 +377,9 @@ public class EpollSelectDispatcher
                     unregister_key = true;
     
                     debug (ISelectClient) Trace.formatln("{}: {}", client.id, e.msg);
-    
+                    
+                    debug Trace.formatln(e.line? "{} @{}:{}" : "{}", e.msg, e.file, e.line);
+                    
                     client.error(e, events);
                 }
                 finally if (unregister_key)
@@ -469,11 +471,11 @@ public class EpollSelectDispatcher
     {
         if (!(events & (events.Read | events.Write)))
         {
-            assertEx(!(events & events.Hangup), this.exception("socket hung up"));
-            assertEx(!(events & events.Error),  this.exception("socket error"));
+            assertEx(!(events & events.Hangup), this.exception("socket hung up", __FILE__, __LINE__));
+            assertEx(!(events & events.Error),  this.exception("socket error", __FILE__, __LINE__));
         }
 
-        assertEx(!(events & events.ReadHangup), this.exception("socket hung up on read"));
+        assertEx(!(events & events.ReadHangup), this.exception("socket hung up on read", __FILE__, __LINE__));
         
         return events;
     }
