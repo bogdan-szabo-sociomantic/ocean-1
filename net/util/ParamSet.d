@@ -18,6 +18,12 @@
     Note that keys and values are meant to slice string buffers in a subclass or
     external to this class.
     
+    Build note: Requires linking against libglib-2.0: add
+
+    -L-lglib-2.0
+    
+    to the DMD build parameters.
+
  ******************************************************************************/
 
 module ocean.net.util.ParamSet;
@@ -28,18 +34,30 @@ module ocean.net.util.ParamSet;
 
  ******************************************************************************/
 
-//private import ocean.net.http2.header.Element;
+private import ocean.text.util.SplitIterator: ISplitIterator;
 
-private import ocean.text.util.Split: SplitChr;
-
-private import tango.stdc.string: memchr;
 private import tango.stdc.ctype:  tolower;
 
 private import tango.stdc.stdlib: div;
 
-debug = 1;
+/******************************************************************************
 
-debug private import tango.io.Stdout;
+    Compares each of the the first n characters in s1 and s2 in a
+    case-insensitive manner.
+    
+    Params:
+        s1 = string to compare each of the first n characters aganst those in s2
+        s2 = string to compare each of the first n characters aganst those in s1
+        n  = number of characters to compare
+        
+    Returns:
+        an integer less than, equal to, or greater than zero if the first n
+        characters of s1 is found, respectively, to be less than, to match, or
+        to be greater than the first n characters of s2
+
+ ******************************************************************************/
+
+extern (C) private int g_ascii_strncasecmp ( char* s1, char* s2, size_t n );
 
 /******************************************************************************/
 
@@ -101,6 +119,8 @@ class ParamSet
                 this.addKey(key);
             }
         }
+        
+        this.paramset.rehash;
     }
     
     /**************************************************************************
@@ -149,7 +169,7 @@ class ParamSet
     /**************************************************************************
 
         Obtains the parameter value corresponding to key, bundled with the
-        original key,.
+        original key.
         
         Params:
             key = parameter key (case insensitive)
@@ -255,6 +275,32 @@ class ParamSet
     
     /**************************************************************************
 
+        Compares the parameter value corresponding to key with val in a
+        case-insensitive manner.
+    
+        Params:
+            key = parameter key (case insensitive)
+            val = parameter key (case insensitive)
+    
+        Returns:
+            true if a parameter for key exists and its value case-insensitively
+            equals val
+    
+     **************************************************************************/
+
+    bool matches ( char[] key, char[] val )
+    {
+        Element* element = this.get_(key);
+        
+        return element?
+                   (val !is null && element.val.length == val.length)?
+                        !g_ascii_strncasecmp(element.val.ptr, val.ptr, val.length):
+                        false:
+                   false;
+    }
+    
+    /**************************************************************************
+
         'foreach' iteration over parameter key/value pairs
         
      **************************************************************************/
@@ -355,14 +401,17 @@ class ParamSet
 
     protected char[] tolower ( char[] key )
     {
-        this.tolower_buf.length = key.length;
+        if (this.tolower_buf.length < key.length)
+        {
+            this.tolower_buf.length = key.length;
+        }
         
         foreach (i, c; key)
         {
             this.tolower_buf[i] = .tolower(c);
         }
         
-        return this.tolower_buf;
+        return this.tolower_buf[0 .. key.length];
     }
     
     /**************************************************************************
@@ -462,7 +511,7 @@ class ParamSet
 
     protected static char[] readUint ( char[] src, out uint n )
     {
-        char[] trimmed = SplitChr.trim(src);
+        char[] trimmed = ISplitIterator.trim(src);
         
         foreach (i, c; trimmed)
         {
@@ -479,21 +528,11 @@ class ParamSet
         return src? "" : null;
     }
     
-    debug unittest
-    {
-        char[10] str;
+    /**************************************************************************
+
+        TODO: unittest
         
-        Stderr(writeUintFixed(str, 4711))("\n");
-        
-        char[] str2;
-        Stderr(writeUint(str2, 4711))("\n");
-        Stderr(writeUint(str2, 0))("\n").flush();
-        
-        uint n;
-        
-        str2 = readUint("\t12 345\r\n", n);
-        
-        Stderr(str2.length);
-        Stderr(" > ")(n)(", ")(str2)("\n");
-    }
+     **************************************************************************/
+    
+    unittest {}
 }
