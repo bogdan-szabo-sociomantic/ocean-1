@@ -41,7 +41,7 @@ private import tango.io.Stdout;
 
     Looks up the first occurrence of needle in haystack.
     
-    @see http://www.gtk.org/api/2.6/glib/glib-String-Utility-Functions.html#g-ascii-strncasecmp
+    @see http://www.gtk.org/api/2.6/glib/glib-String-Utility-Functions.html#g-strstr-len
     
     Params:
         haystack     = string to search for needle
