@@ -1,3 +1,15 @@
+/*******************************************************************************
+
+    Base class for a connection handler for use with SelectListener.
+
+    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
+
+    version:        December 2010: Initial release
+
+    authors:        David Eckardt, Gavin Norman
+
+*******************************************************************************/
+
 module ocean.io.select.model.IChainConnectionHandler;
 
 private import ocean.io.select.model.IConnectionHandler;
@@ -5,7 +17,7 @@ private import ocean.io.select.model.IConnectionHandler;
 private import ocean.io.select.protocol.SelectReader,
                ocean.io.select.protocol.SelectWriter;
 
-
+/******************************************************************************/
 
 class IChainConnectionHandler : IConnectionHandler
 {
@@ -67,7 +79,9 @@ class IChainConnectionHandler : IConnectionHandler
 
         Initialises the reader and writer. Called whenever a connection is
         assigned, to ensure that the reader & writer states are clean.
-    
+        
+        FIXME: Looks like it isn't called from anywhere...
+        
     ***************************************************************************/
     
     private void init ( )
