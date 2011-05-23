@@ -171,8 +171,8 @@ abstract class ISelectClient
     final public ISelectable conduit ( )
     in
     {
-        debug (ISelectClient) assert (this.conduit_, this.id ~ ": no conduit");
-        else  assert (this.conduit_, typeof (this).stringof ~ ": no conduit");
+        debug (ISelectClient) assert (this.conduit_ !is null, this.id ~ ": no conduit");
+        else  assert (this.conduit_ !is null, typeof (this).stringof ~ ": no conduit");
     }
     body
     {
