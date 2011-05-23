@@ -1,25 +1,39 @@
+/*******************************************************************************
+
+    Base class for a connection handler for use with SelectListener, using
+    Fibers.
+
+    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
+
+    version:        May 2011: Initial release
+
+    authors:        David Eckardt, Gavin Norman
+
+*******************************************************************************/
+
 module ocean.io.select.model.IFiberConnectionHandler;
 
-private import ocean.io.select.fiberprotocol.SelectReader,
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+private import ocean.io.select.fiberprotocol.model.ISelectProtocol,
+               ocean.io.select.fiberprotocol.SelectReader,
                ocean.io.select.fiberprotocol.SelectWriter;
 
 private import ocean.io.select.model.IConnectionHandler;
-
-private import ocean.io.select.model.ISelectClient;
 
 private import tango.core.Thread : Fiber;
 
 private import tango.net.device.Socket : Socket;
 
-debug private import tango.util.log.Trace;
+/******************************************************************************/
 
 class IFiberConnectionHandler : IConnectionHandler
 {
-    protected Fiber fiber;
-
-    protected EpollSelectDispatcher dispatcher;
-
-    /***************************************************************************
+   /***************************************************************************
 
         Local aliases for SelectReader and SelectWriter.
     
@@ -27,7 +41,6 @@ class IFiberConnectionHandler : IConnectionHandler
     
     public alias .SelectReader SelectReader;
     public alias .SelectWriter SelectWriter;
-    
     
     /***************************************************************************
     
@@ -37,7 +50,17 @@ class IFiberConnectionHandler : IConnectionHandler
     
     protected SelectReader reader;
     protected SelectWriter writer;
+    
+    /***************************************************************************
+    
+        EpollSelectDispatcher instance
+    
+    ***************************************************************************/
 
+    private EpollSelectDispatcher dispatcher;
+
+    /**************************************************************************/
+    
     invariant
     {
         assert (this.reader.conduit is this.writer.conduit);
@@ -45,7 +68,7 @@ class IFiberConnectionHandler : IConnectionHandler
 
     /***************************************************************************
 
-        Constructor.
+        Constructor
     
         Connects the socket, the asynchronous reader and writer, and the
         provided epoll select dispatcher.
@@ -69,15 +92,13 @@ class IFiberConnectionHandler : IConnectionHandler
 
         this.dispatcher = dispatcher;
 
-        this.fiber = new Fiber(&this.handleLoop);
+        Fiber fiber = new Fiber(&this.handleLoop);
+        
+        this.reader = new SelectReader(socket, fiber);
+        this.writer = new SelectWriter(socket, fiber);
 
-        this.reader = new SelectReader(socket, this.fiber);
-        this.reader.finalizer = this;
-        this.reader.error_reporter = this;
-
-        this.writer = new SelectWriter(socket, this.fiber);
-        this.writer.finalizer = this;
-        this.writer.error_reporter = this;
+        this.reader.error_reporter = super;
+        this.writer.error_reporter = super;
     }
     
     /***************************************************************************
@@ -94,10 +115,8 @@ class IFiberConnectionHandler : IConnectionHandler
     public void assign ( void delegate ( ISelectable ) assign_to_conduit )
     {
         assign_to_conduit(this.reader.conduit);
-
-        this.fiber.reset();
-
-        this.fiber.call();
+        
+        this.reader.start();
     }
     
     /***************************************************************************
@@ -109,15 +128,23 @@ class IFiberConnectionHandler : IConnectionHandler
 
     private void handleLoop ( )
     {
-        scope (exit) super.finalize();
-        
         uint n = 0;
+        
+        bool more = false;
         
         do
         {
             this.register(this.reader);
+            
+            more = this.handle(n++);
+            
+            if (more)
+            {
+                this.reader.finalizer = null;                                   // If more, prevent this instance from being
+                this.writer.finalizer = null;                                   // finalized when reader and/or writer are finished. 
+            }
         }
-        while (this.handle(n++))
+        while (more)
     }
     
     /***************************************************************************
@@ -140,6 +167,18 @@ class IFiberConnectionHandler : IConnectionHandler
     /***************************************************************************
     
         Registers client in the select dispatcher.
+        Sets this instance as client finalizer because super.finalize(), which
+        returns this instance to the object pool, must be invoked in the case
+        when the select dispatcher gets a socket error event.
+        Since the handler() methods of this.reader/this.writer, which resume the
+        coroutine and would normally set the finalizer later on, are the
+        handlers invoked from the select dispatcher, the coroutine will not be
+        resumed in case of a socket error event ant therefore have no chance to
+        properly set the finalizer, resulting in this instance never being
+        returned to the object pool.
+        
+        TODO: discuss this subtle issue with Gavin
+        
         Note: The coroutine must be running. 
         
         Params:
@@ -147,15 +186,17 @@ class IFiberConnectionHandler : IConnectionHandler
         
     ***************************************************************************/
 
-    protected void register ( ISelectClient client )
+    protected void register ( ISelectProtocol client )
     in
     {
-        assert(this.fiber.state == this.fiber.State.EXEC);
+        assert(client.state == client.state.EXEC);
     }
     body
     {
+        client.finalizer = super;
         this.dispatcher.register(client);
-        this.fiber.cede();
+        
+        client.suspend();
     }
     
     /***************************************************************************
@@ -166,7 +207,9 @@ class IFiberConnectionHandler : IConnectionHandler
 
     protected void closeSocket ( )
     {
-        (cast (Socket) this.writer.conduit).shutdown().close();
+        Socket socket = cast (Socket) this.writer.conduit;
+        assert (socket !is null);
+        socket.shutdown().close();
     }
 }
 
