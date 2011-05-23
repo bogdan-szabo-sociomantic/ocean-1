@@ -44,7 +44,9 @@ struct HttpMethodNames
     /**************************************************************************
 
         HTTP method name string constants
-    
+        
+        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.1
+        
      **************************************************************************/
 
     const char[][HttpMethod.max + 1] List =
@@ -120,5 +122,7 @@ struct HttpMethodNames
         {
             this.methods_by_name[name] = cast (HttpMethod) method;
         }
+        
+        this.methods_by_name.rehash;
     }
 }
