@@ -1,4 +1,18 @@
+/******************************************************************************
+
+    HTTP header field name constants
+    
+    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
+    
+    version:        May 2011: Initial release
+    
+    author:         David Eckardt
+    
+ ******************************************************************************/
+
 module ocean.net.http2.consts.HeaderFieldNames;
+
+/******************************************************************************/
 
 struct HeaderFieldNames
 {
@@ -14,6 +28,12 @@ struct HeaderFieldNames
     
     struct Request
     {
+        /**********************************************************************
+        
+            Field name members
+        
+         **********************************************************************/             
+        
         char[] CacheControl,        Connection,         Date,
                Pragma,              Trailer,            TransferEncoding,
                Upgrade,             Via,                Warning,
@@ -25,6 +45,12 @@ struct HeaderFieldNames
                IfUnmodifiedSince,   MaxForwards,        ProxyAuthorization,
                Range,               Referer,            TE,
                UserAgent;
+        
+        /**********************************************************************
+        
+            Constant instance holding field names
+        
+         **********************************************************************/             
         
         const typeof (*this) Names =
         {
@@ -40,6 +66,12 @@ struct HeaderFieldNames
             "Range",                "Referer",          "TE",
             "User-Agent"
         };
+        
+        /**********************************************************************
+        
+            Adds static char[][n] NameList, a list of the name constants
+        
+         **********************************************************************/             
         
         mixin NameList!();
     }
@@ -59,6 +91,12 @@ struct HeaderFieldNames
 
     struct Response
     {
+        /**********************************************************************
+        
+            Field name members
+        
+         **********************************************************************/             
+        
         char[] CacheControl,        Connection,         Date,
                Pragma,              Trailer,            TransferEncoding,
                Upgrade,             Via,                Warning,
@@ -72,6 +110,12 @@ struct HeaderFieldNames
                ContentRange,        ContentType,        Expires,
                LastModified;
                
+        
+        /**********************************************************************
+        
+            Constant instance holding field names
+        
+         **********************************************************************/             
         
         const typeof (*this) Names =
         {
@@ -89,13 +133,37 @@ struct HeaderFieldNames
             "Last-Modified"
         };
         
+        /**********************************************************************
+        
+            Adds static char[][n] NameList, a list of the name constants
+        
+         **********************************************************************/             
+        
         mixin NameList!();
     }
     
+    /**************************************************************************
+    
+        NameList template to be mixed in into Request/Response
+    
+     **************************************************************************/             
+
     template NameList ( )
     {
+        /**********************************************************************
+        
+            NameList member
+        
+         **********************************************************************/             
+
         static typeof (this.Names.tupleof)[0][(typeof (this.Names.tupleof)).length] NameList; 
         
+        /**********************************************************************
+        
+            Static constructor; populates NameList
+        
+         **********************************************************************/             
+
         static this ( )
         {
             foreach (i, name; this.Names.tupleof)
