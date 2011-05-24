@@ -389,6 +389,8 @@ class JsonParserIter : JsonParser!(char)
             }
         }
         while ( super.next );
+
+        return false;
     }
 
     /**************************************************************************
