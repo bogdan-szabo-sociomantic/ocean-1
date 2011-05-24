@@ -8,15 +8,51 @@ module ocean.io.select.protocol.model.ISelectProtocol;
 
 ******************************************************************************/
 
-private import ocean.io.select.model.ISelectClient;
+private import ocean.io.select.model.ISelectClient: IAdvancedSelectClient;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
-private import tango.io.model.IConduit: ISelectable, IConduit;
+private import tango.io.model.IConduit: ISelectable;
+
+private import ocean.core.Array: copy, concat;
+
+private import TangoException = tango.core.Exception: IOException;
+private import tango.net.device.Berkeley: socket_t, Berkeley;
+
+private import tango.stdc.string: strlen;
+private import tango.stdc.errno: errno;
 
 debug private import tango.util.log.Trace;
 
+/******************************************************************************
 
+    Obtains the system error message corresponding to errnum (reentrant/
+    thread-safe version of strerror()).
+    
+    Note: This is the GNU (not the POSIX) version of strerror_r().
+    
+    @see http://www.kernel.org/doc/man-pages/online/pages/man3/strerror.3.html
+    
+    "The GNU-specific strerror_r() returns a pointer to a string containing the
+     error message.  This may be either a pointer to a string that the function
+     stores in buf, or a pointer to some (immutable) static string (in which case
+     buf is unused).  If the function stores a string in buf, then at most buflen
+     bytes are stored (the string may be truncated if buflen is too small) and
+     the string always includes a terminating null byte."
+
+    Tries have shown that buffer may actually not be populated.
+    
+    Params:
+        errnum = error number
+        buffer = error message destination buffer (may or may not be populated)
+        buflen = destination buffer length
+    
+    Returns:
+        a NUL-terminated string containing the error message
+    
+ ******************************************************************************/
+
+private extern (C) char* strerror_r ( int errnum, char* buffer, size_t buflen );
 
 /******************************************************************************
 
@@ -24,8 +60,17 @@ debug private import tango.util.log.Trace;
 
 ******************************************************************************/
 
-abstract public class ISelectProtocol : IAdvancedSelectClient
+abstract class ISelectProtocol : IAdvancedSelectClient
 {
+    /**************************************************************************
+
+        Default I/O data buffer size (if a buffer is actually involved; this
+        depends on the subclass implementation)
+    
+     **************************************************************************/
+    
+    const buffer_size = 0x4000;
+
     /**************************************************************************
 
         IOWarning exception instance 
@@ -50,8 +95,7 @@ abstract public class ISelectProtocol : IAdvancedSelectClient
 
      **************************************************************************/
 
-    private Event events_;
-
+    private Event events_reported_;
 
     /**************************************************************************
 
@@ -73,8 +117,8 @@ abstract public class ISelectProtocol : IAdvancedSelectClient
 
     /**************************************************************************
 
-        Handles events events_in which occurred for conduit. Invokes the
-        abstract handle_() method.
+        Handles events reported for the conduit. Invokes the abstract handle_()
+        method.
 
         (Implements an abstract super class method.)
 
@@ -87,43 +131,52 @@ abstract public class ISelectProtocol : IAdvancedSelectClient
 
      **************************************************************************/
 
-    final public bool handle ( Event events )
+    final bool handle ( Event events )
     {
-        this.events = events;
+        this.events_reported_ = events;
 
         return this.handle_();
     }
 
-    abstract public bool handle_ ( );
+    /**************************************************************************
 
+        Handles events reported for the conduit. this.events tells which events
+        were reported in particular.
+    
+        Returns:
+            true to indicate to the Dispatcher that the event registration
+            should be left unchanged or false to unregister the Conduit. 
+    
+     **************************************************************************/
 
+    abstract protected bool handle_ ( );
+    
     /**************************************************************************
 
         Gets event(s) reported to handle()
-
+    
      **************************************************************************/
 
-    protected Event events ( )
+    protected Event events_reported ( )
     {
-        return this.events_;
+        return this.events_reported_;
     }
-
-
+    
     /**************************************************************************
 
         Checks for errors after some data has been read from the conduit.
-
+    
         Params:
             received = bytes read (may be modified by this method)
-
+    
         Throws:
             IOException on end-of-flow condition:
                 - IOWarning if neither error is reported by errno nor socket
                   error
                 - IOError if an error is reported by errno or socket error
-
+    
      **************************************************************************/
-
+    
     protected void checkReadError ( ref size_t received )
     {
         switch ( received )
@@ -146,18 +199,16 @@ abstract public class ISelectProtocol : IAdvancedSelectClient
                     {
                         case EWOULDBLOCK:
                     }
-
-                    this.warning_e.assertEx(!(this.events_ & Event.ReadHangup), "connection hung up on read", __FILE__, __LINE__);
-                    this.warning_e.assertEx(!(this.events_ & Event.Hangup),     "connection hung up", __FILE__, __LINE__);
-
+    
+                    this.warning_e.assertEx(!(this.events_reported_ & Event.ReadHangup), "connection hung up on read", __FILE__, __LINE__);
+                    this.warning_e.assertEx(!(this.events_reported_ & Event.Hangup),     "connection hung up", __FILE__, __LINE__);
+    
                     received = 0;
             }
-
+    
             default:
         }
     }
-
-
     /**************************************************************************
 
         IOWarning class; to be thrown on end-of-flow conditions without an
@@ -398,5 +449,6 @@ abstract public class ISelectProtocol : IAdvancedSelectClient
             super.line = line;
         }
     }
+
 }
 
