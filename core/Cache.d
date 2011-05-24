@@ -44,7 +44,7 @@
         // Check if an item exists.
         auto exists = cache.exists(key);
 
-        // Get an item and update its timestamp.
+        // Get an item and update its access timestamp.
         auto item = cache.get(key, time + 10);
 
     ---
@@ -84,7 +84,7 @@ debug private import tango.util.log.Trace;
 
 *******************************************************************************/
 
-class Cache ( size_t ValueSize = 0 )
+class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
 {
     /***************************************************************************
 
@@ -116,6 +116,11 @@ class Cache ( size_t ValueSize = 0 )
     {
         hash_t key;
         Value value;
+
+        static if ( TrackCreateTimes )
+        {
+            time_t create_time;
+        }
     }
 
 
@@ -139,9 +144,9 @@ class Cache ( size_t ValueSize = 0 )
 
     /***************************************************************************
 
-        Mapping from update time to the index of an item in the items array. The
+        Mapping from access time to the index of an item in the items array. The
         map is implemented with an EBTree, so that it is sorted in order of
-        update times.
+        access times.
 
     ***************************************************************************/
 
@@ -205,7 +210,7 @@ class Cache ( size_t ValueSize = 0 )
 
         Params:
             key = item key
-            update_time = item update time
+            time = item create / access time
             value = data to store in cache
 
         Returns:
@@ -214,21 +219,22 @@ class Cache ( size_t ValueSize = 0 )
 
     ***************************************************************************/
 
-    public bool put ( hash_t key, time_t update_time, Value value )
+    public bool put ( hash_t key, time_t time, Value value )
     {
         auto item = key in this.key_to_item;
         if ( item is null ) // new item, not in cache
         {
-            this.add(key, update_time, value);
+            this.add(key, time, value);
             return false;
         }
         else
         {
-            // Update value
             this.setValue(item.index, value);
-
-            // Update time
-            this.updateTime(*item, update_time);
+            this.setAccessTime(*item, time);
+            static if ( TrackCreateTimes )
+            {
+                this.items[item.index].create_time = time;
+            }
 
             return true;
         }
@@ -238,18 +244,18 @@ class Cache ( size_t ValueSize = 0 )
     /***************************************************************************
 
         Gets an item from the cahce. A pointer to the item is returned, if
-        found. If the item exists in the cahce, its update time is updated.
+        found. If the item exists in the cahce, its access time is updated.
 
         Params:
             key = key to lookup
-            update_time = new update time to set for item
+            access_time = new access time to set for item
 
         Returns:
             pointer to item value, may be null if key not found
 
     ***************************************************************************/
 
-    public Value* get ( hash_t key, lazy time_t update_time )
+    public Value* get ( hash_t key, lazy time_t access_time )
     {
         auto item = key in this.key_to_item;
         if ( item is null ) // Item not in cache
@@ -258,7 +264,7 @@ class Cache ( size_t ValueSize = 0 )
         }
         else
         {
-            this.updateTime(*item, update_time);
+            this.setAccessTime(*item, access_time);
 
             return &this.items[item.index].value;
         }
@@ -281,6 +287,62 @@ class Cache ( size_t ValueSize = 0 )
     {
         auto item = key in this.key_to_item;
         return item !is null;
+    }
+
+
+    /***************************************************************************
+
+        Checks whether an item exists in the cahce and returns the last time it
+        was accessed.
+
+        Params:
+            key = key to lookup
+
+        Returns:
+            item's last access time, or 0 if the item doesn't exist
+
+    ***************************************************************************/
+
+    public time_t accessTime ( hash_t key )
+    {
+        auto item = key in this.key_to_item;
+        if ( item is null )
+        {
+            return 0;
+        }
+        else
+        {
+            return this.time_to_index.mappingKey(item.time_mapping);
+        }
+    }
+
+
+    /***************************************************************************
+
+        Checks whether an item exists in the cahce and returns its create time.
+
+        Params:
+            key = key to lookup
+    
+        Returns:
+            item's create time, or 0 if the item doesn't exist
+
+    ***************************************************************************/
+
+    static if ( TrackCreateTimes )
+    {
+        public time_t createTime ( hash_t key )
+        {
+            auto item = key in this.key_to_item;
+            if ( item is null )
+            {
+                return 0;
+            }
+            else
+            {
+                return this.items[item.index].create_time;
+            }
+        }
     }
 
 
@@ -356,9 +418,9 @@ class Cache ( size_t ValueSize = 0 )
 
     ***************************************************************************/
 
-    private void updateTime ( MapItem item, time_t update_time )
+    private void setAccessTime ( MapItem item, time_t access_time )
     {
-        this.time_to_index.update(item.time_mapping, update_time, item.index);
+        this.time_to_index.update(item.time_mapping, access_time, item.index);
     }
 
 
@@ -390,12 +452,12 @@ class Cache ( size_t ValueSize = 0 )
 
         Params:
             key = key of item
-            update_time = update time of item
+            time = create time of item (set as initial access time)
             value = data to store in cache
 
     ***************************************************************************/
 
-    private void add ( hash_t key, time_t update_time, Value value )
+    private void add ( hash_t key, time_t time, Value value )
     {
         size_t index;
 
@@ -415,11 +477,15 @@ class Cache ( size_t ValueSize = 0 )
         }
 
         // Set key & value in chosen element of items array
-        this.setValue(index, value);
         this.items[index].key = key;
+        this.setValue(index, value);
+        static if ( TrackCreateTimes )
+        {
+            this.items[index].create_time = time;
+        }
 
         // Add new item to tree map
-        auto time_mapping = this.time_to_index.add(update_time, index);
+        auto time_mapping = this.time_to_index.add(time, index);
 
         // Add key->item mapping
         MapItem item;
@@ -480,7 +546,7 @@ class Cache ( size_t ValueSize = 0 )
 
 *******************************************************************************/
 
-class Cache ( T )
+class Cache ( T, bool TrackCreateTimes = false ) : Cache!(T.sizeof, TrackCreateTimes)
 {
     /***************************************************************************
 
@@ -489,15 +555,6 @@ class Cache ( T )
     ***************************************************************************/
 
     private alias ubyte[T.sizeof] RawValue;
-
-
-    /***************************************************************************
-
-        Raw data cache.
-
-    ***************************************************************************/
-
-    private Cache!(T.sizeof) cache;
 
 
     /***************************************************************************
@@ -512,7 +569,7 @@ class Cache ( T )
 
     public this ( size_t max_items )
     {
-        this.cache = new Cache!(T.sizeof)(max_items);
+        super(max_items);
     }
 
 
@@ -533,9 +590,9 @@ class Cache ( T )
 
     ***************************************************************************/
 
-    public bool put ( hash_t key, time_t update_time, T value )
+    public bool putItem ( hash_t key, time_t update_time, T value )
     {
-        return this.cache.put(key, update_time, *cast(RawValue*)(&value));
+        return super.put(key, update_time, *cast(RawValue*)(&value));
     }
 
 
@@ -553,71 +610,27 @@ class Cache ( T )
 
     ***************************************************************************/
 
-    public T* get ( hash_t key, lazy time_t update_time )
+    public T* getItem ( hash_t key, lazy time_t update_time )
     {
-        auto raw = this.cache.get(key, update_time);
+        auto raw = super.get(key, update_time);
         return cast(T*)raw;
     }
 
 
     /***************************************************************************
 
-        Checks whether an item exists in the cahce.
-
-        Params:
-            key = key to lookup
-
-        Returns:
-            true if item exists in cache
+        Overridden base class methods as private to prevent use.
 
     ***************************************************************************/
 
-    public bool exists ( hash_t key )
+    private Value* get ( hash_t key, lazy time_t access_time )
     {
-        return this.cache.exists(key);
+        return null;
     }
 
-
-    /***************************************************************************
-
-        Removes an item from the cache.
-
-        Params:
-            key = key of item to remove
-
-        Returns:
-            returns true if removed, false if not in cache
-
-    ***************************************************************************/
-
-    public bool remove ( hash_t key )
+    private bool put ( hash_t key, time_t time, Value value )
     {
-        return this.cache.remove(key);
-    }
-
-
-    /***************************************************************************
-
-        Removes all items from the cache.
-
-    ***************************************************************************/
-
-    public void clear ( )
-    {
-        this.cache.clear;
-    }
-
-
-    /***************************************************************************
-
-        Returns:
-            number of items in the cache
-
-    ***************************************************************************/
-
-    public size_t length ( )
-    {
-        return this.cache.length;
+        return false;
     }
 }
 
