@@ -19,9 +19,9 @@ module ocean.io.select.model.IFiberConnectionHandler;
 
 *******************************************************************************/
 
-private import ocean.io.select.fiberprotocol.model.ISelectProtocol,
-               ocean.io.select.fiberprotocol.SelectReader,
-               ocean.io.select.fiberprotocol.SelectWriter;
+private import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol,
+               ocean.io.select.protocol.fiber.FiberSelectReader,
+               ocean.io.select.protocol.fiber.FiberSelectWriter;
 
 private import ocean.io.select.model.IConnectionHandler;
 
@@ -39,8 +39,8 @@ class IFiberConnectionHandler : IConnectionHandler
     
     ***************************************************************************/
     
-    public alias .SelectReader SelectReader;
-    public alias .SelectWriter SelectWriter;
+    public alias .FiberSelectReader SelectReader;
+    public alias .FiberSelectWriter SelectWriter;
     
     /***************************************************************************
     
@@ -186,7 +186,7 @@ class IFiberConnectionHandler : IConnectionHandler
         
     ***************************************************************************/
 
-    protected void register ( ISelectProtocol client )
+    protected void register ( IFiberSelectProtocol client )
     in
     {
         assert(client.state == client.state.EXEC);
