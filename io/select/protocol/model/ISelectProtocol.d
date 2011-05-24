@@ -164,27 +164,34 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     
     /**************************************************************************
 
-        Checks for errors after some data has been read from the conduit.
+        Performs one conduit.read(data) and checks for errors afterwards.
     
         Params:
-            received = return value of conduit.read()
+            data = destination data buffer; data[0 .. {return value}] will
+                   contain the received data 
             
         Returns:
-            nu
+            number of bytes read
         
-            0 if all of these conditions are satisfied:
-                1. the conduit returns end-of-flow,
-                2. errno reports EAGAIN and/or EWOULDBLOCK,
-                3. no hangup event was reported for the conduit by the selector
-            
-            or received otherwise.
-    
         Throws:
-            IOException on end-of-flow condition:
-                - IOWarning if neither error is reported by errno nor socket
-                  error
-                - IOError if an error is reported by errno or socket error
-    
+            IOWarning on end-of-flow condition or IOError on error.
+        
+        Notes: Eof returned by conduit.read() together with errno reporting
+            EAGAIN or EWOULDBLOCK indicates that there was currently no data to
+            read but the conduit will become readable later. Thus, in that case
+            0 is returned and no exception thrown.
+            However, the case when conduit.read() returns Eof AND errno reports
+            EAGAIN or EWOULDBLOCK AND the selector reports a hangup event for
+            the conduit is treated as end-of-flow condition and an IOWarning is
+            thrown then.
+            The reason for this is that, as experience shows, epoll keeps
+            reporting the read event together with a hangup event even if the
+            conduit is actually not readable and, since it has been hung up, it
+            will not become later.
+            So, if conduit.read() returns EOF and errno reports EAGAIN or
+            EWOULDBLOCK, the only way to detect whether a conduit will become
+            readable later or not is to check if a hangup event was reported.
+            
      **************************************************************************/
     
     protected size_t readConduit ( void[] data )
