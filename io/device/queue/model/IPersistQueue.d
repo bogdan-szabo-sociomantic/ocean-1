@@ -193,29 +193,33 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 		Returns:
 			true if the item was pushed to the queue
 
-		Throws:
-			asserts if the data to be pushed is 0 length
-			
 	***************************************************************************/
 
 	public bool push ( void[] item )
 	in
 	{
-		assert(item.length !is 0, "PersistQueue.push - attempted to push zero length content");
+		assert(item.length != 0, "PersistQueue.push - attempted to push zero length content");
 	}
 	body
 	{
-        auto will_fit = this.willFit(item.length);
-		if ( will_fit )
-	    {
-            this.pushItem(item);
-	    }
+        if ( item.length > 0 )
+        {
+            auto will_fit = this.willFit(item.length);
+    		if ( will_fit )
+    	    {
+                this.pushItem(item);
+    	    }
+            else
+            {
+                this.log("queue '{}' full with {} items", this.name, this.state.items);
+            }
+
+            return will_fit;
+        }
         else
         {
-            this.log("queue '{}' full with {} items", this.name, this.state.items);
+            return false;
         }
-
-		return will_fit;
 	}
 
 
