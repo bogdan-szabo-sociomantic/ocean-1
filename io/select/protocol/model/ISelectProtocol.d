@@ -12,15 +12,15 @@ private import ocean.io.select.model.ISelectClient: IAdvancedSelectClient;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
-private import tango.io.model.IConduit: ISelectable;
+private import tango.io.model.IConduit: ISelectable, InputStream;
 
 private import ocean.core.Array: copy, concat;
 
 private import TangoException = tango.core.Exception: IOException;
 private import tango.net.device.Berkeley: socket_t, Berkeley;
 
+private import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK;
 private import tango.stdc.string: strlen;
-private import tango.stdc.errno: errno;
 
 debug private import tango.util.log.Trace;
 
@@ -167,7 +167,17 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         Checks for errors after some data has been read from the conduit.
     
         Params:
-            received = bytes read (may be modified by this method)
+            received = return value of conduit.read()
+            
+        Returns:
+            nu
+        
+            0 if all of these conditions are satisfied:
+                1. the conduit returns end-of-flow,
+                2. errno reports EAGAIN and/or EWOULDBLOCK,
+                3. no hangup event was reported for the conduit by the selector
+            
+            or received otherwise.
     
         Throws:
             IOException on end-of-flow condition:
@@ -177,8 +187,16 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     
      **************************************************************************/
     
-    protected void checkReadError ( ref size_t received )
+    protected size_t readConduit ( void[] data )
+    in
     {
+        assert ((cast (InputStream) this.conduit) !is null,
+                "attempted to read from a device which is not an input stream");
+    }
+    body
+    {
+        size_t received = (cast (InputStream) this.conduit).read(data);
+        
         switch ( received )
         {
             case 0:
@@ -208,6 +226,8 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     
             default:
         }
+        
+        return received;
     }
     /**************************************************************************
 
