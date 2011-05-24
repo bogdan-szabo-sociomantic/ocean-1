@@ -21,6 +21,8 @@ module ocean.net.http.HttpHeader;
 
 private     import      ocean.text.util.StringSearch;
 
+private     import      ocean.core.Array: copy;
+
 /*******************************************************************************
 
     HeaderValues
@@ -199,7 +201,8 @@ struct HeaderValues
             trailing_colon = name[$ - 1] == ':';
         }
     
-        this.tmp_buf = StringSearch!().trim(name[0 .. $ - trailing_colon]).dup;
+//        this.tmp_buf = StringSearch!().trim(name[0 .. $ - trailing_colon]).dup;
+        this.tmp_buf.copy(StringSearch!().trim(name[0 .. $ - trailing_colon]));
         
         StringSearch!().strToLower(this.tmp_buf);
         
