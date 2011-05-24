@@ -1,4 +1,4 @@
-module ocean.net.util.c.curl;
+module ocean.net.client.curl.c.curl;
 
 /***************************************************************************
  *                                  _   _ ____  _

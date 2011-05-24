@@ -1,4 +1,4 @@
-module net.client.c.sphinxclient;
+module ocean.net.client.sphinx.c.sphinxclient;
 
 /**
  * Pure C searchd client API library

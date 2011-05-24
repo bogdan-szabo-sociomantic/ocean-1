@@ -53,7 +53,7 @@
 
 *******************************************************************************/
 
-module ocean.search.SphinxClient;
+module ocean.net.client.sphinx.SphinxClient;
 
 public  import ocean.core.Exception: SphinxException;
 
