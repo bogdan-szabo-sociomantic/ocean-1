@@ -116,7 +116,14 @@ abstract class ISelectClient
     
     /***************************************************************************
 
-        Sets the timeout in ms
+        Sets the timeout in ms.
+
+        The timeout represents the time before which the select client should be
+        completed. (This is not that same as a socket timeout, where the timout
+        value represents the maximum time before which the socket should have
+        seen activity.) If the client has not finished within the specified
+        time, its tomeout() method is called and it is unregistered from the
+        select dispatcher.
 
         Note: this method accepts timeout values as an int, as this is what the
         epoll_wait function (called in tango.io.selector.EpollSelector) expects.
