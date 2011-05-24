@@ -627,9 +627,9 @@ struct Url
             // scan string, stripping % encodings as we go
             while ( read_pos < source.length )
             {
-                char[8] decoded_buf;
-                char[] decoded = decoded_buf;
-                auto consumed = decodeCharacter(source, read_pos, decoded);
+                char[8] decoded_buf;                                            // FIXME: decodeCharacter may change
+                char[] decoded = decoded_buf;                                   // decoded.length => memory allocation
+                auto consumed = decodeCharacter(source, read_pos, decoded);     // => memory leak condition. Solution:
 
                 bool write_decoded = true;
                 if ( consumed > 1 && char_dg )
