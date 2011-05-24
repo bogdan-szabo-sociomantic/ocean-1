@@ -671,7 +671,7 @@ class HttpRequest
                 }
                 catch (Exception e)
                 {
-                    throw new Exception(`processInputChunk2: ` ~ e.msg);
+                    throw new Exception(`processInputChunk2: ` ~ e.msg, e.file, e.line);
                 }
                 
                 if (this.header_complete)
@@ -682,7 +682,7 @@ class HttpRequest
                     }
                     catch (Exception e)
                     {
-                        throw new Exception(`processInputChunk1: ` ~ e.msg);
+                        throw new Exception(`processInputChunk1: ` ~ e.msg, e.file, e.line);
                     }
                     
                     try
@@ -691,7 +691,7 @@ class HttpRequest
                     }
                     catch (Exception e)
                     {
-                        throw new Exception(`processInputChunk4: ` ~ e.msg);
+                        throw new Exception(`processInputChunk4: ` ~ e.msg, e.file, e.line);
                     }
                 }
             }
@@ -705,12 +705,12 @@ class HttpRequest
             }
             catch (Exception e)
             {
-                throw new Exception(`processInputChunk3: ` ~ e.msg);
+                throw new Exception(`processInputChunk3: ` ~ e.msg, e.file, e.line);
             }
         }
         catch (Exception e)
         {
-            throw new Exception(`processInputChunk: ` ~ e.msg);
+            throw new Exception(`processInputChunk: ` ~ e.msg, e.file, e.line);
         }
         
         return finished;
@@ -756,7 +756,7 @@ class HttpRequest
             }
             catch (Exception e)
             {
-                throw new Exception(`stripBodyStart1: ` ~ e.msg);
+                throw new Exception(`stripBodyStart1: ` ~ e.msg, e.file, e.line);
             }
             
             
@@ -768,7 +768,7 @@ class HttpRequest
                 }
                 catch (Exception e)
                 {
-                    throw new Exception(`stripBodyStart2: ` ~ e.msg);
+                    throw new Exception(`stripBodyStart2: ` ~ e.msg, e.file, e.line);
                 }
                 
                 try
@@ -777,7 +777,7 @@ class HttpRequest
                 }
                 catch (Exception e)
                 {
-                    throw new Exception(`stripBodyStart3: ` ~ e.msg);
+                    throw new Exception(`stripBodyStart3: ` ~ e.msg, e.file, e.line);
                 } 
                 
                 try
@@ -792,7 +792,7 @@ class HttpRequest
                 {
                     OceanException.Warn(`stripBodyStart5: {}`, this.header_data.length);
                     OceanException.Warn(`stripBodyStart6: {}`, test);
-                    throw new Exception(`stripBodyStart4: ` ~ e.msg);
+                    throw new Exception(`stripBodyStart4: ` ~ e.msg, e.file, e.line);
                 } 
             }
         
@@ -821,7 +821,7 @@ class HttpRequest
             }
             catch (Exception e)
             {
-                throw new Exception (`parseHeader1; ` ~ e.msg ~ `#` ~ this.header_data ~ `#`);
+                throw new Exception (`parseHeader1; ` ~ e.msg ~ `#` ~ this.header_data ~ `#`, e.file, e.line);
             }
             
             assertEx!(RequestException.BadRequest)(lines.length);
@@ -833,7 +833,7 @@ class HttpRequest
             }
             catch (Exception e)
             {
-                throw new Exception (`parseHeader2; ` ~ e.msg ~ `+` ~ lines[0] ~ `+` ~ `#` ~ this.header_data ~ `#`);
+                throw new Exception (`parseHeader2; ` ~ e.msg ~ `+` ~ lines[0] ~ `+` ~ `#` ~ this.header_data ~ `#`, e.file, e.line);
             }
             
             if (lines.length > 1)
@@ -848,13 +848,13 @@ class HttpRequest
                         }
                         catch (Exception e)
                         {
-                            throw new Exception (`parseHeader3; ` ~ e.msg ~ `#` ~ this.header_data ~ `#`);
+                            throw new Exception (`parseHeader3; ` ~ e.msg ~ `#` ~ this.header_data ~ `#`, e.file, e.line);
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    throw new Exception (`parseHeader4; ` ~ e.msg ~ `#` ~ this.header_data ~ `#`);
+                    throw new Exception (`parseHeader4; ` ~ e.msg ~ `#` ~ this.header_data ~ `#`, e.file, e.line);
                 }
             }
         }
@@ -885,7 +885,7 @@ class HttpRequest
             }
             catch (Exception e)
             {
-                throw new Exception (`parseRequestLine1; ` ~ e.msg);
+                throw new Exception (`parseRequestLine1; ` ~ e.msg, e.file, e.line);
             }
         
             assertEx!(RequestException.BadRequest)(tokens.length == 3,
@@ -903,7 +903,7 @@ class HttpRequest
                 }
                 catch (Exception e)
                 {
-                    throw new Exception (`url parse exception; ` ~ e.msg);
+                    throw new Exception (`url parse exception; ` ~ e.msg, e.file, e.line);
                 }
                 
                 try
@@ -913,7 +913,7 @@ class HttpRequest
                 }
                 catch ( Exception e )
                 {
-                    throw new Exception (`parseRequestLine3: ` ~ e.msg);
+                    throw new Exception (`parseRequestLine3: ` ~ e.msg, e.file, e.line);
                 }
                 
                 assertEx!(RequestException.NotImplemented)
@@ -930,7 +930,7 @@ class HttpRequest
             }
             catch (Exception e)
             {
-                throw new Exception (`parseRequestLine2; ` ~ e.msg);
+                throw new Exception (`parseRequestLine2; ` ~ e.msg, e.file, e.line);
             }
         }
     }
@@ -1014,7 +1014,7 @@ class HttpRequest
            }
            catch (Exception e)
            {
-               throw new Exception (`getMessageBodyLength1: ` ~ this.header[HttpHeader.ContentLength.value]);
+               throw new Exception (`getMessageBodyLength1: ` ~ this.header[HttpHeader.ContentLength.value], e.file, e.line);
            }
         }
         
@@ -1027,7 +1027,7 @@ class HttpRequest
         }
         catch (Exception e)
         {
-            throw new Exception (`getMessageBodyLength2: `, ` `,  blength);
+            throw new Exception (`getMessageBodyLength2`, e.file, e.line);
         }
         
         if (this.msg_body_length)
