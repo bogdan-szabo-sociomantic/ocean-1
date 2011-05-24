@@ -164,14 +164,7 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
         accepted. A delegate is passed as a parameter, which should be called
         with the conduit which is to handle the incoming connection. The
         decision of which conduit (ie the reader or the writer) should accept
-        the connection is left to the deriving class (via the abstract assign_()
-        method).
-
-        The connection handler instance is always reset before the connection
-        is accepted. In the case where the previous connection this instance
-        handled ended normally, this initialisation is not strictly necessary.
-        However in the case where the previous connection was terminated
-        prematurely, the initialisation is needed.
+        the connection is left to the implementing class.
 
         Params:
             assign_to_conduit = delegate passed from SelectListener which
@@ -179,7 +172,7 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
 
     ***************************************************************************/
 
-    abstract void assign ( void delegate ( ISelectable ) );
+    abstract public void assign ( void delegate ( ISelectable ) );
 
     /***************************************************************************
 

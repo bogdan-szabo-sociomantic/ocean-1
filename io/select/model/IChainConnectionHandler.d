@@ -14,8 +14,10 @@ module ocean.io.select.model.IChainConnectionHandler;
 
 private import ocean.io.select.model.IConnectionHandler;
 
-private import ocean.io.select.protocol.SelectReader,
-               ocean.io.select.protocol.SelectWriter;
+private import ocean.io.select.protocol.chain.ChainSelectReader,
+               ocean.io.select.protocol.chain.ChainSelectWriter;
+
+private import tango.net.device.Socket;
 
 /******************************************************************************/
 
@@ -27,8 +29,8 @@ class IChainConnectionHandler : IConnectionHandler
     
     ***************************************************************************/
     
-    public alias .SelectReader SelectReader;
-    public alias .SelectWriter SelectWriter;
+    public alias .ChainSelectReader SelectReader;
+    public alias .ChainSelectWriter SelectWriter;
     
     
     /***************************************************************************
@@ -77,6 +79,36 @@ class IChainConnectionHandler : IConnectionHandler
 
     /***************************************************************************
 
+        Called by the SelectListener when an incoming connection needs to be
+        accepted. A delegate is passed as a parameter, which should be called
+        with the conduit which is to handle the incoming connection. The
+        decision of which conduit (ie the reader or the writer) should accept
+        the connection is left to the deriving class (via the abstract assign_()
+        method).
+
+        The connection handler instance is always reset before the connection
+        is accepted. In the case where the previous connection this instance
+        handled ended normally, this initialisation is not strictly necessary.
+        However in the case where the previous connection was terminated
+        prematurely, the initialisation is needed.
+
+        Params:
+            assign_to_conduit = delegate passed from SelectListener which
+                accepts the incoming connection with the conduit passed to it
+
+    ***************************************************************************/
+
+    public void assign ( void delegate ( ISelectable conduit ) assign_to_conduit )
+    {
+        this.init();
+        this.assign_(assign_to_conduit);
+    }
+
+    abstract protected void assign_ ( void delegate ( ISelectable ) );
+
+
+    /***************************************************************************
+
         Initialises the reader and writer. Called whenever a connection is
         assigned, to ensure that the reader & writer states are clean.
         
@@ -89,6 +121,5 @@ class IChainConnectionHandler : IConnectionHandler
         this.reader.init();
         this.writer.init();
     }
-   
 }
 
