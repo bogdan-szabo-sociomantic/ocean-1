@@ -9,13 +9,7 @@
     authors:        David Eckardt
     
     The ObjectPool manages a pool of class instance objects.
-
-    Warning: The ObjectPool is *not* thread safe. If you need to use it in a
-    multi-threaded environment it must be syncrhonized externally. In this case
-    synchronization must occur over the ObjectPool instance, to ensure that the
-    get() and recycle() methods are synchronized with eachother. (See the last
-    usage example, below.)
-
+    
     Usage:
     
     To manage instances of a class MyClass using ObjectPool, MyClass and its
@@ -78,85 +72,26 @@
         pool = pool.newPool(x, y);
     
     ---
-
-    Multi-threaded usage example, with a single ObjectPool shared safely between
-    multiple threads:
-
-    ---
-
-        import $(TITLE)
-        import tango.core.Thread;
-
-        class PoolClass
-        {
-        }
-
-        alias ObjectPool!(PoolClass) Pool;
-
-        class ThreadClass : Thread
-        {
-            Pool pool;
-
-            this ( Pool pool )
-            {
-                this.pool = pool;
-
-                super(&this.run);
-            }
-
-            void run ( )
-            {
-                // Get an object from the pool.
-                Pool.PoolItem obj;
-                synchronized ( this.pool )
-                {
-                    obj = this.pool.get();
-                }
-                
-                // Do something with it
-                // ...
-
-                // Return the object to the poll.
-                synchronized ( this.pool )
-                {
-                    obj.recycle();
-                }
-            }
-        }
-
-        auto pool = new Pool;
-
-        auto t1 = new ThreadClass(pool);
-        auto t2 = new ThreadClass(pool);
-
-        t1.start;
-        t2.start;
-
-    ---
-
+   
 *******************************************************************************/
 
 module ocean.core.ObjectPool;
 
 /*******************************************************************************
 
-	Imports
+    Imports
 
 *******************************************************************************/
 
-private import ocean.core.Exception: ObjectPoolException, assertEx;
-
-private import ocean.core.ArrayMap;
-
-private import tango.core.Tuple;
+private import ocean.core.Array: copy;
 
 debug private import tango.util.log.Trace;
 
-
-
 /*******************************************************************************
 
-    Interface for pool items that offer a reset method
+    Interface for pool items that offer a reset method. For each object stored
+    in the object pool which implements this interface reset() is called when
+    it is recycled or removed.
 
 *******************************************************************************/
 
@@ -165,7 +100,41 @@ public interface Resettable
     void reset ( );
 }
 
+/*******************************************************************************
 
+    Objects stored in an ObjectPoolImpl object pool must implement this
+    interface. (The class passed to ObjectPool template parameter may or may not
+    implement it.)
+
+*******************************************************************************/
+
+interface PoolItem
+{
+    /**************************************************************************
+    
+        Memorizes n.
+        
+        Params:
+            n = value to memorize
+        
+    ***************************************************************************/
+    
+    abstract void object_pool_index ( uint n );
+    
+    /**************************************************************************
+    
+        Returns the value that was previously passed as parameter to 
+        object_pool_index(uint). It is guaranteed that object_pool_index(uint)
+        is called before this method.
+        
+         Returns:
+             the value that was previously passed as parameter to
+             object_pool_index(uint)
+    
+    ***************************************************************************/
+    
+    abstract uint object_pool_index ( );
+}
 
 /*******************************************************************************
 
@@ -174,20 +143,8 @@ public interface Resettable
 
 *******************************************************************************/
 
-public interface IObjectPoolInfo
+interface IObjectPoolInfo
 {
-    /**************************************************************************
-    
-        Returns the limit of items in pool
-        
-        Returns:
-            limit of items in pool
-        
-    **************************************************************************/
-
-    public size_t limit ( );
-
-
     /**************************************************************************
     
         Returns the number of items in pool.
@@ -197,8 +154,7 @@ public interface IObjectPoolInfo
         
      **************************************************************************/
     
-    public size_t getNumItems ( );
-    
+    uint length ( );
     
     /**************************************************************************
     
@@ -209,9 +165,8 @@ public interface IObjectPoolInfo
         
      **************************************************************************/
     
-    public size_t getNumIdleItems ( );
-
-
+    uint num_idle ( );
+    
     /**************************************************************************
     
         Returns the number of busy items in pool.
@@ -221,182 +176,213 @@ public interface IObjectPoolInfo
         
      **************************************************************************/
     
-    public size_t getNumBusyItems ( );
-
+    uint num_busy ( );
 
     /**************************************************************************
     
-        Returns the number of items available from pool. This is a reasonable
-        value only if the total number of pool items is limited.
+        Returns the limit of items in pool
         
         Returns:
-            the number of items available from pool
+            limit of items in pool
+        
+    **************************************************************************/
+
+    uint limit ( );
+}
+
+/*******************************************************************************
+
+    ObjectPool class template. Extends ObjectPoolImpl by creating instances of
+    a subclass of C, CustomRecyclable. CustomRecyclable extends C by a recycle()
+    method so that each CustomRecyclable object can return itself back to the
+    pool.
+    
+    Template params:
+        C    = class of objects to store, may or may not implement PoolItem
+        Args = C constructor argument types
+
+*******************************************************************************/
+
+class ObjectPool ( C, Args ... ) : ObjectPoolImpl
+{
+    /***************************************************************************
+
+        CustomRecyclable class: C subclass that can recycle itself. 
+    
+    ***************************************************************************/
+
+    class CustomRecyclable : C
+    {
+        /***********************************************************************
+
+            Constructor
+            
+             Params:
+                 args = C constructor arguments
+        
+        ***********************************************************************/
+
+        this (Args args) {super(args);}
+        
+        /***********************************************************************
+
+            Returns this instance back to the pool.
+        
+        ***********************************************************************/
+
+        final void recycle ( ) {this.outer.recycle(this);}
+    }
+    
+    /***************************************************************************
+
+        CustomPoolItem class: CustomRecyclable subclass that implements
+        PoolItem. If C (and therefore CustomRecyclable) already implements
+        PoolItem, CustomPoolItem is an alias for CustomRecyclable.
+    
+    ***************************************************************************/
+
+    static if (is (CustomRecyclable : PoolItem))
+    {
+        alias CustomRecyclable CustomPoolItem;
+    }
+    else final class CustomPoolItem : CustomRecyclable, PoolItem
+    {
+        /**********************************************************************
+            
+            Value to memorize
+            
+        ***********************************************************************/
+        
+        private uint object_pool_index_;
+        
+        /**********************************************************************
+        
+            Memorizes n.
+            
+            Params:
+                n = value to memorize
+            
+        ***********************************************************************/
+        
+        uint object_pool_index ( ) {return this.object_pool_index_;}
+        
+        /**********************************************************************
+        
+            Returns the value that was previously passed as parameter to 
+            object_pool_index(uint).
+            
+             Returns:
+                 the value that was previously passed as parameter to
+                 object_pool_index(uint)
+        
+         **********************************************************************/
+    
+        void   object_pool_index ( uint n ) {this.object_pool_index_ = n;}
+        
+        /**********************************************************************
+
+            Constructor
+            
+             Params:
+                 args = C constructor arguments
+        
+         **********************************************************************/
+
+        this (Args args) {super(args);}
+    }
+    
+    /************************************************************************** 
+
+        C constructor arguments to be used each time an object is created
+    
+     **************************************************************************/
+    
+    static if (Args.length) private Args args;
+
+    /************************************************************************** 
+
+        Constructor
+        
+        Params:
+            args = C constructor arguments to be used each time an object is
+                   created
+    
+     **************************************************************************/
+
+    this ( Args args )
+    {
+        static if (Args.length)
+        {
+            this.args = args;
+        }
+    }
+    
+    /************************************************************************** 
+
+        Gets an object from the object pool.
+        
+        Returns:
+            object from the object pool
+    
+     **************************************************************************/
+
+    CustomRecyclable get ( )
+    out (item)
+    {
+        assert (item !is null);
+    }
+    body
+    {
+        return cast (CustomPoolItem) super.get(this.new CustomPoolItem(args));
+    }
+    
+    /**************************************************************************
+    
+        Sets the limit of number of items in pool or disables limitation for
+        limit = limit.max.
+        
+        Params:
+            limit = new limit of number of items in pool; limit.max disables
+                    limitation
+            
+        Returns:
+            limit
+        
+        Throws:
+            LimitExceededException if the number of busy pool items exceeds
+            the desired limit
         
      **************************************************************************/
     
-    public size_t getNumAvailableItems ( );
-}
-
-
-
-/*******************************************************************************
-  
-    ObjectPool class template
+    uint limit ( uint limit )
+    {
+        return super.limit(limit, this.new CustomPoolItem(args));
+    }
     
-    Params:
-        T = type of items in pool; must be a class
-        A = types of constructor arguments of class T
-   
-*******************************************************************************/
-
-class ObjectPool ( T, A ... ) : IObjectPoolInfo
-{
     /**************************************************************************
     
-        PoolItem class
+        Creates a new ObjectPool instance.
         
-        According to the D specification, a class used as associative array
-        index shall override toHash(), opEquals() and opCmp(). The PoolItem
-        class extends the supplied class T in this manner. Comparison and hash
-        use the same private "hash" property whose value is supplied on
-        instantiation.
-     
-    **************************************************************************/
-    
-    private static class PoolItem : T
-    {
-       /**********************************************************************
-       
-           Recycler callback type alias
-       
-       **********************************************************************/
-       
-       private alias void delegate ( typeof (this) ) Recycler;
-       
-       /**********************************************************************
-       
-           Recycler callback
-       
-       **********************************************************************/
-       
-       private Recycler recycle_;
-       
-       /**********************************************************************
-       
-           recycling/recycled properties and invariant: Throws an exception if
-           any public method of this or super is called after recycle().
-       
-        **********************************************************************/
-       
-       private bool recycling = false;
-       
-       invariant
-       {
-           assert (!this.recycling, T.stringof ~ ": attempted to use idle item");
-       }
-       
-       /**********************************************************************
+        Params:
+            args = C constructor arguments to be used each time an object is
+                   created
         
-           Hash value, also used for comparison (opCmp())
-         
-        **********************************************************************/
-       
-       private hash_t hash;
-       
-       /**********************************************************************
-        
-            Constructor
-            
-            Params:
-                hash    = hash value
-                recycle = method to call to put this instance back into pool
-                args    = super class constructor arguments
-        
-        **********************************************************************/
-       
-       this ( hash_t hash, Recycler recycle, A args )
-       {
-           static if (A.length)
-           {                   // explicitely invoke super constructor only if
-               super(args);    // arguments are to be passed to it
-           }
-           
-           this.hash = hash;
-           
-           this.recycle_ = recycle;
-       }
-       
-       
-       /**********************************************************************
-       
-           Puts this instance back into the pool it was taken from.
-           Calls objects reset method if the Resettable interface
-            is implemented.
-       
-       **********************************************************************/
-       
-       void recycle ( )
-       {
-           this.recycle_(this);
-       }
-       
-       /**********************************************************************
-       
-           Returns the hash value.
-           
-           Returns:
-               the hash value
-       
-       **********************************************************************/
-      
-       hash_t toHash()
-       {
-           return this.hash;
-       }
-       
-       /**********************************************************************
-       
-           Checks this instance for identitiy to obj.
-           
-           Returns:
-               true if obj is identical to this instance or false otherwise
-       
-       **********************************************************************/
-      
-       int opEquals(Object obj)
-       {
-           return this is obj;
-       }
-       
-       /**********************************************************************
-       
-           Compares this instance to obj.
-           
-           Returns:
-               - 0 if if obj is identical to this instance,
-               - the difference between the hashes of this instance and obj
-                 if comparison in this manner is possible or
-               - the least possible value otherwise.
-       
-       **********************************************************************/
-      
-       int opCmp(Object obj)
-       {
-           if (this.opEquals(obj)) return 0;
-           
-           auto item = cast (typeof (this)) obj;
-           
-           if (item)
-           {
-               return cast (int) (this.toHash() - item.toHash());
-           }
-           else
-           {
-               return int.min;
-           }
-       }
-    } // PoolItem
+     **************************************************************************/
 
+    static typeof (this) newPool ( Args args )
+    {
+        return new typeof (this)(args);
+    }
+}
+
+/*******************************************************************************
+
+    Actual object pool implementation
+
+*******************************************************************************/
+
+class ObjectPoolImpl : IObjectPoolInfo
+{
     /**************************************************************************
     
         Convenience This alias
@@ -407,312 +393,53 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
     
     /**************************************************************************
     
-        Ensure T is a class
+        May be set to true at any time to limit the number of items in pool to
+        the current number or to false to disable limitation.
     
      **************************************************************************/
 
-    static assert (is (T == class), This.stringof ~ ": Object type must be a "
-                                    "class, not '" ~ T.stringof ~ "'");
-    
-    private const CLASS_ID_STRING = This.stringof ~ '(' ~ T.stringof ~ ')';
+    public bool limited = false;
     
     /**************************************************************************
     
-        Information structure for a single item
-
+        List of items (objects) in pool, busy items first
+    
      **************************************************************************/
 
-    private struct ItemInfo
+    private PoolItem[] items;
+    
+    /**************************************************************************
+    
+        Number of busy items in pool
+    
+     **************************************************************************/
+
+    private uint num_busy_ = 0;
+    
+    /**************************************************************************
+    
+        Reused exception instance
+    
+     **************************************************************************/
+
+    private LimitExceededException limit_exception;
+    
+    /*************************************************************************/
+    
+    invariant
     {
-        bool idle;
+        assert (this.num_busy_ <= this.items.length);
     }
-    
-    /**************************************************************************
-    
-        Maximum number of items in pool if limitation enabled 
-    
-     **************************************************************************/
-    
-    public size_t max;
-
-    /**************************************************************************
-    
-        List of items: Associative array of information structure with item
-                       instance as index.
-                       The PoolItem class is derived from the supplied T class;
-                       its only purpose is to override some methods of the
-                       Object class which is necessary in order to use PoolItem
-                       as an associative array index type. Hence it is safe to
-                       think of PoolItem as an alias of T.
-                       The PoolItem class definition is at the end of this
-                       class.
-    
-     **************************************************************************/
-
-    private ItemInfo[PoolItem] items;
-
-    /**************************************************************************
-
-        Array of references to items in the pool, allowing them to be accessed
-        sequentially by index.
-
-     **************************************************************************/
-
-    private PoolItem[] index;
-
-    /**************************************************************************
-
-        Set of idle pool items, ready to be used by the get() method.
-
-     **************************************************************************/
-
-    private alias Set!(PoolItem) IdleSet;
-
-    private IdleSet idle_set;
-
-    /**************************************************************************
-    
-        Serial number as unique identifier for pool items. As the PoolItem class
-        this is required in order to build the associative array and counted up
-        on each item creation.
-    
-     **************************************************************************/
-    
-    private hash_t serial;
-
-    /**************************************************************************
-    
-        true: Allow at most "max" items in pool
-    
-     **************************************************************************/
-    
-    private bool   limited_;
-    
-    /**************************************************************************
-    
-        Default constructor arguments for pool item creation
-    
-     **************************************************************************/
-    
-    private A      args;
     
     /**************************************************************************
     
         Constructor
-        
-        Params:
-            args = default arguments to pass to constructor on pool item creation
     
-    **************************************************************************/
+     **************************************************************************/
 
-    public this ( A args )
+    public this ( )
     {
-        static assert ((void*).sizeof >= hash_t.sizeof);
-
-        this.serial = cast (hash_t) (cast (void*) this);
-
-        static if (A.length) this.args = args; 
-
-        this.idle_set = new IdleSet;
-    }
-
-
-    /**************************************************************************
-    
-        Factory method; creates a pool instance
-        
-        Params:
-            args = default arguments to pass to constructor on pool item creation
-    
-        Returns:
-            new pool instance
-    
-    **************************************************************************/
-   
-    public static This newPool ( A args )
-    {
-        return new This(args);
-    }
-
-    
-    /**************************************************************************
-        
-        Takes an idle item from the pool or creates a new one if all item are
-        busy or the pool is empty.
-        
-        Params:
-            args = arguments to pass to constructor on pool item creation
-        
-        Returns:
-            pool object
-        
-    **************************************************************************/
-
-    public PoolItem get ( )
-    {
-        if ( this.idle_set.length )
-        {
-            auto item = this.popIdleItem();
-
-            this.items[item].idle = false;
-            item.recycling = false;
-
-            return item;
-        }
-
-        return this.create(this.args);
-    }
-    
-    public T getNative ( )
-    {
-        return this.get();
-    }
-
-    /**************************************************************************
-    
-        Puts item back to the pool.
-        
-        Params:
-            item = item to put back
-        
-        Returns:
-            this instance
-        
-    **************************************************************************/
-
-    public This recycle ( PoolItem item )
-    {
-        this.recycle_(item);
-        
-        return this;
-    }
-    
-    public This recycle ( T item )
-    {
-        return this.recycle(cast (PoolItem) item);
-    }
-    
-    /**************************************************************************
-    
-        Removes item from pool and deletes it.
-        
-        Params:
-            item = item remove
-        
-        Returns:
-            this instance
-        
-    **************************************************************************/
-
-    public This remove ( T item )
-    {
-        return this.remove(cast(PoolItem) item);
-    }
-
-    public This remove ( PoolItem item )
-    {
-        scope (success) this.removeItem(item);
-
-        return this.recycle(item);
-    }
-    
-    /**************************************************************************
-
-        Removes all items from the pool.
-
-        Returns:
-            this instance
-        
-    **************************************************************************/
-
-    public This clear ( )
-    {
-        this.idle_set.clear;
-
-        this.index.length = 0;
-
-        foreach ( item, ref info; this.items )
-        {
-            this.recycle_(item);
-        }
-
-        return this;
-    }
-
-    /**************************************************************************
-    
-        Enables/disables limitation of number of items in pool.
-        
-        Params:
-            limited_ = true enables, false disables limitation
-        
-        Returns:
-            this instance
-        
-    **************************************************************************/
-    
-    public This limited ( bool limited_ )
-    {
-        this.limited_ = limited_;
-        
-        this.checkLimit("too many items in pool");
-        
-        return this;
-    }
-    
-    /**************************************************************************
-    
-        Returns limitation state.
-        
-        Returns:
-            true if limitation is enabled or false otherwise
-        
-    **************************************************************************/
-
-    public bool limited ( )
-    {
-        return this.limited_;
-    }
-    
-    /**************************************************************************
-    
-	    Enables item count limitation, and sets the maximum number of items.
-	    
-	    Params:
-	        max_items = max items allowed in pool
-	    
-	    Returns:
-	        this instance
-	    
-	**************************************************************************/
-
-    public This limit ( size_t max_items )
-    in
-    {
-        assert (max_items, This.stringof ~ ".limit: limit set to 0");
-    }
-    body
-    {
-        assertEx!(ObjectPoolException)(this.items.length <= max_items,
-                                       This.stringof ~ ": " ~ "too many items in pool");
-        
-        this.limited_ = true;
-    	this.max = max_items;
-        return this;
-    }
-    
-    /**************************************************************************
-    
-        Returns the limit of items in pool
-        
-        Returns:
-            limit of items in pool
-        
-    **************************************************************************/
-
-    public size_t limit ( )
-    {
-        return this.max;
+        this.limit_exception = this.new LimitExceededException;
     }
     
     /**************************************************************************
@@ -723,25 +450,10 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
             the number of items in pool
         
      **************************************************************************/
-
-    public size_t getNumItems ( )
+    
+    public uint length ( )
     {
         return this.items.length;
-    }
-    
-    
-    /**************************************************************************
-    
-        Returns the number of idle items in pool.
-        
-        Returns:
-            the number of idle items in pool
-        
-     **************************************************************************/
-
-    public size_t getNumIdleItems ( )
-    {
-        return this.idle_set.length;
     }
     
     /**************************************************************************
@@ -752,275 +464,336 @@ class ObjectPool ( T, A ... ) : IObjectPoolInfo
             the number of busy items in pool
         
      **************************************************************************/
-
-    public size_t getNumBusyItems ( )
+    
+    public uint num_busy ( )
     {
-        return this.items.length - this.getNumIdleItems();
+        return this.num_busy_;
     }
     
     /**************************************************************************
     
-	    Returns the number of items available from pool. This is a reasonable
-	    value only if the total number of pool items is limited.
-	    
-	    Returns:
-	        the number of items available from pool
-	    
-	 **************************************************************************/
-	
-	public size_t getNumAvailableItems ( )
-	{
-	    return this.limited ? this.max - this.getNumBusyItems() : size_t.max;
-	}
-
-    
-    /***************************************************************************
-    
-        Sets the number of items in pool.
+        Returns the number of idle items in pool.
         
-        To achieve this, as many items as required are created or removed.
-        If more items are busy than required to be removed, all idle items are
-        removed and an exception is thrown.
-        If the requested number of items exceeds the limit an exception is thrown.
+        Returns:
+            the number of idle items in pool
+        
+     **************************************************************************/
+    
+    public uint num_idle ( )
+    {
+        return this.items.length - this.num_busy_;
+    }
+    
+    /**************************************************************************
+    
+        Returns the limit of number of items in pool or limit.max if currently
+        unlimited.
+        
+        Returns:
+            the limit of number of items in pool or 0 if currently unlimited
+        
+     **************************************************************************/
+    
+    uint limit ( )
+    {
+        return this.limited? this.items.length : limit.max;
+    }
+    
+    /**************************************************************************
+    
+        Sets the limit of number of items in pool or disables limitation for
+        limit = limit.max.
         
         Params:
-            n    = nominate number of values
+            limit    = new limit of number of items in pool; limit.max
+                       disables limitation
+            
+            new_item = expression that creates a new PoolItem instance
             
         Returns:
-            this instance
+            limit
         
-    ***************************************************************************/
+        Throws:
+            LimitExceededException if the number of busy pool items exceeds
+            the desired limit
+        
+     **************************************************************************/
     
-    public This setNumItems ( size_t n )
-    {        
-        assertEx!(ObjectPoolException)(n <= this.max || !this.limited_,
-                                       This.stringof ~ ": " ~ "requested number of items exceeds limit");
-                
-        if (n < this.items.length)
+    uint limit ( uint limit, lazy PoolItem new_item )
+    {
+        this.limited = limit != limit.max;
+        
+        if (this.limited && limit != this.items.length)
         {
-            size_t remaining = this.items.length - n;
+            this.limit_exception.check(this.num_busy_ <= limit,
+                                       "more items in pool busy than requested limit", __FILE__, __LINE__);
             
-            foreach (item, info; this.items)
+            uint n = this.items.length;
+            
+            if (limit < n) foreach (ref item; this.items[limit .. $])
             {
-                if (info.idle)
-                {
-                    this.removeItem(item);
-                    
-                    if (!--remaining) break;
-                }
+                this.resetItem(cast (Resettable) item);
+                
+                delete item;
+                
+                item = null;
             }
             
-            assertEx!(ObjectPoolException)(!remaining, This.stringof ~ ": more pool items busy than requested number");
+            this.items.length = limit;
+            
+            if (limit > n) foreach (ref item; this.items[limit .. $])
+            {
+                item = new_item();
+            }
+        }
+        
+        return limit;
+    }
+    
+    /**************************************************************************
+        
+        Takes an idle item from the pool or creates a new one if all item are
+        busy or the pool is empty.
+        
+        Params:
+            new_item = expression that creates a new PoolItem instance
+        
+        Returns:
+            pool item
+
+        Throws:
+            LimitExceededException if limitation is enabled and all pool items
+            are busy
+        
+    **************************************************************************/
+
+    public Object get ( lazy PoolItem new_item )
+    out (obj)
+    {
+        PoolItem item_out = cast (PoolItem) obj;
+        
+        assert (item_out !is null);
+        
+        assert (item_out is this.items[this.num_busy_ - 1]);
+        
+        debug (ObjectPoolConsistencyCheck)
+        {
+            foreach (item; this.items[0 .. this.num_busy_ - 1])
+            {
+                assert (item !is item_out);
+            }
+            
+            if (this.num_busy_ < this.items.length) foreach (item; this.items[this.num_busy_ + 1 .. $])
+            {
+                assert (item !is item_out);
+            }
+        }
+    }
+    body
+    {
+        PoolItem item;
+        
+        if (this.num_busy_ < this.items.length)
+        {
+            item = this.items[this.num_busy_];
         }
         else
         {
-            for (size_t i = this.items.length; i < n; i++)
-            {
-                this.create(this.args, true);
-            }
+            this.limit_exception.check(false, "all available items are busy", __FILE__, __LINE__);
+            
+            item = new_item();
+            
+            this.items ~= item;
         }
         
-        this.checkLimit("requested number of items exceeds limit");
+        item.object_pool_index = this.num_busy_++;
+        
+        return cast (Object) item;
+    }
+    
+    /**************************************************************************
+    
+        Puts item back to the pool.
+        
+        Params:
+            item = item to put back
+        
+        Returns:
+            this instance
+        
+        Throws:
+            LimitExceededException if there are busy object pool items
+
+    **************************************************************************/
+
+    public This recycle ( Object obj )
+    in
+    {
+        PoolItem item_in = cast (PoolItem) obj;
+        
+        assert (item_in !is null, "recycled object is not a PoolItem");
+        
+        assert (item_in.object_pool_index < this.items.length,
+                "index of recycled item out of range");
+        
+        assert (item_in is this.items[item_in.object_pool_index],
+                "wrong index in recycled item");
+    }
+    body
+    {
+        PoolItem item_in = cast (PoolItem) obj;
+        
+        PoolItem* item = this.items.ptr + item_in.object_pool_index;
+        
+        this.resetItem(cast (Resettable) item_in);
+        
+        if (this.num_busy_)
+        {
+            PoolItem* last_busy_item = this.items.ptr + --this.num_busy_;
+            
+            *item = *last_busy_item;
+            
+            item.object_pool_index = item_in.object_pool_index;
+            
+            *last_busy_item = item_in;
+            
+            last_busy_item.object_pool_index = this.num_busy_;
+        }
         
         return this;
     }
+    
+    /**************************************************************************
+    
+        Removes and deletes all items in the pool.
+        
+        Returns:
+            this instance
+        
+    **************************************************************************/
 
-
+    public This clear ( )
+    {
+        this.limit_exception.check(!this.num_busy_, "attempted to clear the "
+                                   "object pool while there are busy items", __FILE__, __LINE__);
+        
+        uint n = this.items.length;
+        
+        foreach (ref item; this.items)
+        {
+            this.resetItem(cast (Resettable) item);
+            
+            delete item;
+            
+            item = null;
+        }
+        
+        this.items.length = 0;
+        
+        return this;
+    }
+    
     /***************************************************************************
     
         opApply method over the active items in the pool.
         
     ***************************************************************************/
 
-    public int opApply ( int delegate ( ref PoolItem ) dg )
+    public int opApply ( int delegate ( Object ) dg )
     {
         int ret;
 
-        foreach ( item, info; this.items )
+        foreach ( ref item; this.items[0 .. this.num_busy_] )
         {
-            if ( !info.idle )
+            ret = dg(cast (Object) item);
+            if ( ret )
             {
-                ret = dg(item);
-                if ( ret )
-                {
-                    break;
-                }
+                break;
             }
         }
 
         return ret;
     }
-
-    /**************************************************************************
-
-        Gets the nth item in the pool.
-
-        Params:
-            index = index of item to get
-
-        Returns:
-            item popped from idle set, or null if idle set was empty
-
-        Throws:
-            array out of bounds exception, if index is > this.index.length
-
-    **************************************************************************/
-
-    public PoolItem opIndex ( size_t index )
-    in
-    {
-        assert(index < this.items.length);
-    }
-    body
-    {
-        return this.index[index];
-    }
     
-    /**************************************************************************
+    /***************************************************************************
+    
+        Calls item.reset() if item is not null.
+        
+        Params:
+            item = resettable object pool item or null
+        
+    ***************************************************************************/
 
-        Gets the first available item from the idle set.
-
-        Returns:
-            item popped from idle set, or null if idle set was empty
-
-    **************************************************************************/
-
-    private PoolItem popIdleItem ( )
+    private static void resetItem ( Resettable item )
     {
-        PoolItem item = null;
-
-        if ( this.idle_set.length )
+        if (item !is null)
         {
-            foreach ( i; this.idle_set ) // using foreach to emulate getFirst()
-            {
-                item = i;
-                break;
-            }
-
-            this.idle_set.remove(item);
+            item.reset();
         }
-
-        return item;
     }
-
-    /**************************************************************************
     
-        Checks whether the number of items in pool is less or equal
-        (less == false) or is less (less == true) than the limit and throws an
-        exception if not.
+    /***************************************************************************
+    
+        LimitExceededException class
         
-        Params:
-            msg  = exception message
-            less = true:  number of items in pool must be less than max;
-                   false: number of items in pool must be less than or equal to
-                          max
-        
-    **************************************************************************/
-
-    private void checkLimit ( char[] msg, bool less = false )
+    ***************************************************************************/
+    
+    class LimitExceededException : Exception
     {
-        assertEx!(ObjectPoolException)(this.items.length + less <= this.max || !this.limited_,
-                                       This.stringof ~ ": " ~ msg);
-    }
-    
-    /**************************************************************************
-    
-        Removes item from pool and deletes it.
+        /***********************************************************************
         
-        Params:
-            item = item remove
-        
-    **************************************************************************/
-
-    private void removeItem ( PoolItem item )
-    {   
-        this.items.remove(item);
-        
-        delete item;
-    }
-    
-    /**************************************************************************
-    
-        Puts item back to the pool. Calls reset method if Resettable interface
-		was implemented.
-        
-        Params:
-            item = item to put back
+            Limit which was exceeded when this instance has been thrown
             
-    **************************************************************************/
-    
-    private void recycle_ ( PoolItem item )
-    {
-        auto info = item in this.items;                                         
-
-        assertEx!(ObjectPoolException)(info, this.CLASS_ID_STRING ~ ": recycled item not registered");
-
-        static if(is(T:Resettable))
-        {
-            item.reset();         
-        }
-
-        info.idle = true;
-
-        this.idle_set.put(item);
-    }
-
-    /**************************************************************************
-    
-        Creates a pool item with idle status idle.
+        ***********************************************************************/
         
-        Params:
-            args = pool item constructor arguments
-            idle = idle status of new pool item
+        uint limit;
         
-        Returns:
-            new pool item
+        /***********************************************************************
         
-    **************************************************************************/
-
-    private PoolItem create ( A args, bool idle = false )
-    {
-        this.checkLimit("no more items available", true);
-
-        this.serial++;
-
-        PoolItem item = new PoolItem(serial, &this.recycle_, args);
-
-        this.items[item] = ItemInfo(idle);
-
-        this.index ~= item;
-
-        if ( idle )
+            Constructor
+            
+        ***********************************************************************/
+        
+        this ( ) {super("");}
+        
+        /***********************************************************************
+        
+            Throws this instance if ok is false and limitation is enabled.
+            
+            Params:
+                ok   = condition to check if limitation is enabled
+                msg  = message
+                file = source code file
+                line = source code line
+                
+            Throws:
+                this instance if ok is false and limitation is enabled
+            
+        ***********************************************************************/
+        
+       void check ( bool ok, lazy char[] msg, char[] file, long line )
         {
-            this.idle_set.put(item);
+            if (this.outer.limited && !ok)
+            {
+                this.limit = this.outer.items.length;
+                
+                super.msg.copy(msg);
+                super.file.copy(file);
+                super.line = line;
+                
+                throw this;
+            }
         }
-
-        return item;
-    }
-
-    /**************************************************************************
-     
-         Destructor
-     
-     **************************************************************************/
-    
-    private ~this ( )
-    {
-        foreach (item, info; this.items)
-        {
-            delete item;
-        }
-
-        this.items = this.items.init;
     }
 }
-
 
 
 /*******************************************************************************
 
     UnitTest
-
+    
+    TODO: adapt to changes in ObjectPool/ObjectPoolImpl
+    
 *******************************************************************************/
 
 debug ( OceanUnitTest )
@@ -1227,7 +1000,7 @@ debug ( OceanUnitTest )
         Trace.formatln("Test finished");
     }    
 }
-    
+
 /*******************************************************************************
     
     Constructs a new pool, takes the first c'tor automatically.    
