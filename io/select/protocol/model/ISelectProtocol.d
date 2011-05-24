@@ -24,7 +24,7 @@ debug private import tango.util.log.Trace;
 
 ******************************************************************************/
 
-abstract class ISelectProtocol : IAdvancedSelectClient
+abstract public class ISelectProtocol : IAdvancedSelectClient
 {
     /**************************************************************************
 
@@ -62,7 +62,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
 
      **************************************************************************/
 
-    this ( ISelectable conduit )
+    public this ( ISelectable conduit )
     {
         super(conduit);
 
@@ -87,14 +87,14 @@ abstract class ISelectProtocol : IAdvancedSelectClient
 
      **************************************************************************/
 
-    final bool handle ( Event events )
+    final public bool handle ( Event events )
     {
         this.events = events;
 
         return this.handle_();
     }
 
-    abstract bool handle_ ( );
+    abstract public bool handle_ ( );
 
 
     /**************************************************************************
@@ -106,6 +106,55 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     protected Event events ( )
     {
         return this.events_;
+    }
+
+
+    /**************************************************************************
+
+        Checks for errors after some data has been read from the conduit.
+
+        Params:
+            received = bytes read (may be modified by this method)
+
+        Throws:
+            IOException on end-of-flow condition:
+                - IOWarning if neither error is reported by errno nor socket
+                  error
+                - IOError if an error is reported by errno or socket error
+
+     **************************************************************************/
+
+    protected void checkReadError ( ref size_t received )
+    {
+        switch ( received )
+        {
+            case 0:
+                if ( errno ) throw this.error_e(errno, "read error", __FILE__, __LINE__);
+                else         break;
+            
+            case InputStream.Eof: switch ( errno )
+            {   
+                case 0:
+                    this.error_e.checkSocketError("read error", __FILE__, __LINE__);
+                    throw this.warning_e("end of flow whilst reading", __FILE__, __LINE__);
+                
+                default:
+                    throw this.error_e(errno, "read error", __FILE__, __LINE__);
+                
+                case EAGAIN:
+                    static if ( EAGAIN != EWOULDBLOCK )
+                    {
+                        case EWOULDBLOCK:
+                    }
+
+                    this.warning_e.assertEx(!(this.events_ & Event.ReadHangup), "connection hung up on read", __FILE__, __LINE__);
+                    this.warning_e.assertEx(!(this.events_ & Event.Hangup),     "connection hung up", __FILE__, __LINE__);
+
+                    received = 0;
+            }
+
+            default:
+        }
     }
 
 
@@ -349,6 +398,5 @@ abstract class ISelectProtocol : IAdvancedSelectClient
             super.line = line;
         }
     }
-
 }
 
