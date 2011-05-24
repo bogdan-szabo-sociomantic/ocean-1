@@ -431,37 +431,34 @@ public class EpollSelectDispatcher
 
     /***************************************************************************
 
-        Checks if key is in an erroneous state (ie a Hangup, Error or ReadHangup
-        event has occurred).
-        
-        FIXME: The check for a hangup event must be moved from here to the
-               select clients. The reasons are:
-               1. The hangup event is not an error on its own and may be
-                  expected to happen, e.g. when short term connections are used.
-                  In that case it is also possible and expectable that hangup
-                  combined with the read event when the remote closed the
-                  connection after having data sent, and that data have not been
-                  read from the socket yet.
-               2. Experience shows that, when epoll reports a combination of
-                  read and hangup event, if will keep reporting that combination
-                  even if there are actually no data pending to read from the
-                  socket. In that case the only way of determining whether there
-                  are data pending is calling read() and comparing the return
-                  value against EOF. An application that relies on an exception
-                  thrown here will then run into an endless turbo event loop.
-               3. Only the application knows whether hangup events are expected
-                  or exceptions. If it expects them, it may want its handler to
-                  be invoked which will not happen if checkKeyError() throws an
-                  exception. If it treats hangup events as exceptions, it will
-                  want an exception to be thrown even if it was combined with
-                  a read or write event.
-        
+        Checks if a key error has occurred.
+
+        Hangup states are not checked here, for the following reasons:
+            1. The hangup event is not an error on its own and may be expected
+               to happen, e.g. when short term connections are used. In that
+               case it is also possible and expectable that hangup combined with
+               the read event when the remote closed the connection after having
+               data sent, and that data have not been read from the socket yet.
+            2. Experience shows that, when epoll reports a combination of read
+               and hangup event, if will keep reporting that combination even if
+               there are actually no data pending to read from the socket. In
+               that case the only way of determining whether there are data
+               pending is calling read() and comparing the return value against
+               EOF. An application that relies on an exception thrown here will
+               then run into an endless turbo event loop.
+            3. Only the application knows whether hangup events are expected or
+               exceptions. If it expects them, it may want its handler to be
+               invoked which will not happen if checkKeyError() throws an
+               exception. If it treats hangup events as exceptions, it will want
+               an exception to be thrown even if it was combined with a read or
+               write event.
+
         Params:
             events = reported events
-        
+
         Returns:
             events
-        
+
         Throws:
             SocketException if key is in an erroneous state
 
@@ -469,14 +466,8 @@ public class EpollSelectDispatcher
 
     protected Event checkKeyError ( Event events )
     {
-        if (!(events & (events.Read | events.Write)))
-        {
-            assertEx(!(events & events.Hangup), this.exception("socket hung up", __FILE__, __LINE__));
-            assertEx(!(events & events.Error),  this.exception("socket error", __FILE__, __LINE__));
-        }
+        assertEx(!(events & events.Error),  this.exception("socket error", __FILE__, __LINE__));
 
-        assertEx(!(events & events.ReadHangup), this.exception("socket hung up on read", __FILE__, __LINE__));
-        
         return events;
     }
 
