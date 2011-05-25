@@ -407,7 +407,7 @@ public class EpollSelectDispatcher
 
     protected bool handleClient ( ISelectClient client, Event events )
     {
-        return client.handle(this.checkKeyError(events));
+        return client.handle(this.checkKeyError(client, events));
     }
 
     /***************************************************************************
@@ -464,9 +464,21 @@ public class EpollSelectDispatcher
 
      **************************************************************************/
 
-    protected Event checkKeyError ( Event events )
+    protected Event checkKeyError ( ISelectClient client, Event events )
     {
-        assertEx(!(events & events.Error),  this.exception("socket error", __FILE__, __LINE__));
+        if (events & events.Error)
+        {
+            int errnum;
+            
+            if (client.getSocketError(errnum, this.exception.msg, "socket error: "))
+            {
+                throw this.exception(__FILE__, __LINE__);
+            }
+            else
+            {
+                this.exception("socket error", __FILE__, __LINE__);
+            }
+        }
 
         return events;
     }
@@ -487,12 +499,16 @@ public class EpollSelectDispatcher
             return this;
         }
         
-        typeof (this) opCall ( char[] msg, char[] file, long line )
+        typeof (this) opCall ( char[] file, long line )
         {
-            super.msg.copy(msg);
             super.file.copy(file);
             super.line = line;
             return this;
+        }
+        
+        typeof (this) opCall ( char[] msg, char[] file, long line )
+        {
+            return this.opCall(msg).opCall(file, line);
         }
     }}
 

@@ -39,6 +39,12 @@ private const EPOLLRDHUP = 0x2000;
 
 private import tango.io.model.IConduit: ISelectable;
 
+private import ocean.core.Array: concat;
+
+private import tango.stdc.posix.sys.socket: getsockopt, SOL_SOCKET, SO_ERROR, socklen_t;
+
+private import tango.stdc.string: strlen;
+
 debug private import tango.util.log.Trace;
 
 
@@ -272,6 +278,63 @@ abstract class ISelectClient
      **************************************************************************/
 
     public void connectionInfo ( ref char[] buffer ) { }
+    
+    /**************************************************************************
+
+        Obtains the socket error reported for conduit. Returns normally if the
+        conduit is actually not a socket.
+        
+        Params:
+            errnum = output of system error code of the reported socket error
+            
+        Returns:
+            true if an error code could be obtained and is different from 0 or
+            false otherwise
+        
+     **************************************************************************/
+
+    public bool getSocketError ( out int errnum )
+    {
+        socklen_t len = errnum.sizeof;
+        
+        bool ok = !getsockopt(this.conduit.fileHandle, SOL_SOCKET, SO_ERROR, &errnum, &len);
+        
+        return ok && errnum;
+    }
+    
+    /**************************************************************************
+
+        Obtains the socket error reported for conduit and the corresponding
+        error message. Returns normally if the conduit is actually not a socket.
+        
+        Params:
+            errnum = output of system error code of the reported socket error
+            errmsg = error message output, will remain untouched if the return
+                     value is false
+            msg    = message strings to concatenate and prepend to the error
+                     message
+            
+        Returns:
+            true if an error code could be obtained and is different from 0 or
+            false otherwise
+        
+     **************************************************************************/
+
+    public bool getSocketError ( out int errnum, ref char[] errmsg, char[] msg ... )
+    {
+        bool have_errnum = this.getSocketError(errnum);
+        
+        if (have_errnum)
+        {
+            char[0x100] buf;
+            
+            char* errmsg_ = strerror_r(errnum, buf.ptr, buf.length);
+            
+            errmsg.concat(msg, errmsg_[0 .. strlen(errmsg_)]);
+        }
+        
+        return have_errnum;
+    }
     
     /**************************************************************************
 
@@ -559,3 +622,34 @@ abstract class IAdvancedSelectClient : ISelectClient
         }
     }
 }
+
+/******************************************************************************
+
+    Obtains the system error message corresponding to errnum (reentrant/
+    thread-safe version of strerror()).
+    
+    Note: This is the GNU (not the POSIX) version of strerror_r().
+    
+    @see http://www.kernel.org/doc/man-pages/online/pages/man3/strerror.3.html
+    
+    "The GNU-specific strerror_r() returns a pointer to a string containing the
+     error message.  This may be either a pointer to a string that the function
+     stores in buf, or a pointer to some (immutable) static string (in which case
+     buf is unused).  If the function stores a string in buf, then at most buflen
+     bytes are stored (the string may be truncated if buflen is too small) and
+     the string always includes a terminating null byte."
+    
+    Tries have shown that buffer may actually not be populated.
+    
+    Params:
+        errnum = error number
+        buffer = error message destination buffer (may or may not be populated)
+        buflen = destination buffer length
+    
+    Returns:
+        a NUL-terminated string containing the error message
+
+******************************************************************************/
+
+private extern (C) char* strerror_r ( int errnum, char* buffer, size_t buflen );
+
