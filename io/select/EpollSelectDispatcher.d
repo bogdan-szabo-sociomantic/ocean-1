@@ -510,9 +510,8 @@ public class EpollSelectDispatcher
         {
             return this.opCall(msg).opCall(file, line);
         }
-    }}
-
-
+    }
+}
 
 /*******************************************************************************
 
