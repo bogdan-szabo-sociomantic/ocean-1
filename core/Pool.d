@@ -112,19 +112,6 @@ public class Pool ( T ) : Resettable
         return this.pool.num_idle;
     }
 
-    version (none) public This remove ( T* data )
-    {
-        auto item = data in this.map;
-
-        if ( item !is null )
-        {
-            this.pool.remove(*item);
-            this.map.remove(data);
-        }
-
-        return this;
-    }
-
     public int opApply ( int delegate ( ref T* ) dg )
     {
         int ret;
