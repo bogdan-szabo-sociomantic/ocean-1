@@ -570,6 +570,14 @@ class ObjectPoolImpl : IObjectPoolInfo
      **************************************************************************/
     
     uint limit ( uint limit, lazy PoolItem new_item )
+    out
+    {
+        foreach (item; this.items)
+        {
+            assert (item !is null);
+        }
+    }
+    body
     {
         this.limited = limit != limit.max;
         
@@ -591,7 +599,7 @@ class ObjectPoolImpl : IObjectPoolInfo
             
             this.items.length = limit;
             
-            if (limit > n) foreach (ref item; this.items[limit .. $])
+            if (limit > n) foreach (ref item; this.items[n .. $])
             {
                 item = new_item();
             }
@@ -646,6 +654,8 @@ class ObjectPoolImpl : IObjectPoolInfo
         if (this.num_busy_ < this.items.length)
         {
             item = this.items[this.num_busy_];
+            
+            assert (item !is null);
         }
         else
         {
@@ -654,6 +664,8 @@ class ObjectPoolImpl : IObjectPoolInfo
             item = new_item();
             
             this.items ~= item;
+            
+            assert (item !is null);
         }
         
         item.object_pool_index = this.num_busy_++;
@@ -725,7 +737,7 @@ class ObjectPoolImpl : IObjectPoolInfo
     
     /**************************************************************************
     
-        Removes and deletes all items in the pool.
+        Recycles all items in the pool.
         
         Returns:
             this instance
@@ -734,21 +746,7 @@ class ObjectPoolImpl : IObjectPoolInfo
 
     public This clear ( )
     {
-        this.limit_exception.check(!this.num_busy_, "attempted to clear the "
-                                   "object pool while there are busy items", __FILE__, __LINE__);
-        
-        uint n = this.items.length;
-        
-        foreach (ref item; this.items)
-        {
-            this.resetItem(cast (Resettable) item);
-            
-            delete item;
-            
-            item = null;
-        }
-        
-        this.items.length = 0;
+        this.num_busy_ = 0;
         
         return this;
     }
