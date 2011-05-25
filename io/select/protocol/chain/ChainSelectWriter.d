@@ -207,8 +207,10 @@ class ChainSelectWriter : IChainSelectProtocol
         
         size_t sent = conduit.write(data);
 
-        super.warning_e.assertEx(sent != conduit.Eof, this.ClassId ~ ": end of flow whilst writing");
-        
+        const msg = this.ClassId ~ ": end of flow whilst writing";
+
+        super.warning_e.assertEx(sent != conduit.Eof, msg);
+
         return sent;
     }
 
