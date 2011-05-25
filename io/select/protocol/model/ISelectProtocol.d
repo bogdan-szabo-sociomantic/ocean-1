@@ -202,6 +202,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     }
     body
     {
+        errno = 0;
         size_t received = (cast (InputStream) this.conduit).read(data);
         
         switch ( received )
@@ -236,6 +237,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         
         return received;
     }
+
     /**************************************************************************
 
         IOWarning class; to be thrown on end-of-flow conditions without an
