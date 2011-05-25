@@ -341,26 +341,29 @@ class ObjectPool ( C, Args ... ) : ObjectPoolImpl
         return cast (CustomPoolItem) super.get(this.newItem());
     }
     
-    public PoolItem opIndex ( uint n )
+    /**************************************************************************
+    
+        Obtains the n-th pool item. n must be less than the value returned by
+        length().
+        Caution: The item must not be recycled; while the item is in use, only
+        opIndex(), opApply(), length() and limit() may be called.
+        
+        Params:
+            n = item index
+            
+        Returns:
+            n-th pool item
+        
+    **************************************************************************/
+
+    public C opIndex ( uint n )
     out (item)
     {
         assert (item !is null);
     }
     body
     {
-        return cast (PoolItem) super.opIndex(n);
-    }
-    
-    protected PoolItemInterface newItem ( )
-    {
-        static if (Args.length)
-        {
-            return this.new CustomPoolItem(args);
-        }
-        else
-        {
-            return this.new CustomPoolItem;
-        }
+        return cast (C) super.opIndex(n);
     }
     
     /**************************************************************************
@@ -397,11 +400,21 @@ class ObjectPool ( C, Args ... ) : ObjectPoolImpl
         return super.limit();
     }
     
-    public int opApply ( int delegate ( ref PoolItem item ) dg )
+    /**************************************************************************
+    
+        'foreach' iteration over busy pool items
+        
+        Caution: The items iterated over must not be recycled; changing them has
+        no effect. During iteration only opIndex(), opApply() and length() may
+        be called.
+
+    **************************************************************************/
+
+    public int opApply ( int delegate ( ref C item ) dg )
     {
         return super.opApply((ref Object obj)
                              {
-                                 auto item = cast (PoolItem) obj;
+                                 auto item = cast (C) obj;
                                  
                                  assert (item !is null);
                                  
@@ -423,6 +436,28 @@ class ObjectPool ( C, Args ... ) : ObjectPoolImpl
     {
         return new typeof (this)(args);
     }
+    
+    /**************************************************************************
+        
+        Creates a new pool item to be added to the pool.
+        
+        Returns:
+            new pool item
+        
+    **************************************************************************/
+    
+    protected PoolItemInterface newItem ( )
+    {
+        static if (Args.length)
+        {
+            return this.new CustomPoolItem(args);
+        }
+        else
+        {
+            return this.new CustomPoolItem;
+        }
+    }
+
 }
 
 /*******************************************************************************
@@ -673,6 +708,21 @@ class ObjectPoolImpl : IObjectPoolInfo
         return cast (Object) item;
     }
     
+    /**************************************************************************
+    
+        Obtains the n-th pool item. n must be less than the value returned by
+        length().
+        Caution: The item must not be recycled; while the item is in use, only
+        opIndex(), opApply() and length() may be called.
+        
+        Params:
+            n = item index
+            
+        Returns:
+            n-th pool item
+        
+    **************************************************************************/
+
     public Object opIndex ( uint n )
     out (obj)
     {
@@ -753,8 +803,12 @@ class ObjectPoolImpl : IObjectPoolInfo
     
     /***************************************************************************
     
-        opApply method over the active items in the pool.
+        'foreach' iteration method over the active items in the pool.
         
+        Caution: The items iterated over must not be recycled; changing them has
+        no effect. During iteration only opIndex(), opApply() and length() may
+        be called.
+
     ***************************************************************************/
 
     public int opApply ( int delegate ( ref Object obj ) dg )
