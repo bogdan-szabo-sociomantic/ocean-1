@@ -97,22 +97,22 @@ public class Pool ( T ) : Resettable
 
     public size_t getNumItems ( )
     {
-        return this.pool.getNumItems;
+        return this.pool.length;
     }
 
     public size_t getNumBusyItems ( )
     {
-        return this.pool.getNumBusyItems;
+        return this.pool.num_busy;
     }
 
     public alias getNumBusyItems length;
     
     public size_t getNumIdleItems ( )
     {
-        return this.pool.getNumIdleItems;
+        return this.pool.num_idle;
     }
 
-    public This remove ( T* data )
+    version (none) public This remove ( T* data )
     {
         auto item = data in this.map;
 
@@ -145,7 +145,7 @@ public class Pool ( T ) : Resettable
     public T* opIndex ( size_t index )
     in
     {
-        assert(index < this.pool.getNumItems);
+        assert(index < this.pool.length);
     }
     body
     {
