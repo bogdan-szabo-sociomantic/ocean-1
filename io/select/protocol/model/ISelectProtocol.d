@@ -17,9 +17,9 @@ private import tango.io.model.IConduit: ISelectable, InputStream;
 private import ocean.core.Array: copy, concat;
 
 private import TangoException = tango.core.Exception: IOException;
-private import tango.net.device.Berkeley: socket_t, Berkeley;
 
 private import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK;
+
 private import tango.stdc.string: strlen;
 
 debug private import tango.util.log.Trace;
@@ -381,11 +381,11 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         
         void checkSocketError ( char[] msg, char[] file = "", long line = 0 )
         {
-            auto berkeley = Berkeley(cast (socket_t) this.outer.conduit.fileHandle);
-            if (berkeley.error)
+            if (this.outer.getSocketError(super.errnum, super.msg))
             {
-                super.set(errnum, msg, file, line);
-                throw this; 
+                super.file.copy(file);
+                super.line = line;
+                throw this;
             }
         }
     }
