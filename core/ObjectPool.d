@@ -205,13 +205,15 @@ interface IObjectPoolInfo
 
 class ObjectPool ( C, Args ... ) : ObjectPoolImpl
 {
+    alias .PoolItem PoolItemInterface;
+    
     /***************************************************************************
 
-        CustomRecyclable class: C subclass that can recycle itself. 
+        PoolItem class: C subclass that can recycle itself. 
     
     ***************************************************************************/
 
-    class CustomRecyclable : C
+    class PoolItem : C
     {
         /***********************************************************************
 
@@ -222,7 +224,7 @@ class ObjectPool ( C, Args ... ) : ObjectPoolImpl
         
         ***********************************************************************/
 
-        this (Args args) {super(args);}
+        static if (Args.length) this (Args args) {super(args);}
         
         /***********************************************************************
 
@@ -235,60 +237,63 @@ class ObjectPool ( C, Args ... ) : ObjectPoolImpl
     
     /***************************************************************************
 
-        CustomPoolItem class: CustomRecyclable subclass that implements
-        PoolItem. If C (and therefore CustomRecyclable) already implements
-        PoolItem, CustomPoolItem is an alias for CustomRecyclable.
+        CustomPoolItem class: PoolItem subclass that implements
+        PoolItem. If C (and therefore PoolItem) already implements
+        PoolItem, CustomPoolItem is an alias for PoolItem.
     
     ***************************************************************************/
 
-    static if (is (CustomRecyclable : PoolItem))
+    static if (is (PoolItem : PoolItemInterface))
     {
-        alias CustomRecyclable CustomPoolItem;
+        alias PoolItem CustomPoolItem;
     }
-    else final class CustomPoolItem : CustomRecyclable, PoolItem
+    else
     {
-        /**********************************************************************
+        final class CustomPoolItem : PoolItem, PoolItemInterface
+        {
+            /**********************************************************************
+                
+                Value to memorize
+                
+            ***********************************************************************/
             
-            Value to memorize
+            private uint object_pool_index_;
             
-        ***********************************************************************/
-        
-        private uint object_pool_index_;
-        
-        /**********************************************************************
-        
-            Memorizes n.
+            /**********************************************************************
             
-            Params:
-                n = value to memorize
+                Memorizes n.
+                
+                Params:
+                    n = value to memorize
+                
+            ***********************************************************************/
             
-        ***********************************************************************/
-        
-        uint object_pool_index ( ) {return this.object_pool_index_;}
-        
-        /**********************************************************************
-        
-            Returns the value that was previously passed as parameter to 
-            object_pool_index(uint).
+            uint object_pool_index ( ) {return this.object_pool_index_;}
             
-             Returns:
-                 the value that was previously passed as parameter to
-                 object_pool_index(uint)
+            /**********************************************************************
+            
+                Returns the value that was previously passed as parameter to 
+                object_pool_index(uint).
+                
+                 Returns:
+                     the value that was previously passed as parameter to
+                     object_pool_index(uint)
+            
+             **********************************************************************/
         
-         **********************************************************************/
+            void   object_pool_index ( uint n ) {this.object_pool_index_ = n;}
+            
+            /**********************************************************************
     
-        void   object_pool_index ( uint n ) {this.object_pool_index_ = n;}
-        
-        /**********************************************************************
-
-            Constructor
+                Constructor
+                
+                 Params:
+                     args = C constructor arguments
             
-             Params:
-                 args = C constructor arguments
-        
-         **********************************************************************/
-
-        this (Args args) {super(args);}
+             **********************************************************************/
+    
+            static if (Args.length) this (Args args) {super(args);}
+        }
     }
     
     /************************************************************************** 
@@ -326,14 +331,36 @@ class ObjectPool ( C, Args ... ) : ObjectPoolImpl
     
      **************************************************************************/
 
-    CustomRecyclable get ( )
+    PoolItem get ( )
     out (item)
     {
         assert (item !is null);
     }
     body
     {
-        return cast (CustomPoolItem) super.get(this.new CustomPoolItem(args));
+        return cast (CustomPoolItem) super.get(this.newItem());
+    }
+    
+    public PoolItem opIndex ( uint n )
+    out (item)
+    {
+        assert (item !is null);
+    }
+    body
+    {
+        return cast (PoolItem) super.opIndex(n);
+    }
+    
+    protected PoolItemInterface newItem ( )
+    {
+        static if (Args.length)
+        {
+            return this.new CustomPoolItem(args);
+        }
+        else
+        {
+            return this.new CustomPoolItem;
+        }
     }
     
     /**************************************************************************
@@ -356,7 +383,30 @@ class ObjectPool ( C, Args ... ) : ObjectPoolImpl
     
     uint limit ( uint limit )
     {
-        return super.limit(limit, this.new CustomPoolItem(args));
+        return super.limit(limit, this.newItem());
+    }
+    
+    /**************************************************************************
+    
+        (Workaround for compiler errors caused by failing method matching)
+        
+     **************************************************************************/
+
+    override uint limit ( )
+    {
+        return super.limit();
+    }
+    
+    public int opApply ( int delegate ( ref PoolItem item ) dg )
+    {
+        return super.opApply((ref Object obj)
+                             {
+                                 auto item = cast (PoolItem) obj;
+                                 
+                                 assert (item !is null);
+                                 
+                                 return dg(item);
+                             });
     }
     
     /**************************************************************************
@@ -611,6 +661,16 @@ class ObjectPoolImpl : IObjectPoolInfo
         return cast (Object) item;
     }
     
+    public Object opIndex ( uint n )
+    out (obj)
+    {
+        assert (obj !is null);
+    }
+    body
+    {
+        return cast (Object) this.items[n];
+    }
+    
     /**************************************************************************
     
         Puts item back to the pool.
@@ -699,13 +759,15 @@ class ObjectPoolImpl : IObjectPoolInfo
         
     ***************************************************************************/
 
-    public int opApply ( int delegate ( Object ) dg )
+    public int opApply ( int delegate ( ref Object obj ) dg )
     {
         int ret;
 
         foreach ( ref item; this.items[0 .. this.num_busy_] )
         {
-            ret = dg(cast (Object) item);
+            auto obj = cast (Object) item;
+            
+            ret = dg(obj);
             if ( ret )
             {
                 break;
