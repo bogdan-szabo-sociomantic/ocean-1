@@ -17,13 +17,20 @@ module ocean.net.http2.consts.HeaderFieldNames;
 struct HeaderFieldNames
 {
     /**************************************************************************
-    
-        General header fields: CacheControl .. Warning
-        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.5
         
-        Request header fields: Accept .. UserAgent
-        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.3
-    
+        According to the HTTP request message header definition
+        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5
+        the standard request header fields are:
+        
+            General header fields: CacheControl .. Warning
+            @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.5
+            
+            Request header fields: Accept .. UserAgent
+            @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.3
+            
+            Entity header fields: Allow .. LastModified
+            @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7.1
+
      **************************************************************************/             
     
     struct Request
@@ -44,7 +51,12 @@ struct HeaderFieldNames
                IfModifiedSince,     IfNoneMatch,        IfRange,
                IfUnmodifiedSince,   MaxForwards,        ProxyAuthorization,
                Range,               Referer,            TE,
-               UserAgent;
+               UserAgent,
+               
+               Allow,               ContentEncoding,    ContentLanguage,
+               ContentLength,       ContentLocation,    ContentMD5,
+               ContentRange,        ContentType,        Expires,
+               LastModified;
         
         /**********************************************************************
         
@@ -64,7 +76,12 @@ struct HeaderFieldNames
             "If-Modified-Since",    "If-None-Match",    "If-Range",
             "If-Unmodified-Since",  "Max-Forwards",     "Proxy-Authorization",
             "Range",                "Referer",          "TE",
-            "User-Agent"
+            "User-Agent",
+            
+            "Allow",                "Content-Encoding", "Content-Language",
+            "Content-Length",       "Content-Location", "Content-MD5",
+            "Content-Range",        "Content-Type",     "Expires",
+            "Last-Modified"
         };
         
         /**********************************************************************
@@ -78,6 +95,10 @@ struct HeaderFieldNames
     
     /**************************************************************************
     
+        According to the HTTP response message header definition
+        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html
+        the standard request header fields are: 
+        
         General header fields: CacheControl .. Warning
         @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.5
         
