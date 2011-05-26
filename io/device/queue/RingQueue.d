@@ -220,11 +220,11 @@ class RingQueue : PersistQueue
 
     ***************************************************************************/
 
-    public size_t pushSize ( size_t len )
+    public static size_t pushSize ( size_t len )
     {        
         return Header.sizeof + len;
     }
-    
+
 
     /***************************************************************************
 
@@ -296,7 +296,7 @@ class RingQueue : PersistQueue
             assert(written == item.length, typeof (this).stringof ~ ": write(item) length mismatch");
         }
         
-        super.state.write_to += this.pushSize(item.length);
+        super.state.write_to += pushSize(item.length);
         ++super.state.items;
     }
     
@@ -338,7 +338,7 @@ class RingQueue : PersistQueue
         }
         else
         {
-            super.state.read_from += this.pushSize(header.length);
+            super.state.read_from += pushSize(header.length);
             
             if (super.state.read_from >= super.state.dimension)
             {
@@ -420,7 +420,7 @@ class RingQueue : PersistQueue
 
     private bool needsWrapping ( size_t len )
     {
-        return this.pushSize(len) + super.state.write_to > super.state.dimension;           
+        return pushSize(len) + super.state.write_to > super.state.dimension;           
     }
     
     
@@ -439,7 +439,7 @@ class RingQueue : PersistQueue
     
     public bool willFit ( size_t elen )
     {   
-        size_t len = this.pushSize(elen);
+        size_t len = pushSize(elen);
 
         if (super.state.items)
         {

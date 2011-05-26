@@ -89,17 +89,6 @@ abstract class PersistQueue : Queue, Serializable, Loggable
 
 
 	/***************************************************************************
-	
-	    Abstract method: Calculates the size (in bytes) an item would take if it
-	    were pushed to the queue. This value should include any header data
-	    required.
-
-	***************************************************************************/
-
-	abstract public size_t pushSize ( size_t len );
-
-
-	/***************************************************************************
 
 		Abstract method: Writes the contents of the queue to the passed conduit.
 
