@@ -81,6 +81,8 @@ debug private import tango.util.log.Trace;
     Template params:
         ValueSize = size of a data item. If 0 is specified (the default), the
             items stored in the cache are of variable (dynamic) size
+        TrackCreateTimes = if true, each cache item is stored with its create
+            time, in addition to its last access time
 
 *******************************************************************************/
 
@@ -543,6 +545,8 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
 
     Template params:
         T = type of item to store in cache
+        TrackCreateTimes = if true, each cache item is stored with its create
+            time, in addition to its last access time
 
 *******************************************************************************/
 
