@@ -195,6 +195,28 @@ class ParamSet
         return element? *element : Element.init;
     }
     
+    /**************************************************************************
+
+        Obtains the parameter value corresponding to key which is expected to be
+        an unsigned decimal integer number and not empty. key must be one of the
+        parameter keys passed on instantiation.
+        
+        Params:
+            key    = parameter key (case insensitive)
+            n      = result destination; will be changed only if a value exists
+                     for key
+            is_set = will be changed to true if a value exists for key (even if
+                     it is empty or not an unsigned decimal integer number)
+            
+        Returns:
+            true on success or false if either no value exists for key or the
+            value is empty or not an unsigned decimal integer number or.
+        
+        Throws:
+            Behaves like regular associative array indexing using key as key.
+
+     **************************************************************************/
+
     bool getUint ( char[] key, ref uint n, out bool is_set )
     {
         char[] val = this[key];
