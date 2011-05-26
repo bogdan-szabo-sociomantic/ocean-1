@@ -11,7 +11,7 @@ class ConcatBuffer ( T )
         this.buffer.length = len;
     }
 
-    T[] add ( T[] data )
+    public T[] add ( T[] data )
     {
         if ( this.write_pos + data.length > this.buffer.length )
         {
@@ -19,9 +19,14 @@ class ConcatBuffer ( T )
             this.write_pos = 0;
         }
 
-        auto end = this.write_pos + data.length;
-        this.buffer[this.write_pos .. end] = data[];
+        auto start = this.write_pos;
+        auto end = start + data.length;
+
+        this.buffer[start .. end] = data[];
+
         this.write_pos = end;
+
+        return this.buffer[start .. end];
     }
 
     void clear ( )
@@ -31,7 +36,7 @@ class ConcatBuffer ( T )
 }
 
 
-class SlicedBuffer ( T ) : ConcatBuffer!(T)
+class SliceBuffer ( T ) : ConcatBuffer!(T)
 {
     private T[][] slices;
 
