@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module io.device.queue.storage.model.IStorageEngine;
+module ocean.io.device.queue.storage.model.IStorageEngine;
 
 
 /*******************************************************************************

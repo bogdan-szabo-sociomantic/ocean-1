@@ -20,9 +20,18 @@ module ocean.io.select.RequestQueue;
 
 private import ocean.io.device.queue.RingQueue;
 
+private import ocean.io.select.model.ISelectClient;
+
 private import ocean.io.serialize.StructSerializer;
 
 private import ocean.core.Array;
+
+private import tango.core.Thread : Fiber;
+
+interface IRequestHandler
+{
+    public void notify ( );
+}
 
 /*******************************************************************************
 
@@ -42,7 +51,7 @@ private import ocean.core.Array;
 
 *******************************************************************************/
 
-abstract class IRequestHandler ( T ) : ISelectClient
+abstract class RequestHandler ( T ) : ISelectClient, IRequestHandler
 {
     /***************************************************************************
 
@@ -74,7 +83,7 @@ abstract class IRequestHandler ( T ) : ISelectClient
 	
 	***************************************************************************/
 	
-	protected RequestQueue!(T) request_queue;
+	protected RequestQueue request_queue;
 
 	/***************************************************************************
 
@@ -87,8 +96,11 @@ abstract class IRequestHandler ( T ) : ISelectClient
 	
 	***************************************************************************/
 	
-	public this ( size_t buffer_size, RequestQueue!(T) request_queue, size_t fiber_stack_size = 4096)
+	public this ( size_t buffer_size, RequestQueue request_queue, 
+                  ISelectable selectclient, size_t fiber_stack_size = 4096)
 	{
+        super(selectclient);
+
 		this.fiber  = new Fiber (&this.internalHandler, fiber_stack_size);
 		
 		this.buffer = new ubyte[buffer_size];
@@ -152,7 +164,7 @@ abstract class IRequestHandler ( T ) : ISelectClient
 	{
 		while (!exit)
 		{
-			T* request = this.request_queue.pop(this.buffer);
+			T* request = this.request_queue.pop!(T)(this.buffer);
 			
 			if (request !is null)
 			{
@@ -192,7 +204,7 @@ abstract class IRequestHandler ( T ) : ISelectClient
 
 *******************************************************************************/
 
-abstract class RequestQueue : RingQueue
+abstract class RequestByteQueue : RingQueue
 {
     /***************************************************************************
 	
@@ -291,7 +303,7 @@ abstract class RequestQueue : RingQueue
 
 *******************************************************************************/
 
-class RequestQueue ( T ) : RequestQueue
+class RequestQueue : RequestByteQueue
 {
     /***************************************************************************
 
@@ -331,13 +343,13 @@ class RequestQueue ( T ) : RequestQueue
 	
 	***************************************************************************/
 
-    void push ( ref T request )
+    bool push ( T ) ( ref T request )
     {
-    	this.buffer.length = StructSerializer.length(*request);
+    	this.buffer.length = StructSerializer.length(&request);
     	
     	auto written = StructSerializer.dump(&request, this.buffer);
     	
-    	super.push(this.buffer[0 .. written]);
+    	return super.push(this.buffer[0 .. written]);
     }
     
     /***************************************************************************
@@ -353,11 +365,11 @@ class RequestQueue ( T ) : RequestQueue
 	
 	***************************************************************************/
 	    
-    T* pop ( ref ubyte[] buffer )
+    T* pop ( T ) ( ref ubyte[] buffer )
     {   
     	T* instance;
     	
-    	buffer.copy(super.pop());
+    	buffer.copy(cast(ubyte[])super.pop());
     	
     	StructSerializer.loadSlice (instance, buffer);
     	

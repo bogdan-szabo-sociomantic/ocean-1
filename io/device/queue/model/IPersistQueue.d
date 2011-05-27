@@ -22,8 +22,7 @@
 
 *******************************************************************************/
 
-module ocean.io.device.model.queue.IPersistQueue;
-
+module ocean.io.device.queue.model.IPersistQueue;
 
 /*******************************************************************************
 
