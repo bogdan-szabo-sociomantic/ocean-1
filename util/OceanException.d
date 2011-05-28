@@ -457,7 +457,7 @@ class OceanException: Exception
 
             if (console_output)
             {
-                Trace.formatln("{}", buffer);
+                Trace.formatln("OceanException.Warn: {}", buffer);
             }
         }
     }
@@ -486,6 +486,7 @@ class OceanException: Exception
 
             ap.layout(new LayoutDate);
             OceanException.logger.add(ap);
+            OceanException.logger.additive(false); // disable default console output
 
             return true;
         }
