@@ -22,8 +22,8 @@
         char[] number_as_string;
         DigitGrouping.format(number, number_as_string);
 
-        // Checking how many character would be required for  a thousands separated
-        // number.
+        // Checking how many characters would be required for a thousands
+        // separated number.
         cont max_len = 10;
         assert(DigitGrouping.length(number) <= max_len);
 
