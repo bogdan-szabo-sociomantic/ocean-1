@@ -31,7 +31,7 @@
 
 *******************************************************************************/
 
-module text.util.DigitGrouping;
+module ocean.text.util.DigitGrouping;
 
 
 
