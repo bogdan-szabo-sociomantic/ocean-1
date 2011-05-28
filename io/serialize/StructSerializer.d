@@ -765,7 +765,7 @@ struct StructSerializer
         }
         else static if (RecurseIntoStruct)
         {
-            debug pragma (msg, typeof (*this).stringof  ~ ".transmitArray: "
+            debug ( StructSerializer ) pragma (msg, typeof (*this).stringof  ~ ".transmitArray: "
                                "array elements of struct type '" ~ T.stringof ~
                                "' contain subarrays");
             
@@ -818,7 +818,7 @@ struct StructSerializer
             }
             else static if (is (T U == U[]))
             {
-                debug pragma (msg, "sliceArrays " ~ S.stringof ~ ": " ~ FieldInfo!(T, S, i));
+                debug ( StructSerializer ) pragma (msg, "sliceArrays " ~ S.stringof ~ ": " ~ FieldInfo!(T, S, i));
                 
                 mixin AssertSupportedArray!(T, U, S, i);
                 
@@ -857,7 +857,7 @@ struct StructSerializer
         
         static if (is (T U == U[]))
         {
-            debug pragma (msg, "sliceArray > " ~ U.stringof);
+            debug ( StructSerializer ) pragma (msg, "sliceArray > " ~ U.stringof);
             
             foreach (ref element; resizeArray(array, len))
             {
@@ -866,7 +866,7 @@ struct StructSerializer
         }
         else
         {
-            debug pragma (msg, "sliceArray: " ~ T.stringof);
+            debug ( StructSerializer ) pragma (msg, "sliceArray: " ~ T.stringof);
             
             end += len * T.sizeof;
             
