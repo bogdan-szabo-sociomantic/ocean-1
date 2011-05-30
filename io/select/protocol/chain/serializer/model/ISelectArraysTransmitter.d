@@ -281,7 +281,7 @@ abstract class ISelectArraysTransmitter ( IODg )
 
     ***************************************************************************/
     
-    ~this ( )
+    public void dispose ( )
     {
         delete this.single_array_terminator;
         delete this.single_pair_terminator;
