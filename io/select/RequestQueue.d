@@ -1,4 +1,4 @@
-/*******************************************************************************
+/+*******************************************************************************
 
     Abstract classes for RequestQueues
 
@@ -8,7 +8,62 @@
 
     authors:        Mathias Baumann
 
-*******************************************************************************/
+    Generic interfaces and logic for RequestQueues and related classes.
+
+    Usage example for a hypothetical client who writes numbers to a socket
+    --------------------
+
+    module NumberQueue;
+
+    import ocean.io.select.RequestQueue;
+
+    class NumberHandler : RequestHandler!(ulong)
+    {
+        private ISelectClient.Event myEvents;
+
+        private Socket socket;
+        
+        // called within the fiber of the base class
+	    protected void request ( ref T number );
+        {
+            // initialize the connection if not already initialized
+            selector.register(socket, Event.Write);
+
+            // wait till it's ready for writing
+            fiber.cede();
+
+            // k, socket ready for writing
+            socket.write(number);
+        }
+
+        public Event events ( )
+        {
+            return this.myEvents;
+        }
+
+        public bool handle ( Event event )
+        {
+            fiber.call(); 
+        }
+    }
+
+    class EpollNumber
+    {
+        RequestQueue!(ulong) handlers;
+
+        this ()
+        {
+            this.handlers = new RequestQueue!(ulong)(10, 100);
+        }
+
+        void sendNumber ( ulong num )
+        {
+            handlers.push(num);
+        }
+    }
+    ------------------
+
+******************************************************************************+/
 
 module ocean.io.select.RequestQueue;
 
@@ -28,8 +83,29 @@ private import ocean.core.Array;
 
 private import tango.core.Thread : Fiber;
 
-interface IRequestHandler
+debug private import ocean.io.SyncOut;
+
+/*******************************************************************************
+
+  Interface for a RequestHandler.
+
+*******************************************************************************/
+
+private interface IRequestHandler
 {
+    /***************************************************************************
+
+	    Called by RequestQueue when this Handler is waiting for new
+	    Requests. 
+	    
+	    The handler then starts popping items (from the queue) 
+	    as if there is no tomorrow.
+	    
+	    When there are no more items to pop, it registers back in the 
+	    request queue and yields/cedes.
+	
+	***************************************************************************/
+
     public void notify ( );
 }
 
@@ -38,11 +114,11 @@ interface IRequestHandler
 	Abstract request handler.
 	 
 	Any concrete class connection should inherit from this class.
-	It has to implement startRequest which should .. start an request.
+	It has to implement request which should .. start an request.
 	
-	startRequest will be run inside IRequestHandler.fiber an is free
+	request will be run inside IRequestHandler.fiber an is free
 	to call fiber.cede/yield() as it pleases. Once the function 
-	startRequest returns, another request will be popped from the queue
+	request returns, another request will be popped from the queue
 	and the function will be called again until there are no more requests
 	left.
 	
@@ -83,7 +159,7 @@ abstract class RequestHandler ( T ) : ISelectClient, IRequestHandler
 	
 	***************************************************************************/
 	
-	protected RequestQueue request_queue;
+	protected RequestQueue!(T) request_queue;
 
 	/***************************************************************************
 
@@ -96,7 +172,7 @@ abstract class RequestHandler ( T ) : ISelectClient, IRequestHandler
 	
 	***************************************************************************/
 	
-	public this ( size_t buffer_size, RequestQueue request_queue, 
+	public this ( size_t buffer_size, RequestQueue!(T) request_queue, 
                   ISelectable selectclient, size_t fiber_stack_size = 4096)
 	{
         super(selectclient);
@@ -164,11 +240,11 @@ abstract class RequestHandler ( T ) : ISelectClient, IRequestHandler
 	{
 		while (!exit)
 		{
-			T* request = this.request_queue.pop!(T)(this.buffer);
+			T* request = this.request_queue.pop(this.buffer);
 			
 			if (request !is null)
 			{
-				this.startRequest(*request);
+				this.request(*request);
 			}
 			else
 			{
@@ -193,7 +269,7 @@ abstract class RequestHandler ( T ) : ISelectClient, IRequestHandler
 	
 	***************************************************************************/
 
-	protected void startRequest ( ref T request_instance );
+	protected void request ( ref T request_instance );
 }
 
 /*******************************************************************************
@@ -204,17 +280,8 @@ abstract class RequestHandler ( T ) : ISelectClient, IRequestHandler
 
 *******************************************************************************/
 
-abstract class RequestByteQueue : RingQueue
+class RequestByteQueue : RingQueue
 {
-    /***************************************************************************
-	
-	    Whether the last push failed and the next pop should notify
-	    the application that it might try again now
-	
-	***************************************************************************/
-
-	private bool is_full = false;
-	
     /***************************************************************************
 	
 	    Array of handler references
@@ -237,11 +304,15 @@ abstract class RequestByteQueue : RingQueue
 	    
 	    Params:
 	    	handlers        = amount of handlers/connections
+            max_requests    = amount of requests this queue should be able to
+                              handle
 	
 	***************************************************************************/
     
-    public this ( size_t handlers )
+    public this ( size_t handlers, size_t max_requests )
     {
+        super("Request RingQueue", max_requests);
+
     	this.handlers = new IRequestHandler[handlers];
     	
     	this.waiting_handlers = 0;
@@ -249,14 +320,17 @@ abstract class RequestByteQueue : RingQueue
     
     /***************************************************************************
 	
-	    Currently available handlers
+	    register an handler as available
 	
 	***************************************************************************/
 	    
     public void handlerWaiting ( IRequestHandler handler )
     in
     {
-    	assert (handler + 1 < waiting_handlers.length);
+        debug scope (failure) Trace.formatln("waiting: {} len: {}",
+                waiting_handlers, handlers.length);
+
+    	assert (waiting_handlers < handlers.length, "Maximum handlers reached");
     }
     body
     {
@@ -303,7 +377,7 @@ abstract class RequestByteQueue : RingQueue
 
 *******************************************************************************/
 
-class RequestQueue : RequestByteQueue
+class RequestQueue ( T ) : RequestByteQueue
 {
     /***************************************************************************
 
@@ -312,21 +386,22 @@ class RequestQueue : RequestByteQueue
 	***************************************************************************/
 		
 	private ubyte[] buffer;
-	
+
+
     /***************************************************************************
 
 	    Constructor
 	    
 	    Params:
 	    	handlers        = amount of handlers/connections
+	        max_requests    = amount of requests this queue should be able to
+                              handle
 	
 	***************************************************************************/
-
-	public this ( size_t handlers )
+    
+    public this ( size_t handlers, size_t max_requests )
 	{
-		super(handlers);
-		
-		this.buffer = new ubyte[1024]; 
+		super(handlers, max_requests);
 	}
 	
     /***************************************************************************
@@ -343,7 +418,7 @@ class RequestQueue : RequestByteQueue
 	
 	***************************************************************************/
 
-    bool push ( T ) ( ref T request )
+    bool push ( ref T request )
     {
     	this.buffer.length = StructSerializer.length(&request);
     	
@@ -365,12 +440,19 @@ class RequestQueue : RequestByteQueue
 	
 	***************************************************************************/
 	    
-    T* pop ( T ) ( ref ubyte[] buffer )
+    T* pop ( ref ubyte[] buffer )
     {   
     	T* instance;
-    	
-    	buffer.copy(cast(ubyte[])super.pop());
-    	
+
+    	auto data = cast(ubyte[])super.pop();
+        
+        if (data is null)
+        {
+            return null;
+        }
+
+        buffer.copy(data);
+
     	StructSerializer.loadSlice (instance, buffer);
     	
     	return instance; 
