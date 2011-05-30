@@ -143,16 +143,25 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
     private ~this ( )
     {
         iconv_close(this.cd);
+    }
 
+    /***************************************************************************
+
+        Dispose.
+        Deletes unneeded objects
+    
+    ***************************************************************************/
+
+    public void dispose ( )
+    {
         delete this.exception_InvalidMbSeq;
 
         delete this.exception_IncompleteMbSeq;
 
         delete this.exception_TooBig;
 
-        delete this.exception_Generic;
+        delete this.exception_Generic; 
     }
-
 
     /***************************************************************************
 
