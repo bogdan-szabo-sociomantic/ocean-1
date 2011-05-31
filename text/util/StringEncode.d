@@ -311,11 +311,11 @@ public class StringEncoderSequence ( Encoders... )
 
     /***************************************************************************
 
-        Destructor. Deletes encoders.
+        Disposer. Deletes encoders.
 
     ***************************************************************************/
 
-    ~this ( )
+    void dispose ( )
     {
         foreach ( e; this.encoders )
         {
