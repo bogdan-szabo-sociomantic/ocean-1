@@ -1,4 +1,4 @@
-/+*******************************************************************************
+/*******************************************************************************
 
     Abstract classes for RequestQueues
 
@@ -11,59 +11,91 @@
     Generic interfaces and logic for RequestQueues and related classes.
 
     Usage example for a hypothetical client who writes numbers to a socket
-    --------------------
 
-    module NumberQueue;
+    ---
 
-    import ocean.io.select.RequestQueue;
+        module NumberQueue;
 
-    class NumberHandler : RequestHandler!(ulong)
-    {
-        private ISelectClient.Event myEvents;
+        import ocean.io.select.RequestQueue;
 
-        private Socket socket;
-        
-        // called within the fiber of the base class
-	    protected void request ( ref T number );
+        import ocean.io.select.EpollSelectDispatcher;
+
+
+        class NumberHandler : RequestHandler!(ulong)
         {
-            // initialize the connection if not already initialized
-            selector.register(socket, Event.Write);
+            private ISelectClient.Event myEvents;
+    
+            private Socket socket;
+            
+            private EpollSelectDispatcher epoll;
 
-            // wait till it's ready for writing
-            fiber.cede();
+            public this ( EpollSelectDispatcher epoll )
+            {
+                this.epoll = epoll;
+            }
 
-            // k, socket ready for writing
-            socket.write(number);
+            // called within the fiber of the base class
+    	    protected void request ( ref T number );
+            {
+                // initialize the connection if not already initialized
+                this.myEvents = Event.Write;
+                this.epoll.register(this);
+    
+                // wait till it's ready for writing
+                fiber.cede();
+    
+                // k, socket ready for writing
+                socket.write(number);
+            }
+    
+            public Event events ( )
+            {
+                return this.myEvents;
+            }
+    
+            public bool handle ( Event event )
+            {
+                fiber.call(); 
+            }
         }
 
-        public Event events ( )
+
+        class EpollNumber
         {
-            return this.myEvents;
+            RequestQueue!(ulong) handlers;
+
+            this ( EpollSelectDispatcher epoll )
+            {
+                const max_connections = 10;
+                const max_requests_in_queue = 100;
+
+                this.handlers = new RequestQueue!(ulong)(max_connections, max_requests_in_queue);
+
+                for ( int i; i < max_connections; i++ )
+                {
+                    this.handlers.handlerWaiting(new NumberHandler(epoll));
+                }
+            }
+
+            bool sendNumber ( ulong num )
+            {
+                return this.handlers.push(num);
+            }
         }
 
-        public bool handle ( Event event )
-        {
-            fiber.call(); 
-        }
-    }
 
-    class EpollNumber
-    {
-        RequestQueue!(ulong) handlers;
+        epoll = new EpollSelectDispatcher;
+        numbers = new EpollNumber(epoll);
 
-        this ()
-        {
-            this.handlers = new RequestQueue!(ulong)(10, 100);
-        }
+        numbers.sendNumber(23);
+        numbers.sendNumber(85);
+        numbers.sendNumber(42);
 
-        void sendNumber ( ulong num )
-        {
-            handlers.push(num);
-        }
-    }
-    ------------------
+        epoll.eventLoop;
 
-******************************************************************************+/
+    ---
+
+*******************************************************************************/
 
 module ocean.io.select.RequestQueue;
 
