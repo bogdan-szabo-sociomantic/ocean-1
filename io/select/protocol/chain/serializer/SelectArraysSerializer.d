@@ -628,7 +628,7 @@ class SelectArraysSerializer : ISelectArraysTransmitter!(InputDg)
         
     ***************************************************************************/
     
-    ~this ( )
+    void dispose ( )
     {
         delete this.chunked_serializer;
         delete this.compress_serializer;
