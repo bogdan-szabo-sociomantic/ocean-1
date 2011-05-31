@@ -277,7 +277,7 @@ class LibCurlMulti
 
     public bool read ( char[] url, void delegate ( LibCurl ) init_dg, LibCurl.ReadDg read_dg )
     {
-        if ( this.conn_pool.getNumAvailableItems() == 0 )
+        if ( this.conn_pool.num_idle() == 0 )
         {
             return false;
         }
@@ -391,7 +391,7 @@ class LibCurlMulti
 
     public size_t getNumRegisteredRequests ( )
     {
-        return this.conn_pool.getNumItems();
+        return this.conn_pool.num_busy();
     }
     
 
@@ -404,7 +404,7 @@ class LibCurlMulti
 
     public size_t getNumFreeRequests ( )
     {
-        return this.conn_pool.getNumAvailableItems();
+        return this.conn_pool.num_idle();
     }
 
 
