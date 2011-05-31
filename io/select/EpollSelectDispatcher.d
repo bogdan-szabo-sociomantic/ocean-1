@@ -51,7 +51,7 @@ private import ocean.io.select.timeout.TimeoutManager;
 private import ocean.core.Array : copy;
 private import ocean.core.Exception : assertEx;
 
-debug private import tango.util.log.Trace;
+debug ( ISelectClient ) private import tango.util.log.Trace;
 
 
 
@@ -376,10 +376,18 @@ public class EpollSelectDispatcher
                 {
                     unregister_key = true;
     
-                    debug (ISelectClient) Trace.formatln("{}: {}", client.id, e.msg);
-                    
-                    debug Trace.formatln(e.line? "{} @{}:{}" : "{}", e.msg, e.file, e.line);
-                    
+                    debug (ISelectClient)
+                    {
+                        if ( e.line )
+                        {
+                            Trace.formatln("{}: {} @ {}:{}", client.id, e.msg, e.file, e.line);
+                        }
+                        else
+                        {
+                            Trace.formatln("{}: {}", client.id, e.msg);
+                        }
+                    }
+
                     client.error(e, events);
                 }
                 finally if (unregister_key)
