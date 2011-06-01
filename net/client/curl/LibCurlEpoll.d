@@ -466,6 +466,15 @@ private class CurlConnection : ISelectClient, ISelectable
 
     public void finalize ( )
     {
+        // Checks if the connection has really finished, if not it must be an
+        // error.
+        uint code;
+        curl_easy_getinfo(this.curl_handle, CurlInfo.CURLINFO_RESPONSE_CODE, &code);
+        if ( code == 0 )
+        {
+            this.state = FinalizeState.Error;
+        }
+
         if ( !this.finalized && this.finalizer_dg !is null )
         {
             this.finalizer_dg(this.url, this.state);
