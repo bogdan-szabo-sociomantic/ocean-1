@@ -40,6 +40,8 @@ private import tango.stdc.ctype:  tolower;
 
 private import tango.stdc.stdlib: div;
 
+private import tango.core.Exception: ArrayBoundsException;
+
 /******************************************************************************
 
     Compares each of the the first n characters in s1 and s2 in a
@@ -101,32 +103,6 @@ class ParamSet
     
     /**************************************************************************
 
-        Constructor
-        
-        Note that this is the only place where parameter keys can be modified.
-        The last character of each key may be ':' which will be removed; this is
-        the only place where a ':' may appear in a key.
-        
-        Params:
-            key_lists = arrays of parameter keys (elements will be sliced)
-    
-     **************************************************************************/
-
-    public this ( char[][][] key_lists ... )
-    {
-        foreach (keys; key_lists)
-        {
-            foreach (key; keys)
-            {
-                this.addKey(key);
-            }
-        }
-        
-        this.paramset.rehash;
-    }
-    
-    /**************************************************************************
-
         Obtains the parameter value corresponding to key. key must be one of
         the parameter keys passed on instantiation.
         
@@ -144,7 +120,15 @@ class ParamSet
 
     char[] opIndex ( char[] key )
     {
-        return this.paramset[this.tolower(key)].val;
+        try
+        {
+            return this.paramset[this.tolower(key)].val;
+        }
+        catch (ArrayBoundsException e)
+        {
+            e.msg ~= " [\"" ~ key ~ "\"]";
+            throw e;
+        }
     }
     
     /**************************************************************************
@@ -379,10 +363,34 @@ class ParamSet
             key = parameter key to add
         
      **************************************************************************/
-
-    protected void addKey ( char[] key )
+    
+    protected void addKeys ( char[][] keys ... )
     {
-        this.paramset[this.tolower(key).dup] = Element(key);
+        foreach (key; keys)
+        {
+            this.addKey(key);
+        }
+    }
+    
+    /**************************************************************************
+
+        Adds an entry for key.
+
+        Params:
+            key = parameter key to add
+        
+     **************************************************************************/
+
+    protected char[] addKey ( char[] key )
+    {
+        char[] lower_key = this.tolower(key);
+        
+        if (!(key in this.paramset))
+        {
+            this.paramset[lower_key.dup] = Element(key);
+        }
+        
+        return lower_key;
     }
     
     /**************************************************************************
@@ -436,6 +444,17 @@ class ParamSet
         }
         
         return this.tolower_buf[0 .. key.length];
+    }
+    
+    /**************************************************************************
+
+        Rehashes the associative array.
+            
+     **************************************************************************/
+
+    protected void rehash ( )
+    {
+        this.paramset.rehash;
     }
     
     /**************************************************************************
