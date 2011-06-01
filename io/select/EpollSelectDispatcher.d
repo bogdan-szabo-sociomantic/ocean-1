@@ -51,7 +51,7 @@ private import ocean.io.select.timeout.TimeoutManager;
 private import ocean.core.Array : copy;
 private import ocean.core.Exception : assertEx;
 
-debug ( ISelectClient ) private import tango.util.log.Trace;
+private import tango.util.log.Trace;
 
 
 
@@ -375,26 +375,21 @@ public class EpollSelectDispatcher
                 catch (Exception e)
                 {
                     unregister_key = true;
-    
-                    debug (ISelectClient)
-                    {
-                        if ( e.line )
-                        {
-                            Trace.formatln("{}: {} @ {}:{}", client.id, e.msg, e.file, e.line);
-                        }
-                        else
-                        {
-                            Trace.formatln("{}: {}", client.id, e.msg);
-                        }
-                    }
-
-                    client.error(e, events);
+                    this.clientError(client, events, e);
                 }
-                finally if (unregister_key)
+
+                if (unregister_key)
                 {
                     this.safeUnregister(client);
 
-                    client.finalize();
+                    try
+                    {
+                        client.finalize();
+                    }
+                    catch ( Exception e )
+                    {
+                        this.clientError(client, events, e);
+                    }
                 }
             }
         }
@@ -489,6 +484,71 @@ public class EpollSelectDispatcher
         }
 
         return events;
+    }
+
+    /***************************************************************************
+
+        Called when an exception is thrown while handling a client (either the
+        handle() or finalize() method).
+
+        Calls the client's error() method, and in debug builds ouputs a message.
+
+        Params:
+            client = client which threw exception
+            events = epoll events which fired for client
+            e = exception thrown
+
+     **************************************************************************/
+
+    private void clientError ( ISelectClient client, Event events, Exception e )
+    {
+        debug (ISelectClient)
+        {
+            this.traceException(client, e);
+        }
+
+        try
+        {
+            client.error(e, events);
+        }
+        catch ( Exception e )
+        {
+            // TODO: not sure if we should really Trace here, but I don't know what
+            // else to do in this extreme error case!
+            // The application programmer definitely needs to know if this is
+            // happening. Just throwing may be another option...
+            this.traceException(client, e, "Very bad: Exception thrown from inside ISelectClient.error() delegate! -- ");
+        }
+    }
+
+    /***************************************************************************
+
+        Outputs a client exception message to Trace.
+
+        Params:
+            client = client which threw exception
+            e = exception thrown
+            message = additional message to output
+
+     **************************************************************************/
+
+    private void traceException ( ISelectClient client, Exception e, char[] message = null )
+    {
+        debug (ISelectClient)
+        {
+            Trace.format("{}:", client.id);
+        }
+        else
+        {
+            if ( e.line )
+            {
+                Trace.formatln("{} {} @ {}:{}", message, e.msg, e.file, e.line);
+            }
+            else
+            {
+                Trace.formatln("{} {}", message, e.msg);
+            }
+        }
     }
 
     /***************************************************************************
