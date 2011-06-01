@@ -46,17 +46,17 @@ class QueryParams
     
      **************************************************************************/
 
-    public this ( )
+    public this ( char element_delim, char keyval_delim )
     {
         with (this.split_paramlist = new ChrSplitIterator)
         {
-            delim             = '&';
+            delim             = element_delim;
             collapse          = true;
         }
         
         with (this.split_param = new ChrSplitIterator)
         {
-            delim             = '=';
+            delim             = keyval_delim;
             include_remaining = false;
         }
     }
@@ -132,11 +132,13 @@ class QueryParamSet: ParamSet
     
      **************************************************************************/
 
-    public this ( char[][] keys ... )
+    public this ( char element_delim, char keyval_delim, char[][] keys ... )
     {
-        super(keys);
+        super.addKeys(keys);
         
-        this.query_params = new QueryParams;
+        super.rehash();
+        
+        this.query_params = new QueryParams(element_delim, keyval_delim);
     }
     
     /**************************************************************************
