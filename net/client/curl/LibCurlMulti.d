@@ -419,7 +419,7 @@ class LibCurlMulti
     {
         foreach ( conn; this.conn_pool )
         {
-            conn.recycle(); // calls curl_multi_remove_handle
+            this.conn_pool.recycle(conn); // calls curl_multi_remove_handle
         }
     }
 
