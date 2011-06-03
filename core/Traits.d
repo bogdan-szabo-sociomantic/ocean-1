@@ -252,3 +252,57 @@ private template StripFieldName ( char[] name, size_t n = size_t.max )
     }
 }
 
+
+
+/*******************************************************************************
+
+    Template to determine if a type tuple is composed of unique types, with no
+    duplicates.
+
+    Template parameter:
+        Tuple = variadic type tuple
+
+    Evaluates to:
+        true if no duplicate types exist in Tuple
+
+*******************************************************************************/
+
+public template isUniqueTypesInTuple ( Tuple ... )
+{
+    static if ( Tuple.length > 1 )
+    {
+        const bool isUniqueTypesInTuple = (CountTypesInTuple!(Tuple[0], Tuple) == 1) && isUniqueTypesInTuple!(Tuple[1..$]);
+    }
+    else
+    {
+        const bool isUniqueTypesInTuple = true;
+    }
+}
+
+
+
+/*******************************************************************************
+
+    Template to count the number of times a specific type appears in a tuple.
+
+    Template parameter:
+        Type = type to count
+        Tuple = variadic type tuple
+
+    Evaluates to:
+        number of times Type appears in Tuple
+
+*******************************************************************************/
+
+public template CountTypesInTuple ( Type, Tuple ... )
+{
+    static if ( Tuple.length > 0 )
+    {
+        const uint CountTypesInTuple = is(Type == Tuple[0]) + CountTypesInTuple!(Type, Tuple[1..$]);
+    }
+    else
+    {
+        const uint CountTypesInTuple = 0;
+    }
+}
+
