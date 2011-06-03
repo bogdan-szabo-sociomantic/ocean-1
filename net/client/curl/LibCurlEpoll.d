@@ -470,7 +470,7 @@ private class CurlConnection : ISelectClient, ISelectable
         // error.
         uint code;
         curl_easy_getinfo(this.curl_handle, CurlInfo.CURLINFO_RESPONSE_CODE, &code);
-        if ( code == 0 )
+        if ( code == 0 || (code >= 400 && code < 500) )
         {
             this.state = FinalizeState.Error;
         }
