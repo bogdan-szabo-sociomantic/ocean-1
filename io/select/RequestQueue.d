@@ -335,15 +335,14 @@ class RequestByteQueue : RingQueue
 	    Constructor
 	    
 	    Params:
-	    	handlers        = amount of handlers/connections
-            max_requests    = amount of requests this queue should be able to
-                              handle
+	    	handlers  = amount of handlers/connections
+            max_bytes = size of the queue in bytes
 	
 	***************************************************************************/
     
-    public this ( size_t handlers, size_t max_requests )
+    public this ( size_t handlers, size_t max_bytes )
     {
-        super("Request RingQueue", max_requests);
+        super("Request RingQueue", max_bytes);
 
     	this.handlers = new IRequestHandler[handlers];
     	
@@ -425,15 +424,14 @@ class RequestQueue ( T ) : RequestByteQueue
 	    Constructor
 	    
 	    Params:
-	    	handlers        = amount of handlers/connections
-	        max_requests    = amount of requests this queue should be able to
-                              handle
+	    	handlers  = amount of handlers/connections
+	        max_bytes = size of the queue in bytes
 	
 	***************************************************************************/
     
-    public this ( size_t handlers, size_t max_requests )
+    public this ( size_t handlers, size_t max_bytes )
 	{
-		super(handlers, max_requests);
+		super(handlers, max_bytes);
 	}
 	
     /***************************************************************************
