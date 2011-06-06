@@ -272,11 +272,8 @@ class LzoChunkCompressor
     ***************************************************************************/
 
     ~this ( )
-    {
-        delete this.lzo;
+    {   
         this.result.length = 0;
-        delete this.compressor;
-        delete this.decompressor;
     }
 }
 
