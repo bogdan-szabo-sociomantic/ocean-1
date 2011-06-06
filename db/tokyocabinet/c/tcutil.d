@@ -59,6 +59,16 @@ enum TCERRCODE : int                            /* enumeration for error codes *
     TCEMISC = 9999                              /* miscellaneous error */
 };
 
+enum TCKWGEN                             /* enumeration for KWIC generator */
+{
+  TCKWMUTAB = 1 << 0,                    /* mark up by tabs */
+  TCKWMUCTRL = 1 << 1,                   /* mark up by control characters */
+  TCKWMUBRCT = 1 << 2,                   /* mark up by brackets */
+  TCKWNOOVER = 1 << 24,                  /* no overlap */
+  TCKWPULEAD = 1 << 25                   /* pick up the lead string */
+};
+
+
 /+
 alias _TCTREEREC TCTREEREC;
 
