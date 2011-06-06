@@ -658,7 +658,6 @@ public class LibCurlEpoll
     {
         if ( url in this.urls_set )
         {
-            Trace.formatln("Already downloading {}", url);
             return false;
         }
         else
