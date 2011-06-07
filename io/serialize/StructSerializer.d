@@ -228,7 +228,7 @@ struct StructSerializer
         
         s = cast (S*) data.ptr;
         
-        return sliceArrays(s, (cast (void[]) data)[pos .. $]);
+        return sliceArrays(s, (cast (void[]) data)[pos .. $]) + pos;
     }
     
     /**************************************************************************
