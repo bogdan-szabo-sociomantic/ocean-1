@@ -28,9 +28,16 @@
             private Socket socket;
             
             private EpollSelectDispatcher epoll;
-
-            public this ( EpollSelectDispatcher epoll )
+            
+            public this ( EpollSelectDispatcher epoll, 
+                          RequestQueue!(ulong) queue, 
+                          size_t buffer_size )
             {
+                this.socket = new Socket;
+                this.socket.connect ("example.org", 421);
+            
+                super(buffer_size, queue, socket);
+                      
                 this.epoll = epoll;
             }
 
@@ -73,7 +80,7 @@
 
                 for ( int i; i < max_connections; i++ )
                 {
-                    this.handlers.handlerWaiting(new NumberHandler(epoll));
+                    this.handlers.handlerWaiting(new NumberHandler(epoll, handlers, ulong.sizeof));
                 }
             }
 
