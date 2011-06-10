@@ -78,112 +78,26 @@ private extern ( C )
 }
 
 
-
 /*******************************************************************************
 
     SelectEvent class
 
+    File descriptor event class wrapping C functions. See:
+
+        http://linux.die.net/man/2/eventfd
+
 *******************************************************************************/
 
-class SelectEvent : IAdvancedSelectClient
+class SelectEvent : IAdvancedSelectClient, ISelectable
 {
-    /***************************************************************************
+    /***********************************************************************
 
-        File descriptor event class wrapping C functions. See:
+        Integer file descriptor provided by the operating system and used to
+        manage the custom event.
 
-            http://linux.die.net/man/2/eventfd
+    ***********************************************************************/
 
-    ***************************************************************************/
-
-    private class FDEvent : ISelectable
-    {
-        /***********************************************************************
-
-            Integer file descriptor provided by the operating system and used to
-            manage the custom event.
-
-        ***********************************************************************/
-
-        private int fd;
-
-
-        /***********************************************************************
-
-            Constructor. Creates a file descriptor to manage the event.
-        
-        ***********************************************************************/
-
-        public this ( )
-        {
-            this.fd = .eventfd(0, 0);
-        }
-
-
-        /***********************************************************************
-
-            Destructor. Destroys the file descriptor used to manage the event.
-        
-        ***********************************************************************/
-    
-        ~this ( )
-        {
-            .close(this.fd);
-        }
-
-
-        /***********************************************************************
-
-            Writes to the custom event file descriptor.
-
-            Parmas:
-                data = data to write
-
-        ***********************************************************************/
-
-        public void write ( void[] data )
-        {
-            .write(this.fd, data.ptr, data.length);
-        }
-
-
-        /***********************************************************************
-
-            Reads from the custom event file descriptor.
-
-            Parmas:
-                data = data buffer to read into
-
-        ***********************************************************************/
-
-        public void read ( void[] data )
-        {
-            .read(this.fd, data.ptr, data.length);
-        }
-
-
-        /***********************************************************************
-
-            Required by ISelectable interface.
-
-            Returns:
-                file descriptor used to manage custom event
-
-        ***********************************************************************/
-
-        public Handle fileHandle ( )
-        {
-            return cast(Handle)this.fd;
-        }
-    }
-
-
-    /***************************************************************************
-
-        Custom event.
-    
-    ***************************************************************************/
-
-    private FDEvent fd_event;
+    private int fd;
 
 
     /***************************************************************************
@@ -218,12 +132,69 @@ class SelectEvent : IAdvancedSelectClient
     {
         this.handler = handler;
 
-        this.fd_event = new FDEvent;
-
-        super(this.fd_event);
+        this.fd = .eventfd(0, 0);
+        
+        super(this);
     }
 
+    
+    /***********************************************************************
 
+        Destructor. Destroys the file descriptor used to manage the event.
+    
+    ***********************************************************************/
+
+    ~this ( )
+    {
+        .close(this.fd);
+    }
+    
+
+    /***********************************************************************
+
+        Writes to the custom event file descriptor.
+
+        Parmas:
+            data = data to write
+
+    ***********************************************************************/
+
+    private void write ( void[] data )
+    {
+        .write(this.fd, data.ptr, data.length);
+    }
+
+    
+    /***********************************************************************
+
+        Reads from the custom event file descriptor.
+
+        Parmas:
+            data = data buffer to read into
+
+    ***********************************************************************/
+   
+    private void read ( void[] data )
+    {
+        .read(this.fd, data.ptr, data.length);
+    }
+
+    
+    /***********************************************************************
+
+        Required by ISelectable interface.
+
+        Returns:
+            file descriptor used to manage custom event
+
+    ***********************************************************************/
+
+    public Handle fileHandle ( )
+    {
+        return cast(Handle)this.fd;
+    }
+
+    
     /***************************************************************************
 
         Returns:
@@ -261,7 +232,7 @@ class SelectEvent : IAdvancedSelectClient
     body
     {
         ubyte[ulong.sizeof] receive;
-        this.fd_event.read(receive);
+        this.read(receive);
 
         return this.handler();
     }
@@ -276,7 +247,7 @@ class SelectEvent : IAdvancedSelectClient
     public void trigger ( )
     {
         ulong count_inc = 1;
-        this.fd_event.write((cast(void*)&count_inc)[0..ulong.sizeof]);
+        this.write((cast(void*)&count_inc)[0..ulong.sizeof]);
     }
 
 
