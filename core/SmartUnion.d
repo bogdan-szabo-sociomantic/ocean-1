@@ -210,15 +210,15 @@ private struct SmartUnionIntern ( U )
             // Getter for my_smart_union.u.y. Returns:
             //     my_smart_union.u.y
             
-            typeof (my_smart_union.u.y) y()
+            char[] y()
             in
             {
-                assert(this.my_smart_union.active == this.my_smart_union.active.y,
+                assert(my_smart_union.active == my_smart_union.active.y,
                        "UniStruct: \"y\" not active");
             }
             body
             {
-                return this.my_smart_union.u.y;
+                return my_smart_union.u.y;
             }
             
             // Setter for my_smart_union.u.y. Params:
@@ -226,11 +226,10 @@ private struct SmartUnionIntern ( U )
             // Returns:
             //     y
             
-            typeof (my_smart_union.u.y) y(typeof (my_smart_union.u.y) y)
+            char[] y(char[] y)
             {
-                this.my_smart_union.u.y = y;
-                this.my_smart_union.active = this.my_smart_union.active.y;
-                return y;
+                my_smart_union.active = my_smart_union.active.y;
+                return my_smart_union.u.y = y;
             }
         ---
         .
@@ -255,18 +254,17 @@ private struct SmartUnionIntern ( U )
         
         const member_access = u_pre ~ ".u." ~ member;
         
-        const type = "typeof(" ~ member_access ~ ')';
+        const type = typeof (U.tupleof)[i].stringof;
         
         const get = type ~ ' ' ~  member ~ "() "
-                    "in {assert(this." ~ u_pre ~ ".active==this." ~ u_pre ~ ".active." ~ member ~ ","
+                    "in {assert(" ~ u_pre ~ ".active==" ~ u_pre ~ ".active." ~ member ~ ","
                     "\"UniStruct: \\\"" ~ member ~ "\\\" not active\");} "
-                    "body {return this." ~ member_access ~ ";}";
+                    "body {return " ~ member_access ~ ";}";
 
         
         const set = type ~ ' ' ~  member ~ '(' ~ type ~ ' ' ~ member ~ ')' ~ " "
-                    "{this." ~ member_access ~ '=' ~ member ~ "; "
-                    "this." ~ u_pre ~ ".active=this." ~ u_pre ~ ".active." ~ member ~ "; "
-                    "return " ~ member ~ ";}";
+                    "{" ~ u_pre ~ ".active=" ~ u_pre ~ ".active." ~ member ~ "; "
+                    "return " ~ member_access ~ '=' ~ member ~ ";}";
         
         const both = get ~ '\n' ~ set;
     }
@@ -297,3 +295,4 @@ private struct SmartUnionIntern ( U )
         }
     }
 }
+
