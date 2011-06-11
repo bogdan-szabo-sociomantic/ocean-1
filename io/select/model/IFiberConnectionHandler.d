@@ -29,6 +29,8 @@ private import tango.core.Thread : Fiber;
 
 private import tango.net.device.Socket : Socket;
 
+private import tango.io.Stdout;
+
 /******************************************************************************/
 
 class IFiberConnectionHandler : IConnectionHandler
@@ -50,6 +52,8 @@ class IFiberConnectionHandler : IConnectionHandler
     
     protected SelectReader reader;
     protected SelectWriter writer;
+    
+    private Fiber fiber;
     
     /***************************************************************************
     
@@ -92,14 +96,20 @@ class IFiberConnectionHandler : IConnectionHandler
 
         this.dispatcher = dispatcher;
 
-        Fiber fiber = new Fiber(&this.handleLoop);
+        this.fiber = new Fiber(&this.handleLoop);
         
-        this.reader = new SelectReader(socket, fiber);
-        this.writer = new SelectWriter(socket, fiber);
+        this.reader = new SelectReader(socket, this.fiber);
+        this.writer = new SelectWriter(socket, this.fiber);
 
         this.reader.error_reporter = super;
         this.writer.error_reporter = super;
+        
+        static uint N = 0;
+        
+        this.n = ++N;
     }
+    
+    protected uint n;
     
     /***************************************************************************
         
@@ -116,7 +126,7 @@ class IFiberConnectionHandler : IConnectionHandler
     {
         assign_to_conduit(this.reader.conduit);
         
-        this.reader.start();
+        this.start();
     }
     
     /***************************************************************************
@@ -166,41 +176,6 @@ class IFiberConnectionHandler : IConnectionHandler
     
     /***************************************************************************
     
-        Registers client in the select dispatcher.
-        Sets this instance as client finalizer because super.finalize(), which
-        returns this instance to the object pool, must be invoked in the case
-        when the select dispatcher gets a socket error event.
-        Since the handler() methods of this.reader/this.writer, which resume the
-        coroutine and would normally set the finalizer later on, are the
-        handlers invoked from the select dispatcher, the coroutine will not be
-        resumed in case of a socket error event ant therefore have no chance to
-        properly set the finalizer, resulting in this instance never being
-        returned to the object pool.
-        
-        TODO: discuss this subtle issue with Gavin
-        
-        Note: The coroutine must be running. 
-        
-        Params:
-            client = select client to register
-        
-    ***************************************************************************/
-
-    protected void register ( IFiberSelectProtocol client )
-    in
-    {
-        assert(client.state == client.state.EXEC);
-    }
-    body
-    {
-        client.finalizer = super;
-        this.dispatcher.register(client);
-        
-        client.suspend();
-    }
-    
-    /***************************************************************************
-    
         Closes the client connection socket. 
         
     ***************************************************************************/
@@ -210,6 +185,235 @@ class IFiberConnectionHandler : IConnectionHandler
         Socket socket = cast (Socket) this.writer.conduit;
         assert (socket !is null);
         socket.shutdown().close();
+    }
+    
+    version (all)
+    {
+        /***************************************************************************
+        
+            Registers client in the select dispatcher.
+            Sets this instance as client finalizer because super.finalize(), which
+            returns this instance to the object pool, must be invoked in the case
+            when the select dispatcher gets a socket error event.
+            Since the handler() methods of this.reader/this.writer, which resume the
+            coroutine and would normally set the finalizer later on, are the
+            handlers invoked from the select dispatcher, the coroutine will not be
+            resumed in case of a socket error event ant therefore have no chance to
+            properly set the finalizer, resulting in this instance never being
+            returned to the object pool.
+            
+            TODO: discuss this subtle issue with Gavin
+            
+            Note: The coroutine must be running. 
+            
+            Params:
+                client = select client to register
+            
+        ***************************************************************************/
+        
+        protected void register ( IFiberSelectProtocol client )
+        in
+        {
+            assert (this.fiber.state == this.fiber.state.EXEC);
+        }
+        body
+        {
+            client.finalizer = super;
+            this.dispatcher.register(client);
+            
+            this.suspend();
+        }
+    
+        /**************************************************************************
+    
+            (Re)starts the fiber coroutine.
+                
+            Returns:
+                this instance
+        
+         **************************************************************************/
+        
+        protected void start ( )
+        in
+        {
+            assert (this.fiber.state != this.fiber.State.EXEC);
+        }
+        body
+        {
+            if (this.fiber.state == this.fiber.State.TERM)
+            {
+                this.fiber.reset();
+            }
+            
+            this.resume();
+        }
+        
+        /**************************************************************************
+    
+            (Re)starts the fiber coroutine.
+                
+            Returns:
+                this instance
+        
+         **************************************************************************/
+        
+        protected void resume ( )
+        in
+        {
+            assert (this.fiber.state == this.fiber.State.HOLD);
+        }
+        body
+        {
+            this.fiber.call();
+        }
+        
+        /**************************************************************************
+        
+            Suspends the fiber coroutine. The fiber must be running (EXEC state).
+                
+            Returns:
+                this instance
+        
+         **************************************************************************/
+        
+        protected void suspend ( )
+        in
+        {
+            assert (this.fiber.state == this.fiber.State.EXEC);
+        }
+        body
+        {
+            this.fiber.cede();
+        }
+    }
+    else
+    {
+        protected void register ( IFiberSelectProtocol client )
+        {
+            this.fiber.register(client);
+        }
+        
+        private class ConnectionFiber : IFiberSelectProtocol.ConnectionFiber
+        {
+            private IFiberSelectProtocol client = null;
+            
+            private Fiber fiber;
+            
+            this ( )
+            {
+                this.fiber = new Fiber(&this.outer.handleLoop);
+            }
+            
+            /***************************************************************************
+            
+                Registers client in the select dispatcher.
+                Sets this instance as client finalizer because super.finalize(), which
+                returns this instance to the object pool, must be invoked in the case
+                when the select dispatcher gets a socket error event.
+                Since the handler() methods of this.reader/this.writer, which resume the
+                coroutine and would normally set the finalizer later on, are the
+                handlers invoked from the select dispatcher, the coroutine will not be
+                resumed in case of a socket error event ant therefore have no chance to
+                properly set the finalizer, resulting in this instance never being
+                returned to the object pool.
+                
+                TODO: discuss this subtle issue with Gavin
+                
+                Note: The coroutine must be running. 
+                
+                Params:
+                    client = select client to register
+                
+            ***************************************************************************/
+        
+            public void register ( IFiberSelectProtocol client )
+            in
+            {
+                assert (this.running);
+            }
+            body
+            {
+                this.client = client;
+                client.finalizer = this.outer;
+                
+                this.suspend();
+            }
+            
+            /**********************************************************************
+    
+                (Re)starts the fiber coroutine. The fiber must not be running (EXEC
+                state).
+            
+             **********************************************************************/
+            
+            public void start ( )
+            in
+            {
+                assert (!this.running);
+            }
+            body
+            {
+                if (this.finished)
+                {
+                    this.fiber.reset();
+                }
+                
+                this.fiber.call();
+            }
+            
+            /**********************************************************************
+        
+                Resumes the fiber coroutine. The fiber must be suspended (HOLD
+                state).
+            
+             **********************************************************************/
+            
+            public void resume ( )
+            in
+            {
+                assert (this.client !is null);
+                assert (this.waiting);
+            }
+            body
+            {
+                this.outer.dispatcher.unregister(this.client);
+                this.fiber.call();
+            }
+            
+            /**********************************************************************
+            
+                Suspends the fiber coroutine. The fiber must be running (EXEC
+                state).
+            
+             **********************************************************************/
+            
+            public void suspend ( )
+            in
+            {
+                assert (this.client !is null);
+                assert (this.running);
+            }
+            body
+            {
+                this.outer.dispatcher.register(this.client);
+                this.fiber.cede();
+            }
+            
+            public bool waiting ( )
+            {
+                return this.fiber.state == this.fiber.state.HOLD;
+            }
+            
+            public bool running ( )
+            {
+                return this.fiber.state == this.fiber.state.EXEC;
+            }
+            
+            public bool finished ( )
+            {
+                return this.fiber.state == this.fiber.state.TERM;
+            }
+        }
     }
 }
 
