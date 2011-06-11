@@ -56,16 +56,6 @@ struct SmartUnion ( U )
     
     /**************************************************************************
 
-        Active enumerator type alias
-        
-        Note: There is a member named "_".
-        
-     **************************************************************************/
-
-    alias _.Active Active;
-    
-    /**************************************************************************
-
         Holds the actual union U instance and Active enumerator value. To reduce
         the risk of a name collision, this member is named "_".
                 
@@ -73,6 +63,16 @@ struct SmartUnion ( U )
 
     private SmartUnionIntern!(U) _;
     
+    /**************************************************************************
+
+        Active enumerator type alias
+        
+        Note: There is a member named "_".
+        
+     **************************************************************************/
+    
+    alias _.Active Active;
+
     /**************************************************************************
 
         Returns:
@@ -105,11 +105,27 @@ private struct SmartUnionIntern ( U )
 {
     /**************************************************************************
 
+        U instance
+        
+     **************************************************************************/
+    
+    U u;
+
+    /**************************************************************************
+
         Number of members in U
     
      **************************************************************************/
 
     const N = U.tupleof.length;
+    
+    /**************************************************************************
+
+        Required for V.tupleof[i].stringof[4 .. $] to work
+    
+     **************************************************************************/
+
+    typedef U V;
     
     /**************************************************************************
 
@@ -125,7 +141,7 @@ private struct SmartUnionIntern ( U )
 
     template Member ( uint i )
     {
-        const Member = U.tupleof[i].stringof[4 .. $];                           // U.tupleof[i].stringof is "(U).{name}"
+        const Member = V.tupleof[i].stringof[4 .. $];                           // V.tupleof[i].stringof is "(V).{name}"
     }
     
     /**************************************************************************
@@ -164,14 +180,6 @@ private struct SmartUnionIntern ( U )
     pragma (msg, EnumCode);
     
     mixin (EnumCode);
-    
-    /**************************************************************************
-
-        U instance
-        
-     **************************************************************************/
-
-    U u;
     
     /**************************************************************************
 
@@ -260,7 +268,7 @@ private struct SmartUnionIntern ( U )
                     "this." ~ u_pre ~ ".active=this." ~ u_pre ~ ".active." ~ member ~ "; "
                     "return " ~ member ~ ";}";
         
-        const both = get ~ set;
+        const both = get ~ '\n' ~ set;
     }
     
     /**************************************************************************
@@ -281,7 +289,7 @@ private struct SmartUnionIntern ( U )
     {
         static if (i < N)
         {
-            const AllMethods = AllMethods!(u_pre, pre ~ '\n' ~ Methods!(pre, i).both, i + 1);
+            const AllMethods = AllMethods!(u_pre, pre ~ '\n' ~ Methods!(u_pre, i).both, i + 1);
         }
         else
         {
