@@ -1,10 +1,9 @@
 module ocean.io.select.event.TimerEvent;
 
-private import ocean.io.select.model.ISelectClient: IAdvancedSelectClient;
+private import ocean.io.select.model.ISelectClient: ISelectClient;
 
-private import ocean.io.select.protocol.model.ISelectProtocol;
-
-private import ocean.io.select.protocol.model.ErrnoIOException;
+private import ocean.io.select.protocol.model.ISelectProtocol,
+               ocean.io.select.protocol.model.ErrnoIOException;
 
 private import tango.io.model.IConduit: ISelectable;
 
@@ -14,9 +13,13 @@ private import tango.stdc.posix.sys.types: ssize_t;
 
 private import tango.stdc.posix.unistd: read, write, close;
 
+private import tango.stdc.errno: EAGAIN, EWOULDBLOCK, errno;
+
 /// sys/timerfd.h
 
-const TFD_TIMER_ABSTIME = 1;
+const TFD_TIMER_ABSTIME = 1,
+      TFD_CLOEXEC       = 02000000,
+      TFD_NONBLOCK      =    04000;
 
 /// linux/time.h
 
@@ -161,13 +164,7 @@ extern (C) private
     int timerfd_gettime(int fd, itimerspec* curr_value);
 }
 
-/*******************************************************************************
-
-    TimerEvent class
-
-*******************************************************************************/
-
-class TimerEvent : IAdvancedSelectClient, ISelectable
+class TimerEvent : ITimerEvent
 {
     /***************************************************************************
     
@@ -177,9 +174,6 @@ class TimerEvent : IAdvancedSelectClient, ISelectable
     
     public alias bool delegate ( ) Handler;
     
-    
-    public bool absolute = false;
-    
     /***************************************************************************
     
         Event handler delegate.
@@ -187,7 +181,61 @@ class TimerEvent : IAdvancedSelectClient, ISelectable
     ***************************************************************************/
     
     private Handler handler;
+
+    /***********************************************************************
+
+        Constructor. Creates a file descriptor to manage the event.
+        
+        Constructor. Creates a custom event and hooks it up to the provided
+        event handler.
     
+        Params:
+            handler = event handler
+        
+    ***********************************************************************/
+    
+    public this ( Handler handler, bool realtime = false )
+    {
+        super(realtime);
+        
+        this.handler = handler;
+    }
+    
+    /***************************************************************************
+    
+        Called from the select dispatcher when the event fires. Calls the user-
+        provided event handler.
+    
+        Params:
+            event = select event which fired, must be Read
+    
+        Returns:
+            forwards return value of event handler -- false indicates that the
+            event should be unregistered with the selector, true indicates that
+            it should remain registered and able to fire again
+    
+    ***************************************************************************/
+    
+    protected bool handle_ ( ulong n )
+    in
+    {
+        assert(this.handler);
+    }
+    body
+    {
+        return this.handler();
+    }
+}
+
+/*******************************************************************************
+
+    TimerEvent class
+
+*******************************************************************************/
+
+abstract class ITimerEvent : ISelectClient, ISelectable
+{
+    public bool absolute = false;
     
     /***********************************************************************
 
@@ -198,7 +246,7 @@ class TimerEvent : IAdvancedSelectClient, ISelectable
 
     private int fd;
 
-    private TimerException e;
+    protected TimerException e;
     
     /***********************************************************************
 
@@ -212,19 +260,17 @@ class TimerEvent : IAdvancedSelectClient, ISelectable
         
     ***********************************************************************/
 
-    public this ( Handler handler, bool realtime = false )
+    protected this ( bool realtime = false )
     {
         this.e = new TimerException;
         
-        this.fd = .timerfd_create(realtime? CLOCK_REALTIME : CLOCK_MONOTONIC);
+        this.fd = .timerfd_create(realtime? CLOCK_REALTIME : CLOCK_MONOTONIC,
+                                  TFD_NONBLOCK);
         
         if (fd < 0)
         {
             throw this.e("timerfd_create", __FILE__, __LINE__);
         }
-        
-        
-        this.handler = handler;
         
         super(this);
     }
@@ -266,31 +312,16 @@ class TimerEvent : IAdvancedSelectClient, ISelectable
         Params:
             data = data to write
 
-    ***********************************************************************/
-    
-    public itimerspec time ( itimerspec t )
-    {
-        this.set(t);
-        
-        return t;
-    }
-    
-    /***********************************************************************
-    
-        Writes to the custom event file descriptor.
-
-        Params:
-            data = data to write
-
      ***********************************************************************/
     
-    public itimerspec set ( itimerspec t )
+    public itimerspec set ( timespec first, timespec interval = timespec.init )
     {
-        itimerspec t_old;
+        itimerspec t_new = itimerspec(interval, first),
+                   t_old;
         
         this.e.check(timerfd_settime(this.fd,
                                      this.absolute? TFD_TIMER_ABSTIME : 0,
-                                     &t, &t_old),
+                                     &t_new, &t_old),
                                      "timerfd_settime", __FILE__, __LINE__);
         
         return t_old;
@@ -299,13 +330,13 @@ class TimerEvent : IAdvancedSelectClient, ISelectable
     public itimerspec set ( time_t first_s,        uint first_ms,
                             time_t interval_s = 0, uint interval_ms = 0 )
     {
-        return this.set(itimerspec(timespec(first_s,    first_ms    * 1_000_000),
-                                   timespec(interval_s, interval_ms * 1_000_000)));
+        return this.set(timespec(first_s,    first_ms    * 1_000_000),
+                        timespec(interval_s, interval_ms * 1_000_000));
     }
     
     public itimerspec reset ( )
     {
-        return this.set(itimerspec.init);
+        return this.set(timespec.init);
     }
     
     /***********************************************************************
@@ -329,41 +360,38 @@ class TimerEvent : IAdvancedSelectClient, ISelectable
     
     ***************************************************************************/
     
-    public Event events ( )
+    final Event events ( )
     {
         return Event.Read;
     }
     
-    
-    /***************************************************************************
-    
-        Called from the select dispatcher when the event fires. Calls the user-
-        provided event handler.
-    
-        Params:
-            event = select event which fired, must be Read
-    
-        Returns:
-            forwards return value of event handler -- false indicates that the
-            event should be unregistered with the selector, true indicates that
-            it should remain registered and able to fire again
-    
-    ***************************************************************************/
-    
-    public bool handle ( Event event )
-    in
-    {
-        assert(event == Event.Read);
-        assert(this.handler);
-    }
-    body
+    final bool handle ( Event event )
     {
         ulong n;
         
-        .read(this.fd, &n, n.sizeof);
-        
-        return this.handler();
+        if (.read(this.fd, &n, n.sizeof) < 0)
+        {
+            scope (exit) errno = 0;
+            
+            int errnum = errno;
+            
+            switch (errnum)
+            {
+                case EAGAIN:
+                static if (EAGAIN != EWOULDBLOCK) case EWOULDBLOCK:
+                    return true;
+                
+                default:
+                    throw this.e(errnum, "reading from timerfd", __FILE__, __LINE__);
+            }
+        }
+        else
+        {
+            return this.handle_(n);
+        }
     }
+    
+    abstract protected bool handle_ ( ulong n );
     
     /***************************************************************************
     
@@ -416,5 +444,31 @@ class TimerEvent : IAdvancedSelectClient, ISelectable
             super.set(msg, file, line);
             return this;
         }
+        
+        /**********************************************************************
+        
+            Queries and resets errno and sets the exception parameters.
+            
+            Params:
+                errnum = error code (errno)
+                msg    = message
+                file   = source code file name
+                line   = source code line
+            
+            Returns:
+                this instance
+            
+         **********************************************************************/
+        
+        public typeof (this) opCall ( int errnum, char[] msg, char[] file = "", long line = 0 )
+        {
+            super.set(errnum, msg, file, line);
+            return this;
+        }
+    }
+    
+    debug char[] id ( )
+    {
+        return typeof (this).stringof;
     }
 }
