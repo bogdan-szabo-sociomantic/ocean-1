@@ -12,42 +12,10 @@
     
                     @see http://www.w3.org/Protocols/rfc2109/rfc2109.txt
                     @see http://www.servlets.com/rfcs/rfc2109.html
-                    
-    
-    Usage Example:
-    
-     ---
-             
-        import $(TITLE);
-        
-        
-        char[] cookie_header_line;
-        
-        HttpCookie cookie;
-        
-        cookie.attributes["max"] = "moritz";
-        cookie.path              = "/mypath/";
-        
-        cookie.write(cookie_header_line);
-        
-        // cookie_header_line now contains "max=moritz; Path=/mypath/"
-        
-        cookie_header_line = "MaxAge=4711; eggs=ham; Version=1";
-        
-        cookie.read(cookie_header_line);
-        
-        // cookie.attributes now contains {"eggs" => "ham"}
-        // cookie.max_age now equals 4711
-        // cookie.comment, cookie.domain, cookie.path, are empty
-        // cookie.secure is false (default value)
-        
-        
-     ---
-    
     
  ******************************************************************************/
 
-module net.http2.cookie.HttpCookieParser;
+module ocean.net.http2.cookie.HttpCookieParser;
 
 /******************************************************************************
  
