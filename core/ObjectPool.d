@@ -751,6 +751,8 @@ class ObjectPoolImpl : IObjectPoolInfo
     public This recycle ( Object obj )
     in
     {
+        assert (this.num_busy_, "nothing is busy so there is nothing to recycle");
+        
         PoolItem item_in = cast (PoolItem) obj;
         
         assert (item_in !is null, "recycled object is not a PoolItem");
@@ -760,27 +762,26 @@ class ObjectPoolImpl : IObjectPoolInfo
         
         assert (item_in is this.items[item_in.object_pool_index],
                 "wrong index in recycled item");
+        
+        assert (item_in.object_pool_index < this.num_busy_,
+                "recycled item is idle");
     }
     body
     {
         PoolItem item_in = cast (PoolItem) obj;
         
-        PoolItem* item = this.items.ptr + item_in.object_pool_index;
+        PoolItem* item            = this.items.ptr + item_in.object_pool_index,
+                  first_idle_item = this.items.ptr + --this.num_busy_;
         
         this.resetItem(cast (Resettable) item_in);
         
-        if (this.num_busy_)
-        {
-            PoolItem* last_busy_item = this.items.ptr + --this.num_busy_;
-            
-            *item = *last_busy_item;
-            
-            item.object_pool_index = item_in.object_pool_index;
-            
-            *last_busy_item = item_in;
-            
-            last_busy_item.object_pool_index = this.num_busy_;
-        }
+        *item = *first_idle_item;
+        
+        *first_idle_item = item_in;
+        
+        item.object_pool_index = item_in.object_pool_index;
+        
+        first_idle_item.object_pool_index = this.num_busy_;
         
         return this;
     }
