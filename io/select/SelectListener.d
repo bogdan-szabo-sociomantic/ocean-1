@@ -70,10 +70,14 @@ private import ocean.io.select.EpollSelectDispatcher,
                ocean.io.select.model.ISelectClient,
                ocean.io.select.model.IConnectionHandler;
 
-import ocean.core.ObjectPool;
+private import ocean.core.ObjectPool;
 
-import tango.net.device.Socket,
-       tango.net.device.Berkeley: IPv4Address;
+private import tango.net.device.Socket,
+               tango.net.device.Berkeley: IPv4Address;
+
+private import tango.stdc.posix.sys.socket: accept;
+private import tango.stdc.posix.unistd:     close;
+private import tango.stdc.errno:            errno;
 
 debug private import tango.util.log.Trace;
 
@@ -184,12 +188,14 @@ abstract class ISelectListener : ISelectClient
     {
         if (!this.terminated)
         {
-            this.getConnectionHandler().assign((ISelectable connection_conduit)
+            with (this.poolInfo) if (!is_limited || num_idle)
             {
-                Socket connection_socket = cast (Socket) connection_conduit;
-                (cast (ServerSocket) super.conduit).accept(connection_socket);
-                connection_socket.socket.noDelay(true).blocking(false);
-            });
+                this.acceptConnection();
+            }
+            else
+            {
+                this.declineConnection();
+            }
         }
         
         return !this.terminated;
@@ -230,6 +236,39 @@ abstract class ISelectListener : ISelectClient
     
     /**************************************************************************
         
+        Sets the limit of the number of connections. 0 disables the limitation.
+        
+        Notes:
+            - If limit is set to something other than 0, limit connection
+              handler objects will be created (so set it to a realistic value).
+            - If not 0, limit must be at least the number of currently busy
+              connections.
+        
+        Returns:
+            information interface to the connections pool
+        
+     **************************************************************************/
+
+    abstract uint connection_limit ( uint limit ) ;
+    
+    
+    /**************************************************************************
+    
+        Returns:
+            the limit of the number of connections or 0 if limitation is
+            disabled.
+        
+     **************************************************************************/
+
+    public uint connection_limit ( )
+    {
+        uint n = this.poolInfo.limit;
+        
+        return (n == ObjectPoolImpl.unlimited)? 0 : n;
+    }
+
+    /**************************************************************************
+    
         Obtains a connection handler instance from the pool.
         
         Returns:
@@ -238,6 +277,37 @@ abstract class ISelectListener : ISelectClient
      **************************************************************************/
     
     abstract protected IConnectionHandler getConnectionHandler ( );
+
+    /**************************************************************************
+    
+        Accepts the next pending incoming client connection and assigns it to
+        a connection handler.
+        
+     **************************************************************************/
+
+    private void acceptConnection ( )
+    {
+        this.getConnectionHandler().assign((ISelectable connection_conduit)
+        {
+            Socket connection_socket = cast (Socket) connection_conduit;
+            (cast (ServerSocket) super.conduit).accept(connection_socket);
+            connection_socket.socket.noDelay(true).blocking(false);
+        });
+    }
+    
+    /**************************************************************************
+    
+        Accepts the next pending incoming client connection and closes it.
+        
+     **************************************************************************/
+
+    private void declineConnection ( )
+    {
+        if (.close(.accept(super.conduit.fileHandle, null, null)))
+        {
+            .errno = 0;
+        }
+    }
     
     /**************************************************************************
     
@@ -355,6 +425,40 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListener
     }
     
     /**************************************************************************
+    
+        Sets the limit of the number of connections. 0 disables the limitation.
+        
+        Notes:
+            - If limit is set to something other than 0, limit connection
+              handler objects will be created (so set it to a realistic value).
+            - If not 0, limit must be at least the number of currently busy
+              connections.
+        
+        Returns:
+            information interface to the connections pool
+        
+     **************************************************************************/
+
+    public uint connection_limit ( uint limit )
+    in
+    {
+        assert (!(limit && limit < this.poolInfo.num_busy));
+    }
+    body
+    {
+        if (limit)
+        {
+            this.receiver_pool.limit = limit;
+        }
+        else
+        {
+            this.receiver_pool.limited = false;
+        }
+        
+        return limit;
+    }
+    
+    /**************************************************************************
 
         Returns:
             information interface to the connections pool
@@ -377,12 +481,13 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListener
      **************************************************************************/
 
     private void returnToPool ( IConnectionHandler connection )
+    in
     {
-        T item = cast (T) connection;
-        
-        assert (item);
-        
-        this.receiver_pool.recycle(item);
+        assert (cast (T) connection !is null);
+    }
+    body
+    {
+        this.receiver_pool.recycle(cast (T) connection);
     }
     
     /**************************************************************************
@@ -391,13 +496,8 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListener
     
      **************************************************************************/
 
-    debug (ISelectClient)
+    debug (ISelectClient) public char[] id ( )
     {
-        const ClassId = typeof (this).stringof;
-        
-        public char[] id ( )
-        {
-            return this.ClassId;
-        }
+        return typeof (this).stringof;
     }
 }
