@@ -478,7 +478,7 @@ class ObjectPoolImpl : IObjectPoolInfo
     
     /**************************************************************************
     
-        Convenience This alias
+        Magic limit value indicating no limitation
     
      **************************************************************************/
 
