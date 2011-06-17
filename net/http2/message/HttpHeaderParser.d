@@ -22,6 +22,8 @@ private import ocean.text.util.SplitIterator: ChrSplitIterator, StrSplitIterator
 
 private import ocean.net.http2.HttpException: HttpParseException;
 
+private import ocean.core.AppendBuffer;
+
 /******************************************************************************
 
     Interface for the header parser to get the parse results and set limits
@@ -151,7 +153,7 @@ class HttpHeaderParser : IHttpHeaderParser
     
      **************************************************************************/
 
-    private char[] content;
+    private AppendBuffer!(char) content;
     
     /**************************************************************************
 
@@ -171,15 +173,6 @@ class HttpHeaderParser : IHttpHeaderParser
      **************************************************************************/
 
     private size_t pos       = 0;
-    
-    /**************************************************************************
-
-        Actual content length (For performance reasons content.length is not
-        incrementally changed when appending content data.)
-    
-     **************************************************************************/
-
-    private size_t content_length       = 0;
     
     /**************************************************************************
 
@@ -241,9 +234,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
     invariant
     {
-        assert (this.pos                        <= this.content_length);
-        assert (this.content_length             <= this.content.length);
-        
+        assert (this.pos                        <= this.content.length);
         assert (this.header_elements_.length    == this.header_lines_.length);
         assert (this.n_header_lines             <= this.header_lines_.length);
     }
@@ -256,7 +247,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
     public this ( )
     {
-        this (this.DefaultSizeLimit, this.DefaultLinesLimit);
+        this(this.DefaultSizeLimit, this.DefaultLinesLimit);
     }
     
     /**************************************************************************
@@ -288,7 +279,7 @@ class HttpHeaderParser : IHttpHeaderParser
             include_remaining = false;
         }
         
-        this.content          = new char[size_limit];
+        this.content          = new AppendBuffer!(char)(size_limit, true);
         this.header_lines_    = new char[][lines_limit];
         this.header_elements_ = new HeaderElement[lines_limit];
     }
@@ -378,7 +369,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
     public uint header_length_limit ( )
     {
-        return this.content.length;
+        return this.content.capacity;
     }
     
     /**************************************************************************
@@ -401,9 +392,9 @@ class HttpHeaderParser : IHttpHeaderParser
     {
         this.reset();
         
-        return this.content.length = n;
+        return this.content.capacity = n;
     }
-
+    
     /**************************************************************************
     
         Resets the parse state and clears the content.
@@ -412,7 +403,7 @@ class HttpHeaderParser : IHttpHeaderParser
             this instance
     
      **************************************************************************/
-
+    
     typeof (this) reset ( )
     {
         this.split_header.reset();
@@ -420,7 +411,7 @@ class HttpHeaderParser : IHttpHeaderParser
         this.start_line_tokens[] = null;
         
         this.pos            = 0;
-        this.content_length = 0;
+        this.content.clear();
         
         this.n_header_lines = 0;
         
@@ -469,7 +460,7 @@ class HttpHeaderParser : IHttpHeaderParser
     public char[] parse ( char[] content )
     in
     {
-        assert (!this.finished);
+        assert (!this.finished, "parse() called after finished");
     }
     body
     {
@@ -492,13 +483,17 @@ class HttpHeaderParser : IHttpHeaderParser
                     this.have_start_line = true;
                 }
                 
-                this.pos = content.length - remaining.length;
+                this.pos = this.content.length - remaining.length;
             }
-            else if (this.have_start_line)                                      // Ignore empty leading header lines
+            else
             {
-                msg_body_start = remaining;
+                this.finished = this.have_start_line;                           // Ignore empty leading header lines
                 
-                break;
+                if (this.finished)
+                {
+                    msg_body_start = remaining;
+                    break;
+                }
             }
         }
         
@@ -524,17 +519,13 @@ class HttpHeaderParser : IHttpHeaderParser
             
      **************************************************************************/
 
-    private char[] appendContent ( char[] content )
+    private char[] appendContent ( char[] chunk )
     {
-        size_t new_end = this.content_length + content.length;
+        char[] appended = this.content.append(chunk);
         
-        this.exception.assertEx(new_end <= this.content.length,  __FILE__, __LINE__, "request header too long");
+        this.exception.assertEx(appended.length == chunk.length,  __FILE__, __LINE__, "request header too long");
         
-        this.content[this.content_length .. new_end] = content[];
-        
-        this.content_length = new_end;
-        
-        return this.content[this.pos .. this.content_length];
+        return this.content[this.pos .. this.content.length];
     }
     
     /**************************************************************************
@@ -618,6 +609,203 @@ class HttpHeaderParser : IHttpHeaderParser
             delim = ':';
             collapse = false;
             include_remaining = false;
+        }
+    }
+}
+
+//version = OceanPerformanceTest;
+
+import tango.stdc.time: time;
+import tango.stdc.posix.stdlib: srand48, drand48;
+
+version (OceanPerformanceTest)
+{
+    import tango.io.Stdout;
+    import tango.core.internal.gcInterface: gc_disable, gc_enable;
+}
+
+unittest
+{
+    const char[] lorem_ipsum =
+        "Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod "
+        "tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim "
+        "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex "
+        "ea commodi consequat. Quis aute iure reprehenderit in voluptate velit "
+        "esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat "
+        "cupiditat non proident, sunt in culpa qui officia deserunt mollit "
+        "anim id est laborum. Duis autem vel eum iriure dolor in hendrerit in "
+        "vulputate velit esse molestie consequat, vel illum dolore eu feugiat "
+        "nulla facilisis at vero eros et accumsan et iusto odio dignissim qui "
+        "blandit praesent luptatum zzril delenit augue duis dolore te feugait "
+        "nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing "
+        "elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna "
+        "aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud "
+        "exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea "
+        "commodo consequat. Duis autem vel eum iriure dolor in hendrerit in "
+        "vulputate velit esse molestie consequat, vel illum dolore eu feugiat "
+        "nulla facilisis at vero eros et accumsan et iusto odio dignissim qui "
+        "blandit praesent luptatum zzril delenit augue duis dolore te feugait "
+        "nulla facilisi. Nam liber tempor cum soluta nobis eleifend option "
+        "congue nihil imperdiet doming id quod mazim placerat facer possim "
+        "assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed "
+        "diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam "
+        "erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci "
+        "tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo "
+        "consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate "
+        "velit esse molestie consequat, vel illum dolore eu feugiat nulla "
+        "facilisis. At vero eos et accusam et justo duo dolores et ea rebum. "
+        "Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum "
+        "dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing "
+        "elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore "
+        "magna aliquyam erat, sed diam voluptua. At vero eos et accusam et "
+        "justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea "
+        "takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor "
+        "sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam "
+        "dolore dolores duo eirmod eos erat, et nonumy sed tempor et et "
+        "invidunt justo labore Stet clita ea et gubergren, kasd magna no "
+        "rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum "
+        "dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing "
+        "elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore "
+        "magna aliquyam erat. Consetetur sadipscing elitr, sed diam nonumy "
+        "eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed "
+        "diam voluptua. At vero eos et accusam et justo duo dolores et ea "
+        "rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem "
+        "ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur "
+        "sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et "
+        "dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam "
+        "et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea "
+        "takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor "
+        "sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor "
+        "invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. "
+        "At vero eos et accusam et justo duo dolores et ea rebum. Stet clita "
+        "kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit "
+        "amet.";
+    
+    const char[] content =
+        "GET /dir?query=Hello%20World!&abc=def&ghi HTTP/1.1\r\n"
+        "Host: www.example.org:12345\r\n"
+        "User-Agent: Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.17) Gecko/20110422 Ubuntu/9.10 (karmic) Firefox/3.6.17\r\n"
+        "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
+        "Accept-Language: de-de,de;q=0.8,en-us;q=0.5,en;q=0.3\r\n"
+        "Accept-Encoding: gzip,deflate\r\n"
+        "Accept-Charset: UTF-8,*\r\n"
+        "Keep-Alive: 115\r\n"
+        "Connection: keep-alive\r\n"
+        "Cache-Control: max-age=0\r\n"
+        "\r\n" ~
+        lorem_ipsum;
+    
+    const parts = 10;
+    
+    /*
+     * content will be split into parts parts where the length of each part is
+     * content.length / parts + d with d a random number in the range
+     * [-(content.length / parts) / 3, +(content.length / parts) / 3].
+     */
+    
+    static size_t random_chunk_length ( )
+    {
+        const c = content.length * (2.f / (parts * 3));
+        
+        static assert (c >= 3, "too many parts");
+        
+        return cast (size_t) (c + cast (float) drand48() * c);
+    }
+    
+    srand48(time(null));
+    
+    scope parser = new HttpHeaderParser;
+    
+    version (OceanPerformanceTest)
+    {
+        const n = 1000_000;
+    }
+    else
+    {
+        const n = 10;
+    }
+    
+    version (OceanPerformanceTest)
+    {
+        gc_disable();
+        
+        scope (exit) gc_enable();
+    }
+    
+    for (uint i = 0; i < n; i++)
+    {
+        parser.reset();
+        
+        {
+            size_t next = random_chunk_length();
+            
+            char[] msg_body_start = parser.parse(content[0 .. next]);
+            
+            while (msg_body_start is null)
+            {
+                size_t pos = next;
+                
+                next = pos + random_chunk_length();
+                
+                if (next < content.length)
+                {
+                    msg_body_start = parser.parse(content[pos .. next]);
+                }
+                else
+                {
+                    msg_body_start = parser.parse(content[pos .. content.length]);
+                    
+                    assert (msg_body_start !is null);
+                    assert (msg_body_start.length <= content.length);
+                    assert (msg_body_start == content[content.length - msg_body_start.length .. content.length]);
+                }
+            }
+        }
+        
+        assert (parser.start_line_tokens[0]  == "GET");
+        assert (parser.start_line_tokens[1]  == "/dir?query=Hello%20World!&abc=def&ghi");
+        assert (parser.start_line_tokens[2]  == "HTTP/1.1");
+        
+        {
+            auto elements = parser.header_elements;
+            
+            with (elements[0]) assert (key == "Host"            && val == "www.example.org:12345");
+            with (elements[1]) assert (key == "User-Agent"      && val == "Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.17) Gecko/20110422 Ubuntu/9.10 (karmic) Firefox/3.6.17");
+            with (elements[2]) assert (key == "Accept"          && val == "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            with (elements[3]) assert (key == "Accept-Language" && val == "de-de,de;q=0.8,en-us;q=0.5,en;q=0.3");
+            with (elements[4]) assert (key == "Accept-Encoding" && val == "gzip,deflate");
+            with (elements[5]) assert (key == "Accept-Charset"  && val == "UTF-8,*");
+            with (elements[6]) assert (key == "Keep-Alive"      && val == "115");
+            with (elements[7]) assert (key == "Connection"      && val == "keep-alive");
+            with (elements[8]) assert (key == "Cache-Control"   && val == "max-age=0");
+            
+            assert (elements.length == 9);
+        }
+        
+        {
+            auto lines = parser.header_lines;
+            
+            assert (lines[0] == "Host: www.example.org:12345");
+            assert (lines[1] == "User-Agent: Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.17) Gecko/20110422 Ubuntu/9.10 (karmic) Firefox/3.6.17");
+            assert (lines[2] == "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            assert (lines[3] == "Accept-Language: de-de,de;q=0.8,en-us;q=0.5,en;q=0.3");
+            assert (lines[4] == "Accept-Encoding: gzip,deflate");
+            assert (lines[5] == "Accept-Charset: UTF-8,*");
+            assert (lines[6] == "Keep-Alive: 115");
+            assert (lines[7] == "Connection: keep-alive");
+            assert (lines[8] == "Cache-Control: max-age=0");
+            
+            assert (lines.length == 9);
+        }
+        
+        version (OceanPerformanceTest) 
+        {
+            uint j = i + 1;
+            
+            if (!(j % 10_000))
+            {
+                Stderr(HttpHeaderParser.stringof)(' ')(j)("\n").flush();
+            }
         }
     }
 }
