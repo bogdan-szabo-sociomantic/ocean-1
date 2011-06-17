@@ -39,7 +39,7 @@ private const EPOLLRDHUP = 0x2000;
 
 private import tango.io.model.IConduit: ISelectable;
 
-private import ocean.core.Array: concat;
+private import ocean.core.Array: concat, append;
 
 private import tango.stdc.posix.sys.socket: getsockopt, SOL_SOCKET, SO_ERROR, socklen_t;
 
@@ -320,7 +320,7 @@ abstract class ISelectClient
         
      **************************************************************************/
 
-    public bool getSocketError ( out int errnum, ref char[] errmsg, char[] msg ... )
+    public bool getSocketError ( out int errnum, ref char[] errmsg, char[][] msg ... )
     {
         bool have_errnum = this.getSocketError(errnum);
         
@@ -330,7 +330,8 @@ abstract class ISelectClient
             
             char* errmsg_ = strerror_r(errnum, buf.ptr, buf.length);
             
-            errmsg.concat(msg, errmsg_[0 .. strlen(errmsg_)]);
+            errmsg.concat(msg);
+            errmsg.append(errmsg_[0 .. strlen(errmsg_)]);
         }
         
         return have_errnum;
