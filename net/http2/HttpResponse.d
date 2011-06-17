@@ -8,6 +8,31 @@
     
     author:         David Eckardt
     
+    Before rendering an HTTP response message, the names of all header fields
+    the response may contain must be added, except the General-Header,
+    Response-Header and Entity-Header fields specified in RFC 2616 section 4.5,
+    6.2 and 7.1, respectively.
+    Before calling render(), the values of these message header fields of
+    interest can be assigned by the ParamSet (HttpResponse super class) methods.
+    Header fields with a null value (which is the value reset() assigns to all
+    fields) will be omitted when rendering the response message header.
+    Specification of General-Header fields:
+    
+        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.5
+        
+    Specification of Request-Header fields:
+        
+        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html#sec6.2
+        
+    Specification of Entity-Header fields:
+        
+        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7.1
+    
+    For the definition of the categories the standard request message header
+    fields are of
+    
+        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5
+
  ******************************************************************************/
 
 module ocean.net.http2.HttpResponse;
@@ -18,24 +43,21 @@ module ocean.net.http2.HttpResponse;
     
  ******************************************************************************/
 
-private import ocean.net.http2.consts.HeaderFieldNames;
+private import ocean.net.http2.message.HttpHeader;
+
 private import ocean.net.http2.consts.StatusCodes: StatusCode, StatusPhrases;
 private import ocean.net.http2.consts.HttpVersion: HttpVersion, HttpVersionIds;
 
-private import ocean.net.util.ParamSet;
+private import ocean.net.http2.time.HttpTimeFormatter;
+
+private import ocean.core.AppendBuffer;
+
+private import tango.stdc.time: time_t;
 
 /******************************************************************************/
 
-class HttpResponse : ParamSet
+class HttpResponse : HttpHeader
 {
-    /**************************************************************************
-    
-        Type alias for request header field constant definitions
-        
-     **************************************************************************/
-
-    alias .HeaderFieldNames.Response.Names HeaderFieldNames;
-    
     /**************************************************************************
     
         Struct holding string buffers for header value formatting 
@@ -44,6 +66,12 @@ class HttpResponse : ParamSet
 
     private struct FormatBuffers
     {
+        /**********************************************************************
+        
+            Content-Length header value
+            
+         **********************************************************************/
+
         char[] content_length;
     }
     
@@ -61,15 +89,7 @@ class HttpResponse : ParamSet
         
      **************************************************************************/
 
-    private char[] content;
-    
-    /**************************************************************************
-    
-        Actual content length
-        
-     **************************************************************************/
-
-    private size_t content_length;
+    private AppendBuffer!(char) content;
     
     /**************************************************************************
     
@@ -79,77 +99,20 @@ class HttpResponse : ParamSet
 
     private FormatBuffers fmt_buffers;
     
+    private HttpTimeFormatter time;
+    
     /**************************************************************************
     
         Constructor
         
-        Note: In addition to the standard HTTP response message header fields
-              only the header fields corresponding to the names passed in
-              header_field_names can be set in the response message.
-              The standard HTTP response message header fields are those defined
-              in the categories mentioned in the HTTP response message
-              definition,
-                  @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html
-                  
-              . These are the definitions:
-                  - General header fields
-                      @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.5
-                  - Response header fields
-                      @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html#sec6.2
-                  - Entity header fields
-                      @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7.1
-                      
-        Params:
-            header_field_names = names of message header fields of interest
-                                 (case-insensitive)
-        
      **************************************************************************/
 
-    public this ( char[][] header_field_names ... )
+    public this ( )
     {
-        super(.HeaderFieldNames.Response.NameList, header_field_names);
-    }
-    
-    /**************************************************************************
-    
-        Sets the response HTTP version to v. v must be a known HttpVersion
-        enumerator value and not be HttpVersion.Undefined.
+        super(HeaderFieldNames.Response.NameList,
+              HeaderFieldNames.Entity.NameList);
         
-        reset() will not change this value.
-        
-        Params:
-            v = response HTTP version
-            
-        Returns
-            response HTTP version
-        
-     **************************************************************************/
-
-    public HttpVersion http_version ( HttpVersion v )
-    in
-    {
-        assert (v,          "HTTP version undefined");
-        assert (v <= v.max, "invalid HttpVersion enumerator value");
-    }
-    body
-    {
-        this.http_version_ = v;
-        
-        return v;
-    }
-    
-    /**************************************************************************
-    
-        Gets the response HTTP version.
-        
-        Returns
-            response HTTP version
-        
-     **************************************************************************/
-
-    public HttpVersion http_version ( )
-    {
-        return this.http_version_;
+        this.content = new AppendBuffer!(char)(0x400);
     }
     
     /**************************************************************************
@@ -177,9 +140,17 @@ class HttpResponse : ParamSet
     /**************************************************************************
     
         Renders the response message.
-        If a message body is provided, the "Content-Length" header field will be
-        set and, if head is false, msg_body will be copied into an internal
-        buffer.
+        If a message body is provided, it is appended to the response message
+        according to RFC 2616, section 4.3; that is,
+        - If status is either below 200 or 204 or 304, neither a message body
+          nor a "Content-Length" header field are appended.
+        - Otherwise, if head is true, a "Content-Length" header field reflecting
+          msg_body.length is appended but the message body itself is not.
+        - Otherwise, if head is false, both a "Content-Length" header field
+          reflecting msg_body.length and the message body itself are appended.
+        
+        If a message body is not provided, the same is done as for a message
+        body with a zero length.
         
         Params:
             status   = status code; must be at least 100 and less than 1000
@@ -200,21 +171,22 @@ class HttpResponse : ParamSet
     }
     body
     {
-        if (msg_body)
-        {
-            bool b = super.set("Content-Length", msg_body.length, this.fmt_buffers.content_length);
-            
-            assert (b);
-        }
+        bool append_msg_body = this.setContentLength(status, msg_body);
+        
+        this.content.clear();
         
         this.setStatusLine(status);
         
+        this.setDate();
+        
         foreach (key, val; super) if (val)
         {
-            this.appendContent(key, ": ", val, "\r\n");
+            this.content.append(key, ": ", val, "\r\n");
         }
         
-        return this.appendContent("\r\n", head? null : msg_body);
+        this.content.append("\r\n", (append_msg_body && !head)? msg_body : null);
+        
+        return this.content[];
     }
     
     /**************************************************************************
@@ -225,12 +197,45 @@ class HttpResponse : ParamSet
             this instance
     
      **************************************************************************/
-
+    
     public typeof (this) minimizeContentBuffer ( )
     {
-        this.content.length = this.content_length;
+        this.content.minimize();
         
         return this;
+    }
+
+    /**************************************************************************
+    
+        Sets the Content-Length response message header.
+        
+        Params:
+            status   = HTTP status code
+            msg_body = HTTP response message body
+        
+        Returns:
+            true if msg_body should be appended to the HTTP response or false
+            if it should not be appended because a message body is not allowed
+            with the provided status code. 
+    
+     **************************************************************************/
+
+    private bool setContentLength ( StatusCode status, char[] msg_body )
+    {
+        switch (status)
+        {
+            default:
+                if (status >= 200)
+                {
+                    bool b = super.set("Content-Length", msg_body.length, this.fmt_buffers.content_length);
+                    assert (b);
+                    
+                    return true;
+                }
+            
+            case 204, 304:
+                return false;
+        }
     }
     
     /**************************************************************************
@@ -244,7 +249,7 @@ class HttpResponse : ParamSet
             response status line
 
      **************************************************************************/
-
+    
     private char[] setStatusLine ( StatusCode status )
     in
     {
@@ -254,58 +259,26 @@ class HttpResponse : ParamSet
     {
         char[3] statbuf;
         
-        this.content_length = 0;
-        
-        return this.appendContent(HttpVersionIds[this.http_version_],    " ",
-                                  super.writeUintFixed(statbuf, status), " ",
-                                  StatusPhrases[status],                 "\r\n");
+        return this.content.append(HttpVersionIds[this.http_version_],    " ",
+                                   super.writeUintFixed(statbuf, status), " ",
+                                   StatusPhrases[status],                 "\r\n");
     }
     
     /**************************************************************************
     
-        Extends content by n characters.
+        Sets the Date message header to the current wall clock time if it is not
+        already set.
         
-        Params:
-            n = number of characters to extend content by
-        
-        Returns:
-            slice to the last n characters in content after extension
-    
      **************************************************************************/
 
-    private char[] extendContent ( size_t n )
+    private void setDate ( )
     {
-        this.content_length += n;
-        
-        if (this.content.length < this.content_length)
+        super.access(HeaderFieldNames.General.Names.Date, (char[], ref char[] val)
         {
-            this.content.length = this.content_length;
-        }
-        
-        return this.content[$ - n .. $];
-    }
-    
-    /**************************************************************************
-    
-        Concatenates strs and appends them to content.
-        
-        Params:
-            strs = strings to concatenate and append to content
-        
-        Returns:
-            slice to the result of concatenating strs in content
-    
-     **************************************************************************/
-
-    private char[] appendContent ( char[][] strs ... )
-    {
-        size_t start = this.content_length;
-        
-        foreach (str; strs) if (str.length)
-        {
-            this.extendContent(str.length)[] = str[];
-        }
-        
-        return this.content[$ - start .. $];
+            if (!val)
+            {
+                val = this.time.format();
+            }
+        });
     }
 }
