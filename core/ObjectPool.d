@@ -369,10 +369,10 @@ class ObjectPool ( C, Args ... ) : ObjectPoolImpl
     /**************************************************************************
     
         Sets the limit of number of items in pool or disables limitation for
-        limit = limit.max.
+        limit = unlimited.
         
         Params:
-            limit = new limit of number of items in pool; limit.max disables
+            limit = new limit of number of items in pool; unlimited disables
                     limitation
             
         Returns:
@@ -478,6 +478,14 @@ class ObjectPoolImpl : IObjectPoolInfo
     
     /**************************************************************************
     
+        Convenience This alias
+    
+     **************************************************************************/
+
+    public const uint unlimited = uint.max;
+    
+    /**************************************************************************
+    
         May be set to true at any time to limit the number of items in pool to
         the current number or to false to disable limitation.
     
@@ -571,7 +579,7 @@ class ObjectPoolImpl : IObjectPoolInfo
     
     /**************************************************************************
     
-        Returns the limit of number of items in pool or limit.max if currently
+        Returns the limit of number of items in pool or unlimited if currently
         unlimited.
         
         Returns:
@@ -581,17 +589,17 @@ class ObjectPoolImpl : IObjectPoolInfo
     
     uint limit ( )
     {
-        return this.limited? this.items.length : limit.max;
+        return this.limited? this.items.length : this.unlimited;
     }
     
     /**************************************************************************
     
         Sets the limit of number of items in pool or disables limitation for
-        limit = limit.max.
+        limit = unlimited.
         
         Params:
-            limit    = new limit of number of items in pool; limit.max
-                       disables limitation
+            limit    = new limit of number of items in pool; unlimited disables
+                       limitation
             
             new_item = expression that creates a new PoolItem instance
             
@@ -614,7 +622,7 @@ class ObjectPoolImpl : IObjectPoolInfo
     }
     body
     {
-        this.limited = limit != limit.max;
+        this.limited = limit != this.unlimited;
         
         if (this.limited && limit != this.items.length)
         {
