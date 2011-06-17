@@ -416,10 +416,10 @@ abstract public class IChainSelectProtocol : ISelectProtocol
 
      **************************************************************************/
 
-    final bool handle_ ( )
+    final bool handle ( Event events )
     in
     {
-        assert(super.events_reported & this.events, typeof (this).stringof ~ ".handle: wrong events");
+        assert(events & this.events, typeof (this).stringof ~ ".handle: wrong events");
     }
     body
     {
@@ -427,7 +427,7 @@ abstract public class IChainSelectProtocol : ISelectProtocol
 
         do
         {
-            bool more = this.handle__() || this.pending;
+            bool more = this.handle_(events) || this.pending;
 
             status = more ? status.Select : this.finalize();
         }
@@ -477,7 +477,7 @@ abstract public class IChainSelectProtocol : ISelectProtocol
        Handles the current event which just occurred on conduit.
        
        Params:
-           conduit: Conduit for which the event occurred
+           events: reported I/O events
            
        Returns:
            true if the method should be called again when the event occurs next
@@ -485,7 +485,7 @@ abstract public class IChainSelectProtocol : ISelectProtocol
     
     **************************************************************************/
 
-    abstract protected bool handle__ ( );
+    abstract protected bool handle_ ( Event events );
     
     /**************************************************************************
 

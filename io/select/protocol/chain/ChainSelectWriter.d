@@ -153,7 +153,7 @@ class ChainSelectWriter : IChainSelectProtocol
      
      **************************************************************************/
 
-    protected bool handle__ ( )
+    protected bool handle_ ( Event events )
     {
         bool more      = false;
         
@@ -225,9 +225,9 @@ class ChainSelectWriter : IChainSelectProtocol
     
      **************************************************************************/
 
-    debug (ISelectClient) char[] id ( )
+    debug char[] id ( )
     {
-        return this.ClassId;
+        return typeof (this).stringof;
     }
 }
 

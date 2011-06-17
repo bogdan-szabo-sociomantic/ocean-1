@@ -151,13 +151,13 @@ class ChainSelectReader : IChainSelectProtocol
      
      **************************************************************************/
 
-    protected bool handle__ ( )
+    protected bool handle_ ( Event events )
     {
         if (super.endOfData)
         {
             super.pos = 0;
 
-            this.receive(cast (InputStream) super.conduit);
+            this.receive(cast (InputStream) super.conduit, events);
         }
         
         return super.invokeHandlers();
@@ -173,11 +173,11 @@ class ChainSelectReader : IChainSelectProtocol
      
      **************************************************************************/
 
-    private void receive ( InputStream conduit )
+    private void receive ( InputStream conduit, Event events )
     {
         super.data.length = super.buffer_size;
 
-        super.data.length = super.readConduit(super.data);
+        super.data.length = super.readConduit(super.data, events);
 
         debug (Raw) Trace.formatln(">>> {:X2}", super.data);
 
@@ -198,9 +198,9 @@ class ChainSelectReader : IChainSelectProtocol
     
      **************************************************************************/
     
-    debug (ISelectClient) char[] id ( )
+    debug char[] id ( )
     {
-        return this.ClassId;
+        return typeof (this).stringof;
     }
 }
 
