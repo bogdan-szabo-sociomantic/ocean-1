@@ -59,14 +59,6 @@ abstract class ISelectProtocol : IAdvancedSelectClient
 
     /**************************************************************************
 
-        Event(s) reported to handle()
-
-     **************************************************************************/
-
-    private Event events_reported_;
-
-    /**************************************************************************
-
         Constructor
 
         Params:
@@ -78,56 +70,8 @@ abstract class ISelectProtocol : IAdvancedSelectClient
     {
         super(conduit);
 
-        this.warning_e = new      IOWarning;
+        this.warning_e = this.new IOWarning;
         this.error_e   = this.new IOError;
-    }
-
-
-    /**************************************************************************
-
-        Handles events reported for the conduit. Invokes the abstract handle_()
-        method.
-
-        (Implements an abstract super class method.)
-
-        Params:
-            events = events which fired for conduit
-
-        Returns:
-            true to indicate to the Dispatcher that the event registration
-            should be left unchanged or false to unregister the Conduit. 
-
-     **************************************************************************/
-
-    final bool handle ( Event events )
-    {
-        this.events_reported_ = events;
-
-        return this.handle_();
-    }
-
-    /**************************************************************************
-
-        Handles events reported for the conduit. this.events tells which events
-        were reported in particular.
-    
-        Returns:
-            true to indicate to the Dispatcher that the event registration
-            should be left unchanged or false to unregister the Conduit. 
-    
-     **************************************************************************/
-
-    abstract protected bool handle_ ( );
-    
-    /**************************************************************************
-
-        Gets event(s) reported to handle()
-    
-     **************************************************************************/
-
-    protected Event events_reported ( )
-    {
-        return this.events_reported_;
     }
     
     /**************************************************************************
@@ -159,10 +103,12 @@ abstract class ISelectProtocol : IAdvancedSelectClient
             So, if conduit.read() returns EOF and errno reports EAGAIN or
             EWOULDBLOCK, the only way to detect whether a conduit will become
             readable later or not is to check if a hangup event was reported.
-            
+        
+        TODO: Move this method to an input specific subclass.
+        
      **************************************************************************/
     
-    protected size_t readConduit ( void[] data )
+    protected size_t readConduit ( void[] data, Event events )
     in
     {
         assert ((cast (InputStream) this.conduit) !is null,
@@ -194,8 +140,8 @@ abstract class ISelectProtocol : IAdvancedSelectClient
                         case EWOULDBLOCK:
                     }
     
-                    this.warning_e.assertEx(!(this.events_reported_ & Event.ReadHangup), "connection hung up on read", __FILE__, __LINE__);
-                    this.warning_e.assertEx(!(this.events_reported_ & Event.Hangup),     "connection hung up", __FILE__, __LINE__);
+                    this.warning_e.assertEx(!(events & events.ReadHangup), "connection hung up on read", __FILE__, __LINE__);
+                    this.warning_e.assertEx(!(events & events.Hangup),     "connection hung up", __FILE__, __LINE__);
     
                     received = 0;
             }
@@ -205,7 +151,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         
         return received;
     }
-
+    
     /**************************************************************************
 
         IOWarning class; to be thrown on end-of-flow conditions without an
@@ -213,8 +159,16 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         
      **************************************************************************/
     
-    static class IOWarning : ErrnoIOException
+    class IOWarning : ErrnoIOException
     {
+        /**********************************************************************
+        
+            File handle
+            
+         **********************************************************************/
+        
+        int handle;
+        
         /**********************************************************************
     
             Throws this instance if ok is false, 0 or null.
@@ -232,11 +186,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         
         void assertEx ( T ) ( T ok, char[] msg, char[] file = "", long line = 0 )
         {
-            if (!ok)
-            {
-                this.set(msg, file, line);
-                throw this;
-            }
+            if (!ok) throw this.opCall(msg, file, line);
         }
         
         /**********************************************************************
@@ -256,6 +206,8 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         public typeof (this) opCall ( char[] msg, char[] file = "", long line = 0 )
         {
             super.set(msg, file, line);
+            this.handle = this.outer.conduit.fileHandle;
+            
             return this;
         }
         
@@ -277,6 +229,8 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         public typeof (this) opCall  ( int errnum, char[] msg, char[] file = "", long line = 0 )
         {
             super.set(errnum, msg, file, line);
+            this.handle = this.outer.conduit.fileHandle;
+            
             return this;
         }
     }
@@ -349,7 +303,7 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         
         void checkSocketError ( char[] msg, char[] file = "", long line = 0 )
         {
-            if (this.outer.getSocketError(super.errnum, super.msg))
+            if (this.outer.getSocketError(super.errnum, super.msg, msg, ": "))
             {
                 super.file.copy(file);
                 super.line = line;
@@ -358,4 +312,3 @@ abstract class ISelectProtocol : IAdvancedSelectClient
         }
     }
 }
-
