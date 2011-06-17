@@ -28,6 +28,17 @@ module core.AppendBuffer;
 
 class AppendBuffer ( T ) : AppendBufferImpl
 {
+    /**********************************************************************
+    
+        Constructor
+        
+     **********************************************************************/
+    
+    this ( )
+    {
+        this(0);
+    }
+    
     /**************************************************************************
     
         Constructor
@@ -36,10 +47,12 @@ class AppendBuffer ( T ) : AppendBufferImpl
             n = content length for preallocation (optional)
     
      **************************************************************************/
-
-    this ( size_t n = 0 )
+    
+    this ( size_t n, bool limited = false )
     {
         super(T.sizeof, n);
+        
+        super.limited = limited;
     }
     
     /**************************************************************************
@@ -177,23 +190,6 @@ class AppendBuffer ( T ) : AppendBufferImpl
     {
         return this.opSlice(start, end)[] = element;
     }
-
-    /**************************************************************************
-    
-        Appends element to the content, extending content where required.
-        
-        Params:
-            element = element to append to the content
-        
-        Returns:
-            element
-    
-     **************************************************************************/
-    
-    T opCatAssign ( T element )
-    {
-        return *cast (T*) this.extend(1).ptr = element;
-    }
     
     /**************************************************************************
     
@@ -206,10 +202,36 @@ class AppendBuffer ( T ) : AppendBufferImpl
             slice to chunk in the content
     
      **************************************************************************/
-
+    
     T[] opCatAssign ( T[] chunk )
     {
-        return this.extend(chunk.length)[] = chunk[];
+        T[] dst = this.extend(chunk.length);
+        
+        return dst[] = chunk[0 .. dst.length];
+    }
+    
+    /**************************************************************************
+    
+        Appends element to the content, extending content where required.
+        
+        Params:
+            element = element to append to the content
+        
+        Returns:
+            slice to element in the content
+    
+     **************************************************************************/
+    
+    T[] opCatAssign ( T element )
+    {
+        T[] dst = this.extend(1);
+        
+        if (dst.length)
+        {
+            dst[0] = element;
+        }
+        
+        return dst;
     }
     
     /**************************************************************************
@@ -224,19 +246,19 @@ class AppendBuffer ( T ) : AppendBufferImpl
             slice to concatenated chunks in the content
     
      **************************************************************************/
-
+    
     T[] append ( T[][] chunks ... )
     {
         size_t start = super.length;
         
         foreach (chunk; chunks) if (chunk.length)
         {
-            this.extend(chunk.length)[] = chunk[];
+            if (this.opCatAssign(chunk).length < chunk.length) break;
         }
         
-        return this.opSlice(start, this.length);
+        return this.opSlice(start, super.length);
     }
-    
+
     /**************************************************************************
     
         Increases the content length by n elements.
@@ -252,7 +274,7 @@ class AppendBuffer ( T ) : AppendBufferImpl
             (last n elements in content after extension)
     
      **************************************************************************/
-
+    
     T[] extend ( size_t n )
     {
         return cast (T[]) super.extend_(n);
@@ -294,9 +316,20 @@ package abstract class AppendBufferImpl
 
     private size_t e;
     
+    private bool limited_ = false;
+    
+    private struct LimitInvariants
+    {
+        private ubyte* ptr = null;
+        size_t         len;
+    }
+    
+    private LimitInvariants limit_invariants;
+    
     /**************************************************************************
     
-        Content length and number consistency check 
+        Consistency checks for content length and number, limitation and content
+        buffer location if limitation enabled.
     
      **************************************************************************/
 
@@ -304,6 +337,16 @@ package abstract class AppendBufferImpl
     {
         assert (!(this.content.length % this.e));
         assert (this.n * this.e <= this.content.length);
+        
+        with (this.limit_invariants) if (this.limited_)
+        {
+            assert (ptr is this.content.ptr);
+            assert (len == this.content.length);
+        }
+        else
+        {
+            assert (ptr is null);
+        }
     }
     
     /**************************************************************************
@@ -330,11 +373,61 @@ package abstract class AppendBufferImpl
     
     /**************************************************************************
     
+        Sets the number of elements in content to 0.
+        
+     **************************************************************************/
+    
+    public void clear ( )
+    {
+        this.n = 0;
+    }
+
+    /**************************************************************************
+    
+        Enables or disables size limitation.
+        
+        Params:
+            limited_ = true: enable size limitation, false: disable
+            
+        Returns:
+            limited_
+        
+     **************************************************************************/
+
+    public bool limited ( bool limited_ )
+    {
+        with (this.limit_invariants) if (limited_)
+        {
+            ptr = this.content.ptr;
+            len = this.content.length;
+        }
+        else
+        {
+            ptr = null;
+        }
+        
+        return this.limited_ = limited_;
+    }
+    
+    /**************************************************************************
+    
+        Returns:
+            true if size limitation is enabled or false if disabled
+        
+     **************************************************************************/
+
+    public bool limited ( )
+    {
+        return this.limited_;
+    }
+    
+    /**************************************************************************
+    
         Returns:
             number of elements in content
     
      **************************************************************************/
-
+    
     public size_t length ( )
     {
         return this.n;
@@ -351,39 +444,78 @@ package abstract class AppendBufferImpl
             n
     
      **************************************************************************/
-
+    
     public size_t length ( size_t n )
     {
-        size_t len = this.content.length * this.e;
+        size_t len = n * this.e;
         
         if (this.content.length < len)
         {
-            this.content.length = len;
+            if (this.limited_)
+            {
+                len = this.content.length;
+            }
+            else
+            {
+                this.content.length = len;
+            }
         }
         
-        return this.n = n;
+        return this.n = len / this.e;
+    }
+
+    /**************************************************************************
+    
+        Returns:
+            Actual content buffer length (number of elements). This value is
+            always at least length().
+    
+     **************************************************************************/
+    
+    public size_t capacity ( )
+    {
+        return this.content.length / this.e;
     }
     
     /**************************************************************************
     
-        Sets the content buffer length to the lowest currently possible value.
-        
+        Returns:
+            Actual content buffer length (number of elements). This value is
+            always at least length().
+    
      **************************************************************************/
-
+    
+    public size_t capacity ( size_t capacity )
+    {
+        bool limited = this.limited_;
+        
+        this.limited_ = false;
+        
+        this.content.length = capacity * this.e;
+        
+        scope (exit) if (limited) this.limited(true);
+        
+        return this.n = capacity;
+    }
+    
+    /**************************************************************************
+    
+        Sets the number of elements in content (content length)
+        
+        Params:
+            n = new number of elements in content
+        
+        Returns:
+            n
+    
+     **************************************************************************/
+    
     public void minimize ( )
     {
-        this.content.length = this.n * this.e;
-    }
-    
-    /**************************************************************************
-    
-        Sets the number of elements in content to 0.
-        
-     **************************************************************************/
-
-    public void clear ( )
-    {
-        this.n = 0;
+        if (this.limited_)
+        {
+            this.content.length = this.n * this.e;
+        }
     }
 
     /**************************************************************************
@@ -466,16 +598,26 @@ package abstract class AppendBufferImpl
     {
         assert (!(chunk.length % this.e), "alignment mismatch");
     }
+    out (slice)
+    {
+        if (this.limited_)
+        {
+            assert (slice.length <= chunk.length);
+        }
+        else
+        {
+            assert (slice.length == chunk.length);
+        }
+    }
     body
     {
-        if (this.content.length < chunk.length)
-        {
-            this.content.length = chunk.length;
-        }
+        this.n = 0;
         
-        this.n = chunk.length / this.e;
+        void[] content = this.extendBytes(chunk.length);
         
-        return this.content[0 .. chunk.length] = cast (ubyte[]) chunk[];
+        assert (content.ptr is this.content.ptr);
+        
+        return content[] = cast (ubyte[]) chunk[0 .. content.length];
     }
     
     /**************************************************************************
@@ -519,17 +661,74 @@ package abstract class AppendBufferImpl
      **************************************************************************/
     
     protected void[] extend_ ( size_t n )
+    out (slice)
     {
-        this.n += n;
-        
-        size_t len = this.n * this.e;
-        
-        if (this.content.length < len)
+        if (this.limited_)
         {
-            this.content.length = len;
+            assert (slice.length <= n * this.e);
+        }
+        else
+        {
+            assert (slice.length == n * this.e);
+        }
+    }
+    body
+    {
+        return this.extendBytes(n * this.e);
+    }
+    
+    /**************************************************************************
+    
+        Extends content by extent bytes.
+        extent must be dividable by the element size e.
+        
+        Params:
+            extent = number of bytes to extend content by
+        
+        Returns:
+            slice to the portion in content by which content has been extended
+            (last extent bytes in content after extension)
+    
+     **************************************************************************/
+
+    private void[] extendBytes ( size_t extent )
+    in
+    {
+        assert (!(extent % this.e));
+    }
+    out (slice)
+    {
+        assert (!(slice.length % this.e));
+        
+        if (this.limited_)
+        {
+            assert (slice.length <= extent);
+        }
+        else
+        {
+            assert (slice.length == extent);
+        }
+    }
+    body
+    {
+        size_t oldlen = this.n * this.e,
+               newlen = oldlen + extent;
+        
+        if (this.content.length < newlen)
+        {
+            if (this.limited_)
+            {
+                newlen = this.content.length;
+            }
+            else
+            {
+                this.content.length = newlen;
+            }
         }
         
-        return this.content[len - n * this.e .. len];
+        this.n = newlen / this.e;
+        
+        return this.content[oldlen .. newlen];
     }
 }
 
