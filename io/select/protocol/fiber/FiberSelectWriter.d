@@ -35,7 +35,7 @@ class FiberSelectWriter : IFiberSelectProtocol
             
      **************************************************************************/
 
-    this ( ISelectable conduit, Fiber fiber )
+    this ( ISelectable conduit, Fiber fiber, EpollSelectDispatcher epoll )
     in
     {
         assert (conduit !is null);
@@ -43,7 +43,7 @@ class FiberSelectWriter : IFiberSelectProtocol
     }
     body
     {
-        super(conduit, fiber);
+        super(conduit, fiber, epoll);
     }
 
     /**************************************************************************
@@ -62,9 +62,35 @@ class FiberSelectWriter : IFiberSelectProtocol
     
     /**************************************************************************
 
+        Data buffer (slices the buffer provided to send())
+    
+     **************************************************************************/
+
+    private void[] data = null;
+    
+    /**************************************************************************
+
+        Number of bytes sent so far
+    
+     **************************************************************************/
+
+    private size_t sent = 0;
+    
+    /**************************************************************************/
+    
+    invariant ( )
+    {
+        assert (this.sent <= this.data.length);
+    }
+    
+    /**************************************************************************
+
         Writes data to the output conduit. Whenever the output conduit is not
         ready for writing, the output writing fiber is suspended and continues
         writing on resume.
+        
+        Params:
+            data = data to send
         
         Returns:
             this instance
@@ -77,9 +103,26 @@ class FiberSelectWriter : IFiberSelectProtocol
     
      **************************************************************************/
 
-    typeof (this) send ( void[] data )
+    public typeof (this) send ( void[] data )
+    in
     {
-        super.repeat(this.send_(data) != 0);
+        assert (!this.data);
+    }
+    out
+    {
+        assert (!this.data);
+    }
+    body
+    {
+        this.data = data;
+        
+        scope (exit)
+        {
+            this.data = null;
+            this.sent = 0;
+        }
+        
+        super.transmitLoop();
         
         return this;
     }
@@ -88,6 +131,9 @@ class FiberSelectWriter : IFiberSelectProtocol
 
         Attempts to write data to the output conduit. The output conduit may or
         may not write all elements of data.
+        
+        Params:
+            events = events reported for the output conduit
         
         Returns:
             Number of elements (bytes) of the remaining amount of data; that is,
@@ -103,18 +149,25 @@ class FiberSelectWriter : IFiberSelectProtocol
     
      **************************************************************************/
 
-    private size_t send_ ( void[] data )
+    protected bool transmit ( Event events )
+    out
     {
-        debug (Raw) Trace.formatln("<<< {:X2}", data);
+        assert (this.sent <= this.data.length);
+    }
+    body
+    {
+        debug (Raw) Trace.formatln("<<< {:X2}", this.data);
         
-        size_t sent = (cast (OutputStream) super.conduit).write(data);
+        size_t n = (cast (OutputStream) super.conduit).write(this.data[this.sent .. $]);
         
-        if (sent == OutputStream.Eof)
+        if (n == OutputStream.Eof)
         {
             super.error_e.checkSocketError("write error", __FILE__, __LINE__);
             
             if (errno)
             {
+                scope (exit) errno = 0;
+                
                 throw super.error_e(errno, "write error", __FILE__, __LINE__);
             }
             else
@@ -122,10 +175,12 @@ class FiberSelectWriter : IFiberSelectProtocol
                 throw super.warning_e("end of flow whilst writing", __FILE__, __LINE__);
             }
         }
+        else
+        {
+            this.sent += n;
+        }
         
-        assert (data.length >= sent);
-        
-        return data.length - sent;
+        return this.sent < this.data.length;
     }
     
     /**************************************************************************
@@ -134,13 +189,8 @@ class FiberSelectWriter : IFiberSelectProtocol
     
      **************************************************************************/
     
-    debug (ISelectClient)
+    debug char[] id ( )
     {
-        const ClassId = typeof (this).stringof;
-        
-        public char[] id ( )
-        {
-            return this.ClassId;
-        }
+        return typeof (this).stringof;
     }
 }

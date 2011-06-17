@@ -96,7 +96,7 @@ class FiberSelectReader : IFiberSelectProtocol
             
      **************************************************************************/
 
-    this ( ISelectable conduit, Fiber fiber, size_t buffer_size = super.buffer_size )
+    this ( ISelectable conduit, Fiber fiber, EpollSelectDispatcher epoll, size_t buffer_size = super.buffer_size )
     in
     {
         assert (conduit !is null);
@@ -104,7 +104,7 @@ class FiberSelectReader : IFiberSelectProtocol
     }
     body
     {
-        super(conduit, fiber);
+        super(conduit, fiber, epoll);
         this.data = new void[buffer_size];
     }
     
@@ -221,11 +221,11 @@ class FiberSelectReader : IFiberSelectProtocol
             this.reset();
         }
         
-        size_t received;
+        size_t available_before = this.available;
         
-        super.repeat((received = this.receive_()) == 0);
+        super.transmitLoop();
         
-        return received;
+        return this.available - available_before;
     }
     
     /**************************************************************************
@@ -282,7 +282,7 @@ class FiberSelectReader : IFiberSelectProtocol
 
      **************************************************************************/
 
-    private size_t receive_ ( ) 
+    protected bool transmit ( Event events ) 
     in
     {
         assert (this.available < this.data.length, "requested to receive nothing");
@@ -293,11 +293,11 @@ class FiberSelectReader : IFiberSelectProtocol
     }
     body
     {
-        size_t received = super.readConduit(this.data[this.available .. $]);
+        size_t received = super.readConduit(this.data[this.available .. $], events);
         
         this.available += received;
         
-        return received;
+        return !received;
     }
 
     /**************************************************************************
@@ -306,13 +306,8 @@ class FiberSelectReader : IFiberSelectProtocol
     
      **************************************************************************/
     
-    debug (ISelectClient)
+    debug char[] id ( )
     {
-        const ClassId = typeof (this).stringof;
-        
-        public char[] id ( )
-        {
-            return this.ClassId;
-        }
+        return typeof (this).stringof;
     }
 }

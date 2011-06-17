@@ -23,12 +23,17 @@ module ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
 private import ocean.io.select.protocol.model.ISelectProtocol;
 
-private import tango.core.Thread : Fiber;
+private import ocean.io.select.EpollSelectDispatcher;
+
+private import ocean.io.select.protocol.fiber.model.KillableFiber;
 
 /******************************************************************************/
 
 abstract class IFiberSelectProtocol : ISelectProtocol
 {
+    protected alias .KillableFiber                 Fiber;
+    protected alias .EpollSelectDispatcher EpollSelectDispatcher;
+    
     /**************************************************************************
 
         Fiber (may be shared across instances of this class)
@@ -36,6 +41,42 @@ abstract class IFiberSelectProtocol : ISelectProtocol
      **************************************************************************/
 
     private Fiber fiber;
+    
+    /**************************************************************************
+
+        Epoll select dispatcher instance
+    
+     **************************************************************************/
+
+    private EpollSelectDispatcher epoll;
+    
+    /**************************************************************************
+
+        Events reported to handle()
+    
+     **************************************************************************/
+
+    private Event events_reported;
+    
+    /**************************************************************************
+
+        true: handle() needs to invoked again; false: handle() is finished
+        
+        TODO: pass this flag from suspend() to resume()
+        
+     **************************************************************************/
+
+    private bool more = false;
+    
+    /**************************************************************************
+
+        Exception caught in the fiber to be rethrown in handle()
+        
+        TODO: pass this exception from suspend() to resume()
+        
+     **************************************************************************/
+
+    private Exception e_fiber = null;
     
     /**************************************************************************
 
@@ -47,7 +88,7 @@ abstract class IFiberSelectProtocol : ISelectProtocol
     
      **************************************************************************/
 
-    this ( ISelectable conduit, Fiber fiber )
+    this ( ISelectable conduit, Fiber fiber, EpollSelectDispatcher epoll )
     {
         super(conduit);
         
@@ -55,6 +96,7 @@ abstract class IFiberSelectProtocol : ISelectProtocol
         this.error_e   = new IOError;
         
         this.fiber = fiber;
+        this.epoll = epoll;
     }
     
     /**************************************************************************
@@ -69,100 +111,95 @@ abstract class IFiberSelectProtocol : ISelectProtocol
         
         Returns:
             false if the fiber is finished or true if it keeps going
-    
+        
+        Throws:
+            IOException on I/O error
+        
      **************************************************************************/
-
-    protected bool handle_ ( )
+    
+    final bool handle ( Event events )
     in
     {
-        assert (this.fiber.state == this.fiber.State.HOLD);
+        assert (this.fiber.waiting);
     }
     body
     {
-        this.fiber.call();
+        this.events_reported = events;
         
-        return this.fiber.state != this.fiber.State.TERM;
-    }
-    
-    /**************************************************************************
-
-        (Re)starts the fiber coroutine.
-            
-        Returns:
-            this instance
-    
-     **************************************************************************/
-
-    public typeof (this) start ( )
-    {
-        if (this.fiber.state == this.fiber.State.TERM)
+        this.fiber.resume();
+        
+        if (this.e_fiber)
         {
-            this.fiber.reset();
+            scope (exit) this.e_fiber = null;
+            
+            throw this.e_fiber;
         }
         
-        this.fiber.call();
-        
-        return this;
+        return this.more;
     }
     
     /**************************************************************************
 
-        Suspends the fiber coroutine. The fiber must be running (EXEC state).
+        Registers this instance in the select dispatcher and repeatedly calls
+        transmit() until the transmission is finished.
+        
+        Throws:
+            IOException on I/O error, KillableFiber.KilledException if the
+            fiber was killed.
             
-        Returns:
-            this instance
-    
+        In:
+            The fiber must be running.
+        
      **************************************************************************/
-
-    public typeof (this) suspend ( )
+    
+    protected void transmitLoop (  )
     in
     {
-        assert (this.fiber.state == this.fiber.State.EXEC);
+        assert (this.fiber.running);
     }
     body
     {
-        this.fiber.cede();
+        this.epoll.register(this);
         
-        return this;
+        try
+        {
+            this.more = true;
+            
+            do
+            {
+                this.fiber.suspend();
+            }
+            while (this.transmit(this.events_reported))
+                
+            this.more = false;
+            
+            this.fiber.suspend();
+        }
+        catch (KillableFiber.KilledException e)
+        {
+            throw e;
+        }
+        catch (Exception e)
+        {
+            this.e_fiber = e;
+            this.fiber.suspend();
+            throw e;
+        }
     }
     
     /**************************************************************************
 
-        Returns:
-            current fiber state
-    
-     **************************************************************************/
-
-    public Fiber.State state ( )
-    {
-        return this.fiber.state;
-    }
-    
-    /**************************************************************************
-
-        Repeatedly invokes again while again returns true; suspends the
-        coroutine if again indicates continuation.
-        The fiber must be running (EXEC state).
+        Reads/writes data from/to super.conduit for which events have been
+        reported.
         
         Params:
-            again = expression returning true to suspend and be invoked again
-                    or false to quit
+            events = events reported for super.conduit
+            
+        Returns:
+            true to be invoked again or false if finished
         
      **************************************************************************/
 
-    protected void repeat ( lazy bool again )
-    in
-    {
-        assert (this.fiber.state == this.fiber.State.EXEC);
-    }
-    body
-    {
-        while (again())
-        {
-            this.suspend();
-        }
-    }
-    
-
+    abstract protected bool transmit ( Event events );
 }
 
