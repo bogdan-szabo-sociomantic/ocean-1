@@ -8,6 +8,32 @@
     
     author:         David Eckardt
     
+    Before parsing an HTTP request message, the names of all header fields whose
+    values will be required must be added, except the General-Header and
+    Request-Header fields specified in RFC 2616 section 4.5 and 5.3,
+    respectively.
+    After parse() has finished parsing the message hader, the values of these
+    message header fields of interest can be obtained by the ParamSet
+    (HttpRequest super class) methods. A null value indicates that the request
+    message does not contain a header line whose name matches the corresponding
+    key.
+    Specification of General-Header fields:
+    
+        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.5
+        
+    Specification of Request-Header fields:
+        
+        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.3
+    
+    Specification of Entity-Header fields:
+        
+        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7.1
+    
+    For the definition of the categories the standard request message header
+    fields are of
+    
+        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5
+    
  ******************************************************************************/
 
 module ocean.net.http2.HttpRequest;
@@ -18,39 +44,34 @@ module ocean.net.http2.HttpRequest;
     
  ******************************************************************************/
 
+private import ocean.net.http2.message.HttpHeader;
+
 private import ocean.net.http2.message.HttpHeaderParser,
-               ocean.net.http2.consts.HeaderFieldNames,
                ocean.net.http2.consts.HttpMethod,
-               ocean.net.http2.consts.HttpVersion,
                ocean.net.http2.consts.StatusCodes: StatusCode;
 
-private import ocean.net.http2.HttpException: HttpException, HeaderParameterException;
+private import ocean.net.http2.consts.HttpVersion: HttpVersionIds;
 
-private import ocean.net.util.ParamSet;
+private import ocean.net.http2.HttpException: HttpException, HeaderParameterException;
 
 private import tango.net.Uri: Uri;
 
 private import tango.net.http.HttpConst: HttpResponseCode;
+private import ocean.net.http2.time.HttpTimeParser;
+
+private import tango.io.Stdout;
 
 /******************************************************************************/
 
-class HttpRequest : ParamSet
+class HttpRequest : HttpHeader
 {
-    /**************************************************************************
-    
-        Type alias for request header field constant definitions
-        
-     **************************************************************************/
-
-    alias .HeaderFieldNames.Request.Names HeaderFieldNames;
-    
     /**************************************************************************
     
         Message header parser
         
      **************************************************************************/
 
-    private HttpHeaderParser header_;
+    private HttpHeaderParser parser;
     
     /**************************************************************************
     
@@ -67,14 +88,6 @@ class HttpRequest : ParamSet
      **************************************************************************/
 
     public HttpMethod method;
-    
-    /**************************************************************************
-    
-        Requested HTTP version
-        
-     **************************************************************************/
-
-    public HttpVersion http_version;
     
     /**************************************************************************
     
@@ -111,14 +124,6 @@ class HttpRequest : ParamSet
     
     /**************************************************************************
     
-        Tells whether the end of the message has been reached
-        
-     **************************************************************************/
-
-    private bool finished;
-    
-    /**************************************************************************
-    
         Reusable exception instances
         
      **************************************************************************/
@@ -130,33 +135,23 @@ class HttpRequest : ParamSet
     
         Constructor
         
-        Note: In addition to the standard HTTP request message header fields
-              only the header fields corresponding to the names passed in
-              header_field_names can be obtained from the request message.
-              The standard HTTP request message header fields are those defined
-              in the categories mentioned in the HTTP request message
-              definition,
-                  @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html
-                  
-              . These are the definitions:
-                  - General header fields
-                      @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.5
-                  - Request header fields
-                      @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.3
-                  - Entity header fields
-                      @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7.1
-              
+        If the server supports HTTP methods that expect a request message body
+        (such as POST or PUT), set add_entity_headers to true to add the
+        standard Entity header fields. (The standard General-Header and
+        Request-Header fields are added automatically.)
+        
         Params:
-            header_field_names = names of message header fields of interest
-                                 (case-insensitive)
+            add_entity_headers = set to true to add the standard Entity header
+                                 fields as well
         
      **************************************************************************/
 
-    public this ( char[][] header_field_names ... )
+    public this ( bool add_entity_headers = false )
     {
-        super(.HeaderFieldNames.Request.NameList, header_field_names);
+        super(HeaderFieldNames.Request.NameList,
+              add_entity_headers? HeaderFieldNames.Entity.NameList : null);
         
-        this.header_ = new HttpHeaderParser;
+        this.parser = new HttpHeaderParser;
         
         this.uri_ = new Uri;
         
@@ -176,7 +171,7 @@ class HttpRequest : ParamSet
 
     public IHttpHeaderParser header ( )
     {
-        return this.header_;
+        return this.parser;
     }
     
     /**************************************************************************
@@ -189,7 +184,7 @@ class HttpRequest : ParamSet
 
     public char[] method_name ( )
     {
-        return this.header_.start_line_tokens[0];
+        return this.parser.start_line_tokens[0];
     }
     
     /**************************************************************************
@@ -215,7 +210,7 @@ class HttpRequest : ParamSet
 
     public char[] uri_string ( )
     {
-        return this.header_.start_line_tokens[1];
+        return this.parser.start_line_tokens[1];
     }
     
     /**************************************************************************
@@ -276,12 +271,11 @@ class HttpRequest : ParamSet
         Parses content which is expected to be either the start of a HTTP
         message or a HTTP message fragment that continues the content passed on
         the last call to this method.
-        If this method indicates that the end of the message has been reached,
-        reset() must be called before calling this method again.
+        If this method is called again after having finished, it will reset the
+        status first and start parsing a new request message.
         
         Returns:
-            the number of elements consumed from content, if finished, or
-            content.length + 1 otherwise
+            number of elements consumed from content
         
         Throws:
             HttpParseException
@@ -305,42 +299,83 @@ class HttpRequest : ParamSet
             
      **************************************************************************/
 
-    public size_t parse ( char[] content, lazy size_t msg_body_length = 0 )
-    in
+    public size_t parse ( char[] content, lazy size_t msg_body_length  )
     {
-        assert (!(this.header_complete && this.msg_body_pos >= this.msg_body_.length));
-    }
-    body
-    {
-        if (!this.header_complete)
+        size_t consumed;
+        
+        if (this.finished)
         {
-            char[] msg_body_start = this.header_.parse(content);
+            super.reset();
+        }
+        
+        if (this.header_complete)
+        {
+            consumed = this.appendMsgBody(content);
+        }
+        else
+        {
+            char[] msg_body_start = this.parser.parse(content);
             
-            this.header_complete = msg_body_start !is null;
+            consumed = content.length - msg_body_start.length;
             
-            if (this.header_complete)
+            if (msg_body_start !is null)
             {
+                this.header_complete = true;
+                
                 this.setRequestLine();
                 
-                foreach (element; this.header_.header_elements)
+                foreach (element; this.parser.header_elements)
                 {
                     super.set(element.key, element.val);
                 }
                 
                 this.msg_body_.length = msg_body_length();
                 
-                content = msg_body_start;
-           }
+                consumed += this.appendMsgBody(msg_body_start);
+            }
         }
         
-        if (this.header_complete && this.msg_body_pos < this.msg_body_.length)
-        {
-            size_t len = min(content.length, this.msg_body_.length - this.msg_body_pos);
-            
-            this.msg_body_[this.msg_body_pos .. this.msg_body_pos + len] = content[0 .. len];
-        }
+        assert (consumed == content.length || this.finished);
         
-        return content.length + !(this.header_complete && this.msg_body_pos >= this.msg_body_.length);
+        return consumed;
+    }
+    
+    /**************************************************************************
+    
+        Returns:
+            true if parse() has finished parsing the message or false otherwise
+        
+     **************************************************************************/
+
+    public bool finished ( )
+    {
+        return this.header_complete && this.msg_body_pos >= this.msg_body_.length;
+    }
+    
+    /**************************************************************************
+    
+        Appends chunk to the message body as long as the message body length
+        does not exceed the length reported to parse() by the msg_body_length
+        parameter.
+        
+        Params:
+            chunk = chunk to append to the message body
+        
+        Returns:
+            number of elements appended
+        
+     **************************************************************************/
+
+    private size_t appendMsgBody ( char[] chunk )
+    {
+        size_t len = min(chunk.length, this.msg_body_.length - this.msg_body_pos),
+               end = this.msg_body_pos + len;
+        
+        this.msg_body_[this.msg_body_pos .. end] = chunk[0 .. len];
+        
+        this.msg_body_pos = end;
+        
+        return len;
     }
     
     /**************************************************************************
@@ -362,14 +397,14 @@ class HttpRequest : ParamSet
         
         this.http_exception.assertEx(this.method, __FILE__, __LINE__, StatusCode.BadRequest, "invalid HTTP method");
         
-        this.http_version = HttpVersionIds[this.header_.start_line_tokens[2]];
+        this.http_version_ = HttpVersionIds[this.parser.start_line_tokens[2]];
         
-        this.http_exception.assertEx(this.http_version, __FILE__, __LINE__, StatusCode.BadRequest, "invalid HTTP version");
+        this.http_exception.assertEx(this.http_version_, __FILE__, __LINE__, StatusCode.BadRequest, "invalid HTTP version");
         
-        this.http_exception.assertEx(this.header_.start_line_tokens[1].length, __FILE__, __LINE__, StatusCode.BadRequest, "no uri in request");
-        this.http_exception.assertEx(this.header_.start_line_tokens[1].length <= this.max_uri_length, __FILE__, __LINE__, StatusCode.RequestURITooLarge);
+        this.http_exception.assertEx(this.parser.start_line_tokens[1].length, __FILE__, __LINE__, StatusCode.BadRequest, "no uri in request");
+        this.http_exception.assertEx(this.parser.start_line_tokens[1].length <= this.max_uri_length, __FILE__, __LINE__, StatusCode.RequestURITooLarge);
         
-        this.uri_.parse(this.header_.start_line_tokens[1]);
+        this.uri_.parse(this.parser.start_line_tokens[1]);
     }
     
     /**************************************************************************
@@ -381,11 +416,11 @@ class HttpRequest : ParamSet
     protected override void reset_ ( )
     {
         this.method             = this.method.init;
-        this.http_version       = this.http_version.init;
+        this.http_version_       = this.http_version_.init;
         this.msg_body_pos       = 0;
         this.header_complete    = false;
         this.uri_.reset();
-        this.header_.reset();
+        this.parser.reset();
     }
     
     /**************************************************************************
@@ -405,6 +440,9 @@ class HttpRequest : ParamSet
 
 //version = OceanPerformanceTest;
 
+import tango.stdc.time: time;
+import tango.stdc.posix.stdlib: srand48, drand48;
+
 version (OceanPerformanceTest)
 {
     import tango.io.Stdout;
@@ -413,6 +451,61 @@ version (OceanPerformanceTest)
 
 unittest
 {
+    const char[] lorem_ipsum =
+        "Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod "
+        "tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim "
+        "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex "
+        "ea commodi consequat. Quis aute iure reprehenderit in voluptate velit "
+        "esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat "
+        "cupiditat non proident, sunt in culpa qui officia deserunt mollit "
+        "anim id est laborum. Duis autem vel eum iriure dolor in hendrerit in "
+        "vulputate velit esse molestie consequat, vel illum dolore eu feugiat "
+        "nulla facilisis at vero eros et accumsan et iusto odio dignissim qui "
+        "blandit praesent luptatum zzril delenit augue duis dolore te feugait "
+        "nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing "
+        "elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna "
+        "aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud "
+        "exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea "
+        "commodo consequat. Duis autem vel eum iriure dolor in hendrerit in "
+        "vulputate velit esse molestie consequat, vel illum dolore eu feugiat "
+        "nulla facilisis at vero eros et accumsan et iusto odio dignissim qui "
+        "blandit praesent luptatum zzril delenit augue duis dolore te feugait "
+        "nulla facilisi. Nam liber tempor cum soluta nobis eleifend option "
+        "congue nihil imperdiet doming id quod mazim placerat facer possim "
+        "assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed "
+        "diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam "
+        "erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci "
+        "tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo "
+        "consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate "
+        "velit esse molestie consequat, vel illum dolore eu feugiat nulla "
+        "facilisis. At vero eos et accusam et justo duo dolores et ea rebum. "
+        "Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum "
+        "dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing "
+        "elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore "
+        "magna aliquyam erat, sed diam voluptua. At vero eos et accusam et "
+        "justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea "
+        "takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor "
+        "sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam "
+        "dolore dolores duo eirmod eos erat, et nonumy sed tempor et et "
+        "invidunt justo labore Stet clita ea et gubergren, kasd magna no "
+        "rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum "
+        "dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing "
+        "elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore "
+        "magna aliquyam erat. Consetetur sadipscing elitr, sed diam nonumy "
+        "eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed "
+        "diam voluptua. At vero eos et accusam et justo duo dolores et ea "
+        "rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem "
+        "ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur "
+        "sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et "
+        "dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam "
+        "et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea "
+        "takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor "
+        "sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor "
+        "invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. "
+        "At vero eos et accusam et justo duo dolores et ea rebum. Stet clita "
+        "kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit "
+        "amet.";
+    
     const char[] content =
         "GET /dir?query=Hello%20World!&abc=def&ghi HTTP/1.1\r\n"
         "Host: www.example.org:12345\r\n"
@@ -424,9 +517,31 @@ unittest
         "Keep-Alive: 115\r\n"
         "Connection: keep-alive\r\n"
         "Cache-Control: max-age=0\r\n"
-        "\r\n";
+        "\r\n" ~
+        lorem_ipsum;
     
-    scope request = new HttpRequest("Keep-Alive", "User-Agent");
+    const parts = 3;
+    
+    /*
+     * content will be split into parts parts where the length of each part is
+     * content.length / parts + d with d a random number in the range
+     * [-(content.length / parts) / 3, +(content.length / parts) / 3].
+     */
+    
+    static size_t random_chunk_length ( )
+    {
+        const c = content.length * (2.f / (parts * 3));
+        
+        static assert (c >= 3, "too many parts");
+        
+        return cast (size_t) (c + cast (float) drand48() * c);
+    }
+    
+    scope request = new HttpRequest;
+    
+    request.addCustomHeaders("Keep-Alive");
+    
+    srand48(time(null));
     
     version (OceanPerformanceTest)
     {
@@ -434,15 +549,28 @@ unittest
     }
     else
     {
-        const n = 1;
+        const n = 10;
     }
     
-    version (OceanPerformanceTest) gc_disable;
+    version (OceanPerformanceTest)
+    {
+        gc_disable();
+        
+        scope (exit) gc_enable();
+    }
     
     for (uint i = 0; i < n; i++)
     {
-        request.reset();
-        request.parse(content);
+        {
+            size_t len = request.min(random_chunk_length(), content.length),
+                   ret = request.parse(content[0 .. len], lorem_ipsum.length);
+            
+            for (size_t pos = len; !request.finished; pos += len)
+            {
+                len = request.min(random_chunk_length() + pos, content.length - pos);
+                ret = request.parse(content[pos .. pos + len], lorem_ipsum.length);
+            }
+        }
         
         assert (request.method_name           == "GET");
         assert (request.method                == request.method.Get);
@@ -456,11 +584,16 @@ unittest
         assert (request.getUint("keep-alive") == 115);
         assert (request["connection"]         == "keep-alive");
         
-        version (OceanPerformanceTest) if (!(i % 10_000))
+        assert (request.msg_body              == lorem_ipsum, ">" ~ request.msg_body ~ "<");
+        
+        version (OceanPerformanceTest) 
         {
-            Stderr(i)("\n").flush();
+            uint j = i + 1;
+            
+            if (!(j % 10_000))
+            {
+                Stderr(HttpRequest.stringof)(' ')(j)("\n").flush();
+            }
         }
     }
-    
-    version (OceanPerformanceTest) gc_enable;
 }
