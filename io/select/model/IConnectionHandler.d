@@ -200,7 +200,7 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
 
     ***************************************************************************/
 
-    protected void error ( Exception exception, IAdvancedSelectClient.EventInfo event )
+    public void error ( Exception exception, IAdvancedSelectClient.EventInfo event )
     {
         if ( this.error_dg_ )
         {
