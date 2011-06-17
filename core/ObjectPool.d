@@ -185,9 +185,18 @@ interface IObjectPoolInfo
         Returns:
             limit of items in pool
         
-    **************************************************************************/
-
+     **************************************************************************/
+    
     uint limit ( );
+    
+    /**************************************************************************
+    
+        Returns:
+            true if the number of items in the pool is limited or fase otherwise
+        
+     **************************************************************************/
+
+    bool is_limited ( );
 }
 
 /*******************************************************************************
@@ -590,6 +599,18 @@ class ObjectPoolImpl : IObjectPoolInfo
     uint limit ( )
     {
         return this.limited? this.items.length : this.unlimited;
+    }
+    
+    /**************************************************************************
+    
+        Returns:
+            true if the number of items in the pool is limited or fase otherwise
+        
+     **************************************************************************/
+
+    bool is_limited ( )
+    {
+        return this.limited;
     }
     
     /**************************************************************************
