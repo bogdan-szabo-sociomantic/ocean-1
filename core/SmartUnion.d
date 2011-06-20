@@ -191,9 +191,11 @@ private struct SmartUnionIntern ( U )
     
     /**************************************************************************
 
-        Evaluates to code defining a getter and/or a setter method where name of
-        each method is pre ~ ".u." ~ the name of the i-th member of U.
-        Both methods use pre ~ ".active" which must be the Active enumerator:
+        Evaluates to code defining a getter, a setter and/or a static opCall()
+        initializer method where the name of the getter/setter method is
+        pre ~ ".u." ~ the name of the i-th member of U.
+        The getter/setter methods use pre ~ ".active" which must be the Active
+        enumerator:
             - the getter uses an 'in' contract to make sure the active member is
               accessed,
             - the setter method sets pre ~ ".active" to the active member.
@@ -256,17 +258,20 @@ private struct SmartUnionIntern ( U )
         
         const type = typeof (U.tupleof)[i].stringof;
         
-        const get = type ~ ' ' ~  member ~ "() "
-                    "in {assert(" ~ u_pre ~ ".active==" ~ u_pre ~ ".active." ~ member ~ ","
-                    "\"UniStruct: \\\"" ~ member ~ "\\\" not active\");} "
-                    "body {return " ~ member_access ~ ";}";
+        const get = type ~ ' ' ~  member ~ "()"
+                    "in{assert(" ~ u_pre ~ ".active==" ~ u_pre ~ ".active." ~ member ~ ","
+                    "\"SmartUnion: \\\"" ~ member ~ "\\\" not active\");}"
+                    "body{return " ~ member_access ~ ";}";
 
         
-        const set = type ~ ' ' ~  member ~ '(' ~ type ~ ' ' ~ member ~ ')' ~ " "
-                    "{" ~ u_pre ~ ".active=" ~ u_pre ~ ".active." ~ member ~ "; "
+        const set = type ~ ' ' ~  member ~ '(' ~ type ~ ' ' ~ member ~ ")"
+                    "{" ~ u_pre ~ ".active=" ~ u_pre ~ ".active." ~ member ~ ";"
                     "return " ~ member_access ~ '=' ~ member ~ ";}";
         
-        const both = get ~ '\n' ~ set;
+        const ini = "static typeof(*this) opCall(" ~ type ~ ' ' ~ member ~ ")"
+                    "{typeof(*this)su;su." ~ member ~ '=' ~ member ~ ";return su;}";
+        
+        const all = get ~ '\n' ~ set ~ '\n' ~ ini;
     }
     
     /**************************************************************************
@@ -287,7 +292,7 @@ private struct SmartUnionIntern ( U )
     {
         static if (i < N)
         {
-            const AllMethods = AllMethods!(u_pre, pre ~ '\n' ~ Methods!(u_pre, i).both, i + 1);
+            const AllMethods = AllMethods!(u_pre, pre ~ '\n' ~ Methods!(u_pre, i).all, i + 1);
         }
         else
         {
