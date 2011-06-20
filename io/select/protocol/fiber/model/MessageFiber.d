@@ -1,6 +1,7 @@
 /****************************************************************************** 
 
-    Wraps a Fiber instance providing a means to kill it when it is waiting.
+    Wraps a Fiber allowing to pass a message on suspending/resuming and to kill
+    the fiber.
 
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
 
@@ -8,12 +9,13 @@
 
     authors:        David Eckardt
     
-    Provides a suspend() and a kill() method where kill() resumes suspend() and
-    suspend() throws a KilledException when it was resumed by kill(). 
+    Allows passing a message from suspend() to resume() and vice versa.
+    Provides a kill() method where kill() resumes suspend() and suspend() throws
+    a KilledException when it was resumed by kill(). 
     
  ******************************************************************************/
 
-module ocean.io.select.protocol.fiber.model.KillableFiber;
+module ocean.io.select.protocol.fiber.model.MessageFiber;
 
 /******************************************************************************
 
@@ -25,12 +27,21 @@ private import tango.core.Thread : Fiber;
 
 private import ocean.core.Array: copy;
 
-private import tango.io.Stdout;
+private import ocean.core.SmartUnion;
 
 /******************************************************************************/
 
-class KillableFiber
+class MessageFiber
 {
+    union Message_
+    {
+        int    num;
+        void*  ptr;
+        Object obj;
+    }
+    
+    alias SmartUnion!(Message_) Message;
+    
     /**************************************************************************
 
         KilledException; thrown by suspend() when resumed by kill()
@@ -58,14 +69,28 @@ class KillableFiber
     
     /**************************************************************************
 
-        KilledException instance
+        Message passed between suspend() and resume()
     
      **************************************************************************/
 
-    private KilledException e_killed;
+    private Message         msg;
+    
+    /**************************************************************************
+
+        Exception instance set by suspendThrow() and thrown by resume()
+    
+     **************************************************************************/
     
     private Exception       e = null;
+
+    /**************************************************************************
+
+        KilledException instance
     
+     **************************************************************************/
+    
+    private KilledException e_killed;
+
     /**************************************************************************
 
         "killed" flag, set by kill() and cleared by resume().
@@ -107,17 +132,25 @@ class KillableFiber
     
     /**************************************************************************
     
-        Starts or resumes the fiber coroutine.
+        Starts or resumes the fiber coroutine and waits until it is suspended
+        or finishes.
+        
+        Params:
+            msg = message to be returned by the next suspend() call.
         
         Returns:
-            When the fiber is suspended by suspend().
+            When the fiber is suspended, the message passed to the that
+            suspend() call.
+        
+        Throws:
+            Exception if the fiber is suspended by suspendThrow().
         
         In:
-            The fiber must not be running (but be either finished or waiting).
+            The fiber must not be running (but waiting or finished).
         
      **************************************************************************/
     
-    public void start ( )
+    public Message start ( Message msg = Message.init )
     in
     {
         assert (this.fiber.state != this.fiber.State.EXEC);
@@ -127,61 +160,103 @@ class KillableFiber
         if (this.fiber.state == this.fiber.State.TERM)
         {
             this.fiber.reset();
+            this.msg = this.msg.init;
         }
         
-        this.fiber.call();
+//        this.fiber.call();
+        return this.resume(msg);
     }
     
     /**************************************************************************
     
-        Suspends the fiber coroutine.
+        Suspends the fiber coroutine and waits until it is resumed or killed.
+        
+        Params:
+            msg = message to be returned by the next start()/resume() call.
         
         Returns:
-            When the fiber is resumed by resume().
+            When the fiber is resumed, the message passed to that start() or
+            resume() call. 
         
         Throws:
-            KilledException if resumed by kill().
+            KilledException if the fiber is killed.
         
         In:
-            The fiber must be running.
+            The fiber must be running (not waiting or finished).
         
      **************************************************************************/
-    
-    public Exception suspend ( Exception e = null )
+
+    public Message suspend ( Message msg = Message.init )
     in
     {
         assert (this.fiber.state == this.fiber.State.EXEC);
     }
     body
     {
+        scope (exit)
+        {
+            this.msg = msg;
+            this.suspend_();
+        }
+        
+        return this.msg;
+    }
+    
+    /**************************************************************************
+    
+        Suspends the fiber coroutine, makes the next start() or resume() call
+        throw e (instead of resuming) and waits until the fiber is resumed by
+        the second next resume() call or killed.
+        
+        Returns:
+            e when the fiber is resumed by the second-next call to start() or
+            resume().
+        
+        Throws:
+            KilledException if resumed by kill().
+        
+        In:
+            The fiber must be running (not waiting or finished).
+        
+     **************************************************************************/
+    
+    public Exception suspendThrow ( Exception e )
+    in
+    {
+        assert (e !is null);
+        assert (this.fiber.state == this.fiber.State.EXEC);
+    }
+    body
+    {
         this.e = e;
-        
-        this.fiber.cede();
-        
-        if (this.killed)
-        {
-            this.killed = false;
-            throw this.e_killed;
-        }
-        else
-        {
-            return e;
-        }
+        this.suspend_();
+        return e;
     }
 
     /**************************************************************************
+    
+        Resumes the fiber coroutine and waits until it is suspended or killed.
         
-        Resumes the fiber coroutine.
+        However, if the fiber was just suspended by suspendThrow(), this call
+        will throw the exception instance passed to suspendThrow() instead of
+        resuming the fiber and the next call will resume it.
             
+        Params:
+            msg = message to be returned by the next suspend() call.
+        
         Returns:
-            When the fiber is suspended by suspend() or finishes.
+            When the fiber is suspended, the message passed to that suspend()
+            call.
+        
+        Throws:
+            Exception if the fiber was just suspended by suspendThrow().
         
         In:
-            The fiber must be waiting.
+            The fiber must be waiting (not running or finished).
         
      **************************************************************************/
-
-    public void resume ( )
+    
+    public Message resume ( Message msg = Message.init )
     in
     {
         assert (this.fiber.state == this.fiber.State.HOLD);
@@ -195,20 +270,26 @@ class KillableFiber
         }
         else
         {
+            scope (exit) this.msg = msg;
             this.fiber.call();
+            return this.msg;
         }
     }
-    
+
     /**************************************************************************
     
         Kills the fiber coroutine. That is, resumes it and makes resume() throw
         a KilledException.
         
+        Param:
+            file = source file (passed to the exception)
+            line = source code line (passed to the exception)
+        
         Returns:
             When the fiber is suspended by suspend() or finishes.
             
-        Returns:
-            this instance
+        In:
+            The fiber must be waiting (not running or finished).
     
      **************************************************************************/
     
@@ -260,5 +341,33 @@ class KillableFiber
     public bool finished ( )
     {
         return this.fiber.state == this.fiber.State.TERM;
+    }
+    
+    /**************************************************************************
+    
+        Suspends the fiber.
+        
+        Throws:
+            suspendThrow() exception if pending
+    
+        In:
+            The fiber must be running (not waiting or finished).
+
+     **************************************************************************/
+
+    private void suspend_ ( )
+    in
+    {
+        assert (this.fiber.state == this.fiber.State.EXEC);
+    }
+    body
+    {
+        this.fiber.cede();
+        
+        if (this.killed)
+        {
+            this.killed = false;
+            throw this.e_killed;
+        }
     }
 }

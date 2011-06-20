@@ -25,7 +25,7 @@ private import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol,
 
 private import ocean.io.select.model.IConnectionHandler;
 
-private import ocean.io.select.protocol.fiber.model.KillableFiber;
+private import ocean.io.select.protocol.fiber.model.MessageFiber;
 
 private import tango.net.device.Socket : Socket;
 
@@ -53,7 +53,7 @@ class IFiberConnectionHandler : IConnectionHandler
     protected SelectReader reader;
     protected SelectWriter writer;
     
-    private KillableFiber fiber;
+    private MessageFiber fiber;
     
     /**************************************************************************/
     
@@ -86,7 +86,7 @@ class IFiberConnectionHandler : IConnectionHandler
         Socket socket = new Socket;
         socket.socket.noDelay(true).blocking(false);
 
-        this.fiber = new KillableFiber(&this.handleConnection, 0x2000);
+        this.fiber = new MessageFiber(&this.handleConnection, 0x2000);
         
         this.reader = new SelectReader(socket, this.fiber, epoll);
         this.writer = new SelectWriter(socket, this.fiber, epoll);
@@ -220,7 +220,7 @@ class IFiberConnectionHandler : IConnectionHandler
             
             super.finalize();
         }
-        catch (KillableFiber.KilledException) {} 
+        catch (MessageFiber.KilledException) {} 
         catch
         {
             super.finalize();

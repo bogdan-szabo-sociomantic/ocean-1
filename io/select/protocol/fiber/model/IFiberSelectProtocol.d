@@ -25,14 +25,14 @@ private import ocean.io.select.protocol.model.ISelectProtocol;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
-private import ocean.io.select.protocol.fiber.model.KillableFiber;
+private import ocean.io.select.protocol.fiber.model.MessageFiber;
 
 /******************************************************************************/
 
 abstract class IFiberSelectProtocol : ISelectProtocol
 {
-    protected alias .KillableFiber                 Fiber;
-    protected alias .EpollSelectDispatcher EpollSelectDispatcher;
+    protected alias .MessageFiber           Fiber;
+    protected alias .EpollSelectDispatcher  EpollSelectDispatcher;
     
     /**************************************************************************
 
@@ -57,26 +57,6 @@ abstract class IFiberSelectProtocol : ISelectProtocol
      **************************************************************************/
 
     private Event events_reported;
-    
-    /**************************************************************************
-
-        true: handle() needs to invoked again; false: handle() is finished
-        
-        TODO: pass this flag from suspend() to resume()
-        
-     **************************************************************************/
-
-    private bool more = false;
-    
-    /**************************************************************************
-
-        Exception caught in the fiber to be rethrown in handle()
-        
-        TODO: pass this exception from suspend() to resume()
-        
-     **************************************************************************/
-
-    private Exception e_fiber = null;
     
     /**************************************************************************
 
@@ -126,16 +106,7 @@ abstract class IFiberSelectProtocol : ISelectProtocol
     {
         this.events_reported = events;
         
-        this.fiber.resume();
-        
-        if (this.e_fiber)
-        {
-            scope (exit) this.e_fiber = null;
-            
-            throw this.e_fiber;
-        }
-        
-        return this.more;
+        return !!this.fiber.resume().num;
     }
     
     /**************************************************************************
@@ -161,29 +132,22 @@ abstract class IFiberSelectProtocol : ISelectProtocol
     {
         this.epoll.register(this);
         
-        try
+        try with (this.fiber)
         {
-            this.more = true;
-            
-            do
+            for (bool more = true; more; more = this.transmit(this.events_reported))
             {
-                this.fiber.suspend();
+                suspend(Message(true));
             }
-            while (this.transmit(this.events_reported))
-                
-            this.more = false;
             
-            this.fiber.suspend();
+            suspend(Message(false));
         }
-        catch (KillableFiber.KilledException e)
+        catch (MessageFiber.KilledException e)
         {
             throw e;
         }
         catch (Exception e)
         {
-            this.e_fiber = e;
-            this.fiber.suspend();
-            throw e;
+            throw this.fiber.suspendThrow(e);
         }
     }
     
