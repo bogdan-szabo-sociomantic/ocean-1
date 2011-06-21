@@ -123,6 +123,46 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
         {
             time_t create_time;
         }
+        
+        /***********************************************************************
+
+            Copies value to this.value.
+            
+            Params:
+                value = value to copy
+                
+            Returns:
+                this.value
+    
+        ***********************************************************************/
+
+        Value setValue ( Value value )
+        {
+            return this.value.setValue(value);
+        }
+        
+        /***********************************************************************
+
+            Copies the src value to dst.
+            
+            Params:
+                dst = destination value buffer (will be resized as required)
+                src = source value
+                
+            Returns:
+                dst
+    
+        ***********************************************************************/
+
+        static if ( Dynamic ) static Value setValue ( ref Value dst, Value src )
+        {
+            dst.length = src.length;
+            return dst[] = src[];
+        }
+        else static Value setValue ( Value dst, Value src )
+        {
+            return dst[] = src[];
+        }
     }
 
 
@@ -206,7 +246,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
 
     /***************************************************************************
 
-        Puts an item into the cahce. If the cache is full, the oldest item is
+        Puts an item into the cache. If the cache is full, the oldest item is
         replaced with the new item. (In the case where several items are equally
         old, the choice of which one to be replaced is made arbitrarily.)
 
@@ -226,12 +266,12 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
         auto item = key in this.key_to_item;
         if ( item is null ) // new item, not in cache
         {
-            this.add(key, time, value);
+            CacheItem.setValue(*this.add(key, time), value);
             return false;
         }
         else
         {
-            this.setValue(item.index, value);
+            this.items[item.index].setValue(value);
             this.setAccessTime(*item, time);
             static if ( TrackCreateTimes )
             {
@@ -245,8 +285,11 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
 
     /***************************************************************************
 
-        Gets an item from the cahce. A pointer to the item is returned, if
-        found. If the item exists in the cahce, its access time is updated.
+        Gets an item from the cache. A pointer to the item is returned, if
+        found. If the item exists in the cache, its access time is updated.
+    
+        Note that, if you change the value pointed to by the returned pointer,
+        the create time will not be updated. 
 
         Params:
             key = key to lookup
@@ -271,11 +314,48 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
             return &this.items[item.index].value;
         }
     }
-
-
+    
+    
     /***************************************************************************
 
-        Checks whether an item exists in the cahce.
+        Gets an item from the cache or creates it if not already existing. A
+        pointer to the item is returned, if found. If the item exists in the
+        cache, its access time is updated.
+        
+        Note that, if the item already existed and you change the value pointed
+        to by the returned pointer, the create time will not be updated. 
+        
+        Params:
+            key         = key to lookup
+            access_time = new access time to set for item
+            existed     = true: the item already existed; false: the item was
+                          created
+        
+        Returns:
+            pointer to item value
+
+    ***************************************************************************/
+
+    public Value* getOrCreate ( hash_t key, time_t access_time, out bool existed )
+    {
+        auto item = key in this.key_to_item;
+        
+        existed = item !is null;
+        
+        if ( existed )
+        {
+            this.setAccessTime(*item, access_time);
+            return &this.items[item.index].value;
+        }
+        else
+        {
+            return this.add(key, access_time);
+        }
+    }
+    
+    /***************************************************************************
+
+        Checks whether an item exists in the cache.
 
         Params:
             key = key to lookup
@@ -294,7 +374,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
 
     /***************************************************************************
 
-        Checks whether an item exists in the cahce and returns the last time it
+        Checks whether an item exists in the cache and returns the last time it
         was accessed.
 
         Params:
@@ -321,7 +401,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
 
     /***************************************************************************
 
-        Checks whether an item exists in the cahce and returns its create time.
+        Checks whether an item exists in the cache and returns its create time.
 
         Params:
             key = key to lookup
@@ -424,29 +504,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
     {
         this.time_to_index.update(item.time_mapping, access_time, item.index);
     }
-
-
-    /***************************************************************************
-
-        Copies the provided value into the indexed item.
-
-        Params:
-            index = index of item to copy into
-            value = data to store
-
-    ***************************************************************************/
-
-    private void setValue ( size_t index, Value value )
-    {
-        static if ( Dynamic )
-        {
-            this.items[index].value.length = value.length;
-        }
-
-        this.items[index].value[] = value[];
-    }
-
-
+    
     /***************************************************************************
 
         Adds an item to the cache. If the cache is full, the oldest item will be
@@ -459,7 +517,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
 
     ***************************************************************************/
 
-    private void add ( hash_t key, time_t time, Value value )
+    private Value* add ( hash_t key, time_t time )
     {
         size_t index;
 
@@ -480,7 +538,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
 
         // Set key & value in chosen element of items array
         this.items[index].key = key;
-        this.setValue(index, value);
+        
         static if ( TrackCreateTimes )
         {
             this.items[index].create_time = time;
@@ -494,6 +552,8 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
         item.index = index;
         item.time_mapping = time_mapping;
         this.key_to_item.put(key, item);
+        
+        return &this.items[index].value;
     }
 
 
@@ -517,7 +577,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
         {
             // Swap item to be removed with the last item in the list of cached items
             this.insert--;
-            this.setValue(index, this.items[this.insert].value);
+            this.items[this.insert].setValue(this.items[index].value);
 
             // Update index of moved item in the key->item and time->index maps
             auto old_key = this.items[index].key;
@@ -579,7 +639,7 @@ class Cache ( T, bool TrackCreateTimes = false ) : Cache!(T.sizeof, TrackCreateT
 
     /***************************************************************************
 
-        Puts an item into the cahce. If the cache is full, the oldest item is
+        Puts an item into the cache. If the cache is full, the oldest item is
         replaced with the new item. (In the case where several items are equally
         old, the choice of which one to be replaced is made arbitrarily.)
 
@@ -602,9 +662,12 @@ class Cache ( T, bool TrackCreateTimes = false ) : Cache!(T.sizeof, TrackCreateT
 
     /***************************************************************************
 
-        Gets an item from the cahce. A pointer to the item is returned, if
-        found. If the item exists in the cahce, its update time is updated.
+        Gets an item from the cache. A pointer to the item is returned, if
+        found. If the item exists in the cache, its update time is updated.
 
+        Note that, if the item already existed and you change the value pointed
+        to by the returned pointer, the create time will not be updated.
+         
         Params:
             key = key to lookup
             update_time = new update time to set for item
@@ -612,9 +675,45 @@ class Cache ( T, bool TrackCreateTimes = false ) : Cache!(T.sizeof, TrackCreateT
         Returns:
             pointer to item value, may be null if key not found
 
+        FIXME: For dynamic data arrays, if Value is ubyte[], the cast won't work
+        and needs to be changed to
+        ---
+            return raw? cast(T*)(*raw).ptr : null;
+        ---
+        . However, the change will likely be compatible to static arrays, too.
+        
+     ***************************************************************************/
+    
+    public T* getItem ( hash_t key, lazy time_t update_time )
+    {
+        auto raw = super.get(key, update_time);
+        return cast(T*)raw;
+    }
+    
+    
+    /***************************************************************************
+
+        Gets an item from the cache or creates it if not already existing. A
+        pointer to the item is returned, if found. If the item exists in the
+        cache, its update time is updated.
+        
+        Note that, if the item already existed and you change the value pointed
+        to by the returned pointer, the create time will not be updated. 
+        
+        Params:
+            key         = key to lookup
+            update_time = new update time to set for item
+            existed     = true: the item already existed; false: the item was
+                          created
+        
+        Returns:
+            pointer to item value
+        
+        FIXME: See note about cast in getItem().
+        
     ***************************************************************************/
 
-    public T* getItem ( hash_t key, lazy time_t update_time )
+    public T* getOrCreateItem ( hash_t key, lazy time_t update_time )
     {
         auto raw = super.get(key, update_time);
         return cast(T*)raw;
@@ -629,11 +728,13 @@ class Cache ( T, bool TrackCreateTimes = false ) : Cache!(T.sizeof, TrackCreateT
 
     private Value* get ( hash_t key, lazy time_t access_time )
     {
+        assert(false);
         return null;
     }
 
     private bool put ( hash_t key, time_t time, Value value )
     {
+        assert(false);
         return false;
     }
 }
