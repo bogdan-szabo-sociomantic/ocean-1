@@ -1,7 +1,7 @@
 /******************************************************************************
 
     Real time clock that, after it has queried the system clock, waits until a
-    time interval has expired before querying the system clock again.
+    time interval_ has expired before querying the system clock again.
 
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
 
@@ -47,20 +47,18 @@ private import tango.stdc.stdlib: div;
 
 private import tango.stdc.posix.sys.time: timeval, timespec, gettimeofday;
 
-private import tango.io.Stdout;
-
 class IntervalClock : ITimerEvent
 {
     /**************************************************************************
 
-        Timer update interval. now() will keep returning the same value during
+        Timer update interval_. now() will keep returning the same value during
         this amount of time.
         
         Default: 1 s.
     
      **************************************************************************/
 
-    public timeval interval = timeval(1);
+    private timeval interval_ = timeval(1);
     
     /**************************************************************************
 
@@ -95,29 +93,62 @@ class IntervalClock : ITimerEvent
     
     /**************************************************************************
     
+        Sets the interval.
+        
+        Params:
+            interval_ = new interval
+        
+        Returns:
+            interval_
+    
+     **************************************************************************/
+    
+    timeval interval ( timeval interval_ )
+    {
+        this.expired = true;
+        return this.interval_ = interval_;
+    }
+
+    /**************************************************************************
+    
+        Returns:
+            current interval
+    
+     **************************************************************************/
+
+    timeval interval ( )
+    {
+        return this.interval_;
+    }
+    
+    /**************************************************************************
+    
         Returns:
             a time value between the current system time t and
-            t + this.interval.  
+            t + this.interval_.  
     
      **************************************************************************/
 
     timeval now ( )
-    out (t)
     {
-        Stderr(' ')(t.tv_sec)('\n').flush();
-    }
-    body
-    {
-        Stderr("\t" ~ typeof (this).stringof ~ ": ")(expired);
-        
         if (this.expired)
         {
             gettimeofday(&this.t, null);
+            
             this.expired = false;
-            with (this.timeval_add(this.t, this.interval))
+            
+            ulong interval_us = this.us(this.interval_),
+                  t_us        = this.us(this.t) / interval_us * interval_us,
+                  next_us     = t_us + interval_us;
+            
+            with (this.t)
             {
-                super.set(timespec(tv_sec, tv_usec * 1000));
+                tv_sec  = cast (uint) (t_us / 1_000_000);
+                tv_usec = cast (uint) (t_us % 1_000_000);
             }
+            
+            super.set(timespec(cast (uint) (next_us / 1_000_000),
+                               cast (uint) (next_us % 1_000_000) * 1_000));
         }
         
         return this.t;
@@ -125,12 +156,12 @@ class IntervalClock : ITimerEvent
     
     /**************************************************************************
     
-        Sets the time interval in seconds.
+        Sets the time interval_ in seconds.
         
-        To get the time interval in seconds use interval.tv_sec.
+        To get the time interval_ in seconds use interval_.tv_sec.
        
         Params:
-            s = new time interval in seconds
+            s = new time interval_ in seconds
             
         Returns:
             s
@@ -139,20 +170,20 @@ class IntervalClock : ITimerEvent
 
     public time_t interval_s ( time_t s )
     {
-        this.interval.tv_usec = 0;
-        return this.interval.tv_sec = s;
+        this.interval_.tv_usec = 0;
+        return this.interval_.tv_sec = s;
     }
     
     /**************************************************************************
     
         Returns:
-            the time interval in milliseconds
+            the time interval_ in milliseconds
     
      **************************************************************************/
 
     public ulong interval_ms ( )
     {
-        with (this.interval)
+        with (this.interval_)
         {
             return (tv_sec * 1000UL) + (tv_usec / 1000UL);
         }
@@ -160,10 +191,10 @@ class IntervalClock : ITimerEvent
     
     /**************************************************************************
     
-        Sets the time interval in milliseconds.
+        Sets the time interval_ in milliseconds.
         
         Params:
-            ms = new time interval in seconds
+            ms = new time interval_ in seconds
             
         Returns:
             ms
@@ -174,8 +205,8 @@ class IntervalClock : ITimerEvent
     {
         with (div(ms, 1000))
         {
-            this.interval.tv_sec  = quot;
-            this.interval.tv_usec = rem * 1_000;
+            this.interval_.tv_sec  = quot;
+            this.interval_.tv_usec = rem * 1_000;
         }
         
         return ms;
@@ -189,51 +220,35 @@ class IntervalClock : ITimerEvent
 
     protected bool handle_ ( ulong n )
     {
-        Stderr("\t" ~ typeof (this).stringof ~ " expired\n").flush();
         this.expired = true;
         return true;
     }
     
     /**************************************************************************
-    
-        Adds a and b.
+        
+        Converts t to a single integer value representing the number of
+        microseconds.
         
         Params:
-            a = timeval summand
-            b = timeval summand
-            
+            t = timeval value to convert to single microseconds value
+        
         Returns:
-            a + b
-        
-        In:
-            a.tv_usec + b.tv_usec must not overflow
-        
+            number of microseconds
+    
      **************************************************************************/
-
-    static timeval timeval_add ( timeval a, timeval b )
-    in                                                                          // overflow check
+    
+    static ulong us ( timeval t )
+    in
     {
-        auto usec = a.tv_usec + b.tv_usec;
-        assert (usec >= a.tv_usec);
-        assert (usec >= b.tv_usec);
-    }
-    out (c)
-    {
-        assert (c.tv_usec < 1_000_000);
+        static assert (cast (ulong) t.tv_sec.max <                              // overflow check
+                       (cast (ulong) t.tv_sec.max + 1) * 1_000_000);
+        
     }
     body
     {
-        timeval c;
-        
-        with (div(a.tv_usec + b.tv_usec, 1_000_000))
-        {
-            c.tv_sec  = a.tv_sec + b.tv_sec + quot;
-            c.tv_usec = rem;
-        }
-        
-        return c;
+        return t.tv_sec * 1_000_000UL + t.tv_usec;
     }
-    
+
     /**************************************************************************
     
         Returns:
