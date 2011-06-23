@@ -29,18 +29,41 @@ private import ocean.core.Array: copy;
 
 private import ocean.core.SmartUnion;
 
+private import tango.io.Stdout;
+
 /******************************************************************************/
 
-class MessageFiber
+interface MessageFiberControl
 {
-    union Message_
+    alias MessageFiber.Message Message;
+    
+    MessageFiber.Message suspend ( Message msg = Message.init );
+    MessageFiber.Message resume  ( Message msg = Message.init );
+    
+    bool running  ( );
+    bool waiting  ( );
+    bool finished ( );
+}
+
+/******************************************************************************/
+
+class MessageFiber : MessageFiberControl
+{
+    /**************************************************************************
+
+        Message union
+    
+     **************************************************************************/
+
+    private union Message_
     {
-        int    num;
-        void*  ptr;
-        Object obj;
+        int       num;
+        void*     ptr;
+        Object    obj;
+        Exception exc;
     }
     
-    alias SmartUnion!(Message_) Message;
+    public alias SmartUnion!(Message_) Message;
     
     /**************************************************************************
 
@@ -65,7 +88,7 @@ class MessageFiber
     
      **************************************************************************/
 
-    private Fiber fiber;
+    private Fiber           fiber;
     
     /**************************************************************************
 
@@ -75,14 +98,6 @@ class MessageFiber
 
     private Message         msg;
     
-    /**************************************************************************
-
-        Exception instance set by suspendThrow() and thrown by resume()
-    
-     **************************************************************************/
-    
-    private Exception       e = null;
-
     /**************************************************************************
 
         KilledException instance
@@ -126,8 +141,8 @@ class MessageFiber
 
     this ( void delegate ( ) coroutine, size_t sz )
     {
-        this.fiber = new Fiber(coroutine, sz);
-        this.e_killed     = new KilledException;
+        this.fiber    = new Fiber(coroutine, sz);
+        this.e_killed = new KilledException;
     }
     
     /**************************************************************************
@@ -163,7 +178,6 @@ class MessageFiber
             this.msg = this.msg.init;
         }
         
-//        this.fiber.call();
         return this.resume(msg);
     }
     
@@ -204,42 +218,7 @@ class MessageFiber
     
     /**************************************************************************
     
-        Suspends the fiber coroutine, makes the next start() or resume() call
-        throw e (instead of resuming) and waits until the fiber is resumed by
-        the second next resume() call or killed.
-        
-        Returns:
-            e when the fiber is resumed by the second-next call to start() or
-            resume().
-        
-        Throws:
-            KilledException if resumed by kill().
-        
-        In:
-            The fiber must be running (not waiting or finished).
-        
-     **************************************************************************/
-    
-    public Exception suspendThrow ( Exception e )
-    in
-    {
-        assert (e !is null);
-        assert (this.fiber.state == this.fiber.State.EXEC);
-    }
-    body
-    {
-        this.e = e;
-        this.suspend_();
-        return e;
-    }
-
-    /**************************************************************************
-    
         Resumes the fiber coroutine and waits until it is suspended or killed.
-        
-        However, if the fiber was just suspended by suspendThrow(), this call
-        will throw the exception instance passed to suspendThrow() instead of
-        resuming the fiber and the next call will resume it.
             
         Params:
             msg = message to be returned by the next suspend() call.
@@ -247,9 +226,6 @@ class MessageFiber
         Returns:
             When the fiber is suspended, the message passed to that suspend()
             call.
-        
-        Throws:
-            Exception if the fiber was just suspended by suspendThrow().
         
         In:
             The fiber must be waiting (not running or finished).
@@ -263,17 +239,9 @@ class MessageFiber
     }
     body
     {
-        if (this.e)
-        {
-            scope (exit) this.e = null;
-            throw this.e;
-        }
-        else
-        {
-            scope (exit) this.msg = msg;
-            this.fiber.call();
-            return this.msg;
-        }
+        scope (exit) this.msg = msg;
+        this.fiber.call();
+        return this.msg;
     }
 
     /**************************************************************************
@@ -369,5 +337,101 @@ class MessageFiber
             this.killed = false;
             throw this.e_killed;
         }
+    }
+    
+    /**************************************************************************
+        
+        The throwing version of resume(), Exception and suspendThrow() are
+        disabled until the resume() throw bug below is fixed.
+    
+     **************************************************************************/
+    
+    version (none):
+    
+    /**************************************************************************
+        
+        Resumes the fiber coroutine and waits until it is suspended or killed.
+        
+        However, if the fiber was just suspended by suspendThrow(), this call
+        will throw the exception instance passed to suspendThrow() instead of
+        resuming the fiber and the next call will resume it.
+            
+        Params:
+            msg = message to be returned by the next suspend() call.
+        
+        Returns:
+            When the fiber is suspended, the message passed to that suspend()
+            call.
+        
+        Throws:
+            Exception if the fiber was just suspended by suspendThrow().
+        
+        In:
+            The fiber must be waiting (not running or finished).
+        
+     **************************************************************************/
+
+    public Message resume ( Message msg = Message.init )
+    in
+    {
+        assert (this.fiber.state == this.fiber.State.HOLD);
+    }
+    body
+    {
+        if (this.e !is null)
+        {
+            scope (exit) this.e = null;
+            
+            /* FIXME: When the next line is executed, the caller does not see
+             *        an exception. Why?
+             */ 
+            
+            throw this.e;
+        }
+        else
+        {
+            scope (exit) this.msg = msg;
+            this.fiber.call();
+            return this.msg;
+        }
+    }
+    
+    /**************************************************************************
+
+        Exception instance set by suspendThrow() and thrown by resume()
+    
+     **************************************************************************/
+    
+    private Exception       e = null;
+
+    /**************************************************************************
+    
+        Suspends the fiber coroutine, makes the next start() or resume() call
+        throw e (instead of resuming) and waits until the fiber is resumed by
+        the second next resume() call or killed.
+        
+        Returns:
+            e when the fiber is resumed by the second-next call to start() or
+            resume().
+        
+        Throws:
+            KilledException if resumed by kill().
+        
+        In:
+            The fiber must be running (not waiting or finished).
+        
+     **************************************************************************/
+    
+    public Exception suspendThrow ( Exception e )
+    in
+    {
+        assert (e !is null);
+        assert (this.fiber.state == this.fiber.State.EXEC);
+    }
+    body
+    {
+        this.e = e;
+        this.suspend_();
+        return e;
     }
 }
