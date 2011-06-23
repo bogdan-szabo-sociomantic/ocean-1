@@ -54,23 +54,21 @@
 
 module ocean.io.select.protocol.chain.model.IChainSelectProtocol;
 
-
-
 /******************************************************************************
 
     Imports
 
  ******************************************************************************/
 
-private import ocean.io.select.protocol.model.ISelectProtocol;
+private import ocean.io.select.model.ISelectClient: IAdvancedSelectClient;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
-private import tango.io.model.IConduit: ISelectable, IConduit;
+private import ocean.io.select.protocol.generic.ErrnoIOException: IOError, IOWarning;
+
+private import tango.io.model.IConduit: ISelectable;
 
 debug private import tango.util.log.Trace;
-
-
 
 /******************************************************************************
 
@@ -78,7 +76,7 @@ debug private import tango.util.log.Trace;
 
  ******************************************************************************/
 
-abstract public class IChainSelectProtocol : ISelectProtocol
+abstract class IChainSelectProtocol : IAdvancedSelectClient
 {
     /**************************************************************************
 
@@ -200,6 +198,24 @@ abstract public class IChainSelectProtocol : ISelectProtocol
     
     /**************************************************************************
 
+        IOWarning exception instance 
+    
+     **************************************************************************/
+    
+    protected IOWarning warning_e;
+    
+    
+    /**************************************************************************
+    
+        IOError exception instance 
+    
+     **************************************************************************/
+    
+    protected IOError error_e;
+    
+
+    /**************************************************************************
+
         Constructor
         
         Params:
@@ -212,6 +228,9 @@ abstract public class IChainSelectProtocol : ISelectProtocol
     protected this ( ISelectable conduit, EpollSelectDispatcher dispatcher, size_t buffer_size )
     {
         super(conduit);
+        
+        this.warning_e = new IOWarning(this);
+        this.error_e   = new IOError(this);
         
         this.data = new void[buffer_size];
         this.data.length = 0;

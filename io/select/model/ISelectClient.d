@@ -358,104 +358,106 @@ abstract class ISelectClient
 
  ******************************************************************************/
 
-abstract class IAdvancedSelectClient : ISelectClient
+abstract class IAdvancedSelectClient : IAdvancedSelectClientWithoutFinalizer
 {
-    /**************************************************************************
-
-        EventInfo struct
-        
-        Contains a Selector event and methods to test for event flags set
-        
-        Example:
-                                                                             ---
-            auto info = EventInfo(EventInfo.Event.Read | EventInfo.Event.Hangup);
-            
-            bool x = info.read;         // x is true
-            bool y = info.write;        // y is false
-            bool z = info.hangup;       // z is true
-                                                                             ---
-        
-     **************************************************************************/
-
-    struct EventInfo
-    {
-        public Event code = Event.None;
-        
-        /**********************************************************************
-         
-            Returns:
-                true if the current code is clear or false if it contains an event
-        
-         **********************************************************************/
-
-        public bool none ( )
-        {
-            return !this.code;
-        }
-        
-        /**********************************************************************
-            
-            AND-Compares flags with the current code.
-            
-            Params:
-                flags = flags to compare
-                
-            Returns:
-                true if all bits of flags are set in the current code or false
-                otherwise
-        
-         **********************************************************************/
-        
-        public bool eventFlagsSet ( Event flags )
-        {
-            return !!(this.code & flags);
-        }
-        
-        /**********************************************************************
-        
-            Returns:
-                true if all bits of flags are set in the current code or false
-                otherwise
-        
-         **********************************************************************/
-
-        public bool eventFlagsSetT ( Event flags ) ( )
-        {
-            return this.eventFlagsSet(flags);
-        }
-        
-        public alias eventFlagsSetT!(Event.Read)          read;
-        public alias eventFlagsSetT!(Event.UrgentRead)    urgent_read;
-        public alias eventFlagsSetT!(Event.Write)         write;
-        public alias eventFlagsSetT!(Event.Error)         error;
-        public alias eventFlagsSetT!(Event.Hangup)        hangup;
-        public alias eventFlagsSetT!(Event.ReadHangup)    read_hangup;
-    }
-    
     /**************************************************************************/
 
-    public interface IFinalizer
+    interface IFinalizer
     {
         void finalize ( );
     }
     
+    /**************************************************************************
+
+        Interface instance
+
+     **************************************************************************/
+    
+    private IFinalizer       finalizer_        = null;
+    
+    /**************************************************************************
+
+        Constructor
+
+        Params:
+            conduit     = I/O device instance
+
+     **************************************************************************/
+    
+    protected this ( ISelectable conduit )
+    {
+        super(conduit);
+    }
+    
+    /**************************************************************************
+
+        Destructor
+
+     **************************************************************************/
+    
+    ~this ( )
+    {
+        this.finalizer_ = null;
+    }
+    
+    /**************************************************************************
+
+        Sets the Finalizer. May be set to null to disable finalizing.
+        
+        Params:
+            finalizer_ = IFinalizer instance
+    
+     **************************************************************************/
+    
+    public void finalizer ( IFinalizer finalizer_ )
+    {
+        this.finalizer_ = finalizer_;
+    }
+    
+    /**************************************************************************
+
+        Finalize method, called after this instance has been unregistered from
+        the Dispatcher.
+    
+     **************************************************************************/
+    
+    public override void finalize ( )
+    {
+        if (this.finalizer_)
+        {
+            this.finalizer_.finalize();
+        }
+    }
+}
+
+/******************************************************************************
+
+    ISelectClientWithFinalizer abstract class
+    
+    Provides setting an IFinalizer instance that implements the finalize()
+    method at run-time as well as an IErrorReporter implementing error().
+
+ ******************************************************************************/
+
+package abstract class IAdvancedSelectClientWithoutFinalizer : ISelectClient
+{
     /**************************************************************************/
 
-    public interface IErrorReporter
+    interface IErrorReporter
     {
-        void error ( Exception exception, EventInfo event );
+        void error ( Exception exception, Event event );
     }
 
     /**************************************************************************/
 
-    public interface IConnectionInfo
+    interface IConnectionInfo
     {
         void connectionInfo ( ref char[] buffer );
     }
 
     /**************************************************************************/
 
-    public interface ITimeoutReporter
+    interface ITimeoutReporter
     {
         void timeout ( );
     }
@@ -466,7 +468,6 @@ abstract class IAdvancedSelectClient : ISelectClient
 
      **************************************************************************/
 
-    private IFinalizer       finalizer_        = null;
     private IErrorReporter   error_reporter_   = null;
     private IConnectionInfo  connection_info_  = null;
     private ITimeoutReporter timeout_reporter_ = null;
@@ -482,7 +483,7 @@ abstract class IAdvancedSelectClient : ISelectClient
 
     protected this ( ISelectable conduit )
     {
-        super (conduit);
+        super(conduit);
     }
 
     /**************************************************************************
@@ -493,7 +494,6 @@ abstract class IAdvancedSelectClient : ISelectClient
 
     ~this ( )
     {
-        this.finalizer_        = null;
         this.error_reporter_   = null;
         this.connection_info_  = null;
         this.timeout_reporter_ = null;
@@ -509,25 +509,11 @@ abstract class IAdvancedSelectClient : ISelectClient
 
      **************************************************************************/
 
-    final public void timeout_reporter ( ITimeoutReporter timeout_reporter_ )
+    public void timeout_reporter ( ITimeoutReporter timeout_reporter_ )
     {
         this.timeout_reporter_ = timeout_reporter_;
     }
 
-    /**************************************************************************
-
-        Sets the Finalizer. May be set to null to disable finalizing.
-        
-        Params:
-            finalizer_ = IFinalizer instance
-    
-     **************************************************************************/
-    
-    final public void finalizer ( IFinalizer finalizer_ )
-    {
-        this.finalizer_ = finalizer_;
-    }
-    
     /**************************************************************************
 
         Sets the Error Reporter. May be set to null to disable error reporting.
@@ -537,7 +523,7 @@ abstract class IAdvancedSelectClient : ISelectClient
     
      **************************************************************************/
 
-    final public void error_reporter ( IErrorReporter error_reporter_ )
+    public void error_reporter ( IErrorReporter error_reporter_ )
     {
         this.error_reporter_ = error_reporter_;
     }
@@ -552,7 +538,7 @@ abstract class IAdvancedSelectClient : ISelectClient
     
      **************************************************************************/
     
-    final public void connection_info ( IConnectionInfo connection_info_ )
+    public void connection_info ( IConnectionInfo connection_info_ )
     {
         this.connection_info_ = connection_info_;
     }
@@ -564,7 +550,7 @@ abstract class IAdvancedSelectClient : ISelectClient
 
      **************************************************************************/
 
-    final override public void timeout ( )
+    override public void timeout ( )
     {
         if (this.timeout_reporter_)
         {
@@ -572,21 +558,6 @@ abstract class IAdvancedSelectClient : ISelectClient
         }
     }
 
-    /**************************************************************************
-
-        Finalize method, called after this instance has been unregistered from
-        the Dispatcher.
-    
-     **************************************************************************/
-    
-    final override public void finalize ( )
-    {
-        if (this.finalizer_)
-        {
-            this.finalizer_.finalize();
-        }
-    }
-    
     /**************************************************************************
 
         Error reporting method, called when an Exception is caught from
@@ -598,11 +569,11 @@ abstract class IAdvancedSelectClient : ISelectClient
         
      **************************************************************************/
 
-    final override public void error ( Exception exception, Event event )
+    override public void error ( Exception exception, Event event )
     {
         if (this.error_reporter_)
         {
-            this.error_reporter_.error(exception, EventInfo(event));
+            this.error_reporter_.error(exception, event);
         }
     }
     
@@ -615,7 +586,7 @@ abstract class IAdvancedSelectClient : ISelectClient
         
      **************************************************************************/
     
-    final override public void connectionInfo ( ref char[] buffer )
+    override public void connectionInfo ( ref char[] buffer )
     {
         if (this.connection_info_)
         {

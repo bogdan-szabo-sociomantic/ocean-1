@@ -53,7 +53,7 @@ class IFiberConnectionHandler : IConnectionHandler
     protected SelectReader reader;
     protected SelectWriter writer;
     
-    private MessageFiber fiber;
+    private MessageFiber fiber_;
     
     /**************************************************************************/
     
@@ -86,16 +86,13 @@ class IFiberConnectionHandler : IConnectionHandler
         Socket socket = new Socket;
         socket.socket.noDelay(true).blocking(false);
 
-        this.fiber = new MessageFiber(&this.handleConnection, 0x2000);
+        this.fiber_ = new MessageFiber(&this.handleConnection, 0x2000);
         
-        this.reader = new SelectReader(socket, this.fiber, epoll);
-        this.writer = new SelectWriter(socket, this.fiber, epoll);
-
-        this.reader.finalizer = this;
-        this.writer.finalizer = this;
+        this.reader = new SelectReader(socket, this.fiber_, epoll);
+        this.writer = new SelectWriter(socket, this.fiber_, epoll);
         
-        this.reader.error_reporter = super;
-        this.writer.error_reporter = super;
+        this.reader.error_reporter = this;
+        this.writer.error_reporter = this;
     }
     
     /***************************************************************************
@@ -112,51 +109,13 @@ class IFiberConnectionHandler : IConnectionHandler
     public void assign ( void delegate ( ISelectable ) assign_to_conduit )
     in
     {
-        assert (!this.fiber.running);
+        assert (!this.fiber_.running);
     }
     body
     {
         assign_to_conduit(this.reader.conduit);
         
-        this.fiber.start();
-    }
-    
-    /***************************************************************************
-    
-        Finalizer callback for reader and writer; resumes the fiber after a
-        read or write operation has finished.
-            
-    ***************************************************************************/
-
-    override void finalize ( )
-    in
-    {
-        assert (!this.fiber.running);
-    }
-    body
-    {
-        if (this.fiber.waiting)
-        {
-            this.fiber.resume();
-        }
-    }
-    
-    /***************************************************************************
-    
-        Error callback for reader and writer; aborts connection handling when a
-        read or write operation failed.
-            
-    ***************************************************************************/
-
-    override void error ( Exception exception, IAdvancedSelectClient.EventInfo event )
-    {
-        scope (exit) if (this.fiber.waiting)
-        {
-            this.fiber.kill();
-            super.finalize();
-        }
-        
-        super.error(exception, event);
+        this.fiber_.start();
     }
     
     /***************************************************************************
@@ -167,42 +126,16 @@ class IFiberConnectionHandler : IConnectionHandler
 
     abstract protected void handle ( );
     
-    /**************************************************************************
-
-        Resumes the fiber coroutine.
+    /***************************************************************************
+    
+        Returns:
+            the fiber
         
-        In:
-            The fiber must be waiting (suspended/ceding).
-    
-     **************************************************************************/
-    
-    protected void resume ( )
-    in
-    {
-        assert (this.fiber.waiting);
-    }
-    body
-    {
-        this.fiber.resume();
-    }
-    
-    /**************************************************************************
+    ***************************************************************************/
 
-        Resumes the fiber coroutine.
-        
-        In:
-            The fiber must be running (called/executing).
-    
-     **************************************************************************/
-
-    protected void suspend ( )
-    in
+    protected MessageFiberControl fiber ( )
     {
-        assert (this.fiber.running);
-    }
-    body
-    {
-        this.fiber.suspend();
+        return this.fiber_;
     }
     
     /***************************************************************************
@@ -217,11 +150,9 @@ class IFiberConnectionHandler : IConnectionHandler
         {
             this.handle();
             this.closeConnection();
-            
-            super.finalize();
         }
-        catch (MessageFiber.KilledException) {} 
-        catch
+        catch {} 
+        finally
         {
             super.finalize();
         }

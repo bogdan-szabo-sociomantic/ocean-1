@@ -48,7 +48,9 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
 
     public alias .EpollSelectDispatcher EpollSelectDispatcher;
 
-
+    
+    protected alias IAdvancedSelectClient.Event Event;
+    
     /***************************************************************************
 
         Alias for a finalizer delegate, which can be specified externally and is
@@ -56,7 +58,7 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
 
     ***************************************************************************/
 
-    public alias void delegate ( typeof (this) ) FinalizeDg;
+    public alias void delegate ( typeof (this) instance ) FinalizeDg;
 
 
     /***************************************************************************
@@ -76,7 +78,7 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
     
     ***************************************************************************/
 
-    public alias void delegate ( Exception, IAdvancedSelectClient.EventInfo ) ErrorDg;
+    public alias void delegate ( Exception exception, Event event ) ErrorDg;
 
 
     /***************************************************************************
@@ -200,7 +202,7 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
 
     ***************************************************************************/
 
-    public void error ( Exception exception, IAdvancedSelectClient.EventInfo event )
+    public void error ( Exception exception, Event event )
     {
         if ( this.error_dg_ )
         {

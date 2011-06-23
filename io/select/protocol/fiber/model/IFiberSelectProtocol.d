@@ -21,27 +21,53 @@ module ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
  ******************************************************************************/
 
-private import ocean.io.select.protocol.model.ISelectProtocol;
+private import ocean.io.select.model.IFiberSelectClient;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
 private import ocean.io.select.protocol.fiber.model.MessageFiber;
 
+private import ocean.io.select.protocol.generic.ErrnoIOException: IOError, IOWarning;
+
+private import tango.io.Stdout;
+
 /******************************************************************************/
 
-abstract class IFiberSelectProtocol : ISelectProtocol
+abstract class IFiberSelectProtocol : IFiberSelectClient
 {
     protected alias .MessageFiber           Fiber;
     protected alias .EpollSelectDispatcher  EpollSelectDispatcher;
     
+    public alias .IOWarning IOWarning;
+    public alias .IOError   IOError;
+    
     /**************************************************************************
 
-        Fiber (may be shared across instances of this class)
+        Default I/O data buffer size (if a buffer is actually involved; this
+        depends on the subclass implementation)
     
      **************************************************************************/
-
-    private Fiber fiber;
     
+    const buffer_size = 0x4000;
+
+    /**************************************************************************
+
+        IOWarning exception instance 
+
+     **************************************************************************/
+
+    protected IOWarning warning_e;
+
+
+    /**************************************************************************
+
+        IOError exception instance 
+
+     **************************************************************************/
+
+    protected IOError error_e;
+
+
     /**************************************************************************
 
         Epoll select dispatcher instance
@@ -70,13 +96,10 @@ abstract class IFiberSelectProtocol : ISelectProtocol
 
     this ( ISelectable conduit, Fiber fiber, EpollSelectDispatcher epoll )
     {
-        super(conduit);
-        
-        this.warning_e = new IOWarning;
-        this.error_e   = new IOError;
-        
-        this.fiber = fiber;
-        this.epoll = epoll;
+        super(conduit, fiber);
+        this.warning_e = new IOWarning(this);
+        this.error_e   = new IOError(this);
+        this.epoll     = epoll;
     }
     
     /**************************************************************************
@@ -106,7 +129,14 @@ abstract class IFiberSelectProtocol : ISelectProtocol
     {
         this.events_reported = events;
         
-        return !!this.fiber.resume().num;
+        with (this.fiber.resume()) switch (active)
+        {
+            case active.num:
+                return !!num;
+                
+            case active.exc:
+                throw exc;
+        }
     }
     
     /**************************************************************************
@@ -132,14 +162,14 @@ abstract class IFiberSelectProtocol : ISelectProtocol
     {
         this.epoll.register(this);
         
-        try with (this.fiber)
+        try
         {
             for (bool more = true; more; more = this.transmit(this.events_reported))
             {
-                suspend(Message(true));
+                this.fiber.suspend(fiber.Message(true));                        // resumed from handle()
             }
             
-            suspend(Message(false));
+            this.fiber.suspend(fiber.Message(false));                           // resumed from finalize()
         }
         catch (MessageFiber.KilledException e)
         {
@@ -147,7 +177,9 @@ abstract class IFiberSelectProtocol : ISelectProtocol
         }
         catch (Exception e)
         {
-            throw this.fiber.suspendThrow(e);
+            this.fiber.suspend(fiber.Message(e));
+             
+            throw e;
         }
     }
     

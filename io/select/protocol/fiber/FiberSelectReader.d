@@ -26,9 +26,9 @@ module ocean.io.select.protocol.fiber.FiberSelectReader;
 
 private import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
-private import tango.io.model.IConduit: InputStream;
+private import ocean.io.select.protocol.generic.ReadConduit;
 
-private import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK;
+private import tango.io.model.IConduit: InputStream;
 
 /******************************************************************************/
 
@@ -57,6 +57,8 @@ class FiberSelectReader : IFiberSelectProtocol
      **************************************************************************/
 
     private void[] data;
+    
+    private ReadConduit           readConduit;
     
     /**************************************************************************
 
@@ -99,13 +101,13 @@ class FiberSelectReader : IFiberSelectProtocol
     this ( ISelectable conduit, Fiber fiber, EpollSelectDispatcher epoll, size_t buffer_size = super.buffer_size )
     in
     {
-        assert (conduit !is null);
         assert ((cast (InputStream) conduit) !is null);
     }
     body
     {
         super(conduit, fiber, epoll);
         this.data = new void[buffer_size];
+        this.readConduit = new ReadConduit(cast (InputStream) conduit, super.warning_e, super.error_e);
     }
     
     /**************************************************************************
@@ -293,7 +295,7 @@ class FiberSelectReader : IFiberSelectProtocol
     }
     body
     {
-        size_t received = super.readConduit(this.data[this.available .. $], events);
+        size_t received = this.readConduit(this.data[this.available .. $], events);
         
         this.available += received;
         

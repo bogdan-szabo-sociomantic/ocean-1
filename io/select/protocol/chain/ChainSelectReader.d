@@ -26,20 +26,13 @@ module ocean.io.select.protocol.chain.ChainSelectReader;
 
 private import ocean.io.select.protocol.chain.model.IChainSelectProtocol;
 
+private import ocean.io.select.protocol.generic.ReadConduit;
+
 private import ocean.io.select.EpollSelectDispatcher;
 
-private import tango.io.selector.model.ISelector: Event;
-
-private import tango.io.model.IConduit:           ISelectable, InputStream;
-
-private import tango.net.device.Berkeley;
-
-private import tango.core.Exception:              IOException;
-private import ocean.core.Exception:              assertEx;
+private import tango.io.model.IConduit: ISelectable, InputStream;
 
 private import tango.stdc.errno;
-
-
 
 debug   private import tango.util.log.Trace;
 
@@ -74,21 +67,35 @@ class ChainSelectReader : IChainSelectProtocol
      **************************************************************************/
 
     private ReceivedCallback on_received;
+    
+    /**************************************************************************
 
+        Data receiver
+    
+     **************************************************************************/
+
+    private ReadConduit      readConduit;
+    
     /**************************************************************************
 
         Constructor
         
         Params:
-            conduit     = Conduit to register events for
+            conduit     = Input conduit
             dispatcher  = Dispatcher to register conduit for events
             buffer_size = Data buffer size
     
      **************************************************************************/
     
     public this ( ISelectable conduit, EpollSelectDispatcher dispatcher, size_t buffer_size )
+    in
+    {
+        assert ((cast (InputStream) conduit) !is null);
+    }
+    body
     {
         super(conduit, dispatcher, buffer_size);
+        this.readConduit = new ReadConduit(cast (InputStream) conduit, super.warning_e, super.error_e);
     }
     
     /**************************************************************************
@@ -96,14 +103,20 @@ class ChainSelectReader : IChainSelectProtocol
         Constructor; uses the default data buffer size
         
         Params:
-            conduit     = Conduit to register events for
+            conduit     = Input conduit
             dispatcher  = Dispatcher to register conduit for events
     
      **************************************************************************/
     
     public this ( ISelectable conduit, EpollSelectDispatcher dispatcher )
+    in
+    {
+        assert ((cast (InputStream) conduit) !is null);
+    }
+    body
     {
         super(conduit, dispatcher);
+        this.readConduit = new ReadConduit(cast (InputStream) conduit, super.warning_e, super.error_e);
     }
 
     /**************************************************************************
@@ -177,7 +190,7 @@ class ChainSelectReader : IChainSelectProtocol
     {
         super.data.length = super.buffer_size;
 
-        super.data.length = super.readConduit(super.data, events);
+        super.data.length = this.readConduit(super.data, events);
 
         debug (Raw) Trace.formatln(">>> {:X2}", super.data);
 
