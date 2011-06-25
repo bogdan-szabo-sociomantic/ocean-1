@@ -166,15 +166,18 @@ struct TwoWayMap ( A, B, bool Indexed = false )
     /***************************************************************************
 
         Invariant checking that the length of both mappings should always be
-        identical, and that the indices of mapped items are consistent.
-
+        identical.
+        Use -debug=TwoWayMapFullConsistencyCheck to check that the indices of
+        mapped items are consistent, too (this check may significantly impact
+        performance).
+        
     ***************************************************************************/
 
     invariant
     {
         assert(this.a_to_b.length == this.b_to_a.length);
 
-        static if ( Indexed )
+        debug ( TwoWayMapFullConsistencyCheck ) static if ( Indexed )
         {
             foreach ( a, b; this.a_to_b )
             {
