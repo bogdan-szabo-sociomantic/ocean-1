@@ -69,6 +69,8 @@ private import ocean.db.ebtree.EBTreeMap;
 
 private import tango.core.Traits;
 
+private import tango.stdc.time: time_t;
+
 debug private import tango.util.log.Trace;
 
 
@@ -136,7 +138,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
     
         ***********************************************************************/
 
-        Value setValue ( Value value )
+        ubyte[] setValue ( Value value )
         {
             return this.value.setValue(value);
         }
@@ -159,7 +161,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
             dst.length = src.length;
             return dst[] = src[];
         }
-        else static Value setValue ( Value dst, Value src )
+        else static ubyte[] setValue ( Value dst, Value src )
         {
             return dst[] = src[];
         }
@@ -281,8 +283,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
             return true;
         }
     }
-
-
+    
     /***************************************************************************
 
         Gets an item from the cache. A pointer to the item is returned, if
@@ -302,19 +303,10 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
 
     public Value* get ( hash_t key, lazy time_t access_time )
     {
-        auto item = key in this.key_to_item;
-        if ( item is null ) // Item not in cache
-        {
-            return null;
-        }
-        else
-        {
-            this.setAccessTime(*item, access_time);
-
-            return &this.items[item.index].value;
-        }
+        CacheItem* item = this.get_(this.mapItem(key), access_time);
+        
+        return (item !is null)? &item.value : null;
     }
-    
     
     /***************************************************************************
 
@@ -367,8 +359,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
 
     public bool exists ( hash_t key )
     {
-        auto item = key in this.key_to_item;
-        return item !is null;
+        return this.mapItem(key) !is null;
     }
 
 
@@ -442,27 +433,10 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
 
     public bool remove ( hash_t key )
     {
-        auto item = key in this.key_to_item;
-        if ( item is null ) // item not in cache
-        {
-            return false;
-        }
-        else
-        {
-            // Remove item in items list
-            this.removeItem(key, item.index);
-
-            // Remove item in tree map
-            this.time_to_index.remove(item.time_mapping);
-
-            // Remove key -> item mapping
-            this.key_to_item.remove(key);
-
-            return true;
-        }
+        return this.remove_(key, this.mapItem(key));
     }
-
-
+    
+    
     /***************************************************************************
 
         Removes all items from the cache.
@@ -489,6 +463,86 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
         return this.insert;
     }
 
+
+    /***************************************************************************
+        
+        Obtains the map item for key.
+        
+        Params:
+            key = key to lookup
+        
+        Returns:
+            pointer to map item or null if not found
+    
+    ***************************************************************************/
+
+    protected MapItem* mapItem ( hash_t key )
+    {
+        return key in this.key_to_item;
+    }
+    
+    /***************************************************************************
+    
+        Obtains the cache item that corresponds to map_item and updates the
+        access time.
+        
+        Params:
+            map_item    = map item (may be null)
+            access_time = access time
+        
+        Returns:
+            pointer to corresponding cache item or null if map_item is null
+    
+    ***************************************************************************/
+
+    protected CacheItem* get_ ( MapItem* map_item, lazy time_t access_time )
+    {
+        if ( map_item !is null )
+        {
+            this.setAccessTime(*map_item, access_time);
+
+            return &this.items[map_item.index];
+        }
+        else // Item not in cache
+        {
+            return null;
+        }
+    }
+    
+    /***************************************************************************
+    
+        Removes the cache item that corresponds to key and map_item.
+        
+        Params:
+            key      = key of item to remove
+            map_item = map item (may be null)
+        
+        Returns:
+            true if removed or false if map_item is null and nothing has been
+            done.
+    
+    ***************************************************************************/
+
+    protected bool remove_ ( hash_t key, MapItem* map_item )
+    {
+        if ( map_item is null ) // item not in cache
+        {
+            return false;
+        }
+        else
+        {
+            // Remove item in items list
+            this.removeItem(key, map_item.index);
+
+            // Remove item in tree map
+            this.time_to_index.remove(map_item.time_mapping);
+
+            // Remove key -> item mapping
+            this.key_to_item.remove(key);
+
+            return true;
+        }
+    }
 
     /***************************************************************************
 
@@ -597,6 +651,135 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
     }
 }
 
+/*******************************************************************************
+
+    Data cache class template with element life time limitation. Stores items of
+    raw data, either of fixed or dynamic size. When the life time of an item,
+    which is the difference between its creation time and the current wall clock
+    time, has expired, it is removed automatically on the next access.
+    
+    Template params:
+        ValueSize = size of a data item. If 0 is specified (the default), the
+            items stored in the cache are of variable (dynamic) size
+
+*******************************************************************************/
+
+class ExpiringCache ( size_t ValueSize = 0 ) : Cache!(ValueSize, true)
+{
+    /***************************************************************************
+    
+        Life time for all items in seconds; may be changed at any time.
+        This value must be at least 1.
+    
+    ***************************************************************************/
+
+    public time_t lifetime;
+    
+    /***************************************************************************
+    
+        Invariant
+    
+    ***************************************************************************/
+
+    invariant ( )
+    {
+        assert (this.lifetime >= 0);
+    }
+    
+    /***************************************************************************
+
+        Constructor.
+    
+        Params:
+            max_items = maximum number of items in the cache, set once, cannot
+                        be changed
+            lifetime  = life time for all items in seconds; may be changed at
+                        any time. This value must be at least 1.
+    
+    ***************************************************************************/
+
+   public this ( size_t max_items, time_t lifetime )
+    {
+        super(max_items);
+        
+        this.lifetime = lifetime;
+    }
+    
+   /***************************************************************************
+    
+        Gets an item from the cache. A pointer to the item is returned, if
+        found. If the item exists in the cache, its access time is updated.
+        If the item life time has expired, it is removed.
+    
+        Note that, if you change the value pointed to by the returned pointer,
+        the create time will not be updated. 
+
+        Params:
+            key = key to lookup
+            access_time = new access time to set for item
+
+        Returns:
+            pointer to item value, may be null if either the key was not found
+            or the item has been removed because its life time has expired.
+    
+    ***************************************************************************/
+
+    override Value* get ( hash_t key, lazy time_t access_time )
+    {
+        CacheItem* cache_item = this.getRemove(key, access_time);
+        
+        return cache_item? &cache_item.value : null;
+    }
+    
+    /***************************************************************************
+
+        Checks whether an item exists in the cache and updates its access time.
+        If the life time of the item has expired, it is removed.
+    
+        Params:
+            key = key to lookup
+    
+        Returns:
+            true if item exists in cache and its life time is not yet expired.
+    
+    ***************************************************************************/
+
+    public bool exists ( hash_t key, time_t access_time )
+    {
+        return this.getRemove(key, access_time) !is null;
+    }
+    
+    /***************************************************************************
+    
+        Obtains the cache item for key
+        
+        Params:
+            key      = key of item to remove
+            map_item = map item (may be null)
+        
+        Returns:
+            true if removed or false if map_item is null and nothing has been
+            done.
+    
+    ***************************************************************************/
+
+    private CacheItem* getRemove ( hash_t key, time_t access_time )
+    {
+        MapItem*   map_item    = super.mapItem(key);
+        CacheItem* cache_item  = super.get_(map_item, access_time);
+        
+        if (cache_item)
+        {
+            if (cache_item.create_time > access_time || access_time - cache_item.create_time >= this.lifetime)
+            {
+                super.remove_(key, map_item);
+                cache_item = null;
+            }
+        }
+        
+        return cache_item;
+    }
+}
 
 
 /*******************************************************************************
@@ -739,7 +922,7 @@ class Cache ( T, bool TrackCreateTimes = false ) : Cache!(T.sizeof, TrackCreateT
     }
 }
 
-
+debug = OceanUnitTest;
 
 /*******************************************************************************
 
@@ -755,108 +938,159 @@ debug ( OceanUnitTest )
 
         // ---------------------------------------------------------------------
         // Test of static sized cache
-    
-        struct Data
+        
         {
-            int x;
+            struct Data
+            {
+                int x;
+            }
+            
+            scope static_cache = new Cache!(Data)(2);
+            assert(static_cache.length == 0);
+        
+            static_cache.putItem(1, time, Data(23));
+            assert(static_cache.length == 1);
+            assert(static_cache.exists(1));
+            assert(static_cache.getItem(1, time).x == 23);
+        
+            static_cache.putItem(2, time + 1, Data(24));
+            assert(static_cache.length == 2);
+            assert(static_cache.exists(2));
+            assert(static_cache.getItem(2, time + 1).x == 24);
+        
+            static_cache.putItem(2, time + 1, Data(25));
+            assert(static_cache.length == 2);
+            assert(static_cache.exists(2));
+            assert(static_cache.getItem(2, time + 1).x == 25);
+        
+            static_cache.putItem(3, time + 2, Data(26));
+            assert(static_cache.length == 2);
+            assert(!static_cache.exists(1));
+            assert(static_cache.exists(2));
+            assert(static_cache.exists(3));
+            assert(static_cache.getItem(3, time + 2).x == 26);
+        
+            static_cache.putItem(4, time + 3, Data(27));
+            assert(static_cache.length == 2);
+            assert(!static_cache.exists(1));
+            assert(!static_cache.exists(2));
+            assert(static_cache.exists(3));
+            assert(static_cache.exists(4));
+            assert(static_cache.getItem(4, time + 3).x == 27);
+        
+            static_cache.clear();
+            assert(static_cache.length == 0);
+        
+            static_cache.putItem(1, time, Data(23));
+            assert(static_cache.length == 1);
+            assert(static_cache.exists(1));
+            assert(static_cache.getItem(1, time).x == 23);
+        
+            static_cache.putItem(2, time + 1, Data(24));
+            assert(static_cache.length == 2);
+            assert(static_cache.exists(2));
+            assert(static_cache.getItem(2, time + 1).x == 24);
+        
+            static_cache.remove(1);
+            assert(static_cache.length == 1);
+            assert(!static_cache.exists(1));
+            assert(static_cache.exists(2));
         }
     
-        auto static_cache = new Cache!(Data)(2);
-        assert(static_cache.length == 0);
-    
-        static_cache.put(1, time, Data(23));
-        assert(static_cache.length == 1);
-        assert(static_cache.exists(1));
-        assert(static_cache.get(1, time).x == 23);
-    
-        static_cache.put(2, time + 1, Data(24));
-        assert(static_cache.length == 2);
-        assert(static_cache.exists(2));
-        assert(static_cache.get(2, time + 1).x == 24);
-    
-        static_cache.put(2, time + 1, Data(25));
-        assert(static_cache.length == 2);
-        assert(static_cache.exists(2));
-        assert(static_cache.get(2, time + 1).x == 25);
-    
-        static_cache.put(3, time + 2, Data(26));
-        assert(static_cache.length == 2);
-        assert(!static_cache.exists(1));
-        assert(static_cache.exists(2));
-        assert(static_cache.exists(3));
-        assert(static_cache.get(3, time + 2).x == 26);
-    
-        static_cache.put(4, time + 3, Data(27));
-        assert(static_cache.length == 2);
-        assert(!static_cache.exists(1));
-        assert(!static_cache.exists(2));
-        assert(static_cache.exists(3));
-        assert(static_cache.exists(4));
-        assert(static_cache.get(4, time + 3).x == 27);
-    
-        static_cache.clear;
-        assert(static_cache.length == 0);
-    
-        static_cache.put(1, time, Data(23));
-        assert(static_cache.length == 1);
-        assert(static_cache.exists(1));
-        assert(static_cache.get(1, time).x == 23);
-    
-        static_cache.put(2, time + 1, Data(24));
-        assert(static_cache.length == 2);
-        assert(static_cache.exists(2));
-        assert(static_cache.get(2, time + 1).x == 24);
-    
-        static_cache.remove(1);
-        assert(static_cache.length == 1);
-        assert(!static_cache.exists(1));
-        assert(static_cache.exists(2));
-    
-    
+        // ---------------------------------------------------------------------
+        // Test of expiring cache
+        
+        {
+            ubyte[] data1 = cast(ubyte[])"hello world";
+            ubyte[] data2 = cast(ubyte[])"goodbye world";
+            ubyte[] data3 = cast(ubyte[])"hallo welt";
+            
+            time_t t = 0;
+            
+            scope expiring_cache = new ExpiringCache!()(4, 10);
+            assert(expiring_cache.length == 0);
+        
+            expiring_cache.put(1, t++, data1);
+            assert(expiring_cache.length == 1);
+            assert(expiring_cache.exists(1, t++));
+            {
+                ubyte[]* data = expiring_cache.get(1, t++);
+                assert(data);
+                assert(*data == data1);
+            }
+            
+            assert(t <= 5);
+            t = 5;
+            
+            expiring_cache.put(2, t++, data2);
+            assert(expiring_cache.length == 2);
+            assert(expiring_cache.exists(2, t++));
+            {
+                ubyte[]* data = expiring_cache.get(2, t++);
+                assert(data);
+                assert(*data == data2);
+            }
+            
+            assert(t <= 10);
+            t = 10;
+            
+            assert(!expiring_cache.exists(1, t++));
+            
+            assert(t <= 17);
+            t = 17;
+            
+            {
+                ubyte[]* data = expiring_cache.get(2, t++);
+                assert(!data);
+            }
+        }
+        
         // ---------------------------------------------------------------------
         // Test of dynamic sized cache
-    
-        ubyte[] data1 = cast(ubyte[])"hello world";
-        ubyte[] data2 = cast(ubyte[])"goodbye world";
-        ubyte[] data3 = cast(ubyte[])"hallo welt";
-    
-        auto dynamic_cache = new Cache!()(2);
-        assert(dynamic_cache.length == 0);
-    
-        dynamic_cache.put(1, time, data1);
-        assert(dynamic_cache.exists(1));
-        assert(*dynamic_cache.get(1, time) == data1);
-    
-        dynamic_cache.put(2, time + 1, data2);
-        assert(dynamic_cache.exists(1));
-        assert(dynamic_cache.exists(2));
-        assert(*dynamic_cache.get(1, time) == data1);
-        assert(*dynamic_cache.get(2, time + 1) == data2);
-    
-        dynamic_cache.put(3, time + 2, data3);
-        assert(!dynamic_cache.exists(1));
-        assert(dynamic_cache.exists(2));
-        assert(dynamic_cache.exists(3));
-        assert(*dynamic_cache.get(2, time + 1) == data2);
-        assert(*dynamic_cache.get(3, time + 2) == data3);
-    
-        dynamic_cache.clear;
-        assert(dynamic_cache.length == 0);
-    
-        dynamic_cache.put(1, time, data1);
-        assert(dynamic_cache.length == 1);
-        assert(dynamic_cache.exists(1));
-        assert(*dynamic_cache.get(1, time) == data1);
-    
-        dynamic_cache.put(2, time + 1, data2);
-        assert(dynamic_cache.length == 2);
-        assert(dynamic_cache.exists(2));
-        assert(*dynamic_cache.get(2, time + 1) == data2);
-    
-        dynamic_cache.remove(1);
-        assert(dynamic_cache.length == 1);
-        assert(!dynamic_cache.exists(1));
-        assert(dynamic_cache.exists(2));
+        
+        {
+            ubyte[] data1 = cast(ubyte[])"hello world";
+            ubyte[] data2 = cast(ubyte[])"goodbye world";
+            ubyte[] data3 = cast(ubyte[])"hallo welt";
+        
+            scope dynamic_cache = new Cache!()(2);
+            assert(dynamic_cache.length == 0);
+        
+            dynamic_cache.put(1, time, data1);
+            assert(dynamic_cache.exists(1));
+            assert(*dynamic_cache.get(1, time) == data1);
+        
+            dynamic_cache.put(2, time + 1, data2);
+            assert(dynamic_cache.exists(1));
+            assert(dynamic_cache.exists(2));
+            assert(*dynamic_cache.get(1, time) == data1);
+            assert(*dynamic_cache.get(2, time + 1) == data2);
+        
+            dynamic_cache.put(3, time + 2, data3);
+            assert(!dynamic_cache.exists(1));
+            assert(dynamic_cache.exists(2));
+            assert(dynamic_cache.exists(3));
+            assert(*dynamic_cache.get(2, time + 1) == data2);
+            assert(*dynamic_cache.get(3, time + 2) == data3);
+        
+            dynamic_cache.clear;
+            assert(dynamic_cache.length == 0);
+        
+            dynamic_cache.put(1, time, data1);
+            assert(dynamic_cache.length == 1);
+            assert(dynamic_cache.exists(1));
+            assert(*dynamic_cache.get(1, time) == data1);
+        
+            dynamic_cache.put(2, time + 1, data2);
+            assert(dynamic_cache.length == 2);
+            assert(dynamic_cache.exists(2));
+            assert(*dynamic_cache.get(2, time + 1) == data2);
+        
+            dynamic_cache.remove(1);
+            assert(dynamic_cache.length == 1);
+            assert(!dynamic_cache.exists(1));
+            assert(dynamic_cache.exists(2));
+        }
     }
 }
 
