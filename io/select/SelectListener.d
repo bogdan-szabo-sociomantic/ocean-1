@@ -66,8 +66,7 @@ module ocean.io.select.SelectListener;
 
  ******************************************************************************/
 
-private import ocean.io.select.EpollSelectDispatcher,
-               ocean.io.select.model.ISelectClient,
+private import ocean.io.select.model.ISelectClient,
                ocean.io.select.model.IConnectionHandler;
 
 private import ocean.core.ObjectPool;
@@ -94,14 +93,6 @@ abstract class ISelectListener : ISelectClient
 {
     /**************************************************************************
 
-        SelectDispatcher instance
-    
-     **************************************************************************/
-    
-    private EpollSelectDispatcher dispatcher;
-    
-    /**************************************************************************
-
         Termination flag; true prevents accepting new connections
     
      **************************************************************************/
@@ -123,35 +114,14 @@ abstract class ISelectListener : ISelectClient
         
      **************************************************************************/
     
-    protected this ( IPv4Address address, EpollSelectDispatcher dispatcher,
-                     int backlog = 32, bool reuse = true )
+    protected this ( IPv4Address address, int backlog = 32, bool reuse = true )
     {
         auto socket = new ServerSocket(address, backlog, reuse);
         socket.socket.noDelay(true).blocking(false);
         
         super(socket);
-        
-        this.dispatcher = dispatcher;
-        
-        dispatcher.register(this);
     }
 
-    /**************************************************************************
-
-        Runs the server event loop.
-        
-        Returns:
-            this instance
-        
-     **************************************************************************/
-    
-    final typeof (this) eventLoop ( )
-    {
-        this.dispatcher.eventLoop();
-        
-        return this;
-    }
-    
     /**************************************************************************
     
         Returns the I/O events to register the device for.
@@ -339,8 +309,7 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListener
     
      **************************************************************************/
 
-    private ObjectPool!(T, EpollSelectDispatcher, IConnectionHandler.FinalizeDg,
-                        Args) receiver_pool;
+    private ObjectPool!(T, IConnectionHandler.FinalizeDg, Args) receiver_pool;
 
     /**************************************************************************
 
@@ -358,10 +327,9 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListener
         
      **************************************************************************/
 
-    this ( char[] address, ushort port, EpollSelectDispatcher dispatcher,
-           Args args, int backlog = 32, bool reuse = true )
+    this ( char[] address, ushort port, Args args, int backlog = 32, bool reuse = true )
     {
-        this(new IPv4Address(address, port), dispatcher, args, backlog, reuse);
+        this(new IPv4Address(address, port), args, backlog, reuse);
     }
     
     /**************************************************************************
@@ -379,10 +347,9 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListener
         
      **************************************************************************/
 
-    this ( ushort port, EpollSelectDispatcher dispatcher,
-           Args args, int backlog = 32, bool reuse = true )
+    this ( ushort port, Args args, int backlog = 32, bool reuse = true )
     {
-        this(new IPv4Address(port), dispatcher, args, backlog, reuse);
+        this(new IPv4Address(port), args, backlog, reuse);
     }
 
     /**************************************************************************
@@ -400,14 +367,11 @@ class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListener
         
      **************************************************************************/
 
-    this ( IPv4Address address, EpollSelectDispatcher dispatcher,
-           Args args, int backlog = 32, bool reuse = true )
+    this ( IPv4Address address, Args args, int backlog = 32, bool reuse = true )
     {
-        super(address, dispatcher, backlog, reuse);
+        super(address, backlog, reuse);
         
-        this.receiver_pool = this.receiver_pool.newPool(dispatcher,
-                                                        &this.returnToPool,
-                                                        args);
+        this.receiver_pool = this.receiver_pool.newPool(&this.returnToPool, args);
     }
     
     /**************************************************************************
