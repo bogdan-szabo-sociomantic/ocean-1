@@ -10,7 +10,7 @@
     
  ******************************************************************************/
 
-module io.select.protocol.generic.ErrnoIOException;
+module ocean.io.select.protocol.generic.ErrnoIOException;
 
 /******************************************************************************
 
