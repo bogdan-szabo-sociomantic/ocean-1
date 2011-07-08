@@ -448,7 +448,7 @@ abstract class IChainSelectProtocol : IAdvancedSelectClient
         {
             bool more = this.handle_(events) || this.pending;
 
-            status = more ? status.Select : this.finalize();
+            status = more ? status.Select : this.finishChain();
         }
         while (status == status.Continue);
 
@@ -569,7 +569,7 @@ abstract class IChainSelectProtocol : IAdvancedSelectClient
     
      **************************************************************************/
 
-    private FinalizerStatus finalize ( )
+    private FinalizerStatus finishChain ( )
     {
         bool have_finalizer = !!this.session_finalizer;
 
