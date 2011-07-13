@@ -30,6 +30,7 @@ private import ocean.net.http2.HttpRequest,
 
 private import ocean.net.http2.consts.StatusCodes: StatusCode;
 private import ocean.net.http2.consts.HttpMethod: HttpMethod;
+private import ocean.net.http2.consts.HeaderFieldNames;
 
 private import ocean.io.select.model.IFiberConnectionHandler,
                ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
@@ -76,7 +77,7 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
         
      **************************************************************************/
 
-    protected uint keep_alive_maxnum = 0;
+    protected uint keep_alive_maxnum = 4;
     
     /**************************************************************************
 
@@ -111,8 +112,8 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
             
      **************************************************************************/
 
-    public this ( EpollSelectDispatcher dispatcher, FinalizeDg finalizer,
-                  HttpMethod[] supported_methods ... )
+    protected this ( EpollSelectDispatcher dispatcher, FinalizeDg finalizer,
+                     HttpMethod[] supported_methods ... )
     {
         this(dispatcher, finalizer, new HttpRequest, new HttpResponse, supported_methods);
     }
@@ -123,17 +124,17 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
         
         Params:
             dispatcher        = select dispatcher instance to register to
-            request           = request message parser 
-            response          = 
+            request           = request message parser
+            response          = response message generator
             finalizer         = called when the connection is shut down
                                 (optional, may be null)
             supported_methods = list of supported HTTP methods
             
      **************************************************************************/
 
-    public this ( EpollSelectDispatcher dispatcher, FinalizeDg finalizer,
-                  HttpRequest request, HttpResponse response,
-                  HttpMethod[] supported_methods ... )
+    protected this ( EpollSelectDispatcher dispatcher, FinalizeDg finalizer,
+                     HttpRequest request, HttpResponse response,
+                     HttpMethod[] supported_methods ... )
     {
         super(dispatcher, finalizer);
         
@@ -162,70 +163,86 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
             or false if it should be closed.
             
      **************************************************************************/
-
-    final bool handle ( uint n )
+    
+    
+    private void receiveRequest ( )
     {
-        bool more = false;
+        this.request.reset();
         
-        try
+        super.reader.read((void[] data)
         {
-            StatusCode status; 
+             size_t consumed = this.request.parse(cast (char[]) data, this.request_msg_body_length);
+             
+             return this.request.finished? consumed : data.length + 1;
+        });
+        
+        this.http_exception.assertEx(this.request.method in this.supported_methods,
+                                     StatusCode.NotImplemented);
+        
+    }
+    
+    private void sendResponse ( StatusCode status, char[] response_msg_body, bool keep_alive )
+    {
+        with (this.response)
+        {
+            http_version = this.request.http_version;
             
-            char[] response_msg_body;
+            set(HeaderFieldNames.General.Names.Connection, keep_alive? "keep-alive" : "close");
+            
+//            Stderr(render(status, response_msg_body))('\n').flush();
+            
+            super.writer.send(render(status, response_msg_body));
+        }
+    }
+    
+    final protected void handle ( )
+    {
+        try for (uint n = 1; n <= this.keep_alive_maxnum; n++)
+        {
+            bool keep_alive = false;
+            
+            StatusCode status = StatusCode.OK; 
+            
+            char[] response_msg_body = null;
             
             try
             {
-                this.request.reset();
+                this.receiveRequest();
                 
-                super.reader.reset().read((void[] data)
-                {
-                    return this.request.parse(cast (char[]) data, this.request_msg_body_length);
-                });
+                keep_alive = n < this.keep_alive_maxnum && this.keep_alive;
                 
-                this.http_exception.assertEx(this.request.method in this.supported_methods,
-                                             StatusCode.NotImplemented);
+//                foreach (header_line; this.request.header.header_lines)
+//                {
+//                    Stderr(header_line)('\n');
+//                }
+//                
+//                Stderr('\n').flush();
                 
                 status = this.handleRequest(response_msg_body);
-                
-                more = n < this.keep_alive_maxnum && this.keep_alive;
             }
             catch (HttpException e)
             {
-                more   = this.handleHttpServerException(e);
-                status = e.status;
+                keep_alive &= this.handleHttpServerException(e);
+                status      = e.status;
             }
             catch (HttpServerException e)
             {
-                more   = this.handleHttpServerException(e);
-                status = this.default_exception_status_code;
+                keep_alive &= this.handleHttpServerException(e);
+                status      = this.default_exception_status_code;
             }
             
-            super.register(super.writer);
+            this.sendResponse(status, response_msg_body, keep_alive);
             
-            if (more)
-            {
-                super.writer.finalizer = null;
-            }
-            
-            with (this.response)
-            {
-                http_version = this.request.http_version;
-                
-                set(HeaderFieldNames.Connection, more? "Keep-Alive" : "close");
-                
-                super.writer.send(render(status, response_msg_body));
-            }
+            if (!keep_alive) break;
         }
         catch (IFiberSelectProtocol.IOError e)
         {
             Stderr(typeof (this).stringof ~ " - IOException - ")(e.msg)(" @")(e.file)(':')(e.line)("\n").flush();
         }
-        catch (IFiberSelectProtocol.IOWarning e)
+        catch (IFiberSelectProtocol.IOWarning e) with (e)
         {
-            Stderr(e.msg)(" @")(e.file)(':')(e.line)("\n").flush();
+            Stderr(handle)(" - ")(msg)(" @")(file)(':')(line)("\n").flush();
         }
-        
-        return more;
     }
     
     /**************************************************************************
@@ -323,21 +340,9 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
             }
         }
         
-        Stderr(e.msg)("\n").flush();
+        Stderr(e.msg)('\n').flush();
         
         return keep_going;
-    }
-    
-    /**************************************************************************
-
-        Closes the connection when this instance is finalized.
-        
-     **************************************************************************/
-
-    override void finalize ( )
-    {
-        super.closeSocket();
-        super.finalize();
     }
     
     /**************************************************************************
