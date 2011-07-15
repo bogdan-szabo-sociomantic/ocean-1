@@ -1,4 +1,22 @@
+/*******************************************************************************
+
+    Timer event which can be registered with the EpollSelectDispatcher.
+
+    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
+
+    version:        July 2011: Initial release
+
+    authors:        David Eckardt
+
+*******************************************************************************/
+
 module ocean.io.select.event.TimerEvent;
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
 
 private import ocean.io.select.model.ISelectClient: ISelectClient;
 
@@ -14,13 +32,13 @@ private import tango.stdc.posix.unistd: read, write, close;
 
 private import tango.stdc.errno: EAGAIN, EWOULDBLOCK, errno;
 
-/// sys/timerfd.h
+/// <sys/timerfd.h>
 
 const TFD_TIMER_ABSTIME = 1,
       TFD_CLOEXEC       = 02000000,
       TFD_NONBLOCK      =    04000;
 
-/// linux/time.h
+/// <linux/time.h>
 
 const CLOCK_MONOTONIC = 1;
 
@@ -168,6 +186,9 @@ class TimerEvent : ITimerEvent
     /***************************************************************************
     
         Alias for event handler delegate.
+        
+        Returns:
+            true to stay registered in epoll or false to unregister.
     
     ***************************************************************************/
     
@@ -234,16 +255,29 @@ class TimerEvent : ITimerEvent
 
 abstract class ITimerEvent : ISelectClient, ISelectable
 {
+    /***************************************************************************
+
+        Set to true to use an absolute or false for a relative timer. On default
+        a relative timer is used. 
+    
+    ***************************************************************************/
+
     public bool absolute = false;
     
-    /***********************************************************************
+    /***************************************************************************
 
         Integer file descriptor provided by the operating system and used to
         manage the custom event.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     private int fd;
+
+    /***************************************************************************
+
+        Reused Exception instance
+    
+    ***************************************************************************/
 
     protected TimerException e;
     
@@ -251,11 +285,11 @@ abstract class ITimerEvent : ISelectClient, ISelectable
 
         Constructor. Creates a file descriptor to manage the event.
         
-        Constructor. Creates a custom event and hooks it up to the provided
-        event handler.
-    
         Params:
-            handler = event handler
+            realtime = true:  use a settable system-wide clock.
+                       false: use a non-settable clock that is not affected by
+                       discontinuous changes in the system clock (e.g., manual
+                       changes to system time).
         
     ***********************************************************************/
 
@@ -286,13 +320,33 @@ abstract class ITimerEvent : ISelectClient, ISelectable
     }
 
     
+    /***************************************************************************
+    
+        Timer expiration event handler.
+        
+        Params:
+            n =  number of  expirations that have occurred
+        
+        Returns:
+            true to stay registered in epoll or false to unregister.
+    
+    ***************************************************************************/
+    
+    abstract protected bool handle_ ( ulong n );
+
     /***********************************************************************
     
-        Writes to the custom event file descriptor.
+        Returns the next expiration time.
 
-        Params:
-            data = data to write
-
+        Returns:
+            itimerspec instance containing the next expiration time.
+            - it_value: the amount of time until the timer will next expire. If
+                 both fields are zero, then the timer is currently disarmed.
+                 Contains always a relative value.
+            - it_interval: the interval of the timer. If both fields are zero,
+                 then the timer is set to expire just once, at the time
+                 specified by it_value.
+                             
      ***********************************************************************/
     
     public itimerspec time ( )
@@ -304,14 +358,24 @@ abstract class ITimerEvent : ISelectClient, ISelectable
         return t;
     }
     
-    /***********************************************************************
+    /***************************************************************************
     
-        Writes to the custom event file descriptor.
-
+        Sets next expiration time of interval timer.
+        
         Params:
-            data = data to write
+            first =    Specifies the initial expiration of the timer. Setting
+                       either field to a non-zero value arms the timer. Setting
+                       both fields to zero disarms the timer.
+                    
+            interval = Setting one or both fields to non-zero values specifies
+                       the period for repeated timer expirations after the
+                       initial expiration. If both fields are zero, the timer
+                       expires just once, at the time specified by it_value.
+            
+        Returns:
+            the previous expiration time as time().
 
-     ***********************************************************************/
+     **************************************************************************/
     
     public itimerspec set ( timespec first, timespec interval = timespec.init )
     {
@@ -326,6 +390,35 @@ abstract class ITimerEvent : ISelectClient, ISelectable
         return t_old;
     }
     
+    /***************************************************************************
+    
+        Sets next expiration time of interval timer.
+        
+        Setting first_s or first_ms to a non-zero value arms the timer. Setting
+        both to zero disarms the timer.
+        If both interval_s and interval_,s are zero, the timer expires just
+        once, at the time specified by first_s and first_ms.
+        
+        
+        Params:
+            first_s     = Specifies the number of seconds of the initial
+                          expiration of the timer.
+                          
+            first_ms    = Specifies an amount of milliseconds that will be added
+                          to first_s.
+                          
+            interval_ms = Specifies the number of seconds of the period for
+                          repeated timer expirations after the initial
+                          expiration.
+                          
+            interval_ms = Specifies an amount of milliseconds that will be added
+                          to interval_ms.
+            
+        Returns:
+            the previous expiration time as time().
+    
+     **************************************************************************/
+
     public itimerspec set ( time_t first_s,        uint first_ms,
                             time_t interval_s = 0, uint interval_ms = 0 )
     {
@@ -333,6 +426,15 @@ abstract class ITimerEvent : ISelectClient, ISelectable
                         timespec(interval_s, interval_ms * 1_000_000));
     }
     
+    /***************************************************************************
+        
+        Resets/disarms the timer.
+        
+        Returns:
+            Returns the previous expiration time as time().
+    
+     **************************************************************************/
+
     public itimerspec reset ( )
     {
         return this.set(timespec.init);
@@ -364,6 +466,18 @@ abstract class ITimerEvent : ISelectClient, ISelectable
         return Event.Read;
     }
     
+    /***************************************************************************
+        
+        Event handler, invoked by the epoll select dispatcher.
+        
+        Params:
+            event = event(s) reported by epoll
+        
+        Returns:
+            true to stay registered in epoll or false to unregister.
+    
+    ***************************************************************************/
+
     final bool handle ( Event event )
     {
         ulong n;
@@ -390,8 +504,6 @@ abstract class ITimerEvent : ISelectClient, ISelectable
         }
     }
     
-    abstract protected bool handle_ ( ulong n );
-    
     /***************************************************************************
     
         Returns an identifier string for this instance
@@ -408,8 +520,28 @@ abstract class ITimerEvent : ISelectClient, ISelectable
         return typeof(this).stringof;
     }
     
+    /**************************************************************************/
+    
     static class TimerException : ErrnoIOException
     {
+        /***********************************************************************
+        
+            Throws this instance if n is different from 0.
+            
+            Params:
+                n    = return code to check
+                msg  = error message
+                file = source code file name
+                line = source code line number
+            
+            Returns:
+                n
+                
+            Throws:
+                this instance if n is different from 0.
+            
+        ***********************************************************************/
+        
         int check ( int n, char[] msg, char[] file = "", long line = 0 )
         {
             if (n)
