@@ -29,8 +29,6 @@ module ocean.io.select.model.ISelectClient;
 
  ******************************************************************************/
 
-private import ocean.io.select.timeout.ExpiryRegistry;
-
 private import tango.sys.linux.epoll: EPOLLIN, EPOLLOUT, EPOLLPRI,
                                       EPOLLONESHOT, EPOLLET,
                                       EPOLLHUP, EPOLLERR;
@@ -38,6 +36,9 @@ private import tango.sys.linux.epoll: EPOLLIN, EPOLLOUT, EPOLLPRI,
 private const EPOLLRDHUP = 0x2000;
 
 private import tango.io.model.IConduit: ISelectable;
+
+private import ocean.time.timeout.model.ITimeoutClient,
+               ocean.time.timeout.model.IExpiryRegistration;
 
 private import ocean.core.Array: concat, append;
 
@@ -55,7 +56,7 @@ debug private import tango.util.log.Trace;
 
  ******************************************************************************/
 
-abstract class ISelectClient
+abstract class ISelectClient : ITimeoutClient
 {
     public alias .ISelectable ISelectable;
 
@@ -71,7 +72,7 @@ abstract class ISelectClient
         Hangup          = EPOLLHUP,
         Error           = EPOLLERR
     }
-
+    
     /**************************************************************************
 
         Flag telling whether this client is registered with the select
@@ -95,17 +96,24 @@ abstract class ISelectClient
      **************************************************************************/
 
     private ISelectable conduit_;
-
+    
     /**************************************************************************
 
-        Instance of expiry registration struct -- used to register this client
-        with a timeout / expiry registry, and to keep track of this client's
-        timeout values.
-
+        Connection time out in microseconds. Effective only if used with the
+        TimeoutEpollSelectDispatcher. A value of 0 has no effect.
+        
      **************************************************************************/
 
-    public ExpiryRegistration expiry_registration;
+    public ulong timeout_us = 0;
+    
+    /**************************************************************************
 
+        Timeout expiry registration instance
+    
+     **************************************************************************/
+
+    private IExpiryRegistration expiry_registration;
+    
     /**************************************************************************
 
         Constructor
@@ -115,63 +123,61 @@ abstract class ISelectClient
     
      **************************************************************************/
 
-    protected this ( ISelectable conduit_ )
+    protected this ( ISelectable conduit_, IExpiryRegistration expiry_registration = null )
     {
         this.conduit_ = conduit_;
+        this.expiry_registration =expiry_registration;
     }
     
     /***************************************************************************
 
-        Sets the timeout in ms.
-
-        The timeout represents the time before which the select client should be
-        completed. (This is not that same as a socket timeout, where the timout
-        value represents the maximum time before which the socket should have
-        seen activity.) If the client has not finished within the specified
-        time, its tomeout() method is called and it is unregistered from the
-        select dispatcher.
-
-        Note: this method accepts timeout values as an int, as this is what the
-        epoll_wait function (called in tango.io.selector.EpollSelector) expects.
-
-        Params:
-            ms = new timeout in ms (< 0 means timeout is disabled)
-
+        Registers this client with the timeout manager.
+        On timeout this client will automatically be unregistered.
+        This client must currently not be registered.
+        
         Returns:
-            this instance
+            true if registered or false if timeout_us is 0.
+        
+    ***************************************************************************/
 
-     **************************************************************************/
-
-    public typeof(this) setTimeout ( int ms )
+    bool registerTimeout ( )
     {
-        if ( ms >= 0 )
-        {
-            this.expiry_registration.setTimeout(ms * 1000);
-        }
-        else
-        {
-            this.expiry_registration.disableTimeout();
-        }
-
-        return this;
+        return (this.expiry_registration !is null)?
+                    this.expiry_registration.register(this.timeout_us) : false;
     }
-
+    
     /***************************************************************************
 
-        Disables the timeout
+        Unregisters the this client from the timeout manager.
+        If a client is currently not registered, nothing is done.
+        
+        Must not be called from within timeout().
+        
+        Returns:
+            true on success or false if this client was not registered.
+        
+    ***************************************************************************/
+
+    bool unregisterTimeout ( )
+    {
+        return (this.expiry_registration !is null)?
+                    this.expiry_registration.unregister : false;
+    }
+    
+    /***************************************************************************
 
         Returns:
-            this instance
+            true if this client has timed out or false otherwise.
+    
+    ***************************************************************************/
 
-     **************************************************************************/
-
-    public typeof(this) disableTimeout ( )
+    bool timed_out ( )
     {
-        this.setTimeout(-1);
-
-        return this;
+        return (this.expiry_registration !is null)?
+                    this.expiry_registration.timed_out : false;
     }
 
+    
     /**************************************************************************
 
         Returns the I/O device instance
@@ -201,9 +207,15 @@ abstract class ISelectClient
     
      **************************************************************************/
 
-    final public void conduit ( ISelectable conduit_ )
+    final public ISelectable conduit ( ISelectable conduit_ )
+    in
     {
-        this.conduit_ = conduit_;
+        debug (ISelectClient) assert (conduit_ !is null, this.id ~ ": attempted to set null conduit");
+        else  assert (conduit_ !is null, typeof (this).stringof ~ ": attempted to set null conduit");
+    }
+    body
+    {
+        return this.conduit_ = conduit_;
     }
     
     /**************************************************************************
