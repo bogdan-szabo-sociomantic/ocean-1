@@ -36,11 +36,10 @@ module ocean.time.timeout.TimeoutManager;
 
 *******************************************************************************/
 
-private import ocean.time.timeout.model.AbstractExpiryRegistration;             // ExpiryTree, Expiry, AbstractExpiryRegistration
-
 private import ocean.time.timeout.model.ITimeoutManager,
                ocean.time.timeout.model.ITimeoutClient,
-               ocean.time.timeout.model.IExpiryRegistration;
+               ocean.time.timeout.model.IExpiryRegistration,
+               ocean.time.timeout.model.ExpiryRegistrationBase;                 // ExpiryTree, Expiry, ExpiryRegistrationBase
 
 private import ocean.core.ArrayMap,
                ocean.core.AppendBuffer;
@@ -54,27 +53,31 @@ debug
     private import tango.stdc.string: strlen;
 }
 
-/******************************************************************************/
+/*******************************************************************************
 
-class TimeoutManager : ITimeoutManager
+    Timeout manager
+
+*******************************************************************************/
+
+class TimeoutManager : TimeoutManagerBase, ISelectTimeoutManager
 {
     /***************************************************************************
 
         Expiry registration class for an object that can time out.
     
     ***************************************************************************/
-
-    public class ExpiryRegistration : AbstractExpiryRegistration, IExpiryRegistration
+    
+    public class ExpiryRegistration : ExpiryRegistrationBase, ISelectExpiryRegistration
     {
         /***********************************************************************
-
+    
             Constructor
             
             Params:
                 client = object that can time out
         
         ***********************************************************************/
-
+    
         public this ( ITimeoutClient client )
         {
             super(this.outer.new TimeoutManagerInternal);
@@ -82,7 +85,7 @@ class TimeoutManager : ITimeoutManager
         }
         
         /***********************************************************************
-
+    
             Sets the timeout for the client and registers it with the timeout
             manager. On timeout the client will automatically be unregistered.
             Use the unregister() super class method to manually unregister the
@@ -98,34 +101,64 @@ class TimeoutManager : ITimeoutManager
                 The client must not already be registered.
         
         ***********************************************************************/
-
+    
         public override bool register ( ulong timeout_us )
         {
             return super.register(timeout_us);
         }
-        
-        
-        /***********************************************************************
-
-            Wrappers required to convince DMD that this class implements the
-            ISelectExpiryRegistration interface.
-            
-            TODO: Is a newer DMD smart enough so that these wrappers can go? 
-            
-        ***********************************************************************/
-        
-        public override bool unregister ( ) { return super.unregister(); }
-        public override bool timed_out  ( ) { return super.timed_out;    }
-        public override void timeout    ( ) { return super.timeout;      }
     }
     
+    /***************************************************************************
+    
+        Creates a new expiry registration instance, associates client with it
+        and registers client with this timeout manager.
+        The returned object should be reused. The client will remain associated
+        to the expiry registration after it has been unregistered from the
+        timeout manager.
+        
+        Params:
+            client = client to register
+            
+        Returns:
+            new expiry registration object with client associated to.
+        
+    ***************************************************************************/
+
+    public ISelectExpiryRegistration register ( ITimeoutClient client )
+    {
+        return this.new ExpiryRegistration(client);
+    }
+    
+    /***********************************************************************
+    
+        Wrappers required to convince DMD that this class implements the
+        ITimeoutManager interface.
+        
+        TODO: Is a newer DMD smart enough so that these wrappers can go? 
+        
+    ***********************************************************************/
+
+    public override ulong next_expiration_us ( ) { return super.next_expiration_us; }
+    public override ulong us_left            ( ) { return super.us_left;            }
+    public override uint checkTimeouts       ( ) { return super.checkTimeouts;      }
+}
+
+/*******************************************************************************
+
+    Timeout manager base class. Required for derivation because inside a
+    TimeoutManager subclass a nested ExpiryRegistration subclass is impossible.
+
+*******************************************************************************/
+
+abstract class TimeoutManagerBase
+{
     /***************************************************************************
 
         Enables IExpiryRegistration to access TimeoutManager internals. 
     
     ***************************************************************************/
 
-    protected class TimeoutManagerInternal : AbstractExpiryRegistration.ITimeoutManagerInternal
+    protected class TimeoutManagerInternal : ExpiryRegistrationBase.ITimeoutManagerInternal
     {
         /***********************************************************************
 
@@ -141,7 +174,7 @@ class TimeoutManager : ITimeoutManager
         
         ***********************************************************************/
 
-        Expiry register ( AbstractExpiryRegistration registration, ulong timeout_us )
+        Expiry register ( IExpiryRegistration registration, ulong timeout_us )
         {
             return this.outer.register(registration, timeout_us);
         }
@@ -195,7 +228,7 @@ class TimeoutManager : ITimeoutManager
 
     ***************************************************************************/
 
-    private ArrayMap!(AbstractExpiryRegistration, Expiry) expiry_to_client;
+    private ArrayMap!(IExpiryRegistration, Expiry) expiry_to_client;
 
 
     /***************************************************************************
@@ -204,7 +237,7 @@ class TimeoutManager : ITimeoutManager
 
     ***************************************************************************/
 
-    private AppendBuffer!(AbstractExpiryRegistration) expired_registrations;
+    private AppendBuffer!(IExpiryRegistration) expired_registrations;
 
     /***************************************************************************
 
@@ -220,11 +253,11 @@ class TimeoutManager : ITimeoutManager
 
     ***************************************************************************/
 
-    public this ( )
+    protected this ( )
     {
         this.expiry_tree = new ExpiryTree;
-        this.expiry_to_client = new ArrayMap!(AbstractExpiryRegistration, Expiry);
-        this.expired_registrations = new AppendBuffer!(AbstractExpiryRegistration);
+        this.expiry_to_client = new ArrayMap!(IExpiryRegistration, Expiry);
+        this.expired_registrations = new AppendBuffer!(IExpiryRegistration);
     }
 
 
@@ -352,7 +385,7 @@ class TimeoutManager : ITimeoutManager
                 
                 foreach (expiry, expire_time; this.expiry_tree.lessEqual(this.now))
                 {
-                    AbstractExpiryRegistration registration = this.expiry_to_client[expiry];
+                    IExpiryRegistration registration = this.expiry_to_client[expiry];
         
                     registration.timeout();
                     
@@ -394,7 +427,7 @@ class TimeoutManager : ITimeoutManager
     
     ***************************************************************************/
     
-    protected Expiry register ( AbstractExpiryRegistration registration, ulong timeout_us )
+    protected Expiry register ( IExpiryRegistration registration, ulong timeout_us )
     {
         ulong t = this.now + timeout_us;
               
