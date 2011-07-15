@@ -38,7 +38,7 @@ private const EPOLLRDHUP = 0x2000;
 private import tango.io.model.IConduit: ISelectable;
 
 private import ocean.time.timeout.model.ITimeoutClient,
-               ocean.time.timeout.model.IExpiryRegistration;
+               ocean.time.timeout.model.IExpiryRegistration: ISelectExpiryRegistration;
 
 private import ocean.core.Array: concat, append;
 
@@ -112,7 +112,7 @@ abstract class ISelectClient : ITimeoutClient
     
      **************************************************************************/
 
-    private IExpiryRegistration expiry_registration;
+    private ISelectExpiryRegistration expiry_registration;
     
     /**************************************************************************
 
@@ -123,7 +123,7 @@ abstract class ISelectClient : ITimeoutClient
     
      **************************************************************************/
 
-    protected this ( ISelectable conduit_, IExpiryRegistration expiry_registration = null )
+    protected this ( ISelectable conduit_, ISelectExpiryRegistration expiry_registration = null )
     {
         this.conduit_ = conduit_;
         this.expiry_registration =expiry_registration;

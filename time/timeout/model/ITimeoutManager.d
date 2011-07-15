@@ -1,7 +1,6 @@
 /*******************************************************************************
 
-    Interface for the timeout manager internals accessor object in the expiry
-    registration.
+    Timeout manager interface
 
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
 
@@ -9,9 +8,28 @@
 
     author:         David Eckardt
     
+    The reason for this interface is to avoid requiring an application to be
+    linked against the libebtree, which is required by TimeoutManager and
+    ExpiryRegistration, when it uses a library module that supports a timeout
+    functionality as an optional feature.
+    Therefore, library modules that support a timeout functionality as an
+    optional feature should always use this interface and not import
+    TimeoutManager/ExpiryRegistration.
+
 *******************************************************************************/
 
 module ocean.time.timeout.model.ITimeoutManager;
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+private import ocean.time.timeout.model.ITimeoutClient,
+               ocean.time.timeout.model.IExpiryRegistration : ISelectExpiryRegistration;
+
+/******************************************************************************/
 
 interface ITimeoutManager
 {
@@ -55,4 +73,28 @@ interface ITimeoutManager
     ***************************************************************************/
     
     uint checkTimeouts ( );
+}
+
+interface ISelectTimeoutManager: ITimeoutManager
+{
+    /***************************************************************************
+    
+        Registers client with the timeout manager and returns the expiry
+        registration object which the registered client is associated to.
+        
+        Note: Depending on the implementation, this method may return a newly
+              created object that should be kept and reused by the application.
+              It is also application dependent whether the client remains
+              associated to the expiry registration object after it has been
+              unregistered from the timeout manager or not.
+        
+        Params:
+            client = client to register
+            
+        Returns:
+            expiry registration object.
+        
+    ***************************************************************************/
+    
+    ISelectExpiryRegistration register ( ITimeoutClient client );
 }

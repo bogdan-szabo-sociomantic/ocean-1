@@ -11,7 +11,7 @@
 
 *******************************************************************************/
 
-module ocean.time.timeout.model.AbstractExpiryRegistration;
+module ocean.time.timeout.model.ExpiryRegistrationBase;
 
 /*******************************************************************************
 
@@ -19,8 +19,8 @@ module ocean.time.timeout.model.AbstractExpiryRegistration;
 
 *******************************************************************************/
 
-private import ocean.time.timeout.model.ITimeoutClient,
-               ocean.time.timeout.model.IExpiryRegistration;
+private import ocean.time.timeout.model.IExpiryRegistration,
+               ocean.time.timeout.model.ITimeoutClient;
 
 debug private import tango.io.Stdout;
 
@@ -47,7 +47,7 @@ alias ExpiryTree.Node* Expiry;
 
 *******************************************************************************/
 
-abstract class AbstractExpiryRegistration : ITimeoutClient
+abstract class ExpiryRegistrationBase : IExpiryRegistration
 {
     /***************************************************************************
 
@@ -71,7 +71,7 @@ abstract class AbstractExpiryRegistration : ITimeoutClient
         
         ***********************************************************************/
     
-        Expiry register ( AbstractExpiryRegistration registration, ulong timeout_us );
+        Expiry register ( IExpiryRegistration registration, ulong timeout_us );
         
         /***********************************************************************
     
