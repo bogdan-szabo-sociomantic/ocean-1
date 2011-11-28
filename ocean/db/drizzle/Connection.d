@@ -354,7 +354,7 @@ package class Connection : RequestHandler!(LibDrizzleEpoll.DrizzleRequest),
         
         Exception exc = e;
         
-        if (this.fiber.state != Fiber.State.TERM)
+        if ( this.fiber.state != Fiber.State.TERM )
         {
             try this.fiber.call();
             catch (Exception ex) if (exc !is null) 
@@ -364,18 +364,19 @@ package class Connection : RequestHandler!(LibDrizzleEpoll.DrizzleRequest),
             }            
         }
 
-        assert (this.fiber.state == Fiber.State.TERM);
-        
-        if (this.callback !is null)
+        if ( this.fiber.state == Fiber.State.TERM )
         {
-            this.callback (this.requestContext, null, 
-                           exception.reset(this.queryString, internal_error, 
-                                           e.msg, e)); 
+            if (this.callback !is null)
+            {
+                this.callback (this.requestContext, null, 
+                               exception.reset(this.queryString, internal_error, 
+                                               e.msg, e)); 
+            }
+            
+            this.fiber.reset();
+            this.reset();
+            this.notify();
         }
-        
-        this.fiber.reset();
-        this.reset();
-        this.notify();
     }
 
     /***************************************************************************

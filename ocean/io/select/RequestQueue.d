@@ -261,7 +261,10 @@ abstract class RequestHandler ( T ) : ISelectClient, IRequestHandler
     // TODO: maybe rename -> 'resume' ?
 	public void notify()
 	{
-		fiber.call();
+        if ( this.fiber.state == Fiber.State.HOLD )
+        {
+            fiber.call();
+        }
 	}
 	
     /***************************************************************************
@@ -285,7 +288,7 @@ abstract class RequestHandler ( T ) : ISelectClient, IRequestHandler
 	{
 		this.enabled = false;
         
-        if (this.fiber.state != Fiber.State.TERM)
+        if ( this.fiber.state != Fiber.State.TERM )
         {
             this.fiber.call();
         }
@@ -312,11 +315,10 @@ abstract class RequestHandler ( T ) : ISelectClient, IRequestHandler
 			{
 				this.request(*request);
 			}
-			else
-			{
-			    this.request_queue.handlerWaiting(this);
-				this.fiber.cede();
-			}
+			else if ( this.request_queue.handlerWaiting(this) )
+            {
+		        this.fiber.cede();
+            }
 		}
 	}
     
@@ -424,26 +426,39 @@ class RequestByteQueue : FlexibleByteRingQueue
         
         Params:
             handler = handler that is now available
+            
+        Returns:
+            false if the handler was called right away without 
+            even registering
+            true if the handler was just added to the queue
 	
 	***************************************************************************/
 	    
-    public void handlerWaiting ( IRequestHandler handler )
+    public bool handlerWaiting ( IRequestHandler handler )
     in
     {
         debug scope (failure) Trace.formatln("waiting: {} len: {}",
                 waiting_handlers, handlers.length);
 
     	assert (waiting_handlers <= handlers.length, "Maximum handlers reached");
+        
+        debug foreach ( rhandler; this.handlers[0 .. waiting_handlers] ) 
+        {
+            assert (rhandler !is handler, "RequestQueue.handlerWaiting: "
+                                          "Handler already registered");
+        }
     }
     body
     {
         if (!this.isEmpty() && this.enabled)
         {
             handler.notify();
+            return false;
         }
         else
         {
             this.handlers[waiting_handlers++] = handler;
+            return true;
         }  
     }
         
@@ -560,11 +575,11 @@ class RequestByteQueue : FlexibleByteRingQueue
         foreach (handler; this.handlers[0 .. waiting_handlers])
         {   
             handler.resume();
-            
-            if (this.length > 0)
-            {
-                handler.notify();
-            }
+        }
+        
+        for ( size_t i = waiting_handlers; i > 0; --i )
+        {
+            this.notifyHandler();
         }
     }
     
@@ -576,7 +591,7 @@ class RequestByteQueue : FlexibleByteRingQueue
 
     public ubyte[] pop ( )
     {
-        if (!this.enabled)
+        if ( !this.enabled )
         {
             return null;
         }
@@ -592,7 +607,7 @@ class RequestByteQueue : FlexibleByteRingQueue
 
     private void notifyHandler ( )
     {
-        if (this.waiting_handlers > 0 && this.enabled)
+        if ( this.waiting_handlers > 0 && this.enabled )
         {
             handlers[waiting_handlers-- - 1].notify();          
         }
@@ -666,6 +681,8 @@ class RequestQueue ( T ) : RequestByteQueue
 	    
     T* pop ( ref ubyte[] buffer )
     {
+        if ( !this.enabled ) return null;
+        
         T* instance;
 
     	auto data = super.pop();
