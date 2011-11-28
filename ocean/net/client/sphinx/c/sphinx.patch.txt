@@ -6,13 +6,13 @@
  * 10 items.
  *
  * (c) thomas nicolai () sociomantic labs
- */ 
+ */
 
 1. PATCH: api/libsphinxclient/sphinxclient.c
 
 line 1829
 [-] sphinx_keyword_info * sphinx_build_keywords ( sphinx_client * client, const char * query, const char * index, sphinx_bool hits, int * out_num_keywords )
-[+] sphinx_keyword_info * sphinx_build_keywords ( sphinx_client * client, const char * query, const char * index, int max_query_words, sphinx_bool hits, int * out_num_keywords ) 
+[+] sphinx_keyword_info * sphinx_build_keywords ( sphinx_client * client, const char * query, const char * index, int max_query_words, sphinx_bool hits, int * out_num_keywords )
 
 
 line 1835
@@ -34,7 +34,7 @@ line 209
 [+] sphinx_build_keywords ( sphinx_client * client, const char * query, const char * index, int max_query_words, sphinx_bool hits, int * out_num_keywords );
 
 
-3. PATCH: src/searchd.cpp 
+3. PATCH: src/searchd.cpp
 
 line 4379
 [+] int nWords = tReq.GetInt();
@@ -48,7 +48,7 @@ line 4393
 [+] if ( !pIndex->m_pIndex->GetKeywords ( dKeywords, sQuery.cstr (), bGetStats, nWords ) )
 
 
-4. PATCH: src/sphinx.cpp 
+4. PATCH: src/sphinx.cpp
 
 line 14564
 [-] bool CSphIndex_VLN::GetKeywords ( CSphVector <CSphKeywordInfo> & dKeywords, const char * szQuery, bool bGetStats )

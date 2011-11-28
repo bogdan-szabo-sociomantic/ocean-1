@@ -34,11 +34,11 @@
         --
 
         TODO:
-        
+
             Implement preg_replace()
             Implement preg_split()
-            
-            
+
+
         ---
         Related
 
@@ -78,16 +78,16 @@ class PCRE
 
     /**
      * Perform a regular expression match
-     * 
+     *
      * ---
      * Usage:
-     * 
+     *
      *      auto regex = new PCRE;
      *
      *      bool match = regex.preg_match("Hello World!", "^Hello");
-     * 
+     *
      * ---
-     * 
+     *
      * Params:
      *     string  = input string (subject)
      *     pattern = pattern to search for, as a string
@@ -112,35 +112,35 @@ class PCRE
 
         return false;
     }
-    
-    
+
+
 
     /**
      * Perform a global regular expression match
-     * 
+     *
      * ---
-     * 
+     *
      * Usage:
-     * 
+     *
      *      char[][][] matches;
-     * 
+     *
      *      auto regex = new PCRE;
-     *      
+     *
      *      char[] preg = "Hello";
      *      char[] subj = "Hello World Hello Word";
-     *      
+     *
      *      int i = regex.preg_match_all(subj, preg, matches);
-     * 
+     *
      *      foreach ( match; matches )
      *      {
      *          foreach ( element; match )
      *              Stdout.format("{}", element);
-     *              
+     *
      *          Stdout.newline();
      *      }
-     *      
+     *
      * ---
-     * 
+     *
      * Params:
      *     string  = input string (subject)
      *     pattern = pattern to search for, as a string
@@ -155,61 +155,61 @@ class PCRE
         int   error, count, num_matches, start_offset, ovector_length;
         char* errmsg, stringptr;
         pcre* re;
-        
+
         int*  ovector;
-        int[] x; 
-        
+        int[] x;
+
         if ((re = pcre_compile(toCString(pattern), (icase ? PCRE_CASELESS : 0), &errmsg, &error, null)) == null)
             PCREException("Couldn't compile regular expression: " ~ toDString(errmsg) ~ " on pattern: " ~ pattern);
-        
+
         if ( pcre_fullinfo(re, null, PCRE_INFO_CAPTURECOUNT, &ovector_length) < 0 )
             PCREException("Internal pcre_fullinfo() error");
-        
+
         ovector_length = (ovector_length + 1) * 3;
         x.length = ovector_length;
         ovector = x.ptr;
-        
-        do 
+
+        do
         {
             count = pcre_exec(re, null, toCString(string), string.length, start_offset, 0, ovector, ovector_length);
-            
+
             if ( count > 0 )
             {
                 char[][] match_item;
-                
+
                 ++num_matches;
-                
+
                 for ( int i = 0; i < count; i++ )
                 {
                     pcre_get_substring(toCString(string), ovector, count, i, &stringptr);
                     match_item ~= toDString(stringptr).dup;
                     pcre_free_substring(stringptr);
                 }
-                
+
                 matches ~= match_item;
             }
             else if (count != PCRE_ERROR_NOMATCH)
                 PCREException("Error on executing regular expression!");
-            
+
             start_offset = cast(int) ovector[1];
-        } 
+        }
         while ( count > 0 );
-        
-        return num_matches;        
+
+        return num_matches;
     }
-    
-    
-    
+
+
+
     /**
-     * Search and replace a regular expression match 
+     * Search and replace a regular expression match
      *
      * Params:
-     *     pattern  = 
-     *     replacement = 
-     *     subject   = 
+     *     pattern  =
+     *     replacement =
+     *     subject   =
      *     limit =
      *     count =
-     *     
+     *
      * Returns:
      *     array of strings or null on error
      */
@@ -217,16 +217,16 @@ class PCRE
     {
         return null;
     }
-    
-    
-    
+
+
+
     /**
      * Split string by regular expression match
      *
      * Params:
-     *     string  = 
-     *     pattern = 
-     *     icase   = 
+     *     string  =
+     *     pattern =
+     *     icase   =
      *
      * Returns:
      *     array of strings or null on error
@@ -235,7 +235,7 @@ class PCRE
     {
         return null;
     }
-    
-    
-    
+
+
+
 }

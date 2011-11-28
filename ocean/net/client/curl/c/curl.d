@@ -48,7 +48,7 @@ const CURL_SEEKFUNC_OK = 0;
 const CURL_SEEKFUNC_FAIL = 1; /* fail the entire transfer */
 const CURL_SEEKFUNC_CANTSEEK = 2; /* tell libcurl seeking can't be done, so
                                     libcurl might try other means instead */
-                                    
+
 //alias int function (void *instream, curl_off_t offset, int origin) curl_seek_callback; /* 'whence' */
 
 /* This is a return code for the read callback that, when returned, will
@@ -170,12 +170,12 @@ const CURLOPTTYPE_OFF_T = 30000;
  * word.
  */
 
-enum CURLoption 
+enum CURLoption
 {
   /* This is the FILE * or void * the regular output should be written to. */
   FILE = CURLOPTTYPE_OBJECTPOINT +  1,
   WRITEDATA = CURLOPTTYPE_OBJECTPOINT + 1, // alias
-  
+
   /* The full URL to get/put */
   URL = CURLOPTTYPE_OBJECTPOINT +  2,
 
@@ -858,7 +858,7 @@ enum CurlInfo
    Always add new return codes last. Never *EVER* remove any. The return
    codes must remain the same!
  */
-enum CURLcode 
+enum CURLcode
 {
   CURLE_OK = 0,
   CURLE_UNSUPPORTED_PROTOCOL,    /* 1 */
@@ -971,7 +971,7 @@ enum CURLcode
 }
 
 
-enum curl_proxytype 
+enum curl_proxytype
 {
   CURLPROXY_HTTP            = 0, /* added in 7.10, new in 7.19.4 default is to use CONNECT HTTP/1.1 */
   CURLPROXY_HTTP_1_0        = 1, /* added in 7.19.4, force to use CONNECT HTTP/1.0  */
@@ -1005,7 +1005,7 @@ const CURL_GLOBAL_DEFAULT = CURL_GLOBAL_ALL;
  * Structures for querying information about the curl library at runtime.
  */
 
-enum CURLversion 
+enum CURLversion
 {
   CURLVERSION_FIRST,
   CURLVERSION_SECOND,
@@ -1014,20 +1014,20 @@ enum CURLversion
   CURLVERSION_LAST /* never actually use this */
 }
 
-const CURL_VERSION_IPV6         = (1 << 0x0);  // IPv6-enabled 
-const CURL_VERSION_KERBEROS4    = (1 << 0x1);  // kerberos auth is supported 
-const CURL_VERSION_SSL          = (1 << 0x2);  // SSL options are present 
-const CURL_VERSION_LIBZ         = (1 << 0x3);  // libz features are present 
-const CURL_VERSION_NTLM         = (1 << 0x4);  // NTLM auth is supported 
-const CURL_VERSION_GSSNEGOTIATE = (1 << 0x5);  // Negotiate auth support 
-const CURL_VERSION_DEBUG        = (1 << 0x6);  // built with debug capabilities 
-const CURL_VERSION_ASYNCHDNS    = (1 << 0x7);  // asynchronous dns resolves 
-const CURL_VERSION_SPNEGO       = (1 << 0x8);  // SPNEGO auth 
-const CURL_VERSION_LARGEFILE    = (1 << 0x9);  // supports files bigger than 2GB 
-const CURL_VERSION_IDN          = (1 << 0xA);  // International Domain Names support 
-const CURL_VERSION_SSPI         = (1 << 0xB);  // SSPI is supported 
-const CURL_VERSION_CONV         = (1 << 0xC);  // character conversions supported 
-const CURL_VERSION_CURLDEBUG    = (1 << 0xD);  // debug memory tracking supported 
+const CURL_VERSION_IPV6         = (1 << 0x0);  // IPv6-enabled
+const CURL_VERSION_KERBEROS4    = (1 << 0x1);  // kerberos auth is supported
+const CURL_VERSION_SSL          = (1 << 0x2);  // SSL options are present
+const CURL_VERSION_LIBZ         = (1 << 0x3);  // libz features are present
+const CURL_VERSION_NTLM         = (1 << 0x4);  // NTLM auth is supported
+const CURL_VERSION_GSSNEGOTIATE = (1 << 0x5);  // Negotiate auth support
+const CURL_VERSION_DEBUG        = (1 << 0x6);  // built with debug capabilities
+const CURL_VERSION_ASYNCHDNS    = (1 << 0x7);  // asynchronous dns resolves
+const CURL_VERSION_SPNEGO       = (1 << 0x8);  // SPNEGO auth
+const CURL_VERSION_LARGEFILE    = (1 << 0x9);  // supports files bigger than 2GB
+const CURL_VERSION_IDN          = (1 << 0xA);  // International Domain Names support
+const CURL_VERSION_SSPI         = (1 << 0xB);  // SSPI is supported
+const CURL_VERSION_CONV         = (1 << 0xC);  // character conversions supported
+const CURL_VERSION_CURLDEBUG    = (1 << 0xD);  // debug memory tracking supported
 
 
 /*
@@ -1070,10 +1070,10 @@ struct curl_version_info_data
 }
 
 
-extern(C): 
+extern(C):
 
-    
-    
+
+
 /***************************************************************************
  *                                  _   _ ____  _
  *  Project                     ___| | | |  _ \| |
@@ -1096,7 +1096,7 @@ extern(C):
  *
  * $Id: easy.h,v 1.14 2008-05-12 21:43:28 bagder Exp $
  ***************************************************************************/
-    
+
 CURL curl_easy_init();
 
 void     curl_easy_cleanup(CURL handle);

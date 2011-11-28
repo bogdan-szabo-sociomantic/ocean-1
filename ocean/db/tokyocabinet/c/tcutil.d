@@ -32,7 +32,7 @@ alias void* function (void* ptr, int size, int*sp, void* op) TCCODEC;
 
 
 enum TCERRCODE : int                            /* enumeration for error codes */
-{                                       
+{
     TCESUCCESS,                                 /* success */
     TCETHREAD,                                  /* threading error */
     TCEINVALID,                                 /* invalid operation */
@@ -73,7 +73,7 @@ enum TCKWGEN                             /* enumeration for KWIC generator */
 alias _TCTREEREC TCTREEREC;
 
 struct _TCTREEREC 								/* type of structure for an element of a tree */
-{              
+{
     int ksiz;                                  	/* size of the region of the key */
     int vsiz;                                  	/* size of the region of the value */
     _TCTREEREC *left;                          	/* pointer to the left child */
@@ -81,7 +81,7 @@ struct _TCTREEREC 								/* type of structure for an element of a tree */
 };
 
 struct TCTREE 									/* type of structure for a tree */
-{                         
+{
     TCTREEREC *root;                           	/* pointer to the root element */
     TCTREEREC *cur;                            	/* pointer to the current element */
     ulong rnum;                                	/* number of records */
@@ -93,7 +93,7 @@ struct TCTREE 									/* type of structure for a tree */
 
 
 struct TCNDB									/* type of structure for a on-memory tree database */
-{                         
+{
     void* mmtx;                                	/* mutex for method */
     TCTREE *tree;                              	/* internal tree object */
 };

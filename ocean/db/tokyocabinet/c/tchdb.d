@@ -34,8 +34,8 @@ extern (C):
  *************************************************************************************************/
 
 /* type of structure for a hash database */
-struct TCHDB 
-{                         
+struct TCHDB
+{
     void* mmtx;                                 /* mutex for method */
     void* rmtxs;                                /* mutexes for records */
     void* dmtx;                                 /* mutex for the while database */
@@ -108,16 +108,16 @@ struct TCHDB
     ulong cnt_shiftrec;                         /* tesing counter for record shift times */
     ulong cnt_trunc;                            /* tesing counter for truncation times */
   } ;
-  
+
 
 enum HDBFLAGS                                   /* enumeration for additional flags */
-{                                               
+{
     HDBFOPEN  = 1 << 0,                         /* whether opened */
     HDBFFATAL = 1 << 1                          /* whetehr with fatal error */
 };
 
 enum HDBOPT : ubyte                             /* enumeration for tuning options */
-{                                               
+{
     HDBTLARGE   = 1 << 0,                       /* use 64-bit bucket array */
     HDBTDEFLATE = 1 << 1,                       /* compress each record with Deflate */
     HDBTBZIP    = 1 << 2,                       /* compress each record with BZIP2 */
@@ -126,7 +126,7 @@ enum HDBOPT : ubyte                             /* enumeration for tuning option
 };
 
 enum HDBOMODE : int                            /* enumeration for open modes */
-{                                           
+{
     HDBOREADER = 1 << 0,                        /* open as a reader */
     HDBOWRITER = 1 << 1,                        /* open as a writer */
     HDBOCREAT  = 1 << 2,                        /* writer creating */

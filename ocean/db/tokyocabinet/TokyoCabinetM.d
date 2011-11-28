@@ -51,87 +51,87 @@ debug private import ocean.util.log.Trace;
 /*******************************************************************************
 
     TokyoCabinetM
-    
+
     Very fast and lightweight database with 10K to 200K inserts per second.
-    
+
     Usage Example: pushing item to db
     ---
-    
+
     import ocean.db.tokyocabinet.TokyoCabinetM;
-    
+
     scope db = new TokyoCabinetM;
-    
+
     db.put("foo", "bar");
-    
+
     db.close();
-    
+
     ---
-        
+
 *******************************************************************************/
 
 public class TokyoCabinetM
 {
-    
+
     /**************************************************************************
-        
+
         Iterator alias definition
-    
+
      **************************************************************************/
-    
+
     private alias TokyoCabinetIterator!(TCMDB, tcmdbforeach) TcIterator;
-    
+
     /**************************************************************************
-    
+
         Destructor check if called twice
 
      **************************************************************************/
-    
+
     private bool deleted = false;
-    
+
     /**************************************************************************
-        
+
         Tokyo cabinet database instance
-    
+
      **************************************************************************/
-    
+
     private TCMDB* db;
-    
-    
+
+
     /**************************************************************************
-        
-        Constructor; creates new in memory database instance   
-                             
+
+        Constructor; creates new in memory database instance
+
      **************************************************************************/
-    
-    public this ( ) 
+
+    public this ( )
     {
         gcSafe({
             this.db = tcmdbnew();
         });
     }
-    
+
     /**************************************************************************
-        
+
         Constructor
-        
+
         Params:
             bnum = number of buckets
-                             
+
      **************************************************************************/
-    
-    public this ( uint bnum ) 
+
+    public this ( uint bnum )
     {
         gcSafe({
             this.db = tcmdbnew2(bnum);
         });
     }
-    
+
     /**************************************************************************
-    
-        Destructor    
-        
+
+        Destructor
+
         FIXME: destructor called twice: why?
-                             
+
      **************************************************************************/
 
     private ~this ( )
@@ -142,20 +142,20 @@ public class TokyoCabinetM
                 tcmdbdel(this.db);
             });
         }
-        
+
         this.deleted = true;
     }
-    
+
     /**************************************************************************
-     
+
         Puts a record to database; overwrites an existing record
-       
+
         Params:
             key   = record key
             value = record value
-            
+
     ***************************************************************************/
-    
+
     public void put ( char[] key, char[] value )
     in
     {
@@ -169,15 +169,15 @@ public class TokyoCabinetM
     }
 
     /**************************************************************************
-    
+
         Puts a record to database; does not ooverwrite an existing record
-       
+
         Params:
             key   = record key
             value = record value
-            
+
     ***************************************************************************/
-    
+
     public void putkeep ( char[] key, char[] value )
     in
     {
@@ -189,18 +189,18 @@ public class TokyoCabinetM
             tcmdbputkeep(this.db, key.ptr, key.length, value.ptr, value.length);
         });
     }
-    
+
     /**************************************************************************
-        
+
         Attaches/Concenates value to database record; creates a record if not
         existing
-        
+
         Params:
             key   = record key
             value = value to concenate to record
-            
+
     ***************************************************************************/
-    
+
     public void putcat ( char[] key, char[] value )
     in
     {
@@ -212,15 +212,15 @@ public class TokyoCabinetM
             tcmdbputcat(this.db, key.ptr, key.length, value.ptr, value.length);
         });
     }
-    
+
     /**************************************************************************
-    
+
         Get record value without intermediate value buffer
-    
+
         Params:
             key   = record key
             value = record value output
-    
+
         Returns:
             true on success or false if record not existing
 
@@ -244,7 +244,7 @@ public class TokyoCabinetM
         });
 
         bool found = !!value_;
-        
+
         if (found)
         {
             value.copy((cast(char*) value_)[0 .. len]);
@@ -253,21 +253,21 @@ public class TokyoCabinetM
                 free(value_);
             });
         }
-        
+
         return found;
     }
-    
+
     /**************************************************************************
-    
+
         Gets the key of first record in the database. (The database's internal
         iteration position is reset to the first record.)
-    
+
         Note: this method is synchronized as it relies on calling tcmdbiterinit2
         directly followed by tcmdbiternext.
 
         Params:
             key   = record key output
-    
+
         Returns
             true on success or false if record not existing
 
@@ -331,15 +331,15 @@ public class TokyoCabinetM
     }
 
     /**************************************************************************
-    
+
         Tells whether a record exists
-        
+
          Params:
             key = record key
-        
+
         Returns:
              true if record exists or false otherwise
-    
+
     ***************************************************************************/
 
     public bool exists ( char[] key )
@@ -357,17 +357,17 @@ public class TokyoCabinetM
 
         return size >= 0;
     }
-    
+
     /**************************************************************************
-    
+
         Remove record
-        
+
         Params:
             key = key of record to remove
-        
+
         Returns:
             true on success or false otherwise
-        
+
     ***************************************************************************/
 
     public bool remove ( char[] key )
@@ -387,14 +387,14 @@ public class TokyoCabinetM
     }
 
     /**************************************************************************
-        
+
         Returns the number of records
-        
-        Returns: 
+
+        Returns:
             number of records, or zero if none
-        
+
      ***************************************************************************/
-    
+
     public ulong numRecords ()
     in
     {
@@ -403,23 +403,23 @@ public class TokyoCabinetM
     body
     {
         ulong num;
-        
+
         gcSafe({
             num = tcmdbrnum(this.db);
         });
 
         return num;
     }
-    
+
     /**************************************************************************
-    
+
         Returns the total size of the database object in bytes
-        
-        Returns: 
+
+        Returns:
             total size of the database object in bytes
-        
+
     ***************************************************************************/
-    
+
     public ulong dbSize ()
     in
     {
@@ -437,9 +437,9 @@ public class TokyoCabinetM
     }
 
     /**************************************************************************
-    
+
         Clears the database
-        
+
     ***************************************************************************/
 
     public void clear ()
@@ -453,17 +453,17 @@ public class TokyoCabinetM
             tcmdbvanish(this.db);
         });
     }
-    
+
     /**************************************************************************
-    
+
         "foreach" iterator over key/value pairs of records in database. The
         "key" and "val" parameters of the delegate correspond to the iteration
         variables.
-        
+
         deprecated: use getFirstKey() and getNextKey() instead
 
      ***************************************************************************/
-    
+
     deprecated public int opApply ( TcIterator.KeyValIterDg delg )
     in
     {
@@ -472,21 +472,21 @@ public class TokyoCabinetM
     body
     {
         int result;
-        
+
         TcIterator.tcdbopapply(this.db, delg, result);
-        
+
         return result;
     }
 
     /**************************************************************************
-    
+
         "foreach" iterator over keys of records in database. The "key"
         parameter of the delegate corresponds to the iteration variable.
-        
+
         deprecated: use getFirstKey() and getNextKey() instead
 
      ***************************************************************************/
-    
+
     deprecated public int opApply ( TcIterator.KeyIterDg delg )
     in
     {
@@ -495,9 +495,9 @@ public class TokyoCabinetM
     body
     {
         int result;
-        
+
         TcIterator.tcdbopapply(this.db, delg, result);
-        
+
         return result;
     }
 
@@ -505,15 +505,15 @@ public class TokyoCabinetM
 
         Iterates from the current iteration position, getting the key of next
         record in the database.
-    
+
         Params:
             key      = record key output
-    
+
         Returns
             true on success or false if record not existing
-    
+
     ***************************************************************************/
-    
+
     private bool iterateNextKey ( ref char[] key )
     in
     {
@@ -528,20 +528,20 @@ public class TokyoCabinetM
         void* key_;
 
         gcSafe({
-            key_ = cast(void*)tcmdbiternext(this.db, &len); 
+            key_ = cast(void*)tcmdbiternext(this.db, &len);
         });
 
         bool found = !!key_;
-    
+
         if (found)
         {
             key.copy((cast(char*)key_)[0 .. len]);
-    
+
             gcSafe({
                 free(key_);
             });
         }
-    
+
         return found;
     }
 
@@ -577,55 +577,55 @@ debug (OceanUnitTest)
     import tango.time.StopWatch;
     import tango.core.Thread;
     import tango.util.container.HashMap;
-    
+
     unittest
     {
         debug ( Verbose ) Trace.formatln("Running ocean.db.tokyocabinet.TokyoCabinetM unittest");
-        
+
         const uint iterations  = 5;
         const uint inserts     = 1_000_000;
         const uint num_threads = 1;
-        
+
         /***********************************************************************
-            
+
             ArrayMapKV Assertion Test
-            
+
          ***********************************************************************/
-        
+
         StopWatch   w;
-        
+
         scope value = new char[0x100];
-        
+
         scope map = new TokyoCabinetM(1_250_000);
-        
+
         map.put("1", "1111");
         map.put("2", "2222");
-        
+
         map.get("1", value);
         assert(value == "1111");
-        
+
         map.get("2", value);
         assert(value == "2222");
-        
+
         assert(map.exists("1"));
         assert(map.exists("2"));
-        
+
         assert(map.numRecords() == 2);
-        
+
         map.put("3", "3333");
-        
+
         assert(map.numRecords() == 3);
-        
+
         map.get("3", value);
         assert(value == "3333");
-        
+
         map.remove("3");
         assert(!map.exists("3"));
         assert(map.numRecords() == 2);
     }
 }
 
-        
+
 /*******************************************************************************
 
     Performance test
@@ -643,59 +643,59 @@ debug (OceanPerformanceTest)
     unittest
     {
         /***********************************************************************
-            
+
             Memory Test
-            
+
          ***********************************************************************/
-        
+
         debug ( Verbose ) Trace.formatln("running mem test...");
-        
+
         char[] toHex ( uint n, char[8] hex )
         {
             foreach_reverse (ref c; hex)
             {
                 c = "0123456789abcdef"[n & 0xF];
-                
+
                 n >>= 4;
             }
-            
+
             return hex;
         }
 
         char[8] hex;
-        
+
         for ( uint r = 1; r <= iterations; r++ )
         {
             map.clear();
-            
+
             w.start;
-            
+
             for ( uint i = ((inserts * r) - inserts); i < (inserts * r); i++ )
             {
                 toHex(i, hex);
-                
+
                 map.put(hex, hex);
             }
 
-            debug ( Verbose ) Trace.formatln  ("[{}:{}-{}]\t{} adds with {}/s and {} bytes mem usage", 
-                    r, ((inserts * r) - inserts), (inserts * r), map.numRecords(), 
+            debug ( Verbose ) Trace.formatln  ("[{}:{}-{}]\t{} adds with {}/s and {} bytes mem usage",
+                    r, ((inserts * r) - inserts), (inserts * r), map.numRecords(),
                     map.numRecords()/w.stop, GC.stats["poolSize"]);
         }
-        
+
         w.start;
         uint hits = 0;
         uint* p;
-        
+
         for ( uint i = ((inserts * iterations) - inserts); i < (inserts * iterations); i++ )
         {
             if ( map.exists(toHex(i, hex)) ) hits++;
         }
         debug ( Verbose ) Trace.formatln("inserts = {}, hits = {}", inserts, hits);
         assert(inserts == hits);
-        
+
         debug ( Verbose ) Trace.format  ("{}/{} gets/hits with {}/s and ", map.numRecords(), hits, map.numRecords()/w.stop);
         debug ( Verbose ) Trace.formatln("mem usage {} bytes", GC.stats["poolSize"]);
-        
+
         debug ( Verbose ) Trace.formatln("done unittest\n");
     }
 }

@@ -6,9 +6,9 @@
 
     version:        Mar 2009: Initial release
                     May 2010: Revised version
-                    
+
     authors:        Lars Kirchhoff, Thomas Nicolai & David Eckhardt
-    
+
 ********************************************************************************/
 
 module      ocean.net.http.Url;
@@ -16,7 +16,7 @@ module      ocean.net.http.Url;
 /*******************************************************************************
 
     Imports
-        
+
 ********************************************************************************/
 
 private     import      ocean.net.http.HttpConstants;
@@ -39,9 +39,9 @@ debug private import ocean.util.log.Trace;
 
 
 
-/*******************************************************************************  
+/*******************************************************************************
 
-    Url parses a url string and seperates its components to be directly 
+    Url parses a url string and seperates its components to be directly
     and efficiently accessible.
 
     Escaped characters (eg "%20") in values of url query parameters are
@@ -51,25 +51,25 @@ debug private import ocean.util.log.Trace;
     ---
     Url    url;
     char[] url_string = "http://www.example.com/path1/path2?key=value";
-    
+
     url.parse(url);
     ---
-    
+
     Retrieving the number of path segments
     ---
     uint count = url.path.length
     ---
-    
+
     Retrieving a specific path segment
     ---
     char[] segment = url.path[1];
     ---
-    
+
     Retrieving the number of query parameter
     ---
     uint count = url.query.length
     ---
-    
+
     Retrieving a specific query value for a given key
     ---
     char[] value = url.query["key"];
@@ -85,123 +85,123 @@ debug private import ocean.util.log.Trace;
 
     http://tools.ietf.org/html/rfc3986
     http://tools.ietf.org/html/rfc1738
-    
+
     An overview about all the Url related Rfc can be found on the apache website
-    
+
     http://labs.apache.org/webarch/uri/rfc/
-    
+
 ********************************************************************************/
 
 struct Url
 {
-    
+
     /***************************************************************************
-        
+
         Uri Parser
-    
+
      ***************************************************************************/
-    
+
     private             Uri                             parser;
-    
+
     /***************************************************************************
-        
+
         Url string
-        
-     ***************************************************************************/                                                   
-    
+
+     ***************************************************************************/
+
     private             char[]                          url;
 
     /***************************************************************************
-        
+
         Host subcomponent
-   
+
      ***************************************************************************/
-    
+
     public              char[]                          host;
-    
+
     /***************************************************************************
-        
+
         Path component
-    
+
      ***************************************************************************/
-    
+
     public              Path                            path;
 
     /***************************************************************************
-        
+
         Path tolower conversion buffer
-    
+
      ***************************************************************************/
-    
+
     public              char[]                          path_buffer;
 
     /***************************************************************************
-    
+
         Query component
 
      ***************************************************************************/
-    
+
     public              Query                           query;
-    
+
     /***************************************************************************
-        
+
         Returns length of url string
-            
+
         Returns:
             length of host name
-            
+
      ***************************************************************************/
-    
+
     public uint length ()
     {
-        return this.url.length;        
+        return this.url.length;
     }
 
-    
+
     /***************************************************************************
-        
+
         Returns url string
-            
+
         Returns:
             url string
-            
+
      ***************************************************************************/
-    
+
     public char[] toString ()
     {
         return this.url;
     }
 
-    
+
     /***************************************************************************
-        
+
         Parses request Uri
-            
+
         Params:
             url     = url to parse
             tolower = enable/disable lowercase conversion of the url path
-            
+
         Returns:
             resource format or null if not given
-        
+
         Throws:
             May throw an Exception if url is invalid or bad UTF-8
-        
+
      ***************************************************************************/
 
     public void parse ( in char[] url, bool tolower = true )
     {
         this.host.length = 0;
-        
+
         assert(url.length, `parse error: url has zero length`);
-        
+
         if ( parser is null )
             this.parser = new Uri();
 
         this.url.copy(url);
-        
-        this.parser.parse(this.url);        
-        
+
+        this.parser.parse(this.url);
+
         this.host = this.parser.host;
 
         this.query.parse(url);
@@ -209,139 +209,139 @@ struct Url
     }
 
     /***************************************************************************
-        
+
         Path Component
-            
+
      ***************************************************************************/
-    
+
     struct Path
     {
-        
+
         /***********************************************************************
-            
+
             Path component string
-            
-         ***********************************************************************/                                                   
-        
+
+         ***********************************************************************/
+
         private             char[]                          path;
-        
+
         /***********************************************************************
-            
+
             Path segments
-            
-         ***********************************************************************/                                                   
-        
+
+         ***********************************************************************/
+
         private             char[][]                        segments;
         private             char[][]                        splits;
-    
+
         /***********************************************************************
-            
+
             Operator overloading; Returns path segment
-            
+
             Params:
-                name = name of the paramater 
-                
+                name = name of the paramater
+
             Returns:
                 path segment or null if not existing
-                
+
          ***********************************************************************/
-        
+
         public char[] opIndex(uint key)
         {
             if (this.segments.length > key)
             {
                 return this.segments[key];
             }
-            
+
             return null;
         }
-        
+
         /***********************************************************************
-            
+
             Resets path variables
-            
+
          ***********************************************************************/
-        
+
         public void reset ()
         {
             this.path.length = 0;
             this.segments.length = 0;
             this.splits.length = 0;
         }
-        
+
         /***********************************************************************
-            
+
             Returns number path segments
-                
+
             Returns:
                 number of path segments
-                
+
          ***********************************************************************/
-        
+
         public uint length ()
         {
-            return this.segments.length;        
+            return this.segments.length;
         }
-        
+
         /***********************************************************************
-            
+
             Returns url encoded path component as string
-                
+
             Returns:
                 url path component
-                
+
          ***********************************************************************/
-        
+
         public char[] toString ()
         {
             return this.path;
         }
-        
+
         /***********************************************************************
-            
+
             Parses the path component
-            
+
             Method transforms
             ---
             char[] = "/path/element"
             ---
-            
-            into 
+
+            into
             ---
             char[][] param;
-            
+
             param[] = 'path';
             param[] = 'element';
             ---
-                
+
             Params:
                 path = url path
-                tolower = enable/disable tolower case conversion 
-                
+                tolower = enable/disable tolower case conversion
+
             Returns:
                 void
-            
+
          ***********************************************************************/
-        
+
         public void parse ( in char[] path, Uri uri, bool tolower = true )
         {
             this.reset;
-            
+
             if ( tolower )
             {
                 this.path.length = path.length;
                 this.path = Unicode.toLower(path, this.path);
-                
+
                 uri.path(this.path);
             }
             else
             {
                 this.path = path;
             }
-            
+
             this.path.split(UriDelim.QUERY_URL, this.splits);
-            
-            for ( uint i = 0; i < this.splits.length; i++ )        
+
+            for ( uint i = 0; i < this.splits.length; i++ )
             {
                 if ( this.splits[i].length )
                 {
@@ -350,75 +350,75 @@ struct Url
             }
         }
     }
-    
-    
+
+
     /***************************************************************************
-        
+
         Query component
-            
+
      ***************************************************************************/
-    
+
     struct Query
     {
-        
+
         /***********************************************************************
-    
+
             QueryPair
-        
+
          ***********************************************************************/
-        
+
         struct QueryPair
-        {       
+        {
                 char[] key;
                 char[] value;
         }
-    
+
         /***********************************************************************
-            
+
             Query component string. If decoding is required, this is a new
             string, otherwise it's a slice into the string passed to parse().
-            
-        ***********************************************************************/                                                   
-        
+
+        ***********************************************************************/
+
         private             char[]                          query;
-        
+
         /***********************************************************************
 
             Buffer used when decoding query parameters.
 
-        ***********************************************************************/                                                   
+        ***********************************************************************/
 
         private             char[]                          decode_buf;
 
         /***********************************************************************
-            
+
             Query key/value pairs (all slices into this.query)
-            
+
          ***********************************************************************/
 
         private             QueryPair[]                     pairs;
-        
+
         /***********************************************************************
-            
+
             Temporary split values (slices)
-            
+
          ***********************************************************************/
-        
+
         private             char[][]                        elements;
         private             char[][]                        splits;
-        
+
         /***********************************************************************
-            
+
             Returns value of key
-            
+
             Params:
                 key = name of key
-                
+
             Returns:
                 value of key or null if not existing
-                
+
          ***********************************************************************/
-        
+
         public char[] opIndex ( char[] key )
         {
             foreach ( pair; this.pairs )
@@ -431,41 +431,41 @@ struct Url
 
             return null;
         }
-       
+
         /***********************************************************************
-            
+
             Returns number of query pairs
-                
+
             Returns:
                 number of parameter
-                
+
          ***********************************************************************/
-        
+
         public uint length ()
         {
             return this.pairs.length;
         }
-        
+
         /***********************************************************************
-            
+
             Returns query component as string
-                
+
             Returns:
                 url query component
-                
+
          ***********************************************************************/
-        
+
         public char[] toString ()
         {
             return this.query;
         }
-        
+
         /***********************************************************************
-            
+
             Resets path variables
-            
+
          ***********************************************************************/
-        
+
         public void reset ()
         {
             this.query.length = 0;
@@ -474,12 +474,12 @@ struct Url
             this.pairs.length = 0;
             this.splits.length = 0;
         }
-        
+
         /***********************************************************************
 
             Parses query component, optionally decoding query values.
 
-            Method extracts the query element from the given url by searching 
+            Method extracts the query element from the given url by searching
             for '?' character denoting start of url query. The '#' fragment
             character is denoting the end of the url query, otherwise the end of
             string is used. After identifying the query string its splitted into
@@ -490,12 +490,12 @@ struct Url
             ---
                 char[] = "?language=en&set=large"
             ---
-            
-            into 
+
+            into
 
             ---
                 char[][char[]] param;
-            
+
                 param['language'] = 'en';
                 param['set']      = 'large';
             ---
@@ -521,16 +521,16 @@ struct Url
         }
 
         /***********************************************************************
-            
+
             Seperates the query path elements and optionally decodes value.
-            
+
             Params:
                 query  = encoded url character string
                 decode_values = if true, query parameter values will be decoded
                     (note that keys are never decoded)
 
         ***********************************************************************/
-        
+
         private void extract ( in char[] query, bool decode_values = true )
         {
             if ( decode_values )
@@ -546,7 +546,7 @@ struct Url
 
             foreach ( i, ref element; this.elements )
             {
-                if ( element.length && element != UriDelim.PARAM ) 
+                if ( element.length && element != UriDelim.PARAM )
                 {
                     element.split(UriDelim.KEY_VALUE, this.splits);
 
@@ -796,7 +796,7 @@ struct Url
 ********************************************************************************/
 
 version (none) debug ( OceanUnitTest )
-{  
+{
     import ocean.util.log.Trace;
     import tango.math.random.Random;
 
@@ -808,45 +808,45 @@ version (none) debug ( OceanUnitTest )
     void printUsage ( bool b = false )
     {
         static double before = 0; //GC.stats["usedsize"];
-       if(!b) 
+       if(!b)
         Trace.formatln("Used: {} byte ({} kb) (+{}), poolsize {}kb",
                        GC.stats.usedsize, GC.stats.usedsize / 1024,
-                       GC.stats.usedsize - before, 
+                       GC.stats.usedsize - before,
                        GC.stats.poolsize / 1024);
         if (b && before != GC.stats.usedsize) assert (false);
         before = GC.stats.usedsize;
     }
-    
-    
+
+
     unittest
     {
         Url    url;
         char[] url_string;
-        
+
         url_string = "http://www.example.com/path1/path2?key1=value1&key2=value2";
-        
+
         Trace("running unittest ocean.net.http.Url");
 
         url.parse(url_string);
-        
+
         assert(url.toString == url_string);
-        
+
         assert(url.host == "www.example.com");
-        
+
         assert(url.path.length  == 2);
         assert(url.path.toString  == "/path1/path2");
         assert(url.path[0] == "path1");
         assert(url.path[1] == "path2");
-        
+
         assert(url.query.length == 2);
         assert(url.query.toString  == "key1=value1&key2=value2");
         assert(url.query["key1"] == "value1");
         assert(url.query["key2"] == "value2");
 
         Trace("running mem test on ocean.net.http.Url");
-        
+
         uint x = 0;
-        
+
         Tango.GC.disable;
 
         auto mem_before = GC.stats.poolsize;
@@ -854,11 +854,11 @@ version (none) debug ( OceanUnitTest )
         for ( uint i=0; i <= 5_000_000; i++ )
         {
             url.parse(url_string);
-            
+
             assert(url.host == "www.example.com");
             assert(url.path.toString  == "/path1/path2");
             assert(url.query.toString  == "key1=value1&key2=value2");
-            
+
             if ( x == 50_000 )
             {
             	auto mem_now = GC.stats.poolsize;
@@ -869,13 +869,13 @@ version (none) debug ( OceanUnitTest )
 
                 x = 0;
             }
-            
+
             x++;
         }
-        
+
         char[][] urls;
         urls.length = 2048*10;
-        
+
         auto random = new Random();
         char[] genWord(uint len=0)
         {
@@ -890,16 +890,16 @@ version (none) debug ( OceanUnitTest )
             char[] s;
             for(uint i=0;i<len;++i)
             {
-                
-                
+
+
                 if(i%8==0)
                 {
-                    random(val);            
+                    random(val);
                     s=(cast(char*)&val)[0..8];
                     foreach(ref c; s)
                     {
                         c = (c%('z'-'a'))+'a';
-                        
+
                     }
                 }
                 assert(s[i%8]<='z' && s[i%8]>='a');
@@ -907,23 +907,23 @@ version (none) debug ( OceanUnitTest )
                 ret~=s[i%8];
             }
             return ret;
-            
+
         }
-        
-        
+
+
         uint longest = 0;
         for (uint i=0; i< 2048*10; ++i)
         {
             urls[i] = genWord(3)~"://"~
                 genWord()~"."~
                 genWord(3)~"/";
-            
+
             uint r=void; random(r); r%=30;
             for(uint o=0;o<r;++o)
                 urls[i]~=genWord();
-            
+
             urls[i]~="/"~genWord;
-            
+
             longest = (urls[longest].length > urls[i].length) ? longest : i;
         }
         Tango.GC.collect;
@@ -931,13 +931,13 @@ version (none) debug ( OceanUnitTest )
         url.parse(urls[longest]);
         Trace("After list setup  ");
         printUsage();
-        
-        
-        
+
+
+
         url.parse(urls[longest]);
         Trace("after longest url ");
         printUsage();
-        
+
         foreach(urlstr;urls)
         {
             url.parse(urlstr);
@@ -945,7 +945,7 @@ version (none) debug ( OceanUnitTest )
         }
         Trace("After mem test #2 ");
         printUsage();
-        
+
         Trace("done unittest ocean.net.http.Url");
     }
 }

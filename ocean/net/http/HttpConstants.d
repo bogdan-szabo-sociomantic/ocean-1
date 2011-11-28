@@ -1,15 +1,15 @@
 /*******************************************************************************
 
-    HTTP Constants that are not defined in tango.net.http.HttpConst 
-    
+    HTTP Constants that are not defined in tango.net.http.HttpConst
+
     copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
-    
+
     version:        April 2009: Initial release
-    
+
     authors:        Lars Kirchhoff, Thomas Nicolai & David Eckhardt
-                
+
 *******************************************************************************/
-        
+
 module      ocean.net.http.HttpConstants;
 
 
@@ -30,7 +30,7 @@ public  import      tango.net.http.HttpConst;
 
 
 struct HttpMethod
-{       
+{
     static const char[] Options      = `OPTIONS`;
     static const char[] Get          = `GET`;
     static const char[] Head         = `HEAD`;
@@ -50,7 +50,7 @@ struct HttpMethod
 
 
 struct UriDelim
-{       
+{
     static const char[] QUERY      = `?`; // seperates uri path & query parameter
     static const char[] FRAGMENT   = `#`; // seperates uri path & fragment
     static const char[] QUERY_URL  = `/`; // separates url path elements
@@ -62,7 +62,7 @@ struct UriDelim
 /*******************************************************************************
 
     Http Protocol Version
-    
+
     The type definition is an easy means to avoid inadvertent use of an
     arbitrary string where a HTTP version identifier string is required.
 
@@ -71,7 +71,7 @@ struct UriDelim
 typedef char[] HttpVersionId;
 
 struct HttpVersion
-{   
+{
     static const HttpVersionId v10 = cast (HttpVersionId) `HTTP/1.0`,
                                v11 = cast (HttpVersionId) `HTTP/1.1`;
 }
@@ -99,7 +99,7 @@ struct HttpCookieAttr
                      Secure   = `secure`,
                      Version  = `version`;
     }
-    
+
     static const struct Delim
     {
         static const AttrValue  = '=',
@@ -115,55 +115,55 @@ struct HttpCookieAttr
 
 
 struct HttpStatusNames
-{       
+{
     /**************************************************************************
 
         Returns a HTTP status code description string.
-        
+
         Params:
             code = HTTP status code
-            
+
         Returns:
             HTTP status code description string
 
      **************************************************************************/
-    
+
     public static char[] opIndex ( int code )
     {
         char[]* str = code in this.response_names;
-        
+
         return str? *str : `[unknown HTTP status code]`;
     }
-    
+
     /**************************************************************************
 
         Tells whether a description string is available for a HTTP status code.
-        
+
         Params:
             code = HTTP status code
-            
+
         Returns:
             true if there is a description string or false otherwise
-    
+
      **************************************************************************/
 
     public static bool opIn ( int code )
     {
         return !!(code in this.response_names);
     }
-    
+
     /**************************************************************************
 
         Description strings database
-    
+
      **************************************************************************/
 
     private static char[][int] response_names;
-    
+
     /**************************************************************************
 
         Static constructor; fills the database
-    
+
      **************************************************************************/
 
     static this ( )

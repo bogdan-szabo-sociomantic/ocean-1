@@ -19,7 +19,7 @@
 
     Description:
 
-    The ngram parser creates all ngrams for a given text and returns the ngrams 
+    The ngram parser creates all ngrams for a given text and returns the ngrams
     together with the frequency of each ngram within the document. The source
     text is copied into the object, where it has all punctuation and digits
     removed and is then split into words. Ngrams are then derived from each word
@@ -47,7 +47,7 @@
         // Number of ngrams that should be returned. The ngram map is sorted
         // by the ngram count. ngrams with the highest count are on top.
         // ngrams with the highest number will be returned first.
-        uint max_number_ngrams   = 200; 
+        uint max_number_ngrams   = 200;
 
         alias NGramParser!(dchar) Parser;
         auto parser = new Parser;
@@ -56,14 +56,14 @@
 
         foreach (ngram, freq; parser.getNGramMap(max_number_ngrams))
         {
-            Trace.formatln("{} {}", ngram, freq);         
+            Trace.formatln("{} {}", ngram, freq);
         }
 
     ---
 
     The class can also be used statically to parse texts with a single function
     call, filling in a provided NGramsSet object with the ngrams in the text:
-    
+
     ---
 
         import ocean.text.ngram.NGramParser;
@@ -73,7 +73,7 @@
         // Text that should be parsed.
         char[] text = "Raum vs aufmerksamkeitsbezogene Therapie ...";
 
-        // Number of ngrams that should be returned. The ngram map is sorted 
+        // Number of ngrams that should be returned. The ngram map is sorted
         // by the ngram count. ngrams with the highest count are on top.
         // ngrams with the highest number will be returned first.
         uint max_number_ngrams   = 200;
@@ -87,7 +87,7 @@
 
         foreach (ngram, freq; ngrams.getHighest(max_number_ngrams))
         {
-            Trace.formatln("{} {}", ngram, occurrence);         
+            Trace.formatln("{} {}", ngram, occurrence);
         }
 
 	---
@@ -132,7 +132,7 @@ debug
 /*******************************************************************************
 
     NGramParser class - just a namespace, all methods are static.
-    
+
 *******************************************************************************/
 
 public class NGramParser
@@ -140,7 +140,7 @@ public class NGramParser
     /***************************************************************************
 
         Private constructor to prevent instantiation.
-    
+
     ***************************************************************************/
 
     private this ( )
@@ -152,7 +152,7 @@ public class NGramParser
     /***************************************************************************
 
         Apostrophe characters, which are converted to ' during processing.
-    
+
     ***************************************************************************/
 
     public const dchar[] apostrophes = "'‘’`’";
@@ -161,7 +161,7 @@ public class NGramParser
     /***************************************************************************
 
         Debug info output switch
-    
+
     ***************************************************************************/
 
     public bool debug_trace = false;
@@ -175,7 +175,7 @@ public class NGramParser
         Params:
             text = text to split
             words = output array of words (slices into text)
-    
+
         Throws:
             asserts that the passed text has been normalized (see the
             normalizeText methods)
@@ -212,7 +212,7 @@ public class NGramParser
 
 	    Parses a text, and fills the passed ngrams set with the discovered
 	    ngrams.
-	
+
 	    Params:
 	        out_ngrams = ngrams set to be filled
 	        ngram_length = character length of ngrams
@@ -231,7 +231,7 @@ public class NGramParser
 
 	    Parses a list of texts, and fills the passed ngrams set with the
         discovered ngrams.
-	
+
 	    Params:
 	        out_ngrams = ngrams set to be filled
 	        ngram_length = character length of ngrams
@@ -262,15 +262,15 @@ public class NGramParser
 
             1. Contains no characters which should be stripped.
             2. Contains no upper case characters.
-   
+
         Params:
             text = text to check
 
         Returns:
             true if the text is normalized
-    
+
     ***************************************************************************/
-    
+
     public bool isNormalized ( dchar[] text )
     {
         foreach ( c; text )
@@ -292,13 +292,13 @@ public class NGramParser
     /***************************************************************************
 
         Checks whether a list of texts have been normalized.
-    
+
         Params:
             texts = list of texts to check
-    
+
         Returns:
             true if all texts are normalized
-    
+
     ***************************************************************************/
 
     public bool isNormalized ( dchar[][] texts )
@@ -329,7 +329,7 @@ public class NGramParser
             output = output for normalized text
             working = required intermediary buffer
             stopwords = list of stopwords to remove
-    
+
     ***************************************************************************/
 
     public void normalizeText ( T ) ( T[] input, ref dchar[] output, ref dchar[] working, dchar[][] stopwords = [] )
@@ -354,18 +354,18 @@ public class NGramParser
 
         Processes a text, splitting it into words (by space characters), then
         copying any non-stopwords into the output buffer.
-    
+
         Params:
             input = text to process
             output = output for processed text
             stopwords = list of words to remove from input text
-    
+
     ***************************************************************************/
-    
+
     public void removeStopWords ( dchar[] input, ref dchar[] output, dchar[][] stopwords )
     {
         output.length = 0;
-    
+
         debug uint count, stop;
         foreach ( word; TextUtil.split(input, " "d) )
         {
@@ -380,7 +380,7 @@ public class NGramParser
                 else debug stop++;
             }
         }
-    
+
         debug if ( debug_trace && stopwords.length )
         {
             Trace.formatln("Stopwording reduced word count from {} to {} ({}% reduction)", count, count - stop, (cast(float)stop / cast(float)count) * 100);
@@ -396,7 +396,7 @@ public class NGramParser
         Params:
             input = text to process
             output = output for processed text
-    
+
     ***************************************************************************/
 
     private void normalizeCharacters ( dchar[] input, ref dchar[] output )
@@ -415,11 +415,11 @@ public class NGramParser
 
         Processes an input text, removing consecutive whitespace characters and
         writing the result to the output text buffer.
-    
+
         Params:
             input = text to process
             output = output for processed text
-    
+
     ***************************************************************************/
 
     private void compressWhitespace ( dchar[] input, ref dchar[] output )
@@ -430,7 +430,7 @@ public class NGramParser
         {
             return;
         }
-        
+
         size_t read_pos, write_pos;
 
         while ( read_pos < input.length - 1 )
@@ -474,7 +474,7 @@ public class NGramParser
             dest = string to write to
             src = string to copy
             write_pos = position to write to
-    
+
     ***************************************************************************/
 
     private void appendToString ( ref dchar[] dest, dchar[] src, ref size_t write_pos )
@@ -494,18 +494,18 @@ public class NGramParser
     /***************************************************************************
 
         Converts a string to dchar (unicode characters).
-    
+
         Params:
             input = string to convert
             output = output for converted string
-    
+
     ***************************************************************************/
 
     private dchar[] convertToDChar ( dchar[] input, ref dchar[] output )
     {
         return input;
     }
-    
+
     private dchar[] convertToDChar ( char[] input, ref dchar[] output )
     {
         try
@@ -519,7 +519,7 @@ public class NGramParser
 
         return output;
     }
-    
+
 
     /***************************************************************************
 
@@ -529,15 +529,15 @@ public class NGramParser
 
         Params:
             c = character to normalize
-        
+
         Returns:
             string containing normalized character (will always be a slice into
             a constant string)
-    
+
         Note: this methods returns a string (rather than a single dchar) as in
         some rare cases a single upper case character can convert to more than
         one lower case character.
-    
+
         Note: the apostrophe normalization takes place for the benefit of
         stopwording in languages like english and french where many common words
         (ie stopwords) contain apostrophes which must be successfully matched.
@@ -574,10 +574,10 @@ public class NGramParser
 
         Params:
             c = character to check
-        
+
         Returns:
             true if the character should be stripped
-    
+
     ***************************************************************************/
 
     private bool stripCharacter ( dchar c )
@@ -618,25 +618,25 @@ public class NGramParser
             default:
                 return false;
         }
-        
+
     }
 
 
     /***************************************************************************
 
         Converts a unicode character to lower case.
-    
+
         (Adapted from tango.text.Unicode : toLower)
-    
+
         Params:
             c = character to convert
-    
+
         Returns:
             one or more characters representing the lower case version of the
             input character
-    
+
     ***************************************************************************/
-    
+
     private dchar[] unicodeToLower ( dchar c )
     {
         UnicodeData* d = getUnicodeData(c);
@@ -646,7 +646,7 @@ public class NGramParser
             {
                 SpecialCaseData* s = getSpecialCaseData(c);
                 debug assert(s !is null);
-    
+
                 if( (*s).lowerCaseMapping !is null )
                 {
                     return (*s).lowerCaseMapping;
@@ -667,12 +667,12 @@ public class NGramParser
     /***************************************************************************
 
         Processes a list of texts, extracting ngrams from each.
-        
+
         Params:
             ngrams = ngram set which will be filled with ngrams
             ngram_length = character length of ngrams
             texts = array of texts to process
-	    
+
 	***************************************************************************/
 
     private void getNGrams ( NGramSet ngrams, uint ngram_length, dchar[][] texts )
@@ -687,12 +687,12 @@ public class NGramParser
     /***************************************************************************
 
         Processes a text, extracting ngrams from it.
-        
+
         Params:
             ngrams = ngram set which will be filled with ngrams
             ngram_length = character length of ngrams
             text = text to process
-        
+
     ***************************************************************************/
 
     private void getNGrams ( NGramSet ngrams, uint ngram_length, dchar[] text )
@@ -701,8 +701,8 @@ public class NGramParser
         {
             uint i;
         	uint max_steps = (text.length - ngram_length) + 1;
-            
-            do 
+
+            do
             {
                 auto ngram = text[i .. i + ngram_length];
                 ngrams.addOccurrence(ngram);
@@ -717,13 +717,13 @@ public class NGramParser
     /***************************************************************************
 
         Checks whether a string contains only unicode whitespace characters.
-        
+
         Params:
             text = text to check
-        
+
         Returns:
             true if the string contains only unicode whitespace characters
-        
+
     ***************************************************************************/
 
     private bool isWhitespace ( dchar[] text )

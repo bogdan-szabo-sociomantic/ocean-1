@@ -7,7 +7,7 @@
     version:        Jan 2009: initial release
                     May 2010: revised version with struct opIndex support
 
-    authors:        Lars Kirchhoff, Thomas Nicolai, David Eckardt, 
+    authors:        Lars Kirchhoff, Thomas Nicolai, David Eckardt,
                     Gavin Norman, Mathias Baumann
 
 *******************************************************************************/
@@ -43,7 +43,7 @@ debug private  import         ocean.util.log.Trace;
 
 
 /*******************************************************************************
- 
+
     Config reads all properties of the application from an INI style of the
     following format:
 
@@ -107,15 +107,15 @@ debug private  import         ocean.util.log.Trace;
 
         Config.set("key", "new value");
         Config.write;
-    
+
 *******************************************************************************/
 
 /*******************************************************************************
 
-    Configuration settings that are mandatory can be marked as such by 
+    Configuration settings that are mandatory can be marked as such by
     wrapping them with this template.
-    
-    Note: The variable sometimes requires a cast for certain usages when this 
+
+    Note: The variable sometimes requires a cast for certain usages when this
           is used.
 
     Params:
@@ -132,7 +132,7 @@ template Required ( T )
 
     Configuration settings for which it is required to know whether they have
     been set or not can be wrapped in this struct.
-    
+
     Params:
         T = the original type
 
@@ -143,15 +143,15 @@ struct SetInfo ( T )
     /***************************************************************************
 
         The value of the configuration setting
-    
+
     ***************************************************************************/
-        
+
     T value;
 
     /***************************************************************************
 
         Whether this value has been set
-    
+
     ***************************************************************************/
 
     bool set;
@@ -159,28 +159,28 @@ struct SetInfo ( T )
     /***************************************************************************
 
         Query method for the value with optional default initaliser
-        
+
         Params:
             def = the value that should be used when it was not found in the
                   configuration
-    
+
     ***************************************************************************/
 
     T opCall ( T def = T.init )
     {
         return set ? value : def;
     }
-    
+
     /***************************************************************************
 
         Sets value to val
-        
+
         Params:
             val = new value
-            
+
         Returns:
             val
-    
+
     ***************************************************************************/
 
     T opAssign ( T val )
@@ -188,18 +188,18 @@ struct SetInfo ( T )
         return value = val;
     }
 }
-    
+
 class Config
-{         
+{
     /***************************************************************************
 
         Template that evaluates to true when T is a supported type
-        
+
         Template Params:
             T = type to check for
 
     ***************************************************************************/
-    
+
     template IsSupported ( T )
     {
         static if ( is(T : bool) )
@@ -214,7 +214,7 @@ class Config
         {
             const IsSupported = true;
         }
-        else static if ( is(T U : U[]) && 
+        else static if ( is(T U : U[]) &&
                        ( is(U : char) || is(U : wchar) || is(U:dchar)) )
         {
             const IsSupported = true;
@@ -223,12 +223,12 @@ class Config
         {
             const IsSupported = false;
         }
-    }    
-    
+    }
+
     /***************************************************************************
 
         Strips the typedef off T
-    
+
     ***************************************************************************/
 
     private template StripTypedef ( T )
@@ -242,72 +242,72 @@ class Config
             alias T StripTypedef;
         }
     }
-    
+
     /***************************************************************************
 
         Typeof this alias.
-    
+
     ***************************************************************************/
 
-    public alias typeof(this) This; 
+    public alias typeof(this) This;
 
     /***************************************************************************
-        
+
         Config Keys and Properties
-    
+
     ***************************************************************************/
     alias char[] String;
     private String[String][String] properties;
 
 
     /***************************************************************************
-        
+
         Config File Location
-    
+
     ***************************************************************************/
-    
+
     private char[] configFile;
-    
+
     /***************************************************************************
-        
+
         Static singleton instance
-    
+
     ***************************************************************************/
-      
+
     static private Config instance = null;
-    
+
     /***************************************************************************
-        
+
          Constructor
-    
+
     ***************************************************************************/
-    
+
     public this ( )
     { }
-    
+
     /***************************************************************************
-        
+
          Constructor
-         
+
          Params:
              config = path to the configuration file
-    
+
     ***************************************************************************/
-    
+
     public this ( char[] config )
     {
         this.parse(config);
     }
-    
+
     /***************************************************************************
-        
+
          Singleton initializer.
-         
+
          Params:
              config = path to the configuration file
-    
+
     ***************************************************************************/
-    
+
     static public void initSingleton ( char[] config = null )
     {
         if ( config is null )
@@ -319,16 +319,16 @@ class Config
             instance = new Config(config);
         }
     }
-    
+
     /***************************************************************************
-        
+
          Provides access to the singleton instance
-         
+
          Returns:
              the singleton instance
-    
+
     ***************************************************************************/
-    
+
     static public Config opCall ( ) ( )
     in
     {
@@ -338,31 +338,31 @@ class Config
     {
         return instance;
     }
-        
+
     /***************************************************************************
 
-        Fill the given instance of T with according values from the 
-        configuration file. The name of each variable will used to get it 
+        Fill the given instance of T with according values from the
+        configuration file. The name of each variable will used to get it
         from the given section in the configuration file.
-        
+
         If reference is null, an instance will be created.
-        
+
         Variables can be marked as required with the Required template.
         If it is important to know whether the setting has been set, the
-        SetInfo struct can be used 
-        
+        SetInfo struct can be used
+
         Params:
             group     = the group/section of the variable
-            reference = the instance to fill. If null it will be created  
+            reference = the instance to fill. If null it will be created
 
         Returns:
             an instance filled with values from the configuration file
-            
+
         See_Also:
             Required, SetInfo
 
     ***************************************************************************/
-    
+
     public T opCall ( T : Object ) ( char[] group, T reference = null )
     in
     {
@@ -372,39 +372,39 @@ class Config
     {
         return get!(T)(group, reference);
     }
-         
+
     /***************************************************************************
 
-        Fill the given instance of T with according values from the 
-        configuration file. The name of each variable will used to get it 
+        Fill the given instance of T with according values from the
+        configuration file. The name of each variable will used to get it
         from the given section in the configuration file.
-        
+
         If reference is null, an instance will be created.
-        
+
         Variables can be marked as required with the Required template.
         If it is important to know whether the setting has been set, the
-        SetInfo struct can be used 
-        
+        SetInfo struct can be used
+
         Params:
             group     = the group/section of the variable
-            reference = the instance to fill. If null it will be created  
+            reference = the instance to fill. If null it will be created
 
         Returns:
             an instance filled with values from the configuration file
-            
+
         See_Also:
             Required, SetInfo
 
     ***************************************************************************/
-    
+
     public T get ( T : Object ) ( char[] group, T reference = null )
     {
         if ( reference is null )
         {
             reference = new T;
         }
-        
-        readFields!(T)(group, reference);  
+
+        readFields!(T)(group, reference);
 
         // Recurse into super any classes
         static if ( is(T S == super ) )
@@ -412,12 +412,12 @@ class Config
             foreach ( G; S ) static if ( !is(G == Object) )
             {
                 readFields!(G)(group, cast(G) reference);
-            }                            
-        }                       
-        
+            }
+        }
+
         return reference;
     }
-    
+
     /***************************************************************************
 
         Variable Iterator. Iterates over variables of a category
@@ -427,7 +427,7 @@ class Config
     struct VarIterator
     {
         char[][char[]]* vars;
-            
+
         /***********************************************************************
 
             Variable Iterator. Iterates over variables of a category
@@ -437,23 +437,23 @@ class Config
         public int opApply ( int delegate ( ref char[] x ) dg )
         {
             int result = 0;
-    
+
             if (vars is null)
             {
                 return result;
             }
-            
+
             foreach (key, val; *vars)
             {
                 result = dg(key);
-    
+
                 if (result) break;
             }
-    
+
             return result;
         }
     }
-    
+
     /***************************************************************************
 
         Class Iterator. Iterates over variables of a category
@@ -463,8 +463,8 @@ class Config
     struct ClassIterator ( T )
     {
         Config config;
-        char[] root;    
-        
+        char[] root;
+
         /***********************************************************************
 
             Variable Iterator. Iterates over variables of a category
@@ -474,38 +474,38 @@ class Config
         public int opApply ( int delegate ( ref char[] name, ref T x ) dg )
         {
             int result = 0;
-                
-            if ( config !is null ) foreach ( key, val; config.properties ) 
+
+            if ( config !is null ) foreach ( key, val; config.properties )
             {
                 scope T instance = new T;
-                
+
                 if ( key.length > root.length && key[0 .. root.length] == root )
                 {
                     instance = config.get(key, instance);
-                    
+
                     auto name = key[root.length + 1 .. $];
                     result = dg(name, instance);
-        
+
                     if (result) break;
                 }
             }
-    
+
             return result;
         }
     }
-    
+
     public ClassIterator!(T) iterateClasses ( T ) ( char[] root )
     {
         return ClassIterator!(T)(this, root);
     }
-        
+
     /***************************************************************************
 
         Variable Iterator. Iterates over variables of a category
-        
+
         Params:
             category = category to iterate over
-            
+
         Returns:
             iterator
 
@@ -515,7 +515,7 @@ class Config
     {
         return VarIterator(category in This.properties);
     }
-            
+
     /***************************************************************************
 
         Iterator. Iterates over categories of the config file
@@ -535,21 +535,21 @@ class Config
 
         return result;
     }
-     
+
     /***************************************************************************
-        
+
         Read Config File
-        
-        Reads the content of the configuration file and copies to a static 
+
+        Reads the content of the configuration file and copies to a static
         array buffer.
-        
+
         Each property in the ini file belongs to a category. A property has always
-        a key and a value associated to the key. The function parses currently 
+        a key and a value associated to the key. The function parses currently
         three different elements:
-        
+
         i. Categories
         [Example Category]
-        
+
         ii. Comments
         // comments always start with two slashes
         ;  or a semi-colon
@@ -565,9 +565,9 @@ class Config
         Usage Example:
 
         ---
-     
+
             Config.init("etc/config.ini");
-     
+
         ---
 
         FIXME: this method does a fair bit of 'new'ing and '.dup'ing. If we ever
@@ -575,7 +575,7 @@ class Config
 
         Params:
             filePath = string that contains the path to the configuration file
-            
+
     ***************************************************************************/
 
     public void parse ( char[] filePath = "etc/config.ini" )
@@ -583,21 +583,21 @@ class Config
         this.configFile = filePath;
 
         char[] text, category, key = "";
-        
+
         int pos;
-        
+
         bool multiline_first = true;
-        
+
         this.properties = null;
-        
+
         foreach (line; new Lines!(char) (new File(this.configFile)))
         {
             text = trim(line);
 
             if ( text.length ) // ignore empty lines
             {
-                bool slash_comment = text.length >= 2 && text[0 .. 2] == "//";  
-                bool semicolon_comment = text[0] == ';';  
+                bool slash_comment = text.length >= 2 && text[0 .. 2] == "//";
+                bool semicolon_comment = text[0] == ';';
                 if ( !slash_comment && !semicolon_comment ) // ignore comments
                 {
                     pos = locate(text, '['); // category present in line?
@@ -605,7 +605,7 @@ class Config
                     if ( pos == 0 )
                     {
                         category = text[pos + 1 .. locate(text, ']')].dup;
-                        
+
                         key = "";
                     }
                     else
@@ -624,16 +624,16 @@ class Config
                         else
                         {
                             text = trim(text).dup;
-                            
+
                             if (text.length)
                             {
                                 if (!multiline_first)
                                 {
                                     This.properties[category][key] ~= '\n';
                                 }
-                                
+
                                 This.properties[category][key] ~= text;
-                                
+
                                 multiline_first = false;
                             }
                         }
@@ -641,18 +641,18 @@ class Config
                 }
             }
         }
-    }    
+    }
 
 
     /***************************************************************************
-        
+
         Tells whether a config file has been read or not.
-       
+
         Returns:
             true, if configuration is already initalized
-            
+
     ***************************************************************************/
-    
+
     public bool isRead()
     {
         return This.properties.length > 0;
@@ -677,9 +677,9 @@ class Config
         return (category in This.properties) && (key in This.properties[category]);
     }
 
-    
+
     /***************************************************************************
-        
+
         Strict method to get the value of a config key. If the requested key
         cannot be found, an exception is thrown.
 
@@ -687,19 +687,19 @@ class Config
         type.
 
         Usage Example:
-     
-        ---     
+
+        ---
             const char[] my_config_cat = "options";
-            
+
             char[] my_config_par;
             int    num_threads;
-            
+
             Config.init("etc/config.ini");
-            
+
             my_config_par = Config.get!(char[])(my_config_cat, "my_config_key");
-            num_threads   = Config.get!(int)(my_config_cat, "number_of_threads");            
+            num_threads   = Config.get!(int)(my_config_cat, "number_of_threads");
         ---
-     
+
         Params:
             category = category to get key from
             key      = name of the key to get
@@ -709,9 +709,9 @@ class Config
 
         Returns:
             value of a configuration key, or null if none
-            
+
     ***************************************************************************/
-    
+
     public T get ( T ) ( char[] category, char[] key )
     {
         assertEx!(ConfigException)(exists(category, key), "Critial Error: No configuration key "
@@ -728,8 +728,8 @@ class Config
             ":" ~ key ~ "' appears not to be of type '" ~ T.stringof ~ "'");
         }
     }
-    
-    
+
+
     /***************************************************************************
 
         Non-strict method to get the value of a config key into the specified
@@ -743,17 +743,17 @@ class Config
         Usage Example:
 
         ---
-     
+
             const char[] my_config_cat = "options";
-            
+
             char[] my_config_par = "my_default_value";
             int    num_threads   = 4711;
-            
+
             Config.init("etc/config.ini");
-            
+
             Config.get!(char[])(my_config_cat, my_config_par, "my_config_key");
             Config.get!(int   )(my_config_cat, num_threads, "number_of_threads");
-            
+
         ---
 
         Params:
@@ -765,7 +765,7 @@ class Config
             true on success or false if the key could not be found
 
     ***************************************************************************/
-    
+
     public bool get ( T ) ( ref T value, char[] category, char[] key )
     {
         if ( exists(category, key) )
@@ -785,7 +785,7 @@ class Config
         Strict method to get a multi-line value. If the requested key cannot be
         found, an exception is thrown.
 
-        Retrieves the value list of a configuration key with a multi-line value. 
+        Retrieves the value list of a configuration key with a multi-line value.
         If the value is a single line, the list has one element.
 
         Params:
@@ -820,13 +820,13 @@ class Config
             value    = output list of values, changed only if the key was found
             category = key category name
             key      = key name
-        
+
         Returns:
             true on success or false if the key could not be found
-            
+
     ***************************************************************************/
-    
-    public bool getList ( T = char ) ( ref T[][] value, char[] category, 
+
+    public bool getList ( T = char ) ( ref T[][] value, char[] category,
                                               char[] key )
     {
         if ( exists(category, key) )
@@ -842,57 +842,57 @@ class Config
 
 
     /***************************************************************************
-        
+
         Set Config-Key Property
-        
+
         Usage Example:
 
         ---
-     
+
             Config.init(`etc/config.ini`);
-            
+
             Config.set(`category`, `key`, `value`);
-            
+
         ---
-     
+
         Params:
             category = category to get key from
             key      = name of the property to get
             value    = value of the property
-            
+
     ***************************************************************************/
-    
+
     public void set ( char[] category, char[] key, char[] value )
     {
         This.properties[category][key] = value;
     }
-    
-    
+
+
     /***************************************************************************
-        
+
         Returns integer value of a configuration key
 
         TODO: add strictness setting (like Bool[], below) for consistency
 
         Usage Example:
-     
+
         ---
-     
+
             Config.init("etc/config.ini");
-            
+
             int value = Config.Int["category", "key"];
-            
+
         ---
-     
+
         Params:
             category = category to get key from
             key      = name of the property to get
-            
+
         Returns:
             value of config key
-            
+
     ***************************************************************************/
-    
+
     struct Int
     {
         public static int opIndex (char[] category, char[] key)
@@ -900,33 +900,33 @@ class Config
             return Config().get!(int)(category, key);
         }
     }
-    
-    
+
+
     /***************************************************************************
-        
+
         Returns float value of a configuration key
-        
+
         TODO: add strictness setting (like Bool[], below) for consistency
 
         Usage Example:
 
         ---
-     
+
             Config.init("etc/config.ini");
-            
+
             float value = Config.Float["category", "key"];
-            
+
         ---
-     
+
         Params:
             category = category to get key from
             key      = name of the property to get
-            
+
         Returns:
             value of config key
-            
+
     ***************************************************************************/
-    
+
     struct Float
     {
         public static float opIndex (char[] category, char[] key)
@@ -935,32 +935,32 @@ class Config
         }
     }
 
-    
+
     /***************************************************************************
-        
+
         Returns long value of a configuration key
-        
+
         TODO: add strictness setting (like Bool[], below) for consistency
 
         Usage Example:
-     
+
         ---
-     
+
             Config.init("etc/config.ini");
-            
+
             long value = Config.Long["category", "key"];
-            
+
         ---
-     
+
         Params:
             category = category to get key from
             key      = name of the property to get
-            
+
         Returns:
             value of config key
-            
+
     ***************************************************************************/
-    
+
     struct Long
     {
         public static long opIndex(char[] category, char[] key)
@@ -968,32 +968,32 @@ class Config
             return Config().get!(long)(category, key);
         }
     }
-    
+
     /***************************************************************************
-        
+
         Returns value of configuration key as string
-        
+
         TODO: add strictness setting (like Bool[], below) for consistency
 
         Usage Example:
-     
+
         ---
-     
+
             Config.init("etc/config.ini");
-            
+
             char[] value = Config.Char["category", "key"];
-            
+
         ---
-     
+
         Params:
             category = category to get key from
             key      = name of the property to get
-            
+
         Returns:
             value of config key
-            
+
     ***************************************************************************/
-    
+
     struct Char
     {
         public static T[] opIndex ( T = char ) (char[] category, char[] key)
@@ -1004,19 +1004,19 @@ class Config
 
 
     /***************************************************************************
-        
+
         Returns bool value of configuration key
-        
+
         Usage Example:
-     
+
         ---
-     
+
             Config.init("etc/config.ini");
-            
+
             bool value = Config.Bool["category", "key"];
-            
+
         ---
-     
+
         Params:
             category  = category to get key from
             key       = name of the property to get
@@ -1027,10 +1027,10 @@ class Config
             value of config key
 
     ***************************************************************************/
-    
+
     struct Bool
     {
-        public static bool opIndex( char[] category, char[] key, 
+        public static bool opIndex( char[] category, char[] key,
                                    bool strict = false )
         {
             if ( strict )
@@ -1089,15 +1089,15 @@ class Config
     /***************************************************************************
 
         Converts property to T
-        
+
         Params:
             property = value to convert
-            
+
         Returns:
             property converted to T
 
-    ***************************************************************************/ 
-    
+    ***************************************************************************/
+
     public static T conv ( T ) ( char[] property )
     {
         static if ( is(T : bool) )
@@ -1112,31 +1112,31 @@ class Config
         {
             return toFloat(property);
         }
-        else static if ( is(T U : U[]) && 
-                       ( is(U : char) || is(U : wchar) || is(U:dchar)) )    
+        else static if ( is(T U : U[]) &&
+                       ( is(U : char) || is(U : wchar) || is(U:dchar)) )
         {
             return fromString8!(U)(property, null);
         }
         else static assert(false, __FILE__ ~ " : get(): type '" ~
                                  T.stringof ~ "' is not supported");
-    } 
-    
+    }
+
     /***************************************************************************
 
         Converts property to T
-        
+
         Params:
             property = value to convert
-            
+
         Returns:
             property converted to T
 
-    ***************************************************************************/ 
-    
-    protected void readFields ( C ) ( char[] group, C reference = null ) 
+    ***************************************************************************/
+
+    protected void readFields ( C ) ( char[] group, C reference = null )
     {
-        foreach ( si, field; reference.tupleof ) 
-        { 
+        foreach ( si, field; reference.tupleof )
+        {
             static if ( is ( typeof(field.value) ) )
             {
                 alias StripTypedef!(typeof(field.value)) Type;
@@ -1152,32 +1152,32 @@ class Config
                 bool found_v;
                 bool* found = &found_v;
             }
-                        
+
             static if ( this.IsSupported!(Type) )
             {
-                *found = this.get(*value, group, 
+                *found = this.get(*value, group,
                                   reference.tupleof[si]
                                    .stringof["reference.".length  .. $]);
-                
+
                 auto name = PureType.stringof;
-                
+
                 if ( name.length >= "Required".length &&
-                     name[0 .. "Required".length] == "Required" && 
+                     name[0 .. "Required".length] == "Required" &&
                      *found == false )
                 {
-                    throw new Exception("Mandatory variable " ~ 
+                    throw new Exception("Mandatory variable " ~
                                         reference.tupleof[si]
                                         .stringof["reference.".length  .. $]
                                                   ~ " not set");
-                }                    
-                
-                debug (Config) Trace.formatln("Config Debug: {}.{} = {} {}", group, 
+                }
+
+                debug (Config) Trace.formatln("Config Debug: {}.{} = {} {}", group,
                                      reference.tupleof[si]
-                                    .stringof["reference.".length  .. $], 
-                                    *value, 
-                                    !*found ? "(builtin)" : "");                    
+                                    .stringof["reference.".length  .. $],
+                                    *value,
+                                    !*found ? "(builtin)" : "");
             }
-        }          
-    } 
+        }
+    }
 }
 

@@ -14,29 +14,29 @@
         Usage example:
 
         ---
-            
+
             import ocean.text.Encoding;
-            
+
             dchar[] content;
-            
+
             Encode!(dchar) encode = new Encode!(dchar);
-            
+
             // fill "content" with text
-            
+
             Encode.repairUtf8(content);
-            
+
             // "content" now is cleaned of "Ã£"-like malcoded UTF-8 characters
-            
+
             Encode.decodeHtmlEntities(content);
-            
+
             // all Unicode and ISO8859-1/15 (Latin 1/9) named character entities
             // in "content" are now replaced by their corresponding Unicode
             // characters
-        
+
         ---
-        
+
         Related:
-        
+
         http://www.dsource.org/projects/tango/forums/topic/788#3263
 
         http://msdn.microsoft.com/workshop/author/dhtml/reference/charsets/charset2.asp
@@ -50,9 +50,9 @@
 module ocean.text.html.HtmlEncoding;
 
 /******************************************************************************
- 
+
     Imports
- 
+
  ******************************************************************************/
 
 private import ocean.text.html.HtmlCharSets;
@@ -83,7 +83,7 @@ deprecated class HtmlEncoding ( bool wide_char = false, bool basic_only = false 
     /***************************************************************************
 
 	    Entity decoder alias
-	
+
 	***************************************************************************/
 
 	alias HtmlDecoding!(wide_char, basic_only) HtmlDecoder;
@@ -92,45 +92,45 @@ deprecated class HtmlEncoding ( bool wide_char = false, bool basic_only = false 
     /**************************************************************************
 
         Template instance alias
-    
+
      **************************************************************************/
-    
+
     alias HtmlEntity!(wide_char) HtmlEntity_;
 
 
     /**************************************************************************
-    
+
         Character type alias
-    
+
      **************************************************************************/
-    
+
     alias HtmlEntity_.Char Char;
 
 
     /***************************************************************************
 
 	    This type alias
-	
+
 	***************************************************************************/
 
     private alias typeof (this) This;
 
 
     /**************************************************************************
-    
+
         HTML character entities which can be encoded
-    
+
     ***************************************************************************/
-    
+
     private static char[][Char] html_chars;
 
 
     /**************************************************************************
-    
+
         Static constructor; fills the character table
-    
+
     ***************************************************************************/
-    
+
     static this ( )
     {
     	static if ( basic_only )
@@ -150,20 +150,20 @@ deprecated class HtmlEncoding ( bool wide_char = false, bool basic_only = false 
 
 
     /**************************************************************************
-    
+
         Params:
             content = content to process
-            
+
         Returns:
             this instance
-     
+
      **************************************************************************/
     /+
     public This opCall ( ref Char[] content )
     {
-        
+
         assert (false, "not implemented yet");
-        
+
         return this;
     }
     +/
@@ -174,20 +174,20 @@ deprecated class HtmlEncoding ( bool wide_char = false, bool basic_only = false 
 	    Checks whether the passed string contains any unencoded special
 	    characters, and creates a new string containing encoded versions of
 	    them.
-	
+
 		Params:
 			content = string to convert
 			replacement = output buffer for converted string
-		
+
 		Returns:
 			converted string
-	
+
 	***************************************************************************/
-	
+
 	public static Char[] encodeUnencodedSpecialCharacters ( Char[] content, ref Char[] replacement )
 	{
         replacement.length = 0;
-        
+
 		size_t last_special_char;
 		foreach ( i, c; content )
 		{
@@ -205,7 +205,7 @@ deprecated class HtmlEncoding ( bool wide_char = false, bool basic_only = false 
 				last_special_char = i + 1;
 			}
 		}
-	
+
 		replacement ~= content[last_special_char..$];
 		return replacement;
 	}
@@ -219,10 +219,10 @@ deprecated class HtmlEncoding ( bool wide_char = false, bool basic_only = false 
 
 		Params:
 			content = string to scan
-		
+
 		Returns:
 			true if the string contains any special characters, false otherwise
-	
+
 	***************************************************************************/
 
     public static bool containsSpecialCharacters ( Char[] content )
@@ -243,14 +243,14 @@ deprecated class HtmlEncoding ( bool wide_char = false, bool basic_only = false 
 
 	    Checks whether the passed string contains any *unencoded* special
 	    characters.
-	
+
 		Params:
 			content = string to scan
-		
+
 		Returns:
 			true if the string contains any unencoded special characters, false
 			otherwise
-	
+
 	***************************************************************************/
 
     public static bool containsUnencodedSpecialCharacters ( Char[] content )
@@ -271,14 +271,14 @@ deprecated class HtmlEncoding ( bool wide_char = false, bool basic_only = false 
 
 	    Checks whether the passed string starts with an unencoded special
 	    character.
-	
+
 		Params:
 			content = string to scan
-		
+
 		Returns:
 			true if the string starts with an unencoded special character, false
 			otherwise
-	
+
 	***************************************************************************/
 
     public static bool isUnencodedSpecialCharacter ( Char[] content )
@@ -310,22 +310,22 @@ deprecated class HtmlEncoding ( bool wide_char = false, bool basic_only = false 
 
 
     /**************************************************************************
-    
+
         Returns the HTML character entity name of an UTF ISO-8859-1/-15
         character.
-        
+
         Params:
              c = character
-                         
+
         Returns:
              HTML character entity name
-    
+
      **************************************************************************/
-    
+
     public static char[] encodeCharacter ( Char c )
     {
         char[]* name = c in this.html_chars;
-        
+
         if (name)
         {
             return *name;
@@ -333,12 +333,12 @@ deprecated class HtmlEncoding ( bool wide_char = false, bool basic_only = false 
         else
         {
             char[0x10] buf;
-            
+
             snprintf(buf.ptr, buf.length - 1, "#x%x", c);
-            
+
             return buf[0 .. strlen(buf.ptr)].dup;
         }
-        
+
     }
 }
 

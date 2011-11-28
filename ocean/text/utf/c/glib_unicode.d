@@ -1,45 +1,45 @@
 /******************************************************************************
-     
+
     GLIB Unicode Manipulation import declaration module
-     
+
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
 
     version:        February 2010: Initial release
 
     author:         David Eckardt
-    
+
     Documentation:
-    
+
         http://www.gtk.org/api/2.6/glib/glib-Unicode-Manipulation.html
-    
+
     Note: Requires linking against glib-2: "libglib-2.0.so" on Linux
-    
+
     --
-     
-     
+
+
      GLIB - Library of useful routines for C programming
-     
+
     Copyright (C) 1995-1997  Peter Mattis, Spencer Kimball and Josh MacDonald
-    
+
     This library is free software; you can redistribute it and/or modify it
     under the terms of the GNU Lesser General Public License as published by the
     Free Software Foundation; either version 2 of the License, or (at your
     option) any later version.
-    
+
     This library is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License
     for more details.
-    
+
     You should have received a copy of the GNU Lesser General Public License
     along with this library; if not, write to the Free Software Foundation,
     Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-    
+
     Modified by the GLib Team and others 1997-2000.  See the AUTHORS file for a
     list of people on the GLib Team.  See the ChangeLog files for a list of
     changes.  These files are distributed with GLib at
     ftp://ftp.gtk.org/pub/gtk/.
-    
+
  /*****************************************************************************/
 
 module ocean.text.utf.c.glib_unicode;
@@ -163,7 +163,7 @@ int                 g_unichar_digit_value   (dchar c);
 int                 g_unichar_xdigit_value  (dchar c);
 GUnicodeType        g_unichar_type          (dchar c);
 GUnicodeBreakType   g_unichar_break_type    (dchar c);
-                                            
+
 void        g_unicode_canonical_ordering        (dchar* string, size_t len);
 dchar*      g_unicode_canonical_decomposition   (dchar c, size_t* result_len);
 bool        g_unichar_get_mirror_char           (dchar c, dchar* mirrored_ch);

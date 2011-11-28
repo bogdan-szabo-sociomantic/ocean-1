@@ -412,7 +412,7 @@ TCLIST* tcbdbget4(TCBDB* bdb, void* kbuf, int ksiz);
 TCLIST* tcbdbget5(TCBDB* bdb, void* kbuf, int ksiz)
 {
     TCLIST* list = tcbdbget4(bdb, kbuf, ksiz);
-    
+
     return list? list : tclistnew();
 }
 

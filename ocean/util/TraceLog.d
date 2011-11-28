@@ -69,7 +69,7 @@ class TraceLog
         This type alias
 
     ***************************************************************************/
-    
+
     public alias typeof(this) This;
 
 
@@ -85,7 +85,7 @@ class TraceLog
     /***************************************************************************
 
         Logging to file enabled getter / setter
-    
+
     ***************************************************************************/
 
     static public bool enabled ( )
@@ -112,7 +112,7 @@ class TraceLog
     /***************************************************************************
 
         Logging to console enabled getter / setter
-    
+
     ***************************************************************************/
 
     static public bool console_enabled ( )
@@ -137,23 +137,23 @@ class TraceLog
 
 
     /***************************************************************************
-    
+
         Initialization of TraceLog
-    
+
         Sets the file to write TraceInformation to
-        
+
         ---
-     
+
         Usage Example:
-     
+
             TraceLog.init("log/trace.log");
-     
+
         ---
-     
+
         Params:
             file = string that contains the path to the trace log file
             id = name of logger
-       
+
     ***************************************************************************/
 
     static public void init ( char[] file, char[] id = "TraceLog" )
@@ -163,29 +163,29 @@ class TraceLog
 
 
     /***************************************************************************
-    
+
         Writes Trace Message
-    
+
         Writes a message string or a formatted string to the trace log file.
         If no argument is passed after fmt, fmt is simply written to the trace
         log. For further arguments, string formatting is done in
         Stdout.formatln(...) fashion using fmt as formatting string.
-        
+
         ---
-     
+
         Usage Example:
-     
+
             int i = 16767;
-            
+
             TraceLog.write("Counted {} times...", i);
             TraceLog.write("Trace message without parameter {not formatted}");
-        
+
         ---
-     
+
         Params:
             fmt = message string to format with given arguments if any
             ... = optional arguments to format
-       
+
     ***************************************************************************/
 
     static public void write ( char[] fmt, ... )
@@ -209,24 +209,24 @@ class TraceLog
             This.logger.write(fmt, _arguments, _argptr);
 
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Returns Logger Instance
-        
+
         ---
-     
+
         Usage Example:
-     
+
             auto log   = Logger.getLogger()
             auto queue = new QueueFile (log, "Queue", 30 * 1024 * 1024);
-        
+
         ---
-     
+
         Returns:
             Logger instance
-       
+
     ***************************************************************************/
 
     static public MessageLogger.TangoLogger getLogger ( )

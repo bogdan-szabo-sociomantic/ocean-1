@@ -102,59 +102,59 @@ private     import      tango.core.Vararg;
 class OceanException: Exception
 {
     /***************************************************************************
-    
+
         This alias
-    
+
     ***************************************************************************/
 
     public              alias typeof(this)              This;
 
 
     /***************************************************************************
-    
+
         Shared Layout instance - used repeatedly in the Warn() method
-    
+
     ***************************************************************************/
-    
+
     private             static Layout!(char)            layout_instance;
 
 
     /***************************************************************************
-        
+
         Trace Log File Location
-    
+
     ***************************************************************************/
-    
+
     private             static Logger                   logger;
-    
-    
+
+
     /***************************************************************************
-        
+
         Default Logger Name
-    
+
     ***************************************************************************/
 
     private             static char[]                   loggerName = "OceanException";
 
-    
+
     /***************************************************************************
-    
-        Whether to output to console 
-    
+
+        Whether to output to console
+
     ***************************************************************************/
-       
+
     public              static bool                     console_output = false;
 
-    
+
     /***************************************************************************
-        
-        Constructor 
-        
+
+        Constructor
+
         Params:
             msg = exception message
-            
+
     ***************************************************************************/
-    
+
     protected this (char[] msg)
     {
         super(msg);
@@ -162,35 +162,35 @@ class OceanException: Exception
 
 
     /***************************************************************************
-        
+
         Runs static method and catch exception
-        
-        This function should be called to invoke a static module, method or class 
-        that will be monitored and exception be written to a stdout or the defined 
+
+        This function should be called to invoke a static module, method or class
+        that will be monitored and exception be written to a stdout or the defined
         appenders.
-        
+
         ---
-        
+
         Usage Example:
-        
+
             class Module
             {
                 public static bool run() { return true; }
             }
-        
+
             OceanException.run(&Module.run);
-            
+
         ---
-        
+
         Params:
             func = static function to be called by OceanException
             ...  = any number of arguments to pass to the static function called
-            
+
         Returns:
             true, if function was executed successfully
-            
+
     ***************************************************************************/
-    
+
     public static bool run( bool function(TypeInfo[] arguments, void* args) func, ... )
     {
         try
@@ -206,44 +206,44 @@ class OceanException: Exception
                 OceanException.write(Logger.Level.Error, e.msg);
             }
 
-            Trace.formatln(e.msg);            
+            Trace.formatln(e.msg);
         }
 
         return true;
     }
-    
-    
+
+
     /***************************************************************************
-        
+
         Runs static method and catch exception
-        
-        This function should be called to invoke a static module, method or class 
-        that will be monitored and exception be written to a stdout or the defined 
+
+        This function should be called to invoke a static module, method or class
+        that will be monitored and exception be written to a stdout or the defined
         appenders.
-        
+
         ---
-        
+
         Usage Example:
-        
+
             class Module
             {
                 public static bool run(Arguments argument) { return true; }
             }
-        
+
             OceanException.run(&Module.run, arguments);
-            
+
         ---
-        
+
         Params:
             func = static function to be called by OceanException
             ...  = any number of arguments to pass to the static function called
-            
+
         Returns:
             true, if function was executed successfully
-            
+
     ***************************************************************************/
-    
-    public static bool run( bool function(Tango.Arguments arguments) func, 
+
+    public static bool run( bool function(Tango.Arguments arguments) func,
             Tango.Arguments arguments )
     {
         try
@@ -256,14 +256,14 @@ class OceanException: Exception
             {
                 OceanException.write(Logger.Level.Error, e.msg);
             }
-            
-            Trace.formatln(e.msg);   
+
+            Trace.formatln(e.msg);
         }
 
         return true;
     }
-    
-    public static bool run( bool function(Arguments arguments) func, 
+
+    public static bool run( bool function(Arguments arguments) func,
             Arguments arguments )
     {
         try
@@ -277,42 +277,42 @@ class OceanException: Exception
                 OceanException.write(Logger.Level.Error, e.msg);
             }
 
-            Trace.formatln(e.msg);   
+            Trace.formatln(e.msg);
         }
 
         return true;
     }
-    
-    
+
+
     /***************************************************************************
-        
+
         Runs static method and catch exception
-        
-        This function should be called to invoke a static module, method or class 
-        that will be monitored and exception be written to a stdout or the defined 
+
+        This function should be called to invoke a static module, method or class
+        that will be monitored and exception be written to a stdout or the defined
         appenders.
-        
+
         ---
-        
+
         Usage Example:
-        
+
             class Module
             {
                 public static bool run() { return true; }
             }
-        
+
             OceanException.run(&Module.run, arguments);
-            
+
         ---
-        
+
         Params:
             func = static function to be called by OceanException
-            
+
         Returns:
             true, if function was executed successfully
-            
+
     ***************************************************************************/
-    
+
     public static bool run( bool function ( ) func )
     {
         try
@@ -326,42 +326,42 @@ class OceanException: Exception
                 OceanException.write(Logger.Level.Error, e.msg);
             }
 
-            Trace.formatln(e.msg);   
+            Trace.formatln(e.msg);
         }
 
         return true;
     }
-    
+
 
     /***************************************************************************
-        
+
         Runs static method and catch exception
-        
-        This function should be called to invoke a static module, method or class 
-        that will be monitored and exception be written to a stdout or the defined 
+
+        This function should be called to invoke a static module, method or class
+        that will be monitored and exception be written to a stdout or the defined
         appenders.
-        
+
         ---
-        
+
         Usage Example:
-        
+
             class Module
             {
                 public bool run() { return true; }
             }
-        
+
             OceanException.run(&Module.run);
-            
+
         ---
-        
+
         Params:
             func = static function to be called by OceanException
-            
+
         Returns:
             true, if function was executed successfully
-            
+
     ***************************************************************************/
-    
+
     public static bool run( bool delegate() func )
     {
         try
@@ -375,7 +375,7 @@ class OceanException: Exception
                 OceanException.write(Logger.Level.Error, e.msg);
             }
 
-            Trace.formatln(e.msg);   
+            Trace.formatln(e.msg);
         }
 
         return true;
@@ -383,26 +383,26 @@ class OceanException: Exception
 
 
     /***************************************************************************
-        
+
         Throw Exception
-        
-        opCall is invoked by calling OceanException() statically. If there is an 
-        appender attached to OceanException that the message gets written to the 
+
+        opCall is invoked by calling OceanException() statically. If there is an
+        appender attached to OceanException that the message gets written to the
         appender.
-        
+
         ---
-        
+
         Usage Example:
-        
+
             OceanException("Input Exception ...");
-            
+
         ---
-        
+
         Params:
             msg = error message
-            
+
     ***************************************************************************/
-    
+
     public static void opCall ( char[] msg )
     {
         if ( OceanException.isAppender() )
@@ -413,57 +413,57 @@ class OceanException: Exception
 
 
     /***************************************************************************
-        
+
         Throws Critical Exception
-        
-        Throws exception and stops code execution immediately. This method has the 
+
+        Throws exception and stops code execution immediately. This method has the
         same functionaly as by throwing a normal OceanException.
-        
+
         ---
-        
+
         Usage Example:
-        
+
             OceanException.Critical("Input Exception ...");
-            
+
         ---
-        
+
         Params:
             msg = error message
-            
+
     ***************************************************************************/
-    
+
     public static void Critical ( char[] msg )
     {
         OceanException(msg);
     }
 
-    
+
     /***************************************************************************
-        
+
         Writes Warn Message
-        
+
         Throws no exception and doesn't stops code execution.
-        
+
         ---
-        
+
         Usage Example:
-        
+
             char[] message = "exception message";
-            
+
             OceanException.Warn("Input Exception {}", message);
-            
+
         ---
-        
+
         Params:
             fmt = error message format string
             ... = arguments passed to include into formatting
-            
+
     ***************************************************************************/
-    
+
     public static void Warn ( char[] fmt, ... )
     {
         static char[] buffer;
-        
+
         uint layoutSink ( char[] s )
         {
             buffer ~= s;
@@ -486,23 +486,23 @@ class OceanException: Exception
             }
         }
     }
-    
-    
+
+
     /***************************************************************************
-        
+
         Set Log Appender (output target)
-        
-        If the appender is not set exceptions are written to stdout. An appender 
+
+        If the appender is not set exceptions are written to stdout. An appender
         can write exceptions to console, socket, mail or file.
-        
+
         Params:
             appender = output to write to file, mail, socket or console
-            
+
         Returns:
             true, if appender could be set
-            
+
     ***************************************************************************/
-    
+
     public static bool setOutput ( Appender ap )
     {
         try
@@ -520,47 +520,47 @@ class OceanException: Exception
 
         return false;
     }
-    
+
 
     /***************************************************************************
-        
+
         Sets Logger Name
-        
+
         Params:
             name = name of logger instance
-            
+
     ***************************************************************************/
-    
+
     public static void setLoggerName( char[] name )
     {
         OceanException.loggerName = name;
     }
 
-    
+
     /***************************************************************************
-        
+
         Returns Logger Instance
-        
+
         Returns:
             logger instance
-            
+
     ***************************************************************************/
-    
+
     public static Logger getLogger ( )
     {
         return logger;
     }
-    
-    
+
+
     /***************************************************************************
-        
+
         Write Exception to the attached Appender
-        
+
         Params:
             msg = error message
-            
+
     ***************************************************************************/
-    
+
     private static void write( Level level, char[] msg  )
     {
         OceanException.logger.append(level, msg);
@@ -568,14 +568,14 @@ class OceanException: Exception
 
 
     /***************************************************************************
-        
+
         Returns if Appender is attached
-        
+
         Returns:
             true, if appender is set
-            
+
     ***************************************************************************/
-    
+
     private static bool isAppender()
     {
         if ( OceanException.logger )
@@ -584,15 +584,15 @@ class OceanException: Exception
         return false;
     }
 
-    
+
     /***************************************************************************
-    
+
         Gets an instance of the Layout class, shared by all methods of this
         class. A Layout is newed if one doesn't exist already.
-        
+
         Returns:
             Layout instance
-            
+
     ***************************************************************************/
 
     private static Layout!(char) layout ( )

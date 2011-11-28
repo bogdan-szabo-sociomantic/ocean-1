@@ -1,9 +1,9 @@
 /******************************************************************************
-    
+
     HTML named characters database
-    
+
     --
-    
+
     copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
     version:        November 2009: Initial release
@@ -11,11 +11,11 @@
     author:         David Eckardt
 
     --
-    
+
     Description:
 
     Database of Unicode characters of named HTML characters.
-    
+
  ******************************************************************************/
 
 module ocean.text.html.HtmlCharSets;
@@ -23,7 +23,7 @@ module ocean.text.html.HtmlCharSets;
 /******************************************************************************
 
     Imports
-    
+
  ******************************************************************************/
 
 private import tango.stdc.wctype: wchar_t;
@@ -39,24 +39,24 @@ template HtmlCharSets ( bool wide_char = true )
     /**************************************************************************
 
         Template instance alias
-    
+
      **************************************************************************/
 
     alias HtmlEntity!(wide_char) HtmlEntity_;
-    
+
     /**************************************************************************
 
         Indicates whether UTF wide characters are enabled; if not, only the
         Basic ASCII character entities are provided.
-    
+
      **************************************************************************/
 
     const UtfWide = HtmlEntity_.UtfWide;
-    
+
     /**************************************************************************
 
         Basic ASCII character entities
-    
+
      **************************************************************************/
 
     const HtmlEntity_[] Basic =
@@ -67,32 +67,32 @@ template HtmlCharSets ( bool wide_char = true )
         {"gt",     0x003E}, // '>'
         {"apos",   0x0027}, // '''
     ];
-    
+
     /**************************************************************************
 
         ISO 8859-1 (Latin 1) character entities
-    
+
      **************************************************************************/
 
     const HtmlEntity_[] ISO8859_1    = Basic     ~ ISO8859_1_notBasic;
-    
+
     /**************************************************************************
-    
+
         Union of ISO 8859-1 (Latin 1) and -15 (Latin 9) character entities
-    
+
      **************************************************************************/
 
     const HtmlEntity_[] ISO8859_1_15 = ISO8859_1 ~ ISO8859_15_not1;
-    
+
     static if (UtfWide)
     {
         /**********************************************************************
 
             Non-Basic characters of ISO 8859-1 (Latin 1)
-        
+
          **********************************************************************/
 
-        const HtmlEntity_[] ISO8859_1_notBasic = 
+        const HtmlEntity_[] ISO8859_1_notBasic =
         [
             {"nbsp",   0x00A0}, // ' '
             {"iexcl",  0x00A1}, // '¡'
@@ -191,12 +191,12 @@ template HtmlCharSets ( bool wide_char = true )
             {"yuml",   0x00FF}, // 'ÿ'
             {"thorn",  0x00FE}, // 'þ'
         ];
-        
+
         /**********************************************************************
 
             Non-Basic characters of ISO 8859-15 (Latin 9) which are not in
             ISO 8859-1 (Latin 1)
-        
+
          **********************************************************************/
 
         const HtmlEntity_[] ISO8859_15_not1 =
@@ -215,7 +215,7 @@ template HtmlCharSets ( bool wide_char = true )
         /**********************************************************************
 
             No non-Basic characters if no Unicode
-        
+
          **********************************************************************/
 
         const HtmlEntity_[] ISO8859_1_notBasic = [];
@@ -236,7 +236,7 @@ struct HtmlEntity ( bool wide_char = true )
     /**************************************************************************
 
         Character type alias
-    
+
      **************************************************************************/
 
     static if (wide_char)
@@ -247,84 +247,84 @@ struct HtmlEntity ( bool wide_char = true )
     {
         alias char Char;
     }
-    
+
     /**************************************************************************
 
         Indicates whether UTF wide characters are enabled
-    
+
     ***************************************************************************/
 
     static const bool UtfWide = wide_char;
-    
+
     /**********************************************************************
-     
+
          Entity name
-     
+
      **********************************************************************/
-    
+
     char[] name;
-    
+
     /**********************************************************************
-    
+
         Entity character code
-    
+
     **********************************************************************/
 
     Char   code;
-    
+
     /**************************************************************************
-         
+
          Compares "item" to "this.item": The length and characters of both
          are subsequently compared until a difference is found or the end
          reached.
          Examples:
-         
+
          - "wxyz" is greater than "xyz" because the length is greater
          - "xyz" is greater than "xYz" because 'y' is greater than 'Y'
          - "xyZ" is greater than "xYz" because comparison stops at 'y'
-         
+
          Params:
               item = item with "item.name" to compare to "this.name"
-             
+
          Returns:
               0 if "item.name" equals "this.name", a value > 0 if "item.name" is
               greater or or < 0 if less than "this.item".
-              
+
      **************************************************************************/
     int opCmp ( typeof (this) item )
     {
         int d = this.name.length - item.name.length;
-        
+
         for (uint i = 0; (i < name.length) && !d; i++)
         {
             d = this.name[i] - item.name[i];
         }
-        
+
         return d;
     }
-    
+
     /**************************************************************************
-    
+
         Returns the entity name
-            
+
         Returns:
              entity name
-             
+
     **************************************************************************/
-    
+
     char[] toString ( )
     {
         return this.name;
     }
-    
+
     /**************************************************************************
-    
+
         Returns the entity character value which is certainly unique; required
         for building an associative array.
-            
+
         Returns:
              entity character value
-             
+
     **************************************************************************/
 
     hash_t toHash ( )

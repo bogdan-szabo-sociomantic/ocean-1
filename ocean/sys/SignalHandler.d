@@ -3,15 +3,15 @@
     Simple C/Posix Signals manager
 
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     version:        Febrruary 2010: Initial release
-    
+
     authors:        David Eckardt, Gavin Norman, Mathias Baumann
-    
+
     --
-    
+
     Description:
-    
+
     Register signal handlers for C/Posix Signals and, as an option, reset to
     default signal handlers. When a signal is received, all signal handlers
     which have been registered for that signal are called in series, optionally
@@ -36,7 +36,7 @@
 			SignalHandler.register(SignalHandler.SIGALRM, &this.alarm);
             SignalHandler.register(SignalHandler.AppTermination, &this.terminate);
 		}
-		
+
 		public bool alarm ( int code )
 		{
 			// required alarm behaviour for this class
@@ -55,15 +55,15 @@
     ---
 
 *******************************************************************************/
-    
+
 module ocean.sys.SignalHandler;
 
 
 
 /******************************************************************************
- 
+
     Imports
- 
+
  ******************************************************************************/
 
 private import tango.stdc.signal: signal, raise, SIGABRT, SIGFPE,  SIGILL,
@@ -100,25 +100,25 @@ class SignalHandler
     public alias bool function ( int ) FnHandler;
 
     /**************************************************************************
-    
+
         Everything static
-     
+
      **************************************************************************/
 
     static:
 
     /**************************************************************************
-    
+
         Signal handler type alias definition
-     
+
      **************************************************************************/
 
     extern (C) alias void function ( int code ) SignalHandler;
 
     /**************************************************************************
-    
+
         Signal enumerator and identifier strings
-     
+
      **************************************************************************/
 
     alias SmartEnumValue!(int) Sig;
@@ -132,7 +132,7 @@ class SignalHandler
                     Sig("SIGINT ", .SIGINT),  // Terminal interrupt character
                     Sig("SIGSEGV", .SIGSEGV), // Invalid memory reference
                     Sig("SIGTERM", .SIGTERM), // Termination
-                    
+
                     Sig("SIGALRM", .SIGALRM),
                     Sig("SIGBUS ", .SIGBUS),
                     Sig("SIGCHLD", .SIGCHLD),
@@ -161,75 +161,75 @@ class SignalHandler
                     Sig("SIGTERM", .SIGTERM)  // Termination
                 ));
     }
-    
+
     /***************************************************************************
-    
+
         Commonly used command line application termination signals
-        
+
     ***************************************************************************/
 
     const int[] AppTermination = [SIGINT, SIGTERM];
 
     /***************************************************************************
-    
+
         Alias for a general handler (can be either, delegate or function)
-        
+
     ***************************************************************************/
-    
+
     alias UniStruct!(DgHandler,FnHandler) Handler;
-        
+
     /**************************************************************************
-    
+
         Default handlers registry to memorize the default handlers for reset
-     
+
      **************************************************************************/
 
     synchronized private SignalHandler[int] default_handlers;
-    
+
     /***************************************************************************
-    
+
         Lists of delegate and function signal handlers. Each will be called
         on the receipt of the previously registered signal
-    
+
     ***************************************************************************/
-    
+
     protected static  Handler[][int] handlers;
-    
+
     /***************************************************************************
-    
+
         registers handler for a signal code.
-        
-        The handler should return false if it wants to prevent 
+
+        The handler should return false if it wants to prevent
         the invocation of the default handler.
-        
+
         Does nothing if the handler was already registered for that
         signal code
-        
+
         Params:
             code    = code of signal to handle by handler
             handler = signal handler callback function
-     
+
     ***************************************************************************/
-    
+
     void register ( T ) ( int code, T handler )
     {
         register([code], handler);
     }
-    
+
     /**************************************************************************
-    
+
         registers handler for signals of codes.
-        
-        The handler should return false if it wants to prevent 
+
+        The handler should return false if it wants to prevent
         the invocation of the default handler.
-        
+
         Does nothing if the handler was already registered for that
         signal code
-         
+
         Params:
             codes   = codes of signals to handle by handler
             handler = signal handler callback function
-     
+
      **************************************************************************/
 
    	void register ( T ) ( int[] codes, T handler )
@@ -238,7 +238,7 @@ class SignalHandler
        {
            static assert(false,"register template only usable for DgHandler or FnHandler!");
        }
-       
+
        bool checkfn(FnHandler fn)
        {
            static if(is(T==FnHandler))
@@ -250,7 +250,7 @@ class SignalHandler
                return false;
            }
        }
-       
+
        bool checkdg(DgHandler dg)
        {
            static if(is(T==DgHandler))
@@ -262,86 +262,86 @@ class SignalHandler
                return false;
            }
        }
-       
+
        synchronized foreach (code; codes)
-       {   
+       {
            if (!(code in this.default_handlers))
            {
                this.default_handlers[code] = signal(code, &this.sighandler);
            }
-           
+
            if (auto arrayOfhandlers = code in handlers)
            {
                foreach (arHandler ; *arrayOfhandlers)
                {
                    bool equal = arHandler.visit(&checkfn,&checkdg);
-                   
+
                    if (equal)
                    {
                        return;
                    }
                }
-               
+
                Handler h;
-               
+
                h.set(handler);
-                   
+
                (*arrayOfhandlers)~=h;
            }
            else
            {
                Handler h;
-               
+
                h.set(handler);
-               
+
                this.handlers[code]~=h;
            }
        }
     }
-       
+
     /***************************************************************************
-       
+
        Removes a handler from the list
-       
+
        !!! Do not call this function from within a signal handler !!!
-       
+
        Params:
            code    = signal that the handler is associate with
            handler = signal handler callback function
-                     
+
        Template Params:
            T = type of the handler (delegate or function)
-                   
+
        Throws:
            throws an Exception if the handler was not found
-           
+
     ***************************************************************************/
-    
+
     public void unregister ( T )( int code, T handler )
     {
        unregister([code], handler);
     }
-      
+
    /***************************************************************************
-   
+
        Removes a handler from the list
-       
+
        !!! Do not call this function from within a signal handler !!!
-       
+
        Params:
            codes    = signals that the handler is associate with
            handler = signal handler callback function
-               
+
        Template Params:
            T = type of the handler (delegate or function)
-           
+
        Throws:
            throws an Exception if the handler was not found
-    
+
     ***************************************************************************/
-    
+
     public static void unregister ( T ) ( int[] codes, T handler )
-    {        
+    {
         static if (!is(T == DgHandler) && !is(T == FnHandler))
         {
             static assert (false, "unregister template only usable for DgHandler or FnHandler!");
@@ -361,13 +361,13 @@ class SignalHandler
                             {
                                 (*hler)[i] = (*hler)[$ - 1];
                                 hler.length = hler.length - 1;
-                                
+
                                 return true;
                             }
                         }
                         return false;
                     }
-                    
+
                     bool checkdg(DgHandler dg)
                     {
                         static if (is(T==DgHandler))
@@ -376,15 +376,15 @@ class SignalHandler
                             {
                                 (*hler)[i] = (*hler)[$ - 1];
                                 hler.length = hler.length - 1;
-                                
+
                                 return true;
                             }
                         }
                         return false;
                     }
-                    
+
                     bool break_ = h.visit(&checkfn,&checkdg);
-                    
+
                     if (break_)
                     {
                         break;
@@ -397,21 +397,21 @@ class SignalHandler
             }
         }
     }
-   
+
    /****************************************************************************
-   
-       General signal handler. 
+
+       General signal handler.
        This function is registered as signal handler for every signal that
-       a callback has registered for. 
+       a callback has registered for.
 
        It calls all callbacks for the signal and then — if none of the callbacks
        returned false — calls the default handler.
 
        Params:
            signal = the signal code
-           
+
    ****************************************************************************/
-   
+
    extern (C) private void sighandler ( int sig )
    {
        synchronized
@@ -422,11 +422,11 @@ class SignalHandler
 
            foreach (d ; handlers[sig])
            {
-               d.visit((DgHandler dg) 
+               d.visit((DgHandler dg)
                        {
                             if (!dg(sig)) defaultHandler = false;
                        },
-                       (FnHandler fn) 
+                       (FnHandler fn)
                        {
                             if (!fn(sig)) defaultHandler = false;
                        }
@@ -434,9 +434,9 @@ class SignalHandler
            }
 
            if (defaultHandler)
-           {           
+           {
                if (auto def = sig in this.default_handlers)
-               {  
+               {
                    signal(sig,*def);
                    raise(sig);
                }
@@ -447,30 +447,30 @@ class SignalHandler
            }
        }
    }
-   
+
    /**************************************************************************
-   
+
        Resets handlers for signal codes to the default handler and unregisters
        the handler.
-       
+
        Params:
            code = signal code
-    
+
     **************************************************************************/
-   
+
    void reset ( int code )
    {
        reset([code]);
    }
-   
+
    /**************************************************************************
-   
+
        Resets handlers for signals of codes to the default handlers and
        unregisters the handlers.
-       
+
        Params:
            codes = signal codes
-    
+
     **************************************************************************/
 
     void reset ( int[] codes )
@@ -478,39 +478,39 @@ class SignalHandler
         synchronized foreach (code; codes)
         {
             SignalHandler* handler = code in this.default_handlers;
-            
+
             if (handler)
             {
                 signal(code, *handler);
-                
+
                 this.default_handlers.remove(code);
             }
             else
                 assert(false);
         }
     }
-    
+
 	/**************************************************************************
-    
+
         Returns the codes for which signal handlers are registered.
-        
+
         Returns:
             list of codes
-     
+
      **************************************************************************/
 
     int[] registered ( )
     {
         return this.handlers.keys.dup;
     }
-    
+
     /**************************************************************************
-    
+
         Returns the identifier string for signal code.
-        
+
         Returns:
             identifier string for signal code
-     
+
      **************************************************************************/
 
     char[] getId ( int code )

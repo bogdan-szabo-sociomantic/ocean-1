@@ -7,23 +7,23 @@
     version:        March 2010: Initial release
 
     authors:        David Eckardt & Thomas Nicolai
-    
+
     Notes: Each exception class is derived from D's Exception class.
-    
+
     Usage example
     ---
     import $(TITLE): HttpServerException;
-    
+
     throw new HttpServerException("error");
     throw new HttpServerException("error", "myprogram.d", 1234);
-    
+
     // same effect as throw new HttpServerException(...)
-    HttpServerException("error");       
-    
+    HttpServerException("error");
+
     // same effect as throw new HttpServerException(...)
     HttpServerException("error", "myprogram.d", 1234);
     ---
-    
+
 *******************************************************************************/
 
 module ocean.core.Exception;
@@ -38,14 +38,14 @@ class ArrayMapException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
-    
+
     static class NonExistingKey : ArrayMapException
     {
         this ( char[] msg ) { super(msg); }
         this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-        
+
         static mixin ExceptionOpCalls!(typeof (this));
     }
 }
@@ -60,7 +60,7 @@ class ObjectPoolException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
@@ -74,7 +74,7 @@ class UniStructException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
@@ -88,32 +88,32 @@ class SerializerException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
-    
+
     /***************************************************************************
 
         StructSerializer Exception
-    
+
     ***************************************************************************/
 
     static class LengthMismatch : SerializerException
     {
         size_t bytes_expected, bytes_got;
-        
+
         this ( char[] msg, size_t bytes_expected, size_t bytes_got )
         {
             super(msg);
-            
+
             this.bytes_expected = bytes_expected;
             this.bytes_got      = bytes_got;
         }
-        
+
         this ( char[] msg, char[] file, long line,
                size_t bytes_expected, size_t bytes_go )
         {
             super(msg, file, line);
-            
+
             this.bytes_expected = bytes_expected;
             this.bytes_got      = bytes_got;
         }
@@ -130,7 +130,7 @@ class CompressException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
@@ -144,7 +144,7 @@ class HMACException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
@@ -156,9 +156,9 @@ class HMACException : Exception
 
 class MySQLException : Exception
 {
-    this ( char[] msg ) { super(msg); } 
+    this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
@@ -172,7 +172,7 @@ class SqliteException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
@@ -186,14 +186,14 @@ class TokyoCabinetException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
-    
+
     static class Cursor : TokyoCabinetException
     {
         this ( char[] msg ) { super(msg); }
         this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-        
+
         static mixin ExceptionOpCalls!(typeof (this));
     }
 }
@@ -208,7 +208,7 @@ class SphinxException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
@@ -222,7 +222,7 @@ class UrlException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
@@ -236,7 +236,7 @@ class HttpResponseException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
@@ -250,7 +250,7 @@ class HttpServerException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
@@ -264,7 +264,7 @@ class CurlException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
@@ -278,7 +278,7 @@ class NgramParserException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
@@ -292,7 +292,7 @@ class PCREException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
@@ -306,7 +306,7 @@ class ConfigException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
@@ -320,7 +320,7 @@ class JsonException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-    
+
     static mixin ExceptionOpCalls!(typeof (this));
 }
 
@@ -333,12 +333,12 @@ class JsonException : Exception
 class IconvException : Exception
 {
 	const MSG = "Iconv: Error";
-	
+
 	this ( char[] msg = MSG ) { super(msg); }
 	this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
-	
+
 	static mixin ExceptionOpCalls!(typeof (this));
-	
+
 	/**************************************************************************
 
 		Invalid Multibyte Sequence
@@ -348,34 +348,34 @@ class IconvException : Exception
 	static class InvalidMbSeq :  IconvException
 	{
 		const msg = "Iconv: Invalid Multibyte Sequence";
-		
+
 		this ( ) { super(this.msg); }
 	}
-	
+
 	/**************************************************************************
 
 		Incomplete Multibyte Sequence
-	
+
 	 **************************************************************************/
 
 	static class IncompleteMbSeq :  IconvException
 	{
 		const msg = "Iconv: Incomplete Multibyte Sequence";
-		
+
 		this ( ) { super(this.msg); }
 	}
-	
-	
+
+
 	/**************************************************************************
 
 		Too Big (output buffer full)
-	
+
 	 **************************************************************************/
 
 	static class TooBig :  IconvException
 	{
 		const msg = "Iconv: Too Big (output buffer full)";
-		
+
 		this ( ) { super(this.msg); }
 	}
 }
@@ -404,16 +404,16 @@ template ExceptionOpCalls  ( E : Exception )
         private import ocean.core.Array;
 
     Usage:
-    
+
     import $(TITLE);
-    
+
     ---
         class MyClass
         {
             // ...
-            
+
             static mixin CustomException!();
-            
+
             // Now MyClass.Exception can be thrown and caught.
         }
     ---
@@ -423,7 +423,7 @@ template ExceptionOpCalls  ( E : Exception )
 template CustomException ( )
 {
     alias .Exception _Exception;
-    
+
     class Exception : _Exception
     {
         this ( )                                    { super(""); }
@@ -441,17 +441,17 @@ template CustomException ( )
 /******************************************************************************
 
     Throws an existing Exception if ok is false, 0 or null.
-    
+
     Params:
         ok = condition which is challenged for being true or not 0/null
         e  = Exception instance to throw or expression returning that instance.
-    
+
     Throws:
         e if ok is
             - false or
             - equal to 0 or
             - a null object, reference or pointer.
-        
+
  ******************************************************************************/
 
 void assertEx ( E : Exception = Exception, T ) ( T ok, lazy E e )
@@ -462,16 +462,16 @@ void assertEx ( E : Exception = Exception, T ) ( T ok, lazy E e )
 /******************************************************************************
 
     Throws a new Exception if ok is false, 0 or null.
-    
+
     Params:
         ok = condition which is challenged for being true or not 0/null
-    
+
     Throws:
         new E if ok is
             - false or
             - equal to 0 or
             - a null object, reference or pointer.
-    
+
  ******************************************************************************/
 
 void assertEx ( E : Exception = Exception, T ) ( T ok )
@@ -484,7 +484,7 @@ void assertEx ( E : Exception = Exception, T ) ( T ok )
 
     Throws exception E if ok is false or equal to 0 or a null object, reference
     or pointer.
-    
+
     Params:
         ok   = condition which must be true else an exception E is thrown
         msg  = message to pass to exception constructor

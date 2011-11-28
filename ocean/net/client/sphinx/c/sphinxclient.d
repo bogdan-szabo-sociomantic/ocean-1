@@ -6,7 +6,7 @@ module ocean.net.client.sphinx.c.sphinxclient;
  *
  * API notes
  * ------------
- * 
+ *
  * 1. API can either copy the contents of passed pointer arguments,
  * or rely on the application that the pointer will not become invalid.
  * This is controlled on per-client basis; see 'copy_args' argument
@@ -18,31 +18,31 @@ module ocean.net.client.sphinx.c.sphinxclient;
  *
  * When 'copy_args' is false, API expects that pointers passed to
  * sphinx_set_xxx() calls will still be valid at the time when sphinx_query()
- * or sphinx_add_query() are called. 
- * 
+ * or sphinx_add_query() are called.
+ *
  * Rule of thumb: when 'copy_args' is false, do not free query arguments
  * until you have the search result. Example code for that case:
- * 
+ *
  * VALID CODE:
- * 
+ *
  *         char * my_filter_name;
  *
  *         my_filter_name = malloc ( 256 );
  *         strncpy ( my_filter_name, "test", 256 );
- * 
+ *
  *         sphinx_add_filter_range ( client, my_filter_name, 10, 20, false );
  *         result = sphinx_query ( client );
- * 
+ *
  *         free ( my_filter_name );
  *         my_filter_name = NULL;
- * 
+ *
  * INVALID CODE:
- * 
+ *
  *         void setup_my_filter ( sphinx_client * client )
  *         {
  *                 char buffer[256];
  *                 strncpy ( buffer, "test", sizeof(buffer) );
- * 
+ *
  *                 // INVALID! by the time when sphinx_query() is called,
  *                 // buffer will be out of scope
  *                 sphinx_add_filter_range ( client, buffer, 10, 20, false );
@@ -50,7 +50,7 @@ module ocean.net.client.sphinx.c.sphinxclient;
  *
  *         setup_my_filter ( client );
  *         result = sphinx_query ( client );
- * 
+ *
  */
 
 extern (C):
@@ -139,7 +139,7 @@ struct sphinx_wordinfo
 	const char*				word;
 	int						docs;
 	int						hits;
-} 
+}
 
 alias sphinx_wordinfo* st_sphinx_wordinfo;
 
@@ -181,7 +181,7 @@ struct sphinx_excerpt_options
 	bool					single_passage;
 	bool					use_boundaries;
 	bool					weight_order;
-} 
+}
 
 alias sphinx_excerpt_options* st_sphinx_excerpt_options;
 
@@ -192,7 +192,7 @@ struct sphinx_keyword_info
 	char *					normalized;
 	int						num_docs;
 	int						num_hits;
-} 
+}
 
 alias sphinx_keyword_info* st_sphinx_keyword_info;
 
@@ -214,11 +214,11 @@ struct sphinx_client
 	ushort                  ver_search;                     ///< compatibility mode
 	sphinx_bool             copy_args;                      ///< whether to create a copy of each passed argument
 	void*                   head_alloc;                     ///< head of client-owned allocations list
-	
+
 	char *                  error;                          ///< last error
 	char *                  warning;                        ///< last warning
 	char                    local_error_buf[256];   		///< buffer to store 'local' error messages (eg. connect() error)
-	
+
 	char *                  host;
 	int                     port;
 	float                   timeout;
@@ -254,15 +254,15 @@ struct sphinx_client
 	int                     num_field_weights;
 	char **                 field_weights_names;
 	int *                   field_weights_values;
-	
+
 	int                     num_reqs = 0;
 	int                     req_lens [ MAX_REQS ];
 	char *                  reqs [ MAX_REQS ];
-	
+
 	int                     response_len;
 	char *                  response_buf;   ///< where the buffer begins (might also contain heading warning)
 	char *                  response_start; ///< where the data to parse starts
-	
+
 	int                     num_results;
 	sphinx_result           results [ MAX_REQS ];
 }

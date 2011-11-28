@@ -6,21 +6,21 @@
 
     version:        Mar 2009: Initial release
 
-    authors:        
+    authors:
 
     ToDo: Adapt for multiple languages
-    
-    
+
+
     Usage:
-    
+
     ---
-    
+
     PorterStemmer stemmer = new PorterStemmer();
     char[] toStem = "agreed";
     char[] stemmed = stemmer.stem( toStem, 0, toStem.length - 1 );
-    
+
     ---
-    
+
     **************************************************************************
     * FPorterStemmer.d - 29-Mai-2007
     * - Filter for perferming word stemming based on the Porter algorithm
@@ -72,42 +72,42 @@ module      ocean.text.stemmer.PorterStemmerEn;
 
 public class PorterStemmerEn
 {
-    
+
     /**
      * buffer for the word
      */
-    private     char[] m_b; 
-    
+    private     char[] m_b;
+
     /**
-     * 
-     */    
+     *
+     */
     private     int m_k = 0;
-    
+
     /**
-     * 
+     *
      */
     private     int m_k0 = 0;
-    
+
     /**
      * offset within the string
      */
-    private     int m_j = 0;       
-    
+    private     int m_j = 0;
+
 
     /**
      * constructor
      */
     public this() {}
 
-    
-    
+
+
     /**
      * Destructor
      */
     public ~this() {}
 
-       
-    
+
+
     /**
      * In stem(p,i,j), p is a char pointer, and the string to be stemmed
      * is from p[i] to p[j] inclusive. Typically i is zero and j is the
@@ -122,7 +122,7 @@ public class PorterStemmerEn
         m_b = p;
         m_k = j;
         m_k0 = 0;
-        
+
         /**
          * --DEPARTURE--
          *
@@ -132,9 +132,9 @@ public class PorterStemmerEn
          * algorithm.
          *
          */
-        if( m_k <= m_k0 + 1 )        
+        if( m_k <= m_k0 + 1 )
             return m_b;
-            
+
         step1ab();
         step1c();
         step2();
@@ -142,11 +142,11 @@ public class PorterStemmerEn
         step4();
         step5();
         return m_b[ m_k0 .. m_k + 1 ];
-        
+
     }
-    
-    
-    
+
+
+
     /**
      * cons returns true, if b[i] is a consonant
      */
@@ -168,8 +168,8 @@ public class PorterStemmerEn
         return true;
     }
 
-    
-    
+
+
     /**
      * measures the number of consonant sequences between k0 and j.
      * if c is a consonant sequence and v a vowel sequence, and <..>
@@ -185,7 +185,7 @@ public class PorterStemmerEn
     {
         int n = 0;
         int i = m_k0;
-        
+
         while( true )
         {
             if( i > m_j )
@@ -231,8 +231,8 @@ public class PorterStemmerEn
         }
     }
 
-    
-    
+
+
     /**
      * returns true if k0...j contains a vowel
      */
@@ -246,8 +246,8 @@ public class PorterStemmerEn
         return false;
     }
 
-    
-    
+
+
     /**
      * returns true if j, j-1 contains a double consonant
      */
@@ -260,8 +260,8 @@ public class PorterStemmerEn
         return cons( j );
     }
 
-    
-    
+
+
     /**
      * is TRUE <=> i-2,i-1,i has the form consonant - vowel - consonant
      * and also if the second c is not w,x or y. this is used when trying to
@@ -280,8 +280,8 @@ public class PorterStemmerEn
         return true;
     }
 
-    
-    
+
+
     /**
      * ends(s) is TRUE <=> k0,...k ends with the string s.
      */
@@ -306,8 +306,8 @@ public class PorterStemmerEn
         return true;
     }
 
-    
-    
+
+
     /**
      * setto(s) sets (j+1),...k to the characters in the string s, readjusting k.
      */
@@ -316,8 +316,8 @@ public class PorterStemmerEn
         m_b = m_b[0..m_j+1] ~ s ~ m_b[ m_j + s.length + 1 .. m_b.length ];
         m_k = m_j + s.length;
     }
-    
-    
+
+
 
     /**
      * used further down
@@ -328,8 +328,8 @@ public class PorterStemmerEn
             setto( s );
     }
 
-    
-    
+
+
     /**
      * step1ab() gets rid of plurals and -ed or -ing. e.g.
      *
@@ -389,8 +389,8 @@ public class PorterStemmerEn
         }
     }
 
-    
-    
+
+
     /**
      * step1c() turns terminal y to i when there is another vowel in the stem.
      */
@@ -402,8 +402,8 @@ public class PorterStemmerEn
         }
     }
 
-    
-    
+
+
     /**
      * step2() maps double suffices to single ones.
      * so -ization ( = -ize plus -ation) maps to -ize etc. note that the
@@ -480,8 +480,8 @@ public class PorterStemmerEn
 
     }
 
-    
-    
+
+
     /**
      * step3() dels with -ic-, -full, -ness etc. similar strategy to step2.
      */
@@ -511,8 +511,8 @@ public class PorterStemmerEn
                 r( "" );
         }
     }
-    
-    
+
+
 
     /**
      * step4() takes off -ant, -ence etc., in context <c>vcvc<v>.
@@ -545,7 +545,7 @@ public class PorterStemmerEn
                 if( ends( "ic" ) )
                     break;
                 return;
-                
+
             case 'l':
                 if( ends( "able" ) || ends( "ible" ) )
                     break;
@@ -580,7 +580,7 @@ public class PorterStemmerEn
                 if( ends( "ous" ) )
                     break;
                 return;
-            
+
             case 'v':
                 if( ends( "ive" ) )
                     break;
@@ -600,8 +600,8 @@ public class PorterStemmerEn
             m_k = m_j;
 
     }
-    
-    
+
+
 
     /**
      * step5() removes a final -e if m() > 1, and changes -ll to -l if m() > 1.
@@ -617,7 +617,7 @@ public class PorterStemmerEn
         }
         if( m_b[ m_k ] == 'l' && doublec( m_k ) && m() > 1 )
             m_k--;
-        
+
     }
 
 } // PorterStemmerEn

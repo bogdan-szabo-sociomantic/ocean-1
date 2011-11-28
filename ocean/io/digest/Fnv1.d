@@ -3,9 +3,9 @@
         copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
         license:        BSD style: $(LICENSE)
-        
+
         version:        May 2009: Initial release
-                        
+
         author:         David Eckardt, Thomas Nicolai, Lars Kirchhoff
 
     TODO: move module to ocean.util.digest
@@ -32,8 +32,8 @@ debug private import ocean.util.log.Trace;
 
 
 /******************************************************************************
-    
-    Convenience aliases for 32-bit and 64-bit Fnv1 class template 
+
+    Convenience aliases for 32-bit and 64-bit Fnv1 class template
     instances.
 
 *******************************************************************************/
@@ -49,92 +49,92 @@ alias Fnv1Generic!(true,  ulong)  Fnv1a64;
 
         Fowler / Noll / Vo (FNV) 1/1a Hash Module
 
-        Very fast hashing algorithm implementation with support for 32/64 bit 
+        Very fast hashing algorithm implementation with support for 32/64 bit
         hashes.
         This modules implements two versions of FNV1: FNV1 and FNV1a. The
         difference is extremely slight and Noll himself says:
-        
-            "Some people use FNV1a instead of FNV1 because they see slightly 
+
+            "Some people use FNV1a instead of FNV1 because they see slightly
             better dispersion for tiny (<4 octets) chunks of memory. Either
             FNV-1 or FNV-1a make a fine hash."
-        
+
             (cited from http://www.isthe.com/chongo/tech/comp/fnv/)
-        
-        
+
+
         The FNV1A template parameter selects FNV1a if set to true on
-        instantiation or FNV1 otherwise. It is recommended to use the 
+        instantiation or FNV1 otherwise. It is recommended to use the
         Fnv1XX/Fnv1aXX aliases.
-        
+
         Fnv1 and Fnv1a (without 32/64 suffix) use the native machine data word
         width.
-        
+
         32bit ~ 3704333.44 hash/sec
         64bit ~ 1728119.76 hash/sec
-        
+
         --
-        
+
         Usage
-        
+
         It is recommended to use these Fnv1 class convenience aliases:
-         
+
          - Fnv1 for FNV1 digests of the machine's native width
          - Fnv1a for FNV1a digests of the machine's native width
-         
+
          - Fnv132 for 32-bit FNV1 digests
          - Fnv1a32 for 32-bit FNV1a digests
-         
+
          - Fnv164 for 64-bit FNV1 digests
          - Fnv1a64 for 64-bit FNV1a digests
-        
+
         Example 1: Generating FNV1 digests using class instances
-        
+
         ---
-        
+
             import ocean.io.digest.Fnv1;
-            
+
             auto fnv1   = new Fnv1;
             auto fnv132 = new Fnv132;
             auto fnv164 = new Fnv164;
-            
+
             char[] hello = "Hello World!";
-            
+
             fnv1.update(hello);
             fnv132.update(hello);
             fnv164.update(hello);
-            
+
             char[] hash   = fnv1.hexDigest();
             char[] hash32 = fnv132.hexDigest();
             char[] hash64 = fnv164.hexDigest();
-        
+
         ---
-        
+
         Example 2: Generating FNV1a digests using the static fnv1() method
-        
+
         ---
-        
+
             import ocean.io.digest.Fnv;
-        
+
             char[] hello = "Hello World!";
-            
+
             size_t hash   = Fnv1a(hello);       // size_t uses the native machine data word width
             uint   hash32 = Fnv1a32(hello);
             ulong  hash64 = Fnv1a64(hello);
-        
+
         ---
-        
+
         --
-        
-        We should use this hash algorithm in combination with this consistent 
+
+        We should use this hash algorithm in combination with this consistent
         hash algorithm in order to build a distributed hash table (DTH)
-        
+
         http://www.audioscrobbler.net/development/ketama/
         svn://svn.audioscrobbler.net/misc/ketama/
         http://pdos.csail.mit.edu/chord/
-        
+
         --
-        
+
         References
-        
+
         http://www.isthe.com/chongo/tech/comp/fnv/
         http://www.azillionmonkeys.com/qed/hash.html
         http://www.azillionmonkeys.com/qed/hash.c
@@ -143,49 +143,49 @@ alias Fnv1Generic!(true,  ulong)  Fnv1a64;
         http://www.team5150.com/~andrew/blog/2007/03/breaking_superfasthash.html
         http://www.team5150.com/~andrew/blog/2007/03/when_bad_hashing_means_good_caching.html
         http://www.azillionmonkeys.com/qed/hash.html
-        
+
 *******************************************************************************/
 
 class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : Digest
 {
     /**************************************************************************
-    
+
         DigestType type alias
-    
+
      **************************************************************************/
 
     alias T DigestType;
-    
+
     /**************************************************************************
-    
+
         Binary digest length and hexadecimal digest string length constants
-    
+
      **************************************************************************/
 
     public static const DIGEST_LENGTH = DigestType.sizeof;
     public static const HEXDGT_LENGTH = DIGEST_LENGTH * 2;
-    
+
     alias char[HEXDGT_LENGTH] HexDigest;
-    
+
     /**************************************************************************
-    
+
         FNV magic constants and endianness
- 
+
      **************************************************************************/
-    
-    
+
+
     static if (is (DigestType == uint))
     {
         public static const DigestType PRIME = 0x0100_0193; // 32 bit prime
         public static const DigestType INIT  = 0x811C_9DC5; // 32 bit inital digest
-        
+
         private alias ByteSwap.swap32 toBigEnd;
     }
     else static if (is (DigestType == ulong))
     {
         public static const DigestType PRIME = 0x0000_0100_0000_01B3; // 64 bit prime
         public static const DigestType INIT  = 0xCBF2_9CE4_8422_2325; // 64 bit inital digest
-        
+
         private alias ByteSwap.swap64 toBigEnd;
     }
     /*
@@ -198,233 +198,233 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : Digest
     */
     else static assert (false, "type '" ~ DigestType.stringof ~
                                "' is not supported, only uint and ulong");
-    
-    
+
+
     /**************************************************************************
-    
+
         This alias for chainable methods
-    
+
      **************************************************************************/
-    
+
     alias typeof (this) This;
-    
+
     /**************************************************************************
-    
+
         Endianness aware integer to byte array converter
-        
+
         Usage:
-        
+
         ---
-        
+
              Fnv32.BinConvert bc;
-             
+
              ubyte[] binstr = bc(0xAFFE4711);
-             
+
              // binstr now is [0xAF, 0xFE, 0x47, 0x11]
-             
+
         ---
-    
+
      **************************************************************************/
-    
+
      union BinConvert
      {
          alias ubyte[DIGEST_LENGTH] BinString;
-         
+
          /* members */
-         
+
          BinString array;
-         
+
          DigestType         value;
-         
+
          /* cast "value" from integer type "DigestType" to binary string type "BinString"
             considering machine byte order (endianness) */
-         
+
          ubyte[] opCall ( DigestType value )
          {
              this.value = value;
-             
+
              version (LittleEndian) toBigEnd(array);
-             
+
              return array.dup;
          }
      };
-    
-    
+
+
     /**************************************************************************
-    
+
         class properties
 
      **************************************************************************/
-    
-    
+
+
     private DigestType digest = this.INIT;
-    
-    
+
+
     /**************************************************************************
-    
+
         Tango DigestType class methods
 
      **************************************************************************/
-    
-    
+
+
     /**************************************************************************
-    
+
         Processes data
-        
+
         Remarks:
               Updates the hash algorithm state with new data
-      
+
      **************************************************************************/
-    
-    
+
+
     public This update ( void[] data )
     {
         this.digest = this.fnv1(data, this.digest);
-        
+
         return this;
     }
-    
-    
+
+
     /**************************************************************************
-    
+
         Computes the digest and resets the state
-    
+
         Params:
             buffer = a buffer can be supplied for the digest to be
                      written to
-    
+
         Remarks:
             This method is endianness-aware: The returned array has always the
             least-order byte at byte [0] (big endian).
-            
+
             If the buffer is not large enough to hold the
             digest, a new buffer is allocated and returned.
             The algorithm state is always reset after a call to
             binaryDigest. Use the digestSize method to find out how
             large the buffer has to be.
-            
+
     ***************************************************************************/
 
-    
+
     public ubyte[] binaryDigest( ubyte[] buffer = null )
     {
         scope(exit) this.reset();
-        
+
         BinConvert bc;
-        
+
         bc(this.digest);
-        
+
         if ( buffer )
         {
             buffer.length = this.digestSize();
-            
+
             foreach (i, d; bc.array)
             {
                 buffer[i] = d;
             }
         }
-        
+
         return buffer? buffer: bc.array.dup;
     }
-    
-    
+
+
     /**************************************************************************
-    
+
         Returns the size in bytes of the digest
-        
+
         Returns:
           the size of the digest in bytes
-    
+
         Remarks:
           Returns the size of the digest.
-          
+
     ***************************************************************************/
 
-    
+
     public uint digestSize ( )
     {
         return this.DIGEST_LENGTH;
     }
-    
-    
+
+
     /**************************************************************************
-    
+
         extension class methods (in addition to the DigestType standard methods)
 
      **************************************************************************/
-    
-    
+
+
     /**************************************************************************
-    
+
         Resets the state
-        
+
         Returns:
              this instance
-             
+
      ***************************************************************************/
     public This reset ( )
     {
         this.digest = this.INIT;
-        
+
         return this;
     }
-    
-    
-    
+
+
+
     /**************************************************************************
-    
+
         Simply returns the digest
-        
+
         Returns:
              digest
-         
+
      **************************************************************************/
     public DigestType getDigest ( )
     {
         return this.digest;
     }
-    
-    
+
+
     /**************************************************************************
-    
+
         Core methods
-    
+
      **************************************************************************/
-    
-    
-    
+
+
+
     /**************************************************************************
-    
+
         Calculates a FNV1/FNV1a digest from data. data are processed in
         octet/byte-wise manner.
-        
+
         Usage:
-        
+
         ---
-             
+
              import ocean.io.digest.Fnv;
-             
+
              char[] data;
-        
+
              uint  digest32 = Fnv32.fnv1(data);
              ulong digest64 = Fnv64.fnv1(data);
-        
+
         ---
-        
+
         Params:
              data =   data to digest
              digest = initial digest; defaults to the magic 32 bit or 64 bit
                       initial value, according to DigestType
-             
+
         Returns:
              resulting digest
-         
+
      **************************************************************************/
-    
+
     public static DigestType fnv1 ( U ) ( U data, DigestType digest = INIT )
     {
         ubyte[] data_;
-        
+
         static if (is (U : ubyte[]))
         {
             data_ = data;
@@ -444,78 +444,78 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : Digest
         {
             data_ = cast(ubyte[])((cast(void*)&data)[0 .. data.sizeof]);
         }
-        
+
         foreach (d; data_)
         {
             digest = fnv1_core(d, digest);
         }
-        
+
         return digest;
     }
-    
+
     public alias fnv1 opCall;
-    
-    
+
+
     /**************************************************************************
-    
+
         Calculates a FNV1/FNV1a digest from data and generates a hexdecimal
         string representation of the digest. data are processed in
         octet/byte-wise manner.
-        
+
         Usage:
-        
+
         ---
-             
+
              import ocean.io.digest.Fnv;
-             
+
              Fnv32.HexDigest digest32;
              Fnv64.HexDigest digest64;
-             
+
              char[] data;
-        
+
              digest32 = Fnv32.fnv1(data, digest32);
              digest64 = Fnv64.fnv1(data, digest32);
-        
+
         ---
-        
+
         Params:
              data    = data to digest
              hexdgst = string buffer
              digest  = initial digest; defaults to the magic 32 bit or 64 bit
                        initial value, according to DigestType
-             
+
         Returns:
              hexdecimal string representation of resulting digest
-         
+
      **************************************************************************/
 
     public static char[] fnv1_hex ( U ) ( U data, HexDigest hexdgst, DigestType digest = INIT )
     {
         digest = fnv1(data, digest);
-        
+
         foreach_reverse (ref h; hexdgst)
         {
             h = "0123456789abcdef"[digest & 0xF];
-            
+
             digest >>= 4;
         }
-        
+
         return hexdgst;
     }
-    
+
     /**************************************************************************
-    
+
         FNV1/FNV1a core; calculates a digest of one octet d
-        
+
         Params:
              d      = data to digest
              digest = initial digest
-         
+
         Returns:
              resulting digest
-         
+
      **************************************************************************/
-    
+
     public static DigestType fnv1_core ( ubyte d, DigestType digest )
     {
         static if (FNV1A)
@@ -536,37 +536,37 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : Digest
 
 
     Test data for FNV1/FNV1a hash algorithm
-    
+
     Data taken from Landon Curt Noll's FNV test program source code:
-        
+
         http://www.isthe.com/chongo/src/fnv/test_fnv.c
-    
+
     found at his FNV web page:
-    
+
         http://www.isthe.com/chongo/tech/comp/fnv/
-    
-   
+
+
     C to D port by David Eckardt, sociomantic labs, October 2009
-    
+
     david_eckardt@sociomantic.com
 
 **************************************************************************/
 
 
 debug ( OceanUnitTest )
-{    
+{
     // Uncomment the next line to see UnitTest output
     // debug = Verbose;
-    
+
 	private char[] errmsg ( char[] func, char[] str, bool is_text )
 	{
 	    char[] errmsg = "unit test failed for " ~ func;
-	    
+
 	    if (is_text)
 	    {
 	        errmsg ~= ": \"" ~ str ~ "\"";
 	    }
-	    
+
 	    return errmsg;
 	}
 
@@ -580,45 +580,45 @@ debug ( OceanUnitTest )
 	        /*
 	         * 32-bit FNV1 digests of "string" below as integer, binary data string
 	         * and hexadecimal text string
-	         */ 
+	         */
 	        uint    fnv1_32;
 	        ubyte[] fnv1_32_bin;
 	        char[]  fnv1_32_hex;
-	        
+
 	        /*
 	         * 32-bit FNV1a digests of "string" below as integer, binary data string
 	         * and hexadecimal text string
-	         */ 
+	         */
 	        uint    fnv1a_32;
 	        ubyte[] fnv1a_32_bin;
 	        char[]  fnv1a_32_hex;
-	        
+
 	        /*
 	         * 64-bit FNV1 digests of "string" below as integer, binary data string
 	         * and hexadecimal text string
-	         */ 
+	         */
 	        ulong   fnv1_64;
 	        ubyte[] fnv1_64_bin;
 	        char[]  fnv1_64_hex;
-	
+
 	        /*
 	         * 64-bit FNV1a digests of "string" below as integer, binary data string
 	         * and hexadecimal text string
-	         */ 
+	         */
 	        ulong   fnv1a_64;
 	        ubyte[] fnv1a_64_bin;
 	        char[]  fnv1a_64_hex;
-	        
+
 	        /*
 	         * is_text == true indicates that the content of "string" is safe to
 	         * write to a text output (text file, console...).
 	         */
 	        bool   is_text;
-	        
+
 	        // string of which the digests above are computed from
 	        char[] string;
 	    };
-	    
+
 	    const TestData[] testdata =
 	    [
 	        {0xc5f1d7e9, [0xc5, 0xf1, 0xd7, 0xe9], "c5f1d7e9", 0x512b2851, [0x51, 0x2b, 0x28, 0x51], "512b2851", 0x43c94e2c8b277509, [0x43, 0xc9, 0x4e, 0x2c, 0x8b, 0x27, 0x75, 0x09], "43c94e2c8b277509", 0x33b96c3cd65b5f71, [0x33, 0xb9, 0x6c, 0x3c, 0xd6, 0x5b, 0x5f, 0x71], "33b96c3cd65b5f71",  true, "391581216093391581216093391581216093391581216093391581216093391581216093391581216093391581216093391581216093391581216093"},
@@ -637,36 +637,36 @@ debug ( OceanUnitTest )
 	        {0xe2dbccd5, [0xe2, 0xdb, 0xcc, 0xd5], "e2dbccd5", 0x83c5c6d5, [0x83, 0xc5, 0xc6, 0xd5], "83c5c6d5", 0x15e96e1613df98b5, [0x15, 0xe9, 0x6e, 0x16, 0x13, 0xdf, 0x98, 0xb5], "15e96e1613df98b5", 0xc1af12bdfe16b5b5, [0xc1, 0xaf, 0x12, 0xbd, 0xfe, 0x16, 0xb5, 0xb5], "c1af12bdfe16b5b5",  true, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"},
 	        {0xdb7f50f9, [0xdb, 0x7f, 0x50, 0xf9], "db7f50f9", 0x813b0881, [0x81, 0x3b, 0x08, 0x81], "813b0881", 0xe6be57375ad89b99, [0xe6, 0xbe, 0x57, 0x37, 0x5a, 0xd8, 0x9b, 0x99], "e6be57375ad89b99", 0x39e9f18f2f85e221, [0x39, 0xe9, 0xf1, 0x8f, 0x2f, 0x85, 0xe2, 0x21], "39e9f18f2f85e221", false, "\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f"}
 	     ];
-	    
+
 	    scope Fnv132 fnv132 = new Fnv132;
 	    scope Fnv164 fnv164 = new Fnv164;
-	    
+
 	    scope Fnv1a32 fnv1a32 = new Fnv1a32;
 	    scope Fnv1a64 fnv1a64 = new Fnv1a64;
-	    
+
 	    foreach (tdat; testdata)
 	    {
 	        /**********************************************************************
-	         
+
 	             core methods test
-	         
+
 	         **********************************************************************/
-	        
+
 	        assert (Fnv132.fnv1(tdat.string) == tdat.fnv1_32, errmsg("Fnv132.fnv1", tdat.string, tdat.is_text));
 	        assert (Fnv164.fnv1(tdat.string) == tdat.fnv1_64, errmsg("Fnv164.fnv1", tdat.string, tdat.is_text));
-	        
+
 	        assert (Fnv1a32.fnv1(tdat.string) == tdat.fnv1a_32, errmsg("Fnv1a32.fnv1", tdat.string, tdat.is_text));
 	        assert (Fnv1a64.fnv1(tdat.string) == tdat.fnv1a_64, errmsg("Fnv1a64.fnv1", tdat.string, tdat.is_text));
-	        
+
 	        /**********************************************************************
-	        
+
 	            class methods test
-	    
+
 	         **********************************************************************/
-	       
+
 	        assert (fnv132.update(tdat.string).binaryDigest == tdat.fnv1_32_bin, errmsg("Fnv132.binaryDigest", tdat.string, tdat.is_text));
 	        assert (fnv164.update(tdat.string).binaryDigest == tdat.fnv1_64_bin, errmsg("Fnv164.binaryDigest", tdat.string, tdat.is_text));
-	        
+
 	        assert (fnv1a32.update(tdat.string).hexDigest == tdat.fnv1a_32_hex, errmsg("Fnv1a32.hexDigest", tdat.string, tdat.is_text));
 	        assert (fnv1a64.update(tdat.string).hexDigest == tdat.fnv1a_64_hex, errmsg("Fnv1a64.hexDigest", tdat.string, tdat.is_text));
 	    }

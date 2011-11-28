@@ -122,7 +122,7 @@ class MySQL
         {
             this.connection[dbname].close();
             this.connection[dbname] = null;
-            
+
             return true;
         }
 

@@ -136,7 +136,7 @@ class Retry
 
     private uint num_retries;
 
-    
+
     /***************************************************************************
 
         Maximum number of retries before giving up on a code block. Note that 0
@@ -288,7 +288,7 @@ class WaitRetry : Retry
     /***************************************************************************
 
         Number of milliseconds to wait before each retry.
-    
+
     ***************************************************************************/
 
     private uint retry_wait_ms;
@@ -317,7 +317,7 @@ class WaitRetry : Retry
     /***************************************************************************
 
         Wait on retry.
-    
+
     ***************************************************************************/
 
     override protected void on_retry ( )
