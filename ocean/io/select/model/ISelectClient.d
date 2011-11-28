@@ -263,7 +263,7 @@ abstract class ISelectClient : ITimeoutClient
         {
             // Note: this should *never* happen! In case it ever does, here's
             // a helpful printout to notify the application programmer.
-            debug Trace.formatln("Very bad: Exception thrown from inside ISelectClient.error() delegate! -- {}", e.msg);
+            debug Trace.formatln("Very bad: Exception thrown from inside ISelectClient.error() delegate! -- {} ({}:{})", e.msg, e.file, e.line);
         }
     }
 
