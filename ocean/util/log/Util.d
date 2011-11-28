@@ -51,32 +51,66 @@ private import ocean.util.log.SimpleLayout;
 
 private import tango.util.log.Log;
 private import tango.util.log.AppendSyslog;
+private import ocean.util.log.InsertConsole;
 private import tango.util.log.AppendConsole;
 private import tango.util.log.LayoutDate;
 
 debug private import ocean.util.log.Trace;
 
-/***************************************************************************
+/*******************************************************************************
 
     Configuration class for loggers 
 
-***************************************************************************/
+*******************************************************************************/
 
 class Config
 {
-    char[] level;
-    Ocean.SetInfo!(bool) console;
-    Ocean.SetInfo!(char[]) file;
-    bool propagate;
-    bool additive;
-    size_t buffer_size = 0;
+    /***************************************************************************
+    
+        Level of the logger
+    
+    ***************************************************************************/
+
+    public char[] level;
+    
+    /***************************************************************************
+    
+        Whether to use console output or not 
+    
+    ***************************************************************************/
+
+    public Ocean.SetInfo!(bool) console;
+    
+    /***************************************************************************
+    
+        Whether to use file output and if, which file path
+    
+    ***************************************************************************/
+
+    public Ocean.SetInfo!(char[]) file;
+    
+    /***************************************************************************
+    
+        Whether to propagate that level to the children
+    
+    ***************************************************************************/
+
+    public bool propagate;
+    
+    /***************************************************************************
+    
+        Buffer size of the buffer output
+    
+    ***************************************************************************/
+
+    public size_t buffer_size = 0;
 }
 
-/***************************************************************************
+/*******************************************************************************
 
     Configuration class for logging
 
-***************************************************************************/
+*******************************************************************************/
 
 class MetaConfig
 {
@@ -116,26 +150,26 @@ class MetaConfig
     size_t buffer_size   = 0;
 }
 
-/***************************************************************************
+/*******************************************************************************
 
     Convenience alias for iterating over Config classes
 
-***************************************************************************/
+*******************************************************************************/
     
 alias Ocean.Config.ClassIterator!(Config) ConfigIterator;
 
-/***************************************************************************
+/*******************************************************************************
 
     Clear any default appenders at startup
 
-***************************************************************************/
+*******************************************************************************/
     
 static this ( )
 {
     Log.root.clear();
 }
 
-/***************************************************************************
+/*******************************************************************************
 
     Sets up logging configuration.
     
@@ -143,7 +177,7 @@ static this ( )
         config   = an instance of an class iterator for Config 
         m_config = an instance of the MetaConfig class
 
-***************************************************************************/
+*******************************************************************************/
     
 public void configureLoggers ( ConfigIterator config, MetaConfig m_config )
 {
@@ -192,6 +226,7 @@ public void configureLoggers ( ConfigIterator config, MetaConfig m_config )
         if ( console_enabled )
         {
             log.add(new AppendConsole(new SimpleLayout));
+            //log.add(new InsertConsole(new SimpleLayout));
         }
         
         with (settings) if ( level.length > 0 ) switch ( level )
