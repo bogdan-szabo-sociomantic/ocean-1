@@ -63,7 +63,7 @@ debug private import ocean.util.log.Trace;
 
 *******************************************************************************/
 
-class Config
+class LoggerConfig
 {
     /***************************************************************************
     
@@ -97,6 +97,14 @@ class Config
 
     public bool propagate;
     
+    /***************************************************************************
+    
+        Whether this logger should be additive or not
+    
+    ***************************************************************************/
+    
+    bool additive;
+        
     /***************************************************************************
     
         Buffer size of the buffer output
@@ -156,7 +164,7 @@ class MetaConfig
 
 *******************************************************************************/
     
-alias Ocean.Config.ClassIterator!(Config) ConfigIterator;
+alias Ocean.Config.ClassIterator!(LoggerConfig) ConfigIterator;
 
 /*******************************************************************************
 
@@ -212,7 +220,7 @@ public void configureLoggers ( ConfigIterator config, MetaConfig m_config )
         // if console/file is specifically set, don't inherit other appenders
         // (unless we have been specifically asked to be additive)
         log.additive = settings.additive ||
-                !(settings.console.set || settings.file.set);
+                       !(settings.console.set || settings.file.set);
         
         if ( settings.file.set )
         {
@@ -225,8 +233,8 @@ public void configureLoggers ( ConfigIterator config, MetaConfig m_config )
                                    
         if ( console_enabled )
         {
-            log.add(new AppendConsole(new SimpleLayout));
-            //log.add(new InsertConsole(new SimpleLayout));
+            //log.add(new AppendConsole(new SimpleLayout));
+            log.add(new InsertConsole(new SimpleLayout));
         }
         
         with (settings) if ( level.length > 0 ) switch ( level )
