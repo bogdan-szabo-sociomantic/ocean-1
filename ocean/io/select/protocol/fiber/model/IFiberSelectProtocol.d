@@ -35,12 +35,18 @@ debug private import ocean.util.log.Trace;
 
 abstract class IFiberSelectProtocol : IFiberSelectClient
 {
-    protected alias .SelectFiber            SelectFiber;
+    /**************************************************************************
+
+        Local aliases
+
+     **************************************************************************/
+
+    protected alias .SelectFiber SelectFiber;
     protected alias .EpollSelectDispatcher  EpollSelectDispatcher;
-    
+
     public alias .IOWarning IOWarning;
-    public alias .IOError   IOError;
-    
+    public alias .IOError IOError;
+
     /**************************************************************************
 
         Default I/O data buffer size (if a buffer is actually involved; this
@@ -92,7 +98,19 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
         this.warning_e = new IOWarning(this);
         this.error_e   = new IOError(this);
     }
-    
+
+    /**************************************************************************
+
+        Causes a running fiber to suspend and the conduit to be registered with
+        epoll.
+
+     **************************************************************************/
+
+    public void cede ( )
+    {
+        this.handleErrors({ this.cede_(); });
+    }
+
     /**************************************************************************
 
         Resumes the fiber coroutine and handle the events reported for the
@@ -122,7 +140,9 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
 
         debug ( SelectFiber) Trace.formatln("{}.handle: fd {} fiber resumed",
                 typeof(this).stringof, this.conduit.fileHandle);
+
         SelectFiber.Message message = this.fiber.resume(); // SmartUnion
+
         debug ( SelectFiber) Trace.formatln("{}.handle: fd {} fiber yielded, message type = {}",
                 typeof(this).stringof, this.conduit.fileHandle, message.active);
 
@@ -132,67 +152,28 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
     /**************************************************************************
 
         Registers this instance in the select dispatcher and repeatedly calls
-        transmit() until the transmission is finished.
-        
-        Throws:
-            IOException on I/O error, KillableFiber.KilledException if the
-            fiber was killed.
-            
-        In:
-            The fiber must be running.
-        
+        transmit() until the transmission is finished. Each call to transmit()
+        is followed by a calle to cede_(), suspending the fiber until the
+        conduit fires again in epoll.
+
      **************************************************************************/
-    
-    protected void transmitLoop ( )
-    in
-    {
-        assert (this.fiber.running);
-    }
-    body
+
+    final protected void transmitLoop ( )
     {
         // The reported events are reset at this point to avoid using the
         // events set by a previous run of this method.
-            
         this.events_reported = this.events_reported.init;
-        
-        try for (bool more = this.transmit(this.events_reported = this.events_reported.init);
+
+        this.handleErrors({
+            for (bool more = this.transmit(this.events_reported);
                       more;
                       more = this.transmit(this.events_reported))
-        {
-            super.fiber.register(this);
-            
-            // Calling suspend() triggers and epoll wait, which will in
-            // turn call handle_() (above) when an event fires for this
-            // client. handle_() sets this.events_reported to the event
-            // reported by epoll.
-            super.fiber.suspend(fiber.Message(true));
-
-            this.error_e.assertEx(!(this.events_reported & Event.Error), "socket error", __FILE__, __LINE__);
-        }
-        catch (SelectFiber.KilledException e)
-        {
-            throw e;
-        }
-        catch (Exception e)
-        {
-            if (super.fiber.isRegistered(this))
             {
-                debug ( SelectFiber) Trace.formatln("{}.transmitLoop: suspending fd {} fiber ({} @ {}:{})",
-                    typeof(this).stringof, this.conduit.fileHandle, e.msg, e.file, e.line);
-
-                // Exceptions thrown by transmit() or in the case of the Error event
-                // are passed to the fiber resume() to be rethrown in handle_(),
-                // above.
-                super.fiber.suspend(e);
-
-                debug ( SelectFiber) Trace.formatln("{}.transmitLoop: resumed fd {} fiber, rethrowing ({} @ {}:{})",
-                    typeof(this).stringof, this.conduit.fileHandle, e.msg, e.file, e.line);
+                this.cede_();
             }
-
-            throw e;
-        }
+        });
     }
-    
+
     /**************************************************************************
 
         Reads/writes data from/to super.conduit for which events have been
@@ -207,5 +188,82 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
      **************************************************************************/
 
     abstract protected bool transmit ( Event events );
+
+    /**************************************************************************
+
+        Suspends the fiber until an event fires for the conduit in epoll. When
+        the fiber is resumed (by the handle() method), the reported event from
+        epoll is checked to see if an error occurred.
+
+        Throws:
+            this.error_e upon occurrence of an Error event being reported for
+            the conduit in epoll
+
+     **************************************************************************/
+
+    private void cede_ ( )
+    {
+        super.fiber.register(this);
+
+        // Calling suspend() triggers an epoll wait, which will in
+        // turn call handle_() (above) when an event fires for this
+        // client. handle_() sets this.events_reported to the event
+        // reported by epoll.
+        super.fiber.suspend(fiber.Message(true));
+
+        this.error_e.assertEx(!(this.events_reported & Event.Error), "socket error", __FILE__, __LINE__);
+    }
+
+    /**************************************************************************
+
+        Invokes the passed delegate and handles any exceptions which occur.
+
+        Params:
+            action = delegate to invoke
+
+        Throws:
+            any exceptions caught while invoking action are rethrown
+
+        In:
+            * Action must not be null
+            * The fiber must be running.
+
+     **************************************************************************/
+
+    private void handleErrors ( void delegate ( ) action )
+    in
+    {
+        assert(action !is null, typeof(this).stringof ~ ".transmitLoop_: action delegate must be non-null");
+        assert(this.fiber.running);
+    }
+    body
+    {
+        try
+        {
+            action();
+        }
+        catch (SelectFiber.KilledException e)
+        {
+            throw e;
+        }
+        catch (Exception e)
+        {
+            if (super.fiber.isRegistered(this))
+            {
+                debug ( SelectFiber ) Trace.formatln("{}.transmitLoop: suspending fd {} fiber ({} @ {}:{})",
+                    typeof(this).stringof, this.conduit.fileHandle, e.msg, e.file, e.line);
+
+                // Exceptions thrown by transmit() or in the case of the Error event
+                // are passed to the fiber resume() to be rethrown in handle_(),
+                // above.
+                super.fiber.suspend(e);
+
+                debug ( SelectFiber ) Trace.formatln("{}.transmitLoop: resumed fd {} fiber, rethrowing ({} @ {}:{})",
+                    typeof(this).stringof, this.conduit.fileHandle, e.msg, e.file, e.line);
+            }
+
+            throw e;
+        }
+    }
 }
 
