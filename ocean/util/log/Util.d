@@ -63,7 +63,7 @@ debug private import ocean.util.log.Trace;
 
 *******************************************************************************/
 
-class LoggerConfig
+class Config
 {
     /***************************************************************************
     
@@ -164,7 +164,7 @@ class MetaConfig
 
 *******************************************************************************/
     
-alias Ocean.Config.ClassIterator!(LoggerConfig) ConfigIterator;
+alias Ocean.Config.ClassIterator!(Config) ConfigIterator;
 
 /*******************************************************************************
 
