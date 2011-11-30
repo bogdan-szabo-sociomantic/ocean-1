@@ -148,7 +148,7 @@ private import tango.core.ThreadPool;
 
 debug
 {
-	private import ocean.io.SyncOut;
+	private import ocean.util.log.Trace;
 }
 
 

@@ -38,7 +38,7 @@ private import tango.math.Math : abs;
 
 debug
 {
-	private import ocean.io.SyncOut;
+	private import ocean.util.log.Trace;
 	private import Utf = tango.text.convert.Utf;
 }
 
@@ -1019,7 +1019,7 @@ class NGramSet_ ( bool ThreadSafe = false )
 
 debug ( OceanUnitTest )
 {
-	import ocean.io.SyncOut;
+	import ocean.util.log.Trace;
     import tango.io.device.File;
 	
 	unittest

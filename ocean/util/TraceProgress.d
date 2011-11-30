@@ -143,7 +143,7 @@ module ocean.util.TraceProgress;
 
 *******************************************************************************/
 
-private import ocean.io.SyncOut; //iutil.log.Trace;
+private import ocean.util.log.Trace;
 
 private import ocean.util.TraceLog;
 

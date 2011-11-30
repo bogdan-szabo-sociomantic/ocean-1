@@ -137,7 +137,7 @@ private import tango.stdc.posix.netinet.in_;
 
 *******************************************************************************/
 
-private debug import ocean.io.SyncOut;
+private debug import ocean.util.log.Trace;
 
 class LibDrizzleEpoll
 {

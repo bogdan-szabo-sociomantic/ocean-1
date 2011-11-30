@@ -47,7 +47,7 @@ private import ocean.io.select.RequestQueue;
 
 private import ocean.core.Array : copy;
 
-debug private import ocean.io.SyncOut;
+debug private import ocean.util.log.Trace;
 
 /*******************************************************************************
 

@@ -27,7 +27,7 @@ private import tango.util.log.LayoutDate,
 
 private import tango.text.convert.Layout;
 
-private import ocean.io.SyncOut;
+private import ocean.util.log.Trace;
 
 
 

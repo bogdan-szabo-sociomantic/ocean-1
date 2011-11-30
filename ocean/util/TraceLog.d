@@ -52,7 +52,7 @@ module ocean.util.TraceLog;
 private import ocean.util.log.MessageLogger;
 
 
-private     import      ocean.io.SyncOut;
+private     import      ocean.util.log.Trace;
 
 private     import      tango.core.Vararg;
 

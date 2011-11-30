@@ -78,7 +78,7 @@ private import ocean.util.log.StaticTrace;
 
 private import tango.stdc.stdarg;
 
-private import ocean.io.SyncOut;
+private import ocean.util.log.Trace;
 
 private import tango.text.convert.Layout;
 
