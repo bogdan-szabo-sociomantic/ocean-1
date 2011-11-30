@@ -226,11 +226,11 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
         {
             if (argument is typeid (T[]))
             {
-                super.append(*cast (T[]*) argptr);
+                super ~= *cast (T[]*) argptr;
             }
             else if (argument is typeid (T))
             {
-                super.append(*cast (T*) argptr);
+                super ~= *cast (T*) argptr;
             }
             else
             {
