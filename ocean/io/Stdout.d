@@ -230,8 +230,12 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
     public typeof(this) clearline ( )
     {
-        super.sink.write(Terminal.CSI);
-        super.sink.write(Terminal.ERASE_REST_OF_LINE);
+        if (this.redirected)
+        {
+            return this.newline;
+        }
+        this.sink.write(Terminal.CSI);
+        this.sink.write(Terminal.ERASE_REST_OF_LINE);
         return this;
     }
 }
