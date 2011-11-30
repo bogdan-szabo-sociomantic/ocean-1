@@ -230,7 +230,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
     public typeof(this) clearline ( )
     {
-        if (this.redirected)
+        if (Cout.redirected)
         {
             return this.newline;
         }
