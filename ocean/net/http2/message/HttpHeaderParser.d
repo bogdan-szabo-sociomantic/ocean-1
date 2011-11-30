@@ -153,7 +153,7 @@ class HttpHeaderParser : IHttpHeaderParser
     
      **************************************************************************/
 
-    private AppendBuffer!(char) content;
+    private const AppendBuffer!(char) content;
     
     /**************************************************************************
 
@@ -162,8 +162,8 @@ class HttpHeaderParser : IHttpHeaderParser
     
      **************************************************************************/
 
-    private StrSplitIterator split_header;
-    private ChrSplitIterator split_tokens;
+    private const StrSplitIterator split_header;
+    private const ChrSplitIterator split_tokens;
     
     /**************************************************************************
 
@@ -208,7 +208,7 @@ class HttpHeaderParser : IHttpHeaderParser
     
      **************************************************************************/
 
-    private HeaderElement[] header_elements_;
+    private const HeaderElement[] header_elements_;
     
     /**************************************************************************
 
@@ -216,7 +216,7 @@ class HttpHeaderParser : IHttpHeaderParser
     
      **************************************************************************/
 
-    private HttpParseException exception;
+    private const HttpParseException exception;
     
     /**************************************************************************
 
