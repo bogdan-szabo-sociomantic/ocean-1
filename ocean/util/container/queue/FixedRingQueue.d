@@ -174,11 +174,11 @@ class FixedByteRingQueue : FixedRingQueueBase
     }
     body
     {
-        ubyte[] element_in_queue = super.push_();
+        auto element_in_queue = super.push_();
         
         if (element_in_queue)
         {
-            element_in_queue[] = cast (ubyte[]) element[];
+            element_in_queue[] = element[];
             return true;
         }
         else
@@ -199,7 +199,7 @@ class FixedByteRingQueue : FixedRingQueueBase
     
     ***************************************************************************/
     
-    ubyte[] push ( )
+    void[] push ( )
     {
         return super.push_();
     }
@@ -216,7 +216,7 @@ class FixedByteRingQueue : FixedRingQueueBase
     
      ***************************************************************************/
     
-    ubyte[] pop ( )
+    void[] pop ( )
     {
         return super.pop_();
     }
@@ -241,8 +241,8 @@ class FixedByteRingQueue : FixedRingQueueBase
     }
     body
     {
-        void[] element_in_queue = super.pop_();
-        
+        auto element_in_queue = super.pop_();
+
         if (element_in_queue)
         {
             element[] = element_in_queue[];
@@ -382,7 +382,7 @@ abstract class FixedRingQueueBase : IRingQueue
     
     ***************************************************************************/
 
-    protected ubyte[] push_ ( )
+    protected void[] push_ ( )
     out (element)
     {
         assert (!element || element.length == this.element_size);
@@ -408,12 +408,12 @@ abstract class FixedRingQueueBase : IRingQueue
         before the next push() or pop() is called.
         
         Returns:
-            pointer to the element popped from the queue or null if the queue is
+            slice of the element popped from the queue or null if the queue is
             empty.
     
     ***************************************************************************/
 
-    protected ubyte[] pop_ ( )
+    protected void[] pop_ ( )
     out (element)
     {
         assert (!element || element.length == this.element_size);
@@ -446,7 +446,7 @@ abstract class FixedRingQueueBase : IRingQueue
     
     ***************************************************************************/
 
-    private ubyte[] getElement ( ref size_t pos )
+    private void[] getElement ( ref size_t pos )
     {
         size_t end = pos + this.element_size;
         
