@@ -513,11 +513,14 @@ abstract class ISplitIterator
     {
         int result = 0;
         
-        if (this.content.length)
+        if (this.remaining_.length)
         {
-            this.n_  = 0;
+            size_t start = this.content.length - this.remaining_.length;
             
-            size_t start = this.collapse? this.skipLeadingDelims(this.content) : 0;
+            if (this.collapse)
+            {
+                start += this.skipLeadingDelims(this.remaining_);
+            }
             
             for (size_t pos = this.locateDelim(this.content, start);
                         pos < this.content.length;
