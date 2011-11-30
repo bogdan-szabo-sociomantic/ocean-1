@@ -35,6 +35,8 @@ private import tango.io.Console;
 
 private import tango.text.convert.Layout;
 
+version (Posix) private import tango.stdc.posix.unistd : isatty;
+
 
 
 /*******************************************************************************
@@ -58,7 +60,9 @@ static this ( )
     Stderr = new TerminalOutput!(char)(layout, Cerr.stream);
 
     Stdout.flush = !Cout.redirected;
+    Stdout.redirect = Cout.redirected;
     Stderr.flush = !Cerr.redirected;
+    Stderr.redirect = Cerr.redirected;
 }
 
 
@@ -76,6 +80,15 @@ static this ( )
 
 public class TerminalOutput ( T ) : FormatOutput!(T)
 {
+    /***************************************************************************
+
+        True if it's redirected.
+
+    ***************************************************************************/
+
+    protected bool redirect;
+
+
     /***************************************************************************
 
         Construct a FormatOutput instance, tying the provided stream to a layout
@@ -230,7 +243,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
     public typeof(this) clearline ( )
     {
-        if (Cout.redirected)
+        if (this.redirect)
         {
             return this.newline;
         }
