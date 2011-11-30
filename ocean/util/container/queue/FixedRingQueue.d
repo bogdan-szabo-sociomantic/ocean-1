@@ -157,6 +157,38 @@ class FixedByteRingQueue : FixedRingQueueBase
     
     /***************************************************************************
 
+        Pushes an element into the queue.
+        
+        Params:
+            element = element to push (will be left unchanged)
+        
+        Returns:
+            true on success or false if the queue is full.
+    
+    ***************************************************************************/
+    
+    bool push ( void[] element )
+    in
+    {
+        assert (element.length == super.element_size, "element size mismatch");
+    }
+    body
+    {
+        ubyte[] element_in_queue = super.push_();
+        
+        if (element_in_queue)
+        {
+            element_in_queue[] = cast (ubyte[]) element[];
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    /***************************************************************************
+
         Pushes an element into the queue and returns a slice to that element.
         The value of the element must then be copied to the sliced location
         before the next push() or pop() is called.
@@ -166,12 +198,12 @@ class FixedByteRingQueue : FixedRingQueueBase
             full.
     
     ***************************************************************************/
-
+    
     ubyte[] push ( )
     {
         return super.push_();
     }
-    
+
     /***************************************************************************
 
         Pops an element from the queue and returns a slice to that element.
@@ -182,11 +214,44 @@ class FixedByteRingQueue : FixedRingQueueBase
             pointer to the element popped from the queue or null if the queue is
             empty.
     
-    ***************************************************************************/
-
+     ***************************************************************************/
+    
     ubyte[] pop ( )
     {
         return super.pop_();
+    }
+    
+    /***************************************************************************
+
+        Pops an element from the queue and copies the value to element.
+        
+        Params:
+            element = destination buffer, the length must be the element size.
+                      Will be changed only if the return value is true.
+        
+        Returns:
+            true on success or false if the queue is empty.
+    
+    ***************************************************************************/
+
+    bool pop ( void[] element )
+    in
+    {
+        assert (dst.length == super.element_size, "element size mismatch");
+    }
+    body
+    {
+        void[] element_in_queue = super.pop_();
+        
+        if (element_in_queue)
+        {
+            element[] = element_in_queue[];
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
 
@@ -204,7 +269,7 @@ abstract class FixedRingQueueBase : IRingQueue
     
     ***************************************************************************/
 
-    private uint max_items;
+    protected uint max_items;
     
     /***************************************************************************
 
@@ -212,7 +277,7 @@ abstract class FixedRingQueueBase : IRingQueue
     
     ***************************************************************************/
 
-    private size_t element_size;
+    protected size_t element_size;
     
     /***************************************************************************
 
