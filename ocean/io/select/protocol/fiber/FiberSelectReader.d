@@ -312,7 +312,7 @@ class FiberSelectReader : IFiberSelectProtocol
 
      **************************************************************************/
 
-    protected bool transmit ( Event events ) 
+    protected bool transmit ( Event events )
     in
     {
         assert (this.available < this.data.length, "requested to receive nothing");
@@ -323,7 +323,6 @@ class FiberSelectReader : IFiberSelectProtocol
     }
     body
     {
-//        scope ( failure ) Trace.formatln(">>>>>>>>>>>>>>>>>> Error reading from conduit");
         size_t received = this.readConduit(this.data[this.available .. $], events);
 
         if ( this.on_received !is null )
