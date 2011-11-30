@@ -237,7 +237,7 @@ class FixedByteRingQueue : FixedRingQueueBase
     bool pop ( void[] element )
     in
     {
-        assert (dst.length == super.element_size, "element size mismatch");
+        assert (element.length == super.element_size, "element size mismatch");
     }
     body
     {
