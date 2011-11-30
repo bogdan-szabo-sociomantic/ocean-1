@@ -184,10 +184,13 @@ static this ( )
     Params:
         config   = an instance of an class iterator for Config 
         m_config = an instance of the MetaConfig class
+        use_insert_appender = whether to use the insert appender which
+                              doesn't support newlines in the output msg
 
 *******************************************************************************/
     
-public void configureLoggers ( ConfigIterator config, MetaConfig m_config )
+public void configureLoggers ( ConfigIterator config, MetaConfig m_config, 
+                               bool use_insert_appender = false )
 {
     foreach (name, settings; config)
     {
@@ -233,8 +236,14 @@ public void configureLoggers ( ConfigIterator config, MetaConfig m_config )
                                    
         if ( console_enabled )
         {
-            //log.add(new AppendConsole(new SimpleLayout));
-            log.add(new InsertConsole(new SimpleLayout));
+            if ( use_insert_appender )
+            {
+                log.add(new InsertConsole(new SimpleLayout));
+            }
+            else
+            {
+                log.add(new AppendConsole(new SimpleLayout));
+            }
         }
         
         with (settings) if ( level.length > 0 ) switch ( level )
