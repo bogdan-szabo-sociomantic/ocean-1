@@ -43,6 +43,15 @@ fi
 
 
 # ------------------------------------------------------------------------------
+# Check that tmux session isn't already running
+
+running=`tmux list-sessions 2>/dev/null | grep $session | wc -l`
+
+if [ $running -ne 0 ]; then echo "tmux session $session is already running"; exit 1;
+fi
+
+
+# ------------------------------------------------------------------------------
 # Form commands string
 
 cmd=''
