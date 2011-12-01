@@ -748,6 +748,51 @@ class Pool ( T ) : PoolCore
         return this.fromItem(item) is null;
     }
 
+    /***************************************************************************
+
+        Iterator classes, each one provides 'foreach' iteration over a subset
+        if the items in the pool:
+        
+         - AllItemsIterator iterates over all items in the pool,
+         - BusyItemsIterator iterates over the items that are busy on
+           instantiation,
+         - IdleItemsIteratoriterates over the items that are idle on
+           instantiation.
+        
+        Usage Example:
+        
+        During iteration all Pool methods may be called except the limit setter.
+        However, as indicated, the list of items iterated over is not updated to
+        changes made by get(), recycle() and clear().
+
+        ---
+            import $(TITLE);
+            
+            void main ( )
+            {
+                class MyClass { uint object_pool_index; }
+                
+                auto pool = new Pool!(MyClass);
+                        
+                // use pool
+                
+                scope busy_items = pool.new BusyItemsIterator;
+                
+                foreach (busy_item; busy_items)
+                {
+                    // busy_item now iterates over the items in the pool that
+                    // were busy when busy_items was created.
+                }
+            }
+        ---
+        
+        Note that, if the pool items are structs, 'ref' iteration is required to
+        make the modification of the items iterated over permanent. For objects
+        'ref' should not be used.
+        
+    ***************************************************************************/
+
+    mixin ItemIterators!(T);
 
     /***************************************************************************
 
@@ -757,20 +802,16 @@ class Pool ( T ) : PoolCore
         limit(uint, PoolItem). However, the list of items iterated over is not
         updated to changes made by get(), recycle() and clear().
 
-        TODO: This is actually superceded by the BusyItemsIterator and could be
-              marked as deprecated.
+        TODO: This is superceded by the BusyItemsIterator.
 
     ***************************************************************************/
 
-    public int opApply ( int delegate ( ref ItemType item ) dg )
+    deprecated public int opApply ( int delegate ( ref T item ) dg )
     {
         scope iterator = this.new BusyItemsIterator;
 
         return iterator.opApply(dg);
     }
-
-    mixin ItemIterators!(ItemType);
-
 }
 
 /*******************************************************************************
@@ -1261,36 +1302,29 @@ abstract class PoolCore : IObjectPoolInfo
         ObjectPoolImpl may be called except limit(uint, PoolItem). However, the
         list of items iterated over is not updated to changes made by get(),
         recycle() and clear().
-
-    ***************************************************************************/
-
-
-    /***************************************************************************
-
-        Iterator classes, each one provides 'foreach' iteration over a subset
-        if the items in the pool. During iteration all methods of
-        ObjectPoolImpl may be called except limit(uint, PoolItem). However, the
-        list of items iterated over is not updated to changes made by get(),
-        recycle() and clear().
-
+    
+        Note that, if the pool items are structs, 'ref' iteration is required to
+        make the modification of the items iterated over permanent. For objects
+        'ref' should not be used.
+    
     ***************************************************************************/
 
     template ItemIterators ( T )
     {
-        /***************************************************************************
+        /***********************************************************************
 
-            Provides 'foreach' iteration over items[start .. end]. During iteration
-            all methods of ObjectPoolImpl may be called except
-            limit(uint, PoolItem). However, the list of items iterated over is not
-            updated to changes made by get(), clear() and recycle().
+            Provides 'foreach' iteration over items[start .. end]. During
+            iteration all methods of ObjectPoolImpl may be called except
+            limit(uint, PoolItem). However, the list of items iterated over is
+            not updated to changes made by get(), clear() and recycle().
 
-        ***************************************************************************/
+        ***********************************************************************/
 
         protected abstract scope class ItemsIterator
         {
             private Item[] iteration_items;
 
-            /***********************************************************************
+            /*******************************************************************
 
                 Constructor
 
@@ -1301,7 +1335,7 @@ abstract class PoolCore : IObjectPoolInfo
                 In:
                     No instance of this class may exist.
 
-            ***********************************************************************/
+            *******************************************************************/
 
             protected this ( uint start, uint end )
             in
@@ -1314,22 +1348,22 @@ abstract class PoolCore : IObjectPoolInfo
                 this.iteration_items = this.outer.iteration_items.copyExtend(this.outer.items[start .. end]);
             }
 
-            /***********************************************************************
+            /*******************************************************************
 
                 Destructor
 
-            ***********************************************************************/
+            *******************************************************************/
 
             ~this ( )
             {
                 this.outer.iterator_open = false;
             }
 
-            /***********************************************************************
+            /*******************************************************************
 
                 'foreach' iteration over items[start .. end]
 
-            ***********************************************************************/
+            *******************************************************************/
 
             int opApply ( int delegate ( ref T item ) dg )
             {
@@ -1339,12 +1373,16 @@ abstract class PoolCore : IObjectPoolInfo
                 {
                     static if (is (T == class))
                     {
+                        assert (item.obj !is null);
+                        
                         T item_out = cast (T) item.obj;
 
                         ret = dg(item_out);
                     }
                     else
                     {
+                        assert (item.ptr !is null);
+                        
                         ret = dg(*cast (T*) item.ptr);
                     }
 
@@ -1358,11 +1396,11 @@ abstract class PoolCore : IObjectPoolInfo
             }
         }
 
-        /***************************************************************************
+        /***********************************************************************
 
             Provides 'foreach' iteration over all items in the pool.
 
-        ***************************************************************************/
+        ***********************************************************************/
 
         scope class AllItemsIterator : ItemsIterator
         {
@@ -1372,11 +1410,11 @@ abstract class PoolCore : IObjectPoolInfo
             }
         }
 
-        /***************************************************************************
+        /***********************************************************************
 
             Provides 'foreach' iteration over the busy items in the pool.
 
-        ***************************************************************************/
+        ***********************************************************************/
 
         scope class BusyItemsIterator : ItemsIterator
         {
@@ -1386,11 +1424,11 @@ abstract class PoolCore : IObjectPoolInfo
             }
         }
 
-        /***************************************************************************
+        /***********************************************************************
 
             Provides 'foreach' iteration over the idle items in the pool.
 
-        ***************************************************************************/
+        ***********************************************************************/
 
         scope class IdleItemsIterator : ItemsIterator
         {
