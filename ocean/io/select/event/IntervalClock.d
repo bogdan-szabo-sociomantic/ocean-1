@@ -267,7 +267,7 @@ public class IntervalClock : ITimerEvent, IMicrosecondsClock
 
      **************************************************************************/
     
-    public DateTime nowDateTime ( )
+    public DateTime now_DateTime ( )
     {
         with (this.now_timeval) with (this.toTm(tv_sec))
         {
