@@ -41,6 +41,8 @@ private import tango.core.Traits;
 
 private import tango.stdc.string : memmove;
 
+private import tango.stdc.posix.sys.types : ssize_t;
+
 private import tango.text.Util : patterns;
 
 
@@ -498,12 +500,15 @@ public T[] uniq ( T ) ( ref T[] array )
     return array;
 }
 
-
 /*******************************************************************************
 
-    Searches an array for the specified element. The array is assumed to be
-    pre-sorted, the search will not work properly if it is not. Comparison is
-    performed using the opCmp and opEquals operators for the template type.
+    Searches a sorted array for the specified element or for the insert
+    position of the element. The array is assumed to be pre-sorted in ascending
+    order, the search will not work properly if it is not.
+    If T is a class or struct, comparison is performed using T.opCmp().
+    Otherwise, elements of T are compared using ">" and ">=" or, if T is
+    compatible to size_t (which includes ssize_t, the signed version of size_t),
+    by calculating the difference.
 
     Template params:
         T = type of array element
@@ -532,45 +537,147 @@ public T[] uniq ( T ) ( ref T[] array )
     Returns:
         true if the element was found in the array
 
+    In:
+        array.length must be at most ssize_t.max (int.max if size_t is uint or
+        long.max if size_t is ulong). TODO: Remove this restriction by
+        rephrasing the implementation in bsearchCustom(). 
+    
 *******************************************************************************/
 
 public bool bsearch ( T ) ( T[] array, T match, out size_t position )
+out (found)
 {
-    if ( array.length == 0 )
+    if (found)
     {
-        return false;
-    }
-
-    int min = 0;
-    int max = array.length - 1;
-    int mid = (min + max) / 2;
-
-    while ( min <= max && array[mid] != match )
-    {
-        if ( match < array[mid] )
-        {
-            max = mid - 1;
-        }
-        else
-        {
-            min = mid + 1;
-        }
-
-        mid = (min + max) / 2;
-    }
-
-    if ( array[mid] == match )
-    {
-        position = mid;
-        return true;
+        assert (position < array.length);
     }
     else
     {
-        position = match > array[mid] ? mid + 1 : mid;
-        return false;
+        assert (position <= array.length);
     }
 }
+body
+{
+    return bsearchCustom(array.length,
+            delegate ssize_t ( size_t i )
+            {
+                static if (is (T : size_t)) // will also be true if T is ssize_t 
+                {
+                    // If T is unsigned, check if cast (ssize_t) (0 - 1) == -1.
+                    // TODO: Is this behaviour guaranteed? If so, remove the
+                    // check.
+                    
+                    static if (T.min == 0)
+                    {
+                        static assert (cast (ssize_t) (T.min - cast (T) 1) == -1,
+                                       "bsearch: 0 - 1 != -1 for type " ~ T.stringof);
+                    }
+                    
+                    return match - array[i];
+                }
+                else static if (is (T == class) || is (T == struct))
+                {
+                    return match.opCmp(array[i]);
+                }
+                else
+                {
+                    return (match >= array[i])? (match > array[i]) : -1; 
+                }
+            },
+            position);
+}
 
+
+/*******************************************************************************
+
+    Searches a sorted array for an element or an insert position for an element.
+    The array is assumed to be pre-sorted according to cmp.
+    
+    Params:
+        array_length = length of array to search
+        cmp       = comparison callback delegate, should return
+                    * a positive value if the array element at index i compares
+                      greater than the element to search for,
+                    * a negative value if the array element at index i compares
+                      less than the element to search for,
+                    * 0 if if the array element at index i compares equal to
+                      the element to search for.
+        position  = out value, value depends on whether the element was found:
+
+            1. If found, the position at which element was found is output.
+
+            2. If not found, the position at which the element could be inserted
+               is output, as follows:
+
+               * A value of 0 means that the element is smaller than all
+                 elements in the array, and would need to be inserted at the
+                 beginning of the array, and all other elements shifted to the
+                 right.
+               * A value of array.length means that the element is larger than
+                 all elements in the array, and would need to be appended to the
+                 end of the array.
+               * A value of > 0 and < array.length means that the element would
+                 need to be inserted at the specified position, and all elements
+                 of index >= the specified position shifted to the right.
+
+    Returns:
+        true if the element was found in the array
+    
+    In:
+        array_length must be at most ssize_t.max (int.max if size_t is uint or
+        long.max if size_t is ulong). TODO: Remove this restriction by
+        rephrasing the implementation so that min/max cannot be less than 0. 
+    
+*******************************************************************************/
+
+public bool bsearchCustom ( size_t array_length, ssize_t delegate ( size_t i ) cmp, out size_t position )
+in
+{
+    assert (cast (ssize_t) array_length >= 0,
+            "bsearchCustom: array_length integer overflow (maximum is " ~
+            ssize_t.stringof ~ ".max = " ~ ssize_t.max.stringof ~ ')');
+}
+out (found)
+{
+    if (found)
+    {
+        assert (position < array_length);
+    }
+    else
+    {
+        assert (position <= array_length);
+    }
+}
+body
+{
+    if ( array_length == 0 )
+    {
+        return false;
+    }
+
+    ssize_t min = 0;
+    ssize_t max = array_length - 1;
+    
+    ssize_t c = cmp(position = (min + max) / 2);
+    
+    while ( min <= max && c )
+    {
+        if ( c < 0 ) // match < array[position]
+        {
+            max = position - 1;
+        }
+        else        // match > array[position]
+        {
+            min = position + 1;
+        }
+        
+        c = cmp(position = (min + max) / 2);
+    }
+    
+    position += c > 0;
+    
+    return !c;
+}
 
 /*******************************************************************************
 
@@ -767,6 +874,14 @@ unittest
     assert (str == "Die Katze ");
     str.append("tritt ", "die ");
     assert (str.append("Treppe ", "krumm.") == "Die Katze tritt die Treppe krumm.");
+    
+    alias bsearch!(long) bs;
+    
+    long[] arr = [1, 2, 3,  5, 8, 13, 21];
+    
+    size_t n;
+    
+    assert (bs(arr, 5, n));
 }
 
 debug ( OceanUnitTest )
