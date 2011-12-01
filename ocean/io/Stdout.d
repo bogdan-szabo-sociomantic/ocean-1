@@ -10,7 +10,7 @@
 
     Console output classes extending those in tango.io.Stdout.
 
-    Additional features rae:
+    Additional features are:
         * clearline() method which erases the rest of the line
 
 *******************************************************************************/
