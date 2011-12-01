@@ -146,6 +146,8 @@ module ocean.util.Main;
 
 private import ocean.text.Arguments;
 private import ocean.util.Config;
+private import Class = ocean.util.config.ClassFiller;
+private import ocean.util.Unittest;
 
 // Can't use just Log because of the (in)famous DMD bug:
 // http://d.puremagic.com/issues/show_bug.cgi?id=314
@@ -273,6 +275,8 @@ public class Main
     static public ProcessArgsResult processArgs ( char[][] cl_args,
             Arguments args, VersionInfo version_info, char[] description)
     {
+        Unittest.check();
+        
         auto app_name = cl_args[0];
 
         auto args_ok = parseArgs(cl_args, args);
@@ -331,7 +335,7 @@ public class Main
             ProcessArgsResult for details
 
         TODO: Do a proper library that integrates config files and command line
-              arguments (and posibly other common program features, like signal
+              arguments (and possibly other common program features, like signal
               handling, standard logging configuration, etc.).
 
     ***************************************************************************/
@@ -340,7 +344,7 @@ public class Main
             char[][] cl_args, Arguments args, VersionInfo version_info,
             char[] description)
     {
-        args("config").aliased('c').params(1)
+        args("config").aliased('c').params(1).defaults("etc/config.ini")
             .help("use the configuration file CONFIG instead of the default "
                 "(<bin-dir>/etc/config.ini)");
 
@@ -351,19 +355,14 @@ public class Main
             return r;
         }
 
-        char[] config;
-        if ( args.exists("config") )
-        {
-            config = args.getString("config");
-        }
-        StaticConfig.init(cl_args[0], config);
+        StaticConfig.init(cl_args[0], args("config").assigned[0]);
 
         // LOG configuration parsing
-        LogUtil.configureLoggers(Config().iterateClasses!(LogUtil.Config)("LOG"),
-                Config().get!(LogUtil.MetaConfig)("LOG"));
+        LogUtil.configureLoggers(Class.iterate!(LogUtil.Config)("LOG"),
+                                 Class.fill!(LogUtil.MetaConfig)("LOG"));
 
         bool default_version_log = true;
-        Config().get(default_version_log, "LOG", "default_version_log");
+        Config.get(default_version_log, "LOG", "default_version_log");
         if (default_version_log)
         {
             ver_log.add(new AppendFile("log/version.log", new LayoutDate));
