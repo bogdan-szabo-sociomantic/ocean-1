@@ -22,13 +22,99 @@ module ocean.core.AppendBuffer;
 debug private import ocean.util.log.Trace;
 
 /******************************************************************************
+    
+    AppendBuffer Base interface.
+
+ ******************************************************************************/
+
+interface IAppendBufferBase
+{
+    /**************************************************************************
+    
+        Returns:
+            number of elements in content
+    
+     **************************************************************************/
+    
+    size_t length ( );
+}
+    
+/******************************************************************************
+    
+    Read-only AppendBuffer interface.
+    
+    Note that there is no strict write protection to an IAppendBufferReader
+    instance because it is still possible to modify the content an obtained
+    slice refers to. However, this is no thte intention of this interface and
+    may not result in the desired or even result in undesired side effects.
+
+ ******************************************************************************/
+
+interface IAppendBufferReader ( T ) : IAppendBufferBase
+{
+    /**************************************************************************
+    
+        Returns the i-th element in content.
+        
+        Params:
+            i = element index
+    
+        Returns:
+            i-th element in content
+    
+     **************************************************************************/
+
+    T opIndex ( size_t i );
+    
+    /**************************************************************************
+    
+        Returns:
+            the current content
+    
+     **************************************************************************/
+
+    T[] opSlice ( );
+    
+    /**************************************************************************
+    
+        Returns content[start .. end].
+        start must be at most end and end must be at most the current content
+        length.
+        
+        Params:
+            start = start index
+            end   = end index (exclusive)
+        
+        Returns:
+            content[start .. end]
+    
+     **************************************************************************/
+
+    T[] opSlice ( size_t start, size_t end );
+    
+    /**************************************************************************
+    
+        Returns content[start .. length].
+        
+        Params:
+            start = start index
+        
+        Returns:
+            content[start .. length]
+    
+     **************************************************************************/
+
+    T[] tail ( size_t start );
+}
+
+/******************************************************************************
  
     Template params:
         T = array element type
  
  ******************************************************************************/
 
-public class AppendBuffer ( T ) : AppendBufferImpl
+public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
 {
     /**********************************************************************
     
@@ -125,6 +211,23 @@ public class AppendBuffer ( T ) : AppendBufferImpl
     
     /**************************************************************************
     
+        Returns content[start .. length].
+        
+        Params:
+            start = start index
+        
+        Returns:
+            content[start .. length]
+    
+     **************************************************************************/
+
+    T[] tail ( size_t start )
+    {
+        return this[start .. super.length];
+    }
+    
+    /**************************************************************************
+    
         Copies chunk to the content, setting the content length to chunk.length.
         
         Params:
@@ -209,7 +312,9 @@ public class AppendBuffer ( T ) : AppendBufferImpl
     {
         T[] dst = this.extend(chunk.length);
         
-        return dst[] = chunk[0 .. dst.length];
+        dst[] = chunk[0 .. dst.length];
+        
+        return this[];
     }
     
     /**************************************************************************
@@ -233,7 +338,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl
             dst[0] = element;
         }
         
-        return dst;
+        return this[];
     }
     
     /**************************************************************************
@@ -251,14 +356,14 @@ public class AppendBuffer ( T ) : AppendBufferImpl
     T cut ( )
     in
     {
-        assert (super.length, "cut last element: content is empty");
+        assert (super.length, "cannot cut last element: content is empty");
     }
     body
     {
         size_t n = super.length - 1;
  
         scope (success) super.length = n;
-         
+        
         return this[n];
     }
     
@@ -275,7 +380,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl
             content length or all elements from the current content otherwise.
     
      **************************************************************************/
-
+    
     T[] cut ( size_t n )
     out (elements)
     {
@@ -284,7 +389,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl
     body
     {
         size_t end   = super.length,
-               start = (end >= n)? end - n : 0;
+        start = (end >= n)? end - n : 0;
         
         scope (success) super.length = start;
         
@@ -309,7 +414,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl
     {
         scope (success) super.length = 0;
         
-        return this[0 .. super.length];
+        return this[];
     }
     
     /**************************************************************************
@@ -352,7 +457,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl
             }
         }
         
-        return this.opSlice(start, super.length);
+        return this.tail(start);
     }
     
     /**************************************************************************
@@ -425,7 +530,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl
 
 /******************************************************************************/
 
-private abstract class AppendBufferImpl
+private abstract class AppendBufferImpl: IAppendBufferBase
 {
     /**************************************************************************
     
@@ -456,7 +561,7 @@ private abstract class AppendBufferImpl
     
      **************************************************************************/
 
-    private size_t e;
+    private const size_t e;
     
     /**************************************************************************
     
@@ -468,7 +573,8 @@ private abstract class AppendBufferImpl
     
     /**************************************************************************
     
-        Limitation flag
+        Content base pointer and length which are ensured to be invariant when
+        limitation is enabled unless the capacity is changed.
     
      **************************************************************************/
 
@@ -692,6 +798,18 @@ private abstract class AppendBufferImpl
     }
     
     /**************************************************************************
+    
+        Returns:
+            the element size in bytes. The constructor guarantees it is > 0.
+    
+     **************************************************************************/
+    
+    public size_t element_size ( )
+    {
+        return this.e;
+    }
+    
+    /**************************************************************************
         
         Sets the content buffer length, preserving the actual content and
         overriding/adjusting the limit if limitation is enabled.
@@ -713,9 +831,16 @@ private abstract class AppendBufferImpl
     
     public size_t capacity ( size_t capacity )
     {
+        /*
+         *  Disable limitation and re-enable it on exit to avoid the invariant
+         *  to fail. See comment on LimitInvariants struct above.
+         */
+        
         bool limited = this.limited_;
         
         this.limited_ = false;
+        
+        scope (exit) if (limited) this.limited(true);
         
         if (capacity < this.n)
         {
@@ -723,8 +848,6 @@ private abstract class AppendBufferImpl
         }
         
         this.content.length = capacity * this.e;
-        
-        scope (exit) if (limited) this.limited(true);
         
         return capacity;
     }
