@@ -481,7 +481,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
     public void shutdown ( )
     {
-        foreach ( receiver; this.receiver_pool )
+        foreach ( receiver; this.receiver_pool.new BusyItemsIterator )
         {
             /* FIXME: calling finalize here will cause errors in any connection
              * handlers which are currently selected in epoll, as they will
