@@ -26,7 +26,7 @@ class BufferedFiberSelectWriter : FiberSelectWriter
             
      **************************************************************************/
 
-    public const default_size = 0x1_0000;
+    public const default_buffer_size = 0x1_0000;
     
     /**************************************************************************
 
@@ -50,7 +50,7 @@ class BufferedFiberSelectWriter : FiberSelectWriter
 
      **************************************************************************/
 
-    this ( ISelectable conduit, SelectFiber fiber, size_t size = default_size )
+    public this ( ISelectable conduit, SelectFiber fiber, size_t size = default_buffer_size )
     in
     {
         assert (size, typeof (this).stringof ~ ": initial buffer size is 0");
@@ -68,7 +68,7 @@ class BufferedFiberSelectWriter : FiberSelectWriter
             
      **************************************************************************/
 
-    size_t buffer_size ( )
+    public size_t buffer_size ( )
     {
         return this.buffer.capacity;
     }
@@ -83,11 +83,14 @@ class BufferedFiberSelectWriter : FiberSelectWriter
             
      **************************************************************************/
 
-    typeof (this) flush ( )
+    public size_t flush ( )
     {
-        super.send(this.buffer.dump());
+        scope (success)
+        {
+            super.send(this.buffer.dump());
+        }
         
-        return this;
+        return this.buffer.length;
     }
     
     /**************************************************************************
@@ -106,7 +109,7 @@ class BufferedFiberSelectWriter : FiberSelectWriter
             
      **************************************************************************/
 
-    size_t buffer_size ( size_t s )
+    public size_t buffer_size ( size_t s )
     in
     {
         assert (s, typeof (this).stringof ~ ".buffer_size: 0 specified");
@@ -137,15 +140,15 @@ class BufferedFiberSelectWriter : FiberSelectWriter
             
      **************************************************************************/
 
-    override typeof (this) send ( void[] data_ )
+    public override typeof (this) send ( void[] data )
     {
-        if (data_.length < this.buffer.capacity)
+        if (data.length < this.buffer.capacity)
         {
-            ubyte[] data = cast (ubyte[]) data_;
+            void[] dst = this.buffer.extend(data.length);
             
-            size_t buffered = (this.buffer ~= cast (ubyte[]) data).length;
+            dst[] = data[0 .. dst.length];
             
-            ubyte[] left = data[buffered .. $];
+            void[] left = data[dst.length .. $];
             
             if (left.length || this.buffer.length == this.buffer.capacity)
             {
@@ -154,13 +157,13 @@ class BufferedFiberSelectWriter : FiberSelectWriter
             
             if (left.length)
             {
-                this.buffer ~= left;
+                this.buffer ~= cast (ubyte[]) left;
             }
         }
         else
         {
             this.flush();
-            super.send(data_);
+            super.send(data);
         }
         
         return this;
