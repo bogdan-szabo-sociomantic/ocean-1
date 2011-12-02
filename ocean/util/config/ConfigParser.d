@@ -37,6 +37,8 @@ private import tango.text.convert.Utf;
 
 private import tango.core.Exception;
 
+private import tango.core.Traits : DynamicArrayType;
+
 debug private import ocean.util.log.Trace;
 
 
@@ -461,11 +463,12 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public T get ( T ) ( char[] category, char[] key, T default_value )
+    public DynamicArrayType!(T) get ( T ) ( char[] category, char[] key,
+            T default_value )
     {
         if ( exists(category, key) )
         {
-            return getStrict!(T)(category, key);
+            return getStrict!(DynamicArrayType!(T))(category, key);
         }
         return default_value;
     }

@@ -439,7 +439,7 @@ protected void readFields ( C, Source )
 
             if (*found)
             {
-                *value = config.getStrict!(Type)(group, key);
+                *value = config.getStrict!(DynamicArrayType!(Type))(group, key);
             }
 
             debug (Config) Trace.formatln("Config Debug: {}.{} = {} {}", group,
