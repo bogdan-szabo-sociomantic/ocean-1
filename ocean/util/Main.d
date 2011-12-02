@@ -361,9 +361,7 @@ public class Main
         LogUtil.configureLoggers(Class.iterate!(LogUtil.Config)("LOG"),
                                  Class.fill!(LogUtil.MetaConfig)("LOG"));
 
-        bool default_version_log = true;
-        Config.get(default_version_log, "LOG", "default_version_log");
-        if (default_version_log)
+        if (Config.get("LOG", "default_version_log", true))
         {
             ver_log.add(new AppendFile("log/version.log", new LayoutDate));
         }

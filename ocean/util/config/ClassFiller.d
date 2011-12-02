@@ -423,9 +423,9 @@ protected void readFields ( C, Source )
 
         static if ( IsSupported!(Type) )
         {
-            *found = config.get(*value, group,
-                                reference.tupleof[si]
-                                .stringof["reference.".length  .. $]);
+            auto key = reference.tupleof[si].stringof["reference.".length .. $];
+
+            *found = config.exists(group, key);
 
             auto name = PureType.stringof;
 
@@ -433,10 +433,13 @@ protected void readFields ( C, Source )
                  name[0 .. "Required".length] == "Required" &&
                  *found == false )
             {
-                throw new ConfigException("Mandatory variable " ~
-                                    reference.tupleof[si]
-                                    .stringof["reference.".length  .. $]
-                                              ~ " not set");
+                throw new ConfigException("Mandatory variable " ~ key ~
+                        " not set");
+            }
+
+            if (*found)
+            {
+                *value = config.getStrict!(Type)(group, key);
             }
 
             debug (Config) Trace.formatln("Config Debug: {}.{} = {} {}", group,

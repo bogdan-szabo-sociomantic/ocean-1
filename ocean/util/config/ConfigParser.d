@@ -76,7 +76,7 @@ debug private import ocean.util.log.Trace;
     ---
 
         // Read config file from disk
-        Config.init("etc/my_config.ini");
+        Config.parse("etc/my_config.ini");
 
         // Read a single value
         char[] value = Config.Char["category", "key"];
@@ -89,7 +89,7 @@ debug private import ocean.util.log.Trace;
 
     ---
 
-    The init() method only needs to be called once, though may be called
+    The parse() method only needs to be called once, though may be called
     multiple times if the config file needs to be re-read from the file on disk.
 
     TODO:
@@ -269,7 +269,7 @@ class ConfigParser
 
         ---
 
-            Config.init("etc/config.ini");
+            Config.parse("etc/config.ini");
 
         ---
 
@@ -349,16 +349,16 @@ class ConfigParser
 
     /***************************************************************************
 
-        Tells whether a config file has been read or not.
+        Tells whether the config object has no values loaded.
 
         Returns:
-            true, if configuration is already initalised
+            true if it doesn't have any values, false otherwise
 
     ***************************************************************************/
 
-    public bool isRead()
+    public bool isEmpty()
     {
-        return This.properties.length > 0;
+        return This.properties.length == 0;
     }
 
 
@@ -392,15 +392,12 @@ class ConfigParser
         Usage Example:
 
         ---
-            const char[] my_config_cat = "options";
 
-            char[] my_config_par;
-            int    num_threads;
+            Config.parse("some-config.ini");
+            // throws if not found
+            auto str = Config.getStrict!(char[])("some-cat", "some-key");
+            auto n = Config.getStrict!(int)("some-cat", "some-int");
 
-            Config.init("etc/config.ini");
-
-            my_config_par = Config.get!(char[])(my_config_cat, "my_config_key");
-            num_threads   = Config.get!(int)(my_config_cat, "number_of_threads");
         ---
 
         Params:
@@ -448,39 +445,29 @@ class ConfigParser
 
         ---
 
-            const char[] my_config_cat = "options";
-
-            char[] my_config_par = "my_default_value";
-            int    num_threads   = 4711;
-
-            Config.init("etc/config.ini");
-
-            Config.get!(char[])(my_config_cat, my_config_par, "my_config_key");
-            Config.get!(int   )(my_config_cat, num_threads, "number_of_threads");
+            Config.parse("some-config.ini");
+            char[] str = Config.get("some-cat", "some-key", "my_default_value");
+            int n = Config.get("some-cat", "some-int", 5);
 
         ---
 
         Params:
-            value    = output value
             category = category to get key from
             key      = name of the key to get
+            default_value = default value to use if missing in the config
 
         Returns:
             true on success or false if the key could not be found
 
     ***************************************************************************/
 
-    public bool get ( T ) ( ref T value, char[] category, char[] key )
+    public T get ( T ) ( char[] category, char[] key, T default_value )
     {
         if ( exists(category, key) )
         {
-            value = getStrict!(T)(category, key);
-            return true;
+            return getStrict!(T)(category, key);
         }
-        else
-        {
-            return false;
-        }
+        return default_value;
     }
 
 
@@ -504,11 +491,15 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public T[][] getListStrict ( T = char ) ( char[] category, char[] key )
+    public T[] getListStrict ( T = char[] ) ( char[] category, char[] key )
     {
-        auto property = This().get!(T[])(category, key);
-
-        return delimit!(T)(property, "\n");
+        auto value = this.getStrict!(T)(category, key);
+        T[] r;
+        foreach (elem; delimit!(typeof(T[0]))(value, "\n"))
+        {
+            r ~= elem;
+        }
+        return r;
     }
 
 
@@ -521,27 +512,23 @@ class ConfigParser
         If the value is a single line, the output list has one element.
 
         Params:
-            value    = output list of values, changed only if the key was found
             category = key category name
             key      = key name
+            default_value = default list to use if missing in the config
 
         Returns:
-            true on success or false if the key could not be found
+            the configured value if found, or default value otherwise
 
     ***************************************************************************/
 
-    public bool getList ( T = char ) ( ref T[][] value, char[] category,
-                                              char[] key )
+    public bool getList ( T = char[] ) ( char[] category, char[] key,
+            T[] default_value )
     {
         if ( exists(category, key) )
         {
-            value = getList!(T)(category, key);
-            return true;
+            return getListStrict!(T)(category, key);
         }
-        else
-        {
-            return false;
-        }
+        return default_value;
     }
 
 
@@ -553,7 +540,7 @@ class ConfigParser
 
         ---
 
-            Config.init(`etc/config.ini`);
+            Config.parse(`etc/config.ini`);
 
             Config.set(`category`, `key`, `value`);
 
