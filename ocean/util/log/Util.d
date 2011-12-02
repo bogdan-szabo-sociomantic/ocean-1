@@ -46,7 +46,10 @@ module ocean.util.log.Util;
 
 ***************************************************************************/
     
-private import Ocean = ocean.util.Config;
+private import ocean.util.Config;
+private import ocean.util.config.ClassFiller;
+private import ocean.util.config.ConfigParser;
+
 private import ocean.util.log.SimpleLayout;
 
 private import tango.util.log.Log;
@@ -79,7 +82,7 @@ class Config
     
     ***************************************************************************/
 
-    public Ocean.SetInfo!(bool) console;
+    public SetInfo!(bool) console;
     
     /***************************************************************************
     
@@ -87,7 +90,7 @@ class Config
     
     ***************************************************************************/
 
-    public Ocean.SetInfo!(char[]) file;
+    public SetInfo!(char[]) file;
     
     /***************************************************************************
     
@@ -164,7 +167,7 @@ class MetaConfig
 
 *******************************************************************************/
     
-alias Ocean.Config.ClassIterator!(Config) ConfigIterator;
+alias ClassIterator!(Config) ConfigIterator;
 
 /*******************************************************************************
 
@@ -189,7 +192,9 @@ static this ( )
 
 *******************************************************************************/
     
-public void configureLoggers ( ConfigIterator config, MetaConfig m_config, 
+public void configureLoggers ( Source = ConfigParser ) 
+                             ( ClassIterator!(Config, Source) config, 
+                               MetaConfig m_config, 
                                bool use_insert_appender = false )
 {
     foreach (name, settings; config)
