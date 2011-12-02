@@ -81,6 +81,8 @@ fi
 
 tmp=`mktemp mkversion.XXXXXXXXXX`
 
+trap "rm -f '$tmp'; exit 1" INT TERM QUIT
+
 # Generate the file (in a temporary) based on a template
 cp "$lib_dir/ocean/script/Version.tpl.d" "$tmp"
 module=`echo "$rev_file" | sed -e 's|/|.|g' -e 's|.d||g'`
