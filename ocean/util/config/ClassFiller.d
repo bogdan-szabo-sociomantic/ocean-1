@@ -212,6 +212,36 @@ private template StripTypedef ( T )
 
 /*******************************************************************************
 
+    Creates an instance of T, and fills it with according values from the
+    configuration file. The name of each variable will used to get it
+    from the given section in the configuration file.
+
+    Variables can be marked as required with the Required template.
+    If it is important to know whether the setting has been set, the
+    SetInfo struct can be used.
+
+    Params:
+        group     = the group/section of the variable
+        config    = instance of the source to use (defaults to Config)
+
+    Returns:
+        a new instance filled with values from the configuration file
+
+    See_Also:
+        Required, SetInfo
+
+*******************************************************************************/
+
+public T fill ( T : Object, Source = ConfigParser )
+              ( char[] group, Source config = null )
+{
+    T reference;
+    return fill(group, reference, config);
+}
+
+
+/*******************************************************************************
+
     Fill the given instance of T with according values from the
     configuration file. The name of each variable will used to get it
     from the given section in the configuration file.
@@ -220,11 +250,12 @@ private template StripTypedef ( T )
 
     Variables can be marked as required with the Required template.
     If it is important to know whether the setting has been set, the
-    SetInfo struct can be used
+    SetInfo struct can be used.
 
     Params:
         group     = the group/section of the variable
         reference = the instance to fill. If null it will be created
+        config    = instance of the source to use (defaults to Config)
 
     Returns:
         an instance filled with values from the configuration file
@@ -234,8 +265,8 @@ private template StripTypedef ( T )
 
 *******************************************************************************/
 
-public T fill ( T : Object, Source = ConfigParser ) 
-              ( char[] group, T reference = null, Source config = null )
+public T fill ( T : Object, Source = ConfigParser )
+              ( char[] group, ref T reference, Source config = null )
 {
     if ( reference is null )
     {
@@ -255,6 +286,7 @@ public T fill ( T : Object, Source = ConfigParser )
 
     return reference;
 }
+
 
 /***************************************************************************
 
@@ -387,6 +419,7 @@ public ClassIterator!(T) iterate ( T, Source = ConfigParser )
 
     Params:
         property = value to convert
+        config = instance of the source to use (defaults to Config)
 
     Returns:
         property converted to T
