@@ -185,6 +185,8 @@ public struct MetricPrefix
     See also: BitGrouping in ocean.text.util.DigitGrouping, for a method which
     automatically formats a split binary prefix string.
 
+    Note that if n == 0, the output delegate will not be called.
+
     Usage example:
 
     ---
