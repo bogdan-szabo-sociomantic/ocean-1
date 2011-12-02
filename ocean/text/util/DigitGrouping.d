@@ -236,22 +236,29 @@ public class BitGrouping
     {
         output.length = 0;
 
-        void format ( char prefix, uint order, ulong order_val )
+        if ( num == 0 )
         {
-            if ( order_val > 0 )
+            Ocean.Layout!(char).print(output, "0{}", unit);
+        }
+        else
+        {
+            void format ( char prefix, uint order, ulong order_val )
             {
-                if ( order == 0 )
+                if ( order_val > 0 )
                 {
-                    Ocean.Layout!(char).print(output, "{}{}", order_val, unit);
-                }
-                else
-                {
-                    Ocean.Layout!(char).print(output, "{}{}{} ", order_val, prefix, unit);
+                    if ( order == 0 )
+                    {
+                        Ocean.Layout!(char).print(output, "{}{}", order_val, unit);
+                    }
+                    else
+                    {
+                        Ocean.Layout!(char).print(output, "{}{}{} ", order_val, prefix, unit);
+                    }
                 }
             }
+    
+            splitBinaryPrefix(num, &format);
         }
-
-        splitBinaryPrefix(num, &format);
 
         return output;
     }
