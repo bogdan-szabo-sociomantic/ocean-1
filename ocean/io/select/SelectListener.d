@@ -481,6 +481,8 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
     public void shutdown ( )
     {
+        debug Trace.formatln(typeof(this).stringof ~ ": shutdown");
+
         foreach ( receiver; this.receiver_pool.new BusyItemsIterator )
         {
             /* FIXME: calling finalize here will cause errors in any connection
@@ -495,6 +497,8 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
         }
 
         super.terminate;
+
+        debug Trace.formatln(typeof(this).stringof ~ ": shutdown finished");
     }
 
     /**************************************************************************
