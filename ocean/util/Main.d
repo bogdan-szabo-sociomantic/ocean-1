@@ -285,7 +285,7 @@ public class Main
 
     ***************************************************************************/
 
-    static public ProcessArgsResult processArgsConfig(StaticConfig) (
+    static public ProcessArgsResult processArgsConfig (
             char[][] cl_args, Arguments args, VersionInfo version_info,
             char[] description,
             void delegate ( char[] app_name, char[] config_file ) init_config_dg = null, 
