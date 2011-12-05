@@ -249,8 +249,6 @@ public class Main
     deprecated static public ProcessArgsResult processArgs ( char[][] cl_args,
             VersionInfo version_info, char[] description)
     {
-        pragma(msg, "Use Main.processArgsConfig() instead.");
-
         scope args = new Arguments;
         return processArgs(cl_args, args, version_info, description);
     }
