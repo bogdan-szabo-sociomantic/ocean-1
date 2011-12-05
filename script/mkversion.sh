@@ -21,7 +21,7 @@ Options:
 -o FILE		Where to write the output (Version.d) file (default: $rev_file)
 -L DIR		Directory where to find the libraries (default: $lib_dir)
 -a AUTHOR	Author of the build (default: detected, currently $author)
--t TEMPLATE	Template file to use (default: [DIR]/ocean/script/Version.tpl.d)
+-t TEMPLATE	Template file to use (default: [DIR]/ocean/script/Version.d.tpl)
 -d DATE		Build date string (default: output of '$date_cmd')
 -h		Shows this help and exit
 
@@ -53,7 +53,7 @@ done
 shift `expr $OPTIND - 1`
 
 # Fill missing options
-test -z "$template" && template="$lib_dir/ocean/script/Version.tpl.d"
+test -z "$template" && template="$lib_dir/ocean/script/Version.d.tpl"
 test -z "$date" && date="`$date_cmd`"
 
 # Check which type of repository we are using
@@ -84,7 +84,7 @@ tmp=`mktemp mkversion.XXXXXXXXXX`
 trap "rm -f '$tmp'; exit 1" INT TERM QUIT
 
 # Generate the file (in a temporary) based on a template
-cp "$lib_dir/ocean/script/Version.tpl.d" "$tmp"
+cp "$lib_dir/ocean/script/Version.d.tpl" "$tmp"
 module=`echo "$rev_file" | sed -e 's|/|.|g' -e 's|.d||g'`
 gc="$1"; shift
 sed -i "$tmp" \
