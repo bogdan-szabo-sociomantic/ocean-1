@@ -246,67 +246,13 @@ public class Main
 
     ***************************************************************************/
 
-    static public ProcessArgsResult processArgs ( char[][] cl_args,
+    deprecated static public ProcessArgsResult processArgs ( char[][] cl_args,
             VersionInfo version_info, char[] description)
     {
+        pragma(msg, "Use Main.processArgsConfig() instead.");
+
         scope args = new Arguments;
         return processArgs(cl_args, args, version_info, description);
-    }
-
-
-    /***************************************************************************
-
-        Parses command line arguments, displays errors, help and application
-        version as appropriate.
-
-        Params:
-            cl_args = command line arguments, as received by main()
-            args = arguments parser with application dependant arguments already
-                initialised (this method adds -v and -h arguments)
-            version_info = description of the application's version / revision
-            description = application description
-
-        Returns:
-            if the program should exit and using what return code, see
-            ProcessArgsResult for details
-
-    ***************************************************************************/
-
-    static public ProcessArgsResult processArgs ( char[][] cl_args,
-            Arguments args, VersionInfo version_info, char[] description)
-    {
-        Unittest.check();
-        
-        auto app_name = cl_args[0];
-
-        auto args_ok = parseArgs(cl_args, args);
-
-        if ( args.exists("help") )
-        {
-            Stdout.formatln(getVersionString(app_name, version_info));
-            Stdout.formatln("{}", description);
-
-            args.displayHelp(app_name, Stdout);
-
-            return ProcessArgsResult(true, 0);
-        }
-
-        if ( args.exists("version") )
-        {
-            Stdout.formatln(getFullVersionString(app_name, version_info));
-            return ProcessArgsResult(true, 0);
-        }
-
-        if ( !args_ok )
-        {
-            args.displayErrors();
-
-            Stderr.formatln("\nType {} -h for help", app_name);
-
-            return ProcessArgsResult(true, 1);
-        }
-
-        return ProcessArgsResult(false);
     }
 
 
@@ -327,8 +273,12 @@ public class Main
 
         Params:
             cl_args = command line arguments, as received by main()
+            args = arguments parser instance, may already be initialised with
+                parameters
             version_info = description of the application's version / revision
             description = application description
+            config_init_dg = delegate called to initialise config file (may be
+                null)
 
         Returns:
             if the program should exit and using what return code, see
@@ -340,9 +290,14 @@ public class Main
 
     ***************************************************************************/
 
-    static public ProcessArgsResult processArgsConfig(StaticConfig) (
-            char[][] cl_args, Arguments args, VersionInfo version_info,
-            char[] description)
+    static public ProcessArgsResult processArgsConfig ( char[][] cl_args,
+            Arguments args, VersionInfo version_info, char[] description,
+            void delegate ( char[] app_name, char[] config_file ) init_config_dg = null )
+    in
+    {
+        assert(args !is null, "Arguments instance must be non-null");
+    }
+    body
     {
         args("config").aliased('c').params(1).defaults("etc/config.ini")
             .help("use the configuration file CONFIG instead of the default "
@@ -355,7 +310,10 @@ public class Main
             return r;
         }
 
-        StaticConfig.init(cl_args[0], args("config").assigned[0]);
+        if ( init_config_dg !is null )
+        {
+            init_config_dg(cl_args[0], args("config").assigned[0]);
+        }
 
         // LOG configuration parsing
         LogUtil.configureLoggers(Class.iterate!(LogUtil.Config)("LOG"),
@@ -454,6 +412,62 @@ public class Main
 
     /***************************************************************************
 
+        Parses command line arguments, displays errors, help and application
+        version as appropriate.
+
+        Params:
+            cl_args = command line arguments, as received by main()
+            args = arguments parser with application dependant arguments already
+                initialised (this method adds -v and -h arguments)
+            version_info = description of the application's version / revision
+            description = application description
+
+        Returns:
+            if the program should exit and using what return code, see
+            ProcessArgsResult for details
+
+    ***************************************************************************/
+
+    static private ProcessArgsResult processArgs ( char[][] cl_args,
+            Arguments args, VersionInfo version_info, char[] description)
+    {
+        Unittest.check();
+        
+        auto app_name = cl_args[0];
+
+        auto args_ok = parseArgs(cl_args, args);
+
+        if ( args.exists("help") )
+        {
+            Stdout.formatln(getVersionString(app_name, version_info));
+            Stdout.formatln("{}", description);
+
+            args.displayHelp(app_name, Stdout);
+
+            return ProcessArgsResult(true, 0);
+        }
+
+        if ( args.exists("version") )
+        {
+            Stdout.formatln(getFullVersionString(app_name, version_info));
+            return ProcessArgsResult(true, 0);
+        }
+
+        if ( !args_ok )
+        {
+            args.displayErrors();
+
+            Stderr.formatln("\nType {} -h for help", app_name);
+
+            return ProcessArgsResult(true, 1);
+        }
+
+        return ProcessArgsResult(false);
+    }
+
+
+    /***************************************************************************
+
         Adds -v (--version) and -h (--help) arguments to the provided arguments
         parser, and parses the provided command line arguments.
 
@@ -474,6 +488,5 @@ public class Main
 
         return args.parse(cl_args[1..$]);
     }
-
 }
 
