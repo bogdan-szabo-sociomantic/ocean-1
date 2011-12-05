@@ -249,6 +249,20 @@ class TimerEvent : ITimerEvent
     {
         return this.handler();
     }
+    
+    /***********************************************************************
+
+        Set a new handler
+    
+        Params:
+            handler = event handler
+        
+    ***********************************************************************/
+    
+    public void setHandler ( Handler handler )
+    {
+        this.handler = handler;
+    }
 }
 
 /*******************************************************************************
