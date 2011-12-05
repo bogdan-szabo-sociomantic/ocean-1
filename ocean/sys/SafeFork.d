@@ -178,9 +178,8 @@ class SafeFork
         
         Params:
             block = if true, wait for a currently running fork and don't fork
-                             yourself before calling the delegate
+                             when calling the delegate
                     if false, don't do anything when a fork is currently running
-                              else, fork and call the delegate.
                               
         Returns:
             true when the delegate was called
@@ -230,7 +229,6 @@ class SafeFork
                 else if ( this.child_pid == 0 )
                 {
                     this.dg();
-                    Thread.sleep(5);
                     exit(0);
                 }
 
