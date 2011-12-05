@@ -259,15 +259,12 @@ public class Main
         Parses command line arguments and configuration file, displays errors,
         help and application version as appropriate.
 
-        The StaticConfig template argument as to have an init() static method
-        with this signature:
-
-            public static void init(char[] exe_path, char[] config_file);
-
         Where exe_path is the path to the running executable and config_file is
-        the path to a config file to read (it has to handle a null/empty
-        config_file, in which case the StaticConfig should decide where to read
-        the config file.
+        the path to a config file to read. The (optional) init_config_dg() will
+        be called (if not null) just after the command line arguments were
+        passed and after the logger configuration is loaded from the Config
+        module. The init_config_dg() whould parse the config_file into the
+        Config module.
 
         Params:
             cl_args = command line arguments, as received by main()
