@@ -23,6 +23,10 @@ private import ocean.util.log.Trace;
 
 private import Integer = tango.text.convert.Integer;
 
+private import tango.util.log.AppendConsole;
+
+private import tango.util.log.Log;
+
 /*******************************************************************************
 
     Unittest scope class
@@ -145,6 +149,8 @@ scope class Unittest
         {
             Unittest.num_failed++;
         }
+        
+        Log.root.clear();
     }
     
     /***************************************************************************
@@ -221,5 +227,17 @@ scope class Unittest
                            e.file, e.line, e.msg);
             print();
         }
+    }
+    
+    /***************************************************************************
+    
+        Enable output using tango loggers for the duration of the current 
+        unittest
+    
+    ***************************************************************************/
+    
+    public void output ( )
+    {
+        Log.root.add(new AppendConsole);
     }
 }
