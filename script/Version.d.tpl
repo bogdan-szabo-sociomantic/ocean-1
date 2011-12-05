@@ -32,3 +32,4 @@ static this()
 @LIBRARIES@
 }
 
+// vim: set filetype=d :
