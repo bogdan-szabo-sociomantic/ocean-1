@@ -285,9 +285,11 @@ public class Main
 
     ***************************************************************************/
 
-    static public ProcessArgsResult processArgsConfig ( char[][] cl_args,
-            Arguments args, VersionInfo version_info, char[] description,
-            void delegate ( char[] app_name, char[] config_file ) init_config_dg = null )
+    static public ProcessArgsResult processArgsConfig(StaticConfig) (
+            char[][] cl_args, Arguments args, VersionInfo version_info,
+            char[] description,
+            void delegate ( char[] app_name, char[] config_file ) init_config_dg = null, 
+            bool use_insert_appender = false )
     in
     {
         assert(args !is null, "Arguments instance must be non-null");
@@ -297,7 +299,9 @@ public class Main
         args("config").aliased('c').params(1).defaults("etc/config.ini")
             .help("use the configuration file CONFIG instead of the default "
                 "(<bin-dir>/etc/config.ini)");
-
+        args("loose").aliased('l').params(0).help("Allow invalid parameters"
+                                                  " in the configuration");
+                                                  
         auto r = Main.processArgs(cl_args, args, version_info, description);
 
         if ( r.exit )
@@ -312,7 +316,8 @@ public class Main
 
         // LOG configuration parsing
         LogUtil.configureLoggers(Class.iterate!(LogUtil.Config)("LOG"),
-                                 Class.fill!(LogUtil.MetaConfig)("LOG"));
+                                 Class.fill!(LogUtil.MetaConfig)("LOG"),
+                                 args("loose").set, use_insert_appender);
 
         if (Config.get("LOG", "default_version_log", true))
         {

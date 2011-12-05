@@ -194,9 +194,11 @@ static this ( )
     
 public void configureLoggers ( Source = ConfigParser ) 
                              ( ClassIterator!(Config, Source) config, 
-                               MetaConfig m_config, 
+                               MetaConfig m_config, bool loose = false,
                                bool use_insert_appender = false )
 {
+    config.loose = loose;
+    
     foreach (name, settings; config)
     {
         bool console_enabled = false;

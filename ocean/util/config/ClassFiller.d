@@ -222,6 +222,8 @@ private template StripTypedef ( T )
 
     Params:
         group     = the group/section of the variable
+        loose     = true, output a warning for invalid variables
+                    false, throw an exception for invalid variables
         config    = instance of the source to use (defaults to Config)
 
     Returns:
@@ -233,10 +235,10 @@ private template StripTypedef ( T )
 *******************************************************************************/
 
 public T fill ( T : Object, Source = ConfigParser )
-              ( char[] group, Source config = null )
+              ( char[] group, bool loose = false, Source config = null )
 {
     T reference;
-    return fill(group, reference, config);
+    return fill(group, reference, loose, config);
 }
 
 
@@ -266,27 +268,71 @@ public T fill ( T : Object, Source = ConfigParser )
 *******************************************************************************/
 
 public T fill ( T : Object, Source = ConfigParser )
-              ( char[] group, ref T reference, Source config = null )
+              ( char[] group, ref T reference, bool loose = false, 
+                Source config = null )
 {
     if ( reference is null )
     {
         reference = new T;
     }
-
-    readFields!(T)(group, reference, config);
-
-    // Recurse into super any classes
-    static if ( is(T S == super ) )
+    
+    static if ( is(Source : ConfigParser)) if ( config is null ) 
     {
-        foreach ( G; S ) static if ( !is(G == Object) )
+        config = Config;
+    }
+    
+    foreach ( var; config.iterateCategory(group) )
+    {
+        if ( !hasField(reference, var) ) 
         {
-            readFields!(G)(group, cast(G) reference, config);
+            auto msg = "Invalid configuration key " ~ group ~ "." ~ var;
+            
+            if ( !loose ) throw new ConfigException(msg, __FILE__, __LINE__);
+            else Trace.formatln("## ## WARNING: ", msg);
         }
     }
+    
+    readFields!(T)(group, reference, config);
 
     return reference;
 }
 
+/***************************************************************************
+
+    Checks whether T or any of its super classes contain
+    a variable called field
+
+***************************************************************************/
+
+private bool hasField ( T : Object ) ( T reference, char[] field )
+{
+    foreach ( si, unused; reference.tupleof )
+    {
+        auto key = reference.tupleof[si].stringof["reference.".length .. $];
+        
+        
+        if ( key == field ) return true;
+    }   
+    
+    bool was_found = true;
+    
+    // Recurse into super any classes
+    static if ( is(T S == super ) )
+    {
+        was_found = false;
+        
+        foreach ( G; S ) static if ( !is(G == Object) )
+        {
+            if ( hasField!(G)(cast(G) reference, field))
+            {
+                was_found = true;
+                break;
+            }
+        }
+    }
+    
+    return was_found;
+}
 
 /***************************************************************************
 
@@ -298,6 +344,7 @@ struct ClassIterator ( T, Source = ConfigParser )
 {
     Source config;
     char[] root;
+    bool loose;
 
     /***********************************************************************
 
@@ -320,7 +367,7 @@ struct ClassIterator ( T, Source = ConfigParser )
 
             if ( key.length > root.length && key[0 .. root.length] == root )
             {
-                instance = fill(key, instance, config);
+                instance = fill(key, instance, loose, config);
 
                 auto name = key[root.length + 1 .. $];
                 result = dg(name, instance);
@@ -426,8 +473,8 @@ public ClassIterator!(T) iterate ( T, Source = ConfigParser )
 
 *******************************************************************************/
 
-protected void readFields ( C, Source ) 
-                          ( char[] group, C reference, Source config )
+protected void readFields ( T, Source ) 
+                          ( char[] group, T reference, Source config )
 {
     static if ( is(Source : ConfigParser)) if ( config is null ) 
     {
@@ -454,32 +501,41 @@ protected void readFields ( C, Source )
             bool* found = &found_v;
         }
 
-        static if ( IsSupported!(Type) )
+        static assert ( IsSupported!(Type), "ClassFiller.readFields: Type " 
+                        ~ Type.stringof ~ " is not supported" );
+        
+        auto key = reference.tupleof[si].stringof["reference.".length .. $];
+        
+        *found = config.exists(group, key);
+
+        auto name = PureType.stringof;
+
+        if ( name.length >= "Required".length &&
+             name[0 .. "Required".length] == "Required" &&
+             *found == false )
         {
-            auto key = reference.tupleof[si].stringof["reference.".length .. $];
+            throw new ConfigException("Mandatory variable " ~ key ~
+                    " not set", __FILE__, __LINE__);
+        }
 
-            *found = config.exists(group, key);
+        if (*found)
+        {
+            *value = config.getStrict!(DynamicArrayType!(Type))(group, key);
+        }
 
-            auto name = PureType.stringof;
-
-            if ( name.length >= "Required".length &&
-                 name[0 .. "Required".length] == "Required" &&
-                 *found == false )
-            {
-                throw new ConfigException("Mandatory variable " ~ key ~
-                        " not set");
-            }
-
-            if (*found)
-            {
-                *value = config.getStrict!(DynamicArrayType!(Type))(group, key);
-            }
-
-            debug (Config) Trace.formatln("Config Debug: {}.{} = {} {}", group,
-                                 reference.tupleof[si]
-                                .stringof["reference.".length  .. $],
-                                *value,
-                                !*found ? "(builtin)" : "");
+        debug (Config) Trace.formatln("Config Debug: {}.{} = {} {}", group,
+                             reference.tupleof[si]
+                            .stringof["reference.".length  .. $],
+                            *value,
+                            !*found ? "(builtin)" : "");
+    }
+    
+    // Recurse into super any classes
+    static if ( is(T S == super ) )
+    {
+        foreach ( G; S ) static if ( !is(G == Object) )
+        {
+            readFields!(G)(group, cast(G) reference, config);
         }
     }
 }
