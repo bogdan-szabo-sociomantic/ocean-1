@@ -22,8 +22,6 @@ private import ocean.io.select.model.ISelectClient: ISelectClient;
 
 private import ocean.io.select.protocol.generic.ErrnoIOException;
 
-private import ocean.text.convert.Layout;
-
 private import tango.io.model.IConduit: ISelectable;
 
 private import tango.stdc.posix.time: time_t, timespec, itimerspec, CLOCK_REALTIME;
@@ -34,7 +32,11 @@ private import tango.stdc.posix.unistd: read, write, close;
 
 private import tango.stdc.errno: EAGAIN, EWOULDBLOCK, errno;
 
-debug private import ocean.util.log.Trace;
+debug
+{
+    private import ocean.util.log.Trace;
+    private import ocean.text.convert.Layout;
+}
 
 /// <sys/timerfd.h>
 
