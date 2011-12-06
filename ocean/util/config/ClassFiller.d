@@ -257,6 +257,8 @@ public T fill ( T : Object, Source = ConfigParser )
     Params:
         group     = the group/section of the variable
         reference = the instance to fill. If null it will be created
+        loose     = whether to throw when configuration keys exist
+                    that aren't used(false) or to output a warning(true)
         config    = instance of the source to use (defaults to Config)
 
     Returns:
@@ -288,7 +290,7 @@ public T fill ( T : Object, Source = ConfigParser )
             auto msg = "Invalid configuration key " ~ group ~ "." ~ var;
             
             if ( !loose ) throw new ConfigException(msg, __FILE__, __LINE__);
-            else Trace.formatln("## ## WARNING: ", msg);
+            else Trace.formatln("#### WARNING: {}", msg);
         }
     }
     
@@ -301,6 +303,15 @@ public T fill ( T : Object, Source = ConfigParser )
 
     Checks whether T or any of its super classes contain
     a variable called field
+    
+    Params:
+        reference = reference of the object that will be checked
+        field     = name of the field to check for
+        
+    Returns:
+        true when T or any parent class has a member named the same as the 
+        value of field,
+        else false
 
 ***************************************************************************/
 
@@ -309,8 +320,7 @@ private bool hasField ( T : Object ) ( T reference, char[] field )
     foreach ( si, unused; reference.tupleof )
     {
         auto key = reference.tupleof[si].stringof["reference.".length .. $];
-        
-        
+                
         if ( key == field ) return true;
     }   
     
