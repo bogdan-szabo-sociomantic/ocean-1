@@ -323,7 +323,7 @@ abstract class ISelectClient : ITimeoutClient
         
      **************************************************************************/
 
-    public bool getSocketError ( out int errnum, ref char[] errmsg, char[][] msg ... )
+    public bool getSocketErrorT ( T ... ) ( out int errnum, ref char[] errmsg, T msg )
     {
         bool have_errnum = this.getSocketError(errnum);
         
@@ -339,6 +339,8 @@ abstract class ISelectClient : ITimeoutClient
         
         return have_errnum;
     }
+    
+    alias getSocketErrorT!(char[]) getSocketError;
     
     /**************************************************************************
 

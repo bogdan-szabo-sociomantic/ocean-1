@@ -21,7 +21,7 @@ private import ocean.io.select.model.ISelectClient;
 
 private import tango.io.model.IConduit: OutputStream;
 
-private import tango.stdc.errno: errno;
+private import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK;
 
 debug private import ocean.util.log.Trace;
 
@@ -45,7 +45,7 @@ class FiberSelectWriter : IFiberSelectProtocol
 
      **************************************************************************/
 
-    private ubyte[] data_slice = null;
+    private void[] data_slice = null;
 
     /**************************************************************************
 
@@ -132,25 +132,28 @@ class FiberSelectWriter : IFiberSelectProtocol
      **************************************************************************/
 
     public typeof (this) send ( void[] data )
-    /*in // FIXME: also causes problems for an as-yet unknown reason
+    in
     {
         assert (this.data_slice is null);
-    }*/
+    }
     /*out // FIXME: DMD bug triggered when overriding method with 'out' contract.
     {
         assert (!this.data);
     }*/
     body
     {
-        this.data_slice = cast (ubyte[]) data;
-        
-        scope (exit)
+        if (data.length)
         {
-            this.data_slice = null;
-            this.sent = 0;
+            this.data_slice = data;
+            
+            scope (exit)
+            {
+                this.data_slice = null;
+                this.sent = 0;
+            }
+    
+            super.transmitLoop();
         }
-
-        super.transmitLoop();
         
         return this;
     }
@@ -173,8 +176,6 @@ class FiberSelectWriter : IFiberSelectProtocol
                 - IOError if an error is reported by errno or socket error
     
      **************************************************************************/
-
-    private import tango.stdc.errno: EAGAIN, EWOULDBLOCK;
 
     protected bool transmit ( Event events )
     out

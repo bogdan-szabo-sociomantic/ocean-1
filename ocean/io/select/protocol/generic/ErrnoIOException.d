@@ -243,7 +243,7 @@ class IOError : ErrnoIOException
     
     void checkSocketError ( char[] msg, char[] file = "", long line = 0 )
     {
-        if (this.client.getSocketError(super.errnum, super.msg, msg, ": "))
+        if (this.client.getSocketErrorT(super.errnum, super.msg, msg, ": "))
         {
             super.file.copy(file);
             super.line = line;
@@ -275,6 +275,26 @@ class ErrnoIOException : IOException
      **************************************************************************/
     
     this ( ) {super("");}
+    
+    /**************************************************************************
+    
+        Queries and resets errno and sets the exception parameters.
+        
+        Params:
+            file = source code file name
+            line = source code line
+        
+        Returns:
+            this instance
+        
+     **************************************************************************/
+    
+    protected void set ( char[] file = "", long line = 0 )
+    {
+        char[][] msg = null;
+        
+        this.set(msg, file, line);
+    }
     
     /**************************************************************************
     
@@ -331,6 +351,28 @@ class ErrnoIOException : IOException
         
      **************************************************************************/
     
+    protected void set ( int errnum, char[] file = "", long line = 0 )
+    {
+        char[][] msg = null;
+        
+        this.set(errnum, msg, file, line);
+    }
+    
+    /**************************************************************************
+    
+        Sets the exception parameters.
+        
+        Params:
+            errnum = error number
+            msg    = message
+            file   = source code file name
+            line   = source code line
+        
+        Returns:
+            this instance
+        
+     **************************************************************************/
+    
     protected void set ( int errnum, char[] msg, char[] file = "", long line = 0 )
     {
         this.set(errnum, toArray(msg), file, line);
@@ -362,7 +404,12 @@ class ErrnoIOException : IOException
             char[0x100] buf;
             char* e = strerror_r(errnum, buf.ptr, buf.length);
             
-            super.msg.append(" - ", e[0 .. strlen(e)]);
+            if (super.msg.length)
+            {
+                super.msg.append(" - ");
+            }
+            
+            super.msg.append(e[0 .. strlen(e)]);
         }
         
         super.file.copy(file);
