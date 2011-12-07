@@ -206,7 +206,6 @@ struct ProcessArgsResult
 
 public class Main
 {
-
     /***************************************************************************
 
         Logger used to log the version.
@@ -237,6 +236,8 @@ public class Main
 
         Params:
             cl_args = command line arguments, as received by main()
+            args = arguments parser instance, may already be initialised with
+                parameters
             version_info = description of the application's version / revision
             description = application description
 
@@ -246,11 +247,20 @@ public class Main
 
     ***************************************************************************/
 
-    deprecated static public ProcessArgsResult processArgs ( char[][] cl_args,
-            VersionInfo version_info, char[] description)
+    static public ProcessArgsResult processArgs (
+            char[][] cl_args, Arguments args, VersionInfo version_info,
+            char[] description )
     {
-        scope args = new Arguments;
-        return processArgs(cl_args, args, version_info, description);
+        auto r = processArgs_(cl_args, args, version_info, description);
+
+        if ( r.exit )
+        {
+            return r;
+        }
+
+        logVersion(cl_args[0], version_info);
+
+        return r;
     }
 
 
@@ -263,7 +273,7 @@ public class Main
         the path to a config file to read. The (optional) init_config_dg() will
         be called (if not null) just after the command line arguments were
         passed and after the logger configuration is loaded from the Config
-        module. The init_config_dg() whould parse the config_file into the
+        module. The init_config_dg() should parse the config_file into the
         Config module.
 
         Params:
@@ -272,8 +282,9 @@ public class Main
                 parameters
             version_info = description of the application's version / revision
             description = application description
-            config_init_dg = delegate called to initialise config file (may be
-                null)
+            config_init_dg = delegate called to initialise config file
+            use_insert_appender = whether to use the insert appender which
+                doesn't support newlines in the output msg
 
         Returns:
             if the program should exit and using what return code, see
@@ -288,11 +299,12 @@ public class Main
     static public ProcessArgsResult processArgsConfig (
             char[][] cl_args, Arguments args, VersionInfo version_info,
             char[] description,
-            void delegate ( char[] app_name, char[] config_file ) init_config_dg = null, 
+            void delegate ( char[] app_name, char[] config_file ) init_config_dg, 
             bool use_insert_appender = false )
     in
     {
         assert(args !is null, "Arguments instance must be non-null");
+        assert(init_config_dg !is null, "Config init delegate must be non-null");
     }
     body
     {
@@ -301,25 +313,22 @@ public class Main
                 "(<bin-dir>/etc/config.ini)");
         args("loose").aliased('l').params(0).help("Allow invalid parameters"
                                                   " in the configuration");
-                                                  
-        auto r = Main.processArgs(cl_args, args, version_info, description);
+
+        auto r = processArgs_(cl_args, args, version_info, description);
 
         if ( r.exit )
         {
             return r;
         }
 
-        if ( init_config_dg !is null )
-        {
-            init_config_dg(cl_args[0], args("config").assigned[0]);
-        }
+        init_config_dg(cl_args[0], args("config").assigned[0]);
 
         // LOG configuration parsing
         LogUtil.configureLoggers(Class.iterate!(LogUtil.Config)("LOG"),
                                  Class.fill!(LogUtil.MetaConfig)("LOG"),
                                  args("loose").set, use_insert_appender);
 
-        if (Config.get("LOG", "default_version_log", true))
+        if ( Config.get("LOG", "default_version_log", true) )
         {
             ver_log.add(new AppendFile("log/version.log", new LayoutDate));
         }
@@ -340,7 +349,7 @@ public class Main
 
     ***************************************************************************/
 
-    static public void logVersion(char[] app_name, VersionInfo version_info)
+    static public void logVersion ( char[] app_name, VersionInfo version_info )
     {
         ver_log.info(getFullVersionString(app_name, version_info));
     }
@@ -356,7 +365,7 @@ public class Main
 
     ***************************************************************************/
 
-    static public char[] getLibsVersionsString(char[][char[]] libs)
+    static public char[] getLibsVersionsString ( char[][char[]] libs )
     {
         char[] s;
         foreach (name, rev; libs)
@@ -380,8 +389,8 @@ public class Main
 
     ***************************************************************************/
 
-    static public char[] getVersionString(char[] app_name,
-            VersionInfo version_info)
+    static public char[] getVersionString ( char[] app_name,
+            VersionInfo version_info )
     {
         return app_name ~ " version " ~ version_info.revision;
     }
@@ -400,8 +409,8 @@ public class Main
 
     ***************************************************************************/
 
-    static public char[] getFullVersionString(char[] app_name,
-            VersionInfo version_info)
+    static public char[] getFullVersionString ( char[] app_name,
+            VersionInfo version_info )
     {
         return app_name ~ " version " ~ version_info.revision ~
                 " (compiled by '" ~ version_info.build_author ~ "' on " ~
@@ -428,8 +437,8 @@ public class Main
 
     ***************************************************************************/
 
-    static private ProcessArgsResult processArgs ( char[][] cl_args,
-            Arguments args, VersionInfo version_info, char[] description)
+    static private ProcessArgsResult processArgs_ ( char[][] cl_args,
+            Arguments args, VersionInfo version_info, char[] description )
     {
         Unittest.check();
         
