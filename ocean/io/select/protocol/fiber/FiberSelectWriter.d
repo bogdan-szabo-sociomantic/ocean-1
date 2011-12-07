@@ -132,10 +132,10 @@ class FiberSelectWriter : IFiberSelectProtocol
      **************************************************************************/
 
     public typeof (this) send ( void[] data )
-    in
+/*    in // FIXME: causes an unknown (i.e. uninvestigated) problem, for example in the queue monitor
     {
         assert (this.data_slice is null);
-    }
+    }*/
     /*out // FIXME: DMD bug triggered when overriding method with 'out' contract.
     {
         assert (!this.data);
