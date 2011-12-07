@@ -91,6 +91,49 @@ struct Terminal
     
     /***************************************************************************
 
+        Colours
+    
+    ***************************************************************************/
+
+    public struct Foreground
+    {
+        public const BLACK               = "30m";
+        public const RED                 = "31m";
+        public const GREEN               = "32m";
+        public const BROWN               = "33m";
+        public const BLUE                = "34m";
+        public const MAGENTA             = "35m";
+        public const CYAN                = "36m";
+        public const WHITE               = "37m";
+        public const DEFAULT_UNDERSCORE  = "38m";
+        public const DEFAULT             = "39m";
+    }
+
+    public struct Background
+    {
+        public const BLACK      = "40m";
+        public const RED        = "41m";
+        public const GREEN      = "42m";
+        public const BROWN      = "43m";
+        public const BLUE       = "44m";
+        public const MAGENTA    = "45m";
+        public const CYAN       = "46m";
+        public const WHITE      = "47m";
+        public const DEFAULT    = "49m";
+    }
+
+    /***************************************************************************
+
+        Bold / non-bold text.
+
+    ***************************************************************************/
+
+    public const BOLD   = "1m";
+
+    public const NON_BOLD   = "22m";
+
+    /***************************************************************************
+
         Command for cursor up
     
     ***************************************************************************/

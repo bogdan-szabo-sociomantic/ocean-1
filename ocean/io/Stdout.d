@@ -12,6 +12,8 @@
 
     Additional features are:
         * clearline() method which erases the rest of the line
+        * bold() method which sets the text output to bold / bright mode
+        * text colour setting methods
 
 *******************************************************************************/
 
@@ -80,6 +82,23 @@ static this ( )
 
 public class TerminalOutput ( T ) : FormatOutput!(T)
 {
+    /***************************************************************************
+
+        Template method to output a CSI sequence
+
+        Template params:
+            seq = csi sequence to output
+
+    ***************************************************************************/
+
+    private typeof(this) csiSeq ( char[] seq ) ( )
+    {
+        this.sink.write(Terminal.CSI);
+        this.sink.write(seq);
+        return this;
+    }
+
+
     /***************************************************************************
 
         True if it's redirected.
@@ -243,13 +262,43 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
     public typeof(this) clearline ( )
     {
-        if (this.redirect)
+        if ( this.redirect )
         {
             return this.newline;
         }
-        this.sink.write(Terminal.CSI);
-        this.sink.write(Terminal.ERASE_REST_OF_LINE);
-        return this;
+        return this.csiSeq!(Terminal.ERASE_REST_OF_LINE);
     }
+
+
+    /***************************************************************************
+
+        Sets / unsets bold text output.
+
+        Params:
+            on = bold on / off
+
+    ***************************************************************************/
+
+    public typeof(this) bold ( bool on = true )
+    {
+        return on ? this.csiSeq!(Terminal.BOLD) : this.csiSeq!(Terminal.NON_BOLD);
+    }
+
+
+    /***************************************************************************
+
+        Foreground colour changing methods.
+
+    ***************************************************************************/
+
+    public alias csiSeq!(Terminal.Foreground.DEFAULT)   default_colour;
+    public alias csiSeq!(Terminal.Foreground.BLACK)     black;
+    public alias csiSeq!(Terminal.Foreground.RED)       red;
+    public alias csiSeq!(Terminal.Foreground.GREEN)     green;
+    public alias csiSeq!(Terminal.Foreground.BROWN)     brown;
+    public alias csiSeq!(Terminal.Foreground.BLUE)      blue;
+    public alias csiSeq!(Terminal.Foreground.MAGENTA)   magenta;
+    public alias csiSeq!(Terminal.Foreground.CYAN)      cyan;
+    public alias csiSeq!(Terminal.Foreground.WHITE)     white;
 }
 
