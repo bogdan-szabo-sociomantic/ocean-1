@@ -88,6 +88,29 @@ class ProgressFile : File
 
     /***************************************************************************
 
+        Create a File without opening a path.
+
+        Note that File is unbuffered by default - wrap an instance
+        within tango.io.stream.Buffered for buffered I/O.
+
+        Params:
+            progress_dg = delegate to notify of progress
+
+    ***************************************************************************/
+
+    public this ( ProgressDg progress_dg )
+    in
+    {
+        assert(progress_dg !is null, typeof(this).stringof ~ ": progress delegate is null, what's the point?");
+    }
+    body
+    {
+        this.progress_dg = progress_dg;
+    }
+
+
+    /***************************************************************************
+
         Create a File with the provided path and style.
 
         Note that File is unbuffered by default - wrap an instance
@@ -107,8 +130,8 @@ class ProgressFile : File
     }
     body
     {
-        this.progress_dg = progress_dg;
-        super.open(path, style);
+        this(progress_dg);
+        this.open(path, style);
     }
 
 
