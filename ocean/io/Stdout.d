@@ -93,8 +93,11 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
     private typeof(this) csiSeq ( char[] seq ) ( )
     {
-        this.sink.write(Terminal.CSI);
-        this.sink.write(seq);
+        if ( !this.redirect )
+        {
+            this.sink.write(Terminal.CSI);
+            this.sink.write(seq);
+        }
         return this;
     }
 
@@ -283,6 +286,15 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
     {
         return on ? this.csiSeq!(Terminal.BOLD) : this.csiSeq!(Terminal.NON_BOLD);
     }
+
+
+    /***************************************************************************
+
+        Carriage return (sends cursor back to the start of the line).
+
+    ***************************************************************************/
+
+    public alias csiSeq!("0" ~ Terminal.HORIZONTAL_MOVE_CURSOR) cr;
 
 
     /***************************************************************************
