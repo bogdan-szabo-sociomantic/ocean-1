@@ -237,6 +237,48 @@ class StrSplitIterator : ISplitIterator
             ('*(delim.ptr + delim.length) == '\0'' would be dangerous if delim
             is not a string literal). So, unfortunately, NUL-termination of
             delim cannot be ensured by assert().
+
+            Apparently this uses g_strstr_len() because it was faster than
+            a D version. The difference seems to be related to the compiler
+            (glib function is compiled with GCC instead of DMD), and not the
+            algorithm, which is really simple. See:
+            http://git.gnome.org/browse/glib/tree/glib/gstrfuncs.c#n2549
+
+            Even so, the performance difference seems to be not that much. For
+            10000000 calls of locateDelim("mundomundo", "mu", 6), the glib
+            version takes 0.9 seconds and the D version takes 1.2 seconds (25%
+            slower).
+
+            Here is an alternative native D implementation, in case we decide to
+            switch to one in the future. It even relaxes some of the limitations
+            of the current implementation, like having to use null terminated
+            strings.
+
+            private static size_t locateDelim ( char[] str, char[] delim, size_t start = 0 )
+            in
+            {
+                assert (start < str.length, typeof (this).stringof ~ ".locateDelim: start index out of range");
+                assert (str !is null, typeof (this).stringof ~ ".locateDelim: str can't be null");
+                assert (delim !is null, typeof (this).stringof ~ ".locateDelim: delim can't be null");
+            }
+            body
+            {
+                if (delim.length == 0)
+                    return start;
+
+                char[] s = str[start .. $];
+
+                while (s.length >= delim.length)
+                {
+                    if (s[0 .. delim.length] == delim)
+                    {
+                        return s.ptr - str.ptr;
+                    }
+                    s = s[1 .. $];
+                }
+
+                return str.length;
+            }
         
      **************************************************************************/
 
