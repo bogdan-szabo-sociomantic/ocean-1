@@ -307,7 +307,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
     public alias csiSeq!(Terminal.Foreground.BLACK)     black;
     public alias csiSeq!(Terminal.Foreground.RED)       red;
     public alias csiSeq!(Terminal.Foreground.GREEN)     green;
-    public alias csiSeq!(Terminal.Foreground.BROWN)     brown;
+    public alias csiSeq!(Terminal.Foreground.YELLOW)    yellow;
     public alias csiSeq!(Terminal.Foreground.BLUE)      blue;
     public alias csiSeq!(Terminal.Foreground.MAGENTA)   magenta;
     public alias csiSeq!(Terminal.Foreground.CYAN)      cyan;

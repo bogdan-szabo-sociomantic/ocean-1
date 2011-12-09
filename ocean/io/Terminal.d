@@ -100,7 +100,7 @@ struct Terminal
         public const BLACK               = "30m";
         public const RED                 = "31m";
         public const GREEN               = "32m";
-        public const BROWN               = "33m";
+        public const YELLOW              = "33m";
         public const BLUE                = "34m";
         public const MAGENTA             = "35m";
         public const CYAN                = "36m";
@@ -114,7 +114,7 @@ struct Terminal
         public const BLACK      = "40m";
         public const RED        = "41m";
         public const GREEN      = "42m";
-        public const BROWN      = "43m";
+        public const YELLOW     = "43m";
         public const BLUE       = "44m";
         public const MAGENTA    = "45m";
         public const CYAN       = "46m";
