@@ -312,5 +312,178 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
     public alias csiSeq!(Terminal.Foreground.MAGENTA)   magenta;
     public alias csiSeq!(Terminal.Foreground.CYAN)      cyan;
     public alias csiSeq!(Terminal.Foreground.WHITE)     white;
+
+
+    /***************************************************************************
+
+        Background colour changing methods.
+
+    ***************************************************************************/
+
+    public alias csiSeq!(Terminal.Background.DEFAULT)   default_bg;
+    public alias csiSeq!(Terminal.Background.BLACK)     black_bg;
+    public alias csiSeq!(Terminal.Background.RED)       red_bg;
+    public alias csiSeq!(Terminal.Background.GREEN)     green_bg;
+    public alias csiSeq!(Terminal.Background.YELLOW)    yellow_bg;
+    public alias csiSeq!(Terminal.Background.BLUE)      blue_bg;
+    public alias csiSeq!(Terminal.Background.MAGENTA)   magenta_bg;
+    public alias csiSeq!(Terminal.Background.CYAN)      cyan_bg;
+    public alias csiSeq!(Terminal.Background.WHITE)     white_bg;
+
+
+    /***************************************************************************
+
+        Foreground text colour scope class. Resets the default text colour, if
+        it has been changed, when scope exits.
+
+    ***************************************************************************/
+
+    public scope class TextColour
+    {
+        /***********************************************************************
+
+            Flag set to true when this instance has modified the text colour.
+
+        ***********************************************************************/
+
+        private bool colour_set;
+
+
+        /***********************************************************************
+
+            Flag set to true when this instance has modified the text boldness.
+
+        ***********************************************************************/
+
+        private bool bold_set;
+
+
+        /***********************************************************************
+
+            Destructor. Resets any modified text settings.
+
+        ***********************************************************************/
+
+        ~this ( )
+        {
+            if ( this.colour_set )
+            {
+                this.outer.default_colour;
+            }
+
+            if ( this.bold_set )
+            {
+                this.outer.bold(false);
+            }
+        }
+
+
+        /***********************************************************************
+
+            Sets the text colour and optionally boldness.
+
+            Template params:
+                method = name of outer class method to call to set the colour
+
+            Params:
+                bold = text boldness
+
+        ***********************************************************************/
+
+        private void setCol ( char[] method ) ( bool bold = false )
+        {
+            this.colour_set = true;
+            mixin("this.outer." ~ method ~ ";");
+
+            if ( bold )
+            {
+                this.bold_set = true;
+                this.outer.bold;
+            }
+        }
+
+
+        /***********************************************************************
+
+            Colour setting methods (all aliases of setCol(), above).
+
+        ***********************************************************************/
+
+        public alias setCol!("black") black;
+        public alias setCol!("red") red;
+        public alias setCol!("green") green;
+        public alias setCol!("yellow") yellow;
+        public alias setCol!("blue") blue;
+        public alias setCol!("magenta") magenta;
+        public alias setCol!("cyan") cyan;
+        public alias setCol!("white") white;
+    }
+
+
+    /***************************************************************************
+
+        Background colour scope class. Resets the default background colour, if
+        it has been changed, when scope exits.
+
+    ***************************************************************************/
+
+    public scope class BackgroundColour
+    {
+        /***********************************************************************
+
+            Flag set to true when this instance has modified the background
+            colour.
+
+        ***********************************************************************/
+
+        private bool colour_set;
+
+
+        /***********************************************************************
+
+            Destructor. Resets any modified text settings.
+
+        ***********************************************************************/
+
+        ~this ( )
+        {
+            if ( this.colour_set )
+            {
+                this.outer.default_bg;
+            }
+        }
+
+
+        /***********************************************************************
+
+            Sets the background colour.
+
+            Template params:
+                method = name of outer class method to call to set the colour
+
+        ***********************************************************************/
+
+        private void setCol ( char[] method ) ( )
+        {
+            this.colour_set = true;
+            mixin("this.outer." ~ method ~ ";");
+        }
+
+
+        /***********************************************************************
+
+            Colour setting methods (all aliases of setCol(), above).
+
+        ***********************************************************************/
+
+        public alias setCol!("black_bg") black;
+        public alias setCol!("red_bg") red;
+        public alias setCol!("green_bg") green;
+        public alias setCol!("yellow_bg") yellow;
+        public alias setCol!("blue_bg") blue;
+        public alias setCol!("magenta_bg") magenta;
+        public alias setCol!("cyan_bg") cyan;
+        public alias setCol!("white_bg") white;
+    }
 }
 
