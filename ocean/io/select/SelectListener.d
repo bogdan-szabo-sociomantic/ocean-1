@@ -481,7 +481,8 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
     public void shutdown ( )
     {
-        foreach ( receiver; this.receiver_pool.new BusyItemsIterator )
+        scope busy_connections = this.receiver_pool.new BusyItemsIterator;
+        foreach ( busy_connection; busy_connections )
         {
             /* FIXME: calling finalize here will cause errors in any connection
              * handlers which are currently selected in epoll, as they will
@@ -491,7 +492,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
              * is being shut down. It may be nice to find a clean way to avoid
              * this though.
              */
-            receiver.finalize;
+            busy_connection.finalize;
         }
 
         super.terminate;
