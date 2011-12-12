@@ -197,7 +197,7 @@ public void configureLoggers ( Source = ConfigParser )
                                MetaConfig m_config, bool loose = false,
                                bool use_insert_appender = false )
 {
-    config.loose = loose;
+    enable_loose_parsing(loose);
     
     foreach (name, settings; config)
     {

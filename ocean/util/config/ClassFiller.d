@@ -77,6 +77,19 @@ debug private  import ocean.util.log.Trace;
 
 /*******************************************************************************
 
+    Whether loose parsing is enabled or not. 
+    Loose parsing means, that variables that have no effect are allowed.
+    
+    States
+        false = variables that have no effect cause an exception
+        true  = variables that have no effect cause a stderr warning message
+
+*******************************************************************************/
+
+private bool loose_parsing = false;
+
+/*******************************************************************************
+
     Configuration settings that are mandatory can be marked as such by
     wrapping them with this template.
     If the variable is not set, the an exception is thrown.
@@ -212,6 +225,27 @@ private template StripTypedef ( T )
 
 /*******************************************************************************
 
+    Set whether loose parsing is enabled or not. 
+    Loose parsing means, that variables that have no effect are allowed.
+    
+    Initial value is false.
+    
+    Params:
+        state =
+            default: true
+            false: variables that have no effect cause an exception
+            true:  variables that have no effect cause a stderr warning message
+
+*******************************************************************************/
+
+public bool enable_loose_parsing ( bool state = true )
+{
+    return loose_parsing = state;
+}
+
+
+/*******************************************************************************
+
     Creates an instance of T, and fills it with according values from the
     configuration file. The name of each variable will used to get it
     from the given section in the configuration file.
@@ -235,10 +269,10 @@ private template StripTypedef ( T )
 *******************************************************************************/
 
 public T fill ( T : Object, Source = ConfigParser )
-              ( char[] group, bool loose = false, Source config = null )
+              ( char[] group, Source config = null )
 {
     T reference;
-    return fill(group, reference, loose, config);
+    return fill(group, reference, config);
 }
 
 
@@ -270,8 +304,7 @@ public T fill ( T : Object, Source = ConfigParser )
 *******************************************************************************/
 
 public T fill ( T : Object, Source = ConfigParser )
-              ( char[] group, ref T reference, bool loose = false, 
-                Source config = null )
+              ( char[] group, ref T reference, Source config = null )
 {
     if ( reference is null )
     {
@@ -289,7 +322,10 @@ public T fill ( T : Object, Source = ConfigParser )
         {
             auto msg = "Invalid configuration key " ~ group ~ "." ~ var;
             
-            if ( !loose ) throw new ConfigException(msg, __FILE__, __LINE__);
+            if ( !loose_parsing )
+            {
+                throw new ConfigException(msg, __FILE__, __LINE__);
+            }
             else Trace.formatln("#### WARNING: {}", msg);
         }
     }
@@ -354,7 +390,6 @@ struct ClassIterator ( T, Source = ConfigParser )
 {
     Source config;
     char[] root;
-    bool loose;
 
     /***********************************************************************
 
@@ -377,7 +412,7 @@ struct ClassIterator ( T, Source = ConfigParser )
 
             if ( key.length > root.length && key[0 .. root.length] == root )
             {
-                instance = fill(key, instance, loose, config);
+                instance = fill(key, instance, config);
 
                 auto name = key[root.length + 1 .. $];
                 result = dg(name, instance);
