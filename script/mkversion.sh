@@ -38,7 +38,7 @@ NOTE: All these options are replace in the template using sed s// command and
 }
 
 # Parse arguments
-while getopts o:L:a:h flag
+while getopts o:L:a:t:d:h flag
 do
     case $flag in
         o)  rev_file="$OPTARG";;
@@ -84,7 +84,7 @@ tmp=`mktemp mkversion.XXXXXXXXXX`
 trap "rm -f '$tmp'; exit 1" INT TERM QUIT
 
 # Generate the file (in a temporary) based on a template
-cp "$lib_dir/ocean/script/Version.d.tpl" "$tmp"
+cp "$template" "$tmp"
 module=`echo "$rev_file" | sed -e 's|/|.|g' -e 's|.d||g'`
 gc="$1"; shift
 sed -i "$tmp" \

@@ -1,0 +1,202 @@
+/*******************************************************************************
+
+    Utility class to do more common tasks a command line application with
+    a configuration file with loggers have to do to start running.
+
+    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
+
+    authors:        Leandro Lucarella
+
+*******************************************************************************/
+
+module ocean.util.app.LoggedCliApp;
+
+
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+public import ocean.util.app.Application : Application;
+public import ocean.util.config.ConfigParser : ConfigParser;
+public import ocean.text.Arguments : Arguments;
+
+private import ocean.util.app.ConfiguredCliApp;
+private import ocean.util.app.ext.model.ILogExtExtension;
+private import ocean.util.app.ext.LogExt;
+private import ocean.util.app.ExitException;
+
+private import tango.util.log.Log;
+
+
+
+/*******************************************************************************
+
+    Extensible class to do all the common task needed to run a command line
+    application that uses configuration files with loggers.
+
+    This is a subclass of ConfiguredCliApp, it registers an LogExt extension to
+    it, it implements the ILogExtExtension interface, and adds itself as an
+    LogExt extension.
+
+    So, for using this class you should usually need to implement the run()
+    method and the preConfigureLoggers() and postConfigureLoggers() methods if
+    you want to customize it.
+
+    Example:
+
+    ---
+
+    import ocean.util.app.LoggedCliApp;
+    import ocean.io.Stdout;
+    import tango.util.log.Log;
+    import tango.text.convert.Integer;
+
+    class Returner : LoggedCliApp
+    {
+        int r;
+        this ( )
+        {
+            super("returner", "Returns an arbitrary error code to the OS");
+        }
+        public override void setupArgs( Application app, Arguments args )
+        {
+            args("return").aliased('r').params(1).smush().defaults("0")
+                .help("code to return to the OS");
+        }
+        public override char[] validateArgs( Application app, Arguments args )
+        {
+            if (toInt(args("return").assigned[0]) < 0)
+            {
+                return "--return should be a positive integer";
+            }
+            return null;
+        }
+        public override void processConfig( Application app, ConfigParser config )
+        {
+            this.r = config.get("RETURN", "return_code", 0);
+            if (this.args("return").set)
+            {
+                this.r = toInt(this.args("return").assigned[0]);
+            }
+        }
+        protected override int run ( Arguments args, ConfigParser config )
+        {
+            Log.lookup("test").info("Exiting with code {}", this.r);
+            return this.r;
+        }
+
+    }
+
+    int main(char[][] args)
+    {
+        auto app = new Returner;
+        return app.main(args);
+    }
+
+    ---
+
+*******************************************************************************/
+
+abstract class LoggedCliApp : ConfiguredCliApp, ILogExtExtension
+{
+
+    /***************************************************************************
+
+        Logging extension instance.
+
+    ***************************************************************************/
+
+    public LogExt log_ext;
+
+
+    /***************************************************************************
+
+        Constructor.
+
+        This constructor only setup the internal state of the class, but does
+        not call any extension or user code. The application runs only when the
+        main() method is called.
+
+        Params:
+            name = name of the application
+            desc = short description of the application
+            use_insert_appender = true if the insert appender should be used
+                                  instead of the regular one
+            loose_config_parsing = if true, configuration files will be parsed
+                                   in a more relaxed way
+            default_configs = default configuration files to parse
+            config = configuration parser to use, defaults to the global
+                     instance provided by the ocean.util.Config module.
+
+    ***************************************************************************/
+
+    this ( char[] name, char[] desc, bool use_insert_appender = false,
+            bool loose_config_parsing = false,
+            char[][] default_configs = [ "etc/config.ini" ],
+            ConfigParser config = null )
+    {
+        super(name, desc, loose_config_parsing, default_configs, config);
+        this.log_ext = new LogExt(use_insert_appender);
+        this.config_ext.registerExtension(this.log_ext);
+    }
+
+
+    /***************************************************************************
+
+        Exit cleanly from the application.
+
+        Calling exit() will properly unwind the stack and all the destructors
+        will be called. Should be used only from the main application thread
+        though.
+
+        If will also log the message (as a fatal message) if a looger is
+        specified.
+
+        Params:
+            status = status code to return to the OS
+            msg = optional message to show just before exiting
+            logger = logger to use to log the message
+
+    ***************************************************************************/
+
+    public void exit(int status, char[] msg = null, Logger logger = null )
+    {
+        if (logger !is null)
+        {
+            logger.fatal(msg);
+        }
+        throw new ExitException(status, msg);
+    }
+
+
+    /***************************************************************************
+
+        ILogExtExtension methods dummy implementation.
+
+        This methods are implemented with "empty" implementation to ease
+        deriving from this class.
+
+        See IConfigExtExtension documentation for more information on how to
+        override this methods.
+
+    ***************************************************************************/
+
+    public override void preConfigureLoggers ( Application app,
+            ConfigParser config, bool loose_config_parsing,
+            bool use_insert_appender )
+    {
+        // Dummy implementation of the interface
+    }
+
+    public override void postConfigureLoggers ( Application app,
+            ConfigParser config, bool loose_config_parsing,
+            bool use_insert_appender )
+    {
+        // Dummy implementation of the interface
+    }
+
+}
+
