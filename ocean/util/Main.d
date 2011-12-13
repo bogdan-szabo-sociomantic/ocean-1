@@ -324,9 +324,11 @@ public class Main
         init_config_dg(cl_args[0], args("config").assigned[0]);
 
         // LOG configuration parsing
+        Class.enable_loose_parsing(true);
         LogUtil.configureLoggers(Class.iterate!(LogUtil.Config)("LOG"),
                                  Class.fill!(LogUtil.MetaConfig)("LOG"),
                                  true, use_insert_appender);
+        Class.enable_loose_parsing(args("loose").set);
 
         if ( Config.get("LOG", "default_version_log", true) )
         {
