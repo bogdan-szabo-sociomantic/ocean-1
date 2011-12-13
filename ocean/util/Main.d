@@ -326,7 +326,7 @@ public class Main
         // LOG configuration parsing
         LogUtil.configureLoggers(Class.iterate!(LogUtil.Config)("LOG"),
                                  Class.fill!(LogUtil.MetaConfig)("LOG"),
-                                 args("loose").set, use_insert_appender);
+                                 true, use_insert_appender);
 
         if ( Config.get("LOG", "default_version_log", true) )
         {
