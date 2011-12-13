@@ -73,7 +73,7 @@ private import ocean.util.Config;
 
 private import ocean.util.config.ConfigParser;
 
-debug private  import ocean.util.log.Trace;
+private import ocean.util.log.Trace;
 
 /*******************************************************************************
 
