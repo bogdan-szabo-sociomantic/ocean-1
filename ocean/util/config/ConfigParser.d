@@ -398,13 +398,13 @@ class ConfigParser
             Config.parse("some-config.ini");
             // throws if not found
             auto str = Config.getStrict!(char[])("some-cat", "some-key");
-            auto n = Config.getStrict!(int)("some-cat", "some-int");
+            auto n = Config.getStrict!(int)("some-cat", "some-key");
 
         ---
 
         Params:
             category = category to get key from
-            key      = name of the key to get
+            key = name of the key to get
 
         Throws:
             if the specified key does not exist
@@ -435,10 +435,52 @@ class ConfigParser
 
     /***************************************************************************
 
+        Alternative form strict config value getter, returning the retrieved
+        value via a reference. (The advantage being that the template type can
+        then be inferred by the compiler.)
+
+        Template can be instantiated with integer, float or string (char[])
+        type.
+
+        Usage Example:
+
+        ---
+
+            Config.parse("some-config.ini");
+            // throws if not found
+            char[] str;
+            int n;
+
+            Config.getStrict(str, "some-cat", "some-key");
+            Config.getStrict(n, "some-cat", "some-key");
+
+        ---
+
+        Params:
+            value = output for config value
+            category = category to get key from
+            key = name of the key to get
+
+        Throws:
+            if the specified key does not exist
+
+        TODO: perhaps we should discuss removing the other version of
+        getStrict(), above? It seems a little bit confusing having both methods,
+        and I feel this version is more convenient to use.
+
+    ***************************************************************************/
+
+    public void getStrict ( T ) ( ref T value, char[] category, char[] key )
+    {
+        value = this.getStrict!(T)(category, key);
+    }
+
+
+    /***************************************************************************
+
         Non-strict method to get the value of a config key into the specified
-        output value. The existence or non-existence of the key is returned. If
-        the configuration key cannot be found, the output value remains
-        unchanged.
+        output value. If the config key does not exist, the given default value
+        is returned.
 
         Template can be instantiated with integer, float or string (char[])
         type.
@@ -455,11 +497,11 @@ class ConfigParser
 
         Params:
             category = category to get key from
-            key      = name of the key to get
+            key = name of the key to get
             default_value = default value to use if missing in the config
 
         Returns:
-            true on success or false if the key could not be found
+            config value, if existing, otherwise default value
 
     ***************************************************************************/
 
@@ -471,6 +513,47 @@ class ConfigParser
             return getStrict!(DynamicArrayType!(T))(category, key);
         }
         return default_value;
+    }
+
+
+    /***************************************************************************
+
+        Alternative form non-strict config value getter, returning the retrieved
+        value via a reference. (For interface consistency with the reference
+        version of getStrict(), above.)
+
+        Template can be instantiated with integer, float or string (char[])
+        type.
+
+        Usage Example:
+
+        ---
+
+            Config.parse("some-config.ini");
+            char[] str;
+            int n;
+
+            Config.get(str, "some-cat", "some-key", "default value");
+            Config.get(n, "some-cat", "some-key", 23);
+
+        ---
+
+        Params:
+            value = output for config value
+            category = category to get key from
+            key = name of the key to get
+            default_value = default value to use if missing in the config
+
+        TODO: perhaps we should discuss removing the other version of
+        get(), above? It seems a little bit confusing having both methods,
+        and I feel the reference version is more convenient to use.
+
+    ***************************************************************************/
+
+    public void get ( T ) ( ref T value, char[] category,
+        char[] key, T default_value )
+    {
+        value = this.get(category, key, default_value);
     }
 
 
