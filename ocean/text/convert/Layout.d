@@ -197,7 +197,18 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
 
     typeof (this) opCall ( ... )
     {
-        return this.vwrite(_arguments, _argptr);
+        version (DigitalMarsX64)
+        {
+            va_list ap;
+
+            va_start(ap, __va_argsave);
+
+            scope(exit) va_end(ap);
+
+            return this.vwrite(_arguments, ap);
+        }
+        else
+            return this.vwrite(_arguments, _argptr);
     }
     
     /**************************************************************************
@@ -218,7 +229,18 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
 
     T[] format ( T[] fmt, ... )
     {
-        return this.vformat(fmt, _arguments, _argptr);
+        version (DigitalMarsX64)
+        {
+            va_list ap;
+
+            va_start(ap, __va_argsave);
+
+            scope(exit) va_end(ap);
+
+            return this.vformat(fmt, _arguments, ap);
+        }
+        else
+            return this.vformat(fmt, _arguments, _argptr);
     }
     
     /**************************************************************************
@@ -238,11 +260,11 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
     
      **************************************************************************/
 
-    T[] vformat ( T[] fmt, TypeInfo[] arguments, void* argptr )
+    T[] vformat ( T[] fmt, TypeInfo[] arguments, va_list argptr )
     {
         if (arguments.length)
         {
-            this.layout.convert((char[] chunk){return super.append(chunk).length;}, arguments, argptr, fmt);
+            this.layout.convert((char[] chunk){return cast(uint)super.append(chunk).length;}, arguments, argptr, fmt);
         }
         else
         {
@@ -266,29 +288,22 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
     
      **************************************************************************/
     
-    typeof (this) vwrite ( TypeInfo[] arguments, void* argptr )
+    typeof (this) vwrite ( TypeInfo[] arguments, va_list argptr )
     {
         foreach (ref argument; arguments)
         {
             if (argument is typeid (T[]))
             {
-                super ~= *cast (T[]*) argptr;
+                super ~= va_arg!(T[])(argptr);
             }
             else if (argument is typeid (T))
             {
-                super ~= *cast (T*) argptr;
+                super ~= va_arg!(T)(argptr);
             }
             else
             {
                 this.vformat("{}", (&argument)[0 .. 1], argptr);
             }
-            
-            version (DigitalMars) {} else {static assert (false, "Please add non-DMD variadic arguments support.");}
-            version (X86) {} else {static assert (false, "Please add non-X68 variadic arguments support.");}
-            
-            const size_t n = size_t.sizeof - 1;                                 // Taken from tango.stdc.stdarg.va_arg()
-                                                                                // whose design unfortunately prevents it  
-            argptr += ((argument.tsize + n) & ~n);                              // to be usable here.
         }
         
         return this;

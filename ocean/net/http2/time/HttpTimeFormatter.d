@@ -24,7 +24,7 @@ module ocean.net.http2.time.HttpTimeFormatter;
 
 private import tango.stdc.time:       time_t, tm, time;
 private import tango.stdc.posix.time: gmtime_r, localtime_r;
-private import tango.stdc.stdlib:     div;
+private import tango.stdc.stdlib:     lldiv;
 
 /******************************************************************************/
 
@@ -200,10 +200,14 @@ struct HttpTimeFormatter
     }
     body
     {
-        foreach_reverse (ref c; dst) with (div(n, 10))
+        foreach_reverse (ref c; dst) 
         {
-            c = rem + '0';
-            n = quot;
+            auto divver = lldiv(n, 10);
+            with (divver)
+            {
+                c = divver.rem + '0';
+                n = divver.quot;
+            }
         }
     }
     
