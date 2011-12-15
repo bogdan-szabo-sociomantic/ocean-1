@@ -148,7 +148,7 @@ public struct MetricPrefix
         {
             if (n > 1)
             {
-                for (i += e; (n > 1000) && (i < DecimalPrefixes.length); i++)
+                for (i += e; (n > 1000) && (i+1 < DecimalPrefixes.length); i++)
                 {
                     n           /= 1000;
                     this.scaled /= 1000;
@@ -156,7 +156,7 @@ public struct MetricPrefix
             }
             else
             {
-                for (i += e; (n < 1) && (i > 0); i--)
+                for (i += e; (n < 1) && (i-1 > 0); i--)
                 {
                     n           *= 1000;
                     this.scaled *= 1000;
