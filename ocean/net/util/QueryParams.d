@@ -26,6 +26,8 @@ private import ocean.net.util.ParamSet;
 
 private import ocean.text.util.SplitIterator: ChrSplitIterator;
 
+private import ocean.core.AppendBuffer;
+
 /******************************************************************************/
 
 class QueryParams
@@ -45,8 +47,8 @@ class QueryParams
     
      **************************************************************************/
 
-    private ChrSplitIterator split_paramlist;
-    private ChrSplitIterator split_param;
+    private const ChrSplitIterator split_paramlist,
+                                   split_param;
     
     /**************************************************************************
 
@@ -138,7 +140,7 @@ class QueryParamSet: ParamSet
     
      **************************************************************************/
 
-    private QueryParams query_params;
+    private const QueryParams query_params;
     
     /**************************************************************************
     
@@ -168,31 +170,54 @@ class QueryParamSet: ParamSet
     
      **************************************************************************/
 
-    public typeof (this) parse ( char[] query )
+    public void parse ( char[] query )
     {
         super.reset();
         
         foreach (key, val; this.query_params.set(query))
         {
             super.set(key, val);
-            
-            version (none)
-            {
-                // FIXME: sometimes the delimter between cookies isn't just ";" 
-                //        sometimes its also "; " with a space afterwards
-                if ( key[0] == ' ')
-                {
-                    super.set(key[1..$], val);
-                }
-                else
-                {
-                    super.set(key, val);
-                }
-            }
         }
-        
-        return this;
     }
+    
+    deprecated protected void add ( char[] key, char[] val ) { }
+}
+
+class ListQueryParamSet: QueryParamSet
+{
+    public const IAppendBufferReader!(Element) elements;
+    
+    private const AppendBuffer!(Element) elements_;
+    
+    /**************************************************************************
+    
+        Constructor
+        
+        Params:
+            keys = parameter keys of interest (case-insensitive)
+    
+     **************************************************************************/
+
+    public this ( char element_delim, char keyval_delim, char[][] keys ... )
+    {
+        super(element_delim, keyval_delim, keys);
+        
+        this.elements = this.elements_ = new AppendBuffer!(Element);
+    }
+    
+    protected override void add ( char[] key, char[] val )
+    {
+        this.elements_ ~= Element(key, val);
+    }
+    
+    final protected override void reset_ ( )
+    {
+        this.elements_.clear();
+        
+        this.reset__();
+    }
+    
+    protected void reset__ ( ) { }
 }
 
 /******************************************************************************/
