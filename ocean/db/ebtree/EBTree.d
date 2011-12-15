@@ -76,7 +76,8 @@ debug private import tango.util.log.Trace;
     EBTree class template.
     
     Template params:
-        T = internal type (must be a 32- or 64-bit integer type)
+        T = internal type (must be a 32-, 64-bit or 128-bit (on x86_64 platforms)
+            integer type)
 
 *******************************************************************************/
 
@@ -124,10 +125,18 @@ public class EBTree ( T )
         private alias eb64_lookup_le lookupLE;
         private alias eb64_lookup_ge lookupGE;
     }
+    else static if ( T.sizeof == 16 )
+    {
+        public alias eb128_node!(T) Node;
+        private alias eb128_first getFirst;
+        private alias eb128_last getLast;
+        private alias eb128_lookup_le lookupLE;
+        private alias eb128_lookup_ge lookupGE;
+    }    
     else
     {
         public alias bool Node;
-        static assert(false, typeof(this).stringof ~ ": internal type must be either a 32- or 64-bit type, not " ~ T.stringof);
+        static assert(false, typeof(this).stringof ~ ": internal type must be either a 32-, 64-bit or 128-bit type, not " ~ T.stringof);
     }
 
 

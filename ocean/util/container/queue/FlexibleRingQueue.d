@@ -560,15 +560,15 @@ unittest
     assert(!queue.push(cast(ubyte[])"more"));
     assert(queue.length == 10);
     
-    scope middle = new FlexibleByteRingQueue(5*5);        
+    scope middle = new FlexibleByteRingQueue((1+FlexibleByteRingQueue.Header.sizeof)*5);        
     middle.push(cast(ubyte[])"1");        
     middle.push(cast(ubyte[])"2");
     middle.push(cast(ubyte[])"3");
     middle.push(cast(ubyte[])"4");
     assert(middle.pop == cast(ubyte[])"1");        
-    assert(middle.read_from == 5);
-    assert(middle.write_to == 5*4);
-    assert(middle.freeSpace() == 5*2);
+    assert(middle.read_from == 1 + FlexibleByteRingQueue.Header.sizeof);
+    assert(middle.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*4);
+    assert(middle.freeSpace() == (1+FlexibleByteRingQueue.Header.sizeof)*2);
     assert(middle.push(cast(ubyte[])"5"));
     assert(middle.push(cast(ubyte[])"6"));
     assert(middle.freeSpace() == 0);

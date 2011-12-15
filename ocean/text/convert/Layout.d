@@ -46,6 +46,41 @@ private import ocean.core.AppendBuffer;
 private import TangoLayout = tango.text.convert.Layout;
 
 
+/*******************************************************************************
+
+ Platform issues ...
+
+*******************************************************************************/
+
+version (GNU)
+{
+    private import tango.core.Vararg;
+
+    alias void* Arg;
+    alias va_list ArgList;
+}
+else version (LDC)
+{
+    private import tango.core.Vararg;
+
+    alias void* Arg;
+    alias va_list ArgList;
+}
+else version (DigitalMars)
+{
+    private import tango.core.Vararg;
+
+    alias void* Arg;
+    alias va_list ArgList;
+
+    version (X86_64) version = DigitalMarsX64;
+}
+else
+{
+    alias void* Arg;
+    alias void* ArgList;
+}
+
 
 class Layout ( T )
 {
@@ -82,13 +117,24 @@ class Layout ( T )
 
     static public char[] print ( ref char[] output, T[] formatStr, ... )
     {
-        size_t layoutSink ( char[] s )
+        uint layoutSink ( char[] s )
         {
             output.append(s);
             return s.length;
         }
+        
+        version (DigitalMarsX64)
+        {
+            va_list ap;
 
-        this.layout.convert(&layoutSink, _arguments, _argptr, formatStr);
+            va_start(ap, __va_argsave);
+
+            scope(exit) va_end(ap);
+
+            this.layout.convert(&layoutSink, _arguments, ap, formatStr);
+        }
+        else
+            this.layout.convert(&layoutSink, _arguments, _argptr, formatStr);
         
         return output;
     }

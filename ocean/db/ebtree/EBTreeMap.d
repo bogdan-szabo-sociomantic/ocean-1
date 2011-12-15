@@ -128,9 +128,9 @@ class EBTreeMap ( Key, Value, bool KeyUnique = false )
     
     ***************************************************************************/
 
-    static assert(Key.sizeof == 4, This.stringof ~ ": only supports 32-bit types, not " ~ Key.stringof);
+    static assert(Key.sizeof == 8 || Key.sizeof == 4, This.stringof ~ ": only supports 32/64-bit types, not " ~ Key.stringof);
     
-    static assert(Value.sizeof == 4, This.stringof ~ ": only supports 32-bit types, not " ~ Value.stringof);
+    static assert(Value.sizeof == 8 || Key.sizeof == 4, This.stringof ~ ": only supports 32/64-bit types, not " ~ Value.stringof);
     
     /***************************************************************************
 
@@ -138,7 +138,7 @@ class EBTreeMap ( Key, Value, bool KeyUnique = false )
 
     ***************************************************************************/
 
-    private alias EBTree!(ulong) Tree;
+    private alias EBTree!((Key.sizeof > Value.sizeof ? Value.sizeof : Key.sizeof) * 2) Tree;
     private Tree tree;
 
 
@@ -186,7 +186,11 @@ class EBTreeMap ( Key, Value, bool KeyUnique = false )
     
         ***********************************************************************/
     
-        private union NodeUnion
+        static if (Key.sizeof == 8 && Value.sizeof == 8)
+        {
+            private alias MappingData NodeUnion;
+        }
+        else private union NodeUnion
         {
             MappingData data;
             ulong integer;

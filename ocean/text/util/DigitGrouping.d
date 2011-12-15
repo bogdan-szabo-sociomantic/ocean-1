@@ -143,7 +143,7 @@ public class DigitGrouping
         char[20] string_buf; // 20 characters is enough to store ulong.max
         size_t layout_pos;
 
-        size_t layoutSink ( char[] s )
+        uint layoutSink ( char[] s )
         {
             string_buf[layout_pos .. layout_pos + s.length] = s[];
             layout_pos += s.length;

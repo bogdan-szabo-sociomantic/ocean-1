@@ -31,6 +31,42 @@ private import tango.text.convert.Layout;
 
 private import tango.text.Search;
 
+
+/*******************************************************************************
+
+ Platform issues ...
+
+*******************************************************************************/
+
+version (GNU)
+{
+    private import tango.core.Vararg;
+
+    alias void* Arg;
+    alias va_list ArgList;
+}
+else version (LDC)
+{
+    private import tango.core.Vararg;
+
+    alias void* Arg;
+    alias va_list ArgList;
+}
+else version (DigitalMars)
+{
+    private import tango.core.Vararg;
+
+    alias void* Arg;
+    alias va_list ArgList;
+
+    version (X86_64) version = DigitalMarsX64;
+}
+else
+{
+    alias void* Arg;
+    alias void* ArgList;
+}
+
 /*******************************************************************************
 
     Construct StaticTrace when this module is loaded
@@ -92,9 +128,20 @@ private class StaticSyncPrint
             formatted ~= s;
             return s.length;
         }
+        
+        version (DigitalMarsX64)
+        {
+            va_list ap;
 
-        Layout!(char).instance()(&sink, _arguments, _argptr, fmt);
+            va_start(ap, __va_argsave);
 
+            scope(exit) va_end(ap);
+
+            Layout!(char).instance()(&sink, _arguments, ap, fmt);
+        }
+        else
+            Layout!(char).instance()(&sink, _arguments, _argptr, fmt);
+        
         size_t lines = 0;
         char[] nl = "";
         

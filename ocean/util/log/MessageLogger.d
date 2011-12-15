@@ -30,6 +30,40 @@ private import tango.text.convert.Layout;
 private import ocean.util.log.Trace;
 
 
+/*******************************************************************************
+
+ Platform issues ...
+
+*******************************************************************************/
+
+version (GNU)
+{
+    private import tango.core.Vararg;
+
+    alias void* Arg;
+    alias va_list ArgList;
+}
+else version (LDC)
+{
+    private import tango.core.Vararg;
+
+    alias void* Arg;
+    alias va_list ArgList;
+}
+else version (DigitalMars)
+{
+    private import tango.core.Vararg;
+
+    alias void* Arg;
+    alias va_list ArgList;
+
+    version (X86_64) version = DigitalMarsX64;
+}
+else
+{
+    alias void* Arg;
+    alias void* ArgList;
+}
 
 /*******************************************************************************
 
@@ -149,7 +183,18 @@ class MessageLogger
 
     public void write ( char[] fmt, ... )
     {
-        this.write(fmt, _arguments, _argptr);
+        version (DigitalMarsX64)
+        {
+            va_list ap;
+
+            va_start(ap, __va_argsave);
+
+            scope(exit) va_end(ap);
+
+            this.write(fmt, _arguments, ap);
+        }
+        else
+            this.write(fmt, _arguments, _argptr);
     }
 
 

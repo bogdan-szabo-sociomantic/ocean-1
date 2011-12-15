@@ -39,7 +39,40 @@ private import tango.text.convert.Layout;
 
 version (Posix) private import tango.stdc.posix.unistd : isatty;
 
+/*******************************************************************************
 
+ Platform issues ...
+
+*******************************************************************************/
+
+version (GNU)
+{
+    private import tango.core.Vararg;
+
+    alias void* Arg;
+    alias va_list ArgList;
+}
+else version (LDC)
+{
+    private import tango.core.Vararg;
+
+    alias void* Arg;
+    alias va_list ArgList;
+}
+else version (DigitalMars)
+{
+    private import tango.core.Vararg;
+
+    alias void* Arg;
+    alias va_list ArgList;
+
+    version (X86_64) version = DigitalMarsX64;
+}
+else
+{
+    alias void* Arg;
+    alias void* ArgList;
+}
 
 /*******************************************************************************
 

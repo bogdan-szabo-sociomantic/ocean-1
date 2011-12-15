@@ -117,9 +117,11 @@ class MicrosecondsClock : IMicrosecondsClock
     static ulong us ( timeval t )
     in
     {
-        static assert (cast (ulong) t.tv_sec.max <                              // overflow check
-                       (cast (ulong) t.tv_sec.max + 1) * 1_000_000);
-        
+        static if (is (t.tv_sec : int))
+        {
+            static assert (cast (ulong) t.tv_sec.max <                          // overflow check
+                          (cast (ulong) t.tv_sec.max + 1) * 1_000_000);
+        }        
     }
     body
     {

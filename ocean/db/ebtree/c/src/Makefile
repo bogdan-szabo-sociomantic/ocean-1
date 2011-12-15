@@ -64,7 +64,7 @@ ARCH_FLAGS        = $(ARCH_FLAGS.$(ARCH))
 # These CFLAGS contain general optimization options, CPU-specific optimizations
 # and debug flags. They may be overridden by some distributions which prefer to
 # set all of them at once instead of playing with the CPU and DEBUG variables.
-CFLAGS = $(ARCH_FLAGS) $(CPU_CFLAGS) $(SPEC_CFLAGS)
+CFLAGS = $(ARCH_FLAGS) $(CPU_CFLAGS) $(SPEC_CFLAGS) -fPIC
 
 #### Common LDFLAGS
 # These LDFLAGS are used as the first "ld" options, regardless of any library
@@ -72,7 +72,7 @@ CFLAGS = $(ARCH_FLAGS) $(CPU_CFLAGS) $(SPEC_CFLAGS)
 # option at the beginning of the ld command line.
 LDFLAGS = $(ARCH_FLAGS) -g
 
-EBTREE_OBJS = ebtree.o eb32tree.o eb64tree.o ebmbtree.o ebsttree.o ebimtree.o ebistree.o
+EBTREE_OBJS = ebtree.o eb32tree.o eb64tree.o eb128tree.o ebmbtree.o ebsttree.o ebimtree.o ebistree.o
 
 # ebtree libraries
 LIB_EBTREE_STATIC = libebtree.a
