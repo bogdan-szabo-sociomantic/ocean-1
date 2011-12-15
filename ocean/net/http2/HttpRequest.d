@@ -155,6 +155,8 @@ class HttpRequest : HttpHeader
         
         this.uri_ = new Uri;
         
+        this.msg_body_ = new char[0x400];
+        
         this.http_exception = new HttpException;
         this.header_param_exception = new HeaderParameterException;
         
@@ -448,15 +450,19 @@ class HttpRequest : HttpHeader
         
      **************************************************************************/
 
-    protected override void reset_ ( )
+    final protected override void reset_ ( )
     {
-        this.method             = this.method.init;
-        this.http_version_       = this.http_version_.init;
-        this.msg_body_pos       = 0;
-        this.header_complete    = false;
+        this.method          = this.method.init;
+        this.http_version_   = this.http_version_.init;
+        this.msg_body_pos    = 0;
+        this.header_complete = false;
         this.uri_.reset();
         this.parser.reset();
+        
+        this.reset__();
     }
+    
+    protected void reset__ ( ) { }
     
     /**************************************************************************
     
