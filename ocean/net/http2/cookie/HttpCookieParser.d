@@ -29,9 +29,9 @@ private import ocean.net.util.QueryParams: QueryParamSet;
 
 class HttpCookieParser : QueryParamSet
 {
-    this ( char[][] attribute_names ... )
+    this ( char[][] cookie_names ... )
     {
-        super(';', '=', attribute_names);
+        super(';', '=', cookie_names);
     }
 }
 
@@ -39,20 +39,18 @@ class HttpCookieParser : QueryParamSet
 
 unittest
 {
-    const char[] cookie = "_codespaces_hosted_edition_session = BAh7BzoMdXNlcl9pZGkCXC46D3Nlc3Npb25faWQiJTY2NTQ0OWM0N2Q2NjlkZDY1OTY2MGYwZDY5MmYwY2M0--c5e3812e263d129b476cf498f369a07ecf822e86; path=/; HttpOnly";
+    const char[] cookie_header_value = "sonar=2649113645; sonar-expires=1383922851";
     
-    const char[][] attribute_names =
+    const char[][] cookie_names =
     [
-        "_codespaces_hosted_edition_session",
-        "path",
-        "HttpOnly"
+        "sonar",
+        "sonar-expires"
     ];
     
-    scope cp = new HttpCookieParser(attribute_names);
+    scope cookie = new HttpCookieParser(cookie_names);
     
-    cp.parse(cookie);
+    cookie.parse(cookie_header_value);
     
-    assert (cp["_codespaces_hosted_edition_session"] == "BAh7BzoMdXNlcl9pZGkCXC46D3Nlc3Npb25faWQiJTY2NTQ0OWM0N2Q2NjlkZDY1OTY2MGYwZDY5MmYwY2M0--c5e3812e263d129b476cf498f369a07ecf822e86");;
-    assert (cp["path"] == "/");
-    assert (cp["HttpOnly"] == "");
+    assert (cookie["sonar"] == "2649113645");;
+    assert (cookie["sonar-expires"] == "1383922851");
 }

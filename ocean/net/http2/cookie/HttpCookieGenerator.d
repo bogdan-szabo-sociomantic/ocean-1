@@ -8,19 +8,68 @@ module ocean.net.http2.cookie.HttpCookieGenerator;
 
 private import ocean.net.util.ParamSet;
 
-private import ocean.core.AppendBuffer;
+private import ocean.net.http2.consts.CookieAttributeNames;
+
+private import ocean.net.http2.time.HttpTimeFormatter;
 
 /******************************************************************************/
 
 class HttpCookieGenerator : ParamSet
 {
-    /**************************************************************************
+    public const char[] id;
     
-        Content buffer
+    public char[] domain, path;
+    
+    private static class ExpirationTime
+    {
+        protected bool is_set_ = false;
         
-     **************************************************************************/
+        protected time_t t;
+        
+        public time_t opAssign ( time_t t )
+        in
+        {
+            assert (t >= 0, "negative time value");
+        }
+        body
+        {
+            this.is_set_ = true;
+            return this.t = t;
+        }
+        
+        public void clear ( )
+        {
+            this.is_set_ = false;
+        }
+        
+        public bool is_set ( )
+        {
+            return this.is_set_;
+        }
+        
+        public bool get ( ref time_t t )
+        {
+            if (this.is_set_)
+            {
+                t = this.t;
+            }
+            
+            return this.is_set_;
+        }
+    }
     
-    private AppendBuffer!(char) content;
+    private static class FormatExpirationTime : ExpirationTime
+    {
+        private HttpTimeFormatter formatter;
+        
+        public char[] format ( )
+        {
+            return super.is_set_? this.formatter.format(super.t) : null;
+        }
+    }
+    
+    public  const ExpirationTime       expiration_time;
+    private const FormatExpirationTime fmt_expiration_time;
     
     /**************************************************************************
         
@@ -31,12 +80,25 @@ class HttpCookieGenerator : ParamSet
         
      **************************************************************************/
 
-    this ( char[][] attribute_names ... )
+    this ( char[] id, char[][] attribute_names ... )
     {
+        super.addKeys(this.id = id);
+        
         super.addKeys(attribute_names);
+        
         super.rehash();
         
-        this.content = new AppendBuffer!(char)(0x400);
+        this.expiration_time = this.fmt_expiration_time = new FormatExpirationTime;
+    }
+    
+    char[] value ( char[] val )
+    {
+        return super[this.id] = val;
+    }
+    
+    char[] value ( )
+    {
+        return super[this.id];
     }
     
     /**************************************************************************
@@ -49,31 +111,38 @@ class HttpCookieGenerator : ParamSet
         
      **************************************************************************/
 
-    char[] render ( )
+    void render ( void delegate ( char[] str ) appendContent )
     {
-        this.content.clear();
+        uint i = 0;
         
-        foreach (key, val; super) if (val)
+        void append ( char[] key, char[] val )
         {
-            this.content.append(key, "=", val, ";");
+            if (val)
+            {
+                if (i++)
+                {
+                    appendContent("; ");
+                }
+                
+                appendContent(key);
+                appendContent("=");
+                appendContent(val);
+            }
         }
         
-        return this.content[];
+        foreach (key, val; super) 
+        {
+            append(key, val);
+        }
+        
+        append(CookieAttributeNames.Names.Domain,  this.domain);
+        append(CookieAttributeNames.Names.Path,    this.path);
+        append(CookieAttributeNames.Names.Expires, this.fmt_expiration_time.format());
     }
     
-    /**************************************************************************
-    
-        Sets the content buffer length to the lowest currently possible value.
-        
-        Returns:
-            this instance
-    
-     **************************************************************************/
-    
-    public typeof (this) minimizeContentBuffer ( )
+    protected override void reset_ ( )
     {
-        this.content.minimize();
-        
-        return this;
+        this.expiration_time.clear();
     }
 }
+
