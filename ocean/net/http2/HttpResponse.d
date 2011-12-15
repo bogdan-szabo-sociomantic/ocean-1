@@ -87,7 +87,7 @@ class HttpResponse : HttpHeader
         
      **************************************************************************/
 
-    private AppendBuffer!(char) content;
+    private const AppendBuffer!(char) content;
     
     /**************************************************************************
     
@@ -116,7 +116,7 @@ class HttpResponse : HttpHeader
         super(HeaderFieldNames.Response.NameList,
               HeaderFieldNames.Entity.NameList);
         
-        this.content = new AppendBuffer!(char)(0x400);
+        this.content    = new AppendBuffer!(char)(0x400);
     }
     
     /**************************************************************************
@@ -188,10 +188,14 @@ class HttpResponse : HttpHeader
             this.content.append(key, ": ", val, "\r\n");
         }
         
+        this.addHeaders();
+        
         this.content.append("\r\n", (append_msg_body && !head)? msg_body : null);
         
         return this.content[];
     }
+    
+    protected void addHeaders ( ) { }
     
     /**************************************************************************
     
@@ -284,5 +288,59 @@ class HttpResponse : HttpHeader
                 val = this.time.format();
             }
         });
+    }
+}
+
+private import ocean.net.http2.cookie.HttpCookieGenerator;
+
+class CookiesHttpResponse : HttpResponse
+{
+    public const HttpCookieGenerator[] cookies;
+    
+    /**************************************************************************
+    
+        Constructor
+        
+     **************************************************************************/
+
+    public this ( HttpCookieGenerator[] cookies ... )
+    out
+    {
+        foreach (cookie; this.cookies)
+        {
+            assert (cookie !is null, "null cookie instance");
+        }
+    }
+    body
+    {
+        this.cookies = cookies.dup; // No .dup caused segfaults, apparently the
+                                    // array is then sliced. 
+        super.addKey("Set-Cookie");
+    }
+    
+    protected override void addHeaders ( )
+    {
+        foreach (cookie; this.cookies) if (cookie.value)
+        {
+            super.content ~= "Set-Cookie: ";
+            
+            cookie.render((char[] chunk){super.content ~= chunk;});
+            
+            super.content ~= "\r\n";
+        }
+    }
+    
+    /**************************************************************************
+    
+        Resets the state
+        
+     **************************************************************************/
+
+    protected override void reset_ ( )
+    {
+        foreach (cookie; this.cookies)
+        {
+            cookie.reset();
+        }
     }
 }
