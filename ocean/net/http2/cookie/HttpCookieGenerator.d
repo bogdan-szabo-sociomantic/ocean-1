@@ -1,3 +1,20 @@
+/*******************************************************************************
+
+    HTTP Cookie Generator 
+
+    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
+
+    version:        December 2011: Initial release
+
+    author:         David Eckardt
+    
+    Reference:      RFC 2109
+    
+                    @see http://www.w3.org/Protocols/rfc2109/rfc2109.txt
+                    @see http://www.servlets.com/rfcs/rfc2109.html
+    
+ ******************************************************************************/
+
 module ocean.net.http2.cookie.HttpCookieGenerator;
 
 /******************************************************************************
@@ -16,16 +33,61 @@ private import ocean.net.http2.time.HttpTimeFormatter;
 
 class HttpCookieGenerator : ParamSet
 {
+    /**************************************************************************
+    
+        Cookie ID
+    
+     **************************************************************************/
+
     public const char[] id;
     
+    /**************************************************************************
+    
+        Cookie domain and path
+    
+     **************************************************************************/
+
     public char[] domain, path;
     
+    /**************************************************************************
+    
+        Expiration time manager
+    
+     **************************************************************************/
+
     private static class ExpirationTime
     {
-        protected bool is_set_ = false;
+        /**********************************************************************
         
-        protected time_t t;
+            Expiration time if set.
         
+         **********************************************************************/
+
+        private time_t t;
+        
+        /**********************************************************************
+        
+            true if the expiration time is currently defined or false otherwise.
+        
+         **********************************************************************/
+
+        private bool is_set_ = false;
+        
+        /**********************************************************************
+        
+            Sets the expiration time.
+            
+            Params:
+                t = expiration time
+                
+            Returns:
+                t
+                
+            In:
+                t must be at least 0.
+                        
+         **********************************************************************/
+
         public time_t opAssign ( time_t t )
         in
         {
@@ -37,16 +99,44 @@ class HttpCookieGenerator : ParamSet
             return this.t = t;
         }
         
+        /**********************************************************************
+        
+            Marks the expiration time as "not set".
+                        
+         **********************************************************************/
+
         public void clear ( )
         {
             this.is_set_ = false;
         }
         
+        /**********************************************************************
+        
+            Returns:
+                true if the expiration time is currently defined or false
+                otherwise.
+                        
+         **********************************************************************/
+
         public bool is_set ( )
         {
             return this.is_set_;
         }
         
+        /**********************************************************************
+        
+            Obtains the expiration time.
+            
+            Params:
+                t = destination variable, will be set to the expiration time if
+                    and only if an expiration time is currently defined.
+            
+            Returns:
+                true if an expiration time is currently defined and t has been
+                set to it or false otherwise.
+                        
+         **********************************************************************/
+
         public bool get ( ref time_t t )
         {
             if (this.is_set_)
@@ -58,17 +148,50 @@ class HttpCookieGenerator : ParamSet
         }
     }
     
+    /**************************************************************************
+    
+        Expiration time manager with string formatter
+    
+     **************************************************************************/
+
     private static class FormatExpirationTime : ExpirationTime
     {
+        /**********************************************************************
+        
+            String formatter
+        
+         **********************************************************************/
+
         private HttpTimeFormatter formatter;
         
+        /**********************************************************************
+        
+            Returns:
+                current expiration time as HTTP time string or null if currently
+                no expiration time is defined.
+        
+         **********************************************************************/
+
         public char[] format ( )
         {
             return super.is_set_? this.formatter.format(super.t) : null;
         }
     }
     
+    /**************************************************************************
+    
+        Expiration time manager instance
+    
+     **************************************************************************/
+
     public  const ExpirationTime       expiration_time;
+    
+    /**************************************************************************
+    
+        Expiration time manager/formatter instance
+    
+     **************************************************************************/
+
     private const FormatExpirationTime fmt_expiration_time;
     
     /**************************************************************************
@@ -76,6 +199,7 @@ class HttpCookieGenerator : ParamSet
         Constructor
         
         Params:
+            id              = cookie ID
             attribute_names = cookie attribute names
         
      **************************************************************************/
@@ -91,11 +215,30 @@ class HttpCookieGenerator : ParamSet
         this.expiration_time = this.fmt_expiration_time = new FormatExpirationTime;
     }
     
+    /**************************************************************************
+        
+        Sets the cookie value.
+        
+        Params:
+            val = cookie value string
+            
+        Returns:
+            cookie value
+        
+     **************************************************************************/
+
     char[] value ( char[] val )
     {
         return super[this.id] = val;
     }
     
+    /**************************************************************************
+        
+        Returns:
+            the current cookie value
+        
+     **************************************************************************/
+
     char[] value ( )
     {
         return super[this.id];
@@ -105,9 +248,9 @@ class HttpCookieGenerator : ParamSet
     
         Renders the HTTP response Cookie header line field value.
         
-        Returns:
-            HTTP response Cookie header line field value (exposes an internal
-            buffer)
+        Params:
+            appendContent: callback delegate that will be invoked repeatedly
+            to concatenate the Cookie header line field value.
         
      **************************************************************************/
 
@@ -140,6 +283,12 @@ class HttpCookieGenerator : ParamSet
         append(CookieAttributeNames.Names.Expires, this.fmt_expiration_time.format());
     }
     
+    /**************************************************************************
+    
+        Clears the expiration time.
+        
+     **************************************************************************/
+
     protected override void reset_ ( )
     {
         this.expiration_time.clear();
