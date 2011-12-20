@@ -330,7 +330,7 @@ public class Main
                                  true, use_insert_appender);
         Class.enable_loose_parsing(args("loose").set);
 
-        if ( Config.get("LOG", "default_version_log", true) )
+        if ( Config.get("VERSION", "default_version_log", true) )
         {
             ver_log.add(new AppendFile("log/version.log", new LayoutDate));
         }
