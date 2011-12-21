@@ -33,8 +33,8 @@
 	{
 		public this ( )
 		{
-			SignalHandler.register(SignalHandler.SIGALRM, &this.alarm);
-            SignalHandler.register(SignalHandler.AppTermination, &this.terminate);
+			SignalHandler.register(SignalHandler.Signals.SIGALRM, &this.alarm);
+            SignalHandler.register(SignalHandler.Signals.AppTermination, &this.terminate);
 		}
 
 		public bool alarm ( int code )
