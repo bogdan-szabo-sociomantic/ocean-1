@@ -57,23 +57,6 @@ private import ocean.core.AppendBuffer;
 class HttpResponse : HttpHeader
 {
     /**************************************************************************
-    
-        Struct holding string buffers for header value formatting 
-        
-     **************************************************************************/
-
-    private struct FormatBuffers
-    {
-        /**********************************************************************
-        
-            Content-Length header value
-            
-         **********************************************************************/
-
-        char[] content_length;
-    }
-    
-    /**************************************************************************
         
         Response HTTP version; defaults to HTTP/1.1
         
@@ -91,11 +74,11 @@ class HttpResponse : HttpHeader
     
     /**************************************************************************
     
-        Header value formatting string buffers for  
+        Header line appender
         
      **************************************************************************/
 
-    private FormatBuffers fmt_buffers;
+    private const AppendHeaderLines append_header_lines;
     
     /**************************************************************************
     
@@ -104,6 +87,14 @@ class HttpResponse : HttpHeader
      **************************************************************************/
 
     private HttpTimeFormatter time;
+    
+    /**************************************************************************
+    
+        Decimal string buffer for Content-Length header value 
+        
+     **************************************************************************/
+    
+    private char[uint_dec_length] dec_content_length;
     
     /**************************************************************************
     
@@ -116,7 +107,7 @@ class HttpResponse : HttpHeader
         super(HeaderFieldNames.Response.NameList,
               HeaderFieldNames.Entity.NameList);
         
-        this.content    = new AppendBuffer!(char)(0x400);
+        this.append_header_lines = new AppendHeaderLines(this.content = new AppendBuffer!(char)(0x400));
     }
     
     /**************************************************************************
@@ -185,17 +176,48 @@ class HttpResponse : HttpHeader
         
         foreach (key, val; super) if (val)
         {
-            this.content.append(key, ": ", val, "\r\n");
+//            this.content.append(key, ": ", val, "\r\n");
+            this.append_header_lines(key, val);
         }
         
-        this.addHeaders();
+        this.addHeaders(this.append_header_lines);
         
         this.content.append("\r\n", (append_msg_body && !head)? msg_body : null);
         
         return this.content[];
     }
     
-    protected void addHeaders ( ) { }
+    /**************************************************************************
+    
+        Called by render() when a subclass may use append to add its response
+        eader lines.
+        
+        Example:
+        
+        ---
+            
+        class MyHttpResponse : HttpResponse
+        {
+            protected override addHeaders ( AppendHeaderLines append )
+            {
+                // append "Hello: World!\r\n"
+                
+                append("Hello", "World!");
+            }
+        }
+        
+        ---
+        
+        If the header field value of a header line needs to be assembled
+        incrementally, the AppendHeaderLines.IncrementalValue may be used; see
+        the documentation of that class below for further information. 
+        
+        Params:
+            append = header line appender
+        
+     **************************************************************************/
+    
+    protected void addHeaders ( AppendHeaderLines append ) { }
     
     /**************************************************************************
     
@@ -235,7 +257,7 @@ class HttpResponse : HttpHeader
             default:
                 if (status >= 200)
                 {
-                    bool b = super.set("Content-Length", msg_body.length, this.fmt_buffers.content_length);
+                    bool b = super.set("Content-Length", msg_body.length, this.dec_content_length);
                     assert (b);
                     
                     return true;
@@ -265,11 +287,11 @@ class HttpResponse : HttpHeader
     }
     body
     {
-        char[3] statbuf;
+        char[3] status_dec;
         
-        return this.content.append(HttpVersionIds[this.http_version_],    " ",
-                                   super.writeUintFixed(statbuf, status), " ",
-                                   StatusPhrases[status],                 "\r\n");
+        return this.content.append(HttpVersionIds[this.http_version_],  " ",
+                                   super.writeUint(status_dec, status), " ",
+                                   StatusPhrases[status],               "\r\n");
     }
     
     /**************************************************************************
@@ -289,58 +311,156 @@ class HttpResponse : HttpHeader
             }
         });
     }
-}
-
-private import ocean.net.http2.cookie.HttpCookieGenerator;
-
-class CookiesHttpResponse : HttpResponse
-{
-    public const HttpCookieGenerator[] cookies;
     
     /**************************************************************************
     
-        Constructor
+        Utility class; an instance is passed to addHeaders() to be used by a
+        subclass to append a header line to the response message.
         
      **************************************************************************/
 
-    public this ( HttpCookieGenerator[] cookies ... )
-    out
+    private static class AppendHeaderLines
     {
-        foreach (cookie; this.cookies)
-        {
-            assert (cookie !is null, "null cookie instance");
-        }
-    }
-    body
-    {
-        this.cookies = cookies.dup; // No .dup caused segfaults, apparently the
-                                    // array is then sliced. 
-        super.addKey("Set-Cookie");
-    }
-    
-    protected override void addHeaders ( )
-    {
-        foreach (cookie; this.cookies) if (cookie.value)
-        {
-            super.content ~= "Set-Cookie: ";
-            
-            cookie.render((char[] chunk){super.content ~= chunk;});
-            
-            super.content ~= "\r\n";
-        }
-    }
-    
-    /**************************************************************************
-    
-        Resets the state
+        /**********************************************************************
         
-     **************************************************************************/
+            Response content
+            
+         **********************************************************************/
 
-    protected override void reset_ ( )
-    {
-        foreach (cookie; this.cookies)
+        private const AppendBuffer!(char) content;
+        
+        /**********************************************************************
+        
+            Constructor
+            
+            Params:
+                content = response content
+            
+         **********************************************************************/
+
+        this ( AppendBuffer!(char) content )
         {
-            cookie.reset();
+            this.content = content;
+        }
+        
+        /**********************************************************************
+        
+            Appends a response message header line; that is, appends
+            name ~ ": " ~ value ~ "\r\n" to the response message content.
+            
+            Params:
+                name  = header field name
+                value = header field value
+            
+         **********************************************************************/
+
+        typeof (this) opCall ( char[] name, char[] value )
+        {
+            this.content.append(name, ": ", value, "\r\n");
+            
+            return this;
+        }
+        
+        /**********************************************************************
+        
+            true when an instance of AppendHeaderLine for this instance exists.
+            
+         **********************************************************************/
+
+        private bool occupied = false;
+        
+        /**********************************************************************
+        
+            Utility class to append a response message header line where the
+            value is appended incrementally.
+            
+            Usage in a HttpResponse subclass:
+            
+            ---
+            
+            class MyHttpResponse : HttpResponse
+            {
+                protected override addHeaders ( AppendHeaderLines append )
+                {
+                    // append "Hello: World!\r\n"
+                    
+                    {
+                        // constructor appends "Hello: "
+                    
+                        scope inc_val = append.new IncrementalValue("Hello");
+                        
+                         // append "Wor" ~ "ld!"
+                        
+                        inc_val.appendToValue("Wor");
+                        inc_val.appendToValue("ld!");
+                        
+                        // destructor appends "\r\n"
+                    }
+                }
+            }
+            
+            ---
+            
+            Note: At most one instance may exist at a time per outer instance.
+            
+         **********************************************************************/
+
+        scope class IncrementalValue
+        {
+            /******************************************************************
+            
+                Constructor; opens a response message header line by appending
+                name ~ ": " to the response message content.
+                
+                Params:
+                    name = header field name
+                
+                In:
+                    No other instance for the outer instance may currenty exist.
+                
+             ******************************************************************/
+
+            this ( char[] name )
+            in
+            {
+                assert (!this.outer.occupied);
+                this.outer.occupied = true;
+            }
+            body
+            {
+                this.outer.content.append(name, ": ");
+            }
+            
+            /******************************************************************
+            
+                Appends str to the header field value.
+                
+                Params:
+                    chunk = header field valu chunk
+                
+             ******************************************************************/
+
+            void appendToValue ( char[] chunk )
+            {
+                this.outer.content ~= chunk;
+            }
+            
+            /******************************************************************
+            
+                Denstructor; closes a response message header line by appending
+                "\r\n" to the response message content.
+                
+             ******************************************************************/
+
+            ~this ( )
+            out
+            {
+                this.outer.occupied = false;
+            }
+            body
+            {
+                this.outer.content ~= "\r\n";
+            }
         }
     }
 }

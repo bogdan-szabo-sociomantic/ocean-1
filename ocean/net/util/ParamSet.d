@@ -38,8 +38,6 @@ private import ocean.text.util.SplitIterator: ISplitIterator;
 
 private import tango.stdc.ctype:  tolower;
 
-private import tango.stdc.stdlib: div;
-
 private import tango.core.Exception: ArrayBoundsException;
 
 /******************************************************************************
@@ -80,6 +78,15 @@ class ParamSet
      **************************************************************************/
 
     public bool skip_null_values_on_iteration = false;
+    
+    /**************************************************************************
+
+        Minimum required buffer length for decimal formatting of an uint value
+    
+     **************************************************************************/
+
+    public const uint_dec_length = "4294967295".length;
+    static assert (uint.max ==      4294967295);
     
     /**************************************************************************
 
@@ -276,10 +283,10 @@ class ParamSet
         ditto
         
         Params:
-            key     = parameter kay (case insensitive)
-            val     = parameter value
-            str_val = destination string for number to string conversion; will
-                      be resized where required and sliced
+            key = parameter key (case insensitive)
+            val = parameter value
+            dec = number to string conversion buffer, a slice will be associated
+                  as string value for key
             
         Returns:
             true if key is one of parameter keys passed on instantiation or
@@ -287,11 +294,11 @@ class ParamSet
         
      **************************************************************************/
 
-    bool set ( char[] key, uint val, ref char[] str_val )
+    bool set ( char[] key, uint val, char[uint_dec_length] dec )
     {
         return this.access(key, (char[], ref char[] dst)
                                 {
-                                    dst = this.writeUint(str_val, val);
+                                    dst = this.writeUint(dec, val);
                                 });
     }
     
@@ -512,27 +519,11 @@ class ParamSet
         Returns:
             result (dst)
         
-     **************************************************************************/
-
-    protected static char[] writeUint ( ref char[] dst, uint n )
-    {
-        size_t len = 0;
-        
-        for (uint p = 1; p <= n; p *= 10)
-        {
-            len++;
-        }
-        
-        dst.length = len? len : 1;
-        
-        return writeUintFixed(dst, n);
-    }
-    
     /**************************************************************************
 
         Converts n to decimal representation, writing to dst. dst must be long
-        enough to hold the result; the result will be padded with ' '
-        characters from thhe left where required.
+        enough to hold the result. The result will be written to the end of dst,
+        returning a slice to the valid content in dst.
         
         Params:
             dst = destination string
@@ -542,27 +533,29 @@ class ParamSet
             result (dst)
         
      **************************************************************************/
-
-    protected static char[] writeUintFixed ( char[] dst, uint n )
-    out
+    
+    protected static char[] writeUint ( char[] dst, uint n )
+    out (dec)
     {
         assert (!n);
+        assert (&dec[$ - 1] is &dst[$ - 1]);
     }
     body
     {
-        foreach_reverse (i, ref c; dst) with (div(n, 10))
+        foreach_reverse (i, ref c; dst)
         {
-            c = rem + '0';
+            uint quot = n / 10;
+            
+            c = n - (quot * 10) + '0';
             n = quot;
             
             if (!n)
             {
-                dst[0 .. i] = ' ';
-                break;
+                return dst[i .. $];
             }
         }
         
-        return dst;
+        assert (false, typeof (this).stringof ~ ".writeUint: dst too short");
     }
     
     /**************************************************************************
@@ -621,14 +614,18 @@ class ParamSet
             return trimmed[i .. $];
         }
         
-        return src? "" : null;
+        return src? src[$ .. $] : null;
     }
     
-    /**************************************************************************
-
-        TODO: unittest
-        
-     **************************************************************************/
+    /**************************************************************************/
     
-    unittest {}
+    unittest
+    {
+        char[uint_dec_length] dec;
+        
+        assert (dec.writeUint(4711)     == "4711");
+        assert (dec.writeUint(0)        == "0");
+        
+        assert (dec.writeUint(uint.max) == "4294967295");
+    }
 }
