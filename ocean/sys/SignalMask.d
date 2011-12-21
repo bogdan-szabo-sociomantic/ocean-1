@@ -45,6 +45,166 @@ debug private import ocean.util.log.Trace;
 
 /*******************************************************************************
 
+    Signal set struct wrapping the C sigset_t and its setter / getter functions.
+
+    Note that, as this is a struct rather than a class, and thus has no
+    constructor, it is necessary to explicitly call the clear() method before
+    using an instance.
+
+*******************************************************************************/
+
+public struct SignalSet
+{
+    /***************************************************************************
+
+        Signal set.
+
+    ***************************************************************************/
+
+    private sigset_t sigset;
+
+
+    /***************************************************************************
+
+        Clears all signals in the set (i.e. sets to the set of no signals).
+
+    ***************************************************************************/
+
+    public void clear ( )
+    {
+        sigemptyset(&this.sigset);
+    }
+
+
+    /***************************************************************************
+
+        Sets to the set of all signals.
+
+    ***************************************************************************/
+
+    public void setAll ( )
+    {
+        sigfillset(&this.sigset);
+    }
+
+
+    /***************************************************************************
+
+        Removes the specified signal from the set.
+
+        Params:
+            signal = signal to remove from set
+
+        This method is aliased as opSub.
+
+    ***************************************************************************/
+
+    public void remove ( int signal )
+    {
+        sigdelset(&this.sigset, signal);
+    }
+
+    public alias remove opSub;
+
+
+    /***************************************************************************
+
+        Adds the specified signal to the set.
+
+        Params:
+            signal = signal to add to set
+
+        This method is aliased as opAdd.
+
+    ***************************************************************************/
+
+    public void add ( int signal )
+    {
+        sigaddset(&this.sigset, signal);
+    }
+
+    public alias add opAdd;
+
+
+    /***************************************************************************
+
+        Removes the specified signals from the set.
+
+        Params:
+            signals = signals to remove from set
+
+        This method is aliased as opSub.
+
+    ***************************************************************************/
+
+    public void remove ( int[] signals )
+    {
+        foreach ( signal; signals )
+        {
+            this.remove(signal);
+        }
+    }
+
+    public alias remove opSub;
+
+
+    /***************************************************************************
+
+        Adds the specified signals to the set.
+
+        Params:
+            signals = signals to add to set
+
+        This method is aliased as opAdd.
+
+    ***************************************************************************/
+
+    public void add ( int[] signals )
+    {
+        foreach ( signal; signals )
+        {
+            this.add(signal);
+        }
+    }
+
+    public alias add opAdd;
+
+
+    /***************************************************************************
+
+        Tells whether a signal is in the set.
+
+        Params:
+            signal = signal to test
+
+        Returns:
+            true if signal is in set
+
+    ***************************************************************************/
+
+    public bool isSet ( int signal )
+    {
+        return !!sigismember(&this.sigset, signal);
+    }
+
+
+    /***************************************************************************
+
+        Cast operator for convenient use of this struct in C functions which
+        accept a sigset_t.
+
+    ***************************************************************************/
+
+    public sigset_t opCast ( )
+    {
+        return this.sigset;
+    }
+}
+
+
+
+/*******************************************************************************
+
     Executes the passed delegate with the specified list if signals masked. The
     signals are automatically unmasked again when the delegate returns.
 
@@ -93,18 +253,14 @@ public void maskSignals ( int[] signals, void delegate ( ) dg )
 
 *******************************************************************************/
 
-public sigset_t maskSignals ( int[] signals )
+public SignalSet maskSignals ( int[] signals )
 {
-    sigset_t set, old_set;
+    SignalSet set, old_set;
 
-    sigemptyset(&set);
+    set.clear;
+    set.add(signals);
 
-    foreach ( signal; signals )
-    {
-        sigaddset(&set, signal);
-    }
-
-    pthread_sigmask(SIG_BLOCK, &set, &old_set);
+    pthread_sigmask(SIG_BLOCK, &set.sigset, &old_set.sigset);
 
     return old_set;
 }
@@ -112,15 +268,35 @@ public sigset_t maskSignals ( int[] signals )
 
 /*******************************************************************************
 
-    Sets the signal mask for the calling thread.
+    Gets the signal mask for the calling thread.
 
-    Params:
-        set = set of masked signals
+    Returns:
+        set of currently masked signals for the calling thread
 
 *******************************************************************************/
 
-public void setSignalMask ( ref sigset_t set )
+public SignalSet getSignalMask ( )
 {
-    pthread_sigmask(SIG_SETMASK, &set, null);
+    SignalSet current_set;
+
+    pthread_sigmask(SIG_BLOCK, null, &current_set.sigset);
+
+    return current_set;
+}
+
+
+/*******************************************************************************
+
+    Sets the signal mask for the calling thread. All signals in the passed set
+    will be masked, all other signals will be unmasked.
+
+    Params:
+        set = set of signals to mask / unmask
+
+*******************************************************************************/
+
+public void setSignalMask ( SignalSet set )
+{
+    pthread_sigmask(SIG_SETMASK, &set.sigset, null);
 }
 
