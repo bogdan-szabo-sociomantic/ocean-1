@@ -316,6 +316,7 @@ public class EpollSelectDispatcher
         }
         
         client.registerTimeout();
+        client.registered();
         
         return register;
     }
@@ -347,6 +348,7 @@ public class EpollSelectDispatcher
         this.selector.unregister(client.conduit);
 
         client.unregisterTimeout();
+        client.unregistered();
 
         return this;
     }

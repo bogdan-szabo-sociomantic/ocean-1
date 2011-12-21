@@ -222,7 +222,7 @@ abstract class ISelectClient : ITimeoutClient
     /**************************************************************************
 
         Timeout method, called after a timeout occurs in the SelectDispatcher
-        eventLoop. Intended to be overloaded by a subclass if required.
+        eventLoop. Intended to be overridden by a subclass if required.
 
      **************************************************************************/
 
@@ -231,7 +231,7 @@ abstract class ISelectClient : ITimeoutClient
     /**************************************************************************
 
         Finalize method, called after this instance has been unregistered from
-        the Dispatcher. Intended to be overloaded by a subclass if required.
+        the Dispatcher. Intended to be overridden by a subclass if required.
         
      **************************************************************************/
 
@@ -240,7 +240,7 @@ abstract class ISelectClient : ITimeoutClient
     /**************************************************************************
 
         Error reporting method, called when an Exception is caught from
-        handle(). Calls the error_() method, which should be overloaded by a
+        handle(). Calls the error_() method, which should be overridden by a
         subclass if required.
 
         Note that this method will catch all exceptions thrown by the error_()
@@ -273,7 +273,7 @@ abstract class ISelectClient : ITimeoutClient
 
         Method to get string formatted information about a connection (for
         example the address and port of a socket connection). Intended to be
-        overloaded by a subclass if required.
+        overridden by a subclass if required.
 
         Params:
             buffer = string to receive formatted connection information
@@ -281,7 +281,25 @@ abstract class ISelectClient : ITimeoutClient
      **************************************************************************/
 
     public void connectionInfo ( ref char[] buffer ) { }
-    
+
+    /**************************************************************************
+
+        Register method, called after this client is registered with the
+        SelectDispatcher. Intended to be overridden by a subclass if required.
+
+     **************************************************************************/
+
+    public void registered ( ) { }
+
+    /**************************************************************************
+
+        Unregister method, called after this client is unregistered from the
+        SelectDispatcher. Intended to be overridden by a subclass if required.
+
+     **************************************************************************/
+
+    public void unregistered ( ) { }
+
     /**************************************************************************
 
         Obtains the socket error reported for conduit. Returns normally if the
