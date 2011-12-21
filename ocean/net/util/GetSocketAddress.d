@@ -1,4 +1,33 @@
+/******************************************************************************
+
+    Memory-friendly utility to obtain the local or remote IPv4 or IPv6 socket
+    address.
+
+    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
+
+    version:        May 2011: Initial release
+
+    authors:        David Eckardt
+    
+    Wraps an associative array serving as map of parameter key and value
+    strings.
+    The parameter keys are set on instantiation; that is, a key list is passed
+    to the constructor. The keys cannot be changed, added or removed later by
+    ParamSet. However, a subclass can add keys.
+    All methods that accept a key handle the key case insensitively (except the
+    constructor). When keys are output, the original keys are used.
+    Note that keys and values are meant to slice string buffers in a subclass or
+    external to this class.
+    
+ ******************************************************************************/
+
 module ocean.net.util.GetSocketAddress;
+
+/******************************************************************************
+
+    Imports
+    
+ ******************************************************************************/
 
 private import tango.net.device.Socket;
 
@@ -18,69 +47,154 @@ private import tango.stdc.string: strlen;
 
 extern (C) private char* strerror_r(int n, char* dst, size_t dst_length);
 
+/******************************************************************************/
+
 class GetSocketAddress
 {
+    /**************************************************************************
+    
+        Containt the address and accessor methods.
+        
+     **************************************************************************/
+
     struct Address
     {
+        /**********************************************************************
+        
+            Address families: IPv4 and IPv6.
+            
+         **********************************************************************/
+
         enum Family : sa_family_t
         {
             INET  = consts.AF_INET,
             INET6 = consts.AF_INET6
         }
         
-        private static const bool[sa_family_t] supported_families;
+        /**********************************************************************
         
+            Address data buffer
+            
+         **********************************************************************/
+
         static assert (INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
         
         private char[INET6_ADDRSTRLEN] addr_string_buffer;
         
-        static this ( )
-        {
-            this.supported_families =
-            [
-                Family.INET:  true,
-                Family.INET6: true
-            ];
+        /**********************************************************************
+        
+            sockaddr struct instance, populated by getsockname()/getpeername().
             
-            this.supported_families.rehash;
-        }
+         **********************************************************************/
+
+        private sockaddr addr_;
         
-        sockaddr addr;
+        /**********************************************************************
         
-        bool supported_family ( )
+            Reused SocketAddressException instance
+            
+         **********************************************************************/
+
+        private SocketAddressException e;
+        
+        /**********************************************************************
+        
+            Returns:
+                sockaddr struct instance as populated by getsockname()/
+                getpeername().
+            
+         **********************************************************************/
+
+        public sockaddr addr ( )
         {
-            return !!(this.addr.sa_family in this.supported_families);
+            return this.addr_;
         }
         
-        Family family ( )
+        /**********************************************************************
+        
+            Returns:
+                address family
+            
+         **********************************************************************/
+
+        public Family family ( )
         {
-            return cast (Family) this.addr.sa_family;
+            return cast (Family) this.addr_.sa_family;
         }
         
+        /**********************************************************************
+        
+            Returns:
+                true if the address family is supported by this struct
+                (IPv4/IPv6 address) or false otherwise.
+            
+         **********************************************************************/
+
+        public bool supported_family ( )
+        {
+            switch (this.family)
+            {
+                case Family.INET, Family.INET6:
+                    return true;
+                
+                default:
+                    return false;
+            }
+        }
+        
+        /**********************************************************************
+        
+            Returns:
+                the address string. 
+                
+            Throws:
+                SocketAddressException if the socket address family is 
+                supported (other than IPv4 or IPv6).
+            
+         **********************************************************************/
+
         public char[] addr_string ( )
+        out (a)
         {
-            void* addr = &this.addr;
+            assert (a);
+        }
+        body   
+        {
+            void* addrp = &this.addr_;
             
             switch (this.family)
             {
                 case Family.INET:
-                    addr += sockaddr_in.init.sin_addr.offsetof;
+                    addrp += sockaddr_in.init.sin_addr.offsetof;
                     break;
                     
                 case Family.INET6:
-                    addr += sockaddr_in6.init.sin6_addr.offsetof;
+                    addrp += sockaddr_in6.init.sin6_addr.offsetof;
                     break;
                 
                 default:
-                    return null;
+                    throw this.e.set("address family not supported", __FILE__, __LINE__);
             }
             
-            char* str = .inet_ntop(this.addr.sa_family, addr,
+            char* str = .inet_ntop(this.addr_.sa_family, addrp,
                                    this.addr_string_buffer.ptr, this.addr_string_buffer.length);
             
-            return str? str[0 .. strlen(str)] : null;
+            this.e.check(!!str, "inet_ntop", __FILE__, __LINE__);
+            
+            return str[0 .. strlen(str)];
         }
         
+        /**********************************************************************
+        
+            Returns:
+                the address port. 
+                
+            Throws:
+                SocketAddressException if the socket address family is 
+                supported (other than IPv4 or IPv6).
+            
+         **********************************************************************/
+
         public ushort port( )
         {
             in_port_t port;
@@ -88,38 +202,102 @@ class GetSocketAddress
             switch (this.family)
             {
                 case Family.INET:
-                    port = (cast (sockaddr_in*) &this.addr).sin_port;
+                    port = (cast (sockaddr_in*) &this.addr_).sin_port;
                     break;
                     
                 case Family.INET6:
-                    port = (cast (sockaddr_in6*) &this.addr).sin6_port;
+                    port = (cast (sockaddr_in6*) &this.addr_).sin6_port;
                     break;
                 
                 default:
+                    throw this.e.set("address family not supported", __FILE__, __LINE__);
             }
             
             return .ntohs(port);
         }
     }
     
-    private const SockNameException e;
+    /**************************************************************************
     
+        Reused SocketAddressException instance
+        
+     **************************************************************************/
+
+    private const SocketAddressException e;
+    
+    /**************************************************************************
+    
+        Constructor
+        
+     **************************************************************************/
+
     this ( )
     {
-        this.e = new SockNameException;
+        this.e = new SocketAddressException;
     }
     
+    /**************************************************************************
+    
+        Obtains the remote address associated with conduit from getpeername().
+        conduit must have been downcasted from Socket.
+        
+        Params:
+            conduit = socked conduit
+            
+        Returns:
+            the remote address associated with conduit.
+        
+        Throws:
+            SocketAddressException if getpeername() reports an error.
+        
+     **************************************************************************/
+
     public Address remote ( ISelectable conduit )
     {
-        return this.get(conduit, &.getpeername);
+        return this.get(conduit, &.getpeername, "getpeername");
     }
     
+    /**************************************************************************
+    
+        Obtains the local address associated with conduit from getsockname().
+        conduit must have been downcasted from Socket.
+        
+        Params:
+            conduit = socked conduit
+            
+        Returns:
+            the local address associated with conduit.
+        
+        Throws:
+            SocketAddressException if getpeername() reports an error.
+        
+     **************************************************************************/
+
     public Address local ( ISelectable conduit )
     {
-        return this.get(conduit, &.getsockname);
+        return this.get(conduit, &.getsockname, "getsockname");
     }
     
-    private Address get ( ISelectable conduit, typeof (&.getsockname) func )
+    /**************************************************************************
+    
+        Obtains the local address associated with conduit from func().
+        conduit must have been downcast from Socket.
+        
+        Params:
+            conduit = socked conduit
+            
+        Returns:
+            an Address instance containing the output value of func().
+        
+        Throws:
+            SocketAddressException if getpeername() reports an error.
+        
+        In:
+            conduit must have been downcasted from Socket.
+        
+     **************************************************************************/
+
+    private Address get ( ISelectable conduit, typeof (&.getsockname) func, char[] funcname )
     in
     {
         assert ((cast (Socket) conduit) !is null, "conduit is not a socket");
@@ -128,23 +306,42 @@ class GetSocketAddress
     {
         Address address;
         
-        socklen_t len = address.addr.sizeof;
+        socklen_t len = address.addr_.sizeof;
         
-        this.e.check(!func(conduit.fileHandle, cast (sockaddr*) &address.addr, &len), "getpeername", __FILE__, __LINE__);
+        this.e.check(!func(conduit.fileHandle, cast (sockaddr*) &address.addr_, &len), funcname, __FILE__, __LINE__);
+        
+        address.e = this.e;
         
         return address;
     }
     
-    static class SockNameException : Exception
+    /**************************************************************************/
+
+    static class SocketAddressException : Exception
     {
         this ( ) { super(""); }
         
+        /**********************************************************************
+        
+            If ok is false, queries errno and appends the error description to
+            the errror message and throws this instance. 
+            
+            Params:
+                ok   = condition to throw when false
+                msg  = error message, the error description will be appended
+                file = source code file name
+                file = source code line number
+            
+            Throws:
+                this instance if ok is false.
+            
+         **********************************************************************/
+
         void check ( bool ok, char[] msg, char[] file, typeof (__LINE__) line )
         {
             if (!ok)
             {
-                super.msg.length = msg.length;
-                super.msg[]      = msg;
+                this.set(msg, file, line);
                 
                 int n = .errno;
                 
@@ -163,11 +360,20 @@ class GetSocketAddress
                     super.msg ~= e[0 .. strlen(e)];
                 }
                 
-                super.file = file;
-                super.line = line;
-                
                 throw this;
             }
         }
+        
+        typeof (this) set ( char[] msg, char[] file, typeof (__LINE__) line )
+        {
+            this.msg.length = msg.length;
+            this.msg[]      = msg;
+            this.file = file;
+            this.line = line;
+            
+            return this;
+        }
+        
+        
     }
 }
