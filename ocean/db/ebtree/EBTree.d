@@ -62,8 +62,7 @@ module ocean.db.ebtree.EBTree;
 *******************************************************************************/
 
 private import ocean.db.ebtree.c.ebtree;
-private import ocean.db.ebtree.c.eb32tree;
-private import ocean.db.ebtree.c.eb64tree;
+private import ocean.db.ebtree.c.ebnode;
 
 private import tango.core.Traits;
 
@@ -98,7 +97,7 @@ public class EBTree ( T )
 
     ***************************************************************************/
 
-    static assert(isIntegerType!(T), This.stringof ~ ": internal type must be an integer type, not " ~ T.stringof);
+    //static assert(isIntegerType!(T), This.stringof ~ ": internal type must be an integer type, not " ~ T.stringof);
 
     
     /***************************************************************************
@@ -108,7 +107,10 @@ public class EBTree ( T )
         tree.
 
     ***************************************************************************/
-
+    
+    public alias ebT_node!(T) Node;
+    
+/+
     static if ( T.sizeof == 4 )
     {
         public alias eb32_node Node;
@@ -119,7 +121,7 @@ public class EBTree ( T )
     }
     else static if ( T.sizeof == 8 )
     {
-        public alias eb64_node Node;
+        public alias eb64_node!(T) Node;
         private alias eb64_first getFirst;
         private alias eb64_last getLast;
         private alias eb64_lookup_le lookupLE;
@@ -138,7 +140,7 @@ public class EBTree ( T )
         public alias bool Node;
         static assert(false, typeof(this).stringof ~ ": internal type must be either a 32-, 64-bit or 128-bit type, not " ~ T.stringof);
     }
-
++/
 
     /***************************************************************************
 
@@ -270,7 +272,7 @@ public class EBTree ( T )
     
     public KeyType first ( )
     {
-        auto node = getFirst(&this.root);
+        auto node = Node.getFirst(&this.root);
         if ( node is null )
         {
             throw new Exception(typeof(this).stringof ~ ".first: tree is empty, no first entry");
@@ -294,7 +296,7 @@ public class EBTree ( T )
     
     public KeyType last ( )
     {
-        auto node = getLast(&this.root);
+        auto node = Node.getLast(&this.root);
         if ( node is null )
         {
             throw new Exception(typeof(this).stringof ~ ".last: tree is empty, no last entry");
@@ -324,7 +326,7 @@ public class EBTree ( T )
     
     public KeyType firstLessEqual ( KeyType key )
     {
-        auto node = lookupLE(&this.root, key);
+        auto node = Node.lookupLE(&this.root, key);
         if ( node is null )
         {
             throw new Exception(typeof(this).stringof ~ ".firstLessEqual: no entry <= specified key");
@@ -354,7 +356,7 @@ public class EBTree ( T )
 
     public KeyType firstGreaterEqual ( KeyType key )
     {
-        auto node = lookupGE(&this.root, key);
+        auto node = Node.lookupGE(&this.root, key);
         if ( node is null )
         {
             throw new Exception(typeof(this).stringof ~ ".firstGreaterEqual: no entry >= specified key");
@@ -375,7 +377,7 @@ public class EBTree ( T )
 
     public Node* firstNode ( )
     {
-        return getFirst(&this.root);
+        return Node.getFirst(&this.root);
     }
 
 
@@ -388,7 +390,7 @@ public class EBTree ( T )
 
     public Node* lastNode ( )
     {
-        return getLast(&this.root);
+        return Node.getLast(&this.root);
     }
 
 
@@ -407,7 +409,7 @@ public class EBTree ( T )
 
     public Node* firstNodeLessEqual ( KeyType key )
     {
-        return lookupLE(&this.root, key);
+        return Node.lookupLE(&this.root, key);
     }
 
 
@@ -426,7 +428,7 @@ public class EBTree ( T )
 
     public Node* firstNodeGreaterEqual ( KeyType key )
     {
-        return lookupGE(&this.root, key);
+        return Node.lookupGE(&this.root, key);
     }
 
 

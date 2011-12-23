@@ -124,13 +124,59 @@ class EBTreeMap ( Key, Value, bool KeyUnique = false )
 
     /***************************************************************************
 
-        Check that the key and value types are 32-bits.
+        Check that the key and value types are valid
     
     ***************************************************************************/
 
-    static assert(Key.sizeof == 8 || Key.sizeof == 4, This.stringof ~ ": only supports 32/64-bit types, not " ~ Key.stringof);
+    static assert(Key.sizeof == Value.sizeof, This.stringof ~ ": key and value size must be the same (" ~ Key.sizeof.stringof ~ " != " ~ Value.sizeof.stringof);
     
-    static assert(Value.sizeof == 8 || Key.sizeof == 4, This.stringof ~ ": only supports 32/64-bit types, not " ~ Value.stringof);
+    static assert(Key.sizeof == 8 || Key.sizeof == 4, This.stringof ~ ": only supports 32/64-bit types, not " ~ Value.stringof);
+
+    /***********************************************************************
+    
+        Struct defining a single entry in the map -- a key and a value. The
+        key is always placed as the most significant bytes, so the tree is
+        sorted in key order.
+    
+    ***********************************************************************/
+    
+    private struct NodeStruct
+    {
+        version ( BigEndian )
+        {
+            Key key;
+            Value value;
+        }
+        else version ( LittleEndian )
+        {
+            Value value;
+            Key key;
+        }
+        else
+        {
+            static assert(false, This.stringof ~ ": endianness version not found, cannot safely use this template");
+        }
+        
+        int opCmp ( NodeStruct rhs )
+        {
+            if ( key == rhs.key )
+            {
+                if ( value == rhs.value ) return 0;
+                
+                return cast(int) (value > rhs.value) * 2 - 1;
+            }
+            
+            return cast(int) (key > rhs.key) * 2 - 1;
+            /+
+            if ( key > rhs.key ) return 1;
+            if ( key < rhs.key ) return -1;
+            if ( value > rhs.value ) return 1;
+            if ( value < rhs.value ) return -1;
+            
+            return 0;
+            +/
+        }
+    }
     
     /***************************************************************************
 
@@ -138,10 +184,9 @@ class EBTreeMap ( Key, Value, bool KeyUnique = false )
 
     ***************************************************************************/
 
-    private alias EBTree!((Key.sizeof > Value.sizeof ? Value.sizeof : Key.sizeof) * 2) Tree;
+    private alias EBTree!(NodeStruct) Tree;
     private Tree tree;
-
-
+    
     /***************************************************************************
 
         Struct hosting an EBTree node and providing accessors to key and value.
@@ -151,50 +196,8 @@ class EBTreeMap ( Key, Value, bool KeyUnique = false )
     ***************************************************************************/
 
     public struct Mapping
-    {
-        /***********************************************************************
-
-            Struct defining a single entry in the map -- a key and a value. The
-            key is always placed as the most significant bytes, so the tree is
-            sorted in key order.
-    
-        ***********************************************************************/
-    
-        private struct MappingData
-        {
-            version ( BigEndian )
-            {
-                Key key;
-                Value value;
-            }
-            else version ( LittleEndian )
-            {
-                Value value;
-                Key key;
-            }
-            else
-            {
-                static assert(false, This.stringof ~ ": endianness version not found, cannot safely use this template");
-            }
-        }
-        
-        /***********************************************************************
-
-            Union for converting between the actual values which are stored in
-            the EBTree (ulongs -- 64-bit integers) and the MappingData struct
-            declared above.
-    
-        ***********************************************************************/
-    
-        static if (Key.sizeof == 8 && Value.sizeof == 8)
-        {
-            private alias MappingData NodeUnion;
-        }
-        else private union NodeUnion
-        {
-            MappingData data;
-            ulong integer;
-        }
+    {        
+        alias EBTreeMap.NodeStruct NodeStruct;
         
         /***********************************************************************
 
@@ -230,15 +233,7 @@ class EBTreeMap ( Key, Value, bool KeyUnique = false )
 
         Key key ( Key k )
         {
-            NodeUnion item;
-            
-            item.integer = this.node.key;
-            
-            item.data.key = k;
-            
-            this.node.key = item.integer;
-            
-            return k;
+            return (cast(NodeStruct*) &this.node.key).key = k;
         }
         
         /***********************************************************************
@@ -250,11 +245,7 @@ class EBTreeMap ( Key, Value, bool KeyUnique = false )
 
         Key key ( )
         {
-            NodeUnion item;
-            
-            item.integer = this.node.key;
-            
-            return item.data.key;
+            return (cast(NodeStruct*) &this.node.key).key;
         }
         
         /***********************************************************************
@@ -271,15 +262,7 @@ class EBTreeMap ( Key, Value, bool KeyUnique = false )
 
         Value value ( Value v )
         {
-            NodeUnion item;
-            
-            item.integer = this.node.key;
-            
-            item.data.value = v;
-            
-            this.node.key = item.integer;
-            
-            return v;
+            return (cast(NodeStruct*) &this.node.key).value = v;
         }
         
         /***********************************************************************
@@ -291,29 +274,7 @@ class EBTreeMap ( Key, Value, bool KeyUnique = false )
 
         Value value ( )
         {
-            NodeUnion item;
-            
-            item.integer = this.node.key;
-            
-            return item.data.value;
-        }
-        
-        /***********************************************************************
-
-            Composes the value to store in the tree that represents a map item
-            with key k and value v.
-            
-            Returns:
-                the current value of the item in the map.
-    
-        ***********************************************************************/
-
-        static ulong createTreeKey ( Key k, Value v )
-        {
-            NodeUnion item;
-            item.data.key = k;
-            item.data.value = v;
-            return item.integer;
+            return (cast(NodeStruct*) &this.node.key).value;
         }
     }
 
@@ -358,12 +319,12 @@ class EBTreeMap ( Key, Value, bool KeyUnique = false )
             }
             else
             {
-                return Mapping(this.tree.add(Mapping.createTreeKey(key, value)));
+                return Mapping(this.tree.add(Mapping.NodeStruct(key, value)));
             }
         }
         else
         {
-            return Mapping(this.tree.add(Mapping.createTreeKey(key, value)));
+            return Mapping(this.tree.add(Mapping.NodeStruct(key, value)));
         }
 
     }
@@ -514,7 +475,7 @@ class EBTreeMap ( Key, Value, bool KeyUnique = false )
     }
     body
     {
-        mapping = Mapping(this.tree.firstNodeGreaterEqual(Mapping.createTreeKey(key, 0)));
+        mapping = Mapping(this.tree.firstNodeGreaterEqual(Mapping.NodeStruct(key, 0)));
         
         return (mapping.node is null)? false : (mapping.key == key);
     }

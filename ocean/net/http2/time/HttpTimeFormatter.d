@@ -202,11 +202,10 @@ struct HttpTimeFormatter
     {
         foreach_reverse (ref c; dst) 
         {
-            auto divver = lldiv(n, 10);
-            with (divver)
+            with (lldiv(n, 10))
             {
-                c = divver.rem + '0';
-                n = divver.quot;
+                c = rem + '0';
+                n = quot;
             }
         }
     }

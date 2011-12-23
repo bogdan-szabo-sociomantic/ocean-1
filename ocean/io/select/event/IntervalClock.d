@@ -336,9 +336,8 @@ public class IntervalClock : ITimerEvent, IMicrosecondsClock
      **************************************************************************/
 
     public uint interval_ms ( uint ms )
-    {
-        auto divvar = div(ms, 1000);
-        with (divvar)
+    {   
+        with (div(ms, 1000))
         {
             this.interval_.tv_sec  = quot;
             this.interval_.tv_usec = rem * 1_000;
