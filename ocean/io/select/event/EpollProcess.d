@@ -673,10 +673,47 @@ public abstract class EpollProcess
         }
     }
 
-    // TODO
+
+    /***************************************************************************
+
+        Abstract method called when data is received from the process' stdout
+        stream.
+
+        Params:
+            data = data read from stdout
+
+    ***************************************************************************/
+
     abstract protected void stdout ( ubyte[] data );
 
+
+    /***************************************************************************
+
+        Abstract method called when data is received from the process' stderr
+        stream.
+
+        Params:
+            data = data read from stderr
+
+    ***************************************************************************/
+
     abstract protected void stderr ( ubyte[] data );
+
+
+    /***************************************************************************
+
+        Abstract method called when the process has finished. Once this method
+        has been called, it is guaraneteed that stdout() will not be called
+        again.
+
+        Params:
+            exited_ok = if true, the process exited normally and the exit_code
+                parameter it valid. Otherwise the process exited abnormally, and
+                exit_code will be 0.
+            exit_code = the process' exit code, if exited_ok is true. Otherwise
+                0.
+
+    ***************************************************************************/
 
     abstract protected void finished ( bool exited_ok, int exit_code );
 
