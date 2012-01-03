@@ -8,6 +8,69 @@
     
     authors:        Gavin Norman
 
+    Usage example:
+
+    ---
+
+        import ocean.io.Stdout;
+        import ocean.io.select.event.EpollProcess;
+        import ocean.io.select.EpollSelectDispatcher;
+
+        // Simple epoll process class which uses curl to download data from a
+        // url
+        class CurlProcess : EpollProcess
+        {
+            this ( EpollSelectDispatcher epoll )
+            {
+                super(epoll);
+            }
+
+            // Starts the process downloading a url
+            public void start ( char[] url )
+            {
+                super.start("curl", url);
+            }
+
+            // Called by the super class when the process sends data to stdout
+            protected void stdout ( ubyte[] data )
+            {
+                Stdout.formatln("Received: '{}'", data);
+            }
+
+            // Called by the super class when the process sends data to stderr
+            protected void stderr ( ubyte[] data )
+            {
+            }
+
+            // Called by the super class when the process is finished
+            protected void finished ( bool exited_ok, int exit_code )
+            {
+                if ( exited_ok )
+                {
+                    Stdout.formatln("Process exited with code {}", exit_code);
+                }
+                else
+                {
+                    Stdout.formatln("Process terminated abnormally");
+                }
+            }
+        }
+
+        // Create epoll selector instance.
+        auto epoll = new EpollSelectDispatcher;
+
+        // Create a curl process instance.
+        auto process = new CurlProcess(epoll);
+
+        // Start the process running, executing a curl command to download data
+        // from a url.
+        process.start("http://www.google.com");
+
+        // Handle arriving data.
+        epoll.eventLoop;
+
+    ---
+
 *******************************************************************************/
 
 module ocean.io.select.event.EpollProcess;
@@ -46,7 +109,7 @@ private import tango.sys.Process;
 
 *******************************************************************************/
 
-public class EpollProcess
+public abstract class EpollProcess
 {
     /***************************************************************************
 
@@ -323,8 +386,8 @@ public class EpollProcess
 
         /***********************************************************************
 
-            Handles data received from the stream, passing it to the stdout
-            delegate of the outer class.
+            Handles data received from the stream, passing it to the stdout()
+            method of the outer class.
 
             Params:
                 data = data received from stream
@@ -333,10 +396,7 @@ public class EpollProcess
 
         protected void handle_ ( ubyte[] data )
         {
-            if ( this.outer.stdout_dg )
-            {
-                this.outer.stdout_dg(data);
-            }
+            this.outer.stdout(data);
         }
 
 
@@ -390,8 +450,8 @@ public class EpollProcess
 
         /***********************************************************************
 
-            Handles data received from the stream, passing it to the stderr
-            delegate of the outer class.
+            Handles data received from the stream, passing it to the stderr()
+            method of the outer class.
 
             Params:
                 data = data received from stream
@@ -400,10 +460,7 @@ public class EpollProcess
 
         protected void handle_ ( ubyte[] data )
         {
-            if ( this.outer.stderr_dg )
-            {
-                this.outer.stderr_dg(data);
-            }
+            this.outer.stderr(data);
         }
 
 
@@ -446,9 +503,9 @@ public class EpollProcess
 
     ***************************************************************************/
 
-    private StdoutHandler stdout;
+    private StdoutHandler stdout_handler;
 
-    private StderrHandler stderr;
+    private StderrHandler stderr_handler;
 
 
     /***************************************************************************
@@ -502,31 +559,6 @@ public class EpollProcess
 
     /***************************************************************************
 
-        Delegates to call upon receiving data from the process' stdout or stderr
-        streams.
-
-    ***************************************************************************/
-
-    protected alias void delegate ( ubyte[] data ) ReceiveDg;
-
-    private ReceiveDg stdout_dg;
-
-    private ReceiveDg stderr_dg;
-
-
-    /***************************************************************************
-
-        Delegate to call when the process terminates.
-
-    ***************************************************************************/
-
-    protected alias void delegate ( bool exited_ok, int exit_code ) FinishedDg;
-
-    private FinishedDg finished_dg;
-
-
-    /***************************************************************************
-
         Process state.
 
     ***************************************************************************/
@@ -558,8 +590,8 @@ public class EpollProcess
         this.epoll = epoll;
 
         this.process = new Process;
-        this.stdout = new StdoutHandler;
-        this.stderr = new StderrHandler;
+        this.stdout_handler = new StdoutHandler;
+        this.stderr_handler = new StderrHandler;
 
         if ( running_processes is null )
         {
@@ -575,20 +607,12 @@ public class EpollProcess
         Params:
             command = command to run
             args = arguments for command
-            finished_dg = delegate to call when the process terminates
-            stdout_dg = delegate to receive data from the process' stdout stream
-            stderr_dg = delegate to receive data from the process' stderr stream
 
     ***************************************************************************/
 
-    public void start ( char[] command, char[][] args,
-            FinishedDg finished_dg, ReceiveDg stdout_dg, ReceiveDg stderr_dg )
+    public void start ( char[] command, char[][] args )
     {
         assert(this.state == State.None); // TODO: error notification?
-
-        this.finished_dg = finished_dg;
-        this.stdout_dg = stdout_dg;
-        this.stderr_dg = stderr_dg;
 
         this.finalized = false;
         this.exited = false;
@@ -596,8 +620,8 @@ public class EpollProcess
         this.process.args(command, args);
         this.process.execute();
 
-        this.epoll.register(this.stdout);
-        this.epoll.register(this.stderr);
+        this.epoll.register(this.stdout_handler);
+        this.epoll.register(this.stderr_handler);
 
         this.state = State.Running;
 
@@ -616,7 +640,7 @@ public class EpollProcess
         if ( this.state == State.Running )
         {
             this.state = State.Suspended;
-            this.epoll.unregister(this.stdout);
+            this.epoll.unregister(this.stdout_handler);
         }
     }
 
@@ -645,9 +669,16 @@ public class EpollProcess
         if ( this.state == State.Suspended )
         {
             this.state = State.Running;
-            this.epoll.register(this.stdout);
+            this.epoll.register(this.stdout_handler);
         }
     }
+
+    // TODO
+    abstract protected void stdout ( ubyte[] data );
+
+    abstract protected void stderr ( ubyte[] data );
+
+    abstract protected void finished ( bool exited_ok, int exit_code );
 
 
     /***************************************************************************
@@ -655,9 +686,9 @@ public class EpollProcess
         Called when the process' stdout handler is finalized by epoll. This
         occurs when the process terminates.
 
-        The finished delegate (set in the start() method) is called once both
-        the finalize() and exit() methods have been called, ensuring that no
-        more data will be received once the finished delegate is called.
+        The protected finished() method is called once both the finalize() and
+        exit() methods have been called, ensuring that no more data will be
+        received after this point.
 
     ***************************************************************************/
 
@@ -674,12 +705,12 @@ public class EpollProcess
         Called when the process exits. The RunningProcesses instance is notified
         of this via a SIGCHLD signal.
 
-        The finished delegate (set in the start() method) is called once both
-        the finalize() and exit() methods have been called, ensuring that no
-        more data will be received once the finished delegate is called.
+        The protected finished() method is called once both the finalize() and
+        exit() methods have been called, ensuring that no more data will be
+        received after this point.
 
     ***************************************************************************/
-    
+
     private void exit ( bool exited_ok, int exit_code )
     {
         Stdout.formatln("Set exit status pid {}", this.process.pid);
@@ -693,12 +724,12 @@ public class EpollProcess
 
     /***************************************************************************
 
-        Calls the finished delegate (set in the start() method) once both the
-        finalize() and exit() methods have been called, ensuring that no more
-        data will be received once the finished delegate is called.
+        Calls the protected finished() method once both the finalize() and
+        exit() methods have been called, ensuring that no more data will be
+        received after this point.
 
     ***************************************************************************/
-    
+
     private void finished ( )
     {
         if ( this.finalized && this.exited )
@@ -706,10 +737,7 @@ public class EpollProcess
             this.state = State.None;
 
             Stdout.formatln("Finalised & exited ");
-            if ( this.finished_dg !is null )
-            {
-                this.finished_dg(this.exited_ok, this.exit_code);
-            }
+            this.finished(this.exited_ok, this.exit_code);
         }
     }
 }
