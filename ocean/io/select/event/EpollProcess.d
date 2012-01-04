@@ -610,7 +610,9 @@ public abstract class EpollProcess
 
     /***************************************************************************
 
-        Starts the process with the specified command and arguments.
+        Starts the process with the specified command and arguments. Registers
+        the handlers for the process' stdout and stderr streams with epoll, so
+        that notifications will be triggered when the process generates output.
 
         Params:
             command = command to run
@@ -639,7 +641,10 @@ public abstract class EpollProcess
 
     /***************************************************************************
 
-        Suspends the process.
+        Suspends the output of a process. This is achieved simply by
+        unregistering its stdout handler from epoll. This will have the effect
+        that the process will, at some point, reach the capacity of its stdout
+        buffer, and will then pause until the buffer has been emptied.
 
     ***************************************************************************/
 
@@ -669,6 +674,7 @@ public abstract class EpollProcess
     /***************************************************************************
 
         Resumes the process if it has been suspended using the suspend() method.
+        The stdout handler is reregistered with epoll.
 
     ***************************************************************************/
 
@@ -716,7 +722,7 @@ public abstract class EpollProcess
 
         Params:
             exited_ok = if true, the process exited normally and the exit_code
-                parameter it valid. Otherwise the process exited abnormally, and
+                parameter is valid. Otherwise the process exited abnormally, and
                 exit_code will be 0.
             exit_code = the process' exit code, if exited_ok is true. Otherwise
                 0.
