@@ -28,21 +28,24 @@
             // Starts the process downloading a url
             public void start ( char[] url )
             {
-                super.start("curl", url);
+                super.start("curl", [url]);
             }
 
-            // Called by the super class when the process sends data to stdout
+            // Called by the super class when the process sends data to stdout.
+            // (In the case of curl this is data downloaded from the url.)
             protected void stdout ( ubyte[] data )
             {
                 Stdout.formatln("Received: '{}'", data);
             }
 
-            // Called by the super class when the process sends data to stderr
+            // Called by the super class when the process sends data to stderr.
+            // (In the case of curl this is progress & error messages, which we
+            // just ignore in this example.)
             protected void stderr ( ubyte[] data )
             {
             }
 
-            // Called by the super class when the process is finished
+            // Called by the super class when the process is finished.
             protected void finished ( bool exited_ok, int exit_code )
             {
                 if ( exited_ok )
@@ -85,8 +88,6 @@ module ocean.io.select.event.EpollProcess;
 
 private import ocean.core.ArrayMap;
 
-private import ocean.io.Stdout;
-
 private import ocean.io.select.model.ISelectClient;
 
 private import ocean.io.select.EpollSelectDispatcher;
@@ -100,6 +101,8 @@ private import tango.io.model.IConduit;
 private import tango.stdc.posix.sys.wait;
 
 private import tango.sys.Process;
+
+debug private import ocean.io.Stdout;
 
 
 
@@ -115,6 +118,11 @@ public abstract class EpollProcess
 
         Manager class for a set of running processes. A single static instance
         of this class is created in the constructor of EpollProcess.
+
+        TODO: it may be cleaner to split this so that it must be instantiated
+        separately (called ProcessMonitor or something), and so a (non-null)
+        instance must be passed to the ctor of EpollProcess. That way the
+        relationship is made clearer and is explicit to the user.
 
     ***************************************************************************/
 
