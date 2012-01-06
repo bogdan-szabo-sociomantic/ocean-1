@@ -215,31 +215,37 @@ public abstract class EpollProcess
         {
             debug ( EpollProcess ) Stdout.formatln("Signal fired in epoll: pid={}", siginfo.ssi_pid);
 
-            int status;
-            auto pid = waitpid(siginfo.ssi_pid, &status, WNOHANG);
-
-            // waitpid returns 0 in the case where it would hang (if the
-            // specified pid has not yet changed state), but we know the process
-            // has changed state, so this is purely notional.
-            if ( pid )
+            pid_t pid;
+            do
             {
-                auto exited_ok = WIFEXITED(status);
-                int exit_code = exited_ok ? WEXITSTATUS(status) : 0;
+                int status;
+                pid = waitpid(-1, &status, WNOHANG);
 
-                auto process = pid in this.processes;
-                if ( process )
+                // waitpid returns 0 in the case where it would hang (if no
+                // pid has changed state).
+                if ( pid )
                 {
-                    debug ( EpollProcess ) Stdout.formatln("pid {} finished, ok={}, code={}", pid, exited_ok, exit_code);
-                    process.exit(exited_ok, exit_code);
-                }
+                    debug ( EpollProcess ) Stdout.formatln("Signal fired in epoll: pid={}", pid);
 
-                this.processes.remove(pid);
+                    auto exited_ok = WIFEXITED(status);
+                    int exit_code = exited_ok ? WEXITSTATUS(status) : 0;
 
-                if ( this.processes.length == 0 )
-                {
-                    this.epoll.unregister(this.signal_event);
+                    auto process = pid in this.processes;
+                    if ( process )
+                    {
+                        debug ( EpollProcess ) Stdout.formatln("pid {} finished, ok={}, code={}", pid, exited_ok, exit_code);
+                        process.exit(exited_ok, exit_code);
+                    }
+
+                    this.processes.remove(pid);
+
+                    if ( this.processes.length == 0 )
+                    {
+                        this.epoll.unregister(this.signal_event);
+                    }
                 }
             }
+            while ( pid );
         }
     }
 
