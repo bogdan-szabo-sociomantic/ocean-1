@@ -31,6 +31,8 @@ module ocean.io.select.event.SignalEvent;
 
 *******************************************************************************/
 
+private import ocean.io.select.model.ISelectClient;
+
 private import ocean.sys.SignalFD;
 
 private import tango.io.model.IConduit;
@@ -38,8 +40,6 @@ private import tango.io.model.IConduit;
 private import tango.stdc.posix.sys.types: ssize_t;
 
 private import tango.stdc.posix.unistd: read, write, close;
-
-private import ocean.io.select.model.ISelectClient;
 
 debug private import ocean.util.log.Trace;
 
@@ -80,6 +80,15 @@ public class SignalEvent : ISelectClient, ISelectable
     private alias void delegate ( SignalInfo siginfo ) Handler;
 
     private Handler handler;
+
+
+    /***************************************************************************
+
+        Re-usable array of info about signals which fired.
+
+    ***************************************************************************/
+
+    private SignalInfo[] siginfos;
 
 
     /***************************************************************************
@@ -146,8 +155,12 @@ public class SignalEvent : ISelectClient, ISelectable
 
     public bool handle ( Event events )
     {
-        auto siginfo = this.event.handle();
-        this.handler(siginfo);
+        this.event.handle(this.siginfos);
+
+        foreach ( siginfo; this.siginfos )
+        {
+            this.handler(siginfo);
+        }
 
         return true;
     }
@@ -200,6 +213,5 @@ public class SignalEvent : ISelectClient, ISelectable
     {
         return typeof(this).stringof;
     }
-
 }
 
