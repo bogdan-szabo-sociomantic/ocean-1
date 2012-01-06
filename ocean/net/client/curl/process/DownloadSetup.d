@@ -145,6 +145,15 @@ public struct DownloadSetup
 
     /***************************************************************************
 
+        Flag set to true if "insecure" SSL transfers are enabled.
+
+    ***************************************************************************/
+
+    private bool ssl_insecure_;
+
+
+    /***************************************************************************
+
         User-defined context associated with download. Set using the
         context() methods.
 
@@ -421,6 +430,22 @@ public struct DownloadSetup
 
     /***************************************************************************
 
+        Sets this download to allow "insecure" SSL connections and transfers.
+
+        Returns:
+            this pointer for method chaining
+
+    ***************************************************************************/
+
+    public typeof(this) ssl_insecure ( )
+    {
+        this.ssl_insecure_ = true;
+        return this;
+    }
+
+
+    /***************************************************************************
+
         Returns:
             true if this download is set to use authentication (by a call to
             the authenticate() method)
@@ -444,6 +469,19 @@ public struct DownloadSetup
     public bool timeout_set ( )
     {
         return this.timeout_s_ > 0;
+    }
+
+
+    /***************************************************************************
+
+        Returns:
+            true if "insecure" SSL downloads are enabled
+
+    ***************************************************************************/
+
+    public bool ssl_insecure_set ( )
+    {
+        return this.ssl_insecure_;
     }
 }
 

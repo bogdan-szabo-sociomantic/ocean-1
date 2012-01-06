@@ -40,6 +40,8 @@ private import ocean.io.serialize.StructSerializer;
 
 private import ocean.text.convert.Layout;
 
+debug private import ocean.io.Stdout;
+
 
 
 /*******************************************************************************
@@ -240,6 +242,13 @@ private class CurlProcess : EpollProcess
             this.args ~= this.timeout_buf;
         }
 
+        // SSL
+        if ( this.setup.ssl_insecure_set )
+        {
+            this.args ~= "-k";
+        }
+
+        // Url
         this.args ~= this.setup.url;
 
         super.start("curl", this.args);
