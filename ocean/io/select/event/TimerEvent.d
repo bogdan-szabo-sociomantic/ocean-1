@@ -20,7 +20,7 @@ module ocean.io.select.event.TimerEvent;
 
 private import ocean.io.select.model.ISelectClient: ISelectClient;
 
-private import ocean.io.select.protocol.generic.ErrnoIOException;
+private import ocean.core.ErrnoIOException;
 
 private import tango.io.model.IConduit: ISelectable;
 
