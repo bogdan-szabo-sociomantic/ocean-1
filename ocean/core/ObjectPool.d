@@ -1478,7 +1478,7 @@ abstract class PoolCore : IObjectPoolInfo
 
         ***********************************************************************/
 
-       void check ( bool ok, lazy char[] msg, char[] file, long line )
+        void check ( bool ok, lazy char[] msg, char[] file, long line )
         {
             if (this.outer.limited && !ok)
             {
