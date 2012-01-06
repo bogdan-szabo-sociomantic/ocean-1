@@ -213,13 +213,14 @@ public abstract class EpollProcess
 
         private void signalHandler ( SignalEvent.SignalInfo siginfo )
         {
-            Stdout.formatln("Signal fired in epoll: pid={}", siginfo.ssi_pid);
+            debug ( EpollProcess ) Stdout.formatln("Signal fired in epoll: pid={}", siginfo.ssi_pid);
 
             int status;
             auto pid = waitpid(siginfo.ssi_pid, &status, WNOHANG);
 
             // waitpid returns 0 in the case where it would hang (if the
-            // specified pid has not yet changed state)
+            // specified pid has not yet changed state), but we know the process
+            // has changed state, so this is purely notional.
             if ( pid )
             {
                 auto exited_ok = WIFEXITED(status);
@@ -228,12 +229,12 @@ public abstract class EpollProcess
                 auto process = pid in this.processes;
                 if ( process )
                 {
-                    Stdout.formatln("pid {} finished, ok={}, code={}", pid, exited_ok, exit_code);
+                    debug ( EpollProcess ) Stdout.formatln("pid {} finished, ok={}, code={}", pid, exited_ok, exit_code);
                     process.exit(exited_ok, exit_code);
                 }
-    
+
                 this.processes.remove(pid);
-    
+
                 if ( this.processes.length == 0 )
                 {
                     this.epoll.unregister(this.signal_event);
@@ -375,7 +376,7 @@ public abstract class EpollProcess
 
         protected void finalize ( )
         {
-            this.outer.finalize();
+            this.outer.stdoutFinalize();
         }
 
 
@@ -404,6 +405,7 @@ public abstract class EpollProcess
 
         protected void handle_ ( ubyte[] data )
         {
+            assert(!this.outer.stdout_finalized);
             this.outer.stdout(data);
         }
 
@@ -445,6 +447,21 @@ public abstract class EpollProcess
 
         /***********************************************************************
 
+            ISelectClient finalizer. Called from the epoll selector when a 
+            client finishes (due to being unregistered or an error).
+
+            Calls the outer class' finalize() method.
+
+        ***********************************************************************/
+
+        protected void finalize ( )
+        {
+            this.outer.stderrFinalize();
+        }
+
+
+        /***********************************************************************
+
             Returns:
                 the stream being read from
 
@@ -468,6 +485,7 @@ public abstract class EpollProcess
 
         protected void handle_ ( ubyte[] data )
         {
+            assert(!this.outer.stderr_finalized);
             this.outer.stderr(data);
         }
 
@@ -553,7 +571,9 @@ public abstract class EpollProcess
 
     ***************************************************************************/
 
-    private bool finalized;
+    private bool stdout_finalized;
+
+    private bool stderr_finalized;
 
 
     /***************************************************************************
@@ -624,11 +644,14 @@ public abstract class EpollProcess
     {
         assert(this.state == State.None); // TODO: error notification?
 
-        this.finalized = false;
+        this.stdout_finalized = false;
+        this.stderr_finalized = false;
         this.exited = false;
 
         this.process.args(command, args);
         this.process.execute();
+
+        debug ( EpollProcess ) Stdout.formatln("Starting process pid {}, {} {}", this.process.pid, command, args);
 
         this.epoll.register(this.stdout_handler);
         this.epoll.register(this.stderr_handler);
@@ -735,19 +758,40 @@ public abstract class EpollProcess
     /***************************************************************************
 
         Called when the process' stdout handler is finalized by epoll. This
-        occurs when the process terminates.
+        occurs when the process terminates and all data from its stdout buffer
+        has been read.
 
-        The protected finished() method is called once both the finalize() and
-        exit() methods have been called, ensuring that no more data will be
-        received after this point.
+        The protected checkFinished() method is called once the
+        stdoutFinished(), stderrFinished() and exit() methods have been called,
+        ensuring that no more data will be received after this point.
 
     ***************************************************************************/
 
-    private void finalize ( )
+    private void stdoutFinalize ( )
     {
-        Stdout.formatln("Finalized pid {}", this.process.pid);
-        this.finalized = true;
-        this.finished();
+        debug ( EpollProcess ) Stdout.formatln("Finalized stdout pid {}", this.process.pid);
+        this.stdout_finalized = true;
+        this.checkFinished();
+    }
+
+
+    /***************************************************************************
+
+        Called when the process' stderr handler is finalized by epoll. This
+        occurs when the process terminates and all data from its stderr buffer
+        has been read.
+
+        The protected checkFinished() method is called once the
+        stdoutFinished(), stderrFinished() and exit() methods have been called,
+        ensuring that no more data will be received after this point.
+
+    ***************************************************************************/
+
+    private void stderrFinalize ( )
+    {
+        debug ( EpollProcess ) Stdout.formatln("Finalized stderr pid {}", this.process.pid);
+        this.stderr_finalized = true;
+        this.checkFinished();
     }
 
 
@@ -756,20 +800,29 @@ public abstract class EpollProcess
         Called when the process exits. The RunningProcesses instance is notified
         of this via a SIGCHLD signal.
 
-        The protected finished() method is called once both the finalize() and
-        exit() methods have been called, ensuring that no more data will be
-        received after this point.
+        The protected checkFinished() method is called once the
+        stdoutFinished(), stderrFinished() and exit() methods have been called,
+        ensuring that no more data will be received after this point.
 
     ***************************************************************************/
 
     private void exit ( bool exited_ok, int exit_code )
     {
-        Stdout.formatln("Set exit status pid {}", this.process.pid);
+        debug ( EpollProcess ) Stdout.formatln("Set exit status pid {}", this.process.pid);
         this.exited_ok = exited_ok;
         this.exit_code = exit_code;
         this.exited = true;
 
-        this.finished();
+        // We know the process has already exited, as we have explicitly been
+        // notified about this by the SIGCHLD signal (handled by the
+        // signalHandler() method of RunningProcesses, above). However the tango
+        // Process instance contains a flag (running_) which needs to be reset.
+        // This can be achieved by calling wait(), which internally calls
+        // waitpid() again. In this case waitpid() will return immediately with
+        // an error code (as the child process no longer exists).
+        this.process.wait();
+
+        this.checkFinished();
     }
 
 
@@ -781,13 +834,13 @@ public abstract class EpollProcess
 
     ***************************************************************************/
 
-    private void finished ( )
+    private void checkFinished ( )
     {
-        if ( this.finalized && this.exited )
+        if ( this.stdout_finalized && this.stderr_finalized && this.exited )
         {
             this.state = State.None;
 
-            Stdout.formatln("Finalised & exited ");
+            debug ( EpollProcess ) Stdout.formatln("Streams finalised & process exited");
             this.finished(this.exited_ok, this.exit_code);
         }
     }
