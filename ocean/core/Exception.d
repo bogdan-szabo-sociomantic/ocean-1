@@ -24,6 +24,10 @@
     HttpServerException("error", "myprogram.d", 1234);
     ---
 
+    TODO: is there any reason for having all these exception types defined here
+    in ocean.core, as opposed to just defining each of them in the module where
+    it's used?
+
 *******************************************************************************/
 
 module ocean.core.Exception;
