@@ -90,22 +90,28 @@ module ocean.sys.SignalFD;
 
 version ( Posix )
 {
-    private import tango.stdc.posix.signal;
 }
 else
 {
     static assert(false, "module ocean.sys.SignalFD only supported in posix environments");
 }
 
-private import tango.io.model.IConduit;
-
-private import tango.stdc.posix.unistd: read, close;
+private import ocean.core.ErrnoIOException;
 
 private import ocean.io.select.model.ISelectClient;
 
 private import ocean.sys.SignalMask;
 
-debug private import ocean.util.log.Trace;
+private import tango.io.model.IConduit;
+
+private import tango.stdc.posix.signal;
+private import tango.stdc.posix.unistd : read, close;
+
+private import tango.stdc.errno : EAGAIN, EWOULDBLOCK, errno;
+
+private import tango.sys.linux.consts.fcntl : O_NONBLOCK;
+
+debug private import ocean.io.Stdout;
 
 
 
@@ -127,25 +133,25 @@ private extern ( C ) int signalfd ( int fd, sigset_t* mask, int flags );
 
 public struct signalfd_siginfo
 {
-    uint ssi_signo;   /* Signal number */
-    int  ssi_errno;   /* Error number (unused) */
-    int  ssi_code;    /* Signal code */
-    uint ssi_pid;     /* PID of sender */
-    uint ssi_uid;     /* Real UID of sender */
-    int  ssi_fd;      /* File descriptor (SIGIO) */
-    uint ssi_tid;     /* Kernel timer ID (POSIX timers) */
-    uint ssi_band;    /* Band event (SIGIO) */
-    uint ssi_overrun; /* POSIX timer overrun count */
-    uint ssi_trapno;  /* Trap number that caused signal */
-    int  ssi_status;  /* Exit status or signal (SIGCHLD) */
-    int  ssi_int;     /* Integer sent by sigqueue(2) */
+    uint ssi_signo;    /* Signal number */
+    int  ssi_errno;    /* Error number (unused) */
+    int  ssi_code;     /* Signal code */
+    uint ssi_pid;      /* PID of sender */
+    uint ssi_uid;      /* Real UID of sender */
+    int  ssi_fd;       /* File descriptor (SIGIO) */
+    uint ssi_tid;      /* Kernel timer ID (POSIX timers) */
+    uint ssi_band;     /* Band event (SIGIO) */
+    uint ssi_overrun;  /* POSIX timer overrun count */
+    uint ssi_trapno;   /* Trap number that caused signal */
+    int  ssi_status;   /* Exit status or signal (SIGCHLD) */
+    int  ssi_int;      /* Integer sent by sigqueue(2) */
     ulong ssi_ptr;     /* Pointer sent by sigqueue(2) */
     ulong ssi_utime;   /* User CPU time consumed (SIGCHLD) */
     ulong ssi_stime;   /* System CPU time consumed (SIGCHLD) */
     ulong ssi_addr;    /* Address that generated signal
-                             (for hardware-generated signals) */
-    ubyte[48] pad;      /* Pad size to 128 bytes (allow for
-                              additional fields in the future) */
+                          (for hardware-generated signals) */
+    ubyte[48] pad;     /* Pad size to 128 bytes (allow for
+                          additional fields in the future) */
 
     static assert(signalfd_siginfo.sizeof == 128);
 }
@@ -162,11 +168,106 @@ public class SignalFD : ISelectable
 {
     /***************************************************************************
 
+        errno exception type for signal events.
+
+    ***************************************************************************/
+
+    private static class SignalErrnoException : ErrnoIOException
+    {
+        /***********************************************************************
+
+            Sets the exception parameters.
+
+            Params:
+                errnum = error code (errno)
+                msg    = message
+                file   = source code file name
+                line   = source code line
+
+            Returns:
+                this instance
+
+        ***********************************************************************/
+
+        public typeof (this) opCall ( int errnum, char[] msg, char[] file = "", long line = 0 )
+        {
+            super.set(errnum, msg, file, line);
+            return this;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Exception type for signal events.
+
+    ***************************************************************************/
+
+    private static class SignalException : Exception
+    {
+        /***********************************************************************
+
+            Constructor.
+
+        ***********************************************************************/
+
+        public this ( )
+        {
+            super("");
+        }
+
+
+        /***********************************************************************
+
+            Sets the exception parameters.
+
+            Params:
+                msg    = message
+                file   = source code file name
+                line   = source code line
+
+            Returns:
+                this instance
+
+        ***********************************************************************/
+
+        public typeof (this) opCall ( char[] msg, char[] file = "", long line = 0 )
+        {
+            super.msg = msg;
+            super.file = file;
+            super.line = line;
+            return this;
+        }
+    }
+
+
+    /***************************************************************************
+
         More convenient alias for signalfd_siginfo.
 
     ***************************************************************************/
 
     public alias .signalfd_siginfo SignalInfo;
+
+
+    /***************************************************************************
+
+        SFD_NONBLOCK flags used by signalfd() function.
+
+    ***************************************************************************/
+
+    private alias O_NONBLOCK SFD_NONBLOCK;
+
+
+    /***************************************************************************
+
+        Re-usable exception instances.
+
+    ***************************************************************************/
+
+    private SignalErrnoException errno_exception;
+
+    private SignalException exception;
 
 
     /***************************************************************************
@@ -209,12 +310,15 @@ public class SignalFD : ISelectable
         sigset.clear;
         sigset.add(signals);
 
-        this.fd = .signalfd(-1, &cast(sigset_t)sigset, 0);
+        this.fd = .signalfd(-1, &cast(sigset_t)sigset, SFD_NONBLOCK);
 
         if ( mask )
         {
             this.maskHandledSignals();
         }
+
+        this.exception = new SignalException;
+        this.errno_exception = new SignalErrnoException;
     }
 
 
@@ -283,20 +387,60 @@ public class SignalFD : ISelectable
 
     /***************************************************************************
 
-        Should be called when the signal event has fired.
+        Should be called when the signal event has fired. Fills in the provided
+        array with structs containing information about which signals fired.
 
-        Returns:
-            struct containing information about the signal which fired
+        Params:
+            siginfos = output array of structs containing information about
+                signals which fired
+
+        Throws:
+            if an error occurs while reading from the signalfd
 
     ***************************************************************************/
 
-    public SignalInfo handle ( )
+    public void handle ( ref SignalInfo[] siginfos )
     {
+        siginfos.length = 0;
+
         SignalInfo siginfo;
 
-        .read(this.fd, &siginfo, siginfo.sizeof);
+        ssize_t bytes;
+        do
+        {
+            bytes = .read(this.fd, &siginfo, siginfo.sizeof);
+            if ( bytes == siginfo.sizeof )
+            {
+                siginfos ~= siginfo;
+            }
+            else if ( bytes < 0 )
+            {
+                scope ( exit ) .errno = 0;
+                auto errnum = .errno;
 
-        return siginfo;
+                switch ( errnum )
+                {
+                    case EAGAIN:
+                    break;
+
+                    static if ( EAGAIN != EWOULDBLOCK )
+                    {
+                        case EWOUDLBLOCK:
+                        break;
+                    }
+
+                    default:
+                        throw this.errno_exception(errnum, "reading from signalfd",
+                                __FILE__, __LINE__);
+                }
+            }
+            else
+            {
+                throw this.exception("read invalid bytes from signalfd",
+                        __FILE__, __LINE__);
+            }
+        }
+        while ( bytes > 0 );
     }
 }
 
