@@ -51,7 +51,7 @@
 
 *******************************************************************************/
 
-module ocean.net.client.curl.CurlProcess;
+module ocean.net.client.curl.CurlProcessMulti;
 
 
 
