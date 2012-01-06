@@ -49,6 +49,8 @@
     
     ---
 
+    TODO: move this whole package out of ocean.db and into ocean.util.container.
+
 *******************************************************************************/
 
 module ocean.db.ebtree.EBTree;
