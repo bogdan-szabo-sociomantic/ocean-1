@@ -13,10 +13,10 @@
     Exception template can be used as extension for custom routines to redirect
     error messages to files or command line via a Logger Interface.
 
-    ---
 
     Exception Console Output Usage Example:
 
+    ---
         void run()
         {
             try
@@ -31,16 +31,15 @@
             OceanException.run(&run);
 
         }
-
+    ---
         The example shows how to catch OceanException thrown by some part of
         your code. The highest catch is going to print your exception to the
         screen. In case you dont use a catch statement at the end your
         message just gets printed on stdout and the code exits at this stage.
 
-    ---
-
     Exception File Logging Usage Example:
 
+    ---
         import tango.util.log.AppendFile;
 
 
@@ -60,15 +59,13 @@
             // execute method
             OceanException.run(&run);
         }
-
+    ---
 
         The example shows on how to use OceanExeption in combination with a log
         file. To set it up you need to include the proper Appender from
         tango.util.log. You have the choice between a file, socket, mail and
         console appender. This appender just get passed to OceanExeption at the
         beginning of your code.
-
-    ---
 
 ********************************************************************************/
 

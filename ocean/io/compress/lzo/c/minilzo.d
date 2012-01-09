@@ -55,7 +55,7 @@
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
     Abstract
-    --------
+    ========
     LZO is a portable lossless data compression library written in ANSI C.
     It offers pretty fast compression and very fast decompression.
     Decompression requires no memory.

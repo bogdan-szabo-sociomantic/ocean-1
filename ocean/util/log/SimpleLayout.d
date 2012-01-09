@@ -49,6 +49,7 @@ private import  Integer = tango.text.convert.Integer;
         Trace [Example] - Trace example
         Error [Example] - Error example
         Fatal [Example] - Fatal example
+        ----
        
 *******************************************************************************/
 
