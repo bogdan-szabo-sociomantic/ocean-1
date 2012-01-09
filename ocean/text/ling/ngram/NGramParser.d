@@ -37,8 +37,8 @@
 
     ---
 
-        import ocean.text.ngram.NGramParser;
-        import ocean.text.ngram.NGramSet;
+        import ocean.text.ling.ngram.NGramParser;
+        import ocean.text.ling.ngram.NGramSet;
         import tango.util.log.Trace;
 
         // Text that should be parsed.
@@ -66,8 +66,8 @@
 
     ---
 
-        import ocean.text.ngram.NGramParser;
-        import ocean.text.ngram.NGramAnalysis;
+        import ocean.text.ling.ngram.NGramParser;
+        import ocean.text.ling.ngram.NGramAnalysis;
         import tango.util.log.Trace;
 
         // Text that should be parsed.
@@ -279,7 +279,7 @@ public class NGramParser
             {
                 if ( stripCharacter(c) || Unicode.isUpper(c) )
                 {
-                    Trace.formatln("{} ({}) should be stripped", c, cast(uint)c);
+                    debug Trace.formatln("{} ({}) should be stripped", c, cast(uint)c);
                     return false;
                 }
             }
