@@ -341,7 +341,7 @@ class AsyncFileContext
             
             if ( submit )
             {
-                Trace.formatln("Read request fired");
+                debug Trace.formatln("Read request fired");
                 Iocb* fake_list = &this.iocb;
                 int ret = io_submit(this.outer.io_context, 1, &fake_list);
                 
@@ -374,7 +374,7 @@ class AsyncFileContext
         
         public bool handler ( )
         {
-            Trace.formatln("handler called");
+            debug Trace.formatln("handler called");
             Io_event[10] events;
             int ret;
             
