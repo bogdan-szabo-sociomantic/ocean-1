@@ -3,8 +3,8 @@ module c.pcre;
 /**
  * Perl-Compatible Regular Expressions
  * http://www.pcre.org/
- *
- * -----------------------------------------------------------------------------
+ */
+/* -----------------------------------------------------------------------------
  *
  * This is the public header file for the PCRE library, to be #included by
  * applications that call the PCRE functions.

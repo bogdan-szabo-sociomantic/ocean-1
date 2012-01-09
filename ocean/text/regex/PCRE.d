@@ -39,8 +39,7 @@
             Implement preg_split()
 
 
-        ---
-        Related
+        Related:
 
         http://regexpal.com/
         http://www.pcre.org/
@@ -54,7 +53,7 @@ module  ocean.text.PCRE;
 
 public  import ocean.core.Exception: PCREException;
 
-private import ocean.text.c.pcre;
+private import ocean.text.regex.c.pcre;
 
 private import tango.stdc.stringz : toDString = fromStringz, toCString = toStringz;
 

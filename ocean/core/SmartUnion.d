@@ -204,6 +204,7 @@ private struct SmartUnionIntern ( U )
         ---
             union U {int x; char y;}
         ---
+
         ---
             mixin (Methods!("my_smart_union", 1).both);
         ---

@@ -33,7 +33,7 @@ private import ocean.io.compress.lzo.LzoChunk,
 
 private import ocean.io.digest.Fnv1;
 
-private import ocean.io.device.queue.RingQueue;
+private import ocean.util.container.queue.FlexibleRingQueue;
 
 private import ocean.io.serialize.SimpleSerializer,
                ocean.io.serialize.StructSerializer;
