@@ -23,7 +23,7 @@ public          import      tango.stdc.time : time_t;
 
 private         import      tango.stdc.time : tm, localtime, time, gmtime;
 
-private         import      tango.stdc.posix.timer : timespec;
+private         import      tango.stdc.posix.signal : timespec;
  
 private         import      tango.stdc.stdio : sscanf, snprintf;
 
