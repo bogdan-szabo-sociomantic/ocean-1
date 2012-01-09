@@ -5,7 +5,7 @@ module ocean.net.client.sphinx.c.sphinxclient;
  * Sphinx search engine, http://sphinxsearch.com/
  *
  * API notes
- * ------------
+ * ===============
  *
  * 1. API can either copy the contents of passed pointer arguments,
  * or rely on the application that the pointer will not become invalid.

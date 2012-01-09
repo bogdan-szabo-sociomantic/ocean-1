@@ -57,7 +57,7 @@ module ocean.net.client.sphinx.SphinxClient;
 
 public  import ocean.core.Exception: SphinxException;
 
-private import ocean.net.client.c.sphinxclient;
+private import ocean.net.client.sphinx.c.sphinxclient;
 
 private import tango.stdc.stringz : toDString = fromStringz, toCString = toStringz;
 
