@@ -34,7 +34,7 @@
 
 ********************************************************************************/
 
-module      core.text.PorterStemmerDe;
+module      core.text.ling.stemmer.PorterStemmerDe;
 
 
 

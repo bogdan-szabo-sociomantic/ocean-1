@@ -66,7 +66,7 @@
 
 ********************************************************************************/
 
-module      ocean.text.stemmer.PorterStemmerEn;
+module      ocean.text.ling.stemmer.PorterStemmerEn;
 
 
 

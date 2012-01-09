@@ -18,7 +18,7 @@
 
     ---
 
-    import ocean.text.stemmer.PorterStemmer;
+    import ocean.text.ling.stemmer.PorterStemmer;
 
     auto stemmer = new PorterStemmer();
     char[] toStem = "agreed";
@@ -43,7 +43,7 @@
 
 ********************************************************************************/
 
-module      text.stemmer.PorterStemmer;
+module      text.ling.stemmer.PorterStemmer;
 
 
 
@@ -53,8 +53,8 @@ module      text.stemmer.PorterStemmer;
 
 *******************************************************************************/
 
-private     import      ocean.text.stemmer.PorterStemmerEn,
-                        ocean.text.stemmer.PorterStemmerDe;
+private     import      ocean.text.ling.stemmer.PorterStemmerEn,
+                        ocean.text.ling.stemmer.PorterStemmerDe;
 
 
 
