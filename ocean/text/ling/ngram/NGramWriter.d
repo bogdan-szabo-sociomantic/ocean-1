@@ -44,11 +44,11 @@
 
 ********************************************************************************/
 
-module  ocean.text.ngram.NGramWriter;
+module  ocean.text.ling.ngram.NGramWriter;
 
 private import  Path = tango.io.Path;
 
-private import  tango.io.digest.Md5;
+private import  tango.util.digest.Md5;
 
 private import  tango.io.device.File;
 
