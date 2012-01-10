@@ -28,7 +28,7 @@ module ocean.math.Math;
 
 ***************************************************************************/
 
-static public ulong pow ( ulong base, ulong power )
+public ulong pow ( ulong base, ulong power )
 {   
     ulong res = void;
     
