@@ -18,6 +18,8 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#ifdef __SIZEOF_INT128__
+
 #include "eb128tree.h"
 #include "ebtree.h"
 
@@ -134,7 +136,7 @@ inline struct eb128_node *eb128i_lookup(struct eb_root *root, s128 x)
 {
 	struct eb128_node *node;
 	eb_troot_t *troot;
-	u128 key = x ^ (1ULL << 127);
+	u128 key = x ^ (((s128) 1) << 127);
 	u128 y;
 	int node_bit;
 
@@ -389,7 +391,7 @@ inline struct eb128_node *eb128i_insert(struct eb_root *root, struct eb128_node 
 	 * inserted in order to have negative keys stored before positive
 	 * ones.
 	 */
-	newkey = new->key ^ (1ULL << 127);
+	newkey = new->key ^ ((s128) 1 << 127);
 
 	while (1) {
 		if (unlikely(eb_gettag(troot) == EB_LEAF)) {
@@ -704,3 +706,5 @@ struct eb128_node *eb128_lookup_ge(struct eb_root *root, u128 x)
 	node = eb128_entry(eb_walk_down(troot, EB_LEFT), struct eb128_node, node);
 	return node;
 }
+
+#endif /* __SIZEOF_INT128__ */

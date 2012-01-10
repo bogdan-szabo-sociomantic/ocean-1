@@ -21,6 +21,21 @@
 #ifndef _EB128TREE_H
 #define _EB128TREE_H
 
+/* This is the EB Tree implementation for 128-bit keys. It uses the GCC 4.6
+ * extension of 128-bit integer types for platforms with native support for
+ * 128-bit integers. If supported, the __SIZEOF_INT128__ macro is defined and
+ * the intrinsic signed/unsigned __int128 type exists.
+ *
+ * @see http://gcc.gnu.org/onlinedocs/gcc-4.6.2/gcc/_005f_005fint128.html
+ * @see http://gcc.gnu.org/gcc-4.6/changes.html
+ *
+ * The 128-bit key EB Tree support, that is, all functions declared below, is
+ * compiled in only if that GCC extension is enabled. Otherwise these functions
+ * will be missing in the produced library.
+ */
+
+#ifdef __SIZEOF_INT128__
+
 #include "ebtree.h"
 
 
@@ -28,8 +43,8 @@
 #define EB128_TREE_HEAD	EB_TREE_HEAD
 
 /* These types may sometimes already be defined */
-typedef __uint128_t u128;
-typedef __int128_t s128;
+typedef unsigned __int128 u128;
+typedef signed __int128   s128;
 
 /* This structure carries a node, a leaf, and a key. It must start with the
  * eb_node so that it can be cast into an eb_node. We could also have put some
@@ -112,4 +127,6 @@ extern struct eb128_node *__eb128_insert(struct eb_root *root, struct eb128_node
  * is returned. If root->b[EB_RGHT]==1, the tree may only contain unique keys.
  */
 extern struct eb128_node *__eb128i_insert(struct eb_root *root, struct eb128_node *new);
+
+#endif /* __SIZEOF_INT128__ */
 #endif /* _EB128_TREE_H */

@@ -518,6 +518,8 @@ static inline int fls64(unsigned long long x)
 	return flsnz(h) + bits;
 }
 
+#ifdef __SIZEOF_INT128__
+
 static inline int fls128(__int128_t x)
 {
 	unsigned int h;
@@ -532,6 +534,10 @@ static inline int fls128(__int128_t x)
 }
 
 #define fls_auto(x) (sizeof(x) > 8) ? fls128(x) : (sizeof(x) > 4) ? fls64(x) : flsnz(x))
+
+#else   /* __SIZEOF_INT128__ */
+#define fls_auto(x) (sizeof(x) > 4) ? fls64(x) : flsnz(x))
+#endif  /* __SIZEOF_INT128__ */
 
 #endif /* _EB_TREE_H */
 
