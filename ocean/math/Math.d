@@ -12,6 +12,64 @@
 *******************************************************************************/
 
 module ocean.math.Math;
+       
+/***************************************************************************
+
+    Integer pow function. Returns the power'th power of base 
+    
+    Ported from tango, changed to only use integers
+    
+    Params:
+        base  = base number
+        power = power
+        
+    Returns:
+        the power'th power of base
+
+***************************************************************************/
+
+static public ulong pow ( ulong base, ulong power )
+{   
+    ulong res = void;
+    
+    switch (power)
+    {
+        case 0:
+            res = 1;
+            break;
+        case 1:
+            res = base;
+            break;
+        case 2:
+            res = base * base;
+            break;
+            
+        default:
+            res = 1;
+        
+            while (1)
+            {
+                if (power & 1) res *= base;
+                power >>= 1;
+                if (!power) break;
+                base *= base;                                       
+            }
+            break;
+    }
+    
+    return res;
+}
+
+unittest
+{
+    ulong x = 46;
+
+    assert(pow(x,0) == 1);
+    assert(pow(x,1) == x);
+    assert(pow(x,2) == x * x);
+    assert(pow(x,3) == x * x * x);
+    assert(pow(x,8) == (x * x) * (x * x) * (x * x) * (x * x));    
+}
 
 /*******************************************************************************
 
