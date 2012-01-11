@@ -428,15 +428,15 @@ class LibDrizzleEpoll
 
         ISelectClient.Event events;
 
-        if (action & Event.Read)  events |= Event.Read;
+        if (action & ISelectClient.Event.Read)  events |= ISelectClient.Event.Read;
 
-        if (action & Event.Write) events |= Event.Write;
+        if (action & ISelectClient.Event.Write) events |= ISelectClient.Event.Write;
 
         connection.setEvents(events);
-        connection.fd = cast(ISelectable.Handle) drizzle_con_fd(con);
+        connection.fd = cast(ISelectClient.ISelectable.Handle) drizzle_con_fd(con);
 
         try 
-        {
+        {        
             instance.epoll.register(connection);
         }
         catch (Exception e)

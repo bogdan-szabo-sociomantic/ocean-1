@@ -41,6 +41,8 @@ private import ocean.db.drizzle.c.result;
 
 private import ocean.io.select.model.ISelectClient;
 
+private import tango.io.model.IConduit: ISelectable;
+
 private import ocean.io.select.EpollSelectDispatcher;
 
 private import ocean.io.select.RequestQueue;
@@ -70,6 +72,8 @@ public import ocean.db.drizzle.Exception;
 *******************************************************************************/
 
 private import tango.stdc.stringz;
+
+private import tango.core.Thread;
 
 /*******************************************************************************
 
@@ -190,6 +194,14 @@ package class Connection : RequestHandler!(LibDrizzleEpoll.DrizzleRequest),
     
     /***************************************************************************
 
+        Whether we got disconnected and shouldn't try to to reconnect
+
+    ***************************************************************************/
+    
+    private bool disconnected = false;
+    
+    /***************************************************************************
+
         Constructor
 
         Params:
@@ -261,6 +273,7 @@ package class Connection : RequestHandler!(LibDrizzleEpoll.DrizzleRequest),
     body
     {
         drizzle_return_t returnCode;
+        this.disconnected = false;
         
         do
         {
@@ -270,13 +283,13 @@ package class Connection : RequestHandler!(LibDrizzleEpoll.DrizzleRequest),
                                         this.queryString.length, &returnCode);
             
             if (null is result)
-            {
+            {        
                 throw exception.reset(queryString, returnCode, 
                                       "Failed to allocate result", null);
             }
         }
-        while (retry(returnCode))
-        
+        while (retry(returnCode) && !disconnected)
+            
         scope (exit) this.resultObj.reset();
             
         if (returnCode == drizzle_return_t.DRIZZLE_RETURN_OK)
@@ -295,16 +308,19 @@ package class Connection : RequestHandler!(LibDrizzleEpoll.DrizzleRequest),
                                  this.drizzle_callback_error.msg, 
                                  this.drizzle_callback_error);
             }
-            else exception.reset(queryString, returnCode, 
-                                 fromStringz(drizzle_error(
-                                 drizzle_con_drizzle(&this.connection))), null);
-            
+            else
+            {
+                auto msg = disconnected ? "Couldn't connect to server" : 
+                                            fromStringz(drizzle_error(
+                                 drizzle_con_drizzle(&this.connection)));
+                exception.reset(queryString, returnCode, msg, null);
+            }
             this.callback (this.requestContext, null, this.exception);
             
             this.reset();
         }
     }
-
+    
     /***************************************************************************
 
         Sends a query using this connection and will call the provided
@@ -316,7 +332,7 @@ package class Connection : RequestHandler!(LibDrizzleEpoll.DrizzleRequest),
             rc    = request context. Will be passed to the callback
 
     ***************************************************************************/
-
+import ocean.util.log.Trace;
     protected void request ( ref LibDrizzleEpoll.DrizzleRequest request )
     in
 	{
@@ -349,8 +365,10 @@ package class Connection : RequestHandler!(LibDrizzleEpoll.DrizzleRequest),
     override protected void error_ ( Exception e, Event ev )
     {
         auto internal_error = drizzle_return_t.DRIZZLE_RETURN_INTERNAL_ERROR;
-        
+
         drizzle_con_set_revents(&this.connection, ev);
+
+        disconnected = Event.Hangup && ev;
         
         Exception exc = e;
         
@@ -448,7 +466,7 @@ package class Connection : RequestHandler!(LibDrizzleEpoll.DrizzleRequest),
     body
     {
         register_again = false;
-
+        
         drizzle_con_set_revents(&this.connection, event);
         
         try this.fiber.call();
