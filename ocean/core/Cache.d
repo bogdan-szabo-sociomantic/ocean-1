@@ -67,7 +67,7 @@ private import ocean.db.ebtree.EBTreeMap;
 
 private import tango.stdc.time: time_t;
 
-debug private import ocean.util.log.Trace;
+debug private import ocean.io.Stdout;
 
 debug (CacheTimes)
 {
@@ -199,10 +199,11 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
 
     private TimeToIndex time_to_index;
 
-    
+
     /***************************************************************************
 
-        Mapping from key to MapItem struct.
+        Mapping from key to TimeToIndex.Mapping struct (which contains a mapping
+        from an access time to the index of an elements in this.items).
 
     ***************************************************************************/
 
@@ -250,8 +251,6 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
 
     public bool put ( hash_t key, time_t time, Value value )
     {
-        //if (key == 46272211) Trace.formatln("key = {} createtime = {}", key, time);
-        
         TimeToIndex.Mapping* mapping = key in this.key_to_mapping;
         if ( mapping is null ) // new item, not in cache
         {
@@ -269,7 +268,8 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
             return true;
         }
     }
-    
+
+
     /***************************************************************************
 
         Gets an item from the cache. A pointer to the item is returned, if
