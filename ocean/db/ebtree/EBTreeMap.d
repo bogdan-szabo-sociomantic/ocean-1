@@ -132,31 +132,50 @@ class EBTreeMap ( Key, Value, bool KeyUnique = false )
     
     static assert(Key.sizeof == 8 || Key.sizeof == 4, This.stringof ~ ": only supports 32/64-bit types, not " ~ Value.stringof);
 
-    /***********************************************************************
-    
-        Struct defining a single entry in the map -- a key and a value. The
-        key is always placed as the most significant bytes, so the tree is
-        sorted in key order.
-    
-    ***********************************************************************/
-    
+    /***************************************************************************
+
+        Struct defining a single entry in the map -- a key and a value. The key
+        is always placed as the most significant bytes, so the tree is sorted in
+        key order.
+
+    ***************************************************************************/
+
     private struct NodeStruct
     {
-        version ( BigEndian )
+        /***********************************************************************
+
+	        Struct key & value, order dependent on system endianness.
+
+	    ***********************************************************************/
+
+    	version ( BigEndian )
         {
             Key key;
             Value value;
         }
         else version ( LittleEndian )
         {
-            Value value;
-            Key key;
+        	Value value;
+        	Key key;
         }
         else
         {
             static assert(false, This.stringof ~ ": endianness version not found, cannot safely use this template");
         }
-        
+
+
+        /***********************************************************************
+
+	        Struct comparator.
+
+			Params:
+				rhs = struct to compare against
+
+	        Returns:
+	            1 if this > rhs, -1 if rhs > this, 0 if this == rhs
+
+	    ***********************************************************************/
+
         int opCmp ( NodeStruct rhs )
         {
             if ( key == rhs.key )
@@ -176,6 +195,29 @@ class EBTreeMap ( Key, Value, bool KeyUnique = false )
             return 0;
             +/
         }
+
+
+        /***********************************************************************
+
+	        Endianness independant method to create a NodeStruct instance from a
+	        key and value.
+
+			Params:
+				k = key
+				v = value
+
+	        Returns:
+	            new NodeStruct
+
+	    ***********************************************************************/
+
+	    static NodeStruct opCall ( Key k, Value v )
+	    {
+	        NodeStruct nodestruct;
+	        nodestruct.key = k;
+	        nodestruct.value = v;
+	        return nodestruct;
+	    }
     }
     
     /***************************************************************************
@@ -326,7 +368,6 @@ class EBTreeMap ( Key, Value, bool KeyUnique = false )
         {
             return Mapping(this.tree.add(Mapping.NodeStruct(key, value)));
         }
-
     }
 
     public alias add put;
