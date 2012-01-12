@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path=""/>
-	<classpathentry kind="con" path="descent.USER_LIBRARY/includes"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/tango">
+		<accessrules>
+			<accessrule kind="accessible" pattern="."/>
+		</accessrules>
+	</classpathentry>
 	<classpathentry kind="output" path=""/>
 </classpath>
