@@ -6,6 +6,7 @@
                     All rights reserved
 
     version:        Oktober 2011: initial release
+                    January 2012: added integer pow function
 
     authors:        Mathias L. Baumann
 
