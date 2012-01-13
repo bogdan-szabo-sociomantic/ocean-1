@@ -296,15 +296,10 @@ struct HttpResponse
 
         try
         {
-
-            version (NewTango)
+            if (this.socket.socket.error() != 0)
             {
-                if (this.socket.socket.error() != 0)
-                {
-                    this.socket.error ();
-                }
+                this.socket.error ();
             }
-            else this.socket.checkError();
 
             this.setDefaultHeader();
             this.setHeaderValue(HttpHeader.ContentLength.value, data.length);

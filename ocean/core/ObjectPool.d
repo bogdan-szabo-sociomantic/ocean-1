@@ -1547,7 +1547,6 @@ debug ( OceanUnitTest )
     import tango.math.random.Random;
     import tango.time.StopWatch;
     import tango.core.Memory;
-    version (NewTango) {} else import ocean.util.Profiler;
     import tango.io.FilePath;
 
     unittest
