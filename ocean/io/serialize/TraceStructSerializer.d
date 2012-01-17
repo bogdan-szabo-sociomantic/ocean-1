@@ -97,7 +97,7 @@ class TraceStructSerializer : StringStructSerializer!(char)
     void serialize ( T ) ( ref T item )
     {
         this.string.length = 0;
-        StructSerializer.serialize(&item, this);
+        StructSerializer!().serialize(&item, this);
         Trace.formatln("{}", this.string).flush();
     }
 
