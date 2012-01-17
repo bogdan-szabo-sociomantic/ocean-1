@@ -1,13 +1,10 @@
 /*******************************************************************************
 
-    Tangos Trace method has a different interface than the old one 
+    Tango's Trace method has a different interface than the old one 
     and doesn't allow output of text without a newline. 
     
     This file offers a replacement Trace instance with the same interface
     as the old one, but thread-safe.
-    
-    If this is compiled with the old tango (version switch NewTango not set)
-    the old Trace version of tango will be used.
     
     copyright:      Copyright (c) 2009-2011 sociomantic labs. 
                     All rights reserved
