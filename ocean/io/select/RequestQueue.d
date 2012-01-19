@@ -136,18 +136,16 @@ debug private import ocean.util.log.Trace;
 
 *******************************************************************************/
 
-private interface IRequestHandler
+public interface IRequestHandler
 {
     /***************************************************************************
 
 	    Called by RequestQueue when this Handler is waiting for new
 	    Requests. 
 	    
-	    The handler then starts popping items (from the queue) 
-	    as if there is no tomorrow.
-	    
-	    When there are no more items to pop, it registers back in the 
-	    request queue and yields/cedes.
+	    The implementation is suppose to pop an item from the queue,
+        process it and then do the same with the next until there are no more.
+        Then it should registers back at the request queue (using handlerWaiting)
 	
 	***************************************************************************/
 
@@ -173,9 +171,12 @@ private interface IRequestHandler
 /*******************************************************************************
 
 	Abstract request handler.
+    
+    This is a template for a common case, if it doesn't suit your needs,
+    implement the interface IRequestHandler (see above)
 	 
-	Any concrete class connection should inherit from this class.
-	It has to implement request which should .. start an request.
+	A concrete class connection inheriting from this class
+    has to implement the request method which should .. start an request.
 	
 	request will be run inside IRequestHandler.fiber an is free
 	to call fiber.cede/yield() as it pleases. Once the function 
