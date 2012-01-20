@@ -72,7 +72,13 @@ class FiberSelectReader : IFiberSelectProtocol
 
     private void[] data;
     
-    private ReadConduit           readConduit;
+    /**************************************************************************
+
+        Conduit reader, handles Eof, EAGAIN and socket errors.
+    
+     **************************************************************************/
+
+    private const ReadConduit           readConduit;
     
     /**************************************************************************
 
@@ -120,8 +126,23 @@ class FiberSelectReader : IFiberSelectProtocol
     body
     {
         super(conduit, fiber);
-        this.data = new void[buffer_size];
+        this.data = new ubyte[buffer_size];
         this.readConduit = new ReadConduit(cast (InputStream) conduit, super.warning_e, super.error_e);
+    }
+    
+    /**************************************************************************
+    
+        Called immediately when this instance is deleted.
+        (Must be protected to prevent an invariant from failing.)
+    
+     **************************************************************************/
+
+    protected override void dispose ( )
+    {
+        super.dispose();
+        
+        delete this.data;
+        delete this.readConduit;
     }
     
     /**************************************************************************

@@ -100,6 +100,21 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
     }
     
     /**************************************************************************
+    
+        Called immediately when this instance is deleted.
+        (Must be protected to prevent an invariant from failing.)
+    
+     **************************************************************************/
+
+    protected override void dispose ( )
+    {
+        super.dispose();
+        
+        delete this.warning_e;
+        delete this.error_e;
+    }
+    
+    /**************************************************************************
 
         Resumes the fiber coroutine and handle the events reported for the
         conduit. The fiber must be suspended (HOLD state).
