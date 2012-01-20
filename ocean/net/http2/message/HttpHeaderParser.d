@@ -18,11 +18,13 @@ module ocean.net.http2.message.HttpHeaderParser;
 
  ******************************************************************************/
 
-private import ocean.text.util.SplitIterator: ChrSplitIterator, StrSplitIterator;
+private import ocean.text.util.SplitIterator: ChrSplitIterator, ISplitIterator;
 
 private import ocean.net.http2.HttpException: HttpParseException;
 
 private import ocean.core.AppendBuffer;
+
+extern (C) private char* g_strstr_len(char* haystack, size_t haystack_len, char* needle);
 
 /******************************************************************************
 
@@ -132,21 +134,81 @@ class HttpHeaderParser : IHttpHeaderParser
 {
     /**************************************************************************
 
-    Default values for header size limitation
+        Default values for header size limitation
     
      **************************************************************************/
     
     const uint DefaultSizeLimit  = 0x4000,
                DefaultLinesLimit = 0x40;
-
+    
     /**************************************************************************
 
-        End-of-header-line token
+        Header lines split iterator 
     
      **************************************************************************/
     
-    const EndOfHeaderLine = "\r\n";
-
+    private static scope class SplitHeaderLines : ISplitIterator
+    {
+        /**************************************************************************
+    
+            End-of-header-line token
+        
+         **************************************************************************/
+        
+        const EndOfHeaderLine = "\r\n";
+    
+        /**************************************************************************
+        
+            Locates the first occurrence of the current delimiter string in str,
+            starting from str[start].
+            
+            Params:
+                 str     = string to scan for delimiter
+                 start   = search start index
+                 
+            Returns:
+                 index of first occurrence of the current delimiter string in str or
+                 str.length if not found
+                              
+         **************************************************************************/
+        
+        public size_t locateDelim ( char[] str, size_t start = 0 )
+        in
+        {
+            assert (start < str.length, typeof (this).stringof ~ ".locateDelim: start index out of range");
+        }
+        body
+        {
+            char* item = g_strstr_len(str.ptr + start, str.length - start, this.EndOfHeaderLine.ptr);
+            
+            return item? item - str.ptr : str.length;
+        }
+        
+        /**************************************************************************
+        
+            Skips the delimiter which str starts with.
+            Note that the result is correct only if str really starts with a
+            delimiter.
+            
+            Params:
+                str = string starting with delimiter
+                
+            Returns:
+                index of the first character after the starting delimiter in str
+                              
+         **************************************************************************/
+    
+        protected size_t skipDelim ( char[] str )
+        in
+        {
+            assert (str.length >= this.EndOfHeaderLine.length);
+        }
+        body
+        {
+            return this.EndOfHeaderLine.length;
+        }
+    }
+    
     /**************************************************************************
 
          HTTP message header content buffer
@@ -154,16 +216,6 @@ class HttpHeaderParser : IHttpHeaderParser
      **************************************************************************/
 
     private const AppendBuffer!(char) content;
-    
-    /**************************************************************************
-
-        Split iterators to separate the header lines and find the end of the
-        header.
-    
-     **************************************************************************/
-
-    private const StrSplitIterator split_header;
-    private const ChrSplitIterator split_tokens;
     
     /**************************************************************************
 
@@ -234,9 +286,9 @@ class HttpHeaderParser : IHttpHeaderParser
 
     invariant
     {
-        assert (this.pos                        <= this.content.length);
-        assert (this.header_elements_.length    == this.header_lines_.length);
-        assert (this.n_header_lines             <= this.header_lines_.length);
+        assert (this.pos                     <= this.content.length);
+        assert (this.header_elements_.length == this.header_lines_.length);
+        assert (this.n_header_lines          <= this.header_lines_.length);
     }
     
     /**************************************************************************
@@ -265,23 +317,27 @@ class HttpHeaderParser : IHttpHeaderParser
 
     public this ( uint size_limit, uint lines_limit )
     {
-        this.exception = new HttpParseException;
-        
-        with (this.split_header = new StrSplitIterator)
-        {
-            delim             = this.EndOfHeaderLine;
-            include_remaining = false;
-        }
-        
-        with (this.split_tokens = new ChrSplitIterator)
-        {
-            collapse          = true;
-            include_remaining = false;
-        }
-        
+        this.exception        = new HttpParseException;
         this.content          = new AppendBuffer!(char)(size_limit, true);
         this.header_lines_    = new char[][lines_limit];
         this.header_elements_ = new HeaderElement[lines_limit];
+    }
+    
+    /**************************************************************************
+    
+        Called immediately when this instance is deleted.
+        (Must be protected to prevent an invariant from failing.)
+    
+     **************************************************************************/
+
+    protected override void dispose ( )
+    {
+        this.start_line_tokens[] = null;
+        
+        delete this.exception;
+        delete this.content;
+        delete this.header_lines_;
+        delete this.header_elements_;
     }
     
     /**************************************************************************
@@ -406,8 +462,6 @@ class HttpHeaderParser : IHttpHeaderParser
     
     typeof (this) reset ( )
     {
-        this.split_header.reset();
-        
         this.start_line_tokens[] = null;
         
         this.pos            = 0;
@@ -466,9 +520,13 @@ class HttpHeaderParser : IHttpHeaderParser
     {
         char[] msg_body_start = null;
         
-        foreach (header_line; this.split_header.reset(this.appendContent(content)))
+        scope split_header = new SplitHeaderLines;
+        
+        split_header.include_remaining = false;
+        
+        foreach (header_line; split_header.reset(this.appendContent(content)))
         {
-            char[] remaining = this.split_header.remaining;
+            char[] remaining = split_header.remaining;
             
             if (header_line.length)
             {
@@ -552,15 +610,21 @@ class HttpHeaderParser : IHttpHeaderParser
         this.exception.assertEx!(__FILE__, __LINE__)(this.n_header_lines <= this.header_lines_.length,
                                                      "too many request header lines");
         
-        foreach (field_name; this.split_tokens.reset(header_line))
+        scope split_tokens = new ChrSplitIterator(':');
+        
+        split_tokens.collapse          = true;
+        split_tokens.include_remaining = false;
+
+        
+        foreach (field_name; split_tokens.reset(header_line))
         {
             this.header_elements_[this.n_header_lines] = HeaderElement(ChrSplitIterator.trim(field_name),
-                                                                       ChrSplitIterator.trim(this.split_tokens.remaining));
+                                                                       ChrSplitIterator.trim(split_tokens.remaining));
             
             break;
         }
         
-        this.exception.assertEx!(__FILE__, __LINE__)(this.split_tokens.n, "invalid header line (no ':')");
+        this.exception.assertEx!(__FILE__, __LINE__)(split_tokens.n, "invalid header line (no ':')");
         
         this.header_lines_[this.n_header_lines++] = header_line;
     }
@@ -582,18 +646,16 @@ class HttpHeaderParser : IHttpHeaderParser
 
     private void parseStartLine ( char[] start_line )
     {
-        with (this.split_tokens)
-        {
-            delim = ' ';
-            collapse = true;
-            include_remaining = true;
-        }
+        scope split_tokens = new ChrSplitIterator(' ');
+        
+        split_tokens.collapse          = true;
+        split_tokens.include_remaining = true;
         
         uint i = 0;
         
-        foreach (token; this.split_tokens.reset(start_line))
+        foreach (token; split_tokens.reset(start_line))
         {
-            i = this.split_tokens.n;
+            i = split_tokens.n;
             
             this.exception.assertEx!(__FILE__, __LINE__)(i <= this.start_line_tokens.length,
                                                          "invalid start line (too many tokens)");
@@ -603,13 +665,6 @@ class HttpHeaderParser : IHttpHeaderParser
         
         this.exception.assertEx!(__FILE__, __LINE__)(i == this.start_line_tokens.length,
                                                      "invalid start line (too few tokens)");
-        
-        with (this.split_tokens)
-        {
-            delim = ':';
-            collapse = false;
-            include_remaining = false;
-        }
     }
 }
 
