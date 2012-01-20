@@ -109,6 +109,18 @@ class ParamSet
     private char[] tolower_buf;
     
     /**************************************************************************
+    
+        Called immediately when this instance is deleted.
+        (Must be protected to prevent an invariant from failing.)
+    
+     **************************************************************************/
+
+    protected override void dispose ( )
+    {
+        delete this.tolower_buf;
+    }
+    
+    /**************************************************************************
 
         Obtains the parameter value corresponding to key. key must be one of
         the parameter keys passed on instantiation or added by a subclass.

@@ -154,6 +154,22 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
         this.supported_methods.rehash;
     }
     
+    /**************************************************************************
+    
+        Called immediately when this instance is deleted.
+        (Must be protected to prevent an invariant from failing.)
+    
+     **************************************************************************/
+
+    protected override void dispose ( )
+    {
+        super.dispose();
+        
+        delete this.request;
+        delete this.response;
+        delete this.http_exception;
+    }
+    
     /***************************************************************************
     
         Connection handler method.

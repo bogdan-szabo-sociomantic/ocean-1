@@ -51,6 +51,18 @@ class HttpServerException : Exception
     {
         .concat(super.msg, msg);
     }
+    
+    /**************************************************************************
+    
+        Called immediately when this instance is deleted.
+        (Must be protected to prevent an invariant from failing.)
+    
+     **************************************************************************/
+
+    protected override void dispose ( )
+    {
+        delete super.msg;
+    }
 }
 
 /******************************************************************************/

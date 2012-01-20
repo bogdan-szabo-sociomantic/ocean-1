@@ -216,6 +216,18 @@ class HttpCookieGenerator : ParamSet
     }
     
     /**************************************************************************
+    
+        Called immediately when this instance is deleted.
+        (Must be protected to prevent an invariant from failing.)
+    
+     **************************************************************************/
+
+    protected override void dispose ( )
+    {
+        delete this.fmt_expiration_time;
+    }
+    
+    /**************************************************************************
         
         Sets the cookie value.
         
