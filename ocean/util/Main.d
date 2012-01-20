@@ -66,11 +66,13 @@
     For example you can add something like this to your Makefile:
 
     ---
+    # GC to use (export is needed!)
+    export D_GC := basic
 
     DEPENDENCIES := ocean swarm sonar
     .PHONY: revision
     revision:
-        @../ocean/script/mkversion.sh $(DEPENDENCIES)
+        @../ocean/script/mkversion.sh $(D_GC) $(DEPENDENCIES)
 
     myprog: revision
 
@@ -79,9 +81,21 @@
     This assumes your libraries lives in the ../ directory, you want your
     Version module be generated at src/main/Version.d, you want to use the
     default template to generate the info, the date to be taken from the date
-    command and  the author of the build to be guessed from the logged in user.
+    command and the author of the build to be guessed from the logged in user.
     All that can be overriden if necessary using mkversion.sh options (run
     mkversion.sh -h for help).
+
+    This also asumes you have you compiler properly setup to use the D_GC
+    environment variable to select which GC implementation to use when compiling
+    the program. If you don't, you should have something like this in dmd.conf:
+
+        -defaultlib=tango-dmd-%D_GC% -debuglib=tango-dmd-%D_GC%-dbg
+
+    If you want to compile programs outside the Makefile, you'll probably need
+    to add this to ~/.profile too (change "cdgc" for the default GC you want to
+    use):
+
+        export D_GC=cdgc
 
     For more details con the ConfigStruct see the processArgsConfig()
     documentation.
