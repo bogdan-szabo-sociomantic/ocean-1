@@ -43,7 +43,7 @@ class Lzo
     
      **************************************************************************/
 
-    private void[] workmem; // TODO change this to ubyte[]!
+    private void[] workmem;
     
     /**************************************************************************
 
@@ -67,7 +67,7 @@ class Lzo
 
     public this ( )
     {
-        this.workmem = new void[Lzo1x1WorkmemSize];
+        this.workmem = new ubyte[Lzo1x1WorkmemSize];
     }
     
     /**************************************************************************
