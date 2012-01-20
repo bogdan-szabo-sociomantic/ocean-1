@@ -11,6 +11,13 @@
     Base class for a non-blocking output select client using a fiber/coroutine to
     suspend operation while waiting for the read event and resume on that event.
     
+    The Linux TCP_CORK feature can be used by setting FiberSelectWriter.cork to
+    true. This prevents sending the data passed to send() in partial TCP frames.
+    Note that, if TCP_CORK is enabled, pending data may not be sent immediately.
+    To force sending pending data, call corkFlush().
+    
+    @see http://linux.die.net/man/7/tcp
+    
  ******************************************************************************/
 
 module ocean.io.select.protocol.fiber.FiberSelectWriter;
@@ -23,6 +30,12 @@ private import tango.io.model.IConduit: OutputStream;
 
 private import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK;
 
+private import tango.stdc.posix.sys.socket: setsockopt;
+
+private import tango.stdc.posix.netinet.in_: IPPROTO_TCP;
+
+extern (C) const int TCP_CORK = 3; /// <linux/tcp.h>
+
 debug private import ocean.util.log.Trace;
 
 /******************************************************************************/
@@ -31,11 +44,27 @@ class FiberSelectWriter : IFiberSelectProtocol
 {
     /**************************************************************************
 
+        Set to true to make send() send all data immediately if the TCP_CORK
+        feature is enabled. This has the same effect as calling corkFlush()
+        after each send().
+        
+     **************************************************************************/
+
+    public bool cork_auto_flush = false;
+    
+    /**************************************************************************
+
         Delegate to be called when data is sent.
 
      **************************************************************************/
 
     public alias void delegate ( void[] ) SentCallback;
+    
+    /**************************************************************************
+
+        Delegate to be called when data is sent.
+
+     **************************************************************************/
 
     private SentCallback on_sent;
 
@@ -55,6 +84,14 @@ class FiberSelectWriter : IFiberSelectProtocol
 
     private size_t sent = 0;
 
+    /**************************************************************************
+
+        true if the TCP_CORK feature is currently enabled or false otherwise
+
+     **************************************************************************/
+
+    private bool cork_ = false;
+    
     /**************************************************************************/
     
     invariant ( )
@@ -82,7 +119,7 @@ class FiberSelectWriter : IFiberSelectProtocol
     {
         super(conduit, fiber);
     }
-
+    
     /**************************************************************************
 
         Mandated by the ISelectClient interface
@@ -146,18 +183,105 @@ class FiberSelectWriter : IFiberSelectProtocol
         {
             this.data_slice = data;
             
-            scope (exit)
+            if (this.cork_)
             {
+                this.cork = true;
+            }
+            
+            try
+            {
+                super.transmitLoop();
+            }
+            finally
+            {
+                if (this.cork_ && this.cork_auto_flush)
+                {
+                    this.cork_ = this.setCork(false);
+                }
+                
                 this.data_slice = null;
                 this.sent = 0;
             }
-    
-            super.transmitLoop();
         }
         
         return this;
     }
 
+    /**************************************************************************
+
+        Enables or disables the TCP_CORK feature.
+        
+        Note that, if is enabled, not all data passed to send() may be sent
+        immediately; to force sending pending data, call corkFlush() after
+        send() or set cork_auto_flush to true before calling send().
+        
+        If enabled is false but the TCP_CORK is currently enabled, pending data
+        will be sent now.
+        
+        If send() or corkFlush() encounter an error using the TCP_CORK feature,
+        it is disabled automatically.
+        
+        Params:
+            enabled = true: enable the TCP_CORK feature; false: disable it.
+            
+        Returns:
+            true if successfully enabled or false if either disabled or on
+            failure enabling TCP_CORK.
+        
+     **************************************************************************/
+
+    public bool cork ( bool enabled )
+    {
+        if (this.cork_)
+        {
+            if (!enabled)
+            {
+                this.setCork(this.cork_ = false);
+            }
+        }
+        else
+        {
+            if (enabled)
+            {
+                this.cork_ = this.setCork(true);
+            }
+        }
+        
+        return this.cork_;
+    }
+    
+    /**************************************************************************
+
+        Tells whether the TCP_CORK feature is currently enabled.
+            
+        Returns:
+            true if the TCP_CORK feature is currently enabled or false
+            otherwise.
+        
+     **************************************************************************/
+
+    public bool cork ( )
+    {
+        return this.cork_;
+    }
+    
+    /**************************************************************************
+
+        Sends all pending data immediately if the TCP_CORK feature is currently
+        enabled.
+            
+        Returns:
+            if the TCP_CORK feature is currently enabled and data have been
+            sent or false if disabled or an error was reported using TCP_CORK.
+            On error the TCP_CORK feature is automatically disabled.
+        
+     **************************************************************************/
+    
+    public bool corkFlush ( )
+    {
+        return this.cork_? this.cork_ = this.setCork(false) : false;
+    }
+    
     /**************************************************************************
 
         Attempts to write data to the output conduit. The output conduit may or
@@ -217,6 +341,12 @@ class FiberSelectWriter : IFiberSelectProtocol
         }
 
         return this.sent < this.data_slice.length;
+    }
+    
+    private bool setCork ( int enable )
+    {
+        return !.setsockopt(super.conduit.fileHandle, .IPPROTO_TCP, .TCP_CORK,
+                            &enable, enable.sizeof);
     }
     
     /**************************************************************************

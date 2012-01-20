@@ -62,6 +62,20 @@ class BufferedFiberSelectWriter : FiberSelectWriter
     }
     
     /**************************************************************************
+    
+        Called immediately when this instance is deleted.
+        (Must be protected to prevent an invariant from failing.)
+    
+     **************************************************************************/
+
+    protected override void dispose ( )
+    {
+        super.dispose();
+        
+        delete this.buffer;
+    }
+    
+    /**************************************************************************
 
         Returns:
             current buffer size
