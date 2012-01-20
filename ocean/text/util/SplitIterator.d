@@ -12,12 +12,6 @@
     - The SplitChr class splits a string by occurrences of a delimiter
       character.
     
-    Build note: Requires linking against libglib-2.0: add
-    
-        -L-lglib-2.0
-        
-    to the DMD build parameters.
-    
  ******************************************************************************/
 
 module ocean.text.util.SplitIterator;
@@ -37,61 +31,79 @@ private import tango.stdc.posix.sys.types: ssize_t;
 
 private import tango.io.Stdout;
 
-/******************************************************************************
-
-    Looks up the first occurrence of needle in haystack.
-    
-    @see http://www.gtk.org/api/2.6/glib/glib-String-Utility-Functions.html#g-strstr-len
-    
-    Params:
-        haystack     = string to search for needle
-        haystack_len = length of haystack
-        needle       = string to look up in haystack (must be NUL-terminated)
-    
-    Returns:
-        first occurrence of needle in haystack or null of not found
-    
- ******************************************************************************/
-
-extern (C) private char* g_strstr_len ( char* haystack, ssize_t haystack_len, char* needle );
+private import tango.text.Search: search;
 
 /******************************************************************************
 
-    Splits a string by occurrences of a delimiter string
+    Splits a string by occurrences of a delimiter string.
+    
+    Memory friendly, suitable for stack-allocated scope instances.
 
  ******************************************************************************/
 
 class StrSplitIterator : ISplitIterator
 {
-    /**************************************************************************
-        
-        Delimiter string, always NUL-terminated
-        
-     **************************************************************************/
+    /*
+     * WHY on earth is SearchFruct in tango.text.Search declared PRIVATE? In
+     * order to declare an instance we have to work around by deriving it from
+     * the .search()() return type.
+     * 
+     * >:[
+     * 
+     * Ticket is submitted.
+     * @see http://www.dsource.org/projects/tango/ticket/2102
+     */
     
-    private char[] delim_ =  "\0";
-    
-    /**************************************************************************
-    
-        Delimiter length (without NUL-terminator)
-        
-     **************************************************************************/
+    public alias typeof (.search!(char)("")) SearchFruct;
 
-    private size_t delim_length = 0;
+    /**************************************************************************
+    
+        Contains the delimiter as match string and manages a table of indices to
+        improve the search algorithm efficiency. May be modified at any time
+        using its methods.
+    
+     **************************************************************************/
+    
+    public const SearchFruct sf;
     
     /**************************************************************************
     
-        Ensures that delim_ and delim_length are correct and consistent.
+        Constructor
         
+        Params:
+            delim = delimiter string
+    
      **************************************************************************/
-
-    invariant
+    
+    public this ( char[] delim )
     {
-        assert (this.delim_.length);
-        assert (!this.delim_[$ - 1]);
-        assert (this.delim_length == strlen(this.delim_.ptr));
-        assert (this.delim_length == this.delim_.length - 1);
+        this.sf = .search(delim);
     }
+    
+    /**************************************************************************
+    
+        Constructor
+        
+        Intended to be used for a 'scope' instance where a SearchFruct instance
+        is stored somewhere in order to reuse the search index.
+        
+        Params:
+            delim = delimiter string
+    
+     **************************************************************************/
+    
+    public this ( SearchFruct sf_in )
+    {
+        this.sf = sf_in;
+    }
+    
+    /**************************************************************************
+    
+        Old constructor
+    
+     **************************************************************************/
+    
+    deprecated public this ( ) {this (this.sf.init);}
     
     /**************************************************************************
     
@@ -108,37 +120,12 @@ class StrSplitIterator : ISplitIterator
      **************************************************************************/
     
     public char[] delim ( char[] delim_ )
-    in
     {
-        if (delim_.length)
-        {
-            assert (!memchr(delim_.ptr, '\0', delim_.length - !delim_[$ - 1]),
-                    "only the last character of the delimiter may be NUL");
-        }
-    }
-    body
-    {
-        if (delim_.length)
-        {
-            if (delim_[$ - 1])
-            {
-                this.delim_.concat(delim_, "\0");
-            }
-            else
-            {
-                this.delim_.copy(delim_);
-            }
-        }
-        else
-        {
-            this.delim_.copy("\0");
-        }
-        
-        this.delim_length = this.delim_.length - 1;
+        this.sf.match = delim_;
         
         return delim_;
     }
-
+    
     /**************************************************************************
     
         Returns:
@@ -149,7 +136,7 @@ class StrSplitIterator : ISplitIterator
 
     public char[] delim ( )
     {
-        return this.delim_[0 .. $ - 1];
+        return this.sf.match;
     }
     
     /**************************************************************************
@@ -169,29 +156,7 @@ class StrSplitIterator : ISplitIterator
     
     public size_t locateDelim ( char[] str, size_t start = 0 )
     {
-        return this.delim_length? this.locateDelim(str, this.delim_, start) : str.length;
-    }
-    
-    /**************************************************************************
-    
-        Locates the first occurrence of delim in str, starting from str[start].
-        
-        Template params:
-            delim = delimiter string
-        
-        Params:
-             str     = string to scan for delimiter
-             start   = search start index
-             
-        Returns:
-             index of first occurrence of delim in str or str.length if not
-             found
-                          
-     **************************************************************************/
-
-    public static size_t locateDelimT ( char[] delim ) ( char[] str, size_t start = 0 )
-    {
-        return locateDelim(str, delim, start);
+        return this.sf.forward(str, start);
     }
     
     /**************************************************************************
@@ -215,108 +180,15 @@ class StrSplitIterator : ISplitIterator
     }
     body
     {
-        return this.delim_length;
-    }
-    
-    /**************************************************************************
-    
-        Locates the first occurrence of delim in str, starting from str[start].
-        
-        Params:
-             str   = string to scan for delimiter
-             delim = delimiter; MUST be NUL-terminated
-             start = search start index
-             
-        Returns:
-             index of first occurrence of delim in str or str.length if not
-             found
-        
-        Note:
-            NUL-termination of delim cannot be checked because there is no safe
-            method of detecting the NUL-terminator that follows string literals
-            ('*(delim.ptr + delim.length) == '\0'' would be dangerous if delim
-            is not a string literal). So, unfortunately, NUL-termination of
-            delim cannot be ensured by assert().
-
-            Apparently this uses g_strstr_len() because it was faster than
-            a D version. The difference seems to be related to the compiler
-            (glib function is compiled with GCC instead of DMD), and not the
-            algorithm, which is really simple. See:
-            http://git.gnome.org/browse/glib/tree/glib/gstrfuncs.c#n2549
-
-            Even so, the performance difference seems to be not that much. For
-            10000000 calls of locateDelim("mundomundo", "mu", 6), the glib
-            version takes 0.9 seconds and the D version takes 1.2 seconds (25%
-            slower).
-
-            Here is an alternative native D implementation, in case we decide to
-            switch to one in the future. It even relaxes some of the limitations
-            of the current implementation, like having to use null terminated
-            strings.
-
-            private static size_t locateDelim ( char[] str, char[] delim, size_t start = 0 )
-            in
-            {
-                assert (start < str.length, typeof (this).stringof ~ ".locateDelim: start index out of range");
-                assert (str !is null, typeof (this).stringof ~ ".locateDelim: str can't be null");
-                assert (delim !is null, typeof (this).stringof ~ ".locateDelim: delim can't be null");
-            }
-            body
-            {
-                if (delim.length == 0)
-                    return start;
-
-                char[] s = str[start .. $];
-
-                while (s.length >= delim.length)
-                {
-                    if (s[0 .. delim.length] == delim)
-                    {
-                        return s.ptr - str.ptr;
-                    }
-                    s = s[1 .. $];
-                }
-
-                return str.length;
-            }
-        
-     **************************************************************************/
-
-    private static size_t locateDelim ( char[] str, char[] delim, size_t start = 0 )
-    in
-    {
-        assert (start < str.length, typeof (this).stringof ~ ".locateDelim: start index out of range");
-    }
-    body
-    {
-        char* item = g_strstr_len(str.ptr + start, str.length - start, delim.ptr);
-        
-        return item? item - str.ptr : str.length;
+        return this.sf.match.length;
     }
     
     /**************************************************************************/
     
-    version (none) unittest
+    unittest
     {
-        scope split = new typeof (this);
+        scope split = new typeof (this)("123");
         
-        void check ( char[] str, char[][] elements, char[] line )
-        {
-            foreach (element; split.reset(str)) try
-            {
-                assert (split.n, test_id);
-                assert (split.n <= elements.length, test_id);
-                assert (element == elements[split.n - 1], test_id);
-            }
-            catch (Exception e)
-            {
-                e.msg ~= " at line  ";
-                e.msg ~= line;
-            }
-        }
-        
-        split.delim    = "123";
-
         split.collapse = true;
                 
         foreach (str; ["123""ab""123"     "cd""123""efg""123",
@@ -326,19 +198,14 @@ class StrSplitIterator : ISplitIterator
                        
                        "123""123""ab""123""123""cd""123""efg",
                        "ab""123""123""cd""123""efg""123""123"])
+                       
+        foreach (element; split.reset(str))
         {
-            version (all)
-            {
-                check(str, ["ab", "cd", "efg"]);
-            }
-            else foreach (element; split.reset(str))
-            {
-                const char[][] elements = ["ab", "cd", "efg"];
-                
-                assert (split.n);
-                assert (split.n <= elements.length);
-                assert (element == elements[split.n - 1]);
-            }
+            const char[][] elements = ["ab", "cd", "efg"];
+            
+            assert (split.n);
+            assert (split.n <= elements.length);
+            assert (element == elements[split.n - 1]);
         }
         
         split.collapse = false;
@@ -360,28 +227,6 @@ class StrSplitIterator : ISplitIterator
             assert (split.n <= elements.length);
             assert (element == elements[split.n - 1]);
         }
-        
-        version (none)
-        {
-//            collapse = true;
-//            
-            delim = "123";
-//            
-//            Stderr(split("123ab123123cd123efg123"))("\n").flush();
-//            
-//            collapse = false;
-//            
-//            Stderr(split("123ab123123cd123efg123"))("\n").flush();
-//            Stderr(split("ab123123cd123efg123"))("\n").flush();
-//            Stderr(split("123ab123123cd123efg"))("\n").flush();
-//            Stderr(split("ab123123cd123efg"))("\n").flush();
-            
-            collapse = true;
-//            n = 2;
-//            
-//            Stderr(split("123ab123123cd123efg"));
-//            Stderr(" ")(remaining)("\n").flush();
-        }
     }
 }
 
@@ -399,7 +244,14 @@ class ChrSplitIterator : ISplitIterator
         
      **************************************************************************/
     
-    char delim;
+    public char delim;
+    
+    public this ( char delim_in )
+    {
+        this.delim = delim_in;
+    }
+    
+    deprecated public this ( ) { }
     
     /**************************************************************************
     
