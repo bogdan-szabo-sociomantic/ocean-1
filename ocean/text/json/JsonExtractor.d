@@ -189,7 +189,7 @@ struct JsonExtractor
         
          **********************************************************************/
 
-        private Parser json;
+        private const Parser json;
         
         /**********************************************************************
 
@@ -334,7 +334,7 @@ struct JsonExtractor
         
          **********************************************************************/
 
-        private GetField[char[]] get_named_fields;
+        private const GetField[char[]] get_named_fields;
         
         /**********************************************************************
 
@@ -345,7 +345,7 @@ struct JsonExtractor
             
          **********************************************************************/
 
-        private GetField[]       get_indexed_fields;
+        private const GetField[]       get_indexed_fields;
         
         /**********************************************************************
 
@@ -485,7 +485,7 @@ struct JsonExtractor
                         
          **********************************************************************/
 
-        private IteratorDg iterator_dg;
+        private const IteratorDg iterator_dg;
         
         /**********************************************************************
         
@@ -566,7 +566,7 @@ struct JsonExtractor
                 
          **********************************************************************/
         
-        private Type start_type, end_type;
+        public const Type start_type, end_type;
         
         /**********************************************************************
         
@@ -574,7 +574,7 @@ struct JsonExtractor
                 
          **********************************************************************/
         
-        private Parser json;
+        private const Parser json;
         
         /**********************************************************************
         
