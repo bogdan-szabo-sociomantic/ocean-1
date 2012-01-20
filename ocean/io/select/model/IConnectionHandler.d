@@ -164,6 +164,21 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
         debug this.connection_id = connection_count++;
     }
     
+    /**************************************************************************
+    
+        Called immediately when this instance is deleted.
+        (Must be protected to prevent an invariant from failing.)
+    
+     **************************************************************************/
+
+    protected override void dispose ( )
+    {
+        this.finalize_dg_ = null;
+        this.error_dg_    = null;
+        
+        delete this.socket;
+    }
+    
     /***************************************************************************
 
         Sets the finalizer callback delegate which is called when the
