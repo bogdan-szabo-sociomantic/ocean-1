@@ -37,7 +37,7 @@ done
 
 srv_suffix='.sociomantic.com'
   if [ $location = "eu" ]; then srv_prefix='root@eq6-';
-elif [ $location = "us" ]; then srv_prefix='root@rs-';
+elif [ $location = "us" ]; then srv_prefix='root@is-';
 else                            echo "location must be one of {eu, us}"; exit 1;
 fi
 
@@ -75,5 +75,6 @@ cmd="$cmd tmux -2 attach-session -d"
 # ------------------------------------------------------------------------------
 # Execute commands
 
+#echo $cmd
 eval $cmd
 
