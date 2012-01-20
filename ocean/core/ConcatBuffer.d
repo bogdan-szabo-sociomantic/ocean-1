@@ -188,9 +188,10 @@ public class ConcatBuffer ( T )
     without recurring memory allocation. Note that once an item is added to the
     buffer, it is *not* possible to modify its length, as each item is only
     stored as a slice (though it is possible to modify the contents of a slice).
-    (The ocean.core.ArrayPool class is suitable for situations where you want to
-    be able to modify the lengths of individual arrays after adding them to the
-    collection.)
+    (For situations where you want to be able to modify the lengths of the
+    individual arrays after adding them to the collection, a Pool of structs
+    containing arrays would be a suitable solution -- see
+    ocean.core.ObjectPool.)
 
     Usage example:
 
