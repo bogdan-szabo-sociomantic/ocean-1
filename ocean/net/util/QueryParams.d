@@ -12,6 +12,8 @@
     - QueryParamSet parses an URI query parameter list and memorizes the values
       corresponding to keys in a list provided at instantiation.
     
+    TODO: The QueryParams class may be moved to ocean.text.
+    
  ******************************************************************************/
 
 module ocean.net.util.QueryParams;
@@ -26,49 +28,87 @@ private import ocean.net.util.ParamSet;
 
 private import ocean.text.util.SplitIterator: ChrSplitIterator;
 
-private import ocean.core.AppendBuffer;
+/******************************************************************************
 
-/******************************************************************************/
+    The QueryParams class is memory-friendly and therefore suitable for stack
+    allocated 'scope' instances.
+
+ ******************************************************************************/
 
 class QueryParams
 {
     /**************************************************************************
 
-        Option to trim off whitespace of  
+        Delimiter of elements, where each element is a key/value pair, and
+        between key and value of an element.
+        
+        Treatment of special cases:
+        
+        - If an element does not contain a keyval_delim character, it is treated
+          as a key without a value; a null value is then reported.
+        - If an element contains more than one keyval_delim character, the first
+          occurrence is used as delimiter so that the value contains
+          keyval_delim characters but not the key.
+        - If the last character of an element is a keyval_delim character and
+          this is the only occurrence, the value is a non-null empty string.
+        
+        Must be specified in the constructor but may be modified at any time.
+        
+        Note that changing the delimiters during an iteration becomes effective
+        when the next iteration is started.
+        
+     **************************************************************************/
     
+    public char element_delim, keyval_delim;
+    
+    /**************************************************************************
+
+        Option to trim whitespace from keys and values, enabled by default.
+    
+        Note that changing this option during an iteration becomes effective
+        when the next iteration is started.
+        
      **************************************************************************/
 
     public bool trim_whitespace = true;
     
     /**************************************************************************
 
-        Split iterators to split the parameter list into entries and each entry
-        into a key/value pair
+        Current query string to parse and iterate over
     
      **************************************************************************/
 
-    private const ChrSplitIterator split_paramlist,
-                                   split_param;
+    private char[] query;
+    
+    /**************************************************************************
+
+        Debug flag to prevent calling any method during a 'foreach' iteration.
+    
+     **************************************************************************/
+
+    private bool iterating = false;
+    
+    invariant ( )
+    {
+        assert (!this.iterating, typeof (this).stringof ~
+                                 " method called during 'foreach' iteration");
+    }
     
     /**************************************************************************
 
         Constructor
-    
+        
+        Params:
+            element_delim = delimiter between elements
+            and between key and value of an element. Must be
+        specified in the constructor but may be modified at any time.
+        
      **************************************************************************/
 
     public this ( char element_delim, char keyval_delim )
     {
-        with (this.split_paramlist = new ChrSplitIterator)
-        {
-            delim             = element_delim;
-            collapse          = true;
-        }
-        
-        with (this.split_param = new ChrSplitIterator)
-        {
-            delim             = keyval_delim;
-            include_remaining = false;
-        }
+        this.element_delim = element_delim;
+        this.keyval_delim = keyval_delim;
     }
     
     /**************************************************************************
@@ -85,7 +125,7 @@ class QueryParams
 
     public typeof (this) set ( char[] query )
     {
-        this.split_paramlist.reset(query);
+        this.query = query;
         
         return this;
     }
@@ -95,35 +135,49 @@ class QueryParams
         'foreach' iteration over the URI query parameter list items, each one
         split into a key/value pair. key and value slice the string passed to
         query() so DO NOT MODIFY THEM. (You may, however, modify their content;
-        this will actually modify the string passed to query().)
-        value may be empty if the last character of a query parameter is '='. 
-        If a query parameter does not contain a '=', value will be null.
+        this will modify the string passed to query() in-place.)
+        
+        Note that during iteration, no public method may be called nor may a
+        nested iteration be started. 
     
      **************************************************************************/
 
     public int opApply ( int delegate ( ref char[] key, ref char[] value ) ext_dg )
     {
+        this.iterating = true;
+        
+        scope (exit) this.iterating = false;
+        
         auto dg = this.trim_whitespace?
                     (ref char[] key, ref char[] value)
                     {
-                        char[] tkey = split_param.trim(key),
-                               tval = split_param.trim(value);
+                        char[] tkey = ChrSplitIterator.trim(key),
+                               tval = ChrSplitIterator.trim(value);
                         return ext_dg(tkey, tval);
                     } :
                     ext_dg; 
         
-        return this.split_paramlist.opApply((ref char[] param)
+        scope split_paramlist = new ChrSplitIterator(this.element_delim),
+              split_param     = new ChrSplitIterator(this.keyval_delim);
+        
+        split_paramlist.collapse = true;
+        
+        split_param.include_remaining = false;
+        
+        split_paramlist.reset(this.query);
+        
+        return split_paramlist.opApply((ref char[] param)
         {
             char[] value = null;
             
-            foreach (key; this.split_param.reset(param))
+            foreach (key; split_param.reset(param))
             {
-                value = this.split_param.remaining;
+                value = split_param.remaining;
                 
                 return dg(key, value);
             }
             
-            assert (!this.split_param.n);
+            assert (!split_param.n);
             
             return dg(param, value);
         });
@@ -135,12 +189,25 @@ class QueryParams
 class QueryParamSet: ParamSet
 {
     /**************************************************************************
-    
-        QueryParams instance
-    
-     **************************************************************************/
 
-    private const QueryParams query_params;
+        Delimiter of elements, where each element is a key/value pair, and
+        between key and value of an element.
+        
+        Treatment of special cases:
+        
+        - If an element does not contain a keyval_delim character, it is treated
+          as a key without a value; a null value is then reported.
+        - If an element contains more than one keyval_delim character, the first
+          occurrence is used as delimiter so that the value contains
+          keyval_delim characters but not the key.
+        - If the last character of an element is a keyval_delim character and
+          this is the only occurrence, the value is a non-null empty string.
+        
+        Must be specified in the constructor but may be modified at any time.
+        
+     **************************************************************************/
+    
+    public char element_delim, keyval_delim;
     
     /**************************************************************************
     
@@ -157,7 +224,8 @@ class QueryParamSet: ParamSet
         
         super.rehash();
         
-        this.query_params = new QueryParams(element_delim, keyval_delim);
+        this.element_delim = element_delim;
+        this.keyval_delim   = keyval_delim;
     }
     
     /**************************************************************************
@@ -174,50 +242,13 @@ class QueryParamSet: ParamSet
     {
         super.reset();
         
-        foreach (key, val; this.query_params.set(query))
+        scope query_params = new QueryParams(this.element_delim, this.keyval_delim);
+        
+        foreach (key, val; query_params.set(query))
         {
             super.set(key, val);
         }
     }
-    
-    deprecated protected void add ( char[] key, char[] val ) { }
-}
-
-class ListQueryParamSet: QueryParamSet
-{
-    public const IAppendBufferReader!(Element) elements;
-    
-    private const AppendBuffer!(Element) elements_;
-    
-    /**************************************************************************
-    
-        Constructor
-        
-        Params:
-            keys = parameter keys of interest (case-insensitive)
-    
-     **************************************************************************/
-
-    public this ( char element_delim, char keyval_delim, char[][] keys ... )
-    {
-        super(element_delim, keyval_delim, keys);
-        
-        this.elements = this.elements_ = new AppendBuffer!(Element);
-    }
-    
-    protected override void add ( char[] key, char[] val )
-    {
-        this.elements_ ~= Element(key, val);
-    }
-    
-    final protected override void reset_ ( )
-    {
-        this.elements_.clear();
-        
-        this.reset__();
-    }
-    
-    protected void reset__ ( ) { }
 }
 
 /******************************************************************************/
