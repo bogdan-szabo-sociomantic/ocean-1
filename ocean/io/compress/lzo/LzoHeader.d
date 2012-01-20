@@ -125,7 +125,10 @@ align (1) struct LzoHeader ( bool LengthInline = true )
          
      **************************************************************************/
 
-        const size_t length = SizeofTuple!(typeof (this.tupleof));
+        public static size_t length ( )
+        {
+            return LzoHeader.sizeof;
+        }
         
         //static assert (length == typeof (this).sizeof);
 
