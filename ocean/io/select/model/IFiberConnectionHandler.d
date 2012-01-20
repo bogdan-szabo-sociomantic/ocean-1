@@ -21,7 +21,8 @@ module ocean.io.select.model.IFiberConnectionHandler;
 
 private import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol,
                ocean.io.select.protocol.fiber.FiberSelectReader,
-               ocean.io.select.protocol.fiber.FiberSelectWriter;
+               ocean.io.select.protocol.fiber.FiberSelectWriter,
+               ocean.io.select.protocol.fiber.BufferedFiberSelectWriter;
 
 private import ocean.io.select.model.IConnectionHandler;
 
@@ -79,6 +80,20 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
         super(finalize_dg, error_dg);
 
         this.fiber = new SelectFiber(epoll, &this.handleConnection_, stack_size);
+    }
+    
+    /**************************************************************************
+    
+        Called immediately when this instance is deleted.
+        (Must be protected to prevent an invariant from failing.)
+    
+     **************************************************************************/
+
+    protected override void dispose ( )
+    {
+        super.dispose();
+        
+        delete this.fiber;
     }
     
     /***************************************************************************
@@ -196,13 +211,80 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase
 
     public this ( EpollSelectDispatcher epoll, FinalizeDg finalize_dg = null, ErrorDg error_dg = null )
     {
+        this(epoll, false, finalize_dg, error_dg);
+    }
+    
+    /***************************************************************************
+
+        Constructor
+    
+        Connects the socket, the asynchronous reader and writer, and the
+        provided epoll select dispatcher.
+    
+        Params:
+            epoll           = epoll select dispatcher which this connection
+                              should use for i/o
+            buffered_writer = set to true to use the buffered writer 
+            finalize_dg     = user-specified finalizer, called when the
+                              connection is shut down
+            error_dg        = user-specified error handler, called when a
+                              connection error occurs
+
+    ***************************************************************************/
+
+    public this ( EpollSelectDispatcher epoll, bool buffered_writer, FinalizeDg finalize_dg = null, ErrorDg error_dg = null )
+    {
+        this(epoll, buffered_writer?
+                        new BufferedFiberSelectWriter(super.conduit, super.fiber) :
+                        new FiberSelectWriter(super.conduit, super.fiber),
+                    finalize_dg, error_dg);
+    }
+    
+    /***************************************************************************
+
+        Constructor
+    
+        Connects the socket, the asynchronous reader and writer, and the
+        provided epoll select dispatcher.
+        
+        Params:
+            epoll       = epoll select dispatcher which this connection should
+                          use for i/o
+            writer      = SelectWriter instance to use 
+            finalize_dg = user-specified finalizer, called when the connection
+                          is shut down
+            error_dg    = user-specified error handler, called when a connection
+                          error occurs
+        
+        Note that writer must be lazy because it must be newed _after_ the super
+        constructor has been called.
+        
+    ***************************************************************************/
+
+    private this ( EpollSelectDispatcher epoll, lazy SelectWriter writer, FinalizeDg finalize_dg, ErrorDg error_dg )
+    {
         super(epoll, finalize_dg, error_dg);
 
         this.reader = new SelectReader(super.conduit, super.fiber);
-        this.writer = new SelectWriter(super.conduit, super.fiber);
+        this.writer = writer;
 
         this.reader.error_reporter = this;
         this.writer.error_reporter = this;
+    }
+    
+    /**************************************************************************
+    
+        Called immediately when this instance is deleted.
+        (Must be protected to prevent an invariant from failing.)
+    
+     **************************************************************************/
+
+    protected override void dispose ( )
+    {
+        super.dispose();
+        
+        delete this.reader;
+        delete this.writer;
     }
     
     /**************************************************************************
