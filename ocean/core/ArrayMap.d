@@ -59,7 +59,7 @@ struct Mutex
 
 /*******************************************************************************
 
-    Hashmap with consistent hashing and without key iteration.
+    Hashmap with consistent hashing.
 
     Consistent hashing provides a performant way to add or remove array
     elements without significantly change the mapping of keys to buckets. By
@@ -89,11 +89,6 @@ struct Mutex
 
     ~ 20 mio inserts/sec
     ~ 40 mio lookups/sec
-
-    Limitations
-
-    The hashmap does not support key, value iteration. Only value iteration
-    is supported.
 
     Data dumping and restoring
 
