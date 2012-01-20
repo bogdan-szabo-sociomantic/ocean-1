@@ -72,7 +72,7 @@ private import ocean.time.model.IMicrosecondsClock,
 private import tango.stdc.stdlib: div;
 
 private import tango.stdc.posix.sys.time: timeval, timespec, gettimeofday;
-private import tango.stdc.posix.time:     gmtime_r, localtime_r;
+private import tango.stdc.posix.time:     time_t, gmtime_r, localtime_r;
 private import tango.stdc.time:           gmtime, tm;
 
 private import tango.time.Time;
