@@ -916,7 +916,7 @@ public class LibCurlEpoll
             }
             else
             {
-                this.outer.queue.handlerWaiting(this);
+                this.outer.queue.ready(this);
             }
 
             return false;
@@ -1113,7 +1113,7 @@ public class LibCurlEpoll
         foreach ( ref conn; this.conns )
         {
             conn = new CurlConnection;
-            this.queue.handlerWaiting(conn);
+            this.queue.ready(conn);
             this.connection_lookup[conn.easy] = conn;
         }
         this.connection_lookup.rehash;
