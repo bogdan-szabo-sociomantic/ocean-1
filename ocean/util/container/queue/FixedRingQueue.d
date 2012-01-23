@@ -8,9 +8,14 @@
 
     authors:        Mathias Baumann, Gavin Norman, David Eckardt
     
+    TODO: update the classes in this module to be able to use a custom allocater
+    like the constructors of FlexibleByteRingQueue allow.
+
 *******************************************************************************/
 
 module ocean.util.container.queue.FixedRingQueue;
+
+
 
 /*******************************************************************************
 
@@ -23,6 +28,10 @@ private import ocean.util.container.queue.model.IRingQueue;
 private import ocean.util.container.queue.model.IQueue;
 
 private import ocean.util.container.queue.model.IByteQueue;
+
+private import ocean.util.container.mem.MemManager;
+
+
 
 /*******************************************************************************
 
