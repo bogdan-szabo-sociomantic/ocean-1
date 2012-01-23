@@ -467,7 +467,8 @@ body
     Sorts array and removes all value duplicates.
     
     Template params:
-        T = type of array element
+        T    = type of array element
+        sort = true: do array.sort first; false: array is already sorted
     
     Params:
         array = array to clean from duplicate values
@@ -477,13 +478,18 @@ body
 
 *******************************************************************************/
 
-public T[] uniq ( T ) ( ref T[] array )
+public T[] uniq ( T, bool sort = true ) ( ref T[] array )
 {
     if (array.length)
     {
         size_t n = 0;
         
-        T item = array.sort[n];
+        static if (sort)
+        {
+            array.sort;
+        }
+        
+        T item = array[n];
         
         foreach (element; array)
         {
