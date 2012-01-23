@@ -310,10 +310,16 @@ class Arguments : Tango.Arguments
             }
         }
 
+        // there is no triling ", " in this case, so add two spaces instead.
+        if (arg.aliases.length == 0)
+        {
+            output.format("  ");
+        }
+
         output.format("{}", this.space(this.aliases_width -
                     this.aliasesWidth(arg.aliases.length)));
         output.format("--{}{}  ", arg.name, this.space(this.long_name_width - arg.name.length));
-        output.format("{}\n", arg.text);
+        output.formatln("{}", arg.text);
     }
 
     
