@@ -301,8 +301,10 @@ class HttpCookieGenerator : ParamSet
         
      **************************************************************************/
 
-    protected override void reset_ ( )
+    public override void reset ( )
     {
+        super.reset();
+        
         this.expiration_time.clear();
     }
 }

@@ -117,6 +117,8 @@ class ParamSet
 
     protected override void dispose ( )
     {
+        this.reset();
+        
         delete this.tolower_buf;
     }
     
@@ -379,14 +381,11 @@ class ParamSet
     {
         int result = 0;
         
-        foreach (ref element; this.paramset) with (element)
+        foreach (ref element; this.paramset)
         {
-            if (val || !skip_null_values_on_iteration)
-            {
-                result = dg(key, val);
-                
-                if (result) break;
-            }
+            this.iterate(element, dg, result);
+            
+            if (result) break;
         }
         
         return result;
@@ -398,24 +397,13 @@ class ParamSet
         
      **************************************************************************/
 
-    final void reset ( )
+    public void reset ( )
     {
-        this.reset_();
-        
         foreach (ref element; this.paramset)
         {
             element.val = null;
         }
     }
-    
-    /**************************************************************************
-
-        Custom reset method for a subclass, will be invoked by reset() before
-        doing anything else.
-        
-     **************************************************************************/
-
-    protected void reset_ ( ) { }
     
     /**************************************************************************
 
@@ -521,16 +509,26 @@ class ParamSet
     
     /**************************************************************************
 
-        Converts n to decimal representation, writing to dst, resizing dst as
-        required.
+        opApply() helper, invokes dg with element.key & val.
         
         Params:
-            dst = destination string
-            n   = number to convert to decimal representation
-        
-        Returns:
-            result (dst)
-        
+            element = element currently iterating over
+            dg      = opApply() iteration delegate
+            result  = set to dg() return value if dg is invoked, remains
+                      unchanged otherwise.
+
+     **************************************************************************/
+    
+    final protected void iterate ( ref Element element,
+                                   int delegate ( ref char[] key, ref char[] val ) dg,
+                                   ref int result )
+    {
+        with (element) if (val || !this.skip_null_values_on_iteration)
+        {
+            result = dg(key, val);
+        }
+    }
+    
     /**************************************************************************
 
         Converts n to decimal representation, writing to dst. dst must be long

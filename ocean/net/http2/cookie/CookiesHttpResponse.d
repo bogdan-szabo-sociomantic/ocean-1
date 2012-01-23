@@ -110,8 +110,10 @@ class CookiesHttpResponse : HttpResponse
         
      **************************************************************************/
 
-    protected override void reset_ ( )
+    public override void reset ( )
     {
+        super.reset();
+        
         foreach (cookie; this.cookies)
         {
             cookie.reset();

@@ -160,7 +160,7 @@ class HttpRequest : HttpHeader
         this.http_exception = new HttpException;
         this.header_param_exception = new HeaderParameterException;
         
-        this.reset_();
+        this.reset();
     }
     
     /**************************************************************************
@@ -450,19 +450,17 @@ class HttpRequest : HttpHeader
         
      **************************************************************************/
 
-    final protected override void reset_ ( )
+    public override void reset ( )
     {
+        super.reset();
+        
         this.method          = this.method.init;
         this.http_version_   = this.http_version_.init;
         this.msg_body_pos    = 0;
         this.header_complete = false;
         this.uri_.reset();
         this.parser.reset();
-        
-        this.reset__();
     }
-    
-    protected void reset__ ( ) { }
     
     /**************************************************************************
     
