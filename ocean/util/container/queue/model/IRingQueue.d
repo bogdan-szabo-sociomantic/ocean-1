@@ -12,6 +12,8 @@
 
 module ocean.util.container.queue.model.IRingQueue;
 
+
+
 /*******************************************************************************
 
     Imports
@@ -20,9 +22,17 @@ module ocean.util.container.queue.model.IRingQueue;
 
 private import ocean.util.container.queue.model.IQueueInfo;
 
-/******************************************************************************/
+private import ocean.util.container.mem.MemManager;
 
-abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
+
+
+/*******************************************************************************
+
+    Base class for a fixed size memory-based ring queue.
+
+*******************************************************************************/
+
+public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
 {
     /***************************************************************************
     
@@ -54,25 +64,67 @@ abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
     
 
     /***************************************************************************
-    
-        Constructor.
-        
+
+        Memory manager used to allocated / deallocate the queue's buffer.
+
+    ***************************************************************************/
+
+    private IMemManager mem_manager;
+
+
+    /***************************************************************************
+
+        Constructor. The queue's memory buffer is allocated by the GC.
+
         Params:
             dimension = size of queue in bytes
-    
+
     ***************************************************************************/
-    
+
     protected this ( size_t dimension )
+    {
+        auto manager = new GCMemManager;
+        this(manager, dimension);
+    }
+
+
+    /***************************************************************************
+
+        Constructor. Allocates the queue's memory buffer with the provided
+        memory manager.
+
+        Params:
+            mem_manager = memory manager to use to allocate queue's buffer
+            dimension = size of queue in bytes
+
+    ***************************************************************************/
+
+    protected this ( IMemManager mem_manager, size_t dimension )
     in
     {
+        assert(mem_manager !is null, typeof(this).stringof ~ ": memory manager is null");
         assert(dimension > 0, typeof(this).stringof ~ ": cannot construct a 0-length queue");
     }
     body
     {
-        this.data = new ubyte[dimension];
+        this.mem_manager = mem_manager;
+
+        this.data = this.mem_manager.create(dimension);
     }
-    
-    
+
+
+    /***************************************************************************
+
+        Destructor. Destroys the memory buffer allocated for the queue.
+
+    ***************************************************************************/
+
+    override public void dispose ( )
+    {
+        this.mem_manager.destroy(this.data);
+    }
+
+
     /***************************************************************************
     
         Returns:
@@ -159,9 +211,5 @@ abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
     ***************************************************************************/
 
     protected void clear_ ( ) { }
-    
-    public void dispose ( )
-    {
-        delete this.data;
-    }
 }
+
