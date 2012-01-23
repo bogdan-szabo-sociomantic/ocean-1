@@ -22,6 +22,8 @@ module ocean.util.container.queue.FlexibleRingQueue;
 
 private import ocean.util.container.queue.model.IRingQueue;
 
+private import ocean.util.container.queue.model.IByteQueue;
+
 private import tango.io.model.IConduit: InputStream, OutputStream;
 
 private import ocean.io.serialize.SimpleSerializer;
@@ -38,7 +40,7 @@ debug private import ocean.util.log.Trace;
 
 *******************************************************************************/
 
-class FlexibleByteRingQueue : IRingQueue
+class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 {
     /***************************************************************************
 
@@ -166,6 +168,7 @@ class FlexibleByteRingQueue : IRingQueue
         
         return null;
     }
+    
     
     /***************************************************************************
 

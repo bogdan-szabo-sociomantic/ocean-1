@@ -121,6 +121,8 @@ private import ocean.io.select.model.ISelectClient;
 
 private import ocean.io.select.RequestQueue;
 
+private import ocean.util.container.queue.model.IByteQueue;
+
 /*******************************************************************************
 
     Tango Imports
@@ -214,14 +216,15 @@ class LibDrizzleEpoll
             database    = Database to use
             bytes       = How many bytes the queue is able to store
             connections = Amount of connections to use
+            queue       = queue implementation to use
 
     ***************************************************************************/
 
     this ( EpollSelectDispatcher epoll, char[] host, in_port_t port,
            char[] username, char[] password, char[] database, 
-           size_t bytes, size_t connections = 1 )
+           size_t bytes, size_t connections = 1, IByteQueue queue = null )
     {
-        this(epoll, host, username, password, database, bytes, connections);
+        this(epoll, host, username, password, database, bytes, connections, queue);
         this.port = port;
     }
 
@@ -241,12 +244,13 @@ class LibDrizzleEpoll
             database    = Database to use
             bytes       = How many bytes the queue is able to store
             connections = Amount of connections to use
+            queue       = queue implementation to use
 
     ***************************************************************************/
 
     this ( EpollSelectDispatcher epoll, char[] host, char[] username, 
            char[] password, char[] database, size_t bytes,
-           size_t connections = 10 )
+           size_t connections = 10, IByteQueue queue = null )
     in
     {
         assert (epoll !is null, "Epoll is null");
@@ -261,7 +265,8 @@ class LibDrizzleEpoll
         this.database = toStringz(database);
         this.port     = 3306;
 
-        this.connections = new RequestQueue!(DrizzleRequest)(connections, bytes);
+        this.connections = new RequestQueue!(DrizzleRequest)(connections, bytes, 
+                                                             queue);
         
         if (null == drizzle_create(&this.drizzle))
         {
@@ -273,7 +278,7 @@ class LibDrizzleEpoll
       
         for (uint i = 0; i < connections; ++i)
         {
-            this.connections.handlerWaiting(new Connection(this));
+            this.connections.ready(new Connection(this));
         }
         
         this.queue_full_exc = new QueueFullException;
@@ -326,7 +331,7 @@ class LibDrizzleEpoll
     {
         with (this.connections) 
         {
-            return cast(float) usedSpace / cast(float) (usedSpace + freeSpace);
+            return cast(float) usedSpace / cast(float) totalSpace;
         }
     }
     

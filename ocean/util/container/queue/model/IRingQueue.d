@@ -22,7 +22,7 @@ private import ocean.util.container.queue.model.IQueueInfo;
 
 /******************************************************************************/
 
-abstract class IRingQueue : IQueueInfo
+abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
 {
     /***************************************************************************
     
@@ -35,7 +35,7 @@ abstract class IRingQueue : IQueueInfo
     
     /***************************************************************************
     
-        Read & write opositions (indices into the data array.
+        Read & write positions (indices into the data array).
     
     ***************************************************************************/
     

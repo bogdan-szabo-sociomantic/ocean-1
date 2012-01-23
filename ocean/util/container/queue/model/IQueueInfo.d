@@ -72,5 +72,24 @@ public interface IQueueInfo
     ***************************************************************************/
     
     public bool isEmpty ( );
-}
+    
 
+    /***************************************************************************
+
+        Finds out whether the provided number of bytes will fit in the queue.
+        Also considers the need of wrapping.
+
+        Note that this method internally adds on the extra bytes required for
+        the item header, so it is *not* necessary for the end-user to first
+        calculate the item's push size.
+
+        Params:
+            bytes = size of item to check 
+
+        Returns:
+            true if the bytes fits, else false
+
+    ***************************************************************************/
+
+    public bool willFit ( size_t bytes );
+}

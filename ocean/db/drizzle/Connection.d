@@ -332,7 +332,7 @@ package class Connection : RequestHandler!(LibDrizzleEpoll.DrizzleRequest),
             rc    = request context. Will be passed to the callback
 
     ***************************************************************************/
-import ocean.util.log.Trace;
+    
     protected void request ( ref LibDrizzleEpoll.DrizzleRequest request )
     in
 	{

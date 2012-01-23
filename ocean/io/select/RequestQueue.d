@@ -10,8 +10,35 @@
 
     Generic interfaces and logic for RequestQueues and related classes.
 
-    Usage example for a hypothetical client who writes numbers to a socket
+    Genericly speaking, a request handler registers at the queue (ready()).
+    The request queue will then call notify() to inform the handler that
+    now it has requests, the handler is expected to call pop() to receive
+    those events. It should keep calling pop() until no events are left
+    and then re-register at the queue and wait for another call to notify().
+    In other words:
+    
+    1) RequestQueue.ready(RequestHandler)
+    2) RequestQueue calls RequestHandler.notify()
+    3) RequestHandler calls RequestQueue.pop();
+      a) pop() returned a request: RequestHandler processes data, back to 3)
+      b) pop() returned null: continue to 4)
+    4) RequestHandler calls RequestQueue.ready(RequestHandler)
+    
+    A more simple solution like this was considered:
+    
+    1) RequestQueue.ready(RequestHandler)
+    2) RequestQueue calls RequestHandler.notify(Request)
+    3) RequestHandler processes, back to 1)
 
+    But was decided against because it would cause a stackoverflow for fibers,
+    as a RequestHandler needs to call RequestQueue.ready() and if fibers are 
+    involved that call will be issued from within the fiber. 
+    If ready() calls notify again another processing of a request in the fiber
+    will happen, causing another call to ready() leading to a recursion.  
+    
+    Now we require that the fiber calls pop in a loop.
+    
+    Usage example for a hypothetical client who writes numbers to a socket
     ---
 
         module NumberQueue;
@@ -80,7 +107,7 @@
 
                 for ( int i; i < max_connections; i++ )
                 {
-                    this.handlers.handlerWaiting(new NumberHandler(epoll, handlers, ulong.sizeof));
+                    this.handlers.ready(new NumberHandler(epoll, handlers, ulong.sizeof));
                 }
             }
 
@@ -119,6 +146,10 @@ module ocean.io.select.RequestQueue;
 *******************************************************************************/
 
 private import ocean.util.container.queue.FlexibleRingQueue;
+
+private import ocean.util.container.queue.model.IByteQueue;
+
+private import ocean.util.container.queue.model.IQueueInfo;
 
 private import ocean.io.select.model.ISelectClient;
 
@@ -259,7 +290,6 @@ abstract class RequestHandler ( T ) : ISelectClient, IRequestHandler
 	
 	***************************************************************************/
 
-    // TODO: maybe rename -> 'resume' ?
 	public void notify()
 	{
         if ( this.fiber.state == Fiber.State.HOLD )
@@ -316,7 +346,7 @@ abstract class RequestHandler ( T ) : ISelectClient, IRequestHandler
 			{
 				this.request(*request);
 			}
-			else if ( this.request_queue.handlerWaiting(this) )
+			else if ( this.request_queue.ready(this) )
             {
 		        this.fiber.cede();
             }
@@ -376,8 +406,16 @@ abstract class RequestHandler ( T ) : ISelectClient, IRequestHandler
 
 *******************************************************************************/
 
-class RequestByteQueue : FlexibleByteRingQueue
-{
+class RequestByteQueue : IQueueInfo
+{     
+    /***************************************************************************
+    
+        Queue being used
+    
+    ***************************************************************************/
+   
+    private IByteQueue queue;
+    
     /***************************************************************************
     
         Whether the queue is enabled or not
@@ -412,14 +450,113 @@ class RequestByteQueue : FlexibleByteRingQueue
 	
 	***************************************************************************/
     
-    public this ( size_t handlers, size_t max_bytes )
+    public this ( size_t handlers, size_t max_bytes, IByteQueue queue = null )
     {
-        super(max_bytes);
-
+        if ( queue is null )
+        {
+            this.queue = new FlexibleByteRingQueue(max_bytes);
+        }
+        else
+        {
+            this.queue = queue;
+        }
+        
     	this.handlers = new IRequestHandler[handlers];
     	
     	this.waiting_handlers = 0;
     }
+            
+
+    /***************************************************************************
+
+        Finds out whether the provided number of bytes will fit in the queue.
+        Also considers the need of wrapping.
+
+        Note that this method internally adds on the extra bytes required for
+        the item header, so it is *not* necessary for the end-user to first
+        calculate the item's push size.
+
+        Params:
+            bytes = size of item to check 
+
+        Returns:
+            true if the bytes fits, else false
+
+    ***************************************************************************/
+
+    public bool willFit ( size_t bytes )
+    {
+        return this.queue.willFit(bytes);
+    }
+        
+        
+    
+    /***************************************************************************
+    
+        Returns:
+            total number of bytes used by queue (used space + free space)
+    
+    ***************************************************************************/
+    
+    public ulong totalSpace ( )
+    {
+        return this.queue.totalSpace();
+    }
+    
+    
+    /***************************************************************************
+    
+        Returns:
+            number of bytes stored in queue
+    
+    ***************************************************************************/
+    
+    public ulong usedSpace ( )
+    {
+        return this.queue.usedSpace();
+    }    
+    
+    
+    /***************************************************************************
+    
+        Returns:
+            number of bytes free in queue
+    
+    ***************************************************************************/
+    
+    public ulong freeSpace ( )
+    {
+        return this.queue.freeSpace();
+    }
+    
+       
+    /***************************************************************************
+    
+        Returns:
+            the number of items in the queue
+    
+    ***************************************************************************/
+    
+    public uint length ( )
+    {
+        return this.queue.length();
+    }
+        
+    
+    /***************************************************************************
+    
+        Tells whether the queue is empty.
+    
+        Returns:
+            true if the queue is empty
+    
+    ***************************************************************************/
+    
+    public bool isEmpty ( )
+    {
+        return this.queue.isEmpty();
+    }
+    
     
     /***************************************************************************
 	
@@ -435,7 +572,7 @@ class RequestByteQueue : FlexibleByteRingQueue
 	
 	***************************************************************************/
 	    
-    public bool handlerWaiting ( IRequestHandler handler )
+    public bool ready ( IRequestHandler handler )
     in
     {
         debug scope (failure) Trace.formatln("waiting: {} len: {}",
@@ -501,7 +638,7 @@ class RequestByteQueue : FlexibleByteRingQueue
 	  
     public bool push ( ubyte[] data )
     {
-    	if (!super.push(data)) return false;    	
+    	if ( !this.queue.push(data) ) return false;    	
         
     	this.notifyHandler();
     	
@@ -526,7 +663,7 @@ class RequestByteQueue : FlexibleByteRingQueue
       
     public bool push ( size_t size, void delegate ( ubyte[] ) filler )
     {
-        auto target = super.push(size);
+        auto target = this.queue.push(size);
         
         if (target is null) return false;
         
@@ -597,7 +734,7 @@ class RequestByteQueue : FlexibleByteRingQueue
             return null;
         }
         
-        return super.pop();
+        return this.queue.pop();
     }
         
     /***************************************************************************
@@ -637,9 +774,9 @@ class RequestQueue ( T ) : RequestByteQueue
 	
 	***************************************************************************/
     
-    public this ( size_t handlers, size_t max_bytes )
+    public this ( size_t handlers, size_t max_bytes, IByteQueue queue = null )
 	{
-		super(handlers, max_bytes);
+		super(handlers, max_bytes, queue);
 	}
 	
     /***************************************************************************

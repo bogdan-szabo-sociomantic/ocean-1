@@ -20,13 +20,17 @@ module ocean.util.container.queue.FixedRingQueue;
 
 private import ocean.util.container.queue.model.IRingQueue;
 
+private import ocean.util.container.queue.model.IQueue;
+
+private import ocean.util.container.queue.model.IByteQueue;
+
 /*******************************************************************************
 
     Ring queue for elements of type T, T must be a value type.
 
 *******************************************************************************/
 
-class FixedRingQueue ( T ) : FixedRingQueueBase
+class FixedRingQueue ( T ) : FixedRingQueueBase!(IQueue!(T))
 {
     /***************************************************************************
 
@@ -37,7 +41,7 @@ class FixedRingQueue ( T ) : FixedRingQueueBase
     
     ***************************************************************************/
 
-    this ( size_t max_items )
+    public this ( size_t max_items )
     {
         super(max_items, T.sizeof);
     }
@@ -54,7 +58,7 @@ class FixedRingQueue ( T ) : FixedRingQueueBase
     
     ***************************************************************************/
     
-    bool push ( T element )
+    public bool push ( T element )
     {
         T* element_in_queue = this.push();
         
@@ -81,7 +85,7 @@ class FixedRingQueue ( T ) : FixedRingQueueBase
     
     ***************************************************************************/
     
-    T* push ( )
+    public T* push ( )
     {
         return cast (T*) super.push_().ptr;
     }
@@ -99,7 +103,7 @@ class FixedRingQueue ( T ) : FixedRingQueueBase
     
     ***************************************************************************/
 
-    bool pop ( ref T element )
+    public bool pop ( ref T element )
     {
         T* element_in_queue = this.pop();
         
@@ -114,6 +118,7 @@ class FixedRingQueue ( T ) : FixedRingQueueBase
         }
     }
     
+    
     /***************************************************************************
 
         Pops an element from the queue and returns a pointer to that element.
@@ -126,7 +131,7 @@ class FixedRingQueue ( T ) : FixedRingQueueBase
     
     ***************************************************************************/
     
-    T* pop ( )
+    public T* pop ( )
     {
         return cast (T*) super.pop_().ptr;
     }
@@ -138,7 +143,7 @@ class FixedRingQueue ( T ) : FixedRingQueueBase
 
 *******************************************************************************/
 
-class FixedByteRingQueue : FixedRingQueueBase
+class FixedByteRingQueue : FixedRingQueueBase!(IByteQueue)
 {
     /***************************************************************************
 
@@ -167,7 +172,7 @@ class FixedByteRingQueue : FixedRingQueueBase
     
     ***************************************************************************/
     
-    bool push ( void[] element )
+    bool push ( ubyte[] element )
     in
     {
         assert (element.length == super.element_size, "element size mismatch");
@@ -199,9 +204,9 @@ class FixedByteRingQueue : FixedRingQueueBase
     
     ***************************************************************************/
     
-    void[] push ( )
+    ubyte[] push ( size_t ignored = 0 )
     {
-        return super.push_();
+        return cast(ubyte[])super.push_();
     }
 
     /***************************************************************************
@@ -216,9 +221,9 @@ class FixedByteRingQueue : FixedRingQueueBase
     
      ***************************************************************************/
     
-    void[] pop ( )
+    ubyte[] pop ( )
     {
-        return super.pop_();
+        return cast(ubyte[])super.pop_();
     }
     
     /***************************************************************************
@@ -234,14 +239,14 @@ class FixedByteRingQueue : FixedRingQueueBase
     
     ***************************************************************************/
 
-    bool pop ( void[] element )
+    bool pop ( ubyte[] element )
     in
     {
         assert (element.length == super.element_size, "element size mismatch");
     }
     body
     {
-        auto element_in_queue = super.pop_();
+        auto element_in_queue = cast(ubyte[])super.pop_();
 
         if (element_in_queue)
         {
@@ -261,7 +266,7 @@ class FixedByteRingQueue : FixedRingQueueBase
 
 *******************************************************************************/
 
-abstract class FixedRingQueueBase : IRingQueue
+abstract class FixedRingQueueBase ( IBaseQueue ) : IRingQueue!(IBaseQueue)
 {
     /***************************************************************************
 
@@ -369,6 +374,25 @@ abstract class FixedRingQueueBase : IRingQueue
     {
         return this.max_items;
     }
+       
+    
+    /***************************************************************************
+
+        Finds out whether another item will fit
+
+        Params:
+            bytes = size of item to check, ignored as sizes is fixed
+
+        Returns:
+            true if the item fits, else false
+
+    ***************************************************************************/
+
+    public bool willFit ( size_t bytes = 0)
+    {
+        return super.items < this.max_items;
+    }
+    
     
     /***************************************************************************
 
