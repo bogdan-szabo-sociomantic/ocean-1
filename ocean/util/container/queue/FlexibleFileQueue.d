@@ -12,6 +12,14 @@
 
 module ocean.util.container.queue.FlexibleFileQueue;
 
+
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
 private import ocean.util.container.queue.model.IByteQueue;
 
 private import ocean.util.container.queue.model.IQueueInfo;
@@ -25,7 +33,8 @@ private import tango.io.stream.Buffered,
                Filesystem = tango.io.Path;
    
 
-class FlexibleFileQueue : IByteQueue
+
+public class FlexibleFileQueue : IByteQueue
 {
     /***************************************************************************
 
@@ -270,19 +279,14 @@ class FlexibleFileQueue : IByteQueue
     /***************************************************************************
 
         Finds out whether the provided number of bytes will fit in the queue.
-        Also considers the need of wrapping.
 
-        Note that this method internally adds on the extra bytes required for
-        the item header, so it is *not* necessary for the end-user to first
-        calculate the item's push size.
-        
-        Due to the file swap, we have unlimited space, so always return true
+        Due to the file swap, we have unlimited space, so always return true.
 
         Params:
             bytes = size of item to check 
 
         Returns:
-            true if the bytes fits, else false
+            always true
 
     ***************************************************************************/
 
@@ -290,9 +294,8 @@ class FlexibleFileQueue : IByteQueue
     {
         return true;
     }
-        
-        
-    
+
+
     /***************************************************************************
     
         Returns:
@@ -421,11 +424,10 @@ class FlexibleFileQueue : IByteQueue
     {
         try 
         {
-        this.file_out is null && this.openExternal();
-        
-        ubyte[] header = (cast(ubyte*)&Header(item.length))[0 .. Header.sizeof];
-        
-        
+            this.file_out is null && this.openExternal();
+
+            ubyte[] header = (cast(ubyte*)&Header(item.length))[0 .. Header.sizeof];
+
             this.ext_out.write(header);
             this.ext_out.write(item);
             
