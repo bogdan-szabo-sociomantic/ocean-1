@@ -24,6 +24,8 @@ private import ocean.util.container.queue.model.IRingQueue;
 
 private import ocean.util.container.queue.model.IByteQueue;
 
+private import ocean.util.container.mem.MemManager;
+
 private import tango.io.model.IConduit: InputStream, OutputStream;
 
 private import ocean.io.serialize.SimpleSerializer;
@@ -95,7 +97,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     /***************************************************************************
 
-        Constructor.
+        Constructor. The queue's memory buffer is allocated by the GC.
         
         Params:
             dimension = size of queue in bytes
@@ -110,6 +112,23 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     body
     {
         super(dimension);
+    }
+
+
+    /***************************************************************************
+
+        Constructor. Allocates the queue's memory buffer with the provided
+        memory manager.
+
+        Params:
+            mem_manager = memory manager to use to allocate queue's buffer
+            dimension = size of queue in bytes
+
+    ***************************************************************************/
+
+    public this ( IMemManager mem_manager, size_t dimension )
+    {
+        super(mem_manager, dimension);
     }
 
 
