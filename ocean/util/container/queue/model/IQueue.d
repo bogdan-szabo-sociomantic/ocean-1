@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    Base class for a queue.
+    Base class template for a queue storing items of a specific type.
 
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
 
@@ -12,6 +12,8 @@
 
 module ocean.util.container.queue.model.IQueue;
 
+
+
 /*******************************************************************************
 
     Imports
@@ -20,9 +22,15 @@ module ocean.util.container.queue.model.IQueue;
 
 private import ocean.util.container.queue.model.IQueueInfo;
 
-/******************************************************************************/
 
-interface IQueue ( T ) : IQueueInfo
+
+/*******************************************************************************
+
+    Base class template for a queue storing items of a specific type.
+
+*******************************************************************************/
+
+public interface IQueue ( T ) : IQueueInfo
 {
     /***************************************************************************
     
@@ -93,3 +101,4 @@ interface IQueue ( T ) : IQueueInfo
     
     //public T* peek ( );    
 }
+

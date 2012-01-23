@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    Base class for a queue.
+    Base class for a queue storing raw ubyte data.
 
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
 
@@ -12,6 +12,8 @@
 
 module ocean.util.container.queue.model.IByteQueue;
 
+
+
 /*******************************************************************************
 
     Imports
@@ -20,9 +22,15 @@ module ocean.util.container.queue.model.IByteQueue;
 
 private import ocean.util.container.queue.model.IQueueInfo;
 
-/******************************************************************************/
 
-interface IByteQueue : IQueueInfo
+
+/*******************************************************************************
+
+    Base class for a queue storing raw ubyte data.
+
+*******************************************************************************/
+
+public interface IByteQueue : IQueueInfo
 {
     /***************************************************************************
     
@@ -91,3 +99,4 @@ interface IByteQueue : IQueueInfo
 
     //public ubyte[] peek ( );        
 }
+
