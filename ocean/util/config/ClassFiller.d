@@ -68,7 +68,9 @@ module ocean.util.config.ClassFiller;
 public  import ocean.core.Exception: ConfigException, assertEx;
                
 private import tango.core.Exception;
-               
+
+private import tango.core.Traits;
+
 private import ocean.util.Config; 
 
 private import ocean.util.config.ConfigParser;
@@ -90,21 +92,414 @@ private bool loose_parsing = false;
 
 /*******************************************************************************
 
+    Evaluates to the original type with which a Wrapper Struct was initialised
+
+    If T is not a struct, T itself is returned
+
+    Params:
+        T = struct or type to find the basetype for
+
+*******************************************************************************/
+
+template BaseType ( T )
+{
+    static if ( is(typeof(T.value)) )
+    {
+        alias BaseType!(typeof(T.value)) BaseType;
+    }
+    else
+    {
+        alias T BaseType;
+    }
+}
+
+/*******************************************************************************
+
+    Returns the value of the given struct/value.
+
+    If value is not a struct, the value itself is returned
+
+    Params:
+        v = instance of a struct the value itself
+
+*******************************************************************************/
+
+BaseType!(T) Value ( T ) ( T v )
+{
+    static if ( is(T == BaseType!(typeof(v))) )
+    {
+        return v;
+    }
+    else
+    {
+        return Value(v.value);
+    }
+}
+
+/*******************************************************************************
+
     Configuration settings that are mandatory can be marked as such by
     wrapping them with this template.
-    If the variable is not set, the an exception is thrown.
+    If the variable is not set, then an exception is thrown.
 
-    Note: The variable sometimes requires a cast for certain usages when this
-          is used.
+    The value can be accessed with the opCall method
 
     Params:
         T = the original type of the variable
 
 *******************************************************************************/
 
-template Required ( T )
+struct Required ( T )
 {
-    typedef T Required;
+    /***************************************************************************
+
+        The value of the configuration setting, can be a WrapperStruct
+
+    ***************************************************************************/
+
+    private T value;
+
+    /***************************************************************************
+
+        Returns the value that is wrapped
+
+    ***************************************************************************/
+
+    public BaseType!(T) opCall ( )
+    {
+        return Value(this.value);
+    }
+
+    /***************************************************************************
+
+        Returns the value that is wrapped
+
+    ***************************************************************************/
+    
+    public BaseType!(T) opCast ( )
+    {
+        return Value(this.value);
+    }
+    
+    /***************************************************************************
+
+        Sets the wrapped value to val
+
+        Params:
+            val = new value
+
+        Returns:
+            val
+
+    ***************************************************************************/
+
+    public BaseType!(T) opAssign ( BaseType!(T) val )
+    {
+        return value = val;
+    }   
+    
+    /***************************************************************************
+
+        Checks whether the checked value was found, throws if not
+
+    ***************************************************************************/
+
+    private void check ( bool found, char[] group, char[] name )
+    {
+        if ( !found )
+        {
+            throw new ConfigException("Mandatory variable " ~ group ~ 
+                                      "." ~ name ~
+                                      " not set", __FILE__, __LINE__);
+        }
+        
+        static if ( !is (BaseType!(T) == T) )
+        {
+            this.value.check(found, group, name);
+        }
+    }
+}
+
+/*******************************************************************************
+
+    Configuration settings that are required to be within a certain numeric
+    range can be marked as such by wrapping them with this template.
+
+    If the value is outside the provided range, an exception is thrown.
+
+    The value can be accessed with the opCall method
+
+    Params:
+        T    = the original type of the variable (can be another struct)
+        min  = smallest allowed value
+        max  = biggest allowed value
+        init = default value when it is not given in the configuration file
+
+
+*******************************************************************************/
+
+struct MinMax ( T, T min, T max, T init = T.init )
+{
+    /***************************************************************************
+
+        The value of the configuration setting
+
+    ***************************************************************************/
+
+    private T value = init;
+   
+    /***************************************************************************
+
+        Sets the wrapped value to val
+
+        Params:
+            val = new value
+
+        Returns:
+            val
+
+    ***************************************************************************/
+
+    public BaseType!(T) opCall ( )
+    {
+        return Value(this.value);
+    }
+
+     /***************************************************************************
+
+        Sets the wrapped value to val
+
+        Params:
+            val = new value
+
+        Returns:
+            val
+
+    ***************************************************************************/
+
+    public BaseType!(T) opAssign ( BaseType!(T) val )
+    {
+        return value = val;
+    }                  
+
+     /***************************************************************************
+
+        Checks whether the configuration value is bigger than the smallest 
+        allowed value and smaller than the biggest allowed value. 
+        If not, an exception is thrown
+
+        Params:
+            bool  = whether the variable existed in the configuration file
+            group = group this variable should appear
+            name  = name of the variable
+
+    ***************************************************************************/
+
+    private void check ( bool found, char[] group, char[] name )
+    {              
+        if ( Value(this.value) < min )
+        {
+            throw new ConfigException(
+                                "Configuration key " ~ group ~ "." ~ name ~ " is smaller "
+                                "than allowed minimum of " ~ ctfe_i2a(min),
+                                __FILE__, __LINE__);
+        }            
+  
+         
+        if ( Value(this.value) > max )
+        {
+            throw new ConfigException(
+                                "Configuration key " ~ group ~ "." ~ name ~
+                                " is bigger than allowed maximum of " ~ ctfe_i2a(max),
+                                __FILE__, __LINE__);
+        }    
+        
+        static if ( !is (BaseType!(T) == T) )
+        {
+            this.value.check(found, group, name);
+        }
+    }
+}
+
+/*******************************************************************************
+
+    Configuration settings that are required to be within a certain numeric
+    range can be marked as such by wrapping them with this template.
+
+    If the value is outside the provided range, an exception is thrown.
+
+    The value can be accessed with the opCall method
+
+    Params:
+        T    = the original type of the variable (can be another struct)
+        min  = smallest allowed value
+        init = default value when it is not given in the configuration file
+
+
+*******************************************************************************/
+
+struct Min ( T, T min, T init = T.init )
+{        
+    /***************************************************************************
+
+        The value of the configuration setting
+
+    ***************************************************************************/
+
+    private T value = init;
+
+     /***************************************************************************
+
+        Sets the wrapped value to val
+
+        Params:
+            val = new value
+
+        Returns:
+            val
+
+    ***************************************************************************/
+
+    public BaseType!(T) opAssign ( BaseType!(T) val )
+    {
+        return value = val;
+    }
+     
+    /***************************************************************************
+
+        Sets the wrapped value to val
+
+        Params:
+            val = new value
+
+        Returns:
+            val
+
+    ***************************************************************************/
+
+    public BaseType!(T) opCall ( )
+    {
+        return Value(this.value);
+    }    
+            
+     /***************************************************************************
+
+        Checks whether the configuration value is bigger than the smallest 
+        allowed value. If not, an exception is thrown
+
+        Params:
+            bool  = whether the variable existed in the configuration file
+            group = group this variable should appear
+            name  = name of the variable
+
+    ***************************************************************************/
+
+    private void check ( bool found, char[] group, char[] name )
+    {
+        if ( Value(this.value) < min )
+        {
+            throw new ConfigException(
+                    "Configuration key " ~ group ~ "." ~ name ~ " is smaller "
+                    "than allowed minimum of " ~ ctfe_i2a(min),
+                    __FILE__, __LINE__);
+        }            
+                
+        static if ( !is (BaseType!(T) == T) )
+        {
+            this.value.check(found, group, name);
+        }
+    }
+}
+
+/*******************************************************************************
+
+    Configuration settings that are required to be within a certain numeric
+    range can be marked as such by wrapping them with this template.
+
+    If the value is outside the provided range, an exception is thrown.
+
+    The value can be accessed with the opCall method
+
+    Params:
+        T    = the original type of the variable (can be another struct)
+        min  = smallest allowed value
+        max  = biggest allowed value
+        init = default value when it is not given in the configuration file
+
+
+*******************************************************************************/
+
+struct Max ( T, T max )
+{
+    /***************************************************************************
+
+        The value of the configuration setting
+
+    ***************************************************************************/
+
+    private T value;
+
+     /***************************************************************************
+
+        Sets the wrapped value to val
+
+        Params:
+            val = new value
+
+        Returns:
+            val
+
+    ***************************************************************************/
+
+    public BaseType!(T) opAssign ( BaseType!(T) val )
+    {
+        return value = val;
+    }
+
+     /***************************************************************************
+
+        Sets the wrapped value to val
+
+        Params:
+            val = new value
+
+        Returns:
+            val
+
+    ***************************************************************************/
+
+    public BaseType!(T) opCall ( )
+    {
+        return Value(this.value);
+    }  
+    
+     /***************************************************************************
+
+        Checks whether the configuration value is smaller than the biggest
+        allowed value. If not, an exception is thrown
+
+        Params:
+            bool  = whether the variable existed in the configuration file
+            group = group this variable should appear
+            name  = name of the variable
+
+    ***************************************************************************/
+
+    private void check ( bool found, char[] group, char[] name )
+    {
+        if ( Value(this.value) > max )
+        {
+            throw new ConfigException(
+                    "Configuration key " ~ group ~ "." ~ name ~ " is bigger "
+                    "than allowed maximum of " ~ ctfe_i2a(max),
+                    __FILE__, __LINE__);
+        }
+
+        static if ( !is (BaseType!(T) == T) )
+        {
+            this.value.check(found, group, name);
+        }
+    }
 }
 
 /*******************************************************************************
@@ -118,14 +513,14 @@ template Required ( T )
 *******************************************************************************/
 
 struct SetInfo ( T )
-{
+{    
     /***************************************************************************
 
         The value of the configuration setting
 
     ***************************************************************************/
 
-    public T value;
+    private T value;
 
     /***************************************************************************
 
@@ -145,14 +540,19 @@ struct SetInfo ( T )
 
     ***************************************************************************/
 
-    public T opCall ( T def = T.init )
+    public BaseType!(T) opCall ( BaseType!(T) def = BaseType!(T).init )
     {
-        return set ? value : def;
+        if ( set )
+        {
+            return Value(this.value);
+        }
+        
+        return def;
     }
 
     /***************************************************************************
 
-        Sets value to val
+        Sets the wrapped value to val
 
         Params:
             val = new value
@@ -162,9 +562,31 @@ struct SetInfo ( T )
 
     ***************************************************************************/
 
-    public T opAssign ( T val )
+    public BaseType!(T) opAssign ( BaseType!(T) val )
     {
         return value = val;
+    }
+    
+     /***************************************************************************
+
+        Sets the set attribute according to whether the variable appeared in
+        the configuration or not
+
+        Params:
+            bool  = whether the variable existed in the configuration file
+            group = group this variable should appear
+            name  = name of the variable
+
+    ***************************************************************************/
+
+    private void check ( bool found, char[] group, char[] name )
+    {
+        this.set = found;
+                
+        static if ( !is (BaseType!(T) == T) )
+        {
+            this.value.check(found, group, name);
+        }
     }
 }
 
@@ -437,6 +859,7 @@ struct ClassIterator ( T, Source = ConfigParser )
     number = 1
     required_string = SET
     was_this_set = "there, I set it!"
+    limited = 20
     
     [Example.SecondGroup]
     number = 2
@@ -446,6 +869,7 @@ struct ClassIterator ( T, Source = ConfigParser )
     number = 3
     required_string = SET
     was_this_set = "arrr"
+    limited = 40
     -------
     
     Usage Example:
@@ -459,6 +883,7 @@ struct ClassIterator ( T, Source = ConfigParser )
         int number;
         Required!(char[]) required_string;
         SetInfo!(char[]) was_this_set; 
+        Required!(MinMax!(size_t, 1, 30)) limited;
     }
     
     void main ( char[][] argv )
@@ -472,12 +897,16 @@ struct ClassIterator ( T, Source = ConfigParser )
             // Outputs FirstGroup/SecondGroup/ThirdGroup
             Stdout.formatln("Group: {}", name); 
             Stdout.formatln("Number: {}", conf.number);
-            Stdout.formatln("Required: {}", conf.required_string);
+            Stdout.formatln("Required: {}", conf.required_string());
             if ( conf.was_this_set.set )
             {
                 Stdout.formatln("It was set! And the value is {}", 
                 was_this_set());
             }
+            // If limited was not set, an exception will be thrown
+            // If limited was set but is outside of the specified 
+            // range [1 .. 30], an exception will be thrown as well
+            Stdout.formatln("Limited: {}", conf.limited());
         }
         catch ( Exception e )
         {
@@ -517,7 +946,7 @@ public ClassIterator!(T) iterate ( T, Source = ConfigParser )
         property converted to T
 
 *******************************************************************************/
-
+        
 protected void readFields ( T, Source ) 
                           ( char[] group, T reference, Source config )
 {
@@ -530,49 +959,41 @@ protected void readFields ( T, Source )
     
     foreach ( si, field; reference.tupleof )
     {
-        static if ( is ( typeof(field.value) ) )
-        {
-            alias StripTypedef!(typeof(field.value)) Type;
-            alias typeof(field.value) PureType;
-            Type* value = cast(Type*)&reference.tupleof[si].value;
-            bool* found = &reference.tupleof[si].set;
-        }
-        else
-        {
-            alias StripTypedef!(typeof(field)) Type;
-            alias typeof(field) PureType;
-            Type* value = cast(Type*)&reference.tupleof[si];
-            bool found_v;
-            bool* found = &found_v;
-        }
+        alias BaseType!(typeof(field)) Type;
+        debug bool found = false;
 
-        static assert ( IsSupported!(Type), "ClassFiller.readFields: Type " 
+        static assert ( IsSupported!(Type), 
+                        "ClassFiller.readFields: Type " 
                         ~ Type.stringof ~ " is not supported" );
         
         auto key = reference.tupleof[si].stringof["reference.".length .. $];
-        
-        *found = config.exists(group, key);
-
-        auto name = PureType.stringof;
-
-        if ( name.length >= "Required".length &&
-             name[0 .. "Required".length] == "Required" &&
-             *found == false )
+                
+        if ( config.exists(group, key) )
         {
-            throw new ConfigException("Mandatory variable " ~ key ~
-                    " not set", __FILE__, __LINE__);
-        }
+            reference.tupleof[si] = config.getStrict!(DynamicArrayType!(Type))(group, key);
 
-        if (*found)
-        {
-            *value = config.getStrict!(DynamicArrayType!(Type))(group, key);
-        }
-
-        debug (Config) Trace.formatln("Config Debug: {}.{} = {} {}", group,
+            debug (Config) Trace.formatln("Config Debug: {}.{} = {}", group,
                              reference.tupleof[si]
                             .stringof["reference.".length  .. $],
-                            *value,
-                            !*found ? "(builtin)" : "");
+                            Value(reference.tupleof[si]));
+
+            static if ( !is (Type == typeof(field)) )
+            {
+                reference.tupleof[si].check(true, group, key);
+            }
+        }
+        else
+        {
+            debug (Config) Trace.formatln("Config Debug: {}.{} = {} (builtin)", group,
+                             reference.tupleof[si]
+                            .stringof["reference.".length  .. $],
+                            Value(reference.tupleof[si]));
+
+            static if ( !is (Type == typeof(field)) )
+            {
+                reference.tupleof[si].check(false, group, key);
+            }
+        }
     }
     
     // Recurse into super any classes
