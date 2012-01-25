@@ -31,7 +31,13 @@ private import tango.stdc.posix.sys.types: ssize_t;
 
 private import tango.io.Stdout;
 
-private import tango.text.Search: search;
+/*
+ * SearchFruct in tango.text.Search is declared private but that protection
+ * attribute is meaningless. Ticket is submitted.
+ * @see http://www.dsource.org/projects/tango/ticket/2102
+ */
+    
+private import tango.text.Search: SearchFruct, search;
 
 /******************************************************************************
 
@@ -43,19 +49,6 @@ private import tango.text.Search: search;
 
 class StrSplitIterator : ISplitIterator
 {
-    /*
-     * WHY on earth is SearchFruct in tango.text.Search declared PRIVATE? In
-     * order to declare an instance we have to work around by deriving it from
-     * the .search()() return type.
-     * 
-     * >:[
-     * 
-     * Ticket is submitted.
-     * @see http://www.dsource.org/projects/tango/ticket/2102
-     */
-    
-    public alias typeof (.search!(char)("")) SearchFruct;
-
     /**************************************************************************
     
         Contains the delimiter as match string and manages a table of indices to
@@ -64,20 +57,20 @@ class StrSplitIterator : ISplitIterator
     
      **************************************************************************/
     
-    public const SearchFruct sf;
+    public const SearchFruct!(char) sf;
     
     /**************************************************************************
     
         Constructor
         
         Params:
-            delim = delimiter string
+            delim_ = delimiter string
     
      **************************************************************************/
     
-    public this ( char[] delim )
+    public this ( char[] delim_ )
     {
-        this.sf = .search(delim);
+        this.sf = .search(delim_);
     }
     
     /**************************************************************************
@@ -92,7 +85,7 @@ class StrSplitIterator : ISplitIterator
     
      **************************************************************************/
     
-    public this ( SearchFruct sf_in )
+    public this ( SearchFruct!(char) sf_in )
     {
         this.sf = sf_in;
     }
@@ -240,16 +233,32 @@ class ChrSplitIterator : ISplitIterator
 {
     /**************************************************************************
         
-        Delimiter character
+        Delimiter character. Must be specified in the constructor but may be
+        changed at any time, even during iteration.
         
      **************************************************************************/
     
     public char delim;
     
-    public this ( char delim_in )
+    /**************************************************************************
+        
+        Constructor
+        
+        Params:
+            delim_ = delimiter character
+        
+     **************************************************************************/
+    
+    public this ( char delim_ )
     {
-        this.delim = delim_in;
+        this.delim = delim_;
     }
+    
+    /**************************************************************************
+    
+        Old constructor
+    
+     **************************************************************************/
     
     deprecated public this ( ) { }
     
@@ -348,6 +357,19 @@ abstract class ISplitIterator
     
     /**************************************************************************
     
+        Union of the supported 'foreach' iteration delegate types
+         
+     **************************************************************************/
+
+    protected union IterationDelegate
+    {
+        int delegate ( ref size_t pos, ref char[] segment ) with_pos;
+        
+        int delegate ( ref char[] segment ) without_pos;
+    }
+    
+    /**************************************************************************
+    
         Consistency check 
          
      **************************************************************************/
@@ -394,61 +416,53 @@ abstract class ISplitIterator
     }
     
     /**************************************************************************
-    
+        
         'foreach' iteration over string slices between the current and the next
         delimiter. n() returns the number of 'foreach' loop cycles so far,
         remaining() the slice after the next delimiter to the content end.
         If no delimiter was found, n() is 0 after 'foreach' has finished and
-        remaining() returns the content. 
-         
+        remaining() returns the content.
+        
+        segment slices content so do not modify it. However, the content of
+        segment may be modified which will result in an in-place modification
+        of the content.
+        
      **************************************************************************/
-
-    int opApply ( int delegate ( ref char[] segment ) dg )
+    
+    public int opApply ( int delegate ( ref char[] segment ) dg_in )
     {
-        int result = 0;
+        IterationDelegate dg;
         
-        if (this.remaining_.length)
-        {
-            size_t start = this.content.length - this.remaining_.length;
-            
-            if (this.collapse)
-            {
-                start += this.skipLeadingDelims(this.remaining_);
-            }
-            
-            for (size_t pos = this.locateDelim(this.content, start);
-                        pos < this.content.length;
-                        pos = this.locateDelim(this.content, start))
-            {
-                size_t next = pos + this.skipDelim(this.content[pos .. $]);
-                
-                if (!(pos == start && collapse))
-                {
-                    this.n_++;
-                    
-                    char[] segment  = this.content[start ..  pos];
-                    this.remaining_ = this.content[next .. $];
-                    
-                    result = dg(segment);
-                }
-                
-                start = next;
-                
-                if (result || start >= this.content.length) break;
-            }
-            
-            if (this.include_remaining &&
-                !(result || (start >= this.content.length && this.collapse)))
-            {
-                this.n_++;
-                
-                result = dg(this.remaining_);
-                
-                this.remaining_ = "";
-            }
-        }
+        dg.without_pos = dg_in;
         
-        return result;
+        return this.opApply_(false, dg);
+    }
+    
+    /**************************************************************************
+        
+        'foreach' iteration over string slices between the current and the next
+        delimiter. n() returns the number of 'foreach' loop cycles so far,
+        remaining() the slice after the next delimiter to the content end.
+        If no delimiter was found, n() is 0 after 'foreach' has finished and
+        remaining() returns the content.
+        
+        pos references the current content position and may be changed to
+        specify the position where searching should be continued. If changed,
+        pos must be at most content.length. 
+        
+        segment slices content so do not modify it. However, the content of
+        segment may be modified which will result in an in-place modification
+        of the content.
+        
+     **************************************************************************/
+    
+    public int opApply ( int delegate ( ref size_t pos, ref char[] segment ) dg_in )
+    {
+        IterationDelegate dg;
+        
+        dg.with_pos = dg_in;
+        
+        return this.opApply_(true, dg);
     }
     
     /**************************************************************************
@@ -487,6 +501,8 @@ abstract class ISplitIterator
     
         Locates the first delimiter occurrence in str starting from str[start].
         
+        
+        
         Params:
             str   = str to locate first delimiter occurrence in
             start = start index
@@ -498,6 +514,34 @@ abstract class ISplitIterator
      **************************************************************************/
 
     abstract size_t locateDelim ( char[] str, size_t start = 0 );
+    
+    /**************************************************************************
+    
+        Locates the first delimiter occurrence in the current content string
+        starting from content[start].
+        
+        Params:
+            start = start index, must be at most content.length
+            
+        Returns:
+            index of the first delimiter occurrence in str or str.length 
+            either not found or start >= content.length
+         
+         In:
+             start must be at most content.length.
+         
+     **************************************************************************/
+
+    public size_t locateDelim ( size_t start = 0 )
+    in
+    {
+        assert (start <= this.remaining.length,
+                typeof (this).stringof ~ ".locateDelim(): start index out of range");
+    }
+    body
+    {
+        return this.locateDelim(this.content, start);
+    }
     
     /**************************************************************************
     
@@ -526,6 +570,82 @@ abstract class ISplitIterator
         }
         
         return start;
+    }
+    
+    /**************************************************************************
+    
+        'foreach' iteration over string slices between the current and the next
+        delimiter.
+        
+        Params:
+            with_pos = true: use dg.with_pos, false: user dg.without_pos
+            dg       = iteration delegate
+            
+        Returns:
+            passes through dg() return value.
+         
+     **************************************************************************/
+    
+    protected int opApply_ ( bool with_pos, IterationDelegate dg )
+    {
+        int result = 0;
+        
+        if (this.remaining_.length)
+        {
+            size_t start = this.content.length - this.remaining_.length;
+            
+            if (this.collapse)
+            {
+                start += this.skipLeadingDelims(this.remaining_);
+            }
+            
+            for (size_t pos = this.locateDelim(start);
+                        pos < this.content.length;
+                        pos = this.locateDelim(start))
+            {
+                size_t next = pos + this.skipDelim(this.content[pos .. $]);
+                
+                if (!(pos == start && collapse))
+                {
+                    this.n_++;
+                    
+                    char[] segment  = this.content[start ..  pos];
+                    this.remaining_ = this.content[next .. $];
+                    
+                    if (with_pos)
+                    {
+                        result = dg.with_pos(next, segment);
+                        
+                        assert (next <= this.content.length,
+                                typeof (this).stringof ~ ": iteration delegate "
+                                "set the position out of range");
+                        
+                        this.remaining_ = this.content[next .. $];
+                    }
+                    else
+                    {
+                        result = dg.without_pos(segment);
+                    }
+                }
+                
+                start = next;
+                
+                if (result || start >= this.content.length) break;
+            }
+            
+            if (this.include_remaining &&
+                !(result || (start >= this.content.length && this.collapse)))
+            {
+                this.n_++;
+                
+                result = with_pos? dg.with_pos(start, this.remaining_) :
+                                   dg.without_pos(this.remaining_);
+                
+                this.remaining_ = "";
+            }
+        }
+        
+        return result;
     }
     
     /**************************************************************************

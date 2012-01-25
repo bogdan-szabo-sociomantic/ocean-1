@@ -169,65 +169,6 @@ class UrlDecoder
         }
     }
     
-
-    /***************************************************************************
-        
-        Determines whether each decoded character should be passed as 'foreach'
-        iteration variable string in its decoded or its original (encoded) form.
-        This can be used in cases where the decoding of only certain characters
-        is desired.
-        
-        By default the decoded form is always selected.
-        
-        To be overridden as an option, called by opApply().
-        
-        Params:
-            decoded  = decoded form of the character
-            original = original (encoded) form
-        
-        Returns:
-            true to use the decoded or false to use the original (encoded) form.
-            
-    **************************************************************************/
-    
-    protected bool copyDecoded ( char[] decoded, char[] original )
-    {
-        return true;
-    }
-    
-    import tango.stdc.stdio: fwrite, stderr, fputc, fprintf, fflush;
-    
-    static void print ( char[] str )
-    {
-        fwrite(str.ptr, str[0].sizeof, str.length, stderr);
-        fflush(stderr);
-    }
-    
-    static void println ( char[] str )
-    {
-        print(str);
-        fputc('\n', stderr);
-        fflush(stderr);
-    }
-    
-    unittest
-    {
-        scope decoder = new typeof (this)("%Die %uKatze %u221E%u221E tritt die Treppe %50 krumm. %u2207%");
-        
-        foreach (chunk; decoder)
-        {
-            print(chunk);
-        }
-        
-        fputc('\n', stderr);
-        fflush(stderr);
-        
-//            char[] working;
-        
-//        println(decode("%u2207 Die Katze %u221E%u221E tritt die Treppe %50 krumm. %u2207", working));
-//            println(decode("Die Katze %u221E%u221E tritt die Treppe %50 krumm. %u2207", working));
-    }
-    
     /***************************************************************************
 
         Extracts a single character from the specified position in the passed
@@ -319,27 +260,34 @@ class UrlDecoder
         
     ***************************************************************************/
 
-    static bool fromHex ( char[] hex, out dchar d )
+    public static bool fromHex ( char[] hex, out dchar d )
     {
-        const max_length = dchar.sizeof * 4;
-        
-        if (hex.length && hex.length < max_length)
+        if (hex.length)
         {
+            const max_length = dchar.sizeof * 4;
+            
+            // max_mask: The four most significant bits are 1, the rest is 0.
+            
+            const dchar max_mask = cast (dchar) ~((1u << ((dchar.sizeof * 8) - 4)) - 1);
+            
             d = 0;
             
-            foreach (c; hex)
+            foreach (i, c; hex)
             {
-                int x = g_ascii_xdigit_value(c);
+                if (!(d & max_mask))                           // overflow check
+                {
+                    int x = g_ascii_xdigit_value(c);
+                    
+                    if (x >= 0)              // x < 0 => not a hexadecimal digit
+                    {
+                        d <<= 4;
+                        d |= x;
+                        
+                        continue;
+                    }
+                }
                 
-                if (x >= 0)
-                {
-                    d <<= 4;
-                    d |= x;
-                }
-                else
-                {
-                    return false;
-                }
+                return false;             // not a hexadecimal digit or overflow
             }
             
             return true;
@@ -348,5 +296,45 @@ class UrlDecoder
         {
             return false;
         }
+    }
+    
+    /**************************************************************************
+        
+        To be overridden as an option, called by opApply().
+        
+        Determines whether each decoded character should be passed as 'foreach'
+        iteration variable string in its decoded or its original (encoded) form.
+        This can be used in cases where the decoding of only certain characters
+        is desired.
+        
+        By default always the decoded form is selected.
+        
+        Params:
+            decoded  = decoded form of the character
+            original = original (encoded) form
+        
+        Returns:
+            true to use the decoded or false to use the original (encoded) form.
+            
+     **************************************************************************/
+    
+    protected bool copyDecoded ( char[] decoded, char[] original )
+    {
+        return true;
+    }
+    
+    /**************************************************************************/
+    
+    unittest
+    {
+        scope decoder = new typeof (this)("%Die %uKatze %u221E%u221E tritt die Treppe %% krumm. %u2207%"),
+              decoded = new char[0];
+        
+        foreach (chunk; decoder)
+        {
+            decoded ~= chunk;
+        }
+        
+        assert (decoded == "%Die %uKatze ∞∞ tritt die Treppe % krumm. ∇%");
     }
 }
