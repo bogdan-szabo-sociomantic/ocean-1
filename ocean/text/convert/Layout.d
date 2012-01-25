@@ -52,51 +52,18 @@ private import TangoLayout = tango.text.convert.Layout;
 
 *******************************************************************************/
 
-version (GNU)
-{
-    private import tango.core.Vararg;
+private import tango.core.Vararg: va_list, va_arg;
 
-    alias void* Arg;
-    alias va_list ArgList;
-}
-else version (LDC)
+version (DigitalMars) version (X86_64)
 {
-    private import tango.core.Vararg;
-
-    alias void* Arg;
-    alias va_list ArgList;
-}
-else version (DigitalMars)
-{
-    private import tango.core.Vararg;
-
-    alias void* Arg;
-    alias va_list ArgList;
-
-    version (X86_64) version = DigitalMarsX64;
-}
-else
-{
-    alias void* Arg;
-    alias void* ArgList;
+    version = DigitalMarsX86_64;
+    
+    private import tango.core.Vararg: va_start, va_end;
 }
 
 
 class Layout ( T )
 {
-    /***************************************************************************
-
-        Global instance because Layout.instance() is not thread-safe.
-    
-    ***************************************************************************/
-
-    private static TangoLayout.Layout!(T) layout;
-    
-    static this ( )
-    {
-        this.layout = new TangoLayout.Layout!(T);
-    }
-    
     /***************************************************************************
 
         Outputs a formatted string into the provided buffer.
@@ -115,71 +82,46 @@ class Layout ( T )
 
     ***************************************************************************/
 
-    static public char[] print ( ref char[] output, T[] formatStr, ... )
+    static public T[] print ( ref T[] output, T[] formatStr, ... )
     {
-        uint layoutSink ( char[] s )
+        uint layoutSink ( T[] s )
         {
-            output.append(s);
-            return s.length;
+            return cast (uint) .append(output, s).length;
         }
         
-        version (DigitalMarsX64)
+        mixin vaArgCall!();
+        
+        vaArgCall((TypeInfo[] arguments, va_list argptr)
         {
-            va_list ap;
-
-            va_start(ap, __va_argsave);
-
-            scope(exit) va_end(ap);
-
-            this.layout.convert(&layoutSink, _arguments, ap, formatStr);
-        }
-        else
-            this.layout.convert(&layoutSink, _arguments, _argptr, formatStr);
+            scope layout = new TangoLayout.Layout!(T);
+            
+            layout.convert(&layoutSink, arguments, argptr, formatStr);
+        });
         
         return output;
     }
-}
-
-/*******************************************************************************
-
-    AppendBuffer using Layout
-
-*******************************************************************************/
-
-class StringLayout ( T = char ) : AppendBuffer!(T)
-{
-    /***************************************************************************
-
-        Layout instance
     
-    ***************************************************************************/
-
-    private TangoLayout.Layout!(T) layout;
+    /**************************************************************************
     
-    /***************************************************************************
-
-        Constructor
-    
-    ***************************************************************************/
-
-    this ( )
-    {
-        this.layout = new TangoLayout.Layout!(T);
-    }
-    
-    /***************************************************************************
-
-        Constructor
+        Appends the variable arguments to the content, formatted according to
+        fmt, if any. If no variable arguments are given, simply appends fmt to
+        the content. 
         
         Params:
-            n = initial buffer length
+            fmt = format specifier or string to write if no variable arguments
+                  are given.
+            ... = values to format or nothing to simply append fmt.
+            
+        Returns:
+            this instance
     
-    ***************************************************************************/
+     **************************************************************************/
 
-    this ( size_t n )
+    public typeof (this) format ( T[] fmt, ... )
     {
-        super(n);
-        this.layout = new TangoLayout.Layout!(T);
+        mixin vaArgCall!(typeof (this), T[]);
+        
+        return vaArgCall(&this.vformat, fmt);
     }
     
     /**************************************************************************
@@ -195,20 +137,202 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
     
      **************************************************************************/
 
-    typeof (this) opCall ( ... )
+    public typeof (this) opCall ( ... )
     {
-        version (DigitalMarsX64)
+        mixin vaArgCall!(typeof (this));
+        
+        return vaArgCall(&this.vwrite);
+    }
+    
+    /**************************************************************************
+    
+        Appends the variable arguments to the content, formatted according to
+        fmt, if any. If no variable arguments are given, simply appends fmt to
+        the content.
+        
+        Params:
+            fmt       = format specifier or string to write if arguments is
+                        empty
+            arguments = type ids of arguments which argptr points to
+            argptr    = pointer to variable argument data
+            
+        Returns:
+            this instance
+    
+     **************************************************************************/
+
+    public typeof (this) vformat ( T[] fmt, TypeInfo[] arguments, va_list argptr )
+    {
+        if (arguments.length)
         {
-            va_list ap;
-
-            va_start(ap, __va_argsave);
-
-            scope(exit) va_end(ap);
-
-            return this.vwrite(_arguments, ap);
+            scope layout = new TangoLayout.Layout!(T);
+            
+            layout.convert(&this.append, arguments, argptr, fmt);
         }
         else
-            return this.vwrite(_arguments, _argptr);
+        {
+            this.append(fmt);
+        }
+        
+        return this;
+    }
+    
+    /**************************************************************************
+    
+        Formats all given variable arguments in the order of appearance, using
+        the default format for each argument. 
+        
+        Params:
+            arguments = type ids of arguments which argptr points to
+            argptr    = pointer to variable argument data
+            
+        Returns:
+            this instance
+    
+     **************************************************************************/
+    
+    public typeof (this) vwrite ( TypeInfo[] arguments, va_list argptr )
+    {
+        foreach (ref argument; arguments)
+        {
+            /**************************************************************
+            
+                Shifts argptr to the next argument. 
+                
+                Returns:
+                    argptr before shifting
+                
+             **************************************************************/
+            
+            version (X86) void* va_arg_ptr ( )
+            {
+                const size_t n = size_t.sizeof - 1;
+                
+                scope (exit) argptr += ((argument.tsize + n) & ~n);
+                
+                return argptr;
+            }
+            
+            if (argument is typeid (T[]))
+            {
+                 this.append(va_arg!(T[])(argptr));
+            }
+            else if (argument is typeid (T))
+            {
+                version (X86)
+                {
+                    T* xp = cast (T*) va_arg_ptr;
+                }
+                else
+                {
+                    T x   = va_arg!(T)(argptr);
+                    T* xp = &x;
+                }
+                
+                this.append(xp[0 .. 1]);
+            }
+            else
+            {
+                /**************************************************************
+                
+                    For x86 (not x86-64) va_list is void*, argptr points to the
+                    current argument and must be shifted to the next one. Since
+                    argptr is forwarded to vformat as value, we need to shift it
+                    here.
+                    
+                    For x86-64 va_list is a reference to an object which is
+                    shifted automatically by va_arg(), indirectly called from
+                    this.vformat(), so we do not need to care about it. 
+                
+                 **************************************************************/
+                
+                version (X86)
+                {
+                    void* xp = va_arg_ptr;
+                }
+                else
+                {
+                    void* xp = argptr;
+                }
+                
+                this.vformat("{}", (&argument)[0 .. 1], xp);
+            }
+        }
+        
+        return this;
+    }
+    
+    /**************************************************************************
+    
+        Output appender, called repeatedly when there is string data to append.
+        
+        Params:
+            chunk = string data to append or write
+            
+         Returns:
+             number of elements appended/written
+    
+     **************************************************************************/
+    
+    abstract protected uint append ( T[] chunk );
+}
+
+/*******************************************************************************
+
+    AppendBuffer using Layout
+
+*******************************************************************************/
+
+class StringLayout ( T = char ) : AppendBuffer!(T)
+{
+    scope class AppendLayout : Layout!(T)
+    {
+        protected uint append ( T[] chunk )
+        {
+            return cast (uint) this.outer.append(chunk).length;
+        }
+    }
+    
+    /***************************************************************************
+
+        Constructor
+    
+    ***************************************************************************/
+
+    public this ( ) { }
+    
+    /***************************************************************************
+
+        Constructor
+        
+        Params:
+            n = initial buffer length
+    
+    ***************************************************************************/
+
+    public this ( size_t n )
+    {
+        super(n);
+    }
+    
+    /**************************************************************************
+    
+        Appends all given variable arguments in the order of appearance,
+        formatted using the default format for each argument. 
+        
+        Params:
+            ... = values to format
+            
+        Returns:
+            this instance
+    
+     **************************************************************************/
+
+    T[] opCall ( ... )
+    {
+        mixin vaArgCall!(T[]);
+        
+        return vaArgCall(&this.vwrite);
     }
     
     /**************************************************************************
@@ -229,18 +353,9 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
 
     T[] format ( T[] fmt, ... )
     {
-        version (DigitalMarsX64)
-        {
-            va_list ap;
-
-            va_start(ap, __va_argsave);
-
-            scope(exit) va_end(ap);
-
-            return this.vformat(fmt, _arguments, ap);
-        }
-        else
-            return this.vformat(fmt, _arguments, _argptr);
+        mixin vaArgCall!(T[], T[]);
+        
+        return vaArgCall(&this.vformat, fmt);
     }
     
     /**************************************************************************
@@ -262,16 +377,11 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
 
     T[] vformat ( T[] fmt, TypeInfo[] arguments, va_list argptr )
     {
-        if (arguments.length)
-        {
-            this.layout.convert((char[] chunk){return cast(uint)super.append(chunk).length;}, arguments, argptr, fmt);
-        }
-        else
-        {
-            super.append(fmt);
-        }
+        scope append = new AppendLayout;
         
-        return super[];
+        append.vformat(fmt, arguments, argptr);
+        
+        return this[];
     }
     
     /**************************************************************************
@@ -288,25 +398,76 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
     
      **************************************************************************/
     
-    typeof (this) vwrite ( TypeInfo[] arguments, va_list argptr )
+    T[] vwrite ( TypeInfo[] arguments, va_list argptr )
     {
-        foreach (ref argument; arguments)
-        {
-            if (argument is typeid (T[]))
-            {
-                super ~= va_arg!(T[])(argptr);
-            }
-            else if (argument is typeid (T))
-            {
-                super ~= va_arg!(T)(argptr);
-            }
-            else
-            {
-                this.vformat("{}", (&argument)[0 .. 1], argptr);
-            }
-        }
+        scope append = new AppendLayout;
         
-        return this;
+        append.vwrite(arguments, argptr);
+        
+        return this[];
+    }
+}
+
+/*******************************************************************************
+
+    To be mixed into a variadic method.
+
+    Calls dg with _arguments and _argptr, calling va_start()/va_end() if
+    required for the current platform and compiler. dg must use va_arg() from
+    tango.core.Vararg to iterate over argptr. 
+    
+    dg must comply to
+    
+        R delegate ( A dg_args, TypeInfo[] arguments, va_list argptr )
+        
+    where R is the return type and dg_args
+    
+    Basic usage:
+    ---
+    
+        void f ( ... )
+        {
+            mixin vaArgCall!(TypeInfo[] arguments, va_list argptr);
+            
+            vaArgCall();
+        }
+    
+    ---
+    
+    Advanced usage:
+    
+    ---
+    ---
+    
+    Template params:
+        R = dg return type
+        A = types of additional arguments for dg
+    
+    Params:
+        dg      = callback delegate
+        dg_args = additional arguments for dg
+    
+    Returns:
+        passes through the return value of dg.
+    
+*******************************************************************************/
+
+public R vaArgCall ( R = void, A ... ) ( R delegate ( A dg_args, TypeInfo[] arguments, va_list argptr ) dg,
+                                         A dg_args )
+{
+    version (DigitalMarsX86_64)
+    {
+        va_list ap;
+
+        va_start(ap, __va_argsave);
+
+        scope(exit) va_end(ap);
+        
+        return dg(dg_args, arguments, ap);
+    }
+    else
+    {
+        return dg(dg_args, _arguments, _argptr);
     }
 }
 
