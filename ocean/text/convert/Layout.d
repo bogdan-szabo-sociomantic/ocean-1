@@ -41,7 +41,7 @@ module ocean.text.convert.Layout;
 
 private import ocean.core.Array : append;
 
-private import ocean.core.AppendBuffer;
+private import ocean.util.container.AppendBuffer;
 
 private import TangoLayout = tango.text.convert.Layout;
 
