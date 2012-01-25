@@ -113,7 +113,7 @@ public class StringStructSerializer ( Char )
     
     ***************************************************************************/
     
-    void serialize ( T ) ( ref Char[] output, ref T item )
+    public void serialize ( T ) ( ref Char[] output, ref T item )
     {
         StructSerializer!(true).serialize(&item, this, output);
     }
@@ -130,7 +130,7 @@ public class StringStructSerializer ( Char )
     
     ***************************************************************************/
     
-    void open ( ref Char[] output, char[] name )
+    public void open ( ref Char[] output, char[] name )
     {
         Layout!(Char).print(output, "{}struct {}:\n", this.indent, name);
         this.increaseIndent();
@@ -147,7 +147,7 @@ public class StringStructSerializer ( Char )
     
     ***************************************************************************/
     
-    void close ( ref Char[] output, char[] name )
+    public void close ( ref Char[] output, char[] name )
     {
         this.decreaseIndent();
     }
@@ -170,7 +170,7 @@ public class StringStructSerializer ( Char )
     
     ***************************************************************************/
     
-    void serialize ( T ) ( ref Char[] output, ref T item, char[] name )
+    public void serialize ( T ) ( ref Char[] output, ref T item, char[] name )
     {
         // TODO: temporary support for unions by casting them to ubyte[]
         static if ( is(T == union) )
@@ -194,7 +194,7 @@ public class StringStructSerializer ( Char )
     
     ***************************************************************************/
     
-    void openStruct ( ref Char[] output, char[] name )
+    public void openStruct ( ref Char[] output, char[] name )
     {
         Layout!(Char).print(output, "{}struct {}:\n", this.indent, name);
         this.increaseIndent();
@@ -211,7 +211,7 @@ public class StringStructSerializer ( Char )
     
     ***************************************************************************/
 
-    void closeStruct ( ref Char[] output, char[] name )
+    public void closeStruct ( ref Char[] output, char[] name )
     {
         this.decreaseIndent();
     }
@@ -231,7 +231,7 @@ public class StringStructSerializer ( Char )
     
     ***************************************************************************/
     
-    void serializeArray ( T ) ( ref Char[] output, char[] name, T[] array )
+    public void serializeArray ( T ) ( ref Char[] output, char[] name, T[] array )
     {
         Layout!(Char).print(output, "{}{}[] {} (length {}): {}\n", this.indent, T.stringof, name, array.length, array);
     }
@@ -251,7 +251,7 @@ public class StringStructSerializer ( Char )
 
     ***************************************************************************/
 
-    void openStructArray ( T ) ( ref Char[] output, char[] name, T[] array )
+    public void openStructArray ( T ) ( ref Char[] output, char[] name, T[] array )
     {
         Layout!(Char).print(output, "{}{}[] {} (length {}):\n", this.indent, T.stringof, name, array.length);
         this.increaseIndent();
@@ -272,7 +272,7 @@ public class StringStructSerializer ( Char )
     
     ***************************************************************************/
 
-    void closeStructArray ( T ) ( ref Char[] output, char[] name, T[] array )
+    public void closeStructArray ( T ) ( ref Char[] output, char[] name, T[] array )
     {
         this.decreaseIndent();
     }
