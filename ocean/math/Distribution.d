@@ -102,7 +102,7 @@ module ocean.math.Distribution;
 
 private import ocean.core.Array : bsearch;
 
-private import ocean.core.AppendBuffer;
+private import ocean.util.container.AppendBuffer;
 
 
 

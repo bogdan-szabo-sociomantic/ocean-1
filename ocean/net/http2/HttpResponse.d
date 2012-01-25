@@ -50,7 +50,7 @@ private import ocean.net.http2.consts.HttpVersion: HttpVersion, HttpVersionIds;
 
 private import ocean.net.http2.time.HttpTimeFormatter;
 
-private import ocean.core.AppendBuffer;
+private import ocean.util.container.AppendBuffer;
 
 /******************************************************************************/
 

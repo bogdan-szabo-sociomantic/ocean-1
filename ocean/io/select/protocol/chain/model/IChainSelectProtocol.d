@@ -67,7 +67,7 @@ private import ocean.io.select.EpollSelectDispatcher;
 private import ocean.io.select.protocol.generic.ErrnoIOException: IOError, IOWarning;
 
 private import ocean.core.Array: copy, toArray;
-private import ocean.core.AppendBuffer;
+private import ocean.util.container.AppendBuffer;
 
 private import tango.io.model.IConduit: ISelectable;
 

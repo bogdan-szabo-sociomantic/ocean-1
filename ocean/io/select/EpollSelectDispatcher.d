@@ -40,7 +40,7 @@ private import ocean.io.select.event.SelectEvent;
 private import ocean.core.Array : copy;
 private import ocean.core.ArrayMap;
 
-private import ocean.core.AppendBuffer;
+private import ocean.util.container.AppendBuffer;
 
 private import ocean.core.Exception : assertEx;
 

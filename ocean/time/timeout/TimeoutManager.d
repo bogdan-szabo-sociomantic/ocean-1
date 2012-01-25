@@ -48,7 +48,7 @@ private import ocean.time.model.IMicrosecondsClock,
                ocean.time.MicrosecondsClock;
 
 private import ocean.core.ArrayMap,
-               ocean.core.AppendBuffer;
+               ocean.util.container.AppendBuffer;
 
 debug
 {

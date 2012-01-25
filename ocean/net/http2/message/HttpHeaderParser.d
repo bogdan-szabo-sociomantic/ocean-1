@@ -22,7 +22,7 @@ private import ocean.text.util.SplitIterator: ChrSplitIterator, ISplitIterator;
 
 private import ocean.net.http2.HttpException: HttpParseException;
 
-private import ocean.core.AppendBuffer;
+private import ocean.util.container.AppendBuffer;
 
 extern (C) private char* g_strstr_len(char* haystack, size_t haystack_len, char* needle);
 
