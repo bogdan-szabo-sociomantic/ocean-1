@@ -535,7 +535,7 @@ abstract class ISplitIterator
     public size_t locateDelim ( size_t start = 0 )
     in
     {
-        assert (start <= this.remaining.length,
+        assert (start <= this.content.length,
                 typeof (this).stringof ~ ".locateDelim(): start index out of range");
     }
     body
