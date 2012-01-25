@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    Queue that provides a notification mechanism for when new items were addded
+    Queue that provides a notification mechanism for when new items were added
 
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
 
@@ -10,27 +10,27 @@
 
     Generic interfaces and logic for RequestQueues and related classes.
 
-    Genericly speaking, a request handler registers at the queue (ready()).
-    The request queue will then call notify() to inform the handler that
-    now it has requests, the handler is expected to call pop() to receive
-    those events. It should keep calling pop() until no events are left
+    Genericly speaking, a request handler delegate is being registered at 
+    the queue (ready()). The notifying queue will then call notify() to inform 
+    it about a new item added, notify() is expected to call pop() to receive
+    that item. It should keep calling pop() until no items are left
     and then re-register at the queue and wait for another call to notify().
     In other words:
     
-    1) RequestQueue.ready(RequestHandler)
-    2) RequestQueue calls RequestHandler.notify()
-    3) RequestHandler calls RequestQueue.pop();
-      a) pop() returned a request: RequestHandler processes data, back to 3)
+    1) NotifyingQueue.ready(&notify)
+    2) NotifyingQueue.ready calls notify()
+    3) notify() calls NotifyingQueue.pop();
+      a) pop() returned a request: notify() processes data, back to 3)
       b) pop() returned null: continue to 4)
-    4) RequestHandler calls RequestQueue.ready(RequestHandler)
+    4) notify() calls NotifyingQueue.ready(&notify)
     
     A more simple solution like this was considered:
     
-    1) RequestQueue.ready(RequestHandler)
-    2) RequestQueue calls RequestHandler.notify(Request)
-    3) RequestHandler processes, back to 1)
+    1) NotifyingQueue.ready(&notify)
+    2) NotifyingQueue calls notify(Request)
+    3) notify() processes, back to 1)
 
-    But was decided against because it would cause a stackoverflow for fibers,
+    But was decided against because it would cause a stack overflow for fibers,
     as a RequestHandler needs to call RequestQueue.ready() and if fibers are 
     involved that call will be issued from within the fiber. 
     If ready() calls notify again another processing of a request in the fiber
@@ -38,101 +38,39 @@
     
     Now we require that the fiber calls pop in a loop.
     
-    Usage example for a hypothetical client who writes numbers to a socket
+    Usage example for a hypothetical client who writes numbers to a socket    
     ---
+        module NotifyingQueueExample;
 
-        module NumberQueue;
-
-        import ocean.io.select.RequestQueue;
-
-        import ocean.io.select.EpollSelectDispatcher;
-
-
-        class NumberHandler : RequestHandler!(ulong)
+        import ocean.util.log.Trace;
+        import ocean.util.container.queue.NotifyingQueue;
+        
+        void main ( )
         {
-            private ISelectClient.Event myEvents;
+            auto notifying_queue = new NotifyingByteQueue(1024 * 40); 
     
-            private Socket socket;
-            
-            private EpollSelectDispatcher epoll;
-            
-            public this ( EpollSelectDispatcher epoll, 
-                          RequestQueue!(ulong) queue, 
-                          size_t buffer_size )
+            void notee ( )
             {
-                this.socket = new Socket;
-                this.socket.connect ("example.org", 421);
-            
-                super(buffer_size, queue, socket);
-                      
-                this.epoll = epoll;
-            }
-
-            // called within the fiber of the base class
-    	    protected void request ( ref T number );
-            {
-                // initialize the connection if not already initialized
-                this.myEvents = Event.Write;
-                this.epoll.register(this);
-    
-                // wait till it's ready for writing
-                fiber.cede();
-    
-                // k, socket ready for writing
-                socket.write(number);
-            }
-    
-            public Event events ( )
-            {
-                return this.myEvents;
-            }
-    
-            public bool handle ( Event event )
-            {
-                fiber.call(); 
-            }
-        }
-
-
-        class EpollNumber
-        {
-            RequestQueue!(ulong) handlers;
-
-            this ( EpollSelectDispatcher epoll )
-            {
-                const max_connections = 10;
-                const max_requests_in_queue = 100;
-
-                this.handlers = new RequestQueue!(ulong)(max_connections, max_requests_in_queue);
-
-                for ( int i; i < max_connections; i++ )
+                while (true)
                 {
-                    this.handlers.ready(new NumberHandler(epoll, handlers, ulong.sizeof));
+                    auto popped = cast(char[]) notifying_queue.pop()
+                    
+                    if ( popped !is null )
+                    {
+                        Trace.formatln("Popped from the queue: {}", popped);
+                    }
+                    else break; 
                 }
+                
+                notifying_queue.ready(&notee);
             }
-
-            bool sendNumber ( ulong num )
-            {
-                return this.handlers.push(num);
-            }
+    
+            notifying_queue.ready(&notee);
+    
+            numbers.sendNumber(23);
+            numbers.sendNumber(85);
+            numbers.sendNumber(42);
         }
-
-
-        epoll = new EpollSelectDispatcher;
-        numbers = new EpollNumber(epoll);
-
-        // TODO
-        for ( size_t i = 0; i < num_connections; i++ )
-        {
-            this.connections.handlerWaiting(new CurlConnection(&this.handleConnection, &this.cleanupConnection));
-        }
-
-        numbers.sendNumber(23);
-        numbers.sendNumber(85);
-        numbers.sendNumber(42);
-
-        epoll.eventLoop;
-
     ---
 
 *******************************************************************************/
@@ -158,7 +96,6 @@ private import ocean.core.Array;
 private import ocean.util.container.AppendBuffer;
 
 debug private import ocean.util.log.Trace;
-
 
 
 /*******************************************************************************
