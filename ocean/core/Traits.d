@@ -112,9 +112,7 @@ public bool isIdentifier ( char[] string )
 /*******************************************************************************
 
     Template which evaluates to true if the specified type is a compound type
-    (ie a class or struct).
-
-    TODO: do unions count as compound types?
+    (ie a class, struct or union).
 
     Template params:
         T = type to check
@@ -126,7 +124,7 @@ public bool isIdentifier ( char[] string )
 
 public template isCompoundType ( T )
 {
-    static if ( is(T == struct) || is(T == class) )
+    static if ( is(T == struct) || is(T == class) || is(T== union) )
     {
         const isCompoundType = true;
     }
@@ -140,7 +138,7 @@ public template isCompoundType ( T )
 
 /*******************************************************************************
 
-    Template to get the type tuple of struct/class T.
+    Template to get the type tuple of compound type T.
 
     Template params:
         T = type to get type tuple of
@@ -150,14 +148,14 @@ public template isCompoundType ( T )
 
 *******************************************************************************/
 
-public template FieldTypeTuple ( T )
+public template TypeTuple ( T )
 {
     static if ( !isCompoundType!(T) )
     {
-        static assert(false, "FieldTypeTuple!(" ~ T.stringof ~ "): type is not a struct / class");
+        static assert(false, "TypeTuple!(" ~ T.stringof ~ "): type is not a struct / class / union");
     }
 
-    alias typeof(T.tupleof) FieldTypeTuple;
+    alias typeof(T.tupleof) TypeTuple;
 }
 
 
