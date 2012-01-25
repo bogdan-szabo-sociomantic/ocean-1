@@ -9,10 +9,15 @@
     Class templates for reusable buffers with minimal memory allocation.
 
     Each class has its own detailed description and usage example below.
+    
+    The difference between this and AppendBuffer is, that AppendBuffer basically
+    wraps a dynamic array and keeps track of the length while this class
+    provides a way to store things in a streaming way and to throw them all away
+    afterwards but reusing the memory for the next bunch of things.
 
 *******************************************************************************/
 
-module ocean.core.ConcatBuffer;
+module ocean.util.container.ConcatBuffer;
 
 
 
@@ -41,7 +46,6 @@ module ocean.core.ConcatBuffer;
     slices no longer reference the old buffer will it be garbage collected.
 
     Usage example:
-
     ---
 
         import ocean.core.ConcatBuffer;

@@ -17,7 +17,7 @@
     
  ******************************************************************************/
 
-module ocean.core.AppendBuffer;
+module ocean.util.container.AppendBuffer;
 
 debug private import ocean.util.log.Trace;
 
@@ -45,7 +45,7 @@ interface IAppendBufferBase
     
     Note that there is no strict write protection to an IAppendBufferReader
     instance because it is still possible to modify the content an obtained
-    slice refers to. However, this is no thte intention of this interface and
+    slice refers to. However, this is no the intention of this interface and
     may not result in the desired or even result in undesired side effects.
 
  ******************************************************************************/
