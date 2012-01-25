@@ -179,7 +179,7 @@ class GetSocketAddress
             char* str = .inet_ntop(this.addr_.sa_family, addrp,
                                    this.addr_string_buffer.ptr, this.addr_string_buffer.length);
             
-            this.e.check(!!str, "inet_ntop", __FILE__, __LINE__);
+            SocketAddressException.check(!!str, "inet_ntop", __FILE__, __LINE__, this.e);
             
             return str[0 .. strlen(str)];
         }
@@ -219,21 +219,23 @@ class GetSocketAddress
     
     /**************************************************************************
     
-        Reused SocketAddressException instance
+        Reused SocketAddressException instance. Since it is pretty unlikely to
+        be thrown, it is used as a singleton and created when thrown the first
+        time.
         
      **************************************************************************/
 
-    private const SocketAddressException e;
+    private SocketAddressException e = null;
     
     /**************************************************************************
     
-        Constructor
+        Disposer
         
      **************************************************************************/
 
-    this ( )
+    protected override void dispose ( )
     {
-        this.e = new SocketAddressException;
+        if (this.e) delete this.e;
     }
     
     /**************************************************************************
@@ -308,7 +310,7 @@ class GetSocketAddress
         
         socklen_t len = address.addr_.sizeof;
         
-        this.e.check(!func(conduit.fileHandle, cast (sockaddr*) &address.addr_, &len), funcname, __FILE__, __LINE__);
+        SocketAddressException.check(!func(conduit.fileHandle, cast (sockaddr*) &address.addr_, &len), funcname, __FILE__, __LINE__, this.e);
         
         address.e = this.e;
         
@@ -323,53 +325,90 @@ class GetSocketAddress
         
         /**********************************************************************
         
-            If ok is false, queries errno and appends the error description to
-            the errror message and throws this instance. 
+            If ok is false, queries errno, appends the error description to the
+            error message and throws e. If e is null, it is newed.
             
             Params:
                 ok   = condition to throw when false
                 msg  = error message, the error description will be appended
                 file = source code file name
-                file = source code line number
+                line = source code file line
+                e    = instance of this class, set to the thrown instance if
+                       null
             
             Throws:
-                this instance if ok is false.
+                e if ok is false.
             
          **********************************************************************/
 
-        void check ( bool ok, char[] msg, char[] file, typeof (__LINE__) line )
+        static void check ( bool ok, char[] msg, char[] file, typeof (__LINE__) line,
+                            ref typeof (this) e )
         {
             if (!ok)
             {
-                this.set(msg, file, line);
-                
-                int n = .errno;
-                
-                .errno = 0;
-                
-                if (n)
-                {
-                    char[0x100] buf;
-                    char* e = strerror_r(n, buf.ptr, buf.length);
-                    
-                    if (super.msg.length)
-                    {
-                        super.msg ~= " - ";
-                    }
-                    
-                    super.msg ~= e[0 .. strlen(e)];
-                }
-                
-                throw this;
+                throw (e? e : (e = new typeof (this))).setErrno(msg, file, line);
             }
         }
         
+        /**********************************************************************
+        
+            Sets exception information.
+            
+            Params:
+                msg  = error message, the error description will be appended
+                file = source code file name
+                line = source code file line
+            
+            Returns:
+                this instance
+            
+         **********************************************************************/
+
         typeof (this) set ( char[] msg, char[] file, typeof (__LINE__) line )
         {
             this.msg.length = msg.length;
             this.msg[]      = msg;
             this.file = file;
             this.line = line;
+            
+            return this;
+        }
+        
+        /**********************************************************************
+        
+            Sets exception information, queries errno and appends the error
+            description to the error message.
+            
+            Params:
+                msg  = error message, the error description will be appended
+                file = source code file name
+                line = source code file line
+            
+            Returns:
+                this instance
+            
+         **********************************************************************/
+
+        typeof (this) setErrno ( char[] msg, char[] file, typeof (__LINE__) line )
+        {
+            this.set(msg, file, line);
+            
+            int n = .errno;
+            
+            .errno = 0;
+            
+            if (n)
+            {
+                char[0x100] buf;
+                char* e = strerror_r(n, buf.ptr, buf.length);
+                
+                if (super.msg.length)
+                {
+                    super.msg ~= " - ";
+                }
+                
+                super.msg ~= e[0 .. strlen(e)];
+            }
             
             return this;
         }
