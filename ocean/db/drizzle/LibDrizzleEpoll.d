@@ -119,9 +119,11 @@ private import ocean.io.select.EpollSelectDispatcher;
 
 private import ocean.io.select.model.ISelectClient;
 
-private import ocean.io.select.RequestQueue;
+private import ocean.util.container.queue.NotifyingQueue;
 
 private import ocean.util.container.queue.model.IByteQueue;
+
+private import ocean.util.container.queue.FlexibleRingQueue;
 
 /*******************************************************************************
 
@@ -188,6 +190,14 @@ class LibDrizzleEpoll
 
     /***************************************************************************
 
+        Amount of allocated connections
+
+    ***************************************************************************/
+
+    private size_t num_connections;
+    
+    /***************************************************************************
+
         Array of connections 
 
     ***************************************************************************/
@@ -199,9 +209,33 @@ class LibDrizzleEpoll
         ubyte[RequestContext.sizeof] context;
     }
 
-    package RequestQueue!(DrizzleRequest) connections;
+    package NotifyingQueue!(DrizzleRequest) connections;
     
     QueueFullException queue_full_exc;
+    
+    /***************************************************************************
+
+        Constructor. Creates a new LibDrizzleEpoll instance
+
+        Params:
+            epoll       = EpollSelectDispatcher instance to use
+            host        = Address of the server to connect to
+            username    = Username to use for logging in
+            password    = Password to use for logging in
+            database    = Database to use
+            bytes       = How many bytes the queue is able to store
+            connections = Amount of connections to use
+
+    ***************************************************************************/
+
+    this ( EpollSelectDispatcher epoll, char[] host,
+           char[] username, char[] password, char[] database, 
+           size_t bytes, size_t connections = 1 )
+    {
+        this(epoll, host, 3306, username, password, database,
+             new FlexibleByteRingQueue(bytes), connections);        
+    }   
+    
     
     /***************************************************************************
 
@@ -216,18 +250,41 @@ class LibDrizzleEpoll
             database    = Database to use
             bytes       = How many bytes the queue is able to store
             connections = Amount of connections to use
-            queue       = queue implementation to use
 
     ***************************************************************************/
 
     this ( EpollSelectDispatcher epoll, char[] host, in_port_t port,
            char[] username, char[] password, char[] database, 
-           size_t bytes, size_t connections = 1, IByteQueue queue = null )
-    {
-        this(epoll, host, username, password, database, bytes, connections, queue);
-        this.port = port;
+           size_t bytes, size_t connections = 1 )
+    {     
+        this(epoll, host, port, username, password, database, 
+             new FlexibleByteRingQueue(bytes), connections);
     }
+    
+    
+    /***************************************************************************
 
+        Constructor. Creates a new LibDrizzleEpoll instance
+
+        Params:
+            epoll       = EpollSelectDispatcher instance to use
+            host        = Address of the server to connect to
+            username    = Username to use for logging in
+            password    = Password to use for logging in
+            database    = Database to use
+            queue       = queue implementation to use
+            connections = Amount of connections to use
+
+    ***************************************************************************/
+
+    this ( EpollSelectDispatcher epoll, char[] host,
+           char[] username, char[] password, char[] database, 
+            IByteQueue queue, size_t connections = 1 )
+    {
+        this(epoll, host, 3306, username, password, database,  
+             queue, connections);
+    }
+    
     /***************************************************************************
 
         Constructor. Creates a new LibDrizzleEpoll instance
@@ -239,18 +296,18 @@ class LibDrizzleEpoll
         Params:
             epoll       = EpollSelectDispatcher instance to use
             host        = Address of the server to connect to
+            port        = Port of the Server to connect to            
             username    = Username to use for logging in
             password    = Password to use for logging in
             database    = Database to use
-            bytes       = How many bytes the queue is able to store
-            connections = Amount of connections to use
             queue       = queue implementation to use
+            connections = Amount of connections to use
 
     ***************************************************************************/
-
-    this ( EpollSelectDispatcher epoll, char[] host, char[] username, 
-           char[] password, char[] database, size_t bytes,
-           size_t connections = 10, IByteQueue queue = null )
+ 
+    this ( EpollSelectDispatcher epoll, char[] host, in_port_t port, 
+           char[] username, char[] password, char[] database, IByteQueue queue,
+           size_t connections = 10 )
     in
     {
         assert (epoll !is null, "Epoll is null");
@@ -263,10 +320,10 @@ class LibDrizzleEpoll
         this.username = toStringz(username);
         this.password = toStringz(password);
         this.database = toStringz(database);
-        this.port     = 3306;
-
-        this.connections = new RequestQueue!(DrizzleRequest)(connections, bytes, 
-                                                             queue);
+        this.port     = port;
+        this.num_connections = num_connections;
+        
+        this.connections = new NotifyingQueue!(DrizzleRequest)(queue);
         
         if (null == drizzle_create(&this.drizzle))
         {
@@ -278,7 +335,7 @@ class LibDrizzleEpoll
       
         for (uint i = 0; i < connections; ++i)
         {
-            this.connections.ready(new Connection(this));
+            this.connections.ready(&(new Connection(this)).notify);
         }
         
         this.queue_full_exc = new QueueFullException;
@@ -314,9 +371,9 @@ class LibDrizzleEpoll
         
     final public size_t existingHandlers ( )
     {
-        return this.connections.existingHandlers;
+        return this.num_connections;
     }
-    
+        
     /***************************************************************************
 
         Used size in the queue

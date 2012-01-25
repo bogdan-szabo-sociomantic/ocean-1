@@ -5,9 +5,9 @@
 
     copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
 
-    version:        June 2012: Initial release
+    version:        January 2012: Initial release
 
-    authors:        Gavin Norman
+    authors:        Gavin Norman, Mathias Baumann
 
 *******************************************************************************/
 
@@ -27,7 +27,27 @@ private import tango.core.Exception : OutOfMemoryException;
 
 private import tango.stdc.stdlib : malloc, free;
 
+/*******************************************************************************
 
+    C Malloc memory manager instance
+
+*******************************************************************************/
+
+const IMemManager mallocMemManager;
+
+/*******************************************************************************
+
+    GC memory manager instance
+
+*******************************************************************************/
+
+const IMemManager gcMemManager;
+
+static this ( )
+{
+    mallocMemManager = new MallocMemManager;
+    gcMemManager = new GCMemManager;
+}
 
 /*******************************************************************************
 
@@ -54,7 +74,7 @@ public interface IMemManager
 
     /***************************************************************************
 
-        Deallocates the passed buffer.
+        Explicit deallocation
 
         Note that it is up to the user of classes which implement this interface
         to ensure that the buffer passed was in fact allocated by the same
@@ -66,6 +86,45 @@ public interface IMemManager
     ***************************************************************************/
 
     public void destroy ( ubyte[] buffer );
+    
+
+    /***************************************************************************
+
+        Dispose compatible deallocation
+
+        Note that it is up to the user of classes which implement this interface
+        to ensure that the buffer passed was in fact allocated by the same
+        instance.
+        
+        void Object.dispose() is called on explicit delete. This method is 
+        intended to be called from that method.        
+
+        Params:
+            buffer = buffer to deallocate
+
+    ***************************************************************************/
+
+    public void dispose ( ubyte[] buffer );
+    
+
+    /***************************************************************************
+
+        Destructor compatible deallocation
+              
+        Note that it is up to the user of classes which implement this interface
+        to ensure that the buffer passed was in fact allocated by the same
+        instance.
+        
+        The destructor is always being called when the object is being collected
+        or when the object is explicitly deleted. This method is intended to be
+        called from the destructor.
+        
+        Params:
+            buffer = buffer to cleanup
+
+    ***************************************************************************/
+
+    public void dtor ( ubyte[] buffer );
 }
 
 
@@ -76,7 +135,7 @@ public interface IMemManager
 
 *******************************************************************************/
 
-public class GCMemManager : IMemManager
+private class GCMemManager : IMemManager
 {
     /***************************************************************************
 
@@ -95,10 +154,14 @@ public class GCMemManager : IMemManager
         return new ubyte[dimension];
     }
 
-
+    
     /***************************************************************************
 
-        Deallocates the passed buffer.
+        Explicit deallocation
+
+        Note that it is up to the user of classes which implement this interface
+        to ensure that the buffer passed was in fact allocated by the same
+        instance.
 
         Params:
             buffer = buffer to deallocate
@@ -109,6 +172,44 @@ public class GCMemManager : IMemManager
     {
         delete buffer;
     }
+
+
+    /***************************************************************************
+
+        Deallocates the passed buffer.
+
+        Params:
+            buffer = buffer to deallocate
+
+    ***************************************************************************/
+
+    public void dispose ( ubyte[] buffer )
+    {
+        delete buffer;
+    }
+
+
+    /***************************************************************************
+
+        Destructor compatible deallocation
+              
+        Note that it is up to the user of classes which implement this interface
+        to ensure that the buffer passed was in fact allocated by the same
+        instance.
+        
+        The destructor is always being called when the object is being collected
+        or when the object is explicitly deleted. This method is intended to be
+        called from the destructor.
+        
+        Params:
+            buffer = buffer to cleanup
+
+    ***************************************************************************/
+
+    public void dtor ( ubyte[] buffer )
+    {
+        
+    }    
 }
 
 
@@ -119,7 +220,7 @@ public class GCMemManager : IMemManager
 
 *******************************************************************************/
 
-public class MallocMemManager : IMemManager
+private class MallocMemManager : IMemManager
 {
     /***************************************************************************
 
@@ -144,10 +245,52 @@ public class MallocMemManager : IMemManager
 
     /***************************************************************************
 
-        Deallocates the passed buffer using free.
+        Does nothing.
 
-        Note that it is up to the user of this to ensure that the buffer passed
-        was in fact allocated using create() above.
+        Params:
+            buffer = buffer to deallocate
+
+    ***************************************************************************/
+
+    public void dispose ( ubyte[] buffer )
+    {
+
+    }
+    
+
+    /***************************************************************************
+
+        Destructor compatible deallocation
+              
+        Note that it is up to the user of classes which implement this interface
+        to ensure that the buffer passed was in fact allocated by the same
+        instance.
+        
+        The destructor is always being called when the object is being collected
+        or when the object is explicitly deleted. This method is intended to be
+        called from the destructor.
+        
+        Params:
+            buffer = buffer to cleanup
+
+    ***************************************************************************/
+
+    public void dtor ( ubyte[] buffer )
+    {
+        if ( buffer.ptr !is null )
+        {
+            free(buffer.ptr);
+        }
+    }
+        
+
+    /***************************************************************************
+
+        Explicit deallocation
+
+        Note that it is up to the user of classes which implement this interface
+        to ensure that the buffer passed was in fact allocated by the same
+        instance.
 
         Params:
             buffer = buffer to deallocate

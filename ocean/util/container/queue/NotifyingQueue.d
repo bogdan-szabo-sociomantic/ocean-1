@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    Abstract classes for RequestQueues
+    Queue that provides a notification mechanism for when new items were addded
 
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
 
@@ -137,7 +137,7 @@
 
 *******************************************************************************/
 
-module ocean.io.select.RequestQueue;
+module ocean.util.container.queue.NotifyingQueue;
 
 /*******************************************************************************
 
@@ -156,6 +156,8 @@ private import ocean.io.select.model.ISelectClient;
 private import ocean.io.serialize.StructSerializer;
 
 private import ocean.core.Array;
+
+private import ocean.util.container.AppendBuffer;
 
 private import tango.core.Thread : Fiber;
 
@@ -181,222 +183,8 @@ public interface IRequestHandler
 	***************************************************************************/
 
     public void notify ( );
-    
-    /***************************************************************************
-
-        suspend this request handler
-    
-    ***************************************************************************/
-
-    public void suspend ( );
-    
-    /***************************************************************************
-
-        resume this request handler
-    
-    ***************************************************************************/
-
-    public void resume ( );
 }
 
-/*******************************************************************************
-
-	Abstract request handler.
-    
-    This is a template for a common case, if it doesn't suit your needs,
-    implement the interface IRequestHandler (see above)
-	 
-	A concrete class connection inheriting from this class
-    has to implement the request method which should .. start an request.
-	
-	request will be run inside IRequestHandler.fiber an is free
-	to call fiber.cede/yield() as it pleases. Once the function 
-	request returns, another request will be popped from the queue
-	and the function will be called again until there are no more requests
-	left.
-	
-	Template Params:
-		T = the type of the request. Should be a struct.
-
-*******************************************************************************/
-
-abstract class RequestHandler ( T ) : ISelectClient, IRequestHandler
-{
-    /***************************************************************************
-
-	    Whether the fiber is enabled or not
-	
-	***************************************************************************/
-
-	private bool enabled = true;
-	
-    /***************************************************************************
-
-	    Fiber instance.
-	
-	***************************************************************************/
-
-	protected Fiber fiber;
-	
-    /***************************************************************************
-
-    	Buffer for the struct deserialisation
-	
-	***************************************************************************/
-		
-	protected ubyte[] buffer;
-	
-    /***************************************************************************
-
-	    Reference to the request queue to pop more requests
-	
-	***************************************************************************/
-	
-	protected RequestQueue!(T) request_queue;
-
-	/***************************************************************************
-
-	    Constructor
-	    
-	    Params:
-	    	buffer_size      = size of the struct deserialization buffer
-	    	request_queue    = reference to the request queue 
-	    	fiber_stack_size = stack size of the fiber
-	
-	***************************************************************************/
-	
-	public this ( size_t buffer_size, RequestQueue!(T) request_queue, 
-                  ISelectable selectclient, size_t fiber_stack_size = 4096)
-	{
-        super(selectclient);
-        
-		this.fiber  = new Fiber (&this.internalHandler, fiber_stack_size);
-		
-		this.buffer = new ubyte[buffer_size];
-		
-		this.request_queue = request_queue;
-	}
-	
-    /***************************************************************************
-
-	    Called by RequestQueue when this Handler is waiting for new
-	    Requests. 
-	    
-	    The handler then starts popping items (from the queue) 
-	    as if there is no tomorrow.
-	    
-	    When there are no more items to pop, it registers back in the 
-	    request queue and yields/cedes.
-	
-	***************************************************************************/
-
-	public void notify()
-	{
-        if ( this.fiber.state == Fiber.State.HOLD )
-        {
-            fiber.call();
-        }
-	}
-	
-    /***************************************************************************
-
-	    Shutdown the fiber as good as possible
-	
-	***************************************************************************/
-	
-	public ~this ( )
-	{
-		this.enabled = false;
-	}
-	
-    /***************************************************************************
-
-	    Shutdown the fiber properly
-	
-	***************************************************************************/
-
-	public void dispose ( )
-	{
-		this.enabled = false;
-        
-        if ( this.fiber.state != Fiber.State.TERM )
-        {
-            this.fiber.call();
-        }
-	}
-	
-    /***************************************************************************
-
-	    Fiber function
-	
-	***************************************************************************/
-    
-	private void internalHandler ( )
-	in
-	{
-		assert (this.fiber.state == Fiber.State.EXEC);
-	}
-	body
-	{
-		while (enabled)
-		{
-			T* request = this.request_queue.pop(this.buffer);
-
-			if (request !is null)
-			{
-				this.request(*request);
-			}
-			else if ( this.request_queue.ready(this) )
-            {
-		        this.fiber.cede();
-            }
-		}
-	}
-    
-    /***************************************************************************
-
-        suspend this request handler
-    
-    ***************************************************************************/
-
-    public void suspend ( )
-    {
-        this.enabled = false;
-    }
-    
-    /***************************************************************************
-
-        resume this request handler
-    
-    ***************************************************************************/
-
-    public void resume ( )
-    {
-        this.enabled = true;
-        
-        if (fiber.state == Fiber.State.TERM)
-        {
-            this.fiber.reset();
-        }
-    }
-    
-    /***************************************************************************
-
-	    Inheriting classes should implement this function so it sends the 
-	    actual request.
-	    
-	    The function will only be called within the context of 
-	    IRequestHandler.fiber. If it chooses to yield/cede it should
-	    use the handler() function to continue operations based on 
-	    new data.
-	    
-	    Params:
-	    	request_instance = data of the request
-	
-	***************************************************************************/
-
-	protected void request ( ref T request_instance );
-}
 
 /*******************************************************************************
 
@@ -406,15 +194,23 @@ abstract class RequestHandler ( T ) : ISelectClient, IRequestHandler
 
 *******************************************************************************/
 
-class RequestByteQueue : IQueueInfo
+class NotifyingByteQueue : IQueueInfo
 {     
+    /***************************************************************************
+    
+        Type of the delegate used for notifications
+    
+    ***************************************************************************/
+   
+    public alias void delegate ( ) NotificationDg;
+    
     /***************************************************************************
     
         Queue being used
     
     ***************************************************************************/
    
-    private IByteQueue queue;
+    const private IByteQueue queue;
     
     /***************************************************************************
     
@@ -430,7 +226,7 @@ class RequestByteQueue : IQueueInfo
 	
 	***************************************************************************/
 
-    private IRequestHandler[] handlers;
+    const private AppendBuffer!(NotificationDg) handlers;
     
     /***************************************************************************
 
@@ -442,28 +238,35 @@ class RequestByteQueue : IQueueInfo
 
     /***************************************************************************
 
-	    Constructor
-	    
-	    Params:
-	    	handlers  = amount of handlers/connections
-            max_bytes = size of the queue in bytes
-	
-	***************************************************************************/
-    
-    public this ( size_t handlers, size_t max_bytes, IByteQueue queue = null )
-    {
-        if ( queue is null )
-        {
-            this.queue = new FlexibleByteRingQueue(max_bytes);
-        }
-        else
-        {
-            this.queue = queue;
-        }
+        Constructor
         
-    	this.handlers = new IRequestHandler[handlers];
-    	
-    	this.waiting_handlers = 0;
+        Params:
+            max_bytes = size of the queue in bytes
+    
+    ***************************************************************************/
+    
+    public this ( size_t max_bytes )
+    {
+        this.queue = new FlexibleByteRingQueue(max_bytes);       
+        
+        this.handlers = new AppendBuffer!(NotificationDg);
+    }
+    
+    
+    /***************************************************************************
+
+        Constructor
+        
+        Params:
+            queue = instance of the queue implementation that will be used
+    
+    ***************************************************************************/
+    
+    public this ( IByteQueue queue )
+    {
+        this.queue = queue;
+        
+        this.handlers = new AppendBuffer!(NotificationDg);
     }
             
 
@@ -572,14 +375,9 @@ class RequestByteQueue : IQueueInfo
 	
 	***************************************************************************/
 	    
-    public bool ready ( IRequestHandler handler )
+    public bool ready ( NotificationDg handler )
     in
     {
-        debug scope (failure) Trace.formatln("waiting: {} len: {}",
-                waiting_handlers, handlers.length);
-
-    	assert (waiting_handlers <= handlers.length, "Maximum handlers reached");
-        
         debug foreach ( rhandler; this.handlers[0 .. waiting_handlers] ) 
         {
             assert (rhandler !is handler, "RequestQueue.handlerWaiting: "
@@ -590,16 +388,17 @@ class RequestByteQueue : IQueueInfo
     {
         if (!this.isEmpty() && this.enabled)
         {
-            handler.notify();
+            handler();
             return false;
         }
         else
         {
-            this.handlers[waiting_handlers++] = handler;
+            this.handlers ~= handler;
             return true;
         }  
     }
-        
+           
+    
     /***************************************************************************
     
         Returns how many handlers are waiting for data
@@ -608,19 +407,9 @@ class RequestByteQueue : IQueueInfo
         
     final public size_t waitingHandlers ( )
     {
-        return this.waiting_handlers;
-    }
-           
-    /***************************************************************************
-    
-        Returns how many handlers exist
-    
-    ***************************************************************************/
-        
-    final public size_t existingHandlers ( )
-    {
         return this.handlers.length;
     }
+      
     
     /***************************************************************************
 		
@@ -644,7 +433,8 @@ class RequestByteQueue : IQueueInfo
     	
     	return true;
     }
-            
+          
+    
     /***************************************************************************
         
         Push an item into the queue and notify the next waiting handler about
@@ -674,6 +464,7 @@ class RequestByteQueue : IQueueInfo
         return true;
     }   
     
+    
     /***************************************************************************
 
         suspend consuming of the queue
@@ -688,12 +479,8 @@ class RequestByteQueue : IQueueInfo
         }
         
         this.enabled = false;
-        
-        foreach (handler; this.handlers[0 .. waiting_handlers])
-        {            
-            handler.suspend();
-        }
     }
+    
     
     /***************************************************************************
 
@@ -710,16 +497,12 @@ class RequestByteQueue : IQueueInfo
         
         this.enabled = true;
                 
-        foreach (handler; this.handlers[0 .. waiting_handlers])
+        foreach (handler; this.handlers[])
         {   
-            handler.resume();
-        }
-        
-        for ( size_t i = waiting_handlers; i > 0; --i )
-        {
             this.notifyHandler();
         }
     }
+    
     
     /***************************************************************************
 
@@ -737,6 +520,7 @@ class RequestByteQueue : IQueueInfo
         return this.queue.pop();
     }
         
+    
     /***************************************************************************
 
         Notifies the next waiting handler, if queue is enabled
@@ -745,9 +529,11 @@ class RequestByteQueue : IQueueInfo
 
     private void notifyHandler ( )
     {
-        if ( this.waiting_handlers > 0 && this.enabled )
+        if ( this.handlers.length > 0 && this.enabled )
         {
-            handlers[waiting_handlers-- - 1].notify();          
+            auto dg = handlers.cut();
+            
+            dg();
         }
     }
 }
@@ -755,30 +541,45 @@ class RequestByteQueue : IQueueInfo
 
 /*******************************************************************************
 
-	Templated Request Queue implementation
+	Templated Notifying Queue implementation
 	
 	A concrete client should have an instance of this class and use it
 	to manage the connections and requests
 
 *******************************************************************************/
 
-class RequestQueue ( T ) : RequestByteQueue
+class NotifyingQueue ( T ) : NotifyingByteQueue
 {
     /***************************************************************************
 
-	    Constructor
-	    
-	    Params:
-	    	handlers  = amount of handlers/connections
-	        max_bytes = size of the queue in bytes
-	
-	***************************************************************************/
+        Constructor
+        
+        Params:
+            max_bytes = size of the queue in bytes
     
-    public this ( size_t handlers, size_t max_bytes, IByteQueue queue = null )
-	{
-		super(handlers, max_bytes, queue);
-	}
+    ***************************************************************************/
+    
+    public this ( size_t max_bytes )
+    {
+        super(max_bytes);
+    }
+    
+    
+    /***************************************************************************
+
+        Constructor
+        
+        Params:
+            queue = instance of the queue implementation that will be used
+    
+    ***************************************************************************/
+    
+    public this ( IByteQueue queue )
+    {
+        super(queue);
+    }
 	
+    
     /***************************************************************************
 
 	    Push a new request on the queue
@@ -803,6 +604,7 @@ class RequestQueue ( T ) : RequestByteQueue
         
     	return super.push(length, &filler);
     }
+    
     
     /***************************************************************************
 	

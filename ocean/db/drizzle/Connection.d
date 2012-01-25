@@ -45,7 +45,7 @@ private import tango.io.model.IConduit: ISelectable;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
-private import ocean.io.select.RequestQueue;
+private import ocean.util.container.queue.NotifyingQueue;
 
 private import ocean.core.Array : copy;
 
@@ -100,8 +100,7 @@ public alias void delegate ( RequestContext context, Result result,
 
 *******************************************************************************/
 
-package class Connection : RequestHandler!(LibDrizzleEpoll.DrizzleRequest), 
-                           ISelectable
+package class Connection : ISelectClient, ISelectable
 {
     /***************************************************************************
 
@@ -199,6 +198,30 @@ package class Connection : RequestHandler!(LibDrizzleEpoll.DrizzleRequest),
     ***************************************************************************/
     
     private bool disconnected = false;
+        
+    /***************************************************************************
+
+        Fiber instance.
+    
+    ***************************************************************************/
+
+    protected Fiber fiber;
+    
+    /***************************************************************************
+
+        Buffer for the struct deserialisation
+    
+    ***************************************************************************/
+        
+    protected ubyte[] buffer;
+    
+    /***************************************************************************
+
+        Reference to the request queue to pop more requests
+    
+    ***************************************************************************/
+    
+    protected NotifyingQueue!(LibDrizzleEpoll.DrizzleRequest) request_queue;
     
     /***************************************************************************
 
@@ -211,7 +234,13 @@ package class Connection : RequestHandler!(LibDrizzleEpoll.DrizzleRequest),
 
     package this ( LibDrizzleEpoll drizzle )
     {
-        super(1024, drizzle.connections, this, 16*1024);
+        super(this);
+        
+        this.buffer = new ubyte[1024];
+        
+        this.fiber  = new Fiber (&this.internalHandler, 16*1024);
+        
+        this.request_queue = drizzle.connections;
 
         this.drizzle = drizzle;
 
@@ -321,6 +350,58 @@ package class Connection : RequestHandler!(LibDrizzleEpoll.DrizzleRequest),
         }
     }
     
+        
+    /***************************************************************************
+
+        Fiber function
+    
+    ***************************************************************************/
+    
+    private void internalHandler ( )
+    in
+    {
+        assert (this.fiber.state == Fiber.State.EXEC);
+    }
+    body
+    {
+        while (true)
+        {
+            auto request = this.request_queue.pop(this.buffer);
+
+            if (request !is null)
+            {
+                this.request(*request);
+            }
+            else if ( this.request_queue.ready(&this.notify) )
+            {
+                this.fiber.cede();
+            }
+        }
+    }
+    
+        
+    /***************************************************************************
+
+        Called by RequestQueue when this Handler is waiting for new
+        Requests. 
+        
+        The handler then starts popping items (from the queue) 
+        as if there is no tomorrow.
+        
+        When there are no more items to pop, it registers back in the 
+        request queue and yields/cedes.
+    
+    ***************************************************************************/
+
+    public void notify()
+    {
+        if ( this.fiber.state == Fiber.State.HOLD )
+        {
+            fiber.call();
+        }
+    }
+    
+    
     /***************************************************************************
 
         Sends a query using this connection and will call the provided
@@ -348,6 +429,7 @@ package class Connection : RequestHandler!(LibDrizzleEpoll.DrizzleRequest),
 
         this.queryInternal();
     }
+    
     
     /***************************************************************************
 

@@ -83,7 +83,7 @@ public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
 
     protected this ( size_t dimension )
     {
-        auto manager = new GCMemManager;
+        auto manager = gcMemManager;
         this(manager, dimension);
     }
 
@@ -112,18 +112,30 @@ public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
         this.data = this.mem_manager.create(dimension);
     }
 
-
+        
     /***************************************************************************
-
-        Destructor. Destroys the memory buffer allocated for the queue.
-
+    
+        Called for explicit deletes
+    
     ***************************************************************************/
 
     override public void dispose ( )
-    {
-        this.mem_manager.destroy(this.data);
-    }
+    { 
+        this.mem_manager.dispose(this.data);
+    }    
+        
+    
+    /***************************************************************************
+    
+        Called for explicit deletes and on collection
+    
+    ***************************************************************************/
 
+    public ~this ( )
+    { 
+        this.mem_manager.dtor(this.data);
+    } 
+    
 
     /***************************************************************************
     
@@ -210,6 +222,6 @@ public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
     
     ***************************************************************************/
 
-    protected void clear_ ( ) { }
+    protected void clear_ ( ) { } 
 }
 
