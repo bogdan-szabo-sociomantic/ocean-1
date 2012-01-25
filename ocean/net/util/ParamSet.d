@@ -352,11 +352,11 @@ class ParamSet
     
         Params:
             key = parameter key (case insensitive)
-            val = parameter key (case insensitive)
+            val = parameter value (case insensitive)
     
         Returns:
             true if a parameter for key exists and its value case-insensitively
-            equals val
+            equals val.
     
      **************************************************************************/
 
@@ -365,10 +365,9 @@ class ParamSet
         Element* element = this.get_(key);
         
         return element?
-                   (val !is null && element.val.length == val.length)?
-                        !g_ascii_strncasecmp(element.val.ptr, val.ptr, val.length):
-                        false:
-                   false;
+            (element.val.length == val.length) &&
+                !this.strncasecmp(element.val, val) :
+            false;
     }
     
     /**************************************************************************
@@ -402,6 +401,50 @@ class ParamSet
         foreach (ref element; this.paramset)
         {
             element.val = null;
+        }
+    }
+    
+    /**************************************************************************
+
+        Compares a to b, treating ASCII characters case-insensitively. If a and
+        b have a different length, the first common characters are compared. If
+        these are equal, the longer string compares greater.
+        
+        To see if the content of a and b is the same, use
+        
+        ---
+            (a.length == b.length) && !strncasecmp (a, b)
+        ---
+        .
+        
+        Treats null strings like empty strings.
+        
+        Params:
+            a = string to compare against b
+            b = string to compare against a
+            
+        Returns:
+            a value greater than 0 if a compares greater than b, less than 0
+            if less or 0 if the first common characters in a and b are equal.
+        
+     **************************************************************************/
+
+    public static int strncasecmp ( char[] a, char[] b )
+    {
+        if (a.length && b.length)
+        {
+            bool a_is_shorter = a.length < b.length;
+            
+            int c = g_ascii_strncasecmp(a.ptr, b.ptr,
+                                        a_is_shorter? a.length : b.length);
+            
+            return c? c : a_is_shorter? -1 : 1;
+        }
+        else
+        {
+            return (a.length < b.length)? -1 :
+                       (a.length > b.length)?  1 :
+                       0;
         }
     }
     
@@ -637,5 +680,7 @@ class ParamSet
         assert (dec.writeUint(0)        == "0");
         
         assert (dec.writeUint(uint.max) == "4294967295");
+        
+        assert (strncasecmp("", "a") < 0);
     }
 }
