@@ -146,9 +146,8 @@ public class MallocMemManager : IMemManager
 
         Deallocates the passed buffer using free.
 
-        Note that it is up to the user of classes which implement this interface
-        to ensure that the buffer passed was in fact allocated by the same
-        instance.
+        Note that it is up to the user of this to ensure that the buffer passed
+        was in fact allocated using create() above.
 
         Params:
             buffer = buffer to deallocate
