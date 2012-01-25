@@ -151,15 +151,11 @@ private import ocean.util.container.queue.model.IByteQueue;
 
 private import ocean.util.container.queue.model.IQueueInfo;
 
-private import ocean.io.select.model.ISelectClient;
-
 private import ocean.io.serialize.StructSerializer;
 
 private import ocean.core.Array;
 
 private import ocean.util.container.AppendBuffer;
-
-private import tango.core.Thread : Fiber;
 
 debug private import ocean.util.log.Trace;
 
@@ -193,7 +189,9 @@ class NotifyingByteQueue : IQueueInfo
     
     /***************************************************************************
     
-        Whether the queue is enabled or not
+        Whether the queue is enabled or not. Set/unset by the suspend() /
+        resume() methods. When enabled is false, the queue behaves as if it is
+        empty (no waiting notification delegates will be called).
     
     ***************************************************************************/
 
@@ -201,20 +199,12 @@ class NotifyingByteQueue : IQueueInfo
     
     /***************************************************************************
 	
-	    Array of handler references
+	    Array of delegates waiting for notification of data in queue
 	
 	***************************************************************************/
 
-    const private AppendBuffer!(NotificationDg) handlers;
+    const private AppendBuffer!(NotificationDg) notifiers;
     
-    /***************************************************************************
-
-	    Currently available handlers
-	
-	***************************************************************************/
-
-    private size_t waiting_handlers;
-
     /***************************************************************************
 
         Constructor
@@ -226,9 +216,7 @@ class NotifyingByteQueue : IQueueInfo
     
     public this ( size_t max_bytes )
     {
-        this.queue = new FlexibleByteRingQueue(max_bytes);       
-        
-        this.handlers = new AppendBuffer!(NotificationDg);
+        this(new FlexibleByteRingQueue(max_bytes));
     }
     
     
@@ -245,7 +233,7 @@ class NotifyingByteQueue : IQueueInfo
     {
         this.queue = queue;
         
-        this.handlers = new AppendBuffer!(NotificationDg);
+        this.notifiers = new AppendBuffer!(NotificationDg);
     }
             
 
@@ -280,7 +268,7 @@ class NotifyingByteQueue : IQueueInfo
     
     ***************************************************************************/
     
-    public ulong totalSpace ( )
+    public ulong total_space ( )
     {
         return this.queue.totalSpace();
     }
@@ -293,7 +281,7 @@ class NotifyingByteQueue : IQueueInfo
     
     ***************************************************************************/
     
-    public ulong usedSpace ( )
+    public ulong used_space ( )
     {
         return this.queue.usedSpace();
     }    
@@ -306,7 +294,7 @@ class NotifyingByteQueue : IQueueInfo
     
     ***************************************************************************/
     
-    public ulong freeSpace ( )
+    public ulong free_space ( )
     {
         return this.queue.freeSpace();
     }
@@ -334,7 +322,7 @@ class NotifyingByteQueue : IQueueInfo
     
     ***************************************************************************/
     
-    public bool isEmpty ( )
+    public bool is_empty ( )
     {
         return this.queue.isEmpty();
     }
@@ -354,13 +342,13 @@ class NotifyingByteQueue : IQueueInfo
 	
 	***************************************************************************/
 	    
-    public bool ready ( NotificationDg handler )
+    public bool ready ( NotificationDg notifier )
     in
     {
-        debug foreach ( rhandler; this.handlers[0 .. waiting_handlers] ) 
+        debug foreach ( rhandler; this.notifiers[] ) 
         {
-            assert (rhandler !is handler, "RequestQueue.handlerWaiting: "
-                                          "Handler already registered");
+            assert (rhandler !is handler, "RequestQueue.ready: "
+                                          "notifier already registered");
         }
     }
     body
@@ -372,7 +360,7 @@ class NotifyingByteQueue : IQueueInfo
         }
         else
         {
-            this.handlers ~= handler;
+            this.notifiers ~= notifier;
             return true;
         }  
     }
@@ -380,20 +368,21 @@ class NotifyingByteQueue : IQueueInfo
     
     /***************************************************************************
     
-        Returns how many handlers are waiting for data
-    
+        Returns:
+            how many notification delegates are waiting for data
+
     ***************************************************************************/
-        
-    final public size_t waitingHandlers ( )
+
+    final public size_t waiting ( )
     {
-        return this.handlers.length;
+        return this.notifiers.length;
     }
-      
-    
+
+
     /***************************************************************************
 		
-	    Push an item into the queue and notify the next waiting handler about
-	    it.
+	    Push an item into the queue and notify the next waiting notification
+        delegate about it.
 	    
 	    Params:
 	    	data = array of data that the item consists of
@@ -408,7 +397,7 @@ class NotifyingByteQueue : IQueueInfo
     {
     	if ( !this.queue.push(data) ) return false;    	
         
-    	this.notifyHandler();
+    	this.notify();
     	
     	return true;
     }
@@ -438,7 +427,7 @@ class NotifyingByteQueue : IQueueInfo
         
         filler(target);
         
-        this.notifyHandler();
+        this.notify();
         
         return true;
     }   
@@ -476,9 +465,9 @@ class NotifyingByteQueue : IQueueInfo
         
         this.enabled = true;
                 
-        foreach (handler; this.handlers[])
-        {   
-            this.notifyHandler();
+        foreach (notifier; this.notifiers[])
+        {
+            this.notify();
         }
     }
     
@@ -502,15 +491,15 @@ class NotifyingByteQueue : IQueueInfo
     
     /***************************************************************************
 
-        Notifies the next waiting handler, if queue is enabled
+        Calls the next waiting notification delegate, if queue is enabled.
     
     ***************************************************************************/
 
-    private void notifyHandler ( )
+    private void notify ( )
     {
-        if ( this.handlers.length > 0 && this.enabled )
+        if ( this.notifiers.length > 0 && this.enabled )
         {
-            auto dg = handlers.cut();
+            auto dg = notifiers.cut();
             
             dg();
         }
