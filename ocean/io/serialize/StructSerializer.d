@@ -1339,7 +1339,8 @@ struct StructSerializer ( bool AllowUnions = false )
     {
         static assert (AllowUnions || !is (T == union),
                        typeof (*this).stringof ~ ": unions are not supported, sorry "
-                        "(affects " ~ FieldInfo!(T, S, i) ~ ')');
+                        "(affects " ~ FieldInfo!(T, S, i) ~ ") -- use AllowUnions "
+                        "template flag to enable shallow serialization of unions");
         
         static assert (!is (T == typedef),
                        typeof (*this).stringof ~ ": typedefs are not supported, sorry "
