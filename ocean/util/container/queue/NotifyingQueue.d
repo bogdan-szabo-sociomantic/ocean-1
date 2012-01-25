@@ -270,7 +270,7 @@ class NotifyingByteQueue : IQueueInfo
     
     public ulong total_space ( )
     {
-        return this.queue.totalSpace();
+        return this.queue.total_space();
     }
     
     
@@ -283,7 +283,7 @@ class NotifyingByteQueue : IQueueInfo
     
     public ulong used_space ( )
     {
-        return this.queue.usedSpace();
+        return this.queue.used_space();
     }    
     
     
@@ -296,7 +296,7 @@ class NotifyingByteQueue : IQueueInfo
     
     public ulong free_space ( )
     {
-        return this.queue.freeSpace();
+        return this.queue.free_space();
     }
     
        
@@ -324,7 +324,7 @@ class NotifyingByteQueue : IQueueInfo
     
     public bool is_empty ( )
     {
-        return this.queue.isEmpty();
+        return this.queue.is_empty();
     }
     
     
@@ -341,21 +341,21 @@ class NotifyingByteQueue : IQueueInfo
             true if the handler was just added to the queue
 	
 	***************************************************************************/
-	    
+
     public bool ready ( NotificationDg notifier )
     in
     {
-        debug foreach ( rhandler; this.notifiers[] ) 
+        debug foreach ( waiting_notifier; this.notifiers[] ) 
         {
-            assert (rhandler !is handler, "RequestQueue.ready: "
+            assert (waiting_notifier !is notifier, "RequestQueue.ready: "
                                           "notifier already registered");
         }
     }
     body
     {
-        if (!this.isEmpty() && this.enabled)
+        if (!this.is_empty() && this.enabled)
         {
-            handler();
+            notifier();
             return false;
         }
         else

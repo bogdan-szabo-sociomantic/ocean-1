@@ -303,9 +303,9 @@ public class FlexibleFileQueue : IByteQueue
     
     ***************************************************************************/
     
-    public ulong totalSpace ( )
+    public ulong total_space ( )
     {
-        return queue.totalSpace();
+        return queue.total_space();
     }
     
     
@@ -316,9 +316,9 @@ public class FlexibleFileQueue : IByteQueue
     
     ***************************************************************************/
     
-    public ulong usedSpace ( )
+    public ulong used_space ( )
     {
-        return queue.usedSpace() + this.bytes_in_file;
+        return queue.used_space() + this.bytes_in_file;
     }    
     
     
@@ -329,11 +329,11 @@ public class FlexibleFileQueue : IByteQueue
     
     ***************************************************************************/
     
-    public ulong freeSpace ( )
+    public ulong free_space ( )
     {
         if ( this.bytes_in_file ) return 0; 
             
-        return queue.freeSpace();
+        return queue.free_space();
     }
     
        
@@ -359,9 +359,9 @@ public class FlexibleFileQueue : IByteQueue
     
     ***************************************************************************/
     
-    public bool isEmpty ( )
+    public bool is_empty ( )
     {
-        return queue.isEmpty() && this.items_in_file == 0;
+        return queue.is_empty() && this.items_in_file == 0;
     }
     
         
@@ -456,7 +456,7 @@ public class FlexibleFileQueue : IByteQueue
         this.file_in  = new File(this.path, File.ReadExisting);
         
         this.ext_out = new BufferedOutput(this.file_out);        
-        this.ext_in  = new BufferedInput(this.file_in, this.queue.totalSpace());
+        this.ext_in  = new BufferedInput(this.file_in, this.queue.total_space());
     }
     
         

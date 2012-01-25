@@ -367,7 +367,7 @@ abstract class FixedRingQueueBase ( IBaseQueue ) : IRingQueue!(IBaseQueue)
     
     ***************************************************************************/
 
-    ulong usedSpace ( )
+    ulong used_space ( )
     {
         return super.items * this.element_size;
     }

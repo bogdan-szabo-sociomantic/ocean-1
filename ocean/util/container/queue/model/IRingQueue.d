@@ -159,7 +159,7 @@ public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
     
     ***************************************************************************/
     
-    public bool isEmpty ( )
+    public bool is_empty ( )
     {
         return this.items == 0;
     }
@@ -172,9 +172,9 @@ public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
     
     ***************************************************************************/
     
-    public ulong freeSpace ( )
+    public ulong free_space ( )
     {
-        return this.data.length - this.usedSpace; 
+        return this.data.length - this.used_space; 
     }
     
     
@@ -185,7 +185,7 @@ public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
     
     ***************************************************************************/
     
-    abstract ulong usedSpace ( );
+    abstract ulong used_space ( );
     
 
     /***************************************************************************
@@ -195,7 +195,7 @@ public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
     
     ***************************************************************************/
     
-    public ulong totalSpace ( )
+    public ulong total_space ( )
     {
         return this.data.length;
     }
