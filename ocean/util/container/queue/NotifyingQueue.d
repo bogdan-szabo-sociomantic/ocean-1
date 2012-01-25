@@ -163,27 +163,6 @@ private import tango.core.Thread : Fiber;
 
 debug private import ocean.util.log.Trace;
 
-/*******************************************************************************
-
-  Interface for a RequestHandler.
-
-*******************************************************************************/
-
-public interface IRequestHandler
-{
-    /***************************************************************************
-
-	    Called by RequestQueue when this Handler is waiting for new
-	    Requests. 
-	    
-	    The implementation is suppose to pop an item from the queue,
-        process it and then do the same with the next until there are no more.
-        Then it should registers back at the request queue (using handlerWaiting)
-	
-	***************************************************************************/
-
-    public void notify ( );
-}
 
 
 /*******************************************************************************
