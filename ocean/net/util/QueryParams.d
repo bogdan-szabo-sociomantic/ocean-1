@@ -11,6 +11,8 @@
     - QueryParams splits an URI query parameter list into key/value pairs.
     - QueryParamSet parses an URI query parameter list and memorizes the values
       corresponding to keys in a list provided at instantiation.
+    - FullQueryParamSet extends QueryParamSet by adding the key/value pairs
+      whose keys are not in the list of keys provided at instantiation.
     
     TODO: The QueryParams class may be moved to ocean.text.
     
@@ -27,6 +29,8 @@ module ocean.net.util.QueryParams;
 private import ocean.net.util.ParamSet;
 
 private import ocean.text.util.SplitIterator: ChrSplitIterator;
+
+private import ocean.core.AppendBuffer: AppendBuffer, IAppendBufferReader;
 
 /******************************************************************************
 
@@ -100,8 +104,7 @@ class QueryParams
         
         Params:
             element_delim = delimiter between elements
-            and between key and value of an element. Must be
-        specified in the constructor but may be modified at any time.
+            keyval_delim  = delimiter between key and value of an element
         
      **************************************************************************/
 
@@ -214,7 +217,9 @@ class QueryParamSet: ParamSet
         Constructor
         
         Params:
-            keys = parameter keys of interest (case-insensitive)
+            element_delim = delimiter between elements
+            keyval_delim  = delimiter between key and value of an element
+            keys          = parameter keys of interest (case-insensitive)
     
      **************************************************************************/
 
@@ -248,6 +253,121 @@ class QueryParamSet: ParamSet
         {
             super.set(key, val);
         }
+    }
+}
+
+/******************************************************************************/
+
+class FullQueryParamSet: QueryParamSet
+{
+    /**************************************************************************
+
+        List of key/value pairs passed to set() where the key is not one of the
+        parameter keys passed on instantiation or added by a subclass.
+        
+        Note the keys in this list are case-sensitive and may contain multiple
+        elements with the same key. 
+        
+     **************************************************************************/
+
+    public const IAppendBufferReader!(Element) remaining_elements;
+    
+    private const AppendBuffer!(Element) remaining;
+    
+    /**************************************************************************
+    
+        Constructor
+        
+        Params:
+            element_delim = delimiter between elements
+            keyval_delim  = delimiter between key and value of an element
+            keys          = parameter keys of interest (case-insensitive)
+    
+     **************************************************************************/
+
+    public this ( char element_delim, char keyval_delim, char[][] keys ... )
+    {
+        super(element_delim, keyval_delim, keys);
+        
+        this.remaining_elements = this.remaining = new AppendBuffer!(Element);
+    }
+    
+    /**************************************************************************
+
+        Sets the parameter value for key if key is one of the parameter keys
+        passed on instantiation or added by a subclass.
+        If key is not of these parameter keys, the key/val pair is added to the
+        list of remaining elements.
+        
+        Params:
+            key = parameter key (case insensitive)
+            val = parameter value (will be sliced)
+            
+        Returns:
+            true if key is one of parameter keys passed on instantiation or
+            added by a subclass or false otherwise. In case of false the key/val
+            pair has been added to the list of remaining elements.
+        
+     **************************************************************************/
+
+    public override bool set ( char[] key, char[] val )
+    {
+        if (super.set(key, val))
+        {
+            return true;
+        }
+        else
+        {
+            this.remaining ~= Element(key, val);
+            
+            return false;
+        }
+    }
+    
+    /**************************************************************************
+
+        'foreach' iteration over parameter key/value pairs
+        
+     **************************************************************************/
+
+    public override int opApply ( int delegate ( ref char[] key, ref char[] val ) dg )
+    {
+        int result = super.opApply(dg);
+        
+        if (!result) foreach (ref remaining_element; this.remaining[])
+        {
+            this.iterate(remaining_element, dg, result);
+            
+            if (result) break;
+        }
+        
+        return result;
+    }
+    
+    /**************************************************************************
+
+        Resets everything.
+        
+     **************************************************************************/
+
+    public override void reset ( )
+    {
+        super.reset();  
+        
+        this.remaining.clear();
+    }
+    
+    /**************************************************************************
+
+        Disposer
+        
+     **************************************************************************/
+
+    protected override void dispose ( )
+    {
+        super.dispose();
+        
+        delete this.remaining;
     }
 }
 
