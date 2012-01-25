@@ -313,7 +313,7 @@ class HttpRequest : HttpHeader
         
         if (this.finished)
         {
-            super.reset();
+            this.reset();
         }
         
         if (this.header_complete)
@@ -334,7 +334,7 @@ class HttpRequest : HttpHeader
                 
                 foreach (element; this.parser.header_elements)
                 {
-                    super.set(element.key, element.val);
+                    this.set(element.key, element.val);
                 }
                 
                 this.msg_body_.length = msg_body_length();
@@ -452,14 +452,14 @@ class HttpRequest : HttpHeader
 
     public override void reset ( )
     {
-        super.reset();
-        
         this.method          = this.method.init;
         this.http_version_   = this.http_version_.init;
         this.msg_body_pos    = 0;
         this.header_complete = false;
         this.uri_.reset();
         this.parser.reset();
+        
+        super.reset();
     }
     
     /**************************************************************************
