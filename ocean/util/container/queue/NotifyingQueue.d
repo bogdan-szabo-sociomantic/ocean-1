@@ -451,6 +451,11 @@ class NotifyingByteQueue : IQueueInfo
 	A concrete client should have an instance of this class and use it
 	to manage the connections and requests
 
+    Note: the stored type T is automatically de/serialized using the
+    StructSerializer. This performs a deep serialization of sub-structs and
+    array members. Union members are shallowly serialized. Delegate and class
+    members cannot be serialized.
+
 *******************************************************************************/
 
 class NotifyingQueue ( T ) : NotifyingByteQueue
@@ -500,11 +505,11 @@ class NotifyingQueue ( T ) : NotifyingByteQueue
 
     bool push ( ref T request )
     {
-    	auto length = StructSerializer!().length(&request);
+    	auto length = StructSerializer!(true).length(&request);
 
         void filler ( ubyte[] target )
         {
-            StructSerializer!().dump(&request, target);
+            StructSerializer!(true).dump(&request, target);
         }
         
     	return super.push(length, &filler);
@@ -539,7 +544,7 @@ class NotifyingQueue ( T ) : NotifyingByteQueue
 
         buffer.copy(data);
 
-    	StructSerializer!().loadSlice (instance, buffer);
+    	StructSerializer!(true).loadSlice (instance, buffer);
     	
     	return instance; 
     }
