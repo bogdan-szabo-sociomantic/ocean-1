@@ -35,6 +35,7 @@ private import tango.io.Stdout;
  * SearchFruct in tango.text.Search is declared private but that protection
  * attribute is meaningless. Ticket is submitted.
  * @see http://www.dsource.org/projects/tango/ticket/2102
+ * @see http://www.digitalmars.com/webnews/newsgroups.php?art_group=digitalmars.D&article_id=87915
  */
     
 private import tango.text.Search: SearchFruct, search;
