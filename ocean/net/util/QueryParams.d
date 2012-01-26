@@ -30,7 +30,7 @@ private import ocean.net.util.ParamSet;
 
 private import ocean.text.util.SplitIterator: ChrSplitIterator;
 
-private import ocean.core.AppendBuffer: AppendBuffer, IAppendBufferReader;
+private import ocean.util.container.AppendBuffer: AppendBuffer, IAppendBufferReader;
 
 /******************************************************************************
 
