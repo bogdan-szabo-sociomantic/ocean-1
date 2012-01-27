@@ -62,6 +62,8 @@
 
 module ocean.text.url.PercentEncoding;
 
+pragma(msg, "Deprecated module. Use ocean.net.util.UrlDecoder.");
+
 
 
 /*******************************************************************************
@@ -114,7 +116,7 @@ extern ( C )
 
 *******************************************************************************/
 
-public char[] encode ( char[] src, ref char[] dst, ref char[] working, char[] dont_encode = "!$&'()*+,;=:@/?" )
+deprecated public char[] encode ( char[] src, ref char[] dst, ref char[] working, char[] dont_encode = "!$&'()*+,;=:@/?" )
 {
     working.concat(src, "\0");
     auto original = working;
@@ -149,7 +151,7 @@ public char[] encode ( char[] src, ref char[] dst, ref char[] working, char[] do
 
 *******************************************************************************/
 
-public char[] decode ( char[] src, ref char[] dst, ref char[] working )
+deprecated public char[] decode ( char[] src, ref char[] dst, ref char[] working )
 {
     working.concat(src, "\0");
 
