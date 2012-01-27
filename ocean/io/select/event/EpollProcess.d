@@ -312,18 +312,21 @@ public abstract class EpollProcess
 
         public bool handle ( Event event )
         {
-            if ( event & Event.Hangup )
+            if ( event & Event.Read )
             {
-                return false;
+                size_t received;
+                do
+                {
+                    received = this.stream.read(this.buf);
+                    if ( received > 0 && received != InputStream.Eof )
+                    {
+                        this.handle_(this.buf[0..received]);
+                    }
+                }
+                while ( received > 0 && received != InputStream.Eof );
             }
 
-            size_t received = this.stream.read(this.buf);
-            if ( received > 0 && received != InputStream.Eof )
-            {
-                this.handle_(this.buf[0..received]);
-            }
-
-            return true;
+            return !(event & Event.Hangup);
         }
 
 
