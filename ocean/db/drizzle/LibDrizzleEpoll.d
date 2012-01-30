@@ -360,7 +360,7 @@ class LibDrizzleEpoll
         
     final public size_t waitingHandlers ( )
     {
-        return this.connections.waitingHandlers;
+        return this.connections.waiting;
     }
                    
     /***************************************************************************
@@ -388,7 +388,7 @@ class LibDrizzleEpoll
     {
         with (this.connections) 
         {
-            return cast(float) usedSpace / cast(float) totalSpace;
+            return cast(float) used_space / cast(float) total_space;
         }
     }
     
