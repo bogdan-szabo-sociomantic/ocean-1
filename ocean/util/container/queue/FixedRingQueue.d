@@ -235,6 +235,11 @@ class FixedByteRingQueue : FixedRingQueueBase!(IByteQueue)
         return cast(ubyte[])super.pop_();
     }
     
+    ubyte[] peek ( )
+    {
+        return super.peek_();
+    }
+    
     /***************************************************************************
 
         Pops an element from the queue and copies the value to element.
@@ -464,6 +469,26 @@ abstract class FixedRingQueueBase ( IBaseQueue ) : IRingQueue!(IBaseQueue)
             return null;
         }
     }
+
+    
+    protected ubyte[] peek_ ( )
+    out (element)
+    {
+        assert (!element || element.length == this.element_size);
+    }
+    body
+    {
+        if (super.items)
+        {
+            auto read_pos = super.read_from;
+            
+            return cast(ubyte[])this.getElement(read_pos);
+        }
+        else
+        {
+            return null;
+        }
+    }    
     
     /***************************************************************************
 

@@ -88,8 +88,6 @@ public interface IByteQueue : IQueueInfo
    
     /***************************************************************************
 
-        NOT IMPLEMENTED
-
         Peek at the next item that would be popped from the queue.
     
         Returns:
@@ -97,6 +95,6 @@ public interface IByteQueue : IQueueInfo
 
     ***************************************************************************/
 
-    //public ubyte[] peek ( );        
+    public ubyte[] peek ( );        
 }
 

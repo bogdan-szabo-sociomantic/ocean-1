@@ -62,14 +62,6 @@ public class FlexibleFileQueue : IByteQueue
     
     /***************************************************************************
     
-        Queue
-
-    ***************************************************************************/
-    
-    private IByteQueue queue;
-    
-    /***************************************************************************
-    
         Path to write to
 
     ***************************************************************************/
@@ -126,6 +118,14 @@ public class FlexibleFileQueue : IByteQueue
     
     /***************************************************************************
     
+        Size of the input buffer
+
+    ***************************************************************************/
+        
+    private size_t size;
+    
+    /***************************************************************************
+    
         Constructor
         
         Params:
@@ -134,10 +134,11 @@ public class FlexibleFileQueue : IByteQueue
              
     ***************************************************************************/
     
-    public this ( char[] path, IByteQueue queue )
+    public this ( char[] path, ubyte size )
     {
-        this.queue = queue;
+        
         this.path  = path.dup;
+        this.size  = size;
         
         /+if ( Filesystem.exists(this.path) )
         {
@@ -164,14 +165,7 @@ public class FlexibleFileQueue : IByteQueue
 
         if ( item.length == 0 ) return false;
         
-        if ( this.file_out is null && this.queue.willFit(item.length) )
-        {
-            return this.queue.push(item);
-        }
-        else
-        {
-            return this.externalPush(item);
-        }   
+        return this.filePush(item);         
     }
         
     
@@ -194,16 +188,9 @@ public class FlexibleFileQueue : IByteQueue
     {        
         this.handleSliceBuffer();
         
-        if ( this.file_out is null && this.queue.willFit(size) ) 
-        {
-            return this.queue.push(size);
-        }
-        else
-        {
-            this.slice_push_buffer.length = size;
-        
-            return this.slice_push_buffer;
-        }
+        this.slice_push_buffer.length = size;
+    
+        return this.slice_push_buffer;    
     }
     
     /***************************************************************************
@@ -215,67 +202,76 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    public ubyte[] pop ( )
+    private ubyte[] getItem ( bool eat = true )
     {
-        try if ( this.file_out is null ) 
-        {
-            return this.queue.pop();
-        }
-        else
-        {
-            if ( this.queue.length() > 0 )
+       if ( this.bytes_in_file > 0 ) try
+       {
+            try this.ext_out.flush();
+            catch ( Exception e )
             {
-                return this.queue.pop();
+                Trace.formatln("## ERROR: Can't flush file buffer: {}", e.msg);
+                return null;
             }
-            else
+            
+            Header* h;
+            
+            if ( this.ext_in.readable() <= Header.sizeof && this.fill() == 0 )
             {
-                try this.ext_out.flush();
-                catch ( Exception e )
-                {
-                    Trace.formatln("## ERROR: Can't flush file buffer: {}", e.msg);
-                    return this.queue.pop();
-                }
-                
-                this.ext_in.compress();
-                auto readable = this.ext_in.readable;
-                auto bytes = this.ext_in.populate();
-                
-                if ( (bytes == 0 || bytes == File.Eof) && 
-                     readable == 0)
-                {
-                    this.closeExternal();
-
-                    return this.queue.pop();
-                }
-                
-                Header* h;
-                
-                while ( this.ext_in.readable() >= Header.sizeof )
-                {
-                    h = Header.fromSlice(this.ext_in.slice(Header.sizeof, false));
-                    
-                    if ( h.length + Header.sizeof <= this.ext_in.readable() )
-                    {
-                        this.ext_in.skip(Header.sizeof);
-                        this.ext_in.fill(this.queue.push(h.length));
-                        
-                        this.items_in_file -= 1;
-                        this.bytes_in_file -= Header.sizeof + h.length;
-                    }
-                    else break;
-                }
-                
-                return this.queue.pop();
+                return null;
             }
+            
+            h = Header.fromSlice(this.ext_in.slice(Header.sizeof, false));
+            
+            if ( h.length + Header.sizeof > this.ext_in.readable() && 
+                 this.fill() == 0 )
+            {
+                return null;
+            }
+           
+            this.ext_in.skip(Header.sizeof);
+            
+            this.items_in_file -= 1;
+            this.bytes_in_file -= Header.sizeof + h.length;
+            
+            return cast(ubyte[]) this.ext_in.slice(h.length, true);
         }
         catch ( Exception e )
         {
             Trace.formatln("## ERROR: Failsafe catch triggered by exception: {}",
                            e.msg);
         }
+        
+        return null;
+    }
+    
+    public ubyte[] pop ( )
+    {
+        return this.getItem(); 
+    }
+    
+    public ubyte[] peek ( )
+    {
+        return this.getItem(false); 
     }
          
      
+    private size_t fill ( )
+    {
+        this.ext_in.compress();
+        
+        auto bytes    = this.ext_in.populate();
+        auto readable = this.ext_in.readable;
+        
+        if ( (bytes == 0 || bytes == File.Eof) && 
+             readable == 0)
+        {
+            this.closeExternal();
+            return 0;
+        }    
+        
+        return bytes;
+    }
+    
     /***************************************************************************
 
         Finds out whether the provided number of bytes will fit in the queue.
@@ -305,7 +301,7 @@ public class FlexibleFileQueue : IByteQueue
     
     public ulong total_space ( )
     {
-        return queue.total_space();
+        return 0;
     }
     
     
@@ -318,7 +314,7 @@ public class FlexibleFileQueue : IByteQueue
     
     public ulong used_space ( )
     {
-        return queue.used_space() + this.bytes_in_file;
+        return this.bytes_in_file + this.slice_push_buffer.length;
     }    
     
     
@@ -331,9 +327,7 @@ public class FlexibleFileQueue : IByteQueue
     
     public ulong free_space ( )
     {
-        if ( this.bytes_in_file ) return 0; 
-            
-        return queue.free_space();
+        return 0;
     }
     
        
@@ -346,7 +340,7 @@ public class FlexibleFileQueue : IByteQueue
     
     public uint length ( )
     {
-        return queue.length() + this.items_in_file;
+        return this.items_in_file + (this.slice_push_buffer.length > 0 ? 1 : 0);
     }
         
     
@@ -361,7 +355,7 @@ public class FlexibleFileQueue : IByteQueue
     
     public bool is_empty ( )
     {
-        return queue.is_empty() && this.items_in_file == 0;
+        return this.items_in_file == 0 && this.slice_push_buffer.length == 0;
     }
     
         
@@ -373,8 +367,8 @@ public class FlexibleFileQueue : IByteQueue
         
     public void clear ( )
     {
-        this.queue.clear();
         this.items_in_file = this.bytes_in_file = 0;
+        this.slice_push_buffer.length = 0;
         this.ext_in.clear();
         this.ext_out.clear();
         this.closeExternal();
@@ -391,19 +385,10 @@ public class FlexibleFileQueue : IByteQueue
     {
         if ( this.slice_push_buffer.length != 0 )
         {
-            if ( this.file_out is null && 
-                 this.queue.willFit(this.slice_push_buffer.length) )
-            {
-                this.queue.push(this.slice_push_buffer);
-                this.slice_push_buffer.length = 0;
-            }
-            else
-            {
-                this.file_out is null && this.openExternal();
-                
-                this.externalPush(this.slice_push_buffer);
-                this.slice_push_buffer.length = 0;
-            }
+            this.file_out is null && this.openExternal();
+            
+            this.filePush(this.slice_push_buffer);
+            this.slice_push_buffer.length = 0;
         }
     }
         
@@ -420,7 +405,7 @@ public class FlexibleFileQueue : IByteQueue
         
     ***************************************************************************/
         
-    private bool externalPush ( ubyte[] item )
+    private bool filePush ( ubyte[] item )
     {
         try 
         {
@@ -455,8 +440,8 @@ public class FlexibleFileQueue : IByteQueue
         this.file_out = new File(this.path, File.WriteCreate);
         this.file_in  = new File(this.path, File.ReadExisting);
         
-        this.ext_out = new BufferedOutput(this.file_out);        
-        this.ext_in  = new BufferedInput(this.file_in, this.queue.total_space());
+        this.ext_out = new BufferedOutput(this.file_out);    
+        this.ext_in  = new BufferedInput(this.file_in, this.size);
     }
     
         

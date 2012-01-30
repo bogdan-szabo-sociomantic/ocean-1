@@ -158,51 +158,41 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
         return true;        
     }
     
+    
     /***************************************************************************
-    
-        Reserves space for an item of <size> bytes on the queue but doesn't
-        fill the content. The caller is expected to fill in the content using
-        the returned slice. 
-    
+
+        Pushes an item into the queue.
+
         Params:
-            size = size of the space of the item that should be reserved
-    
-        Returns:
-            slice to the reserved space if it was successfully reserved, 
-            else null
+            item = data item to push
 
     ***************************************************************************/
-    
+
     public ubyte[] push ( size_t size )
-    in
-    {
-        assert(size != 0, typeof(this).stringof ~ ".push - attempted to push zero length content");
-    }
-    body
     {
         if ( size > 0 && this.willFit(size) )
         {
-            return this.push_(size);
+            ubyte[] header = (cast(ubyte*)&Header(size))[0 .. Header.sizeof];
+    
+            if (this.needsWrapping(size))
+            {
+                this.gap = super.write_to;
+                super.write_to = 0;            
+            }
+    
+            super.data[super.write_to .. super.write_to + header.length] = header[];
+            
+            auto pos = super.write_to + header.length;
+          
+            super.write_to += this.pushSize(size);
+            super.items++;
+                    
+            return super.data[pos .. pos + size];
         }
         
         return null;
     }
     
-    
-    /***************************************************************************
-
-        Pops an item from the queue.
-    
-        Returns:
-            item popped from queue, may be null if queue is empty
-
-    ***************************************************************************/
-
-    public ubyte[] pop ( )
-    {
-        return super.items ? this.pop_() : null;
-    }
-        
     
     /***************************************************************************
 
@@ -215,7 +205,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     ***************************************************************************/
 
     public ubyte[] peek ( )
-    {
+    {     
         auto read_pos = super.read_from;
         
         if (read_pos >= this.gap)                                  // check whether there is an item at this offset
@@ -229,7 +219,50 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
         return this.data[pos .. pos + header.length];
     }
+    
+    
+    /***************************************************************************
 
+        Pops an item from the queue.
+
+        Returns:
+            item popped from queue
+
+    ***************************************************************************/
+
+    public ubyte[] pop ( )
+    {
+        if ( this.items == 0 ) return null;
+        
+        if ( super.read_from >= this.gap )                                  // check whether there is an item at this offset
+        {
+            super.read_from = 0;                                          // if no, set it to the beginning (wrapping around)
+            this.gap = super.data.length;
+        }
+        
+        Header* header = cast(Header*) this.data.ptr + this.read_from;
+                
+        auto pos = super.read_from + header.sizeof;
+
+        super.items--;
+
+        if ( super.items == 0 )
+        {
+            super.read_from = 0;
+            super.write_to  = 0;
+        }
+        else
+        {
+            super.read_from += this.pushSize(header.length);
+            
+            if ( super.read_from >= super.data.length )
+            {
+                super.read_from = 0;
+            }
+        }
+
+        return this.data[pos .. pos + header.length];
+    }
 
     /***************************************************************************
 
@@ -416,140 +449,6 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
         bytes += SimpleSerializer.read(stream, super.data);
     
         return bytes;
-    }
-    
-    /***************************************************************************
-
-        Pushes an item into the queue.
-
-        Params:
-            item = data item to push
-
-    ***************************************************************************/
-
-    private ubyte[] push_ ( size_t size )
-    in
-    {
-        assert(this.willFit(size), typeof(this).stringof ~ ".push_: item will not fit");
-    }
-    body
-    {
-        ubyte[] header = (cast(ubyte*)&Header(size))[0 .. Header.sizeof];
-
-        if (this.needsWrapping(size))
-        {
-            this.gap = super.write_to;
-            super.write_to = 0;            
-        }
-
-		super.data[super.write_to .. super.write_to + header.length] = header[];
-        this.seek(super.write_to + header.length);
-      
-        super.write_to += this.pushSize(size);
-        super.items++;
-                
-        return super.data[this.position .. this.position + size];
-    }
-    
-    
-    /***************************************************************************
-
-        Pops an item from the queue.
-
-        Returns:
-            item popped from queue
-
-    ***************************************************************************/
-
-    private ubyte[] pop_ ( )
-    in
-    {
-        assert(super.items > 0, typeof(this).stringof ~ ".pop_: no items in the queue");
-    }
-    body
-    {
-        if (super.read_from >= this.gap)                                  // check whether there is an item at this offset
-        {
-            super.read_from = 0;                                          // if no, set it to the beginning (wrapping around)
-            this.gap = super.data.length;
-        }
-
-        this.seek(super.read_from);
-
-        Header* header = cast(Header*)this.read(Header.sizeof).ptr;
-
-        this.seek(super.read_from + header.sizeof);
-
-        super.items--;
-
-        if (!super.items)
-        {
-            super.read_from = 0;
-            super.write_to  = 0;
-        }
-        else
-        {
-            super.read_from += pushSize(header.length);
-            
-            if (super.read_from >= super.data.length)
-            {
-                super.read_from = 0;
-            }
-        }
-
-        return this.read(header.length);
-    }
-
-
-    /***************************************************************************
-        
-        Reads data from the data array.
-
-        Params:
-            bytes = the amount of bytes to read
-
-        Returns:
-            the requested data
-
-    ***************************************************************************/
-
-    private ubyte[] read ( size_t bytes )
-    {
-        if (bytes > super.data.length - this.position)
-        {
-            return super.data[this.position .. $];
-        }
-
-        return super.data[this.position..this.position + bytes];    
-    }
-    
-
-    /***************************************************************************
-
-        Sets the seek position in the data array.
-
-        Params:
-            offset = the requested read/write position
-
-        Returns:
-            the new read/write position
-
-        TODO: could no doubt be rephrased to not need a seek method
-
-    ***************************************************************************/
-
-    private size_t seek ( size_t offset )
-    {
-        if (offset > super.data.length)
-        {
-            this.position = super.data.length;
-        }
-        else
-        {
-            this.position = offset;
-        }
-        
-        return this.position; 
     }
 
 
