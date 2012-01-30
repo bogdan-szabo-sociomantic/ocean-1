@@ -321,7 +321,7 @@ class LibDrizzleEpoll
         this.password = toStringz(password);
         this.database = toStringz(database);
         this.port     = port;
-        this.num_connections = num_connections;
+        this.num_connections = connections;
         
         this.connections = new NotifyingQueue!(DrizzleRequest)(queue);
         
