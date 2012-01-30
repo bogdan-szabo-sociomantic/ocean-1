@@ -34,7 +34,7 @@ module ocean.net.util.UrlEncoder;
 
 /******************************************************************************
 
-    UrlDecoder class
+    UrlEncoder class
     
     Memory friendly, suitable for stack-allocated 'scope' instances.
     

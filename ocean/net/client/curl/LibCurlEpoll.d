@@ -53,7 +53,7 @@ private import ocean.net.client.curl.c.curl;
 
 private import ocean.sys.SignalHandler;
 
-private import PercentEncoding = ocean.text.url.PercentEncoding;
+private import ocean.net.util.UrlEncoder;
 
 private import ocean.util.OceanException;
 
@@ -670,7 +670,15 @@ public class LibCurlEpoll
 
         public char[] encodeUrl ( )
         {
-            PercentEncoding.encode(this.url, this.url, this.url_encoding_buffer);
+            scope UrlEncoder encoder = new UrlEncoder(this.url);
+            size_t i = 0;
+            this.url_encoding_buffer.length = 0;
+            foreach (chunk; encoder)
+            {
+                this.url_encoding_buffer ~= chunk;
+            }
+            //PercentEncoding.encode(this.url, this.url, this.url_encoding_buffer);
+            this.url = this.url_encoding_buffer;
             return this.url;
         }
 
