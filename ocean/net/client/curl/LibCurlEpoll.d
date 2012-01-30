@@ -45,7 +45,6 @@ private import ocean.core.Array;
 private import ocean.io.select.model.ISelectClient;
 
 private import ocean.io.select.EpollSelectDispatcher;
-private import ocean.io.select.RequestQueue;
 private import ocean.io.select.event.TimerEvent;
 private import ocean.io.select.event.SelectEvent;
 
@@ -57,6 +56,8 @@ private import ocean.sys.SignalHandler;
 private import PercentEncoding = ocean.text.url.PercentEncoding;
 
 private import ocean.util.OceanException;
+
+private import ocean.util.container.queue.NotifyingQueue;
 
 private import tango.stdc.string : strlen;
 
@@ -326,7 +327,7 @@ public class LibCurlEpoll
 
     ***************************************************************************/
 
-    private class CurlConnection : ISelectClient, IConnection, ISelectable, IRequestHandler
+    private class CurlConnection : ISelectClient, IConnection, ISelectable
     {
         /***********************************************************************
     
@@ -660,17 +661,6 @@ public class LibCurlEpoll
 
         /***********************************************************************
 
-            IRequestHandler methods which are implemented but which do nothing.
-
-        ***********************************************************************/
-
-        public void suspend ( ) { }
-
-        public void resume ( ) { }
-
-
-        /***********************************************************************
-
             URL encodes the url.
 
             Returns:
@@ -916,7 +906,7 @@ public class LibCurlEpoll
             }
             else
             {
-                this.outer.queue.ready(this);
+                this.outer.queue.ready(&this.notify);
             }
 
             return false;
@@ -1006,7 +996,7 @@ public class LibCurlEpoll
     
     ***************************************************************************/
     
-    private RequestQueue!(CurlRequest) queue;
+    private NotifyingQueue!(CurlRequest) queue;
     
     
     /***************************************************************************
@@ -1095,7 +1085,7 @@ public class LibCurlEpoll
     {
         this.epoll = epoll;
     
-        this.queue = new RequestQueue!(CurlRequest)(num_connections, 1024 * 1024);
+        this.queue = new NotifyingQueue!(CurlRequest)(1024 * 1024);
     
         this.timer = new TimerEvent(&this.timer_cb);
 
@@ -1113,7 +1103,7 @@ public class LibCurlEpoll
         foreach ( ref conn; this.conns )
         {
             conn = new CurlConnection;
-            this.queue.ready(conn);
+            this.queue.ready(&conn.notify);
             this.connection_lookup[conn.easy] = conn;
         }
         this.connection_lookup.rehash;
