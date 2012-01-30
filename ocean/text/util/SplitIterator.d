@@ -170,7 +170,7 @@ class StrSplitIterator : ISplitIterator
     protected size_t skipDelim ( char[] str )
     in
     {
-        assert (str.length >= this.delim_length);
+        assert (str.length >= this.delim.length);
     }
     body
     {
