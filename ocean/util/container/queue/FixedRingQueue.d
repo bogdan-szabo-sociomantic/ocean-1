@@ -520,24 +520,24 @@ unittest
             
             int n;
             
-            assert (queue.isEmpty);
+            assert (queue.is_empty);
             assert (!queue.pop());
-            assert (queue.isEmpty);
+            assert (queue.is_empty);
             
             assert (queue.push(1));
             assert (queue.write_to  == pos(1));
             assert (queue.read_from == pos(0));
-            assert (!queue.isEmpty);
+            assert (!queue.is_empty);
             
             assert (queue.pop(n));
             assert (n == 1);
             
-            assert (queue.isEmpty);
+            assert (queue.is_empty);
             assert (!queue.pop());
             assert (queue.write_to == queue.read_from);
             
             assert (queue.push(2));
-            assert (!queue.isEmpty);
+            assert (!queue.is_empty);
             assert (queue.push(3));
             assert (queue.push(4));
             assert (!queue.push(5));
@@ -552,7 +552,7 @@ unittest
             assert (queue.pop(n));
             assert (n == 4);
 
-            assert (queue.isEmpty);
+            assert (queue.is_empty);
             assert (!queue.pop());
             assert (queue.write_to == queue.read_from);
             
@@ -561,7 +561,7 @@ unittest
             assert (queue.pop(n));
             assert (n == 5);
 
-            assert (queue.isEmpty);
+            assert (queue.is_empty);
             assert (!queue.pop());
             assert (queue.write_to == queue.read_from);
         }

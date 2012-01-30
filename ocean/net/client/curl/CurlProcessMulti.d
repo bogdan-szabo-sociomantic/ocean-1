@@ -506,7 +506,7 @@ public class QueuedDownloads : CurlDownloads
         assert(this.downloads.num_idle > 0);
 
         // pop from queue
-        if ( !this.queue.isEmpty )
+        if ( !this.queue.is_empty )
         {
             auto serialized_setup = this.queue.pop;
 
