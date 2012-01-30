@@ -9,6 +9,8 @@ NAMESTEM  = minilzo
 STATICLIB = lib$(NAMESTEM).a
 SHAREDLIB = lib$(NAMESTEM).so
 
+ARCH := 32
+
 OBJ       = minilzo.o lzo_crc.o
 
 all: $(STATICLIB) $(SHAREDLIB)
@@ -19,10 +21,10 @@ $(STATICLIB): $(OBJ)
 	ar rs $@ $^
 	
 $(SHAREDLIB): $(OBJ)
-	gcc -shared -o $@ $^
+	gcc -shared -m$(ARCH) -o $@ $^
 	
 %.o: %.c
-	gcc -fPIC -Os -march=native -o $@ -c $<
+	gcc -fPIC -m$(ARCH) -Os -march=native -o $@ -c $<
 
 cleanup:
 	rm -f $(OBJ)
