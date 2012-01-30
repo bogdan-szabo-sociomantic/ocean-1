@@ -151,6 +151,8 @@ private import tango.time.StopWatch;
 
 private import tango.text.convert.Format;
 
+private import tango.core.Vararg;
+
 
 
 /*******************************************************************************
@@ -1102,13 +1104,13 @@ deprecated public struct TraceProgress
 
 		Params:
 			variadic, see above
-			
+
 	***************************************************************************/
 
 	public void initDisplay ( ... )
 	{
 		this.console_trace.update_interval = this.DisplayUpdateInterval; // console update 10 times a second
-		
+
 		// Always show the iteration counter
 		this.count.displayAsNormal();
 
@@ -1120,31 +1122,32 @@ deprecated public struct TraceProgress
 		{
 			if ( _arguments[i] == typeid(Name) )
 			{
-				this.interpretNameArg(_argptr);
+		                this.setTitle(va_arg!(Name)(_argptr).name);
 			}
 			else if ( _arguments[i] == typeid(Interval) )
 			{
-				this.interpretIntervalArg(_argptr);
+		                this.setInterval(va_arg!(Interval)(_argptr).interval);
 			}
 			else if ( _arguments[i] == typeid(ConsoleDisplay) )
 			{
-				this.interpretConsoleDisplayArg(_argptr);
+				this.setConsoleDisplayMode(va_arg!(ConsoleDisplay)(_argptr));
 			}
 			else if ( _arguments[i] == typeid(LogDisplay) )
 			{
-				this.interpretLogDisplayArg(_argptr);
+				this.setLogDisplayMode(va_arg!(LogDisplay)(_argptr));
 			}
 			else if ( _arguments[i] == typeid(WorkDone) )
 			{
-				this.interpretWorkDoneArg(_argptr);
+				WorkDone w = va_arg!(WorkDone)(_argptr);
+			        this.showWorkDone(w.title, w.div);
 			}
 			else if ( _arguments[i] == typeid(Time) )
 			{
-				this.interpretTimeArg(_argptr);
+				this.setTimeMode(va_arg!(Time)(_argptr));
 			}
 			else if ( _arguments[i] == typeid(Percentage) )
 			{
-				this.interpretPercentageArg(_argptr);
+				this.showIterationsAsPercentage(va_arg!(Percentage)(_argptr).max_iteration);
 			}
 			else
 			{
@@ -1283,43 +1286,28 @@ deprecated public struct TraceProgress
 
 	/***************************************************************************
 
-		Activates the display of work done.
-		
+		Activates the display of work done, and sets a divider value for
+                it (if div is greater than 0).
+
 		Params:
-			_work_done_title = the unit title of the work done (eg. Mb, chars,
+			work_done_title = the unit title of the work done (eg. Mb, chars,
 			etc)
-	
-		Returns:
-			void
-	
-	***************************************************************************/
-
-	public void showWorkDone ( char[] _work_done_title )
-	{
-		this.work_done.displayAsNormal();
-		this.work_done.title = _work_done_title.dup;
-	}
-
-
-	/***************************************************************************
-
-		Activates the display of work done, and sets a divider value for it.
-		
-		Params:
-			_work_done_title = the unit title of the work done (eg. Mb, chars,
-			etc)
-			
 			div = divider for the units of work done
-	
-		Returns:
-			void
-	
+
 	***************************************************************************/
-	
-	public void showWorkDone ( char[] _work_done_title, float div )
+
+	public void showWorkDone ( char[] work_done_title, float div = -1 )
 	{
-		this.work_done.displayAsDivided(div);
-		this.work_done.title = _work_done_title.dup;
+		if ( div > 0 )
+		{
+                    this.work_done.displayAsDivided(div);
+                    this.work_done.title = work_done_title.dup;
+		}
+		else
+		{
+                    this.work_done.displayAsNormal();
+                    this.work_done.title = work_done_title.dup;
+		}
 	}
 
 
@@ -1517,70 +1505,16 @@ deprecated public struct TraceProgress
 
 	/***************************************************************************
 
-		Sets TraceProgress' title based on a Name argument from a variadic
-		arguments list.
-		
+		Sets TraceProgress' console display mode based on
+                a ConsoleDisplay.
+
 		Params:
-			arg_ptr = a variadic args pointer which is shifted on to the next
-				argument after this argument is interpreted
-	
-		Returns:
-			void
-	
+			console = console display mode
+
 	***************************************************************************/
 
-	protected void interpretNameArg ( ref void* arg_ptr )
+	protected void setConsoleDisplayMode( ConsoleDisplay console )
 	{
-		Name name = *cast(Name*) arg_ptr;
-
-		this.setTitle(name.name);
-
-		arg_ptr += name.sizeof;
-	}
-
-
-	/***************************************************************************
-
-		Sets TraceProgress' interval size based on an Interval argument from a
-		variadic arguments list.
-		
-		Params:
-			arg_ptr = a variadic args pointer which is shifted on to the next
-				argument after this argument is interpreted
-	
-		Returns:
-			void
-	
-	***************************************************************************/
-
-	protected void interpretIntervalArg ( ref void* arg_ptr )
-	{
-		Interval interval = *cast(Interval*) arg_ptr;
-
-		this.setInterval(interval.interval);
-
-		arg_ptr += Interval.sizeof;
-	}
-
-	
-	/***************************************************************************
-
-		Sets TraceProgress' console display mode based on a ConsoleDisplay
-		argument from a variadic arguments list.
-		
-		Params:
-			arg_ptr = a variadic args pointer which is shifted on to the next
-				argument after this argument is interpreted
-	
-		Returns:
-			void
-	
-	***************************************************************************/
-
-	protected void interpretConsoleDisplayArg( ref void* arg_ptr )
-	{
-		ConsoleDisplay console = *cast(ConsoleDisplay*) arg_ptr;
-
 		switch ( console )
 		{
 			case ConsoleDisplay.Off:
@@ -1605,29 +1539,20 @@ deprecated public struct TraceProgress
 				this.showConsoleSpinner(true);
 				break;
 		}
-
-		arg_ptr += ConsoleDisplay.sizeof;
 	}
 
 	/***************************************************************************
 
-		Sets TraceProgress' log display mode based on a LogDisplay argument from a
-		variadic arguments list.
-		
-		Params:
-			arg_ptr = a variadic args pointer which is shifted on to the next
-				argument after this argument is interpreted
-	
-		Returns:
-			void
-	
-	***************************************************************************/
-	
-	protected void interpretLogDisplayArg( ref void* arg_ptr )
-	{
-		LogDisplay console = *cast(LogDisplay*) arg_ptr;
+		Sets TraceProgress' log display mode based on a LogDisplay.
 
-		switch ( console )
+		Params:
+			display = log display mode
+
+	***************************************************************************/
+
+	protected void setLogDisplayMode( LogDisplay display )
+	{
+		switch ( display )
 		{
 			case LogDisplay.Off:
 				this.setLogDisplayMode(DisplayMode.Off);
@@ -1642,87 +1567,6 @@ deprecated public struct TraceProgress
 				this.setLogDisplayMode(DisplayMode.All);
 				break;
 		}
-	
-		arg_ptr += LogDisplay.sizeof;
-	}
-
-	
-	/***************************************************************************
-
-		Sets TraceProgress' time display from a Time argument from a variadic
-		arguments list.
-		
-		Params:
-			arg_ptr = a variadic args pointer which is shifted on to the next
-				argument after this argument is interpreted
-	
-		Returns:
-			void
-	
-	***************************************************************************/
-
-	protected void interpretTimeArg ( ref void* arg_ptr )
-	{
-		Time time = *cast(Time*) arg_ptr;
-
-		this.setTimeMode(time);
-
-		arg_ptr += Time.sizeof;
-	}
-
-
-	/***************************************************************************
-
-		Sets TraceProgress' iteration display to percentage mode, from a
-		Percentage argument from a variadic arguments list.
-		
-		Params:
-			arg_ptr = a variadic args pointer which is shifted on to the next
-				argument after this argument is interpreted
-	
-		Returns:
-			void
-	
-	***************************************************************************/
-	
-	protected void interpretPercentageArg ( ref void* arg_ptr )
-	{
-		Percentage percentage = *cast(Percentage*) arg_ptr;
-
-		this.showIterationsAsPercentage(percentage.max_iteration);
-	
-		arg_ptr += Percentage.sizeof;
-	}
-	
-
-	/***************************************************************************
-
-		Sets TraceProgress' work done display from a WorkDone argument from a
-		variadic arguments list.
-		
-		Params:
-			arg_ptr = a variadic args pointer which is shifted on to the next
-				argument after this argument is interpreted
-	
-		Returns:
-			void
-	
-	***************************************************************************/
-
-	protected void interpretWorkDoneArg ( ref void* arg_ptr )
-	{
-		WorkDone work_done = *cast(WorkDone*) arg_ptr;
-
-		if ( work_done.div > 0 )
-		{
-			this.showWorkDone(work_done.title, work_done.div);
-		}
-		else
-		{
-			this.showWorkDone(work_done.title);
-		}
-
-		arg_ptr += WorkDone.sizeof;
 	}
 
 
