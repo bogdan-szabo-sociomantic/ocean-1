@@ -77,6 +77,9 @@ private import ocean.util.config.ConfigParser;
 
 private import ocean.util.log.Trace;
 
+private import tango.core.Traits : DynamicArrayType;
+
+
 /*******************************************************************************
 
     Whether loose parsing is enabled or not. 

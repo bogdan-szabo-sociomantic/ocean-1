@@ -16,11 +16,13 @@ module ocean.util.app.model.ExtensibleClassMixin;
 
     Imports
 
+    Do not import stuff that's used inside the mixin implementation, see the
+    comment in ExtensibleClassMixin for more details.
+
 *******************************************************************************/
 
 // TODO: private import ocean.util.app.model.IExtension;
 
-private import tango.core.Array : sort;
 
 
 /*******************************************************************************
@@ -62,6 +64,21 @@ private import tango.core.Array : sort;
 template ExtensibleClassMixin ( ExtensionClass )
 {
 
+    /*******************************************************************************
+
+        Unfortunatelly template mixins needs to have all the symbols they use
+        available in the code making the mixing. For that reason, symbols
+        needed by this template are made public inside the template as the less
+        ugly solution. The class namespace will be polluted with the import
+        symbols but nothing else. The symbols imported are prepended with
+        mixin_ to make clear where they came from and to avoid accidental name
+        clashing.
+
+     *******************************************************************************/
+
+    private import tango.core.Array : mixin_sort = sort;
+
+
     /***************************************************************************
 
         List of extensions. Will be kept sorted by extension order when using
@@ -89,7 +106,7 @@ template ExtensibleClassMixin ( ExtensionClass )
         // TODO: Assert that we don't already have an extension of the same type
 
         this.extensions ~= ext;
-        sort(this.extensions,
+        mixin_sort(this.extensions,
             ( ExtensionClass e1, ExtensionClass e2 )
             {
                 return e1.order < e2.order;
