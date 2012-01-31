@@ -163,7 +163,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    void processArgs ( Application app, Arguments args )
+    public override void processArgs ( Application app, Arguments args )
     {
         if (!this.loose_config_parsing)
         {
@@ -188,7 +188,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    protected override void preRun ( Application app, char[][] cl_args )
+    public override void preRun ( Application app, char[][] cl_args )
     {
         foreach (ext; this.extensions)
         {
@@ -262,7 +262,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    char[] validateArgs ( Application app, Arguments args )
+    public override char[] validateArgs ( Application app, Arguments args )
     {
         // Unused
         return null;
