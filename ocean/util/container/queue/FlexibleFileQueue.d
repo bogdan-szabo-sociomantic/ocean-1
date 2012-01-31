@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    Composes a normal queue and writes anything that doesn't fit to file.
+    File-based queue implementation.
 
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
 
@@ -316,7 +316,8 @@ public class FlexibleFileQueue : IByteQueue
         
         return bytes;
     }
-    
+
+
     /***************************************************************************
 
         Finds out whether the provided number of bytes will fit in the queue.
