@@ -227,7 +227,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     /***************************************************************************
 
-        Unused IApplicationExtension methods.
+        Unused IApplicationExtension method.
 
         We just need to provide an "empty" implementation to satisfy the
         interface.
@@ -239,12 +239,14 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
         // Unused
     }
 
+    /// ditto
     public override void atExit ( Application app, char[][] args, int status,
             ExitException exception )
     {
         // Unused
     }
 
+    /// ditto
     public override ExitException onExitException ( Application app,
             char[][] args, ExitException exception )
     {
@@ -255,7 +257,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     /***************************************************************************
 
-        Unused IArgumentsExtExtension methods.
+        Unused IArgumentsExtExtension method.
 
         We just need to provide an "empty" implementation to satisfy the
         interface.
