@@ -401,7 +401,7 @@ class NotifyingByteQueue : IQueueInfo
         }
         
         this.enabled = true;
-                
+        
         foreach (notifier; this.notifiers[])
         {
             this.notify();

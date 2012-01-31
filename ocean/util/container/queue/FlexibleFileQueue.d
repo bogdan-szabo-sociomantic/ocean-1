@@ -134,16 +134,16 @@ public class FlexibleFileQueue : IByteQueue
              
     ***************************************************************************/
     
-    public this ( char[] path, ubyte size )
+    public this ( char[] path, size_t size )
     {
         
         this.path  = path.dup;
         this.size  = size;
         
-        /+if ( Filesystem.exists(this.path) )
+        if ( Filesystem.exists(this.path) )
         {
-            this.openExternal();
-        }+/
+            Filesystem.remove(this.path);
+        }
     }
     
     
@@ -160,6 +160,12 @@ public class FlexibleFileQueue : IByteQueue
     ***************************************************************************/
     
     public bool push ( ubyte[] item )
+    in
+    {
+        assert ( item.length <= this.size, 
+                 "Read buffer too small to process this item"); 
+    }
+    body
     {     
         this.handleSliceBuffer();
 
@@ -193,19 +199,31 @@ public class FlexibleFileQueue : IByteQueue
         return this.slice_push_buffer;    
     }
     
+    
     /***************************************************************************
 
-        Pops an item from the queue.
+        Reads an item from the queue.
+        
+        Params:
+            eat = whether to remove the item from the queue
     
         Returns:
-            item popped from queue, may be null if queue is empty
+            item read from queue, may be null if queue is empty
 
     ***************************************************************************/
 
     private ubyte[] getItem ( bool eat = true )
     {
-       if ( this.bytes_in_file > 0 ) try
-       {
+        this.handleSliceBuffer();
+        
+        if ( this.bytes_in_file == 0 && this.ext_out !is null )
+        {
+            this.closeExternal();
+            return null;
+        }
+        
+        if ( this.bytes_in_file > 0 ) try
+        {
             try this.ext_out.flush();
             catch ( Exception e )
             {
@@ -213,48 +231,75 @@ public class FlexibleFileQueue : IByteQueue
                 return null;
             }
             
-            Header* h;
+            Header h;
             
             if ( this.ext_in.readable() <= Header.sizeof && this.fill() == 0 )
             {
                 return null;
             }
             
-            h = Header.fromSlice(this.ext_in.slice(Header.sizeof, false));
+            h = *Header.fromSlice(this.ext_in.slice(Header.sizeof, false));
+            
+            assert ( h.length < this.size, "Unrealistic size" );
             
             if ( h.length + Header.sizeof > this.ext_in.readable() && 
                  this.fill() == 0 )
             {
                 return null;
             }
-           
-            this.ext_in.skip(Header.sizeof);
             
-            this.items_in_file -= 1;
-            this.bytes_in_file -= Header.sizeof + h.length;
+            if ( eat )
+            {
+                this.items_in_file -= 1;
+                this.bytes_in_file -= Header.sizeof + h.length;
+            }
             
-            return cast(ubyte[]) this.ext_in.slice(h.length, true);
+            return cast(ubyte[]) this.ext_in.slice(Header.sizeof + h.length, 
+                                                   eat)[Header.sizeof .. $];
         }
         catch ( Exception e )
         {
-            Trace.formatln("## ERROR: Failsafe catch triggered by exception: {}",
-                           e.msg);
+            Trace.formatln("## ERROR: Failsafe catch triggered by exception: {} ({}:{})",
+                           e.msg, e.file, e.line);
         }
         
         return null;
     }
+          
     
+    /***************************************************************************
+
+        Popps the next element
+        
+    ***************************************************************************/
+       
     public ubyte[] pop ( )
     {
         return this.getItem(); 
     }
+      
     
+    /***************************************************************************
+
+        Returns the element that would be popped next, without poppin it
+        
+    ***************************************************************************/
+       
     public ubyte[] peek ( )
     {
         return this.getItem(false); 
     }
-         
      
+    
+    /***************************************************************************
+
+        Fills the read buffer
+        
+        Returns:
+            How many new bytes were read from the file
+
+    ***************************************************************************/
+       
     private size_t fill ( )
     {
         this.ext_in.compress();
@@ -406,6 +451,11 @@ public class FlexibleFileQueue : IByteQueue
     ***************************************************************************/
         
     private bool filePush ( ubyte[] item )
+    in
+    {
+        assert ( item.length < this.size, "Pushed item will not fit read buffer");
+    }
+    body
     {
         try 
         {
@@ -454,9 +504,14 @@ public class FlexibleFileQueue : IByteQueue
     private void closeExternal ( )
     in
     {
-        assert ( this.ext_in.readable() == 0, "Still unread data in input buffer" );
-        assert ( this.bytes_in_file == 0 , "Still bytes in the file");
-        assert ( this.items_in_file == 0 , "Still items in the file");
+        assert ( this.ext_in.readable() == 0, 
+                 "Still unread data in input buffer" );
+        
+        assert ( this.bytes_in_file - this.ext_in.readable() == 0 , 
+                 "Still bytes in the file");
+        
+        assert ( this.items_in_file - this.ext_in.readable() == 0 , 
+                 "Still items in the file");
     }
     body
     {

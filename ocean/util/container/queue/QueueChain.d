@@ -126,7 +126,7 @@ public class QueueChain : IByteQueue
 
     public ubyte[] pop ( )
     {
-        if ( this.queue.is_empty() ) 
+        if ( this.queue.is_empty() == false ) 
         {
             return this.queue.pop();
         }
@@ -150,7 +150,7 @@ public class QueueChain : IByteQueue
     
     public ubyte[] peek ( )
     {
-        if ( this.queue.is_empty())
+        if ( this.queue.is_empty() == false )
         {
             return this.queue.peek();
         }
