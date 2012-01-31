@@ -1,12 +1,23 @@
 /*******************************************************************************
 
-    Composes a normal queue and writes anything that doesn't fit to file.
+    Composes two queues, with the second acting as an overflow of the first.
 
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
 
     version:        January 2012: Initial release
 
     authors:        Mathias Baumann
+
+    Items are initially pushed into the main queue until it is full. Subsequent
+    items then begin to be pushed into the swap queue and will continue doing so
+    until the swap queue becomes empty again.
+
+    Items are popped first from the main queue, and secondly from the overflow
+    queue.
+
+    The composed queues do not have to be of the same type (they are both simply
+    required to implement the IByteQueue interface). A common usage pattern is
+    to chain a file-based queue as an overflow of a memory-based queue.
 
 *******************************************************************************/
 
@@ -43,14 +54,15 @@ public class QueueChain : IByteQueue
     ***************************************************************************/
     
     private IByteQueue queue, swap;
-        
+
+
     /***************************************************************************
     
         Constructor
         
         Params:
-            queue = queue implementation that will be used
-            swap  = queue implementation that will be used as swap
+            queue = queue instance that will be used
+            swap  = queue instance that will be used as swap
              
     ***************************************************************************/
     
@@ -64,7 +76,7 @@ public class QueueChain : IByteQueue
     /***************************************************************************
     
         Pushes an item into the queue.
-    
+
         Params:
             item = data item to push
     
@@ -114,7 +126,8 @@ public class QueueChain : IByteQueue
             return this.swap.push(size);
         }
     }
-    
+
+
     /***************************************************************************
 
         Pops an item from the queue.
@@ -147,7 +160,17 @@ public class QueueChain : IByteQueue
             return this.queue.pop();
         }   
     }
+
+
+    /***************************************************************************
+
+        Peek at the next item that would be popped from the queue.
     
+        Returns:
+            item that would be popped from queue, may be null if queue is empty
+
+    ***************************************************************************/
+
     public ubyte[] peek ( )
     {
         if ( this.queue.is_empty() == false )
