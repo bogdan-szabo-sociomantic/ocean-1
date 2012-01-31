@@ -498,7 +498,7 @@ class LibDrizzleEpoll
         connection.fd = cast(ISelectClient.ISelectable.Handle) drizzle_con_fd(con);
 
         try 
-        {        
+        {
             instance.epoll.register(connection);
         }
         catch (Exception e)

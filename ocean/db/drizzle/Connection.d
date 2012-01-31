@@ -312,15 +312,15 @@ package class Connection : ISelectClient, ISelectable
                                         this.queryString.length, &returnCode);
             
             if (null is result)
-            {        
+            {
                 throw exception.reset(queryString, returnCode, 
                                       "Failed to allocate result", null);
             }
         }
-        while (retry(returnCode) && !disconnected)
-            
+        while ( retry(returnCode) && !disconnected )
+        
         scope (exit) this.resultObj.reset();
-            
+        
         if (returnCode == drizzle_return_t.DRIZZLE_RETURN_OK)
         {
             if (this.callback !is null)
@@ -339,11 +339,22 @@ package class Connection : ISelectClient, ISelectable
             }
             else
             {
-                auto msg = disconnected ? "Couldn't connect to server" : 
-                                            fromStringz(drizzle_error(
-                                 drizzle_con_drizzle(&this.connection)));
+                char[] msg;
+                
+                if ( disconnected )
+                {
+                    returnCode = drizzle_return_t.DRIZZLE_RETURN_COULD_NOT_CONNECT;
+                    msg = "Couldn't connect to server";
+                }
+                else
+                {
+                    msg = fromStringz(drizzle_error(
+                                   drizzle_con_drizzle(&this.connection)));
+                }
+
                 exception.reset(queryString, returnCode, msg, null);
             }
+            
             this.callback (this.requestContext, null, this.exception);
             
             this.reset();
@@ -417,7 +428,7 @@ package class Connection : ISelectClient, ISelectable
     protected void request ( ref LibDrizzleEpoll.DrizzleRequest request )
     in
 	{
-		assert (this.fiber.state == Fiber.State.EXEC);
+		assert (this.fiber.state == Fiber.State.EXEC, "Fiber not in state EXEC!");
 	}
     body
     {
@@ -461,7 +472,11 @@ package class Connection : ISelectClient, ISelectable
             {
                 exc.next = ex; 
                 exc      = ex;
-            }            
+            }
+            else
+            {
+                exc = ex;
+            }
         }
 
         if ( this.fiber.state == Fiber.State.TERM )
@@ -562,6 +577,11 @@ package class Connection : ISelectClient, ISelectable
             this.fiber.reset();
             this.reset();
             this.notify();            
+        }
+        catch ( Exception e )
+        {
+            Trace.formatln("FailSafe Exception Catcher triggered: {} ({}:{})",
+                           e.msg, e.file, e.line);
         }
 
         if (this.queryString.length == 0)
