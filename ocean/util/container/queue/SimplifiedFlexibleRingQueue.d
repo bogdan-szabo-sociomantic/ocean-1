@@ -56,18 +56,6 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     /***************************************************************************
 
-        The current seek position.
-
-        TODO: the class could no doubt be rephrased to not need a seek position,
-        this is purely a legacy from the old version of the RingQueue.
-
-    ***************************************************************************/
-
-    private size_t position;
-
-
-    /***************************************************************************
-
         Header for queue items
 
     ***************************************************************************/    
