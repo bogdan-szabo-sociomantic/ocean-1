@@ -59,6 +59,8 @@ version (DigitalMars) version (X86_64)
     version = DigitalMarsX86_64;
     
     private import tango.core.Vararg: va_start, va_end;
+    // implicitly referenced by the compiler... YEAH!
+    private import tango.core.Vararg: __va_argsave_t;
 }
 
 
@@ -463,7 +465,7 @@ public R vaArgCall ( R = void, A ... ) ( R delegate ( A dg_args, TypeInfo[] argu
 
         scope(exit) va_end(ap);
         
-        return dg(dg_args, arguments, ap);
+        return dg(dg_args, _arguments, ap);
     }
     else
     {
