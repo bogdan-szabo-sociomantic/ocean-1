@@ -694,7 +694,7 @@ unittest
     
     const N = 1000;
     
-    ubyte[header.length][N] start_header_data, stop_header_data;
+    ubyte[header.sizeof][N] start_header_data, stop_header_data;
     
     const C = 10;
     
