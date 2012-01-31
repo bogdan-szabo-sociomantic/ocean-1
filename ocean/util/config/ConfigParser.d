@@ -31,7 +31,7 @@ private import tango.text.convert.Integer: toLong;
 
 private import tango.text.convert.Float: toFloat;
 
-private import tango.text.Util: locate, trim, delimit;
+private import tango.text.Util: locate, trim, delimit, splitLines;
 
 private import tango.text.convert.Utf;
 
@@ -139,6 +139,39 @@ class ConfigParser
 
     private char[] configFile;
 
+
+    /***************************************************************************
+
+        Current category being parsed
+
+    ***************************************************************************/
+
+    char[] category;
+
+    /***************************************************************************
+
+        Current key being parsed
+
+    ***************************************************************************/
+
+    char[] key;
+
+    /***************************************************************************
+
+        Current value being parsed
+
+    ***************************************************************************/
+
+    char[] value;
+
+    /***************************************************************************
+
+        True if we are at the first multiline value when parsing
+
+    ***************************************************************************/
+
+    bool multiline_first = true;
+
     
     /***************************************************************************
 
@@ -240,7 +273,22 @@ class ConfigParser
         return result;
     }
 
-    
+
+    /***************************************************************************
+
+        Reset the parser internal state
+
+    ***************************************************************************/
+
+    public void resetParser ( )
+    {
+        this.value = "";
+        this.category = "";
+        this.key = "";
+        this.multiline_first = true;
+    }
+
+
     /***************************************************************************
 
         Read Config File
@@ -275,72 +323,134 @@ class ConfigParser
 
         ---
 
+        Params:
+            filePath = string that contains the path to the configuration file
+            clean_old = true if old values should be cleared before starting
+
+    ***************************************************************************/
+
+    public void parse ( char[] filePath = "etc/config.ini",
+            bool clean_old = true )
+    {
+        this.configFile = filePath;
+
+        if (clean_old)
+        {
+            this.resetParser();
+            this.properties = null;
+        }
+
+        foreach (line; new Lines!(char) (new File(this.configFile)))
+        {
+            this.parseLine(line);
+        }
+    }
+
+
+    /***************************************************************************
+
+        Parse a string
+
+        See parse() for details on the parsed syntax.
+
+        Usage Example:
+
+        ---
+
+            Config.parseString(
+                "[section]\n"
+                "key = value1\n"
+                "      value2\n"
+                "      value3\n"
+            );
+
+        ---
+
+        Params:
+            str = string to parse
+
+    ***************************************************************************/
+
+    public void parseString ( char[] str )
+    {
+        foreach (line; splitLines(str))
+        {
+            this.parseLine(line);
+        }
+    }
+
+
+    /***************************************************************************
+
+        Parse a line
+
+        See parse() for details on the parsed syntax. This method only makes
+        sense to do partial parsing of a string.
+
+        Usage Example:
+
+        ---
+
+            Config.parseLine("[section]");
+            Config.parseLine("key = value1\n");
+            Config.parseLine("      value2\n");
+            Config.parseLine("      value3\n");
+
+        ---
+
         FIXME: this method does a fair bit of 'new'ing and '.dup'ing. If we ever
         need to repeatedly read a config file, this should be reworked.
 
         Params:
-            filePath = string that contains the path to the configuration file
+            line = line to parse
 
     ***************************************************************************/
 
-    public void parse ( char[] filePath = "etc/config.ini" )
+    public void parseLine ( char[] line )
     {
-        this.configFile = filePath;
+        this.value = trim(line);
 
-        char[] text, category, key = "";
-
-        int pos;
-
-        bool multiline_first = true;
-
-        this.properties = null;
-
-        foreach (line; new Lines!(char) (new File(this.configFile)))
+        if ( this.value.length ) // ignore empty lines
         {
-            text = trim(line);
-
-            if ( text.length ) // ignore empty lines
+            bool slash_comment = this.value.length >= 2 && this.value[0 .. 2] == "//";
+            bool semicolon_comment = this.value[0] == ';';
+            if ( !slash_comment && !semicolon_comment ) // ignore comments
             {
-                bool slash_comment = text.length >= 2 && text[0 .. 2] == "//";
-                bool semicolon_comment = text[0] == ';';
-                if ( !slash_comment && !semicolon_comment ) // ignore comments
+                int pos = locate(this.value, '['); // category present in line?
+
+                if ( pos == 0 )
                 {
-                    pos = locate(text, '['); // category present in line?
+                    this.category = this.value[pos + 1 .. locate(this.value, ']')].dup;
 
-                    if ( pos == 0 )
+                    this.key = "";
+                }
+                else
+                {
+                    pos = locate(this.value, '='); // check for key value pair
+
+                    if (pos < this.value.length)
                     {
-                        category = text[pos + 1 .. locate(text, ']')].dup;
+                        this.key = trim(this.value[0 .. pos]).dup;
 
-                        key = "";
+                        this.value = trim(this.value[pos + 1 .. $]).dup;
+
+                        This.properties[this.category][this.key] = this.value;
+                        multiline_first = !this.value.length;
                     }
                     else
                     {
-                        pos = locate(text, '='); // check for key value pair
+                        this.value = trim(this.value).dup;
 
-                        if (pos < text.length)
+                        if (this.value.length)
                         {
-                            key = trim(text[0 .. pos]).dup;
-
-                            text = trim(text[pos + 1 .. $]).dup;
-
-                            This.properties[category][key] = text;
-                            multiline_first = !text.length;
-                        }
-                        else
-                        {
-                            text = trim(text).dup;
-
-                            if (text.length)
+                            if (!multiline_first)
                             {
-                                if (!multiline_first)
-                                {
-                                    This.properties[category][key] ~= '\n';
-                                }
-
-                                This.properties[category][key] ~= text;
-
-                                multiline_first = false;
+                                This.properties[this.category][this.key] ~= '\n';
                             }
+
+                            This.properties[this.category][this.key] ~= this.value;
+
+                            multiline_first = false;
                         }
                     }
                 }
