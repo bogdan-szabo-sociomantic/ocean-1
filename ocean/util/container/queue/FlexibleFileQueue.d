@@ -118,25 +118,25 @@ public class FlexibleFileQueue : IByteQueue
     
     /***************************************************************************
     
-        Size of the input buffer
+        Size of the file read buffer. It is not possible to push items which are
+        larger than this buffer size.
 
     ***************************************************************************/
         
     private size_t size;
     
     /***************************************************************************
-    
+
         Constructor
-        
+
         Params:
             path  = path to the file that will be used to swap the queue
-            queue = queue implementation that will be used
-             
+            size = size of file read buffer (== maximum item size)
+
     ***************************************************************************/
-    
+
     public this ( char[] path, size_t size )
     {
-        
         this.path  = path.dup;
         this.size  = size;
         
