@@ -312,21 +312,22 @@ public abstract class EpollProcess
 
         public bool handle ( Event event )
         {
-            if ( event & Event.Read )
+            /* It is possible to get Event.Read _and_ Hangup
+             * simultaneously. If this happens, just deal with the
+             * Read. We will be called again with the Hangup.
+             */
+            size_t received = ( event & Event.Read ) ? 
+                    this.stream.read(this.buf) : 0;
+            if ( received > 0 && received != InputStream.Eof )
             {
-                size_t received;
-                do
-                {
-                    received = this.stream.read(this.buf);
-                    if ( received > 0 && received != InputStream.Eof )
-                    {
-                        this.handle_(this.buf[0..received]);
-                    }
-                }
-                while ( received > 0 && received != InputStream.Eof );
+                this.handle_(this.buf[0..received]);
+            }
+            else if ( event & Event.Hangup )
+            {
+                return false;
             }
 
-            return !(event & Event.Hangup);
+            return true;
         }
 
 
