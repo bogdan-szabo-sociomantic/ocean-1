@@ -837,7 +837,7 @@ struct ClassIterator ( T, Source = ConfigParser )
 
             if ( key.length > root.length && key[0 .. root.length] == root )
             {
-                instance = fill(key, instance, config);
+                fill(key, instance, config);
 
                 auto name = key[root.length + 1 .. $];
                 result = dg(name, instance);
