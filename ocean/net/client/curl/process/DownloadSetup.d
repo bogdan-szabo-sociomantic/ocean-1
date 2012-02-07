@@ -76,8 +76,8 @@ private struct Serialized ( T )
 /*******************************************************************************
 
     Curl download setup struct. Instances of this struct can only be
-    created externally by calling the download() method (see below). The
-    method initialises a struct instance with the required parameters, then
+    created externally by calling the download() method (in CurlProcessMulti).
+    The method initialises a struct instance with the required parameters, then
     the struct provides methods to set the optional properties of a
     connection. When all options have been set the struct should be passed
     to the assign() method (see below).
