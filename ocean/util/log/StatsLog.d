@@ -82,6 +82,7 @@ private import ocean.util.log.MessageLogger;
 
 private import ocean.io.select.event.TimerEvent;
 private import ocean.io.select.event.IntervalClock;
+private import ocean.io.select.model.ISelectClient;
 
 private import ocean.text.util.DigitGrouping;
 

@@ -39,6 +39,7 @@ private import ocean.io.select.EpollSelectDispatcher;
 private import ocean.io.serialize.StructSerializer;
 
 private import ocean.text.convert.Layout;
+private import ocean.core.Array : copy;
 
 debug private import ocean.io.Stdout;
 

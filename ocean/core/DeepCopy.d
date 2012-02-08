@@ -214,7 +214,7 @@ public void StructDeepCopy ( T ) ( T src, ref T dst )
         }
         else static if ( is(typeof(member) S : S[]) )
         {
-            static if ( is(typeof(member) S == S[]) ) // dynamic array
+            static if ( is(typeof(member) U == S[]) ) // dynamic array
             {
                 DynamicArrayDeepCopy(src.tupleof[i], dst.tupleof[i]);
             }
