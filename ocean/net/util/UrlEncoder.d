@@ -9,8 +9,23 @@
 
     author:         David Eckardt
 
-    Only non-unreserved characters are converted. Unreserved characters are
-    the ASCII alphanumeric characters and
+      
+*******************************************************************************/
+
+module ocean.net.util.UrlEncoder;
+
+/**************************************************************************
+
+    Imports
+
+ **************************************************************************/
+
+private import tango.stdc.ctype: isgraph;
+
+/******************************************************************************
+
+    Converts non-unreserved characters. Unreserved characters are the ASCII
+    alphanumeric characters and
     
         -._~
         
@@ -23,24 +38,18 @@
     - The whitespace character 0x20 is encoded as "%20" (not "+").
     - Characters below 0x20 and above 0x7E are encoded straight away, regardless
       of any encoding or codepage. For example, the UTF-8 encoded string
-      "Münzstraße", which corresponds to the byte sequence
+      "MÃ¼nzstraÃŸe", which corresponds to the byte sequence
       [0x4D, 0xC3, 0xBC, 0x6E, 0x7A, 0x73, 0x74, 0x72, 0x61, 0xC3, 0x9F, 0x65]
-       ...M  .........ü  ....n ...z  ...s  ...t  ...r  ...a  .........ß  ...e
+       ...M  .........Ã¼  ....n ...z  ...s  ...t  ...r  ...a  .........ÃŸ  ...e
       , is encoded as "M%C3%BCnzstra%C3%9Fe".
       
-*******************************************************************************/
-
-module ocean.net.util.UrlEncoder;
-
-/******************************************************************************
-
     UrlEncoder class
     
     Memory friendly, suitable for stack-allocated 'scope' instances.
     
  ******************************************************************************/
 
-class UrlEncoder
+class EncodeNonUnreserved : PercentEncoder
 {
     /**************************************************************************
     
@@ -63,8 +72,89 @@ class UrlEncoder
         '0': true, '1': true, '2': true, '3': true, '4': true, '5': true,
         '6': true, '7': true, '8': true, '9': true,
         '-': true, '_': true, '.': true, '~': true
-    ];
+    ];    
     
+    /**************************************************************************
+    
+        Constructor
+        
+        Params: 
+            source_in = source string
+        
+     **************************************************************************/
+    
+    public this ( char[] source_in = null )
+    {
+        super(source_in);
+    }
+    
+    /**************************************************************************
+    
+        Tells whether c should be converted.
+        
+        Params:
+            c = character in question
+            
+        Returns:
+            true if c should be converted or false otherwise.
+        
+     **************************************************************************/
+    
+    protected bool encode ( char c )
+    {
+        return this.unreserved[c];
+    }
+}
+
+/******************************************************************************
+
+    Encodes all characters except the ASCII graphic, that is, encodes ASCII
+    whitespace and control characters and non-ASCII characters.
+
+ ******************************************************************************/
+
+class EncodeExceptAsciiGraph : PercentEncoder
+{
+    /**************************************************************************
+    
+        Constructor
+        
+        Params: 
+            source_in = source string
+        
+     **************************************************************************/
+    
+    public this ( char[] source_in = null )
+    {
+        super(source_in);
+    }
+    
+    /**************************************************************************
+    
+        Tells whether c should be converted.
+        
+        Params:
+            c = character in question
+            
+        Returns:
+            true if c should be converted or false otherwise.
+        
+     **************************************************************************/
+    
+    protected bool encode ( char c )
+    {
+        return !.isgraph(c);
+    }
+}
+
+/******************************************************************************
+
+    Abstract encoder
+
+ ******************************************************************************/
+
+class PercentEncoder
+{
     /**************************************************************************
     
         Source string, may be changed at any time except during encoding
@@ -111,7 +201,7 @@ class UrlEncoder
         
         foreach (i, c; this.source)
         {
-            if (!unreserved[c])
+            if (this.encode(c))
             {
                 assert (start <= i);
                 
@@ -137,6 +227,15 @@ class UrlEncoder
                 callDg(this.source[start .. $]) : result;
     }
     
+    /******************************************************************************
+
+        Encodes all characters except the ASCII graphic, that is, encodes ASCII
+        whitespace and control characters and non-ASCII characters.
+    
+     ******************************************************************************/
+    
+    protected abstract bool encode ( char c );
+    
     /**************************************************************************/
     
     unittest
@@ -145,7 +244,7 @@ class UrlEncoder
         {
             for (char c = first; c <= last; c++)
             {
-                assert (this.unreserved[c],
+                assert (EncodeNonUnreserved.unreserved[c],
                         "'" ~ c ~ "' is supposed to be unreserved");
             }
         }
@@ -156,11 +255,11 @@ class UrlEncoder
         
         foreach (c; "-_.~")
         {
-            assert (this.unreserved[c],
+            assert (EncodeNonUnreserved.unreserved[c],
                     "'" ~ c ~ "' is supposed to be unreserved");
         }
         
-        scope encoder = new typeof (this)("For example, the octet "
+        scope encoder = new EncodeNonUnreserved("For example, the octet "
         "corresponding to the tilde (\"~\") character is often encoded as "
         "\"%7E\" by older URI processing implementations; the \"%7E\" can be "
         "replaced by \"~\" without chänging its interpretation.");
