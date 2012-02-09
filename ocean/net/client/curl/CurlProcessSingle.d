@@ -174,7 +174,7 @@ private class CurlProcess : EpollProcess
     /***************************************************************************
 
         Called when the process has finished. Once this method has been
-        called, it is guaraneteed that stdout() will not be called again.
+        called, it is guaranteed that stdout() will not be called again.
 
         Params:
             exited_ok = if true, the process exited normally and the
