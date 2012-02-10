@@ -8,6 +8,12 @@
 
     authors:        Mathias Baumann
 
+    TODO
+
+    Note that the queue file is deleted in the following cases:
+        1. Upon calling the clear() method.
+        2. Upon calling pop() on an empty queue.
+
 *******************************************************************************/
 
 module ocean.util.container.queue.FlexibleFileQueue;
@@ -271,17 +277,20 @@ public class FlexibleFileQueue : IByteQueue
 
         Popps the next element
         
+        Returns:
+            item read from queue, may be null if queue is empty
+
     ***************************************************************************/
        
     public ubyte[] pop ( )
     {
-        return this.getItem(); 
+        return this.getItem();
     }
       
     
     /***************************************************************************
 
-        Returns the element that would be popped next, without poppin it
+        Returns the element that would be popped next, without poppin' it
         
     ***************************************************************************/
        
@@ -306,7 +315,7 @@ public class FlexibleFileQueue : IByteQueue
         
         auto bytes    = this.ext_in.populate();
         auto readable = this.ext_in.readable;
-        
+
         if ( (bytes == 0 || bytes == File.Eof) && 
              readable == 0)
         {
@@ -490,10 +499,10 @@ public class FlexibleFileQueue : IByteQueue
     {
         this.file_out = new File(this.path, File.WriteCreate);
         this.file_in  = new File(this.path, File.ReadExisting);
-        
-        this.ext_out = new BufferedOutput(this.file_out);    
+
+        this.ext_out = new BufferedOutput(this.file_out);
         this.ext_in  = new BufferedInput(this.file_in, this.size);
-    }
+   }
     
         
     /***************************************************************************
