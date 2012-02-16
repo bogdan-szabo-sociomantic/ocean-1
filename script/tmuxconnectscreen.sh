@@ -41,7 +41,8 @@ done
 srv_suffix='.sociomantic.com'
   if [ $location = "eu" ]; then srv_prefix='root@eq6-';
 elif [ $location = "us" ]; then srv_prefix='root@is-';
-else                            echo "location must be one of {eu, us}"; exit 1;
+elif [ $location = "asia" ]; then srv_prefix='root@ap-';
+else                            echo "location must be one of {eu, us, asia}"; exit 1;
 fi
 
 
