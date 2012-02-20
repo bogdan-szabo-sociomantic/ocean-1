@@ -343,6 +343,20 @@ class FiberSelectWriter : IFiberSelectProtocol
         return this.sent < this.data_slice.length;
     }
     
+    /**************************************************************************
+
+        Sets the TCP_CORK option. Disabling (enable = 0) sends all pending data. 
+        
+        Params:
+            enable = 0 disables TCP_CORK and flushes if previously enabled, a 
+                     different value enables TCP_CORK.
+                     
+         Returns:
+             true on success or false if setsockopt reports error. On error
+             errno is set accordingly.
+    
+     **************************************************************************/
+    
     private bool setCork ( int enable )
     {
         return !.setsockopt(super.conduit.fileHandle, .IPPROTO_TCP, .TCP_CORK,
