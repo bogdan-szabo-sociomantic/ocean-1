@@ -248,6 +248,9 @@ private class CurlProcess : EpollProcess
         {
             this.args ~= "-k";
         }
+        
+        // Switch off the URL globbing parser, so that URLs can contain {}[]
+        this.args ~= "-g";
 
         // Url
         this.args ~= this.setup.url;
