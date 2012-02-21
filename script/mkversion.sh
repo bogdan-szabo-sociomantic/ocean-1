@@ -56,28 +56,23 @@ shift `expr $OPTIND - 1`
 test -z "$template" && template="$lib_dir/ocean/script/Version.d.tpl"
 test -z "$date" && date="`$date_cmd`"
 
-# Check which type of repository we are using
-if svn info > /dev/null 2>&1
-then
-    vcs=svn
-    get_rev()
-    {
-        echo -n r
-        svnversion $1
-    }
-elif git svn info > /dev/null 2>&1
-then
-    vcs="git svn"
-    get_rev()
-    {
-        echo -n r
-        git --git-dir $1/.git svn info | grep '^Revision: ' | cut -b11-
-    }
-else
-    echo "Unknown version control system" >&2
-    echo "For now only svn and git-svn are supported" >&2
-    exit 2
-fi
+get_rev()
+{
+	# Check which type of repository we are using
+	if svn info $1 > /dev/null 2>&1
+	then
+		echo -n r
+		svnversion $1
+	elif git --git-dir $1/.git svn info > /dev/null 2>&1
+	then
+		echo -n r
+		git --git-dir $1/.git svn info | grep '^Revision: ' | cut -b11-
+	else
+		echo "Unknown version control system" >&2
+		echo "For now only svn and git-svn are supported" >&2
+		exit 2
+	fi
+}
 
 tmp=`mktemp mkversion.XXXXXXXXXX`
 
