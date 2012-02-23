@@ -104,6 +104,8 @@ public abstract class CurlDownloads
 
     public alias .ExitStatus ExitStatus;
 
+    public alias CurlProcess.HttpStatus HttpStatus;
+
 
     /***************************************************************************
 

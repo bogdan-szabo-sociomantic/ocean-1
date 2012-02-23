@@ -23,6 +23,7 @@ module ocean.net.client.curl.process.NotificationInfo;
 private import ocean.core.ContextUnion;
 
 private import ocean.net.client.curl.process.ExitStatus;
+private import ocean.net.client.curl.process.HttpResponse;
 
 
 
@@ -81,6 +82,15 @@ public struct NotificationInfo
 
     /***************************************************************************
 
+        HTTP response status (only set when type == Finished).
+
+    ***************************************************************************/
+
+    public HttpResponse.Code.BaseType http_response;
+
+
+    /***************************************************************************
+
         Tells whether the notification indicates that the download has finished
         successfully.
 
@@ -111,6 +121,19 @@ public struct NotificationInfo
     {
         return this.type == Type.Finished
             && this.status == ExitStatus.OperationTimeout;
+    }
+
+
+    /***************************************************************************
+
+        Returns:
+            pointer to text string describing http response status
+
+    ***************************************************************************/
+
+    public char[]* httpResponseString ( )
+    {
+        return HttpResponse.Code.description(this.http_response);
     }
 }
 

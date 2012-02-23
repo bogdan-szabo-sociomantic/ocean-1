@@ -31,6 +31,7 @@ module ocean.net.client.curl.CurlProcessSingle;
 private import ocean.net.client.curl.process.DownloadSetup;
 private import ocean.net.client.curl.process.NotificationInfo;
 private import ocean.net.client.curl.process.ExitStatus;
+private import ocean.net.client.curl.process.HttpResponse;
 
 private import ocean.io.select.event.EpollProcess;
 
@@ -54,6 +55,15 @@ debug private import ocean.io.Stdout;
 
 private class CurlProcess : EpollProcess
 {
+    /***************************************************************************
+
+        Local type realias.
+
+    ***************************************************************************/
+
+    public alias .HttpResponse.Code HttpStatus;
+
+
     /***************************************************************************
 
         Initialisation settings for this download. Set by the start()
@@ -91,6 +101,16 @@ private class CurlProcess : EpollProcess
     ***************************************************************************/
 
     private char[] timeout_buf;
+
+
+    /***************************************************************************
+
+        Helper struct to extract the HTTP response from the last 3 bytes
+        received from the stdout stream.
+
+    ***************************************************************************/
+
+    private HttpResponse http_response;
 
 
     /***************************************************************************
@@ -152,6 +172,8 @@ private class CurlProcess : EpollProcess
     {
         auto receive_dg = this.setup.receive_dg();
         receive_dg(this.setup.context, this.setup.url, data);
+
+        this.http_response.update(data);
     }
 
 
@@ -196,7 +218,7 @@ private class CurlProcess : EpollProcess
 
         auto notification_dg = this.setup.notification_dg();
         notification_dg(NotificationInfo(NotificationInfo.Type.Finished,
-                this.setup.context, this.setup.url, status));
+            this.setup.context, this.setup.url, status, this.http_response.code));
     }
 
 
@@ -211,6 +233,8 @@ private class CurlProcess : EpollProcess
     {
         StructSerializer!().loadSlice(this.setup, this.serialized_setup);
 
+        this.http_response.reset;
+
         auto notification_dg = this.setup.notification_dg();
         notification_dg(NotificationInfo(NotificationInfo.Type.Started,
                     this.setup.context, this.setup.url));
@@ -220,6 +244,7 @@ private class CurlProcess : EpollProcess
         // Standard options
         this.args ~= "-s"; // silent -- nothing sent to stderr
         this.args ~= "-S"; // show errors
+        this.args ~= `-w "%{http_code}"`; // output HTTP status as last 3 bytes of stdout stream
 
         // Authentication
         if ( this.setup.authentication_set )
