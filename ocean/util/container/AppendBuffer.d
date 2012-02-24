@@ -45,7 +45,7 @@ interface IAppendBufferBase
     
     Note that there is no strict write protection to an IAppendBufferReader
     instance because it is still possible to modify the content an obtained
-    slice refers to. However, this is no the intention of this interface and
+    slice refers to. However, this is not the intention of this interface and
     may not result in the desired or even result in undesired side effects.
 
  ******************************************************************************/
@@ -118,7 +118,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
 {
     /**********************************************************************
     
-        Constructor
+        Constructor without buffer preallocation
         
      **********************************************************************/
     
@@ -132,7 +132,8 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
         Constructor
         
         Params:
-            n = content length for preallocation (optional)
+            n = content length for buffer preallocation
+            limited = true: enable size limitation, false: disable
     
      **************************************************************************/
     
