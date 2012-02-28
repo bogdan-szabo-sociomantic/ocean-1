@@ -129,7 +129,11 @@ public struct HttpResponse
 
     public void update ( ubyte[] data )
     {
-        if ( data.length >= this.status_bytes )
+        if ( data.length == 0 )
+        {
+            return;
+        }
+        if ( data.length >= this.status_bytes + 1 )
         {
             this.response[] = data[$ - (this.status_bytes+1) .. $-1];
         }
@@ -137,7 +141,7 @@ public struct HttpResponse
         {
             // Shift existing bytes.
             auto copy_bytes = this.status_bytes - data.length;
-            for ( int i; i < copy_bytes; i++ )
+            for ( int i = 0; i < copy_bytes; i++ )
             {
                 this.response[i] = this.response[i + data.length];
             }
@@ -160,6 +164,12 @@ public struct HttpResponse
 
     public Code.BaseType code ( )
     {
+		// Avoid errors if it didn't receive anything at all
+		if ( this.response[0] < '0' || this.response[0] > '9' )
+		{
+			return Code.Invalid;
+		}
+		
         int integer = Integer.toLong(this.response);
         if ( Code.description(integer) !is null )
         {

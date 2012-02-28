@@ -104,6 +104,8 @@ private import tango.sys.Process;
 
 debug private import ocean.io.Stdout;
 
+private import ocean.util.log.Trace;
+
 
 
 /*******************************************************************************
@@ -291,6 +293,12 @@ public abstract class EpollProcess
         {
             return Event.Read;
         }
+	
+		protected void error_ ( Exception exception, Event event )
+		{
+			Trace.formatln("EPOLL error {} event = {}", exception.msg, event);			
+		}
+    
 
 
         /***********************************************************************
