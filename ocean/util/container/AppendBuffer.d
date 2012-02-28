@@ -19,6 +19,16 @@
 
 module ocean.util.container.AppendBuffer;
 
+/******************************************************************************
+
+    Imports
+
+ ******************************************************************************/
+
+private import tango.stdc.stdlib: malloc, realloc, free;
+
+private import tango.core.Exception: onOutOfMemoryError;
+
 debug private import ocean.util.log.Trace;
 
 /******************************************************************************
@@ -52,6 +62,9 @@ interface IAppendBufferBase
 
 interface IAppendBufferReader ( T ) : IAppendBufferBase
 {
+    alias T ElementType;
+    const element_size = T.sizeof;
+    
     /**************************************************************************
     
         Returns the i-th element in content.
@@ -108,13 +121,40 @@ interface IAppendBufferReader ( T ) : IAppendBufferBase
 }
 
 /******************************************************************************
- 
+     
+    AppendBuffer class template
+     
     Template params:
-        T = array element type
+        T          = array element type
+        use_malloc = true:  use malloc()/realloc()/free() to (re/de)allocate
+                            the content buffer
+                     false: use new/dynamic array resizing/delete
  
  ******************************************************************************/
 
-public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
+public template AppendBuffer ( T, bool use_malloc = false )
+{
+    static if (use_malloc)
+    {
+        alias AppendBuffer!(T, MallocAppendBufferImpl) AppendBuffer;
+    }
+    else
+    {
+        alias AppendBuffer!(T, AppendBufferImpl) AppendBuffer;
+    }
+}
+
+/******************************************************************************
+
+    AppendBuffer class template
+
+    Template params:
+        T    = array element type
+        Base = base class
+
+******************************************************************************/
+
+public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferReader!(T)
 {
     /**********************************************************************
     
@@ -141,7 +181,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
     {
         super(T.sizeof, n);
         
-        super.limited = limited;
+        this.limited = limited;
     }
     
     /**************************************************************************
@@ -158,7 +198,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
 
     T opIndex ( size_t i )
     {
-        return *cast (T*) super.index_(i);
+        return *cast (T*) this.index_(i);
     }
     
     /**************************************************************************
@@ -175,7 +215,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
 
     T opIndexAssign ( T val, size_t i )
     {
-        return *cast (T*) super.index_(i) = val;
+        return *cast (T*) this.index_(i) = val;
     }
     
     /**************************************************************************
@@ -187,7 +227,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
 
     T[] opSlice ( )
     {
-        return cast (T[]) super.slice_();
+        return cast (T[]) this.slice_();
     }
     
     /**************************************************************************
@@ -207,7 +247,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
 
     T[] opSlice ( size_t start, size_t end )
     {
-        return cast (T[]) super.slice_(start, end);
+        return cast (T[]) this.slice_(start, end);
     }
     
     /**************************************************************************
@@ -224,7 +264,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
 
     T[] tail ( size_t start )
     {
-        return this[start .. super.length];
+        return this[start .. this.length];
     }
     
     /**************************************************************************
@@ -241,7 +281,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
 
     T[] opSliceAssign ( T[] chunk )
     {
-        return cast (T[]) super.copy_(chunk);
+        return cast (T[]) this.copy_(chunk);
     }
     
     /**************************************************************************
@@ -260,7 +300,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
 
     T[] opSliceAssign ( T[] chunk, size_t start, size_t end )
     {
-        return cast (T[]) super.copy_(chunk, start, end);
+        return cast (T[]) this.copy_(chunk, start, end);
     }
     
     /**************************************************************************
@@ -357,13 +397,13 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
     T cut ( )
     in
     {
-        assert (super.length, "cannot cut last element: content is empty");
+        assert (this.length, "cannot cut last element: content is empty");
     }
     body
     {
-        size_t n = super.length - 1;
+        size_t n = this.length - 1;
  
-        scope (success) super.length = n;
+        scope (success) this.length = n;
         
         return this[n];
     }
@@ -389,10 +429,10 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
     }
     body
     {
-        size_t end   = super.length,
+        size_t end   = this.length,
         start = (end >= n)? end - n : 0;
         
-        scope (success) super.length = start;
+        scope (success) this.length = start;
         
         return this[start .. end];
     }
@@ -413,7 +453,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
 
     T[] dump ( )
     {
-        scope (success) super.length = 0;
+        scope (success) this.length = 0;
         
         return this[];
     }
@@ -435,7 +475,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
     
     T[] append ( U ... ) ( U chunks )
     {
-        size_t start = super.length;
+        size_t start = this.length;
         
         Top: foreach (i, chunk; chunks)
         {
@@ -498,7 +538,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
     
     T[] extend ( size_t n )
     {
-        return cast (T[]) super.extend_(n);
+        return cast (T[]) this.extend_(n);
     }
     
     /**************************************************************************
@@ -510,7 +550,7 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
 
     T* ptr ( )
     {
-        return cast (T*) super.index_(0);
+        return cast (T*) this.index_(0);
     }
     
     /**************************************************************************
@@ -529,7 +569,11 @@ public class AppendBuffer ( T ) : AppendBufferImpl, IAppendBufferReader!(T)
     }
 }
 
-/******************************************************************************/
+/******************************************************************************
+
+    Generic append buffer
+
+ ******************************************************************************/
 
 private abstract class AppendBufferImpl: IAppendBufferBase
 {
@@ -546,7 +590,7 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     
      **************************************************************************/
 
-    private ubyte[] content;
+    private void[] content;
     
     /**************************************************************************
     
@@ -581,8 +625,8 @@ private abstract class AppendBufferImpl: IAppendBufferBase
 
     private struct LimitInvariants
     {
-        private ubyte* ptr = null;
-        size_t         len;
+        private void* ptr = null;
+        size_t        len;
     }
     
     private LimitInvariants limit_invariants;
@@ -623,13 +667,15 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     protected this ( size_t e, size_t n = 0 )
     in
     {
-        assert (e);
+        assert (e, typeof (this).stringof ~ ": element size must be at least 1");
     }
     body
     {
         this.e = e;
         
-        this.content = new ubyte[e * n];
+//        this.content = new ubyte[e * n];
+
+        this.content = this.newContent(e * n);
     }
     
     /**************************************************************************
@@ -773,7 +819,7 @@ private abstract class AppendBufferImpl: IAppendBufferBase
             }
             else
             {
-                this.content.length = len;
+                this.setContentLength(this.content, len);
             }
         }
         
@@ -848,7 +894,7 @@ private abstract class AppendBufferImpl: IAppendBufferBase
             capacity = this.n;
         }
         
-        this.content.length = capacity * this.e;
+        this.setContentLength(this.content, capacity * this.e);
         
         return capacity;
     }
@@ -870,7 +916,7 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     {
         scope (success)
         {
-            this.content.length = this.n * this.e;
+            this.setContentLength(this.content, this.n * this.e);
         }
         
         return this.content.length / this.e;
@@ -963,31 +1009,31 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     
      **************************************************************************/
 
-    protected void[] copy_ ( void[] chunk )
+    protected void[] copy_ ( void[] src )
     in
     {
-        assert (!(chunk.length % this.e), typeof (this).stringof ~ ": data alignment mismatch");
+        assert (!(src.length % this.e), typeof (this).stringof ~ ": data alignment mismatch");
     }
-    out (slice)
+    out (dst)
     {
         if (this.limited_)
         {
-            assert (slice.length <= chunk.length);
+            assert (dst.length <= src.length);
         }
         else
         {
-            assert (slice.length == chunk.length);
+            assert (dst.length == src.length);
         }
     }
     body
     {
         this.n = 0;
         
-        void[] content = this.extendBytes(chunk.length);
+        void[] dst = this.extendBytes(src.length);
         
-        assert (content.ptr is this.content.ptr);
+        assert (dst.ptr is this.content.ptr);
         
-        return content[] = cast (ubyte[]) chunk[0 .. content.length];
+        return dst[] = src[0 .. dst.length];
     }
     
     /**************************************************************************
@@ -1062,7 +1108,7 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     
      **************************************************************************/
 
-    private void[] extendBytes ( size_t extent )
+    protected void[] extendBytes ( size_t extent )
     in
     {
         assert (!(extent % this.e));
@@ -1093,7 +1139,7 @@ private abstract class AppendBufferImpl: IAppendBufferBase
             }
             else
             {
-                this.content.length = newlen;
+                this.setContentLength(this.content, newlen);
             }
         }
         
@@ -1111,9 +1157,295 @@ private abstract class AppendBufferImpl: IAppendBufferBase
 
     protected override void dispose ( )
     {
-        delete this.content;
+        this.deleteContent(this.content);
+    }
+    
+    /**************************************************************************
+    
+        Allocates a dynamic array of n bytes for the content.
         
-        this.content = null;
+        Params:
+            n = content array length
+        
+        Returns:
+            a newly allocated dynamic array. 
+        
+        In:
+            n must not be zero.
+        
+        Out:
+            The array length must be n.
+        
+     **************************************************************************/
+    
+    protected void[] newContent ( size_t n )
+    in
+    {
+        assert (n, typeof (this).stringof ~ ".newContent: attempted to allocate zero bytes");
+    }
+    out (content_)
+    {
+        assert (content_.length == n);
+    }
+    body
+    {
+        return new ubyte[n];
+    }
+    
+    /**************************************************************************
+    
+        Sets the content array length to n.
+        
+        Params:
+            content_ = content array, previously allocated by newContent() or
+                       modified by setContentLength()
+            n        = new content array length, may be zero
+        
+        Out:
+            content_.length must be n. That means, if n is 0, content_ may be
+            null. 
+        
+     **************************************************************************/
+    
+    protected void setContentLength ( ref void[] content_, size_t n )
+    out
+    {
+        assert (content_.length == n);
+    }
+    body
+    {
+        content_.length = n;
+    }
+    
+    /**************************************************************************
+    
+        Deallocates the content array.
+        
+        Params:
+            content_ = content array, previously allocated by newContent() or
+                       modified by setContentLength()
+        
+     **************************************************************************/
+    
+    protected void deleteContent ( ref void[] content_ )
+    {
+        delete content_;
+    }
+}
+
+/******************************************************************************
+
+    Generic append buffer, uses malloc()/realloc()/free().
+
+ ******************************************************************************/
+
+private abstract class MallocAppendBufferImpl: AppendBufferImpl
+{
+    /**************************************************************************
+    
+        Constructor
+        
+        Params:
+            e = element size (non-zero)
+            n = number of elements in content for preallocation (optional)
+    
+     **************************************************************************/
+    
+    protected this ( size_t e, size_t n = 0 )
+    {
+        super(e, n);
+    }
+    
+    /**************************************************************************
+    
+        Allocates a dynamic array of n bytes for the content.
+        
+        Params:
+            n = content array length
+        
+        Returns:
+            a newly allocated dynamic array. 
+        
+        In:
+            n must not be zero.
+        
+     **************************************************************************/
+    
+    protected override void[] newContent ( size_t n )
+    in
+    {
+        assert (n, typeof (this).stringof ~ ".newContent: attempted to allocate zero bytes");
+    }
+    body
+    {
+        return this.newArray(n);
+    }
+    
+    /**************************************************************************
+        
+        Sets the content array length to n.
+        
+        Params:
+            content_ = content array, previously allocated by newContent() or
+                       modified by setContentLength()
+            n        = new content array length, may be zero
+        
+     **************************************************************************/
+    
+    protected override void setContentLength ( ref void[] content_, size_t n )
+    {
+        content_ = this.arrayLength(content_, n);
+    }
+    
+    /**************************************************************************
+    
+        Deallocates the content array.
+        
+        Params:
+            content_ = content array, previously allocated by newContent() or
+                       modified by setContentLength()
+        
+     **************************************************************************/
+    
+    protected override void deleteContent ( ref void[] content_ )
+    {
+        this.deleteArray(content_.ptr);
+        content = null;
+    }
+    
+    /**************************************************************************
+    
+        Allocates a new dynamic array of n elements using malloc().
+        
+        Template params:
+            T = element type
+        
+        Params:
+            n = length of the new array
+            
+        Returns:
+            a new array or null if n is null
+        
+     **************************************************************************/
+    
+    static T[] newArray ( T = void ) ( size_t n )
+    {
+        return n? cast (T[]) newArray_(n * T.sizeof) : null;
+    }
+    
+    /**************************************************************************
+    
+        Resizes array to length n using realloc() (or free() if n is 0).
+        Has the same effect as newArray() if array is null.
+        
+        Params:
+            array = array to resize, previously allocated using newArray, or
+                    null
+            n     = new array length
+            
+        Returns:
+            the resized array or null if n is 0.
+        
+     **************************************************************************/
+    
+    static T[] arrayLength ( T = void ) ( T[] array, size_t n )
+    {
+        return cast (T[]) arrayLength_(array, n * T.sizeof);
+    }
+    
+    /**************************************************************************
+    
+        Deallocates the dynamic array referred to by ptr using free(). Does
+        nothing if ptr is null.
+        
+        Params:
+            ptr = .ptr property of the array to deallocate, previously allocated
+                  by newArray and/or modified by arrayLength().
+            
+        Returns:
+            the resized array or null if n is 0.
+        
+     **************************************************************************/
+    
+    static void deleteArray ( void* ptr )
+    {
+        if (ptr)
+        {
+            free(ptr);
+        }
+    }
+    
+    /**************************************************************************
+    
+        Allocates a new dynamic array of n bytes using malloc().
+        
+        Params:
+            n = length of the new array
+            
+        Returns:
+            a new array or null if n is null
+        
+     **************************************************************************/
+    
+    private static void[] newArray_ ( size_t n )
+    in
+    {
+        assert (n);
+    }
+    body
+    {
+        void* ptr = malloc(n);
+        
+        if (ptr)
+        {
+            return ptr[0 .. n];
+        }
+        else
+        {
+            onOutOfMemoryError();
+        }
+    }
+    
+    /**************************************************************************
+    
+        Resizes array to length n using realloc() (or free() if n is 0).
+        Has the same effect as newArray() if array is null.
+        
+        Params:
+            array = array to resize, previously allocated using newArray, or
+                    null
+            n     = new array length
+            
+        Returns:
+            the resized array or null if n is 0.
+        
+     **************************************************************************/
+    
+    private static void[] arrayLength_ ( void[] array, size_t n )
+    {
+        if (n != array.length)
+        {
+            if (n)
+            {
+                void* ptr = realloc(array.ptr, n);
+                
+                if (ptr)
+                {
+                    array = ptr[0 .. n];
+                }
+                else
+                {
+                    onOutOfMemoryError();
+                }
+            }
+            else
+            {
+                deleteArray(array.ptr);
+                array = null;
+            }
+        }
+        
+        return array;
     }
 }
 
