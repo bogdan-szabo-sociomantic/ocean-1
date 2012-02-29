@@ -673,9 +673,10 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     {
         this.e = e;
         
-//        this.content = new ubyte[e * n];
-
-        this.content = this.newContent(e * n);
+        if (n)
+        {
+            this.content = this.newContent(e * n);
+        }
     }
     
     /**************************************************************************
@@ -1157,7 +1158,10 @@ private abstract class AppendBufferImpl: IAppendBufferBase
 
     protected override void dispose ( )
     {
-        this.deleteContent(this.content);
+        if (this.content)
+        {
+            this.deleteContent(this.content);
+        }
     }
     
     /**************************************************************************
@@ -1210,7 +1214,8 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     protected void setContentLength ( ref void[] content_, size_t n )
     out
     {
-        assert (content_.length == n);
+        assert (content_.length == n,
+                typeof (this).stringof ~ ".setContentLength: content length mismatch");
     }
     body
     {
@@ -1228,6 +1233,12 @@ private abstract class AppendBufferImpl: IAppendBufferBase
      **************************************************************************/
     
     protected void deleteContent ( ref void[] content_ )
+    in
+    {
+        assert (content_,
+                typeof (this).stringof ~ ".deleteContent: content_ is null");
+    }
+    body
     {
         delete content_;
     }
