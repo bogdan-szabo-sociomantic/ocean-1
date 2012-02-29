@@ -178,7 +178,7 @@ public class SafeFork
     {
         return this.child_pid == 0
             ? false
-            : this.isRunning(false, true);
+            : this.isRunning(false, false);
     }
 
     /***************************************************************************
@@ -209,6 +209,10 @@ public class SafeFork
         {
             if ( block )
             {
+                version ( TimeFork )
+                {
+                    Stdout.formatln("Running task without forking...");
+                }
                 this.dg();
 
                 this.child_pid = 0;
