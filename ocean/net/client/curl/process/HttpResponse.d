@@ -133,9 +133,9 @@ public struct HttpResponse
         {
             return;
         }
-        if ( data.length >= this.status_bytes + 1 )
+        if ( data.length >= this.status_bytes)
         {
-            this.response[] = data[$ - (this.status_bytes+1) .. $-1];
+            this.response[] = data[$ - this.status_bytes .. $];
         }
         else
         {
