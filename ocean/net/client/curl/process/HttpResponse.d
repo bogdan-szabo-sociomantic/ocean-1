@@ -107,13 +107,13 @@ public struct HttpResponse
 
     /***************************************************************************
 
-        Resets the internal status code to the defautl (-1 : invalid).
+        Resets the internal status code to the an invalid default value
 
     ***************************************************************************/
 
     public void reset ( )
     {
-        this.response[] = cast(ubyte[])" -1";
+        this.response[] = cast(ubyte[])"   ";
     }
 
 
