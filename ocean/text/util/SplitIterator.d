@@ -634,8 +634,10 @@ abstract class ISplitIterator
                 if (result || start >= this.content.length) break;
             }
             
+            this.remaining_ = this.content[start .. $];
+            
             if (this.include_remaining &&
-                !(result || (start >= this.content.length && this.collapse)))
+                !(result || (!this.remaining_.length && this.collapse)))
             {
                 this.n_++;
                 
