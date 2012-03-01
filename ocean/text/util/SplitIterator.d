@@ -641,10 +641,12 @@ abstract class ISplitIterator
             {
                 this.n_++;
                 
-                result = with_pos? dg.with_pos(start, this.remaining_) :
-                                   dg.without_pos(this.remaining_);
+                char[] segment = this.remaining_;
                 
                 this.remaining_ = "";
+                
+                result = with_pos? dg.with_pos(start, segment) :
+                                   dg.without_pos(segment);
             }
         }
         
