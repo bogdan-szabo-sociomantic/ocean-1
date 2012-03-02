@@ -114,48 +114,49 @@ private import tango.sys.linux.consts.fcntl : O_NONBLOCK;
 debug private import ocean.io.Stdout;
 
 
-
-/*******************************************************************************
-
-    Definition of external functions required to manage signal events.
-
-*******************************************************************************/
-
-private extern ( C ) int signalfd ( int fd, sigset_t* mask, int flags );
-
-
-
-/*******************************************************************************
-
-    Struct used by signal notification.
-
-*******************************************************************************/
-
-public struct signalfd_siginfo
+extern ( C )
 {
-    uint ssi_signo;    /* Signal number */
-    int  ssi_errno;    /* Error number (unused) */
-    int  ssi_code;     /* Signal code */
-    uint ssi_pid;      /* PID of sender */
-    uint ssi_uid;      /* Real UID of sender */
-    int  ssi_fd;       /* File descriptor (SIGIO) */
-    uint ssi_tid;      /* Kernel timer ID (POSIX timers) */
-    uint ssi_band;     /* Band event (SIGIO) */
-    uint ssi_overrun;  /* POSIX timer overrun count */
-    uint ssi_trapno;   /* Trap number that caused signal */
-    int  ssi_status;   /* Exit status or signal (SIGCHLD) */
-    int  ssi_int;      /* Integer sent by sigqueue(2) */
-    ulong ssi_ptr;     /* Pointer sent by sigqueue(2) */
-    ulong ssi_utime;   /* User CPU time consumed (SIGCHLD) */
-    ulong ssi_stime;   /* System CPU time consumed (SIGCHLD) */
-    ulong ssi_addr;    /* Address that generated signal
-                          (for hardware-generated signals) */
-    ubyte[48] pad;     /* Pad size to 128 bytes (allow for
-                          additional fields in the future) */
-
-    static assert(signalfd_siginfo.sizeof == 128);
+    /***************************************************************************
+    
+        Definition of external functions required to manage signal events.
+    
+    ***************************************************************************/
+    
+    private int signalfd ( int fd, sigset_t* mask, int flags );
+    
+    
+    
+    /***************************************************************************
+    
+        Struct used by signal notification.
+    
+    ***************************************************************************/
+    
+    public struct signalfd_siginfo
+    {
+        uint ssi_signo;    /* Signal number */
+        int  ssi_errno;    /* Error number (unused) */
+        int  ssi_code;     /* Signal code */
+        uint ssi_pid;      /* PID of sender */
+        uint ssi_uid;      /* Real UID of sender */
+        int  ssi_fd;       /* File descriptor (SIGIO) */
+        uint ssi_tid;      /* Kernel timer ID (POSIX timers) */
+        uint ssi_band;     /* Band event (SIGIO) */
+        uint ssi_overrun;  /* POSIX timer overrun count */
+        uint ssi_trapno;   /* Trap number that caused signal */
+        int  ssi_status;   /* Exit status or signal (SIGCHLD) */
+        int  ssi_int;      /* Integer sent by sigqueue(2) */
+        ulong ssi_ptr;     /* Pointer sent by sigqueue(2) */
+        ulong ssi_utime;   /* User CPU time consumed (SIGCHLD) */
+        ulong ssi_stime;   /* System CPU time consumed (SIGCHLD) */
+        ulong ssi_addr;    /* Address that generated signal
+                              (for hardware-generated signals) */
+        ubyte[48] pad;     /* Pad size to 128 bytes (allow for
+                              additional fields in the future) */
+    
+        static assert(signalfd_siginfo.sizeof == 128);
+    }
 }
-
 
 
 /*******************************************************************************
@@ -265,9 +266,9 @@ public class SignalFD : ISelectable
 
     ***************************************************************************/
 
-    private SignalErrnoException errno_exception;
+    private const SignalErrnoException errno_exception;
 
-    private SignalException exception;
+    private const SignalException exception;
 
 
     /***************************************************************************
@@ -277,7 +278,7 @@ public class SignalFD : ISelectable
 
     ***************************************************************************/
 
-    private int fd;
+    private const int fd;
 
 
     /***************************************************************************
@@ -286,7 +287,7 @@ public class SignalFD : ISelectable
 
     ***************************************************************************/
 
-    private int[] signals;
+    private const int[] signals;
 
 
     /***************************************************************************
