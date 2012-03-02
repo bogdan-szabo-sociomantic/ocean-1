@@ -193,9 +193,19 @@ public class ErrnoIOException : IOException
         super.file.copy(file);
         super.line = line;
     }
+    
+    /**************************************************************************
+    
+        Called immediately when this instance is deleted.
+        (Must be protected to prevent an invariant from failing.)
+    
+     **************************************************************************/
+
+    protected override void dispose ( )
+    {
+        delete super.msg;
+    }
 }
-
-
 
 /******************************************************************************
 
