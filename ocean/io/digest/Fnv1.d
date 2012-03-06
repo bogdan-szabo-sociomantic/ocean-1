@@ -45,6 +45,22 @@ alias Fnv1Generic!(true)          Fnv1a;
 alias Fnv1Generic!(true,  uint)   Fnv1a32;
 alias Fnv1Generic!(true,  ulong)  Fnv1a64;
 
+
+abstract class FnvDigest : Digest
+{
+    /**************************************************************************
+
+        Simply returns the digest as an ulong independently of the digest size
+        and reset the internal state.
+
+        Returns:
+             digest
+
+     **************************************************************************/
+    abstract ulong ulongDigest ( );
+}
+
+
 /*******************************************************************************
 
         Fowler / Noll / Vo (FNV) 1/1a Hash Module
@@ -146,7 +162,7 @@ alias Fnv1Generic!(true,  ulong)  Fnv1a64;
 
 *******************************************************************************/
 
-class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : Digest
+class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 {
     /**************************************************************************
 
@@ -382,6 +398,24 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : Digest
     public DigestType getDigest ( )
     {
         return this.digest;
+    }
+
+
+
+    /**************************************************************************
+
+        Simply returns the digest as an ulong independently of the digest size
+        and reset the internal state.
+
+        Returns:
+             digest
+
+     **************************************************************************/
+    public ulong ulongDigest ( )
+    {
+        ulong d = this.digest;
+        this.reset();
+        return d;
     }
 
 
