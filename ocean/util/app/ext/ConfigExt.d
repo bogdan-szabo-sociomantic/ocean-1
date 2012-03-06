@@ -29,7 +29,7 @@ private import ocean.util.Config;
 private import ocean.util.config.ConfigParser;
 private import ocean.text.Arguments;
 
-private import tango.text.Util : join;
+private import tango.text.Util : join, locate;
 private import tango.core.Exception : IOException;
 
 
@@ -152,6 +152,9 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
             args("loose-config-parsing").params(0)
                 .help("ignore unknown configuration parameters in config file");
         }
+        args("override-config").aliased('O').params(1).smush()
+            .help("override a configuration value (example: "
+                    "-O'[section-name]config-value = \"something\"') ");
     }
 
 
@@ -169,6 +172,63 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
         {
             this.loose_config_parsing = args("loose-config-parsing").set;
         }
+    }
+
+
+    /***************************************************************************
+
+        Process overrided config options
+
+    ***************************************************************************/
+
+    public void processOverrides ( Arguments args )
+    {
+        foreach (opt; args("override-config").assigned)
+        {
+            this.config.resetParser();
+
+            auto section_end = locate(opt, ']');
+            auto section = opt[0 .. section_end];
+            this.config.parseLine(section);
+
+            auto remaining = opt[section_end + 1 .. $];
+            this.config.parseString(remaining);
+        }
+    }
+
+
+    /***************************************************************************
+
+        Do a simple validation over override-config arguments
+
+    ***************************************************************************/
+
+    public override char[] validateArgs ( Application app, Arguments args )
+    {
+        char[][] errors;
+        foreach (opt; args("override-config").assigned)
+        {
+            int pos = locate(opt, ']');
+            if (pos >= opt.length)
+            {
+                errors ~= "bad override '" ~ opt ~ "', no section found";
+                continue;
+            }
+            int pos2 = locate(opt, '=');
+            if (pos2 >= opt.length)
+            {
+                errors ~= "bad override '" ~ opt ~ "', no key found";
+                continue;
+            }
+            if (pos2 < pos)
+            {
+                errors ~= "bad override '" ~ opt ~ "', section expected "
+                        "before key";
+                continue;
+            }
+        }
+
+        return join(errors, ", ");
     }
 
 
@@ -201,21 +261,29 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
         {
             config_files ~= args_ext.args("config").assigned;
         }
+
         foreach (e; this.extensions)
         {
             config_files = e.filterConfigFiles(app, this.config, config_files);
         }
+
         foreach (config_file; config_files)
         {
             try
             {
-                this.config.parse(config_file);
+                this.config.resetParser();
+                this.config.parse(config_file, false);
             }
             catch (IOException e)
             {
                 app.exit(3, "Error reading config file '" ~ config_file ~
                         "': " ~ e.toString());
             }
+        }
+
+        if (args_ext !is null)
+        {
+            this.processOverrides(args_ext.args);
         }
 
         foreach (ext; this.extensions)
@@ -252,22 +320,6 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
     {
         // Unused
         return exception;
-    }
-
-
-    /***************************************************************************
-
-        Unused IArgumentsExtExtension method.
-
-        We just need to provide an "empty" implementation to satisfy the
-        interface.
-
-    ***************************************************************************/
-
-    public override char[] validateArgs ( Application app, Arguments args )
-    {
-        // Unused
-        return null;
     }
 
 }

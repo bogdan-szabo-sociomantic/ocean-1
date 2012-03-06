@@ -57,7 +57,9 @@ private import ocean.util.app.ext.model.IArgumentsExtExtension;
         int r;
         this ( )
         {
-            super("returner", "Returns an arbitrary error code to the OS");
+            super("returner", "Returns an arbitrary error code to the OS",
+                    "{0} [OPTIONS]", "This program is a simple test for the "
+                    "CommandLineApp class, and this is a sample help text");
         }
         public override void setupArgs( Application app, Arguments args )
         {
@@ -122,16 +124,22 @@ abstract class CommandLineApp : Application, IArgumentsExtExtension
         not call any extension or user code. The application runs only when the
         main() method is called.
 
+        See ocean.text.Arguments for details on format of the parameters.
+
         Params:
-            name = name of the application
-            desc = short description of the application
+            name = Name of the application (to show in the help message)
+            desc = Short description of what the program does (should be
+                         one line only, preferably less than 80 characters)
+            usage = How the program is supposed to be invoked
+            help = Long description of what the program does and how to use it
 
     ***************************************************************************/
 
-    this ( char[] name, char[] desc )
+    public this ( char[] name, char[] desc,
+            char[] usage = null, char[] help = null )
     {
         super(name, desc);
-        this.args_ext = new ArgumentsExt;
+        this.args_ext = new ArgumentsExt(name, desc, usage, help);
         this.args = this.args_ext.args;
         this.args_ext.registerExtension(this);
         this.registerExtension(this.args_ext);

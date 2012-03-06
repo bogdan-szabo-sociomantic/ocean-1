@@ -60,7 +60,9 @@ private import ocean.util.app.ext.ConfigExt;
         int r;
         this ( )
         {
-            super("returner", "Returns an arbitrary error code to the OS");
+            super("returner", "Returns an arbitrary error code to the OS",
+                    "{0} [OPTIONS]", "This program is a simple test for the "
+                    "ConfiguredCliApp class, and this is a sample help text");
         }
         public override void setupArgs( Application app, Arguments args )
         {
@@ -130,6 +132,43 @@ abstract class ConfiguredCliApp : CommandLineApp, IConfigExtExtension
         main() method is called.
 
         Params:
+            name = Name of the application (to show in the help message)
+            desc = Short description of what the program does (should be
+                         one line only, preferably less than 80 characters)
+            usage = How the program is supposed to be invoked
+            help = Long description of what the program does and how to use it
+            loose_config_parsing = if true, configuration files will be parsed
+                                   in a more relaxed way
+            default_configs = default configuration files to parse
+            config = configuration parser to use, defaults to the global
+                     instance provided by the ocean.util.Config module.
+
+    ***************************************************************************/
+
+    this ( char[] name, char[] desc, char[] usage = null, char[] help = null,
+            bool loose_config_parsing = false,
+            char[][] default_configs = [ "etc/config.ini" ],
+            ConfigParser config = null )
+    {
+        super(name, desc, usage, help);
+        this.config_ext = new ConfigExt(loose_config_parsing, default_configs,
+                config);
+        this.config = this.config_ext.config;
+        this.config_ext.registerExtension(this);
+        this.registerExtension(this.config_ext);
+        this.args_ext.registerExtension(this.config_ext);
+    }
+
+
+    /***************************************************************************
+
+        Constructor.
+
+        This constructor only setup the internal state of the class, but does
+        not call any extension or user code. The application runs only when the
+        main() method is called.
+
+        Params:
             name = name of the application
             desc = short description of the application
             loose_config_parsing = if true, configuration files will be parsed
@@ -140,6 +179,7 @@ abstract class ConfiguredCliApp : CommandLineApp, IConfigExtExtension
 
     ***************************************************************************/
 
+    deprecated
     this ( char[] name, char[] desc, bool loose_config_parsing = false,
             char[][] default_configs = [ "etc/config.ini" ],
             ConfigParser config = null )

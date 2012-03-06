@@ -98,15 +98,19 @@ abstract class VersionedCliApp : CommandLineApp
         main() method is called.
 
         Params:
-            name = name of the application
-            desc = short description of the application
+            name = Name of the application (to show in the help message)
+            desc = Short description of what the program does (should be
+                         one line only, preferably less than 80 characters)
             ver = application's version information
+            usage = How the program is supposed to be invoked
+            help = Long description of what the program does and how to use it
 
     ***************************************************************************/
 
-    this ( char[] name, char[] desc, VersionInfo ver )
+    this ( char[] name, char[] desc, VersionInfo ver,
+            char[] usage = null, char[] help = null )
     {
-        super(name, desc);
+        super(name, desc, usage, help);
         this.ver_ext = new VersionArgsExt(ver);
         this.ver = this.ver_ext.ver;
         this.args_ext.registerExtension(this.ver_ext);

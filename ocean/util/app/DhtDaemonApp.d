@@ -58,7 +58,9 @@ private import ocean.util.app.ext.DhtClientExt;
         this ( )
         {
             super("returner", "Returns an arbitrary error code to the OS",
-                    new VersionInfo);
+                    new VersionInfo, "{0} [OPTIONS]",
+                    "This program is a simple test for the DhtDaemonApp "
+                    "class, and this is a sample help text");
         }
         public override void setupArgs( Application app, Arguments args )
         {
@@ -147,9 +149,12 @@ abstract class DhtDaemonApp : LoggedCliApp
         main() method is called.
 
         Params:
-            name = name of the application
-            desc = short description of the application
+            name = Name of the application (to show in the help message)
+            desc = Short description of what the program does (should be
+                         one line only, preferably less than 80 characters)
             ver = application's version information
+            usage = How the program is supposed to be invoked
+            help = Long description of what the program does and how to use it
             default_source_file = default source xml file name
             use_insert_appender = true if the insert appender should be used
                                   instead of the regular one
@@ -163,6 +168,7 @@ abstract class DhtDaemonApp : LoggedCliApp
     ***************************************************************************/
 
     this ( char[] name, char[] desc, VersionInfo ver,
+            char[] usage = null, char[] help = null,
             char[] default_source_file = "etc/dhtmemory.xml",
             bool use_insert_appender = false,
             bool omit_unittest = false,
@@ -170,8 +176,8 @@ abstract class DhtDaemonApp : LoggedCliApp
             char[][] default_configs = [ "etc/config.ini" ],
             ConfigParser config = null )
     {
-        super(name, desc, use_insert_appender, loose_config_parsing,
-                default_configs, config);
+        super(name, desc, usage, help, use_insert_appender,
+                loose_config_parsing, default_configs, config);
 
         this.ver_ext = new VersionArgsExt(ver);
         this.ver = this.ver_ext.ver;

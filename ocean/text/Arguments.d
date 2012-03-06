@@ -2,11 +2,11 @@
 
     Command line arguments parser with automatic help text output
 
-    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
+    copyright:      Copyright (c) 2010-2012 sociomantic labs. All rights reserved
 
     version:        October 2010: Initial release
 
-    authors:        Gavin Norman
+    authors:        Gavin Norman, Leandro Lucarella
 
     See tango.text.Arguments - this class just adds a single public method to
     the interface of that class.
@@ -17,11 +17,12 @@
 
         void main ( char[][] cmdl )
         {
-            auto app_name = cmdl[0];
-
             // Parse command line args
-            scope args = new Arguments();
-            args.parse(cmdl[1..$]);
+            scope args = new Arguments(cmdl[0],
+                    "Test ocean's Arguments parser",
+                    "{0} [OPTIONS]",
+                    "This program test the ocean's Argument parser. It takes "
+                    "no positional arguments but can take several options.");
 
             args("help").aliased('?').aliased('h').help("display this help");
             args("start").aliased('s').help("start of range to query (hash value - defaults to 0x00000000)");
@@ -29,7 +30,9 @@
             args("channel").aliased('c').help("channel name to query");
             args("all_channels").aliased('A').help("query all channels");
 
-            args.displayHelp(app_name);
+            args.parse(cmdl[1..$]);
+
+            args.displayHelp(Stdout);
         }
 
     ---
@@ -106,6 +109,132 @@ class Arguments : Tango.Arguments
 
     /***************************************************************************
 
+        Application's name to use in help messages.
+
+    ***************************************************************************/
+
+    public char[] name;
+
+
+    /***************************************************************************
+
+        Application's short usage description (as a format string).
+
+        This is used as a format string to print the usage, the first argument
+        is the program's name. This string should describe how to invoke the
+        program.
+
+        If you use multiple-line usage, it's better to start following lines
+        with a tab (\t).
+
+        Examples:
+
+        ---
+        args.usage = "{0} [OPTIONS] SOMETHING FILE";
+        args.usage = "{0} [OPTIONS] SOMETHING FILE\n"
+                     "\t{0} --version";
+        ---
+
+    ***************************************************************************/
+
+    public char[] usage = "{0} [OPTIONS] [ARGS]";
+
+
+    /***************************************************************************
+
+        One line description of what the program does (as a format string).
+
+        This is used as a format string to print a short description of what the
+        program does. The first argument is the program's name (but you usually
+        shouldn't use it here).
+
+    ***************************************************************************/
+
+    public char[] desc;
+
+
+    /***************************************************************************
+
+        Long description about the program and how to use it (as a format
+        string).
+
+        This is used as a format string to print a long description of what the
+        program does and how to use it. The first argument is the program's
+        name.
+
+    ***************************************************************************/
+
+    public char[] help;
+
+
+    /***************************************************************************
+
+        Initializes the Arguments
+
+        Params:
+            name = Name of the application (to show in the help message)
+            desc = Short description of what the program does (should be
+                         one line only, preferably less than 80 characters)
+            usage = How the program is supposed to be invoked
+            help = Long description of what the program does and how to use it
+
+    ***************************************************************************/
+
+    public this ( char[] app_name = null, char[] desc = null,
+            char[] usage = null, char[] help = null )
+    {
+        this.name = app_name;
+        this.desc = desc;
+        if (usage != "")
+            this.usage = usage;
+        this.help = help;
+    }
+
+
+    /***************************************************************************
+
+        Displays the help text for all arguments which have such defined.
+
+        Params:
+            output = stream where to print the errors (Stderr by default)
+
+    ***************************************************************************/
+
+    public void displayHelp ( typeof(Stderr) output = Stderr )
+    {
+        if (this.desc != "")
+        {
+            output.formatln(this.desc, this.name);
+            output.newline;
+        }
+
+        output.formatln("Usage:\t" ~ this.usage, this.name);
+        output.newline;
+
+        if (this.help != "")
+        {
+            output.formatln(this.help, this.name);
+            output.newline;
+        }
+
+        foreach (arg; super)
+        {
+            this.calculateSpacing(arg);
+        }
+
+        output.formatln("Program options:");
+
+        foreach (arg; super)
+        {
+            this.displayArgumentHelp(arg, output);
+        }
+
+        output.newline;
+    }
+
+
+    /***************************************************************************
+
         Displays the help text for all arguments which have such defined.
 
         Params:
@@ -114,21 +243,11 @@ class Arguments : Tango.Arguments
 
     ***************************************************************************/
 
-    public void displayHelp ( char[] app_name, typeof(Stderr) output = Stderr )
+    deprecated public void displayHelp ( char[] app_name,
+            typeof(Stderr) output = Stderr )
     {
-        foreach (arg; super)
-        {
-            this.calculateSpacing(arg);
-        }
-
-        output.format("\n{} command line arguments:\n", app_name);
-
-        foreach (arg; super)
-        {
-            this.displayArgumentHelp(arg, output);
-        }
-
-        output.format("\n");
+        this.name = app_name;
+        this.displayHelp(output);
     }
 
 

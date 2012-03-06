@@ -65,11 +65,21 @@ class ArgumentsExt : IApplicationExtension
 
         Constructor.
 
+        See ocean.text.Arguments for details on format of the parameters.
+
+        Params:
+            name = Name of the application (to show in the help message)
+            desc = Short description of what the program does (should be
+                         one line only, preferably less than 80 characters)
+            usage = How the program is supposed to be invoked
+            help = Long description of what the program does and how to use it
+
     ***************************************************************************/
 
-    this ( )
+    public this ( char[] name = null, char[] desc = null,
+            char[] usage = null, char[] help = null )
     {
-        this.args = new Arguments;
+        this.args = new Arguments(name, desc, usage, help);
     }
 
 
@@ -115,8 +125,7 @@ class ArgumentsExt : IApplicationExtension
 
         if ( args.exists("help") )
         {
-            Stdout.formatln("{}", app.desc);
-            args.displayHelp(app.name, Stdout);
+            args.displayHelp(Stdout);
             app.exit(0);
         }
 
@@ -140,7 +149,7 @@ class ArgumentsExt : IApplicationExtension
                 Stderr(error).newline;
             }
             Stderr.default_colour;
-            Stderr.formatln("\nType {} -h for help", cl_args[0]);
+            Stderr.formatln("\nType {} -h for help", app.name);
             app.exit(2);
         }
 
