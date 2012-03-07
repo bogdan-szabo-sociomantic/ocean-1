@@ -10,16 +10,20 @@
 
     author:         Thomas Nicolai, Lars Kirchhoff, David Eckardt
 
-    Note: All calls to tokyocabinet functions, as well as calls to free(), are
-    wrapped with a signal mask, preventing SIGUSR1 & SIGUSR2 from being fired
-    while these functions are exectuing. These signals are used by the garbage
-    collector to suspend and resume running threads, but have been observed (in
-    the dht node) to conflict with the libc malloc() and free() behaviour.
+    Notes regarding using this module in a threaded application:
 
-    The masking code is enabled with the build flag: -version=GCSignalProtection
+    1. If using this module in an application running with with the basic
+    garbage collector and threads, you need to wrap all access to TokyoCabinetM
+    with a signal mask for SIGUSR1 and SIGUSR2. These signals are used by the
+    garbage collector internally to suspend and resume running threads, and have
+    been observed (in the old threaded / basic GC dht node) to conflict with the
+    libc malloc() and free() behaviour.
 
-    FIXME: the signal masking is a quick fix, and should really be dealt with in
-    the garbage collector by finding a way to not use signals.
+    Signal masking can be achieved using ocean.sys.SignalMask.
+
+    2. The methods getFirstKey() and getNextKey() will both need to be called in
+    a thread-synchronized manner as they rely on calling tcmdbiterinit2
+    directly followed by tcmdbiternext.
 
 *******************************************************************************/
 
@@ -34,7 +38,6 @@ module ocean.db.tokyocabinet.TokyoCabinetM;
 private import ocean.db.tokyocabinet.model.ITokyoCabinet: TokyoCabinetIterator;
 
 private import ocean.core.Array;
-private import ocean.core.Memory;
 
 private import ocean.db.tokyocabinet.c.tcmdb :
                         TCMDB,
@@ -105,9 +108,7 @@ public class TokyoCabinetM
 
     public this ( )
     {
-        gcSafe({
-            this.db = tcmdbnew();
-        });
+        this.db = tcmdbnew();
     }
 
     /**************************************************************************
@@ -121,9 +122,7 @@ public class TokyoCabinetM
 
     public this ( uint bnum )
     {
-        gcSafe({
-            this.db = tcmdbnew2(bnum);
-        });
+        this.db = tcmdbnew2(bnum);
     }
 
     /**************************************************************************
@@ -138,9 +137,7 @@ public class TokyoCabinetM
     {
         if (!this.deleted)
         {
-            gcSafe({
-                tcmdbdel(this.db);
-            });
+            tcmdbdel(this.db);
         }
 
         this.deleted = true;
@@ -163,9 +160,7 @@ public class TokyoCabinetM
     }
     body
     {
-        gcSafe({
-            tcmdbput(this.db, key.ptr, key.length, value.ptr, value.length);
-        });
+        tcmdbput(this.db, key.ptr, key.length, value.ptr, value.length);
     }
 
     /**************************************************************************
@@ -185,9 +180,7 @@ public class TokyoCabinetM
     }
     body
     {
-        gcSafe({
-            tcmdbputkeep(this.db, key.ptr, key.length, value.ptr, value.length);
-        });
+        tcmdbputkeep(this.db, key.ptr, key.length, value.ptr, value.length);
     }
 
     /**************************************************************************
@@ -208,9 +201,7 @@ public class TokyoCabinetM
     }
     body
     {
-        gcSafe({
-            tcmdbputcat(this.db, key.ptr, key.length, value.ptr, value.length);
-        });
+        tcmdbputcat(this.db, key.ptr, key.length, value.ptr, value.length);
     }
 
     /**************************************************************************
@@ -239,9 +230,7 @@ public class TokyoCabinetM
 
         void* value_;
 
-        gcSafe({
-            value_ = cast(void*)tcmdbget(this.db, key.ptr, key.length, &len);
-        });
+        value_ = cast(void*)tcmdbget(this.db, key.ptr, key.length, &len);
 
         bool found = !!value_;
 
@@ -249,9 +238,7 @@ public class TokyoCabinetM
         {
             value.copy((cast(char*) value_)[0 .. len]);
 
-            gcSafe({
-                free(value_);
-            });
+            free(value_);
         }
 
         return found;
@@ -262,9 +249,6 @@ public class TokyoCabinetM
         Gets the key of first record in the database. (The database's internal
         iteration position is reset to the first record.)
 
-        Note: this method is synchronized as it relies on calling tcmdbiterinit2
-        directly followed by tcmdbiternext.
-
         Params:
             key   = record key output
 
@@ -273,16 +257,14 @@ public class TokyoCabinetM
 
     ***************************************************************************/
 
-    synchronized public bool getFirstKey ( ref char[] key )
+    public bool getFirstKey ( ref char[] key )
     in
     {
         this.assertDb();
     }
     body
     {
-        gcSafe({
-            tcmdbiterinit(this.db);
-        });
+        tcmdbiterinit(this.db);
         return iterateNextKey(key);
     }
 
@@ -290,9 +272,6 @@ public class TokyoCabinetM
 
         Iterates from the given key, getting the key of next record in the
         database.
-
-        Note: this method is synchronized as it relies on calling tcmdbiterinit2
-        directly followed by tcmdbiternext.
 
         Params:
             last_key = key to iterate from
@@ -303,7 +282,7 @@ public class TokyoCabinetM
 
     ***************************************************************************/
 
-    synchronized public bool getNextKey ( char[] last_key, ref char[] key )
+    public bool getNextKey ( char[] last_key, ref char[] key )
     in
     {
         this.assertDb();
@@ -314,9 +293,7 @@ public class TokyoCabinetM
 
         if ( exists(last_key) )
         {
-            gcSafe({
-                tcmdbiterinit2(this.db, last_key.ptr, last_key.length);
-            });
+            tcmdbiterinit2(this.db, last_key.ptr, last_key.length);
 
             if ( !iterateNextKey(key) )
             {
@@ -351,9 +328,7 @@ public class TokyoCabinetM
     {
         int size;
 
-        gcSafe({
-            size = tcmdbvsiz(this.db, key.ptr, key.length);
-        });
+        size = tcmdbvsiz(this.db, key.ptr, key.length);
 
         return size >= 0;
     }
@@ -379,9 +354,7 @@ public class TokyoCabinetM
     {
         bool ok;
 
-        gcSafe({
-            ok = tcmdbout(this.db, key.ptr, key.length);
-        });
+        ok = tcmdbout(this.db, key.ptr, key.length);
 
         return ok;
     }
@@ -404,9 +377,7 @@ public class TokyoCabinetM
     {
         ulong num;
 
-        gcSafe({
-            num = tcmdbrnum(this.db);
-        });
+        num = tcmdbrnum(this.db);
 
         return num;
     }
@@ -429,9 +400,7 @@ public class TokyoCabinetM
     {
         ulong size;
 
-        gcSafe({
-            size = tcmdbmsiz(this.db);
-        });
+        size = tcmdbmsiz(this.db);
 
         return size;
     }
@@ -449,9 +418,7 @@ public class TokyoCabinetM
     }
     body
     {
-        gcSafe({
-            tcmdbvanish(this.db);
-        });
+        tcmdbvanish(this.db);
     }
 
     /**************************************************************************
@@ -527,9 +494,7 @@ public class TokyoCabinetM
 
         void* key_;
 
-        gcSafe({
-            key_ = cast(void*)tcmdbiternext(this.db, &len);
-        });
+        key_ = cast(void*)tcmdbiternext(this.db, &len);
 
         bool found = !!key_;
 
@@ -537,9 +502,7 @@ public class TokyoCabinetM
         {
             key.copy((cast(char*)key_)[0 .. len]);
 
-            gcSafe({
-                free(key_);
-            });
+            free(key_);
         }
 
         return found;
@@ -554,6 +517,8 @@ public class TokyoCabinetM
         with invariants and synchronized methods. See:
 
         http://d.puremagic.com/issues/show_bug.cgi?id=235#c2
+
+        (Now synchronized statements have been removed this can be reverted.)
 
     ***************************************************************************/
 

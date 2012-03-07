@@ -467,7 +467,7 @@ public class Main
             Stdout.formatln(getVersionString(app_name, version_info));
             Stdout.formatln("{}", description);
 
-            args.displayHelp(app_name, Stdout);
+            args.displayHelp(Stdout);
 
             return ProcessArgsResult(true, 0);
         }
