@@ -38,7 +38,8 @@
         int main ( char[][] cl_args )
         {
             // Set up app dependant arguments parser
-            auto arguments = new Arguments;
+            auto arguments = new Arguments(cl_args[0],
+                    "Short program description");
             arguments("something").aliased('s').help("do something");
 
             const app_description = "this is a program which does something";
