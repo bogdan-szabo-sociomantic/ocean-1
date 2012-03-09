@@ -244,7 +244,7 @@ private class CurlProcess : EpollProcess
         // Standard options
         this.args ~= "-s"; // silent -- nothing sent to stderr
         this.args ~= "-S"; // show errors
-        this.args ~= `-w "%{http_code}"`; // output HTTP status as last 3 bytes of stdout stream
+        this.args ~= `-w %{http_code}`; // output HTTP status as last 3 bytes of stdout stream
 
         // Authentication
         if ( this.setup.authentication_set )
