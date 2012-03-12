@@ -147,7 +147,7 @@ public struct HttpResponse
             }
 
             // Insert new bytes at end.
-            this.response[$-data.length .. $-1] = data[$-data.length .. $-1];
+            this.response[$ - data.length .. $] = data[0 .. $];
         }
     }
 

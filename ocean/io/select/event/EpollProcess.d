@@ -296,7 +296,7 @@ public abstract class EpollProcess
 	
 		protected void error_ ( Exception exception, Event event )
 		{
-			Trace.formatln("EPOLL error {} event = {}", exception.msg, event);			
+            Trace.formatln("EPOLL error {} at {} {} event = {}", exception.msg, exception.file, exception.line, event);
 		}
     
 

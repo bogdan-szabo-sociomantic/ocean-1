@@ -222,7 +222,7 @@ class ZlibStreamDecompressor
                     output_dg(buffer[0 .. filled_len]);
             }
         }
-        while ( this.stream.avail_in > 0 );
+        while (ret != Z_STREAM_END && this.stream.avail_in > 0 );
 
         // Kill stream object if the end was reached.
         if ( ret == Z_STREAM_END )
