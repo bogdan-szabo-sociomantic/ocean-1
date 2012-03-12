@@ -49,7 +49,7 @@ private import ocean.util.container.queue.NotifyingQueue;
 
 private import ocean.core.Array : copy;
 
-debug private import ocean.util.log.Trace;
+private import ocean.util.log.Trace;
 
 /*******************************************************************************
 
