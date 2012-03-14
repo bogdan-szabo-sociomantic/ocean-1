@@ -176,18 +176,39 @@ public class StatsLog ( T )
             file_count = maximum number of log files before old logs are
                 over-written
             max_file_size = size in bytes at which the log files will be rotated
+            file_name = name of the file to write the stats to
 
     ***************************************************************************/
 
-    public this ( size_t file_count = 10, size_t max_file_size = 10 * 1024 * 1024 )
+    public this ( size_t file_count = 10,
+            size_t max_file_size = 10 * 1024 * 1024,
+            char[] file_name = "log/stats.log" )
     {
         this.logger = Log.lookup("Stats");
         this.logger.clear();
         this.logger.additive(false);
 
-        this.logger.add(new AppendSyslog("log/stats.log", file_count,
+        this.logger.add(new AppendSyslog(file_name, file_count,
                                          max_file_size, "gzip {}", "gz", 4,
                                          new LayoutStatsLog));
+    }
+
+
+    /***************************************************************************
+
+        Constructor
+
+        Uses the same default values for file_count and max_file_size as the
+        other constructor.
+
+        Params:
+            file_name = name of the file to write the stats to
+
+    ***************************************************************************/
+
+    public this ( char[] file_name )
+    {
+        this(10, 10 * 1024 * 1024, file_name);
     }
 
 
