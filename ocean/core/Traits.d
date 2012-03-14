@@ -200,7 +200,7 @@ public template FieldType ( T, size_t i )
 
 *******************************************************************************/
 
-public FieldType!(S, i)* GetField ( size_t i, T ) ( T* t )
+public FieldType!(T, i)* GetField ( size_t i, T ) ( T* t )
 {
     return GetField!(i, FieldType!(T, i), T)(t);
 }
@@ -231,7 +231,7 @@ public M* GetField ( size_t i, M, T ) ( T* t )
         static assert(false, "GetField!(" ~ T.stringof ~ "): type is not a struct / class");
     }
 
-    return cast(M*)((cast(void*)s) + T.tupleof[i].offsetof);
+    return cast(M*)((cast(void*)t) + T.tupleof[i].offsetof);
 }
 
 

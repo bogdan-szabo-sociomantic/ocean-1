@@ -447,25 +447,29 @@ struct StructSerializer ( bool AllowUnions = false )
         
         return S.sizeof + transmitArrays!(receive)(s, transmit_data);
     }
-    
+
 
     /**************************************************************************
 
         Dumps/serializes the content of s and its array members, using the given
         serializer object. The serializer object needs the following methods:
             
-                void open ( ref Char[] output, char[] name );
-    
-                void close ( ref Char[] output, char[] name );
-            
-                void serialize ( T ) ( ref Char[] output, T* item, char[] name );
-            
-                void serializeStruct ( ref Char[] output, Char[] name, void delegate ( ) serialize_struct );
-            
-                void serializeArray ( T ) ( ref Char[] output, T[] array, Char[] name );
-            
-                void serializeStructArray ( T ) ( ref Char[] output, Char[] name, T[] array, void delegate ( ref T ) serialize_element );
-    
+            void open ( D, char[] name );
+
+            void close ( D, char[] name );
+
+            void serialize ( T ) ( D, T* item, char[] name );
+
+            void openStruct ( D, char[] name );
+
+            void closeStruct ( D, char[] name );
+
+            void serializeArray ( T ) ( D, char[] name, T[] array );
+
+            void openStructArray ( T ) ( D, char[] name, T[] array );
+
+            void closeStructArray ( T ) ( D, char[] name, T[] array );
+
         Unfortunately, as some of these methods are templates, it's not
         possible to make an interface for it. But the compiler will let you know
         whether a given serializer object is suitable or not ;)
@@ -490,7 +494,8 @@ struct StructSerializer ( bool AllowUnions = false )
         serialize_(s, serializer, data);
         serializer.close(data, S.stringof);
     }
-    
+
+
     /**************************************************************************
     
         Loads/deserializes the content of s and its array members, using the
@@ -530,6 +535,7 @@ struct StructSerializer ( bool AllowUnions = false )
         deserialize_(s, deserializer, data);
         deserializer.close();
     }
+
 
     /**************************************************************************
 
@@ -973,6 +979,10 @@ struct StructSerializer ( bool AllowUnions = false )
                 {
                     serializer.serialize(data, cast(B)(*field), field_name);
                 }
+                else static if ( is(T B == typedef) )
+                {
+                    serializer.serialize(data, cast(B)(*field), field_name);
+                }
                 else
                 {
                     serializer.serialize(data, *field, field_name);
@@ -1038,6 +1048,10 @@ struct StructSerializer ( bool AllowUnions = false )
                 mixin AssertSupportedType!(T, S, i);
 
                 static if ( is(T B == enum) )
+                {
+                    deserializer.deserialize(cast(B)(*field), field_name);
+                }
+                else static if ( is(T B == typedef) )
                 {
                     deserializer.deserialize(cast(B)(*field), field_name);
                 }
@@ -1341,11 +1355,7 @@ struct StructSerializer ( bool AllowUnions = false )
                        typeof (*this).stringof ~ ": unions are not supported, sorry "
                         "(affects " ~ FieldInfo!(T, S, i) ~ ") -- use AllowUnions "
                         "template flag to enable shallow serialization of unions");
-        
-        static assert (!is (T == typedef),
-                       typeof (*this).stringof ~ ": typedefs are not supported, sorry "
-                       "(affects " ~ FieldInfo!(T, S, i) ~ ')');
-        
+
         static if (isAssocArray!(T)) pragma (msg, typeof (*this).stringof ~ 
                                              " - Warning: content of associative array will be discarded "
                                              "(affects " ~ FieldInfo!(T, S, i) ~ ')');
