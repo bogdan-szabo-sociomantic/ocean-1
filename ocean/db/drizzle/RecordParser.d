@@ -30,7 +30,7 @@
             char[] name;
         }
 
-        void query_callback ( RequestContext context, Result result )
+        void query_callback ( ContextUnion context, Result result )
         {
             foreach ( row; result )
             {
@@ -72,7 +72,7 @@
             }
         }
 
-        void query_callback ( RequestContext context, Result result )
+        void query_callback ( ContextUnion context, Result result )
         {
             foreach ( row; result )
             {
