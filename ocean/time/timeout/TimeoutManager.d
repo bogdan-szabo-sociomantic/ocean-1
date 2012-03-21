@@ -228,14 +228,6 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
     /***************************************************************************
 
-        
-    
-    ***************************************************************************/
-
-    private bool checking_timeouts = false;
-    
-    /***************************************************************************
-
         Constructor.
 
     ***************************************************************************/
@@ -383,46 +375,55 @@ abstract class TimeoutManagerBase : ITimeoutManager
             
             this.next_expiration_us_called_from_internal = true;
         }
-        
+
         ulong previously_next = this.next_expiration_us;
-        
+
         this.expired_registrations.clear();
-        
-        try 
+
+        // We first build up a list of all expired registrations, in order to
+        // avoid the situation of the timeout() delegates potentially modifying
+        // the tree while iterating over it.
+        foreach (expiry, expire_time; this.expiry_tree.lessEqual(now))
         {
-            this.checking_timeouts = true;
-            
-            foreach (expiry, expire_time; this.expiry_tree.lessEqual(now))
-            {
-                IExpiryRegistration registration = this.expiry_to_client[expiry];
-                
-                debug ( TimeoutManager ) Stderr('\t')(registration.id)(" timed out\n");
-                
-                this.expired_registrations ~= registration;
-                
-                ITimeoutClient client = registration.timeout();
-                
-                if (dg !is null) if (!dg(client)) break;
-            }
+            IExpiryRegistration registration = this.expiry_to_client[expiry];
+
+            debug ( TimeoutManager ) Stderr('\t')(registration.id)(" timed out\n");
+
+            this.expired_registrations ~= registration;
         }
-        finally
+
+        debug ( TimeoutManager ) Stderr.flush();
+
+        // All expired registrations are removed from the expiry tree. They are
+        // removed before the timeout() delegates are called in order to avoid
+        // the situation of an expiry registration re-registering itself in its
+        // timeout() method, thus being registered in the expiry tree twice.
+        foreach (registration; this.expired_registrations[])
         {
-            this.checking_timeouts = false;
-            
-            debug ( TimeoutManager ) Stderr.flush();
-            
-            foreach (ref registration; this.expired_registrations[])
-            {
-                registration.unregister();
-                registration = null;
-            }
-            
+            registration.unregister();
+        }
+
+        // Finally all expired registrations in the list are set to null and
+        // the timeout is updated.
+        scope ( exit )
+        {
+            this.expired_registrations[] = cast(IExpiryRegistration)null;
+
             this.setTimeout_(previously_next);
         }
-        
+
+        // The timeout() method of all expired registrations is called, until
+        // the optional delegate returns false.
+        foreach (ref registration; this.expired_registrations[])
+        {
+            ITimeoutClient client = registration.timeout();
+
+            if (dg !is null) if (!dg(client)) break;
+        }
+
         return this.expired_registrations.length;
     }
-    
+
     /***************************************************************************
 
         Registers registration and sets the timeout for its client.
@@ -459,10 +460,19 @@ abstract class TimeoutManagerBase : ITimeoutManager
             Stderr("\n\t")(this.expiry_tree.length)(" clients registered, first times out at ");
             this.printTime(this.expiry_tree.first, false);
             Stderr('\n');
+
+            foreach (expiry, expire_time; this.expiry_tree.lessEqual(now + 20_000_000))
+            {
+                IExpiryRegistration registration = this.expiry_to_client[expiry];
+
+                Stderr('\t')('\t')(registration.id)(" ");
+                if ( expire_time <= now ) Stderr(" ** ");
+                this.printTime(expire_time);
+            }
         }
-        
+
         this.setTimeout_(previously_next);
-        
+
         return expiry;
     }
     
@@ -474,9 +484,6 @@ abstract class TimeoutManagerBase : ITimeoutManager
             expiry = expiry token returned by register() when registering the
                      IExpiryRegistration instance to unregister
         
-        In:
-            Must not be called from within timeout().
-        
         Throws:
             Exception if no IExpiryRegistration instance corresponding to expiry
             is currently registered.
@@ -484,11 +491,6 @@ abstract class TimeoutManagerBase : ITimeoutManager
     ***************************************************************************/
     
     protected void unregister ( Expiry expiry )
-    in
-    {
-        assert (!this.checking_timeouts, "attempted to unregister from within timeout()");
-    }
-    body
     {
         if (expiry)
         {
@@ -497,8 +499,8 @@ abstract class TimeoutManagerBase : ITimeoutManager
             ulong previously_next = this.next_expiration_us;
             
             debug ulong t = expiry.key;
-            
-            try try            
+
+            try try
             {
                 this.expiry_to_client.remove(expiry);
             }
@@ -566,7 +568,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
         if (this.expiry_tree.length)
         {
             ulong next_now = this.expiry_tree.first;
-            
+
             if (next_now != previously_next)
             {
                 this.setTimeout(next_now);

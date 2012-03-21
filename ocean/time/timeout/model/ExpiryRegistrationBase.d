@@ -133,7 +133,7 @@ abstract class ExpiryRegistrationBase : IExpiryRegistration
     
     ***************************************************************************/
 
-    private ITimeoutManagerInternal mgr;
+    private const ITimeoutManagerInternal mgr;
     
     /***************************************************************************
 
