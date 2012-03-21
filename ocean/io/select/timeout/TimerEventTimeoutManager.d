@@ -74,8 +74,8 @@ class TimerEventTimeoutManager : TimeoutManager
 
         this ( )
         {
-            super(true); // use real-time
-            super.absolute = true; // use absolute time
+            super(true);                                                        // use real-time
+            super.absolute = true;                                              // use absolute time
         }
         
         /***********************************************************************

@@ -78,8 +78,6 @@ private import ocean.io.select.timeout.TimerEventTimeoutManager;
 
 private import ocean.time.timeout.model.ITimeoutClient;
 
-debug private import ocean.text.convert.Layout;
-
 debug private import ocean.util.log.Trace;
 
 
@@ -136,17 +134,6 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
     {
         /***********************************************************************
 
-            Instance identifier, used by id() method in debug.
-
-        ***********************************************************************/
-
-        debug static int id_num_;
-
-        debug int id_num;
-
-
-        /***********************************************************************
-
             Index of this event in the event pool (required by Pool).
 
         ***********************************************************************/
@@ -189,8 +176,6 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
 
         public this ( )
         {
-            debug this.id_num = id_num_++;
-
             this.expiry_registration = new ExpiryRegistration(this);
         }
 
@@ -231,16 +216,9 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
 
         ***********************************************************************/
 
-        debug
+        debug protected char[] id ( )
         {
-            private char[] id_buf;
-
-            protected char[] id ( )
-            {
-                this.id_buf.length = 0;
-                Layout!(char).print(this.id_buf, "Scheduler.Event {}", this.id_num);
-                return this.id_buf;
-            }
+            return "Scheduler.Event";
         }
     }
 
