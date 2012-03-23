@@ -830,6 +830,7 @@ public class Table
 
     public Row firstRow ( )
     {
+        this.rows.length = 0;
         this.row_index = 0;
         return this.currentRow();
     }
