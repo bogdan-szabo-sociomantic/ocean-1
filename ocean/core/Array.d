@@ -742,7 +742,7 @@ public T[] shuffle ( T ) ( T[] array, size_t delegate ( size_t i ) new_index )
 {
     for (auto i = array.length? array.length - 1 : 0; i; i--)
     {
-        auto j = index(i);
+        auto j = new_index(i);
         auto tmp = array[i];
         array[i] = array[j];
         array[j] = tmp;
