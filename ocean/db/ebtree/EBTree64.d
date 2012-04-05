@@ -242,40 +242,27 @@ class EBTree64 ( bool signed = false ) : IEBTree
     
     /***************************************************************************
     
-        Adds a value to the tree, automatically inserting a new node in the
-        correct location to keep the tree sorted.
+        Adds a new node to the tree, automatically inserting it in the correct
+        location to keep the tree sorted.
     
         Params:
-             key_in = value to add
+            key = key of node to add
     
         Returns:
-            pointer to newly added node
+            pointer to the newly added node
     
     ***************************************************************************/
     
-    public Node* add ( Key key_in )
+    public Node* add ( Key key )
     out (node_out)
     {
         assert (node_out);
     }
     body
     {
-        auto node = this.node_pool.get();
-        
-        assert (node, "node pool returned null node");
-        
-        node.node_.key_ = key_in;
-        
         scope (success) ++this;
         
-        static if (signed)
-        {
-            return this.ebCall!(eb64i_insert)(&node.node_);
-        }
-        else
-        {
-            return this.ebCall!(eb64_insert)(&node.node_);
-        }
+        return this.add_(this.node_pool.get(), key);
     }
     
     /***************************************************************************
@@ -299,6 +286,53 @@ class EBTree64 ( bool signed = false ) : IEBTree
     body
     {
         return this.add(cast (Key) key);
+    }
+    
+    /***************************************************************************
+    
+        Sets the key of node to key, keeping the tree sorted.
+    
+        Params:
+            node = node to update key
+            key  = new key for node 
+    
+        Returns:
+            updated node
+    
+     ***************************************************************************/
+    
+    public Node* update ( ref Node node, Key key )
+    out (node_out)
+    {
+        assert (node_out);
+    }
+    body
+    {
+        return (node.node_.key_ != cast (ulong) key)?
+                this.add_(node.remove(), key) : &node;
+    }
+    
+    /***************************************************************************
+    
+        Sets the key of node to key, keeping the tree sorted.
+    
+        Params:
+            node = node to update key
+            key  = new key for node 
+    
+        Returns:
+            updated node
+    
+    ***************************************************************************/
+    
+    public Node* update ( ref Node node, Dual32Key key )
+    out (node_out)
+    {
+        assert (node_out);
+    }
+    body
+    {
+        return this.update(node, cast (Key) key);
     }
     
     /***************************************************************************
@@ -375,6 +409,44 @@ class EBTree64 ( bool signed = false ) : IEBTree
     {
         this.node_pool.minimize();
     }
+    
+    /***************************************************************************
+    
+        Adds node to the tree, automatically inserting it in the correct
+        location to keep the tree sorted.
+    
+        Params:
+            node = node to add
+            key  = key for node
+    
+        Returns:
+            node
+    
+    ***************************************************************************/
+    
+    private Node* add_ ( Node* node, Key key )
+    in
+    {
+        assert (node, "attempted to add null node (node pool returned null?)");
+    }
+    out (node_out)
+    {
+        assert (node_out);
+    }
+    body
+    {
+        node.node_.key_ = key;
+        
+        static if (signed)
+        {
+            return this.ebCall!(eb64i_insert)(&node.node_);
+        }
+        else
+        {
+            return this.ebCall!(eb64_insert)(&node.node_);
+        }
+    }
+    
 }
 
 private:

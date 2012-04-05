@@ -202,23 +202,18 @@ class EBTree128 ( bool signed = false ) : IEBTree
         this.node_pool = node_pool;
     }
     
-    public void minimize ( )
-    {
-        this.node_pool.minimize();
-    }
-    
     mixin KeylessMethods!(Node, eb128_first, eb128_last);
     
     /***************************************************************************
     
-        Adds node to the tree, automatically inserting it in the correct
+        Adds a new node to the tree, automatically inserting it in the correct
         location to keep the tree sorted.
     
         Params:
-            key = value to add
+            key = key of node to add
     
         Returns:
-            pointer to newly added node
+            pointer to the newly added node
     
     ***************************************************************************/
     
@@ -234,6 +229,19 @@ class EBTree128 ( bool signed = false ) : IEBTree
         return this.add_(this.node_pool.get(), key);
     }
     
+    /***************************************************************************
+    
+        Sets the key of node to key, keeping the tree sorted.
+    
+        Params:
+            node = node to update key
+            key  = new key for node 
+    
+        Returns:
+            updated node
+    
+    ***************************************************************************/
+    
     public Node* update ( ref Node node, Key key )
     out (node_out)
     {
@@ -242,31 +250,6 @@ class EBTree128 ( bool signed = false ) : IEBTree
     body
     {
         return (node.key != key)? this.add_(node.remove(), key) : &node;
-    }
-    
-    private Node* add_ ( Node* node, Key key )
-    in
-    {
-        assert (node, "attempted to add null node (node pool returned null?)");
-    }
-    out (node_out)
-    {
-        assert (node_out);
-    }
-    body
-    {
-        static if (signed)
-        {
-            eb128i_node_setkey_264(&node.node_, key.lo, key.hi);
-            
-            return this.ebCall!(eb128i_insert)(&node.node_);
-        }
-        else
-        {
-            eb128_node_setkey_264(&node.node_, key.lo, key.hi);
-            
-            return this.ebCall!(eb128_insert)(&node.node_);
-        }
     }
     
     /***************************************************************************
@@ -330,6 +313,56 @@ class EBTree128 ( bool signed = false ) : IEBTree
         else
         {
             return this.ebCall!(eb128_lookup_264)(key.lo, key.hi);
+        }
+    }
+    
+    /***************************************************************************
+    
+        Minimizes the memory usage of the node pool.
+    
+    ***************************************************************************/
+    
+    public void minimize ( )
+    {
+        this.node_pool.minimize();
+    }
+    
+    /***************************************************************************
+    
+        Adds node to the tree, automatically inserting it in the correct
+        location to keep the tree sorted.
+    
+        Params:
+            node = node to add
+            key  = key for node
+    
+        Returns:
+            node
+    
+    ***************************************************************************/
+    
+    private Node* add_ ( Node* node, Key key )
+    in
+    {
+        assert (node, "attempted to add null node (node pool returned null?)");
+    }
+    out (node_out)
+    {
+        assert (node_out);
+    }
+    body
+    {
+        static if (signed)
+        {
+            eb128i_node_setkey_264(&node.node_, key.lo, key.hi);
+            
+            return this.ebCall!(eb128i_insert)(&node.node_);
+        }
+        else
+        {
+            eb128_node_setkey_264(&node.node_, key.lo, key.hi);
+            
+            return this.ebCall!(eb128_insert)(&node.node_);
         }
     }
 }
