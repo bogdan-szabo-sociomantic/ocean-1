@@ -730,8 +730,8 @@ public T[] shuffle ( T ) ( T[] array, lazy double rand )
         array     = array with elements to shuffle
         new_index = returns the new index for the array element whose index is
                     currently i. i is guaranteed to be in the range
-                    [1 .. array.length - 1]; the returned index must be in the
-                    range [0 .. array.length - 1].
+                    [1 .. array.length - 1]; the returned index should be in the
+                    range [0 .. i] and must be in range [0 .. array.length - 1].
     
     Returns:
         shuffled array
