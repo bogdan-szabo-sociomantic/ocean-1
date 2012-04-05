@@ -45,7 +45,7 @@ private import tango.stdc.posix.sys.types : ssize_t;
 
 private import tango.text.Util : patterns;
 
-
+private import tango.stdc.math: fabs;
 
 /*******************************************************************************
 
@@ -701,6 +701,54 @@ body
 public T[] toArray ( T ) ( ref T val )
 {
     return (&val)[0 .. 1];
+}
+
+/*******************************************************************************
+
+    Shuffles the elements of array in-place.
+    
+    Params:
+        array = array with elements to shuffle
+        rand  = random number generator, will be invoked array.length - 1 times
+    
+    Returns:
+        shuffled array
+
+*******************************************************************************/
+
+public T[] shuffle ( T ) ( T[] array, lazy double rand )
+{
+    return shuffle(array,
+                   (size_t i) {return cast (size_t) (fabs(rand) * (i + 1));});
+}
+
+/*******************************************************************************
+
+    Shuffles the elements of array in-place.
+    
+    Params:
+        array     = array with elements to shuffle
+        new_index = returns the new index for the array element whose index is
+                    currently i. i is guaranteed to be in the range
+                    [1 .. array.length - 1]; the returned index must be in the
+                    range [0 .. array.length - 1].
+    
+    Returns:
+        shuffled array
+
+*******************************************************************************/
+
+public T[] shuffle ( T ) ( T[] array, size_t delegate ( size_t i ) new_index )
+{
+    for (auto i = array.length? array.length - 1 : 0; i; i--)
+    {
+        auto j = index(i);
+        auto tmp = array[i];
+        array[i] = array[j];
+        array[j] = tmp;
+    }
+    
+    return array;
 }
 
 /*******************************************************************************
