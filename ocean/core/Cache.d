@@ -63,7 +63,7 @@ module ocean.core.Cache;
 
 private import ocean.core.ArrayMap;
 
-private import ocean.db.ebtree.EBTreeMap;
+private import ocean.db.ebtree.EBTree128;
 
 private import tango.stdc.time: time_t;
 
@@ -74,6 +74,519 @@ debug (CacheTimes)
     private import ocean.core.Array: concat;
     private import tango.stdc.stdio: FILE, fopen, fclose, fprintf, perror;
     private import tango.stdc.posix.time: ctime_r;
+}
+
+abstract class ICache
+{
+    /***************************************************************************
+    
+        The cache size in (maximum number of items) as passed to constructor.
+    
+    ***************************************************************************/
+    
+    public const size_t max_length;
+    
+    /***************************************************************************
+    
+        Real-time flag. true means that the time is monotonic increasing.
+        
+        If true, the access methods assert that the access time passed is always
+        at least the value of the accessed cache element.
+        If false and an element is attempted to access whose access time is
+        greater than the time value passed to the access method, the access is
+        denied: On 'put' access the element is not updated or added and a 'Get'
+        access behaves as if the element could not be found. 
+    
+    ***************************************************************************/
+    
+    public bool realtime = true;
+    
+    /***************************************************************************
+
+        Insert position into array of items.
+    
+    ***************************************************************************/
+    
+    private size_t insert;
+    
+    
+    /***************************************************************************
+    
+        Mapping from access time to the index of an item in the items array. The
+        map is implemented with an EBTree, so that it is sorted in order of
+        access times.
+    
+    ***************************************************************************/
+    
+    protected alias EBTree128!() TimeToIndex;
+    
+    private const TimeToIndex time_to_index;
+    
+    
+    /***************************************************************************
+    
+        Mapping from key to TimeToIndex.Mapping struct (which contains a mapping
+        from an access time to the index of an elements in this.items).
+    
+    ***************************************************************************/
+    
+    protected alias ArrayMap!(TimeToIndex.Node*, hash_t) KeyToNode;
+    
+    private const KeyToNode key_to_node;
+    
+    
+    /***************************************************************************
+    
+        Constructor.
+    
+        Params:
+            max_items = maximum number of items in the cache, set once, cannot
+                be changed
+    
+    ***************************************************************************/
+    
+    protected this ( size_t max_items )
+    {
+        this.insert = 0;
+    
+        this.time_to_index = new TimeToIndex;
+        this.key_to_node = new KeyToNode(this.max_length = max_items);
+    }
+    
+    /***************************************************************************
+
+        Removes all items from the cache.
+    
+    ***************************************************************************/
+    
+    public void clear ( )
+    {
+        this.time_to_index.clear();
+        this.key_to_node.clear();
+        this.insert = 0;
+    }
+    
+    /***************************************************************************
+    
+        Returns:
+            the number of items in the cache.
+    
+    ***************************************************************************/
+    
+    public size_t length ( )
+    {
+        return this.insert;
+    }
+    
+    /***************************************************************************
+
+        Checks whether an item exists in the cache.
+    
+        Params:
+            key = key to lookup
+    
+        Returns:
+            true if item exists in cache
+    
+    ***************************************************************************/
+    
+    public bool exists ( hash_t key )
+    {
+        return (key in this) !is null;
+    }
+    
+    /***************************************************************************
+
+        Removes an item from the cache.
+    
+        Params:
+            key = key of item to remove
+    
+        Returns:
+            returns true if removed, false if not in cache
+    
+    ***************************************************************************/
+    
+    public bool remove ( hash_t key )
+    {
+        TimeToIndex.Node** node = key in this;
+        
+        if (node)
+        {
+            this.remove_(key, **node);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    /***************************************************************************
+    
+        Checks whether an item exists in the cache and returns the last time it
+        was accessed.
+    
+        Params:
+            key = key to lookup
+    
+        Returns:
+            item's last access time, or 0 if the item doesn't exist
+    
+    ***************************************************************************/
+    
+    public time_t accessTime ( hash_t key )
+    {
+        TimeToIndex.Node** node = key in this;
+        
+        if ( node is null )
+        {
+            return 0;
+        }
+        else
+        {
+            return (*node).key.hi;
+        }
+    }
+    
+    /***************************************************************************
+        
+        Obtains the index of the cache item that corresponds to node and updates
+        the access time.
+        If realtime is enabled, access_time is expected to be equal to or
+        greater than the time stored in node. If disabled and the access time is
+        less, the node will not be updated and a value of at least length
+        returned.
+        
+        
+        Params:
+            node        = time-to-index tree node
+            access_time = access time
+        
+        Returns:
+            the index of the corresponding cache item or a value of at least
+            length if realtime is disabled and the access time is less than the
+            access time in the node.
+    
+        Out:
+            If realtime is enabled, the returned index is less than length.
+    
+    ***************************************************************************/
+    
+    protected size_t get_ ( ref TimeToIndex.Node node, time_t access_time )
+    out (index)
+    {
+        if (this.realtime)
+        {
+            assert (index < this.insert);
+        }
+    }
+    body
+    {
+        TimeToIndex.Key key = node.key;
+        
+        if (access_time >= key.hi)
+        {
+            key.hi = access_time;
+            
+            this.time_to_index.update(node, key);
+            
+            return key.lo;
+        }
+        else
+        {
+            assert (!this.realtime, "attempted to obtain a record in the future");
+            
+            return size_t.max;
+        }
+    }
+    
+    /***************************************************************************
+    
+        Obtains the index of the cache item that corresponds to key and updates
+        the access time.
+        If realtime is enabled and key could be found, access_time is expected
+        to be at least the time value stored in node. If disabled and
+        access_time is less, the result is the same as if key could not be
+        found.
+        
+        
+        Params:
+            node        = time-to-index tree node
+            access_time = access time
+        
+        Returns:
+            the index of the corresponding cache item or a value of at least
+            length if key could not be found or realtime is disabled and the
+            access time is less than the access time in the cache element.
+    
+    ***************************************************************************/
+    
+    protected size_t get_ ( hash_t key, lazy time_t access_time )
+    {
+        TimeToIndex.Node** node = key in this;
+        
+        return node? this.get_(**node, access_time) : size_t.max;
+    }
+    
+    /***************************************************************************
+        
+        Obtains the time-to-index node for key.
+        
+        Params:
+            key = key to lookup
+        
+        Returns:
+            pointer to the time-to-index node for key or null if not found.
+            
+        Out:
+            If found, it is safe to dereference the pointer to which the
+            returned pointer points (*node is not null).  
+    
+    ***************************************************************************/
+    
+    protected TimeToIndex.Node** opIn_r ( hash_t key )
+    out (node)
+    {
+        if (node) assert (*node, "null pointer value was stored in key_to_node");
+    }
+    body
+    {
+        return key in this.key_to_node;
+    }
+    
+    /***************************************************************************
+    
+        Registers a new cache element and obtains the cache item index for it.
+        If the cache is full, the oldest cache element is replaced.
+        If realtime is enabled, time is expected to be at least the time value
+        of the most recent cache element.
+        If realtime is disabled and time is less than the time value of the most
+        recent cache element, nothing is done and a value of at least length is
+        returned.
+        
+        Params:
+            key  = cache element key
+            time = cache element creation time
+        
+        Returns:
+            the index of the cache item that corresponds to the newly registered
+            cache element or a value of at least length if realtime is disabled
+            and time is less than the time value of the most recent cache
+            element.
+        
+        In:
+            If realtime is enabled, time must bebe at least the time value of
+            the most recent cache element. 
+         
+        Out:
+            If realtime is enabled, the returned index is below length.
+    
+    ***************************************************************************/
+    
+    protected size_t register ( hash_t key, time_t time )
+    in
+    {
+        if (this.realtime && this.insert)
+        {
+            TimeToIndex.Node* newest_time_node = this.time_to_index.last;
+            assert (newest_time_node);
+            assert (newest_time_node.key.hi <= time,
+                    "attempting to register a cache entry older than the newest");
+        }
+    }
+    out (index)
+    {
+        if (this.realtime)
+        {
+            assert (index < this.insert);
+        }
+    }
+    body
+    {
+        size_t index;
+        
+        if ( this.insert < this.max_length )
+        {
+            index = this.insert++;
+        }
+        else
+        {
+            // Find item with lowest (ie oldest) update time
+            TimeToIndex.Node* oldest_time_node = this.time_to_index.first;
+            
+            assert (oldest_time_node);
+            
+            with (oldest_time_node.key) // struct { time_t hi; size_t lo; }
+            {
+                if (time < hi) // time is before the oldest cache entry: abort
+                {
+                    assert (!this.realtime);
+                    
+                    return index.max;
+                }
+                
+                index = lo;
+            }
+
+            // Remove old item in tree map
+            this.time_to_index.remove(*oldest_time_node);
+            
+//            this.key_to_node.remove(this.items[index].key);
+            this.key_to_node.remove(this.keyByIndex(index));
+        }
+        
+        this.key_to_node.put(key,
+                             this.time_to_index.add(TimeToIndex.Key(index,
+                                                                    time)));
+        
+        return index;
+    }
+    
+    /***************************************************************************
+    
+        Obtains the key of the cache item corresponding to index.
+        
+        Params:
+            index = cache item index, guaranteed to be below length 
+        
+        Returns:
+            cache item key
+        
+    ***************************************************************************/
+    
+    abstract protected hash_t keyByIndex ( size_t index );
+    
+    /***************************************************************************
+    
+        Removes the cache item that corresponds to dst_key and dst_node.
+        
+        Params:
+            dst_key  = key of item to remove
+            dst_node = time-to-index tree node to remove 
+        
+    ***************************************************************************/
+    
+    protected void remove_ ( hash_t dst_key, ref TimeToIndex.Node dst_node )
+    {
+        /* 
+         * Remove item in items list by copying the last item to the item to
+         * remove and decrementing the insert index which reflects the
+         * actual number of items.
+         */
+        
+        this.insert--;
+        
+        size_t index = dst_node.key.lo;
+        
+        if ( index != this.insert )
+        {
+            hash_t src_key = this.copyLast(index, this.insert);
+            
+            /*
+             * Obtain the time-to-mapping entry for the copied cache item.
+             * Update it to the new index and update the key-to-mapping
+             * entry to the updated time-to-mapping entry. 
+             */
+            
+            TimeToIndex.Node* src_node = this.key_to_node.get(src_key);
+            
+            assert (src_node);
+            
+            this.key_to_node.put(src_key, src_node);
+            
+            TimeToIndex.Key src_node_key = src_node.key;
+            
+            src_node_key.lo = index;
+            
+            this.key_to_node.put(src_key,
+                                 this.time_to_index.update(*src_node,
+                                                           src_node_key));
+        }
+
+        // Remove the tree map entry of the removed cache item. 
+        this.time_to_index.remove(dst_node);
+
+        // Remove key -> item mapping
+        this.key_to_node.remove(dst_key);
+    }
+    
+    /***************************************************************************
+    
+        Copies the cache item with index src to dst, overwriting the previous
+        content of the cache item with index dst.
+        Unlike all other situations where indices are used, src is always valid
+        although it may be (and actually is) equal to length. However, src is
+        still guaranteed to be less than max_length so it is safe to use src for
+        indexing.
+        
+        Params:
+            dst = destination cache item index, guaranteed to be below length 
+            src = source cache item index, guaranteed to be below max_length 
+        
+        Returns:
+            the key of the copied cache item.
+        
+    ***************************************************************************/
+    
+    abstract protected hash_t copyLast ( size_t dst, size_t src );
+}
+
+/*******************************************************************************
+
+    Extends ICache by tracking the creation time of each cache element. 
+    
+*******************************************************************************/
+    
+abstract class ITrackCreateTimesCache : ICache
+{
+    /***************************************************************************
+    
+        Constructor.
+    
+        Params:
+            max_items = maximum number of items in the cache, set once, cannot
+                be changed
+    
+    ***************************************************************************/
+    
+    public this ( size_t max_items )
+    {
+        super(max_items);
+    }
+    
+    /*******************************************************************************
+    
+        Obtains the creation time for the cache element corresponding to key.
+        
+        Params:
+            key = cache element key
+            
+        Returns:
+            the creation time of the corresponding element or 0 if not found.
+        
+    *******************************************************************************/
+        
+    abstract public time_t createTime ( hash_t key );
+}
+
+/*******************************************************************************
+
+    Evaluates to either ICache or ITrackCreateTimesCache, depending on
+    TrackCreateTimes.
+
+*******************************************************************************/
+
+template CacheBase ( bool TrackCreateTimes = false )
+{
+    static if (TrackCreateTimes)
+    {
+        alias ITrackCreateTimesCache CacheBase;
+    }
+    else
+    {
+        alias ICache CacheBase;
+    }
 }
 
 /*******************************************************************************
@@ -89,7 +602,7 @@ debug (CacheTimes)
 
 *******************************************************************************/
 
-class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
+class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!(TrackCreateTimes)
 {
     /***************************************************************************
 
@@ -179,59 +692,22 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
 
 
     /***************************************************************************
-
-        Insert position into array of items.
-
-    ***************************************************************************/
-
-    private size_t insert;
-
-
-    /***************************************************************************
-
-        Mapping from access time to the index of an item in the items array. The
-        map is implemented with an EBTree, so that it is sorted in order of
-        access times.
-
-    ***************************************************************************/
-
-    private alias EBTreeMap!(time_t, size_t) TimeToIndex;
-
-    private TimeToIndex time_to_index;
-
-
-    /***************************************************************************
-
-        Mapping from key to TimeToIndex.Mapping struct (which contains a mapping
-        from an access time to the index of an elements in this.items).
-
-    ***************************************************************************/
-
-    private alias ArrayMap!(TimeToIndex.Mapping, hash_t) KeyToMapping;
-
-    private KeyToMapping key_to_mapping;
-
-
-    /***************************************************************************
-
+    
         Constructor.
-
+    
         Params:
             max_items = maximum number of items in the cache, set once, cannot
                 be changed
-
+    
     ***************************************************************************/
-
+    
     public this ( size_t max_items )
     {
-        this.items.length = max_items;
-        this.insert = 0;
-
-        this.time_to_index = new TimeToIndex;
-        this.key_to_mapping = new KeyToMapping(max_items);
+        super(max_items);
+        
+        this.items = new CacheItem[max_items];
     }
-
-
+    
     /***************************************************************************
 
         Puts an item into the cache. If the cache is full, the oldest item is
@@ -251,25 +727,33 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
 
     public bool put ( hash_t key, time_t time, Value value )
     {
-        TimeToIndex.Mapping* mapping = key in this.key_to_mapping;
-        if ( mapping is null ) // new item, not in cache
+        CacheItem* item = this.get__(key, time);
+        
+        if (item)
         {
-            CacheItem.setValue(*this.add(key, time), value);
-            return false;
+            item.setValue(value);
+            
+            return true;
         }
         else
         {
-            this.items[mapping.value].setValue(value);
-            this.setAccessTime(*mapping, time);
-            static if ( TrackCreateTimes )
+            Value* dst_value = this.add(key, time);
+            
+            if (dst_value)
             {
-                this.items[mapping.value].create_time = time;
+                CacheItem.setValue(*dst_value, value);
             }
-            return true;
+            else
+            {
+                assert (!this.realtime,
+                        "attempted to access a cache item whose time of last "
+                        "access is in the future");
+            }
+            
+            return false;
         }
     }
-
-
+    
     /***************************************************************************
 
         Gets an item from the cache. A pointer to the item is returned, if
@@ -289,7 +773,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
 
     public Value* get ( hash_t key, lazy time_t access_time )
     {
-        CacheItem* item = this.get_(this.getMapping(key), access_time);
+        CacheItem* item = this.get__(key, access_time);
         
         return (item !is null)? &item.value : null;
     }
@@ -315,67 +799,22 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
     ***************************************************************************/
 
     public Value* getOrCreate ( hash_t key, time_t access_time, out bool existed )
+    out (val)
     {
-        TimeToIndex.Mapping* mapping = key in this.key_to_mapping;
-        
-        existed = mapping !is null;
-        
-        if ( existed )
+        if (this.realtime)
         {
-            this.setAccessTime(*mapping, access_time);
-            return &this.items[mapping.value].value;
+            assert (val);
         }
-        else
-        {
-            return this.add(key, access_time);
-        }
+    }
+    body
+    {
+        CacheItem* item = this.get__(key, access_time);
+        
+        existed = item !is null;
+        
+        return item? &item.value : this.add(key, access_time);
     }
     
-    /***************************************************************************
-
-        Checks whether an item exists in the cache.
-
-        Params:
-            key = key to lookup
-
-        Returns:
-            true if item exists in cache
-
-    ***************************************************************************/
-
-    public bool exists ( hash_t key )
-    {
-        return this.getMapping(key) !is null;
-    }
-
-
-    /***************************************************************************
-
-        Checks whether an item exists in the cache and returns the last time it
-        was accessed.
-
-        Params:
-            key = key to lookup
-
-        Returns:
-            item's last access time, or 0 if the item doesn't exist
-
-    ***************************************************************************/
-
-    public time_t accessTime ( hash_t key )
-    {
-        TimeToIndex.Mapping* mapping = key in this.key_to_mapping;
-        if ( mapping is null )
-        {
-            return 0;
-        }
-        else
-        {
-            return mapping.key;
-        }
-    }
-
-
     /***************************************************************************
 
         Checks whether an item exists in the cache and returns its create time.
@@ -392,207 +831,156 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
     {
         public time_t createTime ( hash_t key )
         {
-            TimeToIndex.Mapping* mapping = key in this.key_to_mapping;
-            if ( mapping is null )
-            {
-                return 0;
-            }
-            else
-            {
-                return this.items[mapping.value].create_time;
-            }
-        }
-    }
-
-
-    /***************************************************************************
-
-        Removes an item from the cache.
-
-        Params:
-            key = key of item to remove
-
-        Returns:
-            returns true if removed, false if not in cache
-
-    ***************************************************************************/
-
-    public bool remove ( hash_t key )
-    {
-        return this.remove_(key, this.getMapping(key));
-    }
-    
-    
-    /***************************************************************************
-
-        Removes all items from the cache.
-
-    ***************************************************************************/
-
-    public void clear ( )
-    {
-        this.time_to_index.clear;
-        this.key_to_mapping.clear;
-        this.insert = 0;
-    }
-
-
-    /***************************************************************************
-
-        Returns:
-            the number of items in the cache.
-
-    ***************************************************************************/
-
-    public size_t length ( )
-    {
-        return this.insert;
-    }
-
-    /***************************************************************************
-
-        Returns:
-           the cache size in (maximum number of items) as passed to constructor.
-    
-    ***************************************************************************/
-
-    public size_t max_length ( )
-    {
-        return this.items.length;
-    }
-    
-    /***************************************************************************
-        
-        Obtains the map item for key.
-        
-        Params:
-            key = key to lookup
-        
-        Returns:
-            pointer to map item or null if not found
-    
-    ***************************************************************************/
-
-    protected TimeToIndex.Mapping* getMapping ( hash_t key )
-    {
-        return key in this.key_to_mapping;
-    }
-    
-    /***************************************************************************
-    
-        Obtains the cache item that corresponds to map_item and updates the
-        access time.
-        
-        Params:
-            map_item    = map item (may be null)
-            access_time = access time
-        
-        Returns:
-            pointer to corresponding cache item or null if map_item is null
-    
-    ***************************************************************************/
-
-    protected CacheItem* get_ ( TimeToIndex.Mapping* mapping, lazy time_t access_time )
-    {
-        if ( mapping !is null )
-        {
-            this.setAccessTime(*mapping, access_time);
-
-            return &this.items[mapping.value];
-        }
-        else // Item not in cache
-        {
-            return null;
-        }
-    }
-    
-    /***************************************************************************
-    
-        Removes the cache item that corresponds to key and map_item.
-        
-        Params:
-            dst_key      = key of item to remove
-            dst_map_item = map item to remove (may be null to do nothing)
-        
-        Returns:
-            true if removed or false if map_item is null and nothing has been
-            done.
-    
-    ***************************************************************************/
-
-    protected bool remove_ ( hash_t dst_key, TimeToIndex.Mapping* dst_mapping )
-    {
-        if ( dst_mapping is null ) // item not in cache
-        {
-            return false;
-        }
-        else
-        {
-            /* 
-             * Remove item in items list by copying the last item to the item to
-             * remove and decrementing the insert index which reflects the
-             * actual number of items.
-             */
+            TimeToIndex.Node** node = key in this;
             
-            this.insert--;
-            
-            size_t index = dst_mapping.value;
-            
-            if ( index != this.insert )
-            {
-                /* 
-                 * src_item: last item in elements to be copied to the item to
-                 *           remove.
-                 */
-                
-                CacheItem src_item = this.items[this.insert];
-                
-                /*
-                 * Copy the last item to the item to remove. dst_mapping.index
-                 * is the index of the element to remove in this.items.
-                 */
-                
-                with (this.items[index])
-                {
-                    key =    src_item.key;
-                    setValue(src_item.value);
-                }
-                
-                /*
-                 * Obtain the time-to-mapping entry for the copied cache item.
-                 * Update it to the new index and update the key-to-mapping
-                 * entry to the updated time-to-mapping entry. 
-                 */
-                
-                TimeToIndex.Mapping src_mapping = this.key_to_mapping.get(src_item.key);
-                
-                this.key_to_mapping.put(src_item.key,
-                                        this.time_to_index.update(src_mapping, src_mapping.key, dst_mapping.value));
-            }
-
-            // Remove the tree map entry of the removed cache item. 
-            this.time_to_index.remove(*dst_mapping);
-
-            // Remove key -> item mapping
-            this.key_to_mapping.remove(dst_key);
-
-            return true;
+            return node? this.items[(*node).key.lo].create_time : 0;
         }
     }
 
+
     /***************************************************************************
-
-        Updates the update time of an item in the cache.
-
+    
+        Obtains the key of the cache item corresponding to index.
+        
         Params:
-            item = KeyToMapping map item to update
-            update_time = new update time to set
-
+            index = cache item index, guaranteed to be below length 
+        
+        Returns:
+            cache item key
+        
     ***************************************************************************/
-
-    private void setAccessTime ( TimeToIndex.Mapping mapping, time_t access_time )
+    
+    protected hash_t keyByIndex ( size_t index )
+    in
     {
-        this.time_to_index.update(mapping, access_time, mapping.value);
+        assert (index <= this.length);
+    }
+    body
+    {
+        return this.items[index].key;
+    }
+    
+    /***************************************************************************
+    
+        Copies the cache item with index src to dst, overwriting the previous
+        content of the cache item with index dst.
+        Unlike all other situations where indices are used, src is always valid
+        although it may be (and actually is) equal to length. However, src is
+        still guaranteed to be less than max_length so it is safe to use src for
+        indexing.
+        
+        Params:
+            dst = destination cache item index, guaranteed to be below length 
+            src = source cache item index, guaranteed to be below max_length 
+        
+        Returns:
+            the key of the copied cache item.
+        
+    ***************************************************************************/
+    
+    protected hash_t copyLast ( size_t dst, size_t src )
+    in
+    {
+        assert (src < this.max_length);
+        assert (dst < this.length);
+    }
+    body
+    {
+        /* 
+         * src_item: last item in elements to be copied to the item to
+         *           remove.
+         */
+        
+        CacheItem src_item = this.items[src];
+        
+        /*
+         * Copy the last item to the item to remove. dst_node.index
+         * is the index of the element to remove in this.items.
+         */
+        
+        with (this.items[dst])
+        {
+            setValue(src_item.value);
+            return key = src_item.key;
+        }
+    }
+    
+    /***************************************************************************
+    
+        Obtains the cache item that corresponds to node and updates the access
+        time.
+        If realtime is enabled, time is expected to be equal to or
+        greater than the time stored in node. If disabled and the access time is
+        less, the node will not be updated and null returned.
+        
+        
+        Params:
+            node = time-to-index tree node
+            time = access time
+        
+        Returns:
+            the cache item or a null if realtime is disabled and the access time
+            is less than the access time in the node.
+    
+        Out:
+            If realtime is enabled, the returned pointer is never null.
+    
+    ***************************************************************************/
+    
+    protected CacheItem* get__ ( ref TimeToIndex.Node node, lazy time_t time )
+    out (item)
+    {
+        if (this.realtime)
+        {
+            assert (item);
+        }
+    }
+    body
+    {
+        return this.getItem(this.get_(node, time));
+    }
+    
+    /***************************************************************************
+    
+        Obtains the cache item that corresponds to node and updates the access
+        time.
+        If realtime is enabled and key could be found, time is expected to be at
+        least the time value stored in node. If disabled and access_time is
+        less, the result is the same as if key could not be found.
+        
+        
+        Params:
+            node = time-to-index tree node
+            time = access time
+        
+        Returns:
+            the corresponding cache item or null if key could not be found or
+            realtime is disabled and the access time is less than the access
+            time in the cache element.
+    
+    ***************************************************************************/
+    
+    protected CacheItem* get__ ( hash_t key, lazy time_t time )
+    {
+        return this.getItem(this.get_(key, time));
+    }
+    
+    /***************************************************************************
+    
+        Obtains the cache item that corresponds to index. Returns null if index
+        is length or greater.
+        
+        Params:
+            index = cache item index
+        
+        Returns:
+            the corresponding cache item or null if index is length or greater.
+    
+    ***************************************************************************/
+    
+    private CacheItem* getItem ( size_t index )
+    {
+        return (index < this.length)? &this.items[index] : null;
     }
     
     /***************************************************************************
@@ -600,50 +988,62 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false )
         Adds an item to the cache. If the cache is full, the oldest item will be
         removed and replaced with the new item.
 
+        If realtime is enabled, time is expected to be at least the time value
+        of the most recent cache element.
+        If realtime is disabled and time is less than the time value of the most
+        recent cache element, nothing is done and null is returned.
+        
         Params:
             key = key of item
             time = create time of item (set as initial access time)
-            value = data to store in cache
         
         Returns:
-            pointer to value of added item to be written to by caller.
+            pointer to value of added item to be written to by caller or null 
+            f realtime is disabled and time is less than the time value of the
+            most recent cache element.
         
+        In:
+            If realtime is enabled, time must be at least the time value of the
+            most recent cache element. 
+         
+        Out:
+            If realtime is enabled, the returned pointer is never null.
+            
     ***************************************************************************/
 
-    private Value* add ( hash_t key, time_t time )
+    private Value* add ( hash_t key_in, time_t time )
+    out (val)
     {
-        size_t index;
-
-        if ( this.insert < this.items.length )
+        if (this.realtime)
         {
-            index = this.insert++;
+            assert (val);
+        }
+    }
+    body
+    {
+        size_t index = this.register(key_in, time);
+        
+        if (index < this.length)
+        {
+            // Add key->item mapping
+            
+            with (this.items[index])
+            {
+                // Set key & value in chosen element of items array
+                key = key_in;
+                
+                static if ( TrackCreateTimes )
+                {
+                    create_time = time;
+                }
+                
+                return &value;
+            }
         }
         else
         {
-            // Find item with lowest (ie oldest) update time
-            TimeToIndex.Mapping oldest_time_mapping = this.time_to_index.firstMapping;
-            index = oldest_time_mapping.value;
-
-            // Remove old item in tree map
-            this.time_to_index.remove(oldest_time_mapping);
-            this.key_to_mapping.remove(this.items[index].key);
+            return null;
         }
-
-        // Set key & value in chosen element of items array
-        this.items[index].key = key;
-        
-        static if ( TrackCreateTimes )
-        {
-            this.items[index].create_time = time;
-        }
-
-        // Add new item to tree map
-//        TimeToIndex.Mapping time_mapping = this.time_to_index.add(time, index);
-
-        // Add key->item mapping
-        this.key_to_mapping.put(key, this.time_to_index.add(time, index));
-        
-        return &this.items[index].value;
     }
     
     debug (CacheTimes)
@@ -792,7 +1192,7 @@ class ExpiringCache ( size_t ValueSize = 0 ) : Cache!(ValueSize, true)
         this.lifetime = lifetime;
     }
     
-   /***************************************************************************
+    /***************************************************************************
     
         Gets an item from the cache. A pointer to the item is returned, if
         found. If the item exists in the cache, its access time is updated.
@@ -875,25 +1275,46 @@ class ExpiringCache ( size_t ValueSize = 0 ) : Cache!(ValueSize, true)
 
     private CacheItem* getRemove ( hash_t key, time_t access_time )
     {
-        TimeToIndex.Mapping*   mapping    = super.getMapping(key);
-        CacheItem* cache_item             = super.get_(mapping, access_time);
+        TimeToIndex.Node**  node = key in this;
         
         this.stats.total++;
         
-        if (cache_item)
+        if (node)
         {
-            if (cache_item.create_time > access_time || access_time - cache_item.create_time >= this.lifetime)
+            /*
+             * If there is a node, there is also a cache item. get__() will only
+             * return null if the current access time of the item is later than
+             * access_time. This can only be if realtime is disabled.
+             */
+            
+            CacheItem* cache_item = this.get__(**node, access_time);
+            
+            if (cache_item)
             {
-                this.stats.expired++;
+                if (cache_item.create_time > access_time ||
+                    access_time - cache_item.create_time >= this.lifetime)
+                {
+                    this.stats.expired++;
+                    
+                    this.remove_(key, **node);
+                    cache_item = null;
+                }
                 
-                super.remove_(key, mapping);
-                cache_item = null;
+                this.stats.misses += !cache_item;
             }
+            else
+            {
+                assert (!this.realtime,
+                        "attempted to access a cache item whose time of last "
+                        "access is in the future");
+            }
+            
+            return cache_item;
         }
-        
-        this.stats.misses += !cache_item;
-        
-        return cache_item;
+        else
+        {
+            return null;
+        }
     }
 }
 
@@ -1044,91 +1465,240 @@ class Cache ( T, bool TrackCreateTimes = false ) : Cache!(T.sizeof, TrackCreateT
 
 *******************************************************************************/
 
-debug ( OceanUnitTest )
-{
-    unittest
-    {
-        time_t time = 234567;
+import tango.stdc.posix.stdlib: srand48, mrand48, drand48;
+import tango.stdc.time: time;
 
-        // ---------------------------------------------------------------------
-        // Test of static sized cache
+import tango.io.Stdout;
+
+import ocean.core.Array: shuffle;
+
+unittest
+{
+    srand48(time(null));
+    
+    static ulong ulrand ( )
+    {
+        return (cast (ulong) mrand48() << 0x20) | cast (uint) mrand48();
+    }
+    
+    time_t time = 234567;
+
+    // ---------------------------------------------------------------------
+    // Test of static sized cache
+    
+    version (all)
+    {{
+        struct Record
+        {
+            hash_t key;
+            int    val;
+            
+            int opCmp ( typeof (this) other )
+            {
+                return this.key >  other.key? +1 :
+                       this.key <  other.key? -1 :
+                       this.val >= other.val? this.val >= other.val : -1;
+            }
+        }
+        
+        Record[0x400] records;
+        
+        scope cache = new Cache!(int)(0x100);
+        
+        time_t t = 0;
+        
+        foreach (i, ref record; records)
+        {
+            record = Record(ulrand(), i);
+        }
+        
+        foreach (record; records[0 .. cache.max_length])
+        {
+            Stderr.formatln("{:X16}", record.key);
+            
+            cache.putItem(record.key, ++t, record.val);
+        }
+        
+        Stderr('\n');
+        
+        assert (t == cache.max_length);
+        
+        foreach (record; records.shuffle(drand48)) with (record)
+        {
+            int* v = cache.getItem(key, ++t);
+            
+            if (val < cache.max_length)
+            {
+                assert (v);
+                assert (*v == val);
+            }
+            else
+            {
+                assert (!v);
+            }
+        }
+        
+        assert (t == cache.max_length * 2);
         
         {
-            struct Data
+            
+        }
+        
+        /+
+        foreach (record; records.shuffle(drand48)) with (record)
+        {
+            if (val < cache.max_length)
             {
-                int x;
+                Stderr.formatln("{:X16}", record.key);
+                
+                int* v = cache.getItem(key, ++t);
+                
+                assert (v);
+                assert (*v == val);
+            }
+        }
+        +/
+    }}
+    else
+    {
+        struct Data
+        {
+            int x;
+        }
+        
+        scope static_cache = new Cache!(Data)(2);
+        
+        with (static_cache)
+        {
+            assert(length == 0);
+        
+            {
+                bool replaced = putItem(1, time, Data(23));
+                
+                assert(!replaced);
+                
+                assert(length == 1);
+                assert(exists(1));
+                
+                Data* item = getItem(1, time);
+                assert(item);
+                assert(item.x == 23);
             }
             
-            scope static_cache = new Cache!(Data)(2);
-            assert(static_cache.length == 0);
-        
-            static_cache.putItem(1, time, Data(23));
-            assert(static_cache.length == 1);
-            assert(static_cache.exists(1));
-            assert(static_cache.getItem(1, time).x == 23);
-        
-            static_cache.putItem(2, time + 1, Data(24));
-            assert(static_cache.length == 2);
-            assert(static_cache.exists(2));
-            assert(static_cache.getItem(2, time + 1).x == 24);
-        
-            static_cache.putItem(2, time + 1, Data(25));
-            assert(static_cache.length == 2);
-            assert(static_cache.exists(2));
-            assert(static_cache.getItem(2, time + 1).x == 25);
-        
-            static_cache.putItem(3, time + 2, Data(26));
-            assert(static_cache.length == 2);
-            assert(!static_cache.exists(1));
-            assert(static_cache.exists(2));
-            assert(static_cache.exists(3));
-            assert(static_cache.getItem(3, time + 2).x == 26);
-        
-            static_cache.putItem(4, time + 3, Data(27));
-            assert(static_cache.length == 2);
-            assert(!static_cache.exists(1));
-            assert(!static_cache.exists(2));
-            assert(static_cache.exists(3));
-            assert(static_cache.exists(4));
-            assert(static_cache.getItem(4, time + 3).x == 27);
-        
-            static_cache.clear();
-            assert(static_cache.length == 0);
-        
-            static_cache.putItem(1, time, Data(23));
-            assert(static_cache.length == 1);
-            assert(static_cache.exists(1));
-            assert(static_cache.getItem(1, time).x == 23);
-        
-            static_cache.putItem(2, time + 1, Data(24));
-            assert(static_cache.length == 2);
-            assert(static_cache.exists(2));
-            assert(static_cache.getItem(2, time + 1).x == 24);
-        
-            static_cache.remove(1);
-            assert(static_cache.length == 1);
-            assert(!static_cache.exists(1));
-            assert(static_cache.exists(2));
-        }
-    
-        // ---------------------------------------------------------------------
-        // Test of expiring cache
-        
-        {
-            ubyte[] data1 = cast(ubyte[])"hello world";
-            ubyte[] data2 = cast(ubyte[])"goodbye world";
-            ubyte[] data3 = cast(ubyte[])"hallo welt";
-            
-            time_t t = 0;
-            
-            scope expiring_cache = new ExpiringCache!()(4, 10);
-            assert(expiring_cache.length == 0);
-        
-            expiring_cache.put(1, t++, data1);
-            assert(expiring_cache.length == 1);
-            assert(expiring_cache.exists(1, t++));
             {
-                ubyte[]* data = expiring_cache.get(1, t++);
+                bool replaced = putItem(2, time + 1, Data(24));
+                
+                assert(!replaced);
+                
+                assert(length == 2);
+                assert(exists(2));
+                
+                Data* item = getItem(2, time + 1);
+                assert(item);
+                assert(item.x == 24); 
+            }
+            
+            {
+                bool replaced = putItem(2, time + 1, Data(25));
+                
+                assert(replaced);
+                
+                assert(length == 2);
+                assert(exists(2));
+                
+                Data* item = getItem(2, time + 1);
+                assert(item);
+                assert(item.x == 25);
+            }
+        
+            {
+                bool replaced = putItem(3, time + 2, Data(26));
+                
+                assert(!replaced);
+                
+                assert(length == 2);
+                assert(!exists(1));
+                assert(exists(2));
+                assert(exists(3));
+                
+                Data* item = getItem(3, time + 2);
+                assert(item);
+                assert(item.x == 26);
+            }
+            
+            {
+                bool replaced = putItem(4, time + 3, Data(27));
+                
+                assert(!replaced);
+                
+                assert(length == 2);
+                assert(!exists(1));
+                assert(!exists(2));
+                assert(exists(3));
+                assert(exists(4));
+                
+                Data* item = getItem(4, time + 3);
+                assert(item);
+                assert(item.x == 27);
+            }
+            
+            clear();
+            assert(length == 0);
+        
+            {
+                bool replaced = putItem(1, time, Data(23));
+                
+                assert(!replaced);
+                
+                assert(length == 1);
+                assert(exists(1));
+                
+                Data* item = getItem(1, time);
+                assert(item);
+                assert(item.x == 23);
+            }
+            
+            {
+                bool replaced = putItem(2, time + 1, Data(24));
+                
+                assert(!replaced);
+                
+                assert(length == 2);
+                assert(exists(2));
+                
+                Data* item = getItem(2, time + 1);
+                assert(item);
+                assert(item.x == 24);
+            }
+            
+            remove(1);
+            assert(length == 1);
+            assert(!exists(1));
+            assert(exists(2));
+        }
+    }
+    
+    // ---------------------------------------------------------------------
+    // Test of expiring cache
+    
+    {
+        ubyte[] data1 = cast(ubyte[])"hello world";
+        ubyte[] data2 = cast(ubyte[])"goodbye world";
+        ubyte[] data3 = cast(ubyte[])"hallo welt";
+        
+        time_t t = 0;
+        
+        scope expiring_cache = new ExpiringCache!()(4, 10);
+        
+        with (expiring_cache)
+        {
+            assert(length == 0);
+        
+            put(1, t++, data1);
+            assert(length == 1);
+            assert(exists(1, t++));
+            {
+                ubyte[]* data = get(1, t++);
                 assert(data);
                 assert(*data == data1);
             }
@@ -1136,11 +1706,11 @@ debug ( OceanUnitTest )
             assert(t <= 5);
             t = 5;
             
-            expiring_cache.put(2, t++, data2);
-            assert(expiring_cache.length == 2);
-            assert(expiring_cache.exists(2, t++));
+            put(2, t++, data2);
+            assert(length == 2);
+            assert(exists(2, t++));
             {
-                ubyte[]* data = expiring_cache.get(2, t++);
+                ubyte[]* data = get(2, t++);
                 assert(data);
                 assert(*data == data2);
             }
@@ -1148,65 +1718,66 @@ debug ( OceanUnitTest )
             assert(t <= 10);
             t = 10;
             
-            assert(!expiring_cache.exists(1, t++));
+            assert(!exists(1, t++));
             
             assert(t <= 17);
             t = 17;
             
             {
-                ubyte[]* data = expiring_cache.get(2, t++);
+                ubyte[]* data = get(2, t++);
                 assert(!data);
             }
         }
-        
-        // ---------------------------------------------------------------------
-        // Test of dynamic sized cache
-        
-        {
-            ubyte[] data1 = cast(ubyte[])"hello world";
-            ubyte[] data2 = cast(ubyte[])"goodbye world";
-            ubyte[] data3 = cast(ubyte[])"hallo welt";
-        
-            scope dynamic_cache = new Cache!()(2);
-            assert(dynamic_cache.length == 0);
-        
-            dynamic_cache.put(1, time, data1);
-            assert(dynamic_cache.exists(1));
-            assert(*dynamic_cache.get(1, time) == data1);
-        
-            dynamic_cache.put(2, time + 1, data2);
-            assert(dynamic_cache.exists(1));
-            assert(dynamic_cache.exists(2));
-            assert(*dynamic_cache.get(1, time) == data1);
-            assert(*dynamic_cache.get(2, time + 1) == data2);
-        
-            dynamic_cache.put(3, time + 2, data3);
-            assert(!dynamic_cache.exists(1));
-            assert(dynamic_cache.exists(2));
-            assert(dynamic_cache.exists(3));
-            assert(*dynamic_cache.get(2, time + 1) == data2);
-            assert(*dynamic_cache.get(3, time + 2) == data3);
-        
-            dynamic_cache.clear;
-            assert(dynamic_cache.length == 0);
-        
-            dynamic_cache.put(1, time, data1);
-            assert(dynamic_cache.length == 1);
-            assert(dynamic_cache.exists(1));
-            assert(*dynamic_cache.get(1, time) == data1);
-        
-            dynamic_cache.put(2, time + 1, data2);
-            assert(dynamic_cache.length == 2);
-            assert(dynamic_cache.exists(2));
-            assert(*dynamic_cache.get(2, time + 1) == data2);
-        
-            dynamic_cache.remove(1);
-            assert(dynamic_cache.length == 1);
-            assert(!dynamic_cache.exists(1));
-            assert(dynamic_cache.exists(2));
-        }
+    }
+    
+    // ---------------------------------------------------------------------
+    // Test of dynamic sized cache
+    
+    {
+        ubyte[] data1 = cast(ubyte[])"hello world";
+        ubyte[] data2 = cast(ubyte[])"goodbye world";
+        ubyte[] data3 = cast(ubyte[])"hallo welt";
+    
+        scope dynamic_cache = new Cache!()(2);
+        assert(dynamic_cache.length == 0);
+    
+        dynamic_cache.put(1, time, data1);
+        assert(dynamic_cache.exists(1));
+        assert(*dynamic_cache.get(1, time) == data1);
+    
+        dynamic_cache.put(2, time + 1, data2);
+        assert(dynamic_cache.exists(1));
+        assert(dynamic_cache.exists(2));
+        assert(*dynamic_cache.get(1, time) == data1);
+        assert(*dynamic_cache.get(2, time + 1) == data2);
+    
+        dynamic_cache.put(3, time + 2, data3);
+        assert(!dynamic_cache.exists(1));
+        assert(dynamic_cache.exists(2));
+        assert(dynamic_cache.exists(3));
+        assert(*dynamic_cache.get(2, time + 1) == data2);
+        assert(*dynamic_cache.get(3, time + 2) == data3);
+    
+        dynamic_cache.clear;
+        assert(dynamic_cache.length == 0);
+    
+        dynamic_cache.put(1, time, data1);
+        assert(dynamic_cache.length == 1);
+        assert(dynamic_cache.exists(1));
+        assert(*dynamic_cache.get(1, time) == data1);
+    
+        dynamic_cache.put(2, time + 1, data2);
+        assert(dynamic_cache.length == 2);
+        assert(dynamic_cache.exists(2));
+        assert(*dynamic_cache.get(2, time + 1) == data2);
+    
+        dynamic_cache.remove(1);
+        assert(dynamic_cache.length == 1);
+        assert(!dynamic_cache.exists(1));
+        assert(dynamic_cache.exists(2));
     }
 }
+
 
 
 
@@ -1287,3 +1858,4 @@ debug ( OceanPerformanceTest )
     }
 }
 
+version (CacheTest) void main ( ) { }
