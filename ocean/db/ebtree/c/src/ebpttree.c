@@ -83,25 +83,25 @@ void ebpt_delete(struct ebpt_node *ebpt)
 struct ebpt_node *ebpt_lookup(struct eb_root *root, void *x)
 {
 	if (sizeof(void *) == 4)
-		return (struct ebpt_node *)eb32_lookup(root, (u32)(PTR_INT_TYPE)x);
+		return (struct ebpt_node *)eb32_lookup(root, (uint32_t)(PTR_INT_TYPE)x);
 	else
-		return (struct ebpt_node *)eb64_lookup(root, (u64)(PTR_INT_TYPE)x);
+		return (struct ebpt_node *)eb64_lookup(root, (uint64_t)(PTR_INT_TYPE)x);
 }
 
 struct ebpt_node *ebpt_lookup_le(struct eb_root *root, void *x)
 {
 	if (sizeof(void *) == 4)
-		return (struct ebpt_node *)eb32_lookup_le(root, (u32)(PTR_INT_TYPE)x);
+		return (struct ebpt_node *)eb32_lookup_le(root, (uint32_t)(PTR_INT_TYPE)x);
 	else
-		return (struct ebpt_node *)eb64_lookup_le(root, (u64)(PTR_INT_TYPE)x);
+		return (struct ebpt_node *)eb64_lookup_le(root, (uint64_t)(PTR_INT_TYPE)x);
 }
 
 struct ebpt_node *ebpt_lookup_ge(struct eb_root *root, void *x)
 {
 	if (sizeof(void *) == 4)
-		return (struct ebpt_node *)eb32_lookup_ge(root, (u32)(PTR_INT_TYPE)x);
+		return (struct ebpt_node *)eb32_lookup_ge(root, (uint32_t)(PTR_INT_TYPE)x);
 	else
-		return (struct ebpt_node *)eb64_lookup_ge(root, (u64)(PTR_INT_TYPE)x);
+		return (struct ebpt_node *)eb64_lookup_ge(root, (uint64_t)(PTR_INT_TYPE)x);
 }
 
 struct ebpt_node *ebpt_insert(struct eb_root *root, struct ebpt_node *new)

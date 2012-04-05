@@ -22,14 +22,10 @@
 #define _EB64TREE_H
 
 #include "ebtree.h"
-
+#include <stdint.h>
 
 #define EB64_ROOT	EB_ROOT
 #define EB64_TREE_HEAD	EB_TREE_HEAD
-
-/* These types may sometimes already be defined */
-typedef unsigned long long u64;
-typedef   signed long long s64;
 
 /* This structure carries a node, a leaf, and a key. It must start with the
  * eb_node so that it can be cast into an eb_node. We could also have put some
@@ -38,7 +34,7 @@ typedef   signed long long s64;
  */
 struct eb64_node {
 	struct eb_node node; /* the tree node, must be at the beginning */
-	u64 key;
+	uint64_t key;
 };
 
 /*
@@ -65,51 +61,49 @@ extern struct eb64_node *eb64_next_unique(struct eb64_node *eb64);
 /* Return previous node in the tree, skipping duplicates, or NULL if none */
 extern struct eb64_node *eb64_prev_unique(struct eb64_node *eb64);
 
-/* Delete node from the tree if it was linked in. Mark the node unused. Note
- * that this function relies on a non-inlined generic function: eb_delete.
- */
+/* Delete node from the tree if it was linked in. Mark the node unused. */
 extern void eb64_delete(struct eb64_node *eb64);
 
 /*
- * The following functions are not inlined by default. They are declared
- * in eb64tree.c, which simply relies on their inline version.
- */
-extern struct eb64_node *eb64_lookup(struct eb_root *root, u64 x);
-extern struct eb64_node *eb64i_lookup(struct eb_root *root, s64 x);
-extern struct eb64_node *eb64_lookup_le(struct eb_root *root, u64 x);
-extern struct eb64_node *eb64_lookup_ge(struct eb_root *root, u64 x);
-extern struct eb64_node *eb64_insert(struct eb_root *root, struct eb64_node *new);
-extern struct eb64_node *eb64i_insert(struct eb_root *root, struct eb64_node *new);
-
-/*
- * The following functions are less likely to be used directly, because their
- * code is larger. The non-inlined version is preferred.
+ * Find the first occurence of a key in the tree <root>. If none can be found,
+ * return NULL.
  */
 
-/* Delete node from the tree if it was linked in. Mark the node unused. */
-extern void __eb64_delete(struct eb64_node *eb64);
-
-/*
- * Find the first occurence of a key in the tree <root>. If none can be
- * found, return NULL.
- */
-extern struct eb64_node *__eb64_lookup(struct eb_root *root, u64 x);
+extern struct eb64_node *eb64_lookup(struct eb_root *root, uint64_t x);
 
 /*
  * Find the first occurence of a signed key in the tree <root>. If none can
  * be found, return NULL.
  */
-extern struct eb64_node *__eb64i_lookup(struct eb_root *root, s64 x);
+
+extern struct eb64_node *eb64i_lookup(struct eb_root *root, int64_t x);
+
+/*
+ * Find the last occurrence of the highest key in the tree <root>, which is
+ * equal to or less than <x>. NULL is returned is no key matches.
+ */
+
+extern struct eb64_node *eb64_lookup_le(struct eb_root *root, uint64_t x);
+
+/*
+ * Find the first occurrence of the lowest key in the tree <root>, which is
+ * equal to or greater than <x>. NULL is returned is no key matches.
+ */
+
+extern struct eb64_node *eb64_lookup_ge(struct eb_root *root, uint64_t x);
 
 /* Insert eb64_node <new> into subtree starting at node root <root>.
  * Only new->key needs be set with the key. The eb64_node is returned.
  * If root->b[EB_RGHT]==1, the tree may only contain unique keys.
  */
-extern struct eb64_node *__eb64_insert(struct eb_root *root, struct eb64_node *new);
+
+extern struct eb64_node *eb64_insert(struct eb_root *root, struct eb64_node *new);
 
 /* Insert eb64_node <new> into subtree starting at node root <root>, using
  * signed keys. Only new->key needs be set with the key. The eb64_node
  * is returned. If root->b[EB_RGHT]==1, the tree may only contain unique keys.
  */
-extern struct eb64_node *__eb64i_insert(struct eb_root *root, struct eb64_node *new);
-#endif /* _EB64_TREE_H */
+
+extern struct eb64_node *eb64i_insert(struct eb_root *root, struct eb64_node *new);
+
+#endif /* int64_tEB64_TREE_H */

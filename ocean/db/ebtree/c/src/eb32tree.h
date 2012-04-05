@@ -22,15 +22,12 @@
 #define _EB32TREE_H
 
 #include "ebtree.h"
+#include <stdint.h>
 
 
 /* Return the structure of type <type> whose member <member> points to <ptr> */
 #define EB32_ROOT	EB_ROOT
 #define EB32_TREE_HEAD	EB_TREE_HEAD
-
-/* These types may sometimes already be defined */
-typedef unsigned int u32;
-typedef   signed int s32;
 
 /* This structure carries a node, a leaf, and a key. It must start with the
  * eb_node so that it can be cast into an eb_node. We could also have put some
@@ -39,7 +36,7 @@ typedef   signed int s32;
  */
 struct eb32_node {
 	struct eb_node node; /* the tree node, must be at the beginning */
-	u32 key;
+	uint32_t key;
 };
 
 /*
@@ -75,10 +72,10 @@ extern void eb32_delete(struct eb32_node *eb32);
  * The following functions are not inlined by default. They are declared
  * in eb32tree.c, which simply relies on their inline version.
  */
-extern struct eb32_node *eb32_lookup(struct eb_root *root, u32 x);
-extern struct eb32_node *eb32i_lookup(struct eb_root *root, s32 x);
-extern struct eb32_node *eb32_lookup_le(struct eb_root *root, u32 x);
-extern struct eb32_node *eb32_lookup_ge(struct eb_root *root, u32 x);
+extern struct eb32_node *eb32_lookup(struct eb_root *root, uint32_t x);
+extern struct eb32_node *eb32i_lookup(struct eb_root *root, int32_t x);
+extern struct eb32_node *eb32_lookup_le(struct eb_root *root, uint32_t x);
+extern struct eb32_node *eb32_lookup_ge(struct eb_root *root, uint32_t x);
 extern struct eb32_node *eb32_insert(struct eb_root *root, struct eb32_node *new);
 extern struct eb32_node *eb32i_insert(struct eb_root *root, struct eb32_node *new);
 
@@ -93,12 +90,12 @@ extern void eb32_delete(struct eb32_node *eb32);
  * Find the first occurence of a key in the tree <root>. If none can be
  * found, return NULL.
  */
-extern struct eb32_node *eb32_lookup(struct eb_root *root, u32 x);
+extern struct eb32_node *eb32_lookup(struct eb_root *root, uint32_t x);
 /*
  * Find the first occurence of a signed key in the tree <root>. If none can
  * be found, return NULL.
  */
-extern struct eb32_node *eb32i_lookup(struct eb_root *root, s32 x);
+extern struct eb32_node *eb32i_lookup(struct eb_root *root, int32_t x);
 /* Insert eb32_node <new> into subtree starting at node root <root>.
  * Only new->key needs be set with the key. The eb32_node is returned.
  * If root->b[EB_RGHT]==1, the tree may only contain unique keys.
@@ -110,6 +107,5 @@ extern struct eb32_node *eb32_insert(struct eb_root *root, struct eb32_node *new
  * is returned. If root->b[EB_RGHT]==1, the tree may only contain unique keys.
  */
 extern struct eb32_node *eb32i_insert(struct eb_root *root, struct eb32_node *new);
-
 
 #endif /* _EB32_TREE_H */
