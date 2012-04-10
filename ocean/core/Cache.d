@@ -115,7 +115,18 @@ abstract class ICache
         Mapping from access time to the index of an item in the items array. The
         map is implemented with an EBTree, so that it is sorted in order of
         access times.
-    
+        
+        The time-to-index mapping records are stored in time_to_index as
+        so-called EBTree "nodes" of type TimeToIndex.Node. Each node contains a
+        so-called "key" of type TimeToIndex.Key which consists of two uint
+        values, "lo" and "hi".
+        The sort order is ascending by "hi"; records with the same "hi" value
+        are sorted by "lo". Therefore, since the time-to-index mapping records
+        should be sorted by access time, time and cache index are stored as
+        
+            TimeToIndex.Key.hi = access time,
+            TimeToIndex.Key.lo = cache index.
+        
     ***************************************************************************/
     
     protected alias EBTree128!() TimeToIndex;
@@ -432,7 +443,6 @@ abstract class ICache
             // Remove old item in tree map
             this.time_to_index.remove(*oldest_time_node);
             
-//            this.key_to_node.remove(this.items[index].key);
             this.key_to_node.remove(this.keyByIndex(index));
         }
         
