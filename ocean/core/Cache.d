@@ -1488,76 +1488,146 @@ unittest
     
     version (all)
     {{
+        const n_records  = 33,
+              capacity   = 22,
+              n_overflow = 7;
+        
         struct Record
         {
-            hash_t key;
-            int    val;
-            
-            int opCmp ( typeof (this) other )
-            {
-                return this.key >  other.key? +1 :
-                       this.key <  other.key? -1 :
-                       this.val >= other.val? this.val >= other.val : -1;
-            }
+            hash_t key; // random number
+            int    val; // counter
         }
         
-        Record[0x400] records;
+        // Initialise the list of records.
         
-        scope cache = new Cache!(int)(0x100);
-        
-        time_t t = 0;
+        Record[n_records] records;
         
         foreach (i, ref record; records)
         {
             record = Record(ulrand(), i);
         }
         
+        // Populate the cache to the limit.
+        
+        scope cache = new Cache!(int)(capacity);
+        
+        time_t t = 0;
+        
         foreach (record; records[0 .. cache.max_length])
         {
-            Stderr.formatln("{:X16}", record.key);
-            
             cache.putItem(record.key, ++t, record.val);
         }
         
-        Stderr('\n');
-        
         assert (t == cache.max_length);
         
-        foreach (record; records.shuffle(drand48)) with (record)
+        // Shuffle records and count how many of the first n_overflow of the
+        // shuffled records are in the cache. If either all or none of these are
+        // in the cache, shuffle and try again.
+        
+        uint n_existing;
+        
+        for (n_existing = 0; !n_existing || n_existing == n_overflow;)
         {
-            int* v = cache.getItem(key, ++t);
-            
-            if (val < cache.max_length)
+            foreach (i, record; records.shuffle(drand48)[0 .. n_overflow])
             {
-                assert (v);
-                assert (*v == val);
+                n_existing += cache.exists(record.key);
             }
-            else
+        }
+        
+        // Get the shuffled records from the cache and verify them. Record the
+        // keys of the first n_overflow existing records which will get the
+        // least (oldest) access time by cache.getItem() and therefore be the
+        // first records to be removed on a cache overflow. 
+        
+        hash_t[n_overflow] oldest_keys;
+        
+        {
+            uint i = 0;
+            
+            foreach (record; records)
             {
-                assert (!v);
+                int* v = cache.getItem(record.key, ++t);
+                
+                if (record.val < cache.max_length)
+                {
+                    assert (v !is null);
+                    assert (*v == record.val);
+                    
+                    if (i < n_overflow)
+                    {
+                        oldest_keys[i++] = record.key;
+                    }
+                }
+                else
+                {
+                    assert (v is null);
+                }
             }
         }
         
         assert (t == cache.max_length * 2);
         
+        // Put the first n_overflow shuffled records so that the cache will
+        // overflow.
+        // Existing records should be updated to a new value. To enable
+        // verification of the update, change the values to 4711 + i.
+        
+        foreach (i, ref record; records[0 .. n_overflow])
         {
+            record.val = 4711 + i;
             
+            cache.putItem(record.key, ++t, record.val);
         }
         
-        /+
-        foreach (record; records.shuffle(drand48)) with (record)
+        assert (t == cache.max_length * 2 + n_overflow);
+        
+        // Verify the records.
+        
+        foreach (i, record; records[0 .. n_overflow])
         {
-            if (val < cache.max_length)
-            {
-                Stderr.formatln("{:X16}", record.key);
-                
-                int* v = cache.getItem(key, ++t);
-                
-                assert (v);
-                assert (*v == val);
-            }
+            int* v = cache.getItem(record.key, ++t);
+            
+            assert (v !is null);
+            assert (*v == 4711 + i);
         }
-        +/
+        
+        assert (t == cache.max_length * 2 + n_overflow * 2);
+        
+        // oldest_keys[n_existing .. $] should have been removed from the
+        // cache due to cache overflow.
+        
+        foreach (key; oldest_keys[n_existing .. $])
+        {
+            int* v = cache.getItem(key, ++t);
+            
+            assert (v is null);
+        }
+        
+        // cache.getItem should not have evaluated the lazy ++t.
+        
+        assert (t == cache.max_length * 2 + n_overflow * 2);
+        
+        // Verify that all other records still exist in the cache.
+        
+        {
+            uint n = 0;
+            
+            foreach (record; records[n_overflow .. $])
+            {
+                int* v = cache.getItem(record.key, ++t);
+                
+                if (v !is null)
+                {
+                    assert (*v == record.val);
+                    
+                    n++;
+                }
+            }
+            
+            assert (n == cache.max_length - n_overflow);
+        }
+        
+        assert (t == cache.max_length * 3 + n_overflow);
     }}
     else
     {
