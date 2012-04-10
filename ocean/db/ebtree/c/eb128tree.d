@@ -32,11 +32,12 @@
     authors:        Gavin Norman, Mathias Baumann, David Eckardt
     
     This module contains the D binding of the library functions of eb128tree.c.
-    eb128tree.c uses a 128-bit integer type which is not a part of the standard
-    C language but provided as an extension by GCC 4.6 and later for targets
-    that support it. These targets include x86-64 but not x86.
+    eb128tree.c uses a 128-bit integer type for the node keys, which is not a
+    part of the standard C language but provided as an extension by GCC 4.6 and
+    later for targets that support it. These targets include x86-64 but not x86.
     
     @see http://gcc.gnu.org/onlinedocs/gcc-4.6.2/gcc/_005f_005fint128.html
+    @see http://gcc.gnu.org/gcc-4.6/changes.html
     
     Since cent/ucent are currently not implemented, they need to be emulated
     by two 64-bit integer values (int + uint for cent, uint + uint for ucent).

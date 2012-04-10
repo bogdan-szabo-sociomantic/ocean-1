@@ -1,5 +1,10 @@
-	/*
+/*
  * Elastic Binary Trees - macros and structures for operations on 128bit nodes.
+ *
+ * Extension to the HAProxy Elastic Binary Trees library.
+ *
+ * HAProxy Elastic Binary Trees library:
+ *
  * Version 6.0
  * (C) 2002-2010 - Willy Tarreau <w@1wt.eu>
  *
@@ -7,7 +12,7 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- *
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -16,6 +21,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * 128-bit key extension:
+ *
+ * copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
+ *
+ * version:        April 2012: Initial release
+ *
+ * authors:        Mathias Baumann, David Eckardt
+ *
+ * This extension to the Elastic Binary Trees library uses a 128-bit integer
+ * type for the node keys, which is not a part of the standard C language but
+ * provided as an extension by GCC 4.6 and later for targets that support it.
+ * These targets include x86-64 but not x86.
+ *
+ * @see http://gcc.gnu.org/onlinedocs/gcc-4.6.2/gcc/_005f_005fint128.html
+ * @see http://gcc.gnu.org/gcc-4.6/changes.html
+ *
+ * If this extension is not enabled, the functions defined below will be missing
+ * in the produced binary.
  */
 
 #include "int128.h"
