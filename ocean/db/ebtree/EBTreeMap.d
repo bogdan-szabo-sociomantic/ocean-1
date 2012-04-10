@@ -90,7 +90,13 @@ private import tango.stdc.time : time_t;
 
 debug private import tango.util.log.Trace;
 
+/*******************************************************************************
 
+    Superseded by the dual keys feature of EBTree32, EBTree64 and EBTree128.
+
+*******************************************************************************/
+
+deprecated:
 
 /*******************************************************************************
 
