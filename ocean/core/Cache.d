@@ -1482,15 +1482,17 @@ import tango.io.Stdout;
 
 import ocean.core.Array: shuffle;
 
+extern (C) int getpid();
+
 unittest
 {
-    srand48(time(null));
+    srand48(time(null)+getpid());
     
     static ulong ulrand ( )
     {
         return (cast (ulong) mrand48() << 0x20) | cast (uint) mrand48();
     }
-    
+
     time_t time = 234567;
 
     // ---------------------------------------------------------------------
@@ -1501,7 +1503,10 @@ unittest
         const n_records  = 33,
               capacity   = 22,
               n_overflow = 7;
-        
+       
+        static assert (n_records >= capacity, 
+                       "Number of records smaller than capacity!");
+
         struct Record
         {
             hash_t key; // random number
@@ -1521,6 +1526,9 @@ unittest
         
         scope cache = new Cache!(int)(capacity);
         
+        assert (capacity == cache.max_length, 
+                "Max length of cache does not equal configured capacity!");
+
         time_t t = 0;
         
         foreach (record; records[0 .. cache.max_length])
@@ -1535,15 +1543,19 @@ unittest
         // in the cache, shuffle and try again.
         
         uint n_existing;
-        
-        for (n_existing = 0; !n_existing || n_existing == n_overflow;)
+       
+        do
         {
+            n_existing = 0;
             foreach (i, record; records.shuffle(drand48)[0 .. n_overflow])
             {
                 n_existing += cache.exists(record.key);
             }
         }
-        
+        while (!n_existing || n_existing == n_overflow)
+       
+        assert (n_existing > 0 && n_existing < n_overflow, "n_existing has unexpected value");
+
         // Get the shuffled records from the cache and verify them. Record the
         // keys of the first n_overflow existing records which will get the
         // least (oldest) access time by cache.getItem() and therefore be the
@@ -1573,6 +1585,8 @@ unittest
                     assert (v is null);
                 }
             }
+
+            assert (i == n_overflow);
         }
         
         assert (t == cache.max_length * 2);
