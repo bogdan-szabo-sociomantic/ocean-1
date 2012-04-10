@@ -182,9 +182,8 @@ public class StatsLog ( T )
 
     ***************************************************************************/
 
-    public this ( size_t file_count = 10,
-            size_t max_file_size = 10 * 1024 * 1024,
-            char[] file_name = "log/stats.log" )
+    public this ( size_t file_count = 10, size_t max_file_size = 10 * 1024 * 1024,
+        char[] file_name = "log/stats.log" )
     {
         this.logger = Log.lookup("Stats");
         this.logger.clear();
@@ -226,10 +225,7 @@ public class StatsLog ( T )
 
     public void write ( T values )
     {
-        this.format_buffer.length = 0;
-
-        bool add_separator = false;
-        this.formatStruct(values, add_separator);
+        this.format(values);
 
         this.logger.info(this.format_buffer);
     }
@@ -255,13 +251,67 @@ public class StatsLog ( T )
 
     public void writeExtra ( A ) ( T values, A[char[]] additional )
     {
+        this.formatExtra(values, additional);
+
+        this.logger.info(this.format_buffer);
+    }
+
+
+    /***************************************************************************
+
+        Formats the values from the provided struct to the internal string
+        buffer. Each member of the struct is formatted as
+        <member name>:<member value>.
+
+        Params:
+            values = struct containing values to format
+
+        Returns:
+            formatted string
+
+    ***************************************************************************/
+
+    public char[] format ( T values )
+    {
+        this.format_buffer.length = 0;
+
+        bool add_separator = false;
+        this.formatStruct(values, add_separator);
+
+        return this.format_buffer;
+    }
+
+
+    /***************************************************************************
+
+        Formats the values from the provided struct to the internal string
+        buffer, followed by the additional values contained in the provided
+        associative array. Each member of the struct is formatted as
+        <member name>:<member value>. Each entry in the associative array is
+        formatted as <key>:<value>.
+
+        This method can be useful when some of the values which are to be
+        written to the log are only known at run-time (for example a list of
+        names of channels in a dht or queue).
+
+        Params:
+            values = struct containing values to write to format
+            additional = associative array of additional values to format
+
+        Returns:
+            formatted string
+
+    ***************************************************************************/
+
+    public char[] formatExtra ( A ) ( T values, A[char[]] additional )
+    {
         this.format_buffer.length = 0;
 
         bool add_separator = false;
         this.formatStruct(values, add_separator);
         this.formatAssocArray(additional, add_separator);
 
-        this.logger.info(this.format_buffer);
+        return this.format_buffer;
     }
 
 
@@ -278,7 +328,7 @@ public class StatsLog ( T )
 
     ***************************************************************************/
 
-    public void formatStruct ( T values, ref bool add_separator )
+    private void formatStruct ( T values, ref bool add_separator )
     {
         foreach ( i, value; values.tupleof )
         {
@@ -303,7 +353,7 @@ public class StatsLog ( T )
 
     ***************************************************************************/
 
-    public void formatAssocArray ( A ) ( A[char[]] values, ref bool add_separator )
+    private void formatAssocArray ( A ) ( A[char[]] values, ref bool add_separator )
     {
         foreach ( name, value; values )
         {
