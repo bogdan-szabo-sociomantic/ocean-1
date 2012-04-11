@@ -33,6 +33,8 @@ public import ocean.util.log.Util;
 private import tango.util.log.Log;
 private import tango.util.log.AppendSyslog;
 
+private import tango.stdc.time : time_t;
+
 
 
 /*******************************************************************************
