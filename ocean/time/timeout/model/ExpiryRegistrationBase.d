@@ -36,11 +36,11 @@ debug private import tango.io.Stdout;
 
 *******************************************************************************/
 
-private import ocean.db.ebtree.EBTree;
+private import ocean.db.ebtree.EBTree64;
 
-alias EBTree!(ulong) ExpiryTree;
+alias EBTree64!() ExpiryTree;
 
-alias ExpiryTree.Node* Expiry;
+alias ExpiryTree.Node Expiry;
 
 /*******************************************************************************
 
@@ -74,7 +74,7 @@ abstract class ExpiryRegistrationBase : IExpiryRegistration
         
         ***********************************************************************/
     
-        Expiry register ( IExpiryRegistration registration, ulong timeout_us );
+        Expiry* register ( IExpiryRegistration registration, ulong timeout_us );
         
         /***********************************************************************
     
@@ -89,7 +89,7 @@ abstract class ExpiryRegistrationBase : IExpiryRegistration
             
         ***********************************************************************/
     
-        void unregister ( Expiry expiry );
+        void unregister ( ref Expiry expiry );
         
         /***********************************************************************
     
@@ -124,7 +124,7 @@ abstract class ExpiryRegistrationBase : IExpiryRegistration
         
     ***************************************************************************/
     
-    private Expiry expiry = null;
+    private Expiry* expiry = null;
     
     /***************************************************************************
 
@@ -191,7 +191,7 @@ abstract class ExpiryRegistrationBase : IExpiryRegistration
         {
             debug ( TimeoutManager ) Stderr("*** unregister ")(this.id)('\n').flush();
             
-            this.mgr.unregister(this.expiry);
+            this.mgr.unregister(*this.expiry);
             
             return true;
         }
