@@ -37,7 +37,7 @@ module ocean.text.util.Time;
 
 private import ocean.text.convert.Layout;
 
-
+private import ocean.core.Array;
 
 /*******************************************************************************
 
