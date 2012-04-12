@@ -1245,6 +1245,11 @@ abstract class PoolCore : IObjectPoolInfo
     }
     body
     {
+        foreach (item; this.items[0..this.num_busy_])
+        {
+            this.resetItem(item);
+        }
+
         this.num_busy_ = 0;
 
         return this;
