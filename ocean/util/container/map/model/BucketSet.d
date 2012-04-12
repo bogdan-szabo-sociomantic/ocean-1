@@ -1,0 +1,270 @@
+/*******************************************************************************
+
+    copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
+
+    version:        12/04/2012: Initial release
+
+    authors:        Gavin Norman
+
+    TODO: description of module
+
+*******************************************************************************/
+
+module ocean.util.container.map.model.BucketSet;
+
+
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+private import ocean.util.container.map.Bucket;
+
+private import ocean.core.ObjectPool;
+
+
+
+/*******************************************************************************
+
+    Bucket set class template.
+
+    Template params:
+        E = element type
+
+*******************************************************************************/
+
+public abstract class BucketSet ( E )
+{
+    /***************************************************************************
+
+        Bucket type
+
+    ***************************************************************************/
+
+    protected alias .Bucket!(E) Bucket;
+
+
+    /***************************************************************************
+
+        List of buckets
+
+    ***************************************************************************/
+
+    protected Bucket[] buckets;
+
+
+    /***************************************************************************
+
+        Pool of bucket elements
+
+    ***************************************************************************/
+
+    protected alias Pool!(Bucket.Element) BucketElementPool;
+
+    protected BucketElementPool bucket_elements;
+
+
+    /***************************************************************************
+
+        Constructor, sets the number of buckets to n / load_factor.
+
+        Params:
+            n = expected number of elements in bucket set
+            load_factor = ratio of n to the number of buckets. The desired
+                (approximate) number of elements per bucket. For example, 0.5
+                sets the number of buckets to double n; for 2 the number of
+                buckets is the half of n. load_factor must be greater than 0.
+
+    ***************************************************************************/
+
+    public this ( size_t n, float load_factor = 0.75 )
+    in
+    {
+        assert (n);
+        assert (load_factor > 0.0);
+    }
+    body
+    {
+        this.buckets = new Bucket[cast(size_t)(n / load_factor)];
+
+        this.bucket_elements = new BucketElementPool;
+    }
+
+
+    /***************************************************************************
+
+        Returns:
+            the number of items in all buckets
+
+    ***************************************************************************/
+
+    public size_t length ( )
+    {
+        return this.bucket_elements.num_busy;
+    }
+
+
+    /***************************************************************************
+
+        Removes all elements from all buckets.
+
+    ***************************************************************************/
+
+    public typeof(this) clear ( )
+    {
+        // Clear bucket contents.
+        foreach ( ref bucket; this.buckets )
+        {
+            bucket = Bucket.init;
+        }
+
+        // Recycle all bucket elements.
+        scope it = this.bucket_elements.new BusyItemsIterator;
+        foreach ( ref element; it )
+        {
+            this.bucket_elements.recycle(&element);
+        }
+
+        return this;
+    }
+
+
+    /***************************************************************************
+
+        Returns:
+            the average load of the bucket set
+
+    ***************************************************************************/
+
+    public float load ( )
+    {
+        return this.bucket_elements.num_busy / this.buckets.length;
+    }
+
+
+    /***************************************************************************
+
+        Returns:
+            the maximum load of the bucket set
+
+    ***************************************************************************/
+
+    public float max_load ( )
+    {
+        size_t max_load;
+
+        foreach ( bucket; this.buckets )
+        {
+            if ( bucket.length > max_load )
+            {
+                max_load = bucket.length;
+            }
+        }
+
+        return max_load;
+    }
+
+
+    /***************************************************************************
+
+        Removes the specified element from the bucket in which it is stored. If
+        the element does not exist in any bucket, then nothing happens.
+
+        Params:
+            key = key of element to remove
+
+        Returns:
+            the average load of the bucket set
+
+    ***************************************************************************/
+
+    protected Bucket.Element* removeElement ( hash_t key )
+    {
+        Bucket.Element* element = null;
+
+        with (*this.getBucket(key))
+        {
+            element = remove(find(key));
+        }
+
+        return element;
+    }
+
+
+    /***************************************************************************
+
+        Iterator scope class.
+
+        The iteration is actually over a copy of the elements. Thus the bucket
+        contents may be modified while iterating. However, the list of elements
+        iterated over is not updated to any changes made.
+
+    ***************************************************************************/
+
+    protected scope class ElementsIterator
+    {
+        public int opApply ( int delegate ( ref Bucket.Element* ) dg )
+        {
+            int r;
+
+            scope it = this.outer.bucket_elements.new BusyItemsIterator;
+            foreach ( ref element; it )
+            {
+                auto ptr = &element;
+                r = dg(ptr);
+                if ( r ) break;
+            }
+
+            return r;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Read only iterator scope class.
+
+        The read-only iterator is more efficient as it does not require the
+        copy of the items being iterated, which the safe iterator performs.
+
+    ***************************************************************************/
+
+    protected scope class ReadOnlyElementsIterator
+    {
+        public int opApply ( int delegate ( ref Bucket.Element* ) dg )
+        {
+            int r;
+
+            scope it = this.outer.bucket_elements.new ReadOnlyBusyItemsIterator;
+            foreach ( ref element; it )
+            {
+                auto ptr = &element;
+                r = dg(ptr);
+                if ( r ) break;
+            }
+
+            return r;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Gets the bucket which is responsible for the given key.
+
+        Params:
+            key = key to get bucket for
+
+        Returns:
+            pointer to bucket responsible for the given key
+
+    ***************************************************************************/
+
+    protected Bucket* getBucket ( hash_t key )
+    {
+        return this.buckets.ptr + (key % this.buckets.length);
+    }
+}
+
