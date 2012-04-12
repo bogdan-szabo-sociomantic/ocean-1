@@ -38,7 +38,7 @@ module ocean.text.util.Time;
 
 private import ocean.text.convert.Layout;
 
-
+private import ocean.core.Array : copy;
 
 /*******************************************************************************
 
@@ -56,8 +56,6 @@ private import ocean.text.convert.Layout;
 
 public char[] formatDuration ( uint seconds, ref char[] output )
 {
-    output.length = 0;
-
     bool comma = false;
     
     /***************************************************************************
@@ -106,22 +104,29 @@ public char[] formatDuration ( uint seconds, ref char[] output )
         return extracted;
     }
 
-    const minute_timespan   = 60;
-    const hour_timespan     = minute_timespan * 60;
-    const day_timespan      = hour_timespan * 24;
-    const year_timespan     = day_timespan * 365;
+    if (seconds == 0)
+    {
+        output.copy("0 seconds");
+    }
+    else
+    {
+        output.length = 0;
+        const minute_timespan   = 60;
+        const hour_timespan     = minute_timespan * 60;
+        const day_timespan      = hour_timespan * 24;
+        const year_timespan     = day_timespan * 365;
 
-    auto years      = extract(year_timespan);
-    auto days       = extract(day_timespan);
-    auto hours      = extract(hour_timespan);
-    auto minutes    = extract(minute_timespan);
+        auto years      = extract(year_timespan);
+        auto days       = extract(day_timespan);
+        auto hours      = extract(hour_timespan);
+        auto minutes    = extract(minute_timespan);
 
-    append(years,   "year");
-    append(days,    "day");
-    append(hours,   "hour");
-    append(minutes, "minute");
-    append(seconds, "second");
-
+        append(years,   "year");
+        append(days,    "day");
+        append(hours,   "hour");
+        append(minutes, "minute");
+        append(seconds, "second");
+    }
     return output;
 }
 
