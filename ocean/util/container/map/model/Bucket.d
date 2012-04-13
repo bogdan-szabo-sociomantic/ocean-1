@@ -12,7 +12,7 @@
 
 *******************************************************************************/
 
-module ocean.util.container.map.Bucket;
+module ocean.util.container.map.model.Bucket;
 
 
 

@@ -8,6 +8,15 @@
 
     TODO: description of module
 
+    Advantages over ArrayMap:
+        1. Memory safety. Uses a pool of elements, meaning that the ArrayMap
+           behaviour of each bucket gradually growing in size doesn't occur any
+           more.
+        2. Code simplicity via removing optional advanced features such as
+           thread safety and value array copying.
+        3. Extensibility: functionality is split into several modules, including
+           a base class.
+
 *******************************************************************************/
 
 module ocean.util.container.map.HashMap;
@@ -22,7 +31,7 @@ module ocean.util.container.map.HashMap;
 
 private import ocean.util.container.map.model.BucketSet;
 
-private import ocean.util.container.map.Bucket;
+private import ocean.util.container.map.model.Bucket;
 
 debug private import ocean.io.Stdout;
 
@@ -59,7 +68,9 @@ public class HashMap ( V ) : BucketSet!(ValueBucketElement!(V.sizeof))
                 desired (approximate) number of elements per bucket. For
                 example, 0.5 sets the number of buckets to double n; for 2 the
                 number of buckets is the half of n. load_factor must be greater
-                than 0.
+                than 0. The load factor is basically a trade-off between memory
+                usage (number of buckets) and search time (number of elements
+                per bucket).
 
     ***************************************************************************/
 
