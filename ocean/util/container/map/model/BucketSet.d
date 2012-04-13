@@ -13,7 +13,7 @@
     can use a simple bit mask instead of a modulo operation, leading to greater
     efficiency.
 
-    TODO: the bucket pool could perhaps be simplified by replacing it with a
+    TODO: the element pool could perhaps be simplified by replacing it with a
     free-list implementation in conjunction with a list of non-empty buckets.
     The non-empty list could be used for iteration over the elements, and for
     clearing only the buckets which contain elements. (The current clear()
