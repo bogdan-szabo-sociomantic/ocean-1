@@ -45,7 +45,10 @@ debug private import ocean.io.Stdout;
 
 //debug = UnittestVerbose;
 
-
+debug ( UnittestVerbose )
+{
+    private import tango.io.Stdout;
+}
 
 /*******************************************************************************
 
@@ -250,7 +253,7 @@ public class HashMap ( V ) : BucketSet!(ValueBucketElement!(V.sizeof))
 
         scope map = new typeof(this)(10);
 
-        void printState ( )
+        debug ( UnittestVerbose ) void printState ( )
         {
             Stdout.formatln("  ::  len={}, load={}, max_load={}, pool={} ({} busy)",
                 map.length, map.load, map.max_load,
