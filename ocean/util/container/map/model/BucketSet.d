@@ -39,7 +39,82 @@ private import ocean.util.container.map.model.Bucket;
 
 private import ocean.core.ObjectPool;
 
+private import tango.stdc.string: memset;
 
+/*******************************************************************************
+
+    Generic BucketSet base class
+
+*******************************************************************************/
+
+public abstract class IBucketSet
+{
+    /***************************************************************************
+
+        Pool of bucket elements, downcast to IObjectPoolInfo.
+    
+    ***************************************************************************/
+    
+    protected const IObjectPoolInfo bucket_elements_info;
+    
+    /***************************************************************************
+    
+        Constructor
+        
+        Params:
+            bucket_elements_info = Pool of bucket elements
+    
+    ***************************************************************************/
+    
+    protected this ( IObjectPoolInfo bucket_elements_info )
+    {
+        this.bucket_elements_info = bucket_elements_info;
+    }
+    
+    /***************************************************************************
+
+        Returns:
+            the current number of buckets
+    
+    ***************************************************************************/
+    
+    public abstract size_t num_buckets ( );
+    
+    /***************************************************************************
+
+        Returns:
+            the number of items in all buckets
+    
+    ***************************************************************************/
+    
+    public size_t length ( )
+    {
+        return this.bucket_elements_info.num_busy;
+    }
+    
+    /***************************************************************************
+
+        Returns:
+            the average load of the bucket set
+    
+    ***************************************************************************/
+    
+    public float load ( )
+    {
+        return (cast(float)this.length) / this.num_buckets;
+    }
+    
+    /***************************************************************************
+
+        Clears the map.
+        
+        Returns:
+            this instance
+    
+    ***************************************************************************/
+    
+    public abstract typeof(this) clear ( );
+}
 
 /*******************************************************************************
 
@@ -50,7 +125,7 @@ private import ocean.core.ObjectPool;
 
 *******************************************************************************/
 
-public abstract class BucketSet ( E )
+public abstract class BucketSet ( E ) : IBucketSet
 {
     /***************************************************************************
 
@@ -78,7 +153,7 @@ public abstract class BucketSet ( E )
 
     protected alias Pool!(Bucket.Element) BucketElementPool;
 
-    protected BucketElementPool bucket_elements;
+    protected const BucketElementPool bucket_elements;
 
 
     /***************************************************************************
@@ -116,6 +191,8 @@ public abstract class BucketSet ( E )
     }
     body
     {
+        super(this.bucket_elements = new BucketElementPool);
+        
         auto num_buckets = cast(size_t)(n / load_factor);
 
         size_t pow2 = 1;
@@ -127,62 +204,63 @@ public abstract class BucketSet ( E )
         this.bucketMask = pow2 - 1;
 
         this.buckets = new Bucket[pow2];
-
-        this.bucket_elements = new BucketElementPool;
-    }
-
-
-    /***************************************************************************
-
-        Returns:
-            the number of items in all buckets
-
-    ***************************************************************************/
-
-    public size_t length ( )
-    {
-        return this.bucket_elements.num_busy;
     }
 
 
     /***************************************************************************
 
         Removes all elements from all buckets.
+        
+        Returns:
+            this instance
 
     ***************************************************************************/
 
     public typeof(this) clear ( )
     {
         // Clear bucket contents.
-        foreach ( ref bucket; this.buckets )
-        {
-            bucket = Bucket.init;
-        }
-
+        
+        memset(this.buckets.ptr, 0,
+               this.buckets.length * this.buckets[0].sizeof);
+        
         // Recycle all bucket elements.
-        scope it = this.bucket_elements.new BusyItemsIterator;
-        foreach ( ref element; it )
-        {
-            this.bucket_elements.recycle(&element);
-        }
-
+        
+        this.bucket_elements.clear();
+        
         return this;
     }
+    
+    /**************************************************************************
 
-
-    /***************************************************************************
-
-        Returns:
-            the average load of the bucket set
-
-    ***************************************************************************/
-
-    public float load ( )
+        Ensures that Bucket.init consists only of zero bytes so that the
+        memset() method in clear() will work.
+    
+     **************************************************************************/
+    
+    unittest
     {
-        return cast(float)this.bucket_elements.num_busy /
-            cast(float)this.buckets.length;
+        const size_t n = Bucket.sizeof;
+        
+        Bucket init;
+        
+        ubyte[n] zero_data;
+        
+        assert((cast (void*) &init)[0 .. n] == zero_data,
+               Bucket.stringof ~ ".init contains non-zero byte: " ~
+               typeof (this).stringof ~ ".clear() will not work");
     }
-
+    
+    /***************************************************************************
+    
+        Returns:
+            the number of buckets
+    
+    ***************************************************************************/
+    
+    public size_t num_buckets ( )
+    {
+        return this.buckets.length;
+    }
 
     /***************************************************************************
 
