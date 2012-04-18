@@ -4,14 +4,20 @@
 
     version:        12/04/2012: Initial release
 
-    authors:        Gavin Norman
+    authors:        Gavin Norman, David Eckardt
 
-    TODO: description of module
+    Template for a class implementing a set of buckets containing elements
+    indexed by unique keys. The bucket set contains both a set of buckets and a
+    pool of bucket elements. The bucket elements are structured as linked lists,
+    thus each bucket simply contains a pointer to its first element.
 
     The number of buckets in the set is always a power of 2. In this way the
     getBucket() method, which determines which bucket is responsible for a key,
     can use a simple bit mask instead of a modulo operation, leading to greater
     efficiency.
+
+    Usage:
+        See ocean.util.container.map.HashMap & ocean.util.container.map.HashSet
 
     TODO: the element pool could perhaps be simplified by replacing it with a
     free-list implementation in conjunction with a list of non-empty buckets.
@@ -39,7 +45,9 @@ private import ocean.util.container.map.model.Bucket;
 
 private import ocean.core.ObjectPool;
 
-private import tango.stdc.string: memset;
+private import tango.stdc.string : memset;
+
+
 
 /*******************************************************************************
 
@@ -142,7 +150,7 @@ public abstract class BucketSet ( E ) : IBucketSet
 
     ***************************************************************************/
 
-    protected Bucket[] buckets;
+    protected const Bucket[] buckets;
 
 
     /***************************************************************************
@@ -163,7 +171,7 @@ public abstract class BucketSet ( E ) : IBucketSet
 
     ***************************************************************************/
 
-    private hash_t bucketMask;
+    private const hash_t bucketMask;
 
 
     /***************************************************************************
@@ -219,53 +227,70 @@ public abstract class BucketSet ( E ) : IBucketSet
     public typeof(this) clear ( )
     {
         // Clear bucket contents.
-        
         memset(this.buckets.ptr, 0,
                this.buckets.length * this.buckets[0].sizeof);
-        
+
         // Recycle all bucket elements.
-        
         this.bucket_elements.clear();
-        
+
         return this;
     }
-    
+
+
     /**************************************************************************
 
         Ensures that Bucket.init consists only of zero bytes so that the
         memset() method in clear() will work.
     
      **************************************************************************/
-    
+
     unittest
     {
         const size_t n = Bucket.sizeof;
-        
+
         Bucket init;
-        
+
         ubyte[n] zero_data;
-        
+
         assert((cast (void*) &init)[0 .. n] == zero_data,
                Bucket.stringof ~ ".init contains non-zero byte: " ~
                typeof (this).stringof ~ ".clear() will not work");
     }
-    
+
+
     /***************************************************************************
-    
+
         Returns:
             the number of buckets
-    
+
     ***************************************************************************/
-    
+
     public size_t num_buckets ( )
     {
         return this.buckets.length;
     }
 
+
     /***************************************************************************
 
         Returns:
-            the maximum load of the bucket set
+            the average load of the bucket set (i.e. the average number of
+            elements per bucket)
+
+    ***************************************************************************/
+
+    public float load ( )
+    {
+        return cast(float)this.bucket_elements.length /
+               cast(float)this.buckets.length;
+    }
+
+
+    /***************************************************************************
+
+        Returns:
+            the maximum load of the bucket set (i.e. the number of elements in
+            the most-filled bucket)
 
     ***************************************************************************/
 

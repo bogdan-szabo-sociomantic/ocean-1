@@ -6,9 +6,26 @@
 
     authors:        David Eckardt, Gavin Norman
 
-    TODO: description of module
+    Template for a struct implementing a single bucket in a set (see
+    ocean.util.container.map.model.BucketSet). A bucket contains a set of
+    elements which can be added to, removed from and searched.
 
-    Bucket does not own its elements - these must be managed from the outside.
+    Each element in a bucket has a unique key with which it can be identified.
+    The elements' key type is templated, but defaults to hash_t. A bucket can
+    only contain one element with a given key - if a duplicate is added it will
+    replace the original. The elements in the bucket are stored as a linked
+    list, for easy removal and insertion.
+
+    Note that the bucket does not own its elements, these must be managed from
+    the outside in a pool. The bucket itself simply keeps a pointer to the first
+    element which it contains.
+
+    Two element structs exist in this module, one for a basic bucket element,
+    and one for a bucket element which contains a value in addition to a key.
+
+    Usage:
+        See ocean.util.container.map.model.BucketSet,
+        ocean.util.container.map.HashMap & ocean.util.container.map.HashSet
 
 *******************************************************************************/
 
@@ -159,7 +176,7 @@ package struct ValueBucketElement ( size_t V, K = hash_t )
 /*******************************************************************************
 
     Template params:
-        Element = type of element stored in bucket (should be one of the bucket
+        E = type of element stored in bucket (should be one of the bucket
             element structs defined above)
 
 *******************************************************************************/
@@ -309,12 +326,12 @@ public struct Bucket ( E )
 
     /**************************************************************************
 
-        Adds a bucket element with key_in as key. 
+        Adds a bucket element with key as key.
 
         The element is inserted as the first bucket element.
 
         Params:
-            key_in = key for the new element
+            key = key for the new element
             new_element = expression returning a new element, evaluated exactly
                 once, if the key to be added does not already exist in the
                 bucket
@@ -329,6 +346,45 @@ public struct Bucket ( E )
         Bucket.Element* element = this.find(key);
 
         if (!element)
+        {
+            (element = this.add(new_element)).key = key;
+        }
+
+        return element;
+    }
+
+
+    /**************************************************************************
+
+        Adds a bucket element with key as key. An out parameter reports whether
+        the added element was newly added to the bucket, or whether it replaced
+        an existing element.
+
+        The element is inserted as the first bucket element.
+
+        Params:
+            key = key for the new element
+            new_element = expression returning a new element, evaluated exactly
+                once, if the key to be added does not already exist in the
+                bucket
+            existed = flag set to true if an element already existed for the
+                specified key
+
+        Returns:
+            pointer to inserted element
+
+     **************************************************************************/
+
+    public Element* add ( Element.Key key, lazy Element* new_element,
+        out bool existed )
+    {
+        Bucket.Element* element = this.find(key);
+
+        if (element)
+        {
+            existed = true;
+        }
+        else
         {
             (element = this.add(new_element)).key = key;
         }

@@ -6,16 +6,71 @@
 
     authors:        David Eckardt, Gavin Norman
 
-    TODO: description of module
+    Template for a class implementing a mapping from hashes to a user-specified
+    type.
 
-    Advantages over ArrayMap:
-        1. Memory safety. Uses a pool of elements, meaning that the ArrayMap
-           behaviour of each bucket gradually growing in size doesn't occur any
-           more.
+    The interface of the class has been kept deliberately simple, purely
+    handling the management of the mapping. The handling of the mapping values
+    is left entirely up to the user -- all methods simply return a pointer to
+    the mapping value which the user can do what they like with. (This is an
+    intentional design decision, in order to reduce the complexity of the
+    template.)
+
+    The HashMap is designed as a replacement for ocean.core.ArrayMap. It has
+    several advantages:
+        1. Memory safety. As the ArrayMap's buckets are implemented as dynamic
+           arrays, each bucket will theoretically grow continually in size over
+           extended periods of use. Even when clear()ed, the buffers allocated
+           for the buckets will not reduce in size. The HashMap, on the other
+           hand, uses a pool of elements, meaning that the memory allocated for
+           each bucket is truly variable.
         2. Code simplicity via removing optional advanced features such as
            thread safety and value array copying.
-        3. Extensibility: functionality is split into several modules, including
-           a base class.
+        3. Extensibility. Functionality is split into several modules, including
+           a base class for easier reuse of components.
+
+    Usage example with various types stored in mapping:
+
+    ---
+
+        private import ocean.util.container.map.HashMap;
+
+        // Mapping from hash_t -> int
+        auto map = new HashMap!(int);
+
+        hash_t hash = 232323;
+
+        // Add a mapping
+        *(map.put(hash)) = 12;
+
+        // Check if a mapping exists (null if not found)
+        auto exists = hash in map;
+
+        // Remove a mapping
+        map.remove(hash);
+
+        // Clear the map
+        map.clear();
+
+        // Mapping from hash_t -> char[]
+        auto map2 = new HashMap!(char[]);
+
+        // Add a mapping
+        map2.put(hash).copy("hello");
+
+        // Mapping from hash_t -> struct
+        struct MyStruct
+        {
+            int x;
+            float y;
+        }
+
+        auto map3 = new HashMap!(MyStruct);
+
+        // Add a mapping
+        *(map3.put(hash)) = MyStruct(12, 23.23);
+
+    ---
 
 *******************************************************************************/
 
@@ -45,10 +100,7 @@ debug private import ocean.io.Stdout;
 
 //debug = UnittestVerbose;
 
-debug ( UnittestVerbose )
-{
-    private import tango.io.Stdout;
-}
+
 
 /*******************************************************************************
 
@@ -120,31 +172,6 @@ public class HashMap ( V ) : BucketSet!(ValueBucketElement!(V.sizeof))
     {
         auto bucket = this.getBucket(key);
         return cast(V*)bucket.add(key, this.bucket_elements.get()).val.ptr;
-    }
-
-
-    /***************************************************************************
-
-        Adds or updates a mapping from the specified key. The value mapped to is
-        set to the specified value. (Note that arrays are *not* copied into the
-        value -- this must be done manually if desired.)
-
-        Params:
-            key = key to add/update mapping for
-            val_in = value to set
-
-        Returns:
-            pointer to the value mapped to by the specified key
-
-    ***************************************************************************/
-
-    public V* put ( hash_t key, V val_in )
-    {
-        auto val = this.put(key);
-
-        *val = val_in;
-
-        return val;
     }
 
 
@@ -279,7 +306,7 @@ public class HashMap ( V ) : BucketSet!(ValueBucketElement!(V.sizeof))
 
             assert(!!(key in map) == should_exist);
 
-            auto e = map.put(key, V.init);
+            auto e = map.put(key);
             debug ( UnittestVerbose )
             {
                 Stdout.format("put {}: {}", key, e);
