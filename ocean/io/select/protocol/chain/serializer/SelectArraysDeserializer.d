@@ -305,19 +305,15 @@ class SelectArraysDeserializer : ISelectArraysTransmitter!(OutputDg)
             {
                 case header.Type.Start:
                     return null;
-                break;
     
                 case header.Type.LZO1X:
                     return this.outer.lzo.decompress(cast(char[])whole_chunk);
-                break;
         
                 case header.Type.None:
                     return payload;
-                break;
         
                 case header.Type.Stop:
                     return null;
-                break;
     
                 default:
                     assert(false, typeof(this).stringof ~ ".uncompress - invalid chunk type");
