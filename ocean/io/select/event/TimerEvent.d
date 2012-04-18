@@ -299,7 +299,7 @@ abstract class ITimerEvent : ISelectClient, ISelectable
     
     ***************************************************************************/
 
-    protected TimerException e;
+    protected const TimerException e;
     
     /***********************************************************************
 
@@ -315,17 +315,29 @@ abstract class ITimerEvent : ISelectClient, ISelectable
 
     protected this ( bool realtime = false )
     {
-        this.e = new TimerException;
-        
         this.fd = .timerfd_create(realtime? CLOCK_REALTIME : CLOCK_MONOTONIC,
                                   TFD_NONBLOCK);
         
-        if (fd < 0)
+        if (this.fd < 0)
         {
-            throw this.e("timerfd_create", __FILE__, __LINE__);
+            throw (new TimerException)("timerfd_create", __FILE__, __LINE__);
         }
         
+        this.e = new TimerException;
+        
         super(this);
+    }
+    
+    /**************************************************************************
+    
+        Called immediately when this instance is deleted.
+        (Must be protected to prevent an invariant from failing.)
+    
+     **************************************************************************/
+
+    protected override void dispose ( )
+    {
+        delete this.e;
     }
     
     /***********************************************************************
