@@ -72,8 +72,8 @@ private import ocean.time.model.IMicrosecondsClock,
 private import tango.stdc.stdlib: div;
 
 private import tango.stdc.posix.sys.time: timeval, timespec, gettimeofday;
-private import tango.stdc.posix.time:     time_t, gmtime_r, localtime_r;
-private import tango.stdc.time:           gmtime, tm;
+private import tango.stdc.posix.time:     gmtime_r, localtime_r;
+private import tango.stdc.time:           gmtime, tm, time_t;
 
 private import tango.time.Time;
 
@@ -83,8 +83,11 @@ public class IntervalClock : ITimerEvent, IMicrosecondsClock
     
     /**************************************************************************
 
-        Timer update interval_. now() will keep returning the same value during
-        this amount of time.
+        Timer update interval_. All now*() methods will keep returning the same
+        value during this amount of time.
+        
+        If set to zero, that is, all member values are 0, the system time is
+        queried on every call of any of the now*() methods.
         
         Default: 1 s.
     
@@ -97,7 +100,8 @@ public class IntervalClock : ITimerEvent, IMicrosecondsClock
         true: now() should obtain the system time.
         false: now() should return the same value as it did last time.
         
-        Cleared by now() and set by handle_().
+        Set by handle_() and, if interval_ is not zero, cleared by
+        now_timeval(), which is called by all other now*() methods.
     
      **************************************************************************/
 
@@ -167,20 +171,35 @@ public class IntervalClock : ITimerEvent, IMicrosecondsClock
         {
             this.t = MicrosecondsClock.now;
             
-            this.expired = false;
-            
             ulong interval_us = this.us(this.interval_),
-                  t_us        = this.us(this.t) / interval_us * interval_us,
-                  next_us     = t_us + interval_us;
+                  t_us        = this.us(this.t);
+            
+            /*
+             * If this.interval_ is not zero, set the expired flag to false and
+             * schedule next expiration. Otherwise leave the expired flag true
+             * and do not schedule. 
+             */
+            
+            with (this.interval_) if (tv_sec || tv_usec)
+            {
+                // Truncate the time to the interval resolution.
+                
+                t_us /= interval_us;
+                t_us *= interval_us;
+                
+                ulong next_us = t_us + interval_us;
+                
+                this.expired = false;
+                
+                super.set(timespec(cast (uint) (next_us / 1_000_000),
+                                   cast (uint) (next_us % 1_000_000) * 1_000));
+            }
             
             with (this.t)
             {
                 tv_sec  = cast (uint) (t_us / 1_000_000);
                 tv_usec = cast (uint) (t_us % 1_000_000);
             }
-            
-            super.set(timespec(cast (uint) (next_us / 1_000_000),
-                               cast (uint) (next_us % 1_000_000) * 1_000));
         }
         
         return this.t;
