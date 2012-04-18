@@ -52,23 +52,26 @@ private import TangoLayout = tango.text.convert.Layout;
 
 *******************************************************************************/
 
-private import tango.core.Vararg: va_list, va_arg;
-
 version (DigitalMars) version (X86_64)
 {
     version = DigitalMarsX86_64;
-    
-    /*
-     * va_start/va_end must be public imported because they are used in the
-     * vaArg template, which is instantiated in other modules as well.
-     */
-    
-    public import tango.stdc.stdarg: va_start, va_end;
-    
-    // implicitly referenced by the compiler... YEAH!
-    public import tango.core.Vararg: __va_argsave_t;
 }
 
+version (DigitalMarsX86_64)
+{
+    /*
+     * va_list/_start/_arg/_end must be public imported because they are used in
+     * the vaArg template, which is instantiated in other modules as well.
+     */
+    
+    public import tango.core.Vararg: va_list, va_start, va_arg, va_end,
+                               // implicitly referenced by the compiler... YEAH!
+                                     __va_argsave_t;
+}
+else
+{
+    private import tango.core.Vararg: va_list, va_arg;
+}
 
 class Layout ( T )
 {
