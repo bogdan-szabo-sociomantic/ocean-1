@@ -381,16 +381,22 @@ abstract class ISplitIterator
         {
             assert (this.remaining_);
             assert (this.content);
-            assert (this.remaining_.length <= this.content.length);
-            
-            if (this.remaining_.length)
-            {
-                assert (&this.remaining_[$ - 1] is &this.content[$ - 1]);
-            }
         }
-        else
+        
+        /*
+         * TODO: Is this what
+         * ---
+         * assert (this.content[$ - this.remaining_.length .. $] is this.remaining_);
+         * ---
+         * does, that is, comparing the memory location for identity, not the
+         * content? If so, replace it.
+         */
+        
+        assert (this.remaining_.length <= this.content.length);
+        
+        if (this.remaining_.length)
         {
-            assert (this.remaining_ == this.content);
+            assert (this.remaining_.ptr is &this.content[$ - this.remaining_.length]);
         }
     }
     
@@ -546,31 +552,27 @@ abstract class ISplitIterator
     
     /**************************************************************************
     
-        Skips initial consecutive occurrences of the current delimiter in str.
-        
-        Params:
-             str = string to skip initial consecutive occurrences of the current
-                   delimiter in
+        Skips initial consecutive occurrences of the current delimiter in the
+        currently remaining content.
         
         Returns:
-             index of first occurrence of delim in str or str.length if not
-             found
+             remaining content after the delimiters have been skipped.
                           
      **************************************************************************/
 
-    public size_t skipLeadingDelims ( char[] str )
+    public char[] skipLeadingDelims ( )
     {
         size_t start = 0,
-               pos   = this.locateDelim(str);
-        
-        while (pos == start)
+               pos   = this.locateDelim(this.remaining_);
+ 
+        while (pos == start && pos < this.remaining_.length)
         {
-            start = pos + this.skipDelim(str[pos .. $]);
-            
-            pos = this.locateDelim(str, start);
+            start = pos + this.skipDelim(this.remaining_[pos .. $]);
+             
+            pos = this.locateDelim(this.remaining_, start);
         }
-        
-        return start;
+         
+        return this.remaining_ = this.remaining_[start .. $];
     }
     
     /**************************************************************************
@@ -593,12 +595,12 @@ abstract class ISplitIterator
         
         if (this.remaining_.length)
         {
-            size_t start = this.content.length - this.remaining_.length;
-            
             if (this.collapse)
             {
-                start += this.skipLeadingDelims(this.remaining_);
+                this.skipLeadingDelims();
             }
+            
+            size_t start = this.content.length - this.remaining_.length;
             
             for (size_t pos = this.locateDelim(start);
                         pos < this.content.length;
