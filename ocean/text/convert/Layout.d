@@ -58,9 +58,15 @@ version (DigitalMars) version (X86_64)
 {
     version = DigitalMarsX86_64;
     
-    private import tango.core.Vararg: va_start, va_end;
+    /*
+     * va_start/va_end must be public imported because they are used in the
+     * vaArg template, which is instantiated in other modules as well.
+     */
+    
+    public import tango.stdc.stdarg: va_start, va_end;
+    
     // implicitly referenced by the compiler... YEAH!
-    private import tango.core.Vararg: __va_argsave_t;
+    public import tango.core.Vararg: __va_argsave_t;
 }
 
 
@@ -429,16 +435,16 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
     
         void f ( ... )
         {
-            mixin vaArgCall!(TypeInfo[] arguments, va_list argptr);
+            mixin vaArgCall!();
             
-            vaArgCall();
+            vaArgCall(
+                (TypeInfo[] arguments, va_list argptr)
+                {
+                    // use va_args(argptr) to access the arguments 
+                }
+            );
         }
     
-    ---
-    
-    Advanced usage:
-    
-    ---
     ---
     
     Template params:
