@@ -35,7 +35,7 @@ private import ocean.net.http2.consts.HeaderFieldNames;
 private import ocean.io.select.model.IFiberConnectionHandler,
                ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
-private import ocean.io.select.protocol.generic.ErrnoIOException: ErrnoIOException;
+private import ocean.core.ErrnoIOException;
 
 /******************************************************************************/
 

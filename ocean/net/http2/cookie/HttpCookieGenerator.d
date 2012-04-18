@@ -29,6 +29,8 @@ private import ocean.net.http2.consts.CookieAttributeNames;
 
 private import ocean.net.http2.time.HttpTimeFormatter;
 
+private import tango.stdc.time: time_t;
+
 /******************************************************************************/
 
 class HttpCookieGenerator : ParamSet
