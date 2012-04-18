@@ -118,7 +118,7 @@ class TimerEventTimeoutManager : TimeoutManager
     
     ***************************************************************************/
 
-    private TimerEvent event;
+    private const TimerEvent event;
     
     /***************************************************************************
 
@@ -126,11 +126,23 @@ class TimerEventTimeoutManager : TimeoutManager
     
     ***************************************************************************/
 
-    this ( )
+    public this ( )
     {
         this.event = this.new TimerEvent;
     }
+    
+    /**************************************************************************
+    
+        Called immediately when this instance is deleted.
+        (Must be protected to prevent an invariant from failing.)
+    
+     **************************************************************************/
 
+    protected override void dispose ( )
+    {
+        delete this.event;
+    }
+    
     /***************************************************************************
 
         Returns:
@@ -138,7 +150,7 @@ class TimerEventTimeoutManager : TimeoutManager
     
     ***************************************************************************/
 
-    ISelectClient select_client ( )
+    public ISelectClient select_client ( )
     {
         return this.event;
     }
