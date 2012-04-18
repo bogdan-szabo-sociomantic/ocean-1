@@ -232,7 +232,6 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 
 		// Do the conversion
 		ptrdiff_t result = iconv(this.cd, &inptr, &inbytesleft, &outptr, &outbytesleft);
-		output.length = output.length - outbytesleft;
 
 		// Check for any errors from iconv and throw them as exceptions
 		if (result < 0)
@@ -252,6 +251,8 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
                     throw this.exception_Generic;
 			}
 		}
+
+        output.length = output.length - outbytesleft;
 	}
 }
 
