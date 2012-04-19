@@ -364,7 +364,7 @@ class FiberSelectReader : IFiberSelectProtocol
     
      **************************************************************************/
     
-    debug public char[] id ( )
+    public char[] id ( )
     {
         return typeof (this).stringof;
     }

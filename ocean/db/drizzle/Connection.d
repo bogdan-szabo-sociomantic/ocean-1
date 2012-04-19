@@ -624,7 +624,7 @@ package class Connection : ISelectClient, ISelectable
         this.requestContext = ContextUnion.init;
     }
     
-    debug protected char[] id()
+    protected char[] id()
     {
         return "DrizzleConnection";
     }

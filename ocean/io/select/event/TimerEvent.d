@@ -32,11 +32,8 @@ private import tango.stdc.posix.unistd: read, write, close;
 
 private import tango.stdc.errno: EAGAIN, EWOULDBLOCK, errno;
 
-debug
-{
-    private import ocean.util.log.Trace;
-    private import ocean.text.convert.Layout;
-}
+private import ocean.util.log.Trace;
+private import ocean.text.convert.Layout;
 
 /// <sys/timerfd.h>
 
@@ -547,20 +544,18 @@ abstract class ITimerEvent : ISelectClient, ISelectable
     
     ***************************************************************************/
     
-    debug
+    private char[] time_buffer;
+
+    protected char[] id ( )
     {
-        private char[] time_buffer;
+        this.time_buffer.length = 0;
+        auto time = this.time();
 
-        protected char[] id ( )
-        {
-            this.time_buffer.length = 0;
-            auto time = this.time();
-
-            Layout!(char).print(this.time_buffer, ": {}s {}ns", time.it_value.tv_sec, time.it_value.tv_nsec);
-            return typeof(this).stringof ~ this.time_buffer;
-        }
+        Layout!(char).print(this.time_buffer, ": {}s {}ns", time.it_value.tv_sec,
+            time.it_value.tv_nsec);
+        return typeof(this).stringof ~ this.time_buffer;
     }
-    
+
     /**************************************************************************/
     
     static class TimerException : ErrnoIOException

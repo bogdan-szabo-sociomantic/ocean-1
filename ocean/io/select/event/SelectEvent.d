@@ -363,7 +363,7 @@ class SelectEvent : IAdvancedSelectClient, ISelectable
 
     ***************************************************************************/
 
-    debug protected char[] id ( )
+    protected char[] id ( )
     {
         return typeof(this).stringof;
     }

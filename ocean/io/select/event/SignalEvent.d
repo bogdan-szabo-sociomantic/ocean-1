@@ -209,7 +209,7 @@ public class SignalEvent : ISelectClient, ISelectable
 
     ***************************************************************************/
 
-    debug protected char[] id ( )
+    protected char[] id ( )
     {
         return typeof(this).stringof;
     }

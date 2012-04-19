@@ -415,7 +415,7 @@ public class IntervalClock : ITimerEvent, IMicrosecondsClock
         
      **************************************************************************/
 
-    debug char[] id ( )
+    char[] id ( )
     {
         return typeof (this).stringof;
     }

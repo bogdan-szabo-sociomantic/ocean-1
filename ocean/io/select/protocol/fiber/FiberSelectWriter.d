@@ -369,7 +369,7 @@ class FiberSelectWriter : IFiberSelectProtocol
     
      **************************************************************************/
     
-    debug char[] id ( )
+    char[] id ( )
     {
         return typeof (this).stringof;
     }

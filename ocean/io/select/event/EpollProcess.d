@@ -435,7 +435,7 @@ public abstract class EpollProcess
 
         ***********************************************************************/
 
-        debug public char[] id ( )
+        public char[] id ( )
         {
             return typeof(this).stringof;
         }
@@ -515,7 +515,7 @@ public abstract class EpollProcess
 
         ***********************************************************************/
 
-        debug public char[] id ( )
+        public char[] id ( )
         {
             return typeof(this).stringof;
         }
