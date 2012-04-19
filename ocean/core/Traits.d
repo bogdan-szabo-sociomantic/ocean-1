@@ -348,3 +348,28 @@ public template CountTypesInTuple ( Type, Tuple ... )
     }
 }
 
+
+/*******************************************************************************
+
+    Strips the typedef off T.
+
+    Template params::
+        T = type to strip of typedef
+
+    Evaluates to:
+        alias to either T (if T is not typedeffed) or the base class of T
+
+*******************************************************************************/
+
+public template StripTypedef ( T )
+{
+    static if ( is ( T Orig == typedef ) )
+    {
+        alias Orig StripTypedef;
+    }
+    else
+    {
+        alias T StripTypedef;
+    }
+}
+
