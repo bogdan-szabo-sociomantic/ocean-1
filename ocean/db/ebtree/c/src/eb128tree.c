@@ -1189,4 +1189,6 @@ struct eb128_node *eb128_lookup_ge(struct eb_root *root, uint128_t x)
 	return node;
 }
 
+#else
+#pragma message "128-bit keys not supported"
 #endif /* __SIZEOF_INT128__ */

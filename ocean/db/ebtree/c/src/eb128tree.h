@@ -42,10 +42,12 @@
  * in the produced binary.
  */
 
+#include "int128.h"
+
+#ifdef INT128_SUPPORTED
+
 #ifndef _EB128TREE_H
 #define _EB128TREE_H
-
-#ifdef __SIZEOF_INT128__
 
 #include "ebtree.h"
 
@@ -55,10 +57,6 @@
 
 #define EB128_ROOT	EB_ROOT
 #define EB128_TREE_HEAD	EB_TREE_HEAD
-
-/* These types may sometimes already be defined */
-typedef unsigned __int128 uint128_t;
-typedef signed __int128   int128_t;
 
 /* This structure carries a node, a leaf, and a key. It must start with the
  * eb_node so that it can be cast into an eb_node. We could also have put some
@@ -411,5 +409,6 @@ extern void eb128_node_getkey_264(const struct eb128_node *node, uint64_t *restr
 
 extern void eb128i_node_getkey_264(const struct eb128_node *node, uint64_t *lo, int64_t *hi);
 
-#endif /* __SIZEOF_INT128__ */
 #endif /* _EB128_TREE_H */
+#endif /* INT128_SUPPORTED */
+
