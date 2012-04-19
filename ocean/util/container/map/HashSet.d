@@ -6,7 +6,34 @@
 
     authors:        David Eckardt, Gavin Norman
 
-    TODO: description of module
+    Template for a class implementing a set of hashes. The set is built on top
+    of an efficient bucket algorithm, allowing for fast look up of hashes in the
+    set.
+
+    Usage example:
+
+    ---
+
+        private import ocean.util.container.map.HashSet;
+
+        // A set of hash_t's
+        auto set = new HashSet;
+
+        hash_t hash = 232323;
+
+        // Add a hash
+        set.put(hash));
+
+        // Check if a hash exists in the set (null if not found)
+        auto exists = hash in set;
+
+        // Remove a hash from the set
+        set.remove(hash);
+
+        // Clear the set
+        set.clear();
+
+    ---
 
 *******************************************************************************/
 
