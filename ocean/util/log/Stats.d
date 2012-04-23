@@ -334,8 +334,11 @@ public class StatsLog ( T )
     {
         foreach ( i, value; values.tupleof )
         {
-            this.formatValue(values.tupleof[i].stringof[7 .. $], value,
-                add_separator);
+            // stringof results in something like "values.somename", we want
+            // only "somename"
+            this.formatValue(values.tupleof[i].stringof["values.".length .. $],
+                             value,
+                             add_separator);
             add_separator = true;
         }
     }
