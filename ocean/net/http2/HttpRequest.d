@@ -59,8 +59,6 @@ private import tango.net.Uri: Uri;
 private import tango.net.http.HttpConst: HttpResponseCode;
 private import ocean.net.http2.time.HttpTimeParser;
 
-private import tango.io.Stdout;
-
 /******************************************************************************/
 
 class HttpRequest : HttpHeader
@@ -111,7 +109,7 @@ class HttpRequest : HttpHeader
         
      **************************************************************************/
 
-    private Uri uri_;
+    private const Uri uri_;
     
     /**************************************************************************
     
@@ -140,13 +138,19 @@ class HttpRequest : HttpHeader
         standard Entity header fields. (The standard General-Header and
         Request-Header fields are added automatically.)
         
+        Note that a non-zero value for msg_body_prealloc_length is senseful only
+        when requests with message body (POST, PUT etc.) are supported by this
+        server.
+        
         Params:
-            add_entity_headers = set to true to add the standard Entity header
-                                 fields as well
+            add_entity_headers       = set to true to add the standard Entity
+                                       header fields as well
+            msg_body_prealloc_length = expected message body length for
+                                       preallocation;
         
      **************************************************************************/
 
-    public this ( bool add_entity_headers = false )
+    public this ( bool add_entity_headers = false, size_t msg_body_prealloc_length = 0 )
     {
         super(HeaderFieldNames.Request.NameList,
               add_entity_headers? HeaderFieldNames.Entity.NameList : null);
@@ -155,12 +159,23 @@ class HttpRequest : HttpHeader
         
         this.uri_ = new Uri;
         
-        this.msg_body_ = new char[0x400];
+        this.msg_body_ = new char[msg_body_prealloc_length];
         
         this.http_exception = new HttpException;
         this.header_param_exception = new HeaderParameterException;
         
         this.reset();
+    }
+    
+    /**************************************************************************
+    
+        ditto
+        
+     **************************************************************************/
+    
+    public this ( size_t msg_body_prealloc_length )
+    {
+        this(false, msg_body_prealloc_length);
     }
     
     /**************************************************************************
@@ -255,17 +270,39 @@ class HttpRequest : HttpHeader
         
      **************************************************************************/
 
-    public uint getUint ( char[] header_field_name )
+    public uint getUint ( T = uint ) ( char[] header_field_name )
     {
         uint n;
         
         bool is_set,
-             ok = super.getUint(header_field_name, n, is_set);
+             ok = super.getUint!(T)(header_field_name, n, is_set);
         
         this.header_param_exception.assertEx!(__FILE__, __LINE__)(is_set, header_field_name, "header parameter missing");
         this.header_param_exception.assertEx!(__FILE__, __LINE__)(ok,     header_field_name, "decimal unsigned integer number expected");
         
         return n;
+    }
+    
+    /**************************************************************************
+    
+        Overriding wrapper.
+    
+     **************************************************************************/
+    
+    bool getUint ( T = uint ) ( char[] key, ref T n, out bool is_set )
+    {
+        return super.getUint!(T)(key, n, is_set);
+    }
+    
+    /**************************************************************************
+
+        Overriding wrapper.
+
+     **************************************************************************/
+    
+    bool getUint ( T = uint ) ( char[] key, ref T n )
+    {
+        return super.getUint!(T)(key, n);
     }
     
     /**************************************************************************
@@ -401,24 +438,7 @@ class HttpRequest : HttpHeader
 
     private void setRequestLine ( )
     {
-        // TODO: if this.method_name isn't in HttpMethodNames this one fires
-        //       an tango exception for accessing a non existing assoc array
-        //       key. Not sure if this is wanted...
-        //
-        //       Correction: This is not an associative array but
-        //       HttpMethodNames.opIndex() which never throws/asserts but
-        //       returns null on unknown/invalid parameter value. It remains
-        //       unclear how an exception could be thrown.
-        
-        try 
-        {
-            this.method = HttpMethodNames[this.method_name];
-        }
-        catch ( Exception e )
-        {
-            Stderr.formatln("should not be happen: this.method_name = {}, {} @{}:{}", this.method_name, e.msg, e.file, e.line).flush();
-            throw e;
-        }
+        this.method = HttpMethodNames[this.method_name]; 
         
         this.http_exception.assertEx!(__FILE__, __LINE__)(this.method, StatusCode.BadRequest, "invalid HTTP method");
         
