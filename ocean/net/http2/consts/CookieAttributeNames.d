@@ -19,14 +19,6 @@
 
 module ocean.net.http2.consts.CookieAttributeNames;
 
-/******************************************************************************
-
-    Imports
-
- ******************************************************************************/
-
-private import ocean.net.http2.consts.util.NameList;
-
 /******************************************************************************/
 
 struct CookieAttributeNames
@@ -35,10 +27,25 @@ struct CookieAttributeNames
            Expires,
            Path, Secure, Version;
     
-    const typeof (*this) Names =
+    alias .CookieAttributeNameStrings   Names;
+    alias .CookieAttributeNameList      NameList;
+}
+
+const CookieAttributeNames CookieAttributeNameStrings =
+{
+     "comment", "domain", "expires", "path", "secure", "version"
+};
+
+const char[][] CookieAttributeNameList;
+
+private char[][CookieAttributeNames.tupleof.length] CookieAttributeNameList_;
+
+static this ( )
+{
+    foreach (i, name; CookieAttributeNameStrings.tupleof)
     {
-         "comment", "domain", "expires", "path", "secure", "version"
-    };
+        CookieAttributeNameList_[i] = name;
+    }
     
-    mixin NameList!();
+    CookieAttributeNameList = CookieAttributeNameList_;
 }

@@ -12,14 +12,6 @@
 
 module ocean.net.http2.consts.HeaderFieldNames;
 
-/******************************************************************************
-
-    Imports
-
- ******************************************************************************/
-
-private import ocean.net.http2.consts.util.NameList;
-
 /******************************************************************************/
 
 struct HeaderFieldNames
@@ -33,38 +25,40 @@ struct HeaderFieldNames
     
     struct General
     {
-        /**********************************************************************
-        
-            Field name members
-        
-         **********************************************************************/             
-        
         char[] CacheControl,        Connection,         Date,
                Pragma,              Trailer,            TransferEncoding,
                Upgrade,             Via,                Warning;
         
-        /**********************************************************************
-        
-            Constant instance holding field names
-        
-         **********************************************************************/             
-        
-        const typeof (*this) Names =
-        {
-            "Cache-Control",        "Connection",       "Date",
-            "Pragma",               "Trailer",          "Transfer-Encoding",
-            "Upgrade",              "Via",              "Warning"
-        };
-        
-        /**********************************************************************
-        
-            Adds static char[][n] NameList, a list of the name constants
-        
-         **********************************************************************/             
-        
-        mixin NameList!();
+        alias HeaderFieldNames.GeneralNames    Names;
+        alias HeaderFieldNames.GeneralNameList NameList;
     }
 
+    /**************************************************************************
+        
+        Constant instance holding field names
+    
+     **************************************************************************/             
+    
+    const General GeneralNames =
+    {
+        "Cache-Control",        "Connection",       "Date",
+        "Pragma",               "Trailer",          "Transfer-Encoding",
+        "Upgrade",              "Via",              "Warning"
+    };
+    
+    /**************************************************************************
+    
+        List of field names.
+        
+        (Two arrays as a workaround for the issue that it is impossible to have
+        run-time initialised static array constants.)
+    
+     **************************************************************************/             
+    
+    public static const char[][] GeneralNameList;
+    
+    private static char[][GeneralNames.tupleof.length] GeneralNameList_;
+    
     /**************************************************************************
         
         Request specific header fields in addition to the Genereal fields
@@ -74,12 +68,6 @@ struct HeaderFieldNames
     
     struct Request
     {
-        /**********************************************************************
-        
-            Field name members
-        
-         **********************************************************************/             
-        
         char[] Accept,              AcceptCharset,      AcceptEncoding,
                AcceptLanguage,      Authorization,      Expect,
                From,                Host,               IfMatch,
@@ -88,31 +76,39 @@ struct HeaderFieldNames
                Range,               Referer,            TE,
                UserAgent;
         
-        /**********************************************************************
-        
-            Constant instance holding field names
-        
-         **********************************************************************/             
-        
-        const typeof (*this) Names =
-        {
-            "Accept",               "Accept-Charset",   "Accept-Encoding",
-            "Accept-Language",      "Authorization",    "Expect",
-            "From",                 "Host",             "If-Match",
-            "If-Modified-Since",    "If-None-Match",    "If-Range",
-            "If-Unmodified-Since",  "Max-Forwards",     "Proxy-Authorization",
-            "Range",                "Referer",          "TE",
-            "User-Agent"
-        };
-        
-        /**********************************************************************
-        
-            Adds static char[][n] NameList, a list of the name constants
-        
-         **********************************************************************/             
-        
-        mixin NameList!();
+        alias HeaderFieldNames.RequestNames    Names;
+        alias HeaderFieldNames.RequestNameList NameList;
     }
+    
+    /**********************************************************************
+    
+        Constant instance holding field names
+    
+     **********************************************************************/             
+    
+    const Request RequestNames =
+    {
+        "Accept",               "Accept-Charset",   "Accept-Encoding",
+        "Accept-Language",      "Authorization",    "Expect",
+        "From",                 "Host",             "If-Match",
+        "If-Modified-Since",    "If-None-Match",    "If-Range",
+        "If-Unmodified-Since",  "Max-Forwards",     "Proxy-Authorization",
+        "Range",                "Referer",          "TE",
+        "User-Agent"
+    };
+    
+    /**************************************************************************
+    
+        List of field names.
+        
+        (Two arrays as a workaround for the issue that it is impossible to have
+        run-time initialised static array constants.)
+    
+     **************************************************************************/             
+    
+    public static const char[][] RequestNameList;
+    
+    private static char[][RequestNames.tupleof.length] RequestNameList_;
     
     /**************************************************************************
     
@@ -123,12 +119,6 @@ struct HeaderFieldNames
 
     struct Response
     {
-        /**********************************************************************
-        
-            Field name members
-        
-         **********************************************************************/             
-        
         char[] AcceptRanges,        Age,                ETag,
                Location,            ProxyAuthenticate,  RetryAfter,
                Server,              Vary,               WwwAuthenticate,
@@ -137,34 +127,41 @@ struct HeaderFieldNames
                ContentLength,       ContentLocation,    ContentMD5,
                ContentRange,        ContentType,        Expires,
                LastModified;
-               
         
-        /**********************************************************************
-        
-            Constant instance holding field names
-        
-         **********************************************************************/             
-        
-        const typeof (*this) Names =
-        {
-            "Accept-Ranges",        "Age",              "ETag",
-            "Location",             "Proxy-Authenticate","Retry-After",
-            "Server",               "Vary",             "WWW-Authenticate",
-            
-            "Allow",                "Content-Encoding", "Content-Language",
-            "Content-Length",       "Content-Location", "Content-MD5",
-            "Content-Range",        "Content-Type",     "Expires",
-            "Last-Modified"
-        };
-        
-        /**********************************************************************
-        
-            Adds static char[][n] NameList, a list of the name constants
-        
-         **********************************************************************/             
-        
-        mixin NameList!();
+        alias HeaderFieldNames.ResponseNames    Names;
+        alias HeaderFieldNames.ResponseNameList NameList;
     }
+    
+    /**********************************************************************
+    
+        Constant instance holding field names
+    
+     **********************************************************************/             
+    
+    const Response ResponseNames =
+    {
+        "Accept-Ranges",        "Age",              "ETag",
+        "Location",             "Proxy-Authenticate","Retry-After",
+        "Server",               "Vary",             "WWW-Authenticate",
+        
+        "Allow",                "Content-Encoding", "Content-Language",
+        "Content-Length",       "Content-Location", "Content-MD5",
+        "Content-Range",        "Content-Type",     "Expires",
+        "Last-Modified"
+    };
+    
+    /**************************************************************************
+    
+        List of field names.
+        
+        (Two arrays as a workaround for the issue that it is impossible to have
+        run-time initialised static array constants.)
+    
+     **************************************************************************/             
+    
+    public static const char[][] ResponseNameList;
+    
+    private static char[][ResponseNames.tupleof.length] ResponseNameList_;
     
     /**************************************************************************
     
@@ -175,37 +172,76 @@ struct HeaderFieldNames
     
     struct Entity
     {
-        /**********************************************************************
-        
-            Field name members
-        
-         **********************************************************************/             
-        
         char[] Allow,               ContentEncoding,    ContentLanguage,
                ContentLength,       ContentLocation,    ContentMD5,
                ContentRange,        ContentType,        Expires,
                LastModified;
         
-        /**********************************************************************
+        alias HeaderFieldNames.EntityNames    Names;
+        alias HeaderFieldNames.EntityNameList NameList;
+    }
+    
+    /**********************************************************************
+    
+        Constant instance holding field names
+    
+     **********************************************************************/             
+    
+    const Entity EntityNames =
+    {
+        "Allow",                "Content-Encoding", "Content-Language",
+        "Content-Length",       "Content-Location", "Content-MD5",
+        "Content-Range",        "Content-Type",     "Expires",
+        "Last-Modified"
+    };
+    
+    /**************************************************************************
+    
+        List of field names.
         
-            Constant instance holding field names
-        
-         **********************************************************************/             
-        
-        const typeof (*this) Names =
+        (Two arrays as a workaround for the issue that it is impossible to have
+        run-time initialised static array constants.)
+    
+     **************************************************************************/             
+    
+    public static const char[][] EntityNameList;
+    
+    private static char[][EntityNames.tupleof.length] EntityNameList_;
+    
+    /**************************************************************************
+    
+        Static constructor, populates the lists of field names.
+    
+     **************************************************************************/             
+    
+    static this ( )
+    {
+        foreach (i, name; this.GeneralNames.tupleof)
         {
-            "Allow",                "Content-Encoding", "Content-Language",
-            "Content-Length",       "Content-Location", "Content-MD5",
-            "Content-Range",        "Content-Type",     "Expires",
-            "Last-Modified"
-        };
+            this.GeneralNameList_[i] = name;
+        }
         
-        /**********************************************************************
+        this.GeneralNameList = this.GeneralNameList_;
         
-            Adds static char[][n] NameList, a list of the name constants
+        foreach (i, name; this.RequestNames.tupleof)
+        {
+            this.RequestNameList_[i] = name;
+        }
         
-         **********************************************************************/             
+        this.RequestNameList = this.RequestNameList_;
         
-        mixin NameList!();
+        foreach (i, name; this.ResponseNames.tupleof)
+        {
+            this.ResponseNameList_[i] = name;
+        }
+        
+        this.ResponseNameList = this.ResponseNameList_;
+        
+        foreach (i, name; this.EntityNames.tupleof)
+        {
+            this.EntityNameList_[i] = name;
+        }
+        
+        this.EntityNameList = this.EntityNameList_;
     }
 }

@@ -102,7 +102,7 @@ class EncodeNonUnreserved : PercentEncoder
     
     protected bool encode ( char c )
     {
-        return this.unreserved[c];
+        return !this.unreserved[c];
     }
 }
 
