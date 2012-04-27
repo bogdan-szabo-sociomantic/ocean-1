@@ -39,7 +39,7 @@ module ocean.core.Array;
 
 private import tango.core.Traits;
 
-private import tango.stdc.string : memmove;
+private import tango.stdc.string : memmove, memset;
 
 private import tango.stdc.posix.sys.types : ssize_t;
 
@@ -750,6 +750,56 @@ public T[] shuffle ( T ) ( T[] array, size_t delegate ( size_t i ) new_index )
     
     return array;
 }
+
+/******************************************************************************
+
+    Resets each elements of array to its initial value.
+    
+    T.init must consist only of zero bytes.
+    
+    Params:
+        array = array to clear elements
+        
+    Returns:
+        array with cleared elements
+    
+ ******************************************************************************/
+
+public T[] clear ( T ) ( T[] array )
+in
+{
+    assert(isClearable!(T), T.stringof ~ ".init contains a non-zero byte so " ~
+           (T[]).stringof ~ " cannot be simply cleared");
+}
+body
+{
+    memset(array.ptr, 0, array.length * array[0].sizeof);
+    
+    return array;
+}
+
+
+/******************************************************************************
+    
+    Checks if T.init consists only of zero bytes so that a T[] array can be
+    cleared by clear().
+    
+    Returns:
+        true if a T[] array can be cleared by clear() or false if not.
+
+ ******************************************************************************/
+
+bool isClearable ( T ) ( )
+{
+    const size_t n = T.sizeof;
+    
+    T init;
+    
+    ubyte[n] zero_data;
+    
+    return (cast (void*) &init)[0 .. n] == zero_data;
+}
+
 
 /*******************************************************************************
 
