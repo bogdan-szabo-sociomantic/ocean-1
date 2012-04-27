@@ -101,25 +101,32 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
 
     private bool[HttpMethod] supported_methods;
     
-    /**************************************************************************
+     /**************************************************************************
 
         Constructor
         
-        Uses the default request message parser/response generator settings;
-        that is, the request parser will 
+        Uses the default request message parser/response generator settings.
+        That means, the request parser will be set up for request methods
+        without a message body, such as GET or HEAD (in contrast to POST or PUT
+        which have a message body).
         
         Params:
             dispatcher        = select dispatcher instance to register to
             finalizer         = called when the connection is shut down
                                 (optional, may be null)
+            stack_size        = fiber stack size, use
+                                HttpConnectionHandler.default_stack_size for the
+                                default value
             supported_methods = list of supported HTTP methods
             
      **************************************************************************/
-
+    
     protected this ( EpollSelectDispatcher dispatcher, FinalizeDg finalizer,
+                     size_t stack_size,
                      HttpMethod[] supported_methods ... )
     {
-        this(dispatcher, finalizer, new HttpRequest, new HttpResponse, supported_methods);
+        this(dispatcher, finalizer, stack_size,
+             new HttpRequest, new HttpResponse, supported_methods);
     }
     
     /**************************************************************************
@@ -137,10 +144,11 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
      **************************************************************************/
 
     protected this ( EpollSelectDispatcher dispatcher, FinalizeDg finalizer,
+                     size_t stack_size,
                      HttpRequest request, HttpResponse response,
                      HttpMethod[] supported_methods ... )
     {
-        super(dispatcher, finalizer);
+        super(dispatcher, stack_size, finalizer);
         
         this.request  = request;
         this.response = response;

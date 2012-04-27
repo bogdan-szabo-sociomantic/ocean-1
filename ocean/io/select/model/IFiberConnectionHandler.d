@@ -44,6 +44,14 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
 {
     /***************************************************************************
 
+        Default fiber stack size. 
+    
+    ***************************************************************************/
+    
+    public static size_t default_stack_size = 0x2000;
+    
+    /***************************************************************************
+
         Exception type alias. If handle() catches exceptions, it must rethrow
         these. 
     
@@ -67,19 +75,45 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
         provided epoll select dispatcher.
     
         Params:
+            epoll       = epoll select dispatcher
+            stack_size  = fiber stack size
             finalize_dg = user-specified finalizer, called when the connection
-                is shut down
-            error_dg = user-specified error handler, called when a connection
-                error occurs
+                          is shut down
+            error_dg    = user-specified error handler, called when a connection
+                          error occurs
 
     ***************************************************************************/
 
-    public this ( EpollSelectDispatcher epoll, FinalizeDg finalize_dg = null,
-                  ErrorDg error_dg = null, size_t stack_size = 0x2000 )
+    protected this ( EpollSelectDispatcher epoll,
+                     size_t stack_size,
+                     FinalizeDg finalize_dg = null,
+                     ErrorDg error_dg = null )
     {
         super(finalize_dg, error_dg);
-
+        
         this.fiber = new SelectFiber(epoll, &this.handleConnection_, stack_size);
+    }
+    
+    /***************************************************************************
+
+        Constructor, uses the default fiber stack size.
+    
+        Connects the socket, the asynchronous reader and writer, and the
+        provided epoll select dispatcher.
+    
+        Params:
+            epoll       = epoll select dispatcher
+            finalize_dg = user-specified finalizer, called when the connection
+                          is shut down
+            error_dg    = user-specified error handler, called when a connection
+                          error occurs
+    
+    ***************************************************************************/
+    
+    protected this ( EpollSelectDispatcher epoll,
+                     FinalizeDg finalize_dg = null, ErrorDg error_dg = null )
+    {
+        this(epoll, this.default_stack_size, finalize_dg, error_dg);
     }
     
     /**************************************************************************
@@ -166,7 +200,15 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
 
 abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase
 {
-   /***************************************************************************
+    /***************************************************************************
+
+        If true, a buffered writer is used by default. 
+    
+    ***************************************************************************/
+    
+    public static bool use_buffered_writer_by_default = false;
+    
+    /***************************************************************************
 
         Local aliases for SelectReader and SelectWriter.
     
@@ -200,23 +242,30 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase
         provided epoll select dispatcher.
     
         Params:
-            epoll = epoll select dispatcher which this connection should
-                use for i/o
-            finalize_dg = user-specified finalizer, called when the connection
-                is shut down
-            error_dg = user-specified error handler, called when a connection
-                error occurs
-
+            epoll           = epoll select dispatcher which this connection
+                              should use for i/o
+            stack_size      = fiber stack size
+            buffered_writer = set to true to use the buffered writer 
+            finalize_dg     = user-specified finalizer, called when the
+                              connection is shut down
+            error_dg        = user-specified error handler, called when a
+                              connection error occurs
+    
     ***************************************************************************/
-
-    public this ( EpollSelectDispatcher epoll, FinalizeDg finalize_dg = null, ErrorDg error_dg = null )
+    
+    protected this ( EpollSelectDispatcher epoll,
+                     size_t stack_size, bool buffered_writer,
+                     FinalizeDg finalize_dg = null, ErrorDg error_dg = null )
     {
-        this(epoll, false, finalize_dg, error_dg);
+        this(epoll, buffered_writer?
+                        new BufferedFiberSelectWriter(super.conduit, super.fiber) :
+                        new FiberSelectWriter(super.conduit, super.fiber),
+                    finalize_dg, error_dg, stack_size);
     }
     
     /***************************************************************************
 
-        Constructor
+        Constructor, uses the default fiber stack size.
     
         Connects the socket, the asynchronous reader and writer, and the
         provided epoll select dispatcher.
@@ -229,15 +278,62 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase
                               connection is shut down
             error_dg        = user-specified error handler, called when a
                               connection error occurs
-
+    
     ***************************************************************************/
-
-    public this ( EpollSelectDispatcher epoll, bool buffered_writer, FinalizeDg finalize_dg = null, ErrorDg error_dg = null )
+    
+    protected this ( EpollSelectDispatcher epoll, bool buffered_writer,
+                     FinalizeDg finalize_dg = null, ErrorDg error_dg = null )
     {
-        this(epoll, buffered_writer?
-                        new BufferedFiberSelectWriter(super.conduit, super.fiber) :
-                        new FiberSelectWriter(super.conduit, super.fiber),
-                    finalize_dg, error_dg);
+        this(epoll, this.default_stack_size, buffered_writer, finalize_dg, error_dg);
+    }
+    
+    /***************************************************************************
+
+        Constructor, uses the default setting for buffered socket writing.
+    
+        Connects the socket, the asynchronous reader and writer, and the
+        provided epoll select dispatcher.
+    
+        Params:
+            epoll           = epoll select dispatcher which this connection
+                              should use for i/o
+            stack_size      = fiber stack size
+            finalize_dg     = user-specified finalizer, called when the
+                              connection is shut down
+            error_dg        = user-specified error handler, called when a
+                              connection error occurs
+    
+    ***************************************************************************/
+    
+    protected this ( EpollSelectDispatcher epoll, size_t stack_size,
+                     FinalizeDg finalize_dg = null, ErrorDg error_dg = null )
+    {
+        this(epoll, stack_size,
+             this.use_buffered_writer_by_default, finalize_dg, error_dg);
+    }
+    
+    /***************************************************************************
+
+        Constructor, uses the default fiber stack size and the default setting
+        for buffered socket writing.
+    
+        Connects the socket, the asynchronous reader and writer, and the
+        provided epoll select dispatcher.
+    
+        Params:
+            epoll           = epoll select dispatcher which this connection
+                              should use for i/o
+            finalize_dg     = user-specified finalizer, called when the
+                              connection is shut down
+            error_dg        = user-specified error handler, called when a
+                              connection error occurs
+    
+    ***************************************************************************/
+    
+    protected this ( EpollSelectDispatcher epoll, FinalizeDg finalize_dg = null,
+                     ErrorDg error_dg = null )
+    {
+        this(epoll, this.use_buffered_writer_by_default, finalize_dg, error_dg);
     }
     
     /***************************************************************************
@@ -261,9 +357,11 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase
         
     ***************************************************************************/
 
-    private this ( EpollSelectDispatcher epoll, lazy SelectWriter writer, FinalizeDg finalize_dg, ErrorDg error_dg )
+    private this ( EpollSelectDispatcher epoll, lazy SelectWriter writer,
+                   FinalizeDg finalize_dg, ErrorDg error_dg, 
+                   size_t stack_size )
     {
-        super(epoll, finalize_dg, error_dg);
+        super(epoll, stack_size, finalize_dg, error_dg);
 
         this.reader = new SelectReader(super.conduit, super.fiber);
         this.writer = writer;
