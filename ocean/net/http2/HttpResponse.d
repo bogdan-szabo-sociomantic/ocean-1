@@ -176,7 +176,6 @@ class HttpResponse : HttpHeader
         
         foreach (key, val; super) if (val)
         {
-//            this.content.append(key, ": ", val, "\r\n");
             this.append_header_lines(key, val);
         }
         
@@ -263,7 +262,7 @@ class HttpResponse : HttpHeader
                     return true;
                 }
             
-            case 204, 304:
+            case status.NoContent, status.NotModified:
                 return false;
         }
     }
