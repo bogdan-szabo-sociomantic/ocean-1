@@ -466,6 +466,14 @@ public scope class RecordParser ( R )
         {
             (*field) = Float.toFloat(value);
         }
+        else static if ( is(T == typedef) && is(T : double) && !is( T : int))
+        {
+            (*field) = Float.toFloat(value);
+        }
+        else static if ( is(T == typedef) && is( T : int))
+        {
+            (*field) = cast(T)(Integer.toLong(value));
+        }
         else
         {
             static assert(false, This.stringof ~ "!(" ~ R.stringof ~ "): Unhandled type: " ~ T.stringof);
