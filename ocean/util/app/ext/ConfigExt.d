@@ -154,7 +154,9 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
         }
         args("override-config").aliased('O').params(1).smush()
             .help("override a configuration value (example: "
-                    "-O'[section-name]config-value = \"something\"') ");
+                    "-O '[section-name]config-value = \"something\"', need "
+                    "a space between -O and the option now because of a Tango "
+                    "bug)");
     }
 
 
