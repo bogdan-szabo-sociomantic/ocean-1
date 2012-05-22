@@ -13,6 +13,10 @@
     is selected, a user-specified callback (given in the class' constructor) is
     invoked.
 
+    Two versions of the class exist, one which counts the number of calls to
+    trigger() before the callback is invoked (and passes the count to the
+    callback), and one which does not keep a count.
+
     Usage example:
 
     ---
@@ -38,8 +42,6 @@
 
     ---
 
-    TODO: modify to use ocean.sys.EventFD internally.
-
 *******************************************************************************/
 
 module ocean.io.select.event.SelectEvent;
@@ -52,11 +54,9 @@ module ocean.io.select.event.SelectEvent;
 
 *******************************************************************************/
 
+private import ocean.sys.EventFD;
+
 private import tango.io.model.IConduit;
-
-private import tango.stdc.posix.sys.types: ssize_t;
-
-private import tango.stdc.posix.unistd: read, write, close;
 
 private import ocean.io.select.model.ISelectClient;
 
@@ -66,134 +66,21 @@ debug private import tango.util.log.Trace;
 
 /*******************************************************************************
 
-    Definitions of external functions required to manage custom events.
+    CountingSelectEvent class -- counts and reports the number of times the
+    trigger() method was called preivous to the event being fired in epoll and
+    the class' handle() method being invoked.
 
 *******************************************************************************/
 
-/*******************************************************************************
-
-    Creates an "eventfd object" that can be used as an event wait/notify
-    mechanism by userspace applications, and by the kernel to notify userspace
-    applications of events. The object contains an unsigned 64-bit integer
-    (ulong) counter that is maintained  by the kernel.
-    
-    The following operations can be performed on the file descriptor:
-    
-    read(2)
-        If the eventfd counter has a nonzero value, then a read(2) returns 8
-        bytes containing that value, and the counter's value is reset to zero.
-        (The returned value is in host byte order, i.e., the native byte order
-        for integers on the host machine.) 
-        If the counter is zero at the time of the read(2), then the call either
-        blocks until the counter becomes nonzero, or fails with the error EAGAIN
-        if the file descriptor has been made non-blocking (via the use of the
-        fcntl(2) F_SETFL operation to set the O_NONBLOCK flag).
-    
-        A read(2) will fail with the error EINVAL if the size of the supplied
-        buffer is less than 8 bytes.
-        
-    write(2)
-        A write(2) call adds the 8-byte integer value supplied in its buffer to
-        the counter. The maximum value that may be stored in the counter is the
-        largest unsigned 64-bit value minus 1 (i.e., 0xfffffffffffffffe). If
-        the addition would cause the counter's value to exceed the maximum,
-        then the write(2) either blocks until a read(2) is performed on the file
-        descriptor, or fails with the error EAGAIN if the file descriptor has
-        been made non-blocking. 
-        A write(2) will fail with the error EINVAL if the size of the supplied
-        buffer is less than 8 bytes, or if an attempt is made to write the value
-        0xffffffffffffffff.
-         
-    poll(2), select(2) (and similar)
-        The returned file descriptor supports poll(2) (and analogously epoll(7))
-        and select(2), as follows: 
-    
-        The file descriptor is readable (the select(2) readfds argument; the
-        poll(2) POLLIN flag) if the counter has a value greater than 0.
-    
-        The file descriptor is writable (the select(2) writefds argument; the
-        poll(2) POLLOUT flag) if it is possible to write a value of at least
-        "1" without blocking.
-    
-        The file descriptor indicates an exceptional condition (the select(2)
-        exceptfds argument; the poll(2) POLLERR flag) if an overflow of the
-        counter value was detected. As noted above, write(2) can never overflow
-        the counter. However an overflow can occur if 2^64 eventfd "signal
-        posts" were performed by the KAIO subsystem (theoretically possible,
-        but practically unlikely). If an overflow has occurred, then read(2)
-        will return that maximum uint64_t value (i.e., 0xffffffffffffffff). The
-        eventfd file descriptor also supports the other file-descriptor
-        multiplexing APIs: pselect(2), ppoll(2), and epoll(7).
-        
-    close(2)
-        When the file descriptor is no longer required it should be closed.
-        When all file descriptors associated with the same eventfd object have
-        been closed, the resources for object are freed by the kernel.
-         
-    A copy of the file descriptor created by eventfd() is inherited by the child
-    produced by fork(2). The duplicate file descriptor is associated with the
-    same eventfd object. File descriptors created by eventfd() are preserved
-    across execve(2).
-    
-    Params:
-        initval = initial counter value
-        flags   = Starting with Linux 2.6.27: 0 or a bitwise OR combination of
-                  - EFD_NONBLOCK: Set the O_NONBLOCK file status flag on the
-                        new open file description.
-                  - EFD_CLOEXEC: Set the close-on-exec (FD_CLOEXEC) flag on
-                        the new file descriptor. (See the description of the 
-                        O_CLOEXEC  flag  in open(2) for reasons why this may be
-                        useful.)
-                      
-                  Up to Linux version 2.6.26: Must be 0.
-                  
-    Returns:
-        new file descriptor that can be used to refer to the eventfd object
-              
-*******************************************************************************/
-
-private extern ( C ) int eventfd ( uint initval, int flags );
-
-/*******************************************************************************
-
-    SelectEvent class
-
-    File descriptor event class wrapping C functions. See:
-
-        http://linux.die.net/man/2/eventfd
-
-*******************************************************************************/
-
-class SelectEvent : IAdvancedSelectClient, ISelectable
+public abstract class ISelectEvent : IAdvancedSelectClient, ISelectable
 {
-    /***********************************************************************
-
-        Integer file descriptor provided by the operating system and used to
-        manage the custom event.
-
-    ***********************************************************************/
-
-    private int fd;
-
-
     /***************************************************************************
 
-        Alias for event handler delegate. The return value indicates whether the
-        event should remain registeres with the epoll selector, or be
-        unregistered after handling.
+        Event file descriptor.
 
     ***************************************************************************/
 
-    public alias bool delegate ( ) Handler;
-
-
-    /***************************************************************************
-
-        Event handler delegate.
-    
-    ***************************************************************************/
-
-    private Handler handler;
+    private const EventFD event_fd;
 
 
     /***************************************************************************
@@ -201,101 +88,31 @@ class SelectEvent : IAdvancedSelectClient, ISelectable
         Constructor. Creates a custom event and hooks it up to the provided
         event handler.
 
-        Params:
-            handler = event handler
-
     ***************************************************************************/
 
-    public this ( Handler handler )
+    public this ( )
     {
-        this.handler = handler;
+        this.event_fd = new EventFD;
 
-        this.fd = .eventfd(0, 0);
-        
         super(this);
     }
 
-    
-    /***********************************************************************
 
-        Destructor. Destroys the file descriptor used to manage the event.
-    
-    ***********************************************************************/
-
-    ~this ( )
-    {
-        .close(this.fd);
-    }
-    
-
-    /***********************************************************************
-
-        Writes to the custom event file descriptor.
-        
-        A write() call adds the ulong value supplied in its buffer to the
-        counter. The maximum value that may be stored in the counter is
-        ulong.max - 1. If the addition would cause the counter's value to
-        exceed the maximum, write() either blocks until a read() is
-        performed or fails with the error EAGAIN if the file descriptor has
-        been made non-blocking. 
-        A write() will fail with the error EINVAL if an attempt is made to
-        write the value ulong.max.
-        
-        Params:
-            n = value to write
-        
-        Returns:
-            ulong.sizeof on success or -1 on error. For -1 errno is set
-            appropriately.
-    
-    ***********************************************************************/
-
-    public ssize_t write ( ulong n )
-    {
-        return .write(this.fd, &n, n.sizeof);
-    }
-
-    
-    /***********************************************************************
-
-        Reads from the custom event file descriptor.
-        
-        If the eventfd counter has a nonzero value, then a read() returns
-        that value, and the counter's value is reset to zero.
-        If the counter is zero at the time of the read(), then the call
-        either blocks until the counter becomes nonzero, or fails with the
-        error EAGAIN if the file descriptor has been made non-blocking.
-        
-        Params:
-            n = value output
-            
-        Returns:
-            ulong.sizeof on success, 0 on end-of-file condition or -1 on
-            error. For 0 and -1 errno is set appropriately.
-    
-    ***********************************************************************/
-
-    public void read ( out ulong n )
-    {
-        return .read(this.fd, &n, n.sizeof);
-    }
-
-    
-    /***********************************************************************
+    /***************************************************************************
 
         Required by ISelectable interface.
 
         Returns:
             file descriptor used to manage custom event
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public Handle fileHandle ( )
     {
-        return cast(Handle)this.fd;
+        return this.event_fd.fileHandle;
     }
 
-    
+
     /***************************************************************************
 
         Returns:
@@ -311,16 +128,17 @@ class SelectEvent : IAdvancedSelectClient, ISelectable
 
     /***************************************************************************
 
-        Called from the select dispatcher when the event fires. Calls the user-
-        provided event handler.
+        Called from the select dispatcher when the event fires. Calls the
+        abstract handle_() method.
 
         Params:
             event = select event which fired, must be Read
 
         Returns:
-            forwards return value of event handler -- false indicates that the
-            event should be unregistered with the selector, true indicates that
-            it should remain registered and able to fire again
+            forwards return value of the abstract handle_() method -- false
+            indicates that the event should be unregistered with the selector,
+            true indicates that it should remain registered and able to fire
+            again
 
     ***************************************************************************/
 
@@ -332,11 +150,29 @@ class SelectEvent : IAdvancedSelectClient, ISelectable
     }
     body
     {
-        ulong n;
-        this.read(n);
+        auto n = this.event_fd.handle();
+        assert(n > 0);
 
-        return this.handler();
+        return this.handle_(n);
     }
+
+
+    /***************************************************************************
+
+        Called from handle() when the event fires.
+
+        Params:
+            n = number of times the event was triggered since the last time
+                handle() was called by the select dispatcher
+
+        Returns:
+            false indicates that the event should be unregistered with the
+            selector, true indicates that it should remain registered and able
+            to fire again
+
+    ***************************************************************************/
+
+    protected abstract bool handle_ ( ulong n );
 
 
     /***************************************************************************
@@ -347,8 +183,7 @@ class SelectEvent : IAdvancedSelectClient, ISelectable
 
     public void trigger ( )
     {
-        ulong count_inc = 1;
-        this.write(count_inc);
+        this.event_fd.trigger();
     }
 
 
@@ -366,6 +201,150 @@ class SelectEvent : IAdvancedSelectClient, ISelectable
     protected char[] id ( )
     {
         return typeof(this).stringof;
+    }
+}
+
+
+
+/*******************************************************************************
+
+    SelectEvent class -- calls the user-provided callback (passed to the
+    constructor) when the event is fired from epoll. The trigger() method causes
+    the event to fire.
+
+*******************************************************************************/
+
+public class SelectEvent : ISelectEvent
+{
+    /***************************************************************************
+
+        Alias for event handler delegate. The return value indicates whether the
+        event should remain registered with the epoll selector, or be
+        unregistered after handling.
+
+    ***************************************************************************/
+
+    public alias bool delegate ( ) Handler;
+
+
+    /***************************************************************************
+
+        Event handler delegate.
+    
+    ***************************************************************************/
+
+    private const Handler handler;
+
+
+    /***************************************************************************
+
+        Constructor.
+
+        Params:
+            handler = event handler
+
+    ***************************************************************************/
+
+    public this ( Handler handler )
+    {
+        this.handler = handler;
+
+        super();
+    }
+
+
+    /***************************************************************************
+
+        Called from handle() when the event fires.
+
+        Params:
+            n = number of times the event was triggered since the last time
+                handle() was called by the select dispatcher (ignored)
+
+        Returns:
+            forwards return value of event handler -- false indicates that the
+            event should be unregistered with the selector, true indicates that
+            it should remain registered and able to fire again
+
+    ***************************************************************************/
+
+    protected bool handle_ ( ulong n )
+    {
+        return this.handler();
+    }
+}
+
+
+
+/*******************************************************************************
+
+    CountingSelectEvent class -- calls the user-provided callback (passed to the
+    constructor) when the event is fired from epoll. The trigger() method causes
+    the event to fire. The number of calls to trigger() which occurred before
+    the event fires is counted and passed to the callback.
+
+*******************************************************************************/
+
+public class CountingSelectEvent : ISelectEvent
+{
+    /***************************************************************************
+
+        Alias for event handler delegate. The return value indicates whether the
+        event should remain registered with the epoll selector, or be
+        unregistered after handling.
+
+        The ulong passed to the delegate is the number of times the event has
+        been triggered since the last time handle() was called from epoll.
+
+    ***************************************************************************/
+
+    public alias bool delegate ( ulong n ) Handler;
+
+
+    /***************************************************************************
+
+        Event handler delegate.
+    
+    ***************************************************************************/
+
+    private const Handler handler;
+
+
+    /***************************************************************************
+
+        Constructor.
+
+        Params:
+            handler = event handler
+
+    ***************************************************************************/
+
+    public this ( Handler handler )
+    {
+        this.handler = handler;
+
+        super();
+    }
+
+
+    /***************************************************************************
+
+        Called from handle() when the event fires.
+
+        Params:
+            n = number of times the event was triggered since the last time
+                handle() was called by the select dispatcher
+
+        Returns:
+            forwards return value of event handler -- false indicates that the
+            event should be unregistered with the selector, true indicates that
+            it should remain registered and able to fire again
+
+    ***************************************************************************/
+
+    protected bool handle_ ( ulong n )
+    {
+        return this.handler(n);
     }
 }
 

@@ -181,27 +181,35 @@ public class EventFD : ISelectable
 
     /***************************************************************************
 
-        Triggers the custom event.
+        Triggers the custom event one or more times.
+
+        Params:
+            n = number of times to trigger the event (defaults to 1)
 
     ***************************************************************************/
 
-    public void trigger ( )
+    public void trigger ( ulong n = 1 )
     {
-        ulong count_inc = 1;
-        this.write(count_inc);
+        this.write(n);
     }
 
 
     /***************************************************************************
 
         Should be called when the custom event has fired.
+    
+        Returns:
+            the number of times the event has been triggered since the last call
+            to handle().
 
     ***************************************************************************/
 
-    public void handle ( )
+    public ulong handle ( )
     {
         ulong n;
         this.read(n);
+
+        return n;
     }
 
 
@@ -252,7 +260,7 @@ public class EventFD : ISelectable
 
     ***************************************************************************/
 
-    private void read ( out ulong n )
+    private ssize_t read ( out ulong n )
     {
         return .read(this.fd, &n, n.sizeof);
     }
