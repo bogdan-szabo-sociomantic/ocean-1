@@ -182,7 +182,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
         {
             super.fiber.register(this);
             
-            // Calling suspend() triggers and epoll wait, which will in
+            // Calling suspend() triggers an epoll wait, which will in
             // turn call handle_() (above) when an event fires for this
             // client. handle_() sets this.events_reported to the event
             // reported by epoll.
