@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{99AE8F94-2303-4AF6-B96C-216E95B6976A}</ProjectGuid>
+    <Target>Executable</Target>
+    <IncrementalLinking>true</IncrementalLinking>
+    <UseDefaultCompiler>true</UseDefaultCompiler>
+    <PreferOneStepBuild>true</PreferOneStepBuild>
+    <Compiler>DMD</Compiler>
+    <Includes>
+      <Includes>
+        <Path>../tango</Path>
+      </Includes>
+    </Includes>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug</OutputPath>
+    <ObjectsDirectory>obj/Debug</ObjectsDirectory>
+    <OutputName>ocean</OutputName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release</OutputPath>
+    <ObjectsDirectory>obj/Release</ObjectsDirectory>
+    <OutputName>ocean</OutputName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Unittest|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Unittest</OutputPath>
+    <ObjectsDirectory>obj/Unittest</ObjectsDirectory>
+    <ExtraCompilerArguments>-unittest </ExtraCompilerArguments>
+    <OutputName>ocean</OutputName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="ocean\core\Array.d" />
+    <Compile Include="ocean\core\ArrayMap.d" />
+    <Compile Include="ocean\core\Cache.d" />
+    <Compile Include="ocean\core\ContextUnion.d" />
+    <Compile Include="ocean\core\DeepCopy.d" />
+    <Compile Include="ocean\core\ErrnoIOException.d" />
+    <Compile Include="ocean\core\Exception.d" />
+    <Compile Include="ocean\core\MessageFiber.d" />
+    <Compile Include="ocean\core\ObjectPool.d" />
+    <Compile Include="ocean\core\SmartEnum.d" />
+    <Compile Include="ocean\core\SmartUnion.d" />
+    <Compile Include="ocean\core\Traits.d" />
+    <Compile Include="ocean\core\TwoWayMap.d" />
+    <Compile Include="ocean\core\UniStruct.d" />
+    <Compile Include="ocean\core\Version.d" />
+    <Compile Include="ocean\crypt\misc\Bitwise.d" />
+    <Compile Include="ocean\crypt\misc\ByteConverter.d" />
+    <Compile Include="ocean\crypt\HMAC.d" />
+    <Compile Include="ocean\db\drizzle\c\column_client.d" />
+    <Compile Include="ocean\db\drizzle\c\conn.d" />
+    <Compile Include="ocean\db\drizzle\c\constants.d" />
+    <Compile Include="ocean\db\drizzle\c\drizzle.d" />
+    <Compile Include="ocean\db\drizzle\c\drizzle_client.d" />
+    <Compile Include="ocean\db\drizzle\c\field_client.d" />
+    <Compile Include="ocean\db\drizzle\c\query.d" />
+    <Compile Include="ocean\db\drizzle\c\result.d" />
+    <Compile Include="ocean\db\drizzle\c\result_client.d" />
+    <Compile Include="ocean\db\drizzle\c\row_client.d" />
+    <Compile Include="ocean\db\drizzle\c\structs.d" />
+    <Compile Include="ocean\db\drizzle\Connection.d" />
+    <Compile Include="ocean\db\drizzle\Exception.d" />
+    <Compile Include="ocean\db\drizzle\LibDrizzleEpoll.d" />
+    <Compile Include="ocean\db\drizzle\RecordParser.d" />
+    <Compile Include="ocean\db\drizzle\Result.d" />
+    <Compile Include="ocean\db\ebtree\c\ebimtree.d" />
+    <Compile Include="ocean\db\ebtree\c\ebistree.d" />
+    <Compile Include="ocean\db\ebtree\c\ebmbtree.d" />
+    <Compile Include="ocean\db\ebtree\c\ebnode.d" />
+    <Compile Include="ocean\db\ebtree\c\ebpttree.d" />
+    <Compile Include="ocean\db\ebtree\c\ebsttree.d" />
+    <Compile Include="ocean\db\ebtree\c\ebtree.d" />
+    <Compile Include="ocean\db\ebtree\EBTree.d" />
+    <Compile Include="ocean\db\ebtree\EBTreeMap.d" />
+    <Compile Include="ocean\db\mysql\MySQL.d" />
+    <Compile Include="ocean\db\sqlite\SQLite.d" />
+    <Compile Include="ocean\db\tokyocabinet\c\bdb\tcbdbcur.d" />
+    <Compile Include="ocean\db\tokyocabinet\c\util\tclist.d" />
+    <Compile Include="ocean\db\tokyocabinet\c\util\tcmap.d" />
+    <Compile Include="ocean\db\tokyocabinet\c\util\tcxstr.d" />
+    <Compile Include="ocean\db\tokyocabinet\c\tcbdb.d" />
+    <Compile Include="ocean\db\tokyocabinet\c\tchdb.d" />
+    <Compile Include="ocean\db\tokyocabinet\c\tcmdb.d" />
+    <Compile Include="ocean\db\tokyocabinet\c\tctdb.d" />
+    <Compile Include="ocean\db\tokyocabinet\c\tcutil.d" />
+    <Compile Include="ocean\db\tokyocabinet\model\ITokyoCabinet.d" />
+    <Compile Include="ocean\db\tokyocabinet\util\TokyoCabinetCursor.d" />
+    <Compile Include="ocean\db\tokyocabinet\util\TokyoCabinetExtString.d" />
+    <Compile Include="ocean\db\tokyocabinet\util\TokyoCabinetList.d" />
+    <Compile Include="ocean\db\tokyocabinet\TokyoCabinetB.d" />
+    <Compile Include="ocean\db\tokyocabinet\TokyoCabinetH.d" />
+    <Compile Include="ocean\db\tokyocabinet\TokyoCabinetM.d" />
+    <Compile Include="ocean\io\compress\lzo\c\lzo_crc.d" />
+    <Compile Include="ocean\io\compress\lzo\c\minilzo.d" />
+    <Compile Include="ocean\io\compress\lzo\LzoChunk.d" />
+    <Compile Include="ocean\io\compress\lzo\LzoChunkCompressor.d" />
+    <Compile Include="ocean\io\compress\lzo\LzoCrc.d" />
+    <Compile Include="ocean\io\compress\lzo\LzoHeader.d" />
+    <Compile Include="ocean\io\compress\Lzo.d" />
+    <Compile Include="ocean\io\compress\Zlib.d" />
+    <Compile Include="ocean\io\compress\ZlibStream.d" />
+    <Compile Include="ocean\io\device\AsyncFileEpoll.d" />
+    <Compile Include="ocean\io\device\ProgressFile.d" />
+    <Compile Include="ocean\io\digest\Fnv1.d" />
+    <Compile Include="ocean\io\select\event\EpollProcess.d" />
+    <Compile Include="ocean\io\select\event\FiberSelectEvent.d" />
+    <Compile Include="ocean\io\select\event\IntervalClock.d" />
+    <Compile Include="ocean\io\select\event\Scheduler.d" />
+    <Compile Include="ocean\io\select\event\SelectEvent.d" />
+    <Compile Include="ocean\io\select\event\SignalEvent.d" />
+    <Compile Include="ocean\io\select\event\TimerEvent.d" />
+    <Compile Include="ocean\io\select\fiber\SelectFiber.d" />
+    <Compile Include="ocean\io\select\model\IChainConnectionHandler.d" />
+    <Compile Include="ocean\io\select\model\IConnectionHandler.d" />
+    <Compile Include="ocean\io\select\model\IFiberConnectionHandler.d" />
+    <Compile Include="ocean\io\select\model\IFiberSelectClient.d" />
+    <Compile Include="ocean\io\select\model\ISelectClient.d" />
+    <Compile Include="ocean\io\select\model\ITimeoutSelectClient.d" />
+    <Compile Include="ocean\io\select\protocol\chain\model\IChainSelectProtocol.d" />
+    <Compile Include="ocean\io\select\protocol\chain\serializer\model\ISelectArraysTransmitter.d" />
+    <Compile Include="ocean\io\select\protocol\chain\serializer\SelectArraysDeserializer.d" />
+    <Compile Include="ocean\io\select\protocol\chain\serializer\SelectArraysSerializer.d" />
+    <Compile Include="ocean\io\select\protocol\chain\serializer\SelectDeserializer.d" />
+    <Compile Include="ocean\io\select\protocol\chain\serializer\SelectSerializer.d" />
+    <Compile Include="ocean\io\select\protocol\chain\ChainSelectReader.d" />
+    <Compile Include="ocean\io\select\protocol\chain\ChainSelectWriter.d" />
+    <Compile Include="ocean\io\select\protocol\fiber\model\IFiberSelectProtocol.d" />
+    <Compile Include="ocean\io\select\protocol\fiber\BufferedFiberSelectWriter.d" />
+    <Compile Include="ocean\io\select\protocol\fiber\FiberSelectReader.d" />
+    <Compile Include="ocean\io\select\protocol\fiber\FiberSelectWriter.d" />
+    <Compile Include="ocean\io\select\protocol\generic\ErrnoIOException.d" />
+    <Compile Include="ocean\io\select\protocol\generic\ReadConduit.d" />
+    <Compile Include="ocean\io\select\timeout\TimerEventTimeoutManager.d" />
+    <Compile Include="ocean\io\select\EpollSelectDispatcher.d" />
+    <Compile Include="ocean\io\select\SelectListener.d" />
+    <Compile Include="ocean\io\select\TimeoutEpollSelectDispatcher.d" />
+    <Compile Include="ocean\io\serialize\JsonStructDeserializer.d" />
+    <Compile Include="ocean\io\serialize\JsonStructSerializer.d" />
+    <Compile Include="ocean\io\serialize\SimpleSerializer.d" />
+    <Compile Include="ocean\io\serialize\StringStructSerializer.d" />
+    <Compile Include="ocean\io\serialize\StructSerializer.d" />
+    <Compile Include="ocean\io\serialize\TraceStructSerializer.d" />
+    <Compile Include="ocean\io\serialize\XmlStructSerializer.d" />
+    <Compile Include="ocean\io\Retry.d" />
+    <Compile Include="ocean\io\Stdout.d" />
+    <Compile Include="ocean\io\Terminal.d" />
+    <Compile Include="ocean\math\Distribution.d" />
+    <Compile Include="ocean\math\Math.d" />
+    <Compile Include="ocean\math\SlidingAverage.d" />
+    <Compile Include="ocean\net\client\curl\c\curl.d" />
+    <Compile Include="ocean\net\client\curl\c\multi.d" />
+    <Compile Include="ocean\net\client\curl\process\DownloadSetup.d" />
+    <Compile Include="ocean\net\client\curl\process\ExitStatus.d" />
+    <Compile Include="ocean\net\client\curl\process\HttpResponse.d" />
+    <Compile Include="ocean\net\client\curl\process\NotificationInfo.d" />
+    <Compile Include="ocean\net\client\curl\CurlProcessMulti.d" />
+    <Compile Include="ocean\net\client\curl\CurlProcessSingle.d" />
+    <Compile Include="ocean\net\client\curl\LibCurl.d" />
+    <Compile Include="ocean\net\client\curl\LibCurlEpoll.d" />
+    <Compile Include="ocean\net\client\curl\LibCurlMulti.d" />
+    <Compile Include="ocean\net\client\sphinx\c\sphinxclient.d" />
+    <Compile Include="ocean\net\client\sphinx\SphinxClient.d" />
+    <Compile Include="ocean\net\http\HttpConstants.d" />
+    <Compile Include="ocean\net\http\HttpCookie.d" />
+    <Compile Include="ocean\net\http\HttpHeader.d" />
+    <Compile Include="ocean\net\http\HttpRequest.d" />
+    <Compile Include="ocean\net\http\HttpResponse.d" />
+    <Compile Include="ocean\net\http\HttpServer.d" />
+    <Compile Include="ocean\net\http\HttpTime.d" />
+    <Compile Include="ocean\net\http\Url.d" />
+    <Compile Include="ocean\net\http2\consts\util\NameList.d" />
+    <Compile Include="ocean\net\http2\consts\CookieAttributeNames.d" />
+    <Compile Include="ocean\net\http2\consts\HeaderFieldNames.d" />
+    <Compile Include="ocean\net\http2\consts\HttpMethod.d" />
+    <Compile Include="ocean\net\http2\consts\HttpVersion.d" />
+    <Compile Include="ocean\net\http2\consts\StatusCodes.d" />
+    <Compile Include="ocean\net\http2\cookie\CookiesHttpResponse.d" />
+    <Compile Include="ocean\net\http2\cookie\HttpCookieGenerator.d" />
+    <Compile Include="ocean\net\http2\cookie\HttpCookieParser.d" />
+    <Compile Include="ocean\net\http2\message\HttpHeader.d" />
+    <Compile Include="ocean\net\http2\message\HttpHeaderParser.d" />
+    <Compile Include="ocean\net\http2\time\HttpTimeFormatter.d" />
+    <Compile Include="ocean\net\http2\time\HttpTimeParser.d" />
+    <Compile Include="ocean\net\http2\HttpConnectionHandler.d" />
+    <Compile Include="ocean\net\http2\HttpException.d" />
+    <Compile Include="ocean\net\http2\HttpRequest.d" />
+    <Compile Include="ocean\net\http2\HttpResponse.d" />
+    <Compile Include="ocean\net\socket\model\IConnectionHandler.d" />
+    <Compile Include="ocean\net\socket\ServerSocketThread.d" />
+    <Compile Include="ocean\net\socket\SocketProtocol.d" />
+    <Compile Include="ocean\net\util\GetSocketAddress.d" />
+    <Compile Include="ocean\net\util\ParamSet.d" />
+    <Compile Include="ocean\net\util\QueryParams.d" />
+    <Compile Include="ocean\net\util\UrlDecoder.d" />
+    <Compile Include="ocean\net\util\UrlEncoder.d" />
+    <Compile Include="ocean\sys\CmdPath.d" />
+    <Compile Include="ocean\sys\EventFD.d" />
+    <Compile Include="ocean\sys\SafeFork.d" />
+    <Compile Include="ocean\sys\SignalFD.d" />
+    <Compile Include="ocean\sys\SignalHandler.d" />
+    <Compile Include="ocean\sys\SignalMask.d" />
+    <Compile Include="ocean\text\convert\Layout.d" />
+    <Compile Include="ocean\text\entities\model\IEntityCodec.d" />
+    <Compile Include="ocean\text\entities\model\IEntitySet.d" />
+    <Compile Include="ocean\text\entities\model\MarkupEntityCodec.d" />
+    <Compile Include="ocean\text\entities\HtmlEntityCodec.d" />
+    <Compile Include="ocean\text\entities\HtmlEntitySet.d" />
+    <Compile Include="ocean\text\entities\XmlEntityCodec.d" />
+    <Compile Include="ocean\text\entities\XmlEntitySet.d" />
+    <Compile Include="ocean\text\json\JsonExtractor.d" />
+    <Compile Include="ocean\text\json\Jsonizer.d" />
+    <Compile Include="ocean\text\json\JsonParserIter.d" />
+    <Compile Include="ocean\text\ling\ngram\NGramParser.d" />
+    <Compile Include="ocean\text\ling\ngram\NGramSet.d" />
+    <Compile Include="ocean\text\ling\ngram\NGramWriter.d" />
+    <Compile Include="ocean\text\ling\stemmer\PorterStemmer.d" />
+    <Compile Include="ocean\text\ling\stemmer\PorterStemmerDe.d" />
+    <Compile Include="ocean\text\ling\stemmer\PorterStemmerEn.d" />
+    <Compile Include="ocean\text\regex\c\pcre.d" />
+    <Compile Include="ocean\text\regex\PCRE.d" />
+    <Compile Include="ocean\text\url\PercentEncoding.d" />
+    <Compile Include="ocean\text\utf\c\glib_unicode.d" />
+    <Compile Include="ocean\text\utf\GlibUnicode.d" />
+    <Compile Include="ocean\text\utf\UtfConvert.d" />
+    <Compile Include="ocean\text\utf\UtfString.d" />
+    <Compile Include="ocean\text\util\c\iconv.d" />
+    <Compile Include="ocean\text\util\DigitGrouping.d" />
+    <Compile Include="ocean\text\util\EscapeChars.d" />
+    <Compile Include="ocean\text\util\MetricPrefix.d" />
+    <Compile Include="ocean\text\util\SplitIterator.d" />
+    <Compile Include="ocean\text\util\StringC.d" />
+    <Compile Include="ocean\text\util\StringEncode.d" />
+    <Compile Include="ocean\text\util\StringReplace.d" />
+    <Compile Include="ocean\text\util\StringSearch.d" />
+    <Compile Include="ocean\text\util\Time.d" />
+    <Compile Include="ocean\text\xml\c\LibXml2.d" />
+    <Compile Include="ocean\text\xml\c\LibXslt.d" />
+    <Compile Include="ocean\text\xml\Xslt.d" />
+    <Compile Include="ocean\text\Arguments.d" />
+    <Compile Include="ocean\time\model\IMicrosecondsClock.d" />
+    <Compile Include="ocean\time\timeout\model\ExpiryRegistrationBase.d" />
+    <Compile Include="ocean\time\timeout\model\IExpiryRegistration.d" />
+    <Compile Include="ocean\time\timeout\model\ITimeoutClient.d" />
+    <Compile Include="ocean\time\timeout\model\ITimeoutManager.d" />
+    <Compile Include="ocean\time\timeout\TimeoutManager.d" />
+    <Compile Include="ocean\time\MicrosecondsClock.d" />
+    <Compile Include="ocean\time\UnixTime.d" />
+    <Compile Include="ocean\util\app\ext\model\IArgumentsExtExtension.d" />
+    <Compile Include="ocean\util\app\ext\model\IConfigExtExtension.d" />
+    <Compile Include="ocean\util\app\ext\model\ILogExtExtension.d" />
+    <Compile Include="ocean\util\app\ext\ArgumentsExt.d" />
+    <Compile Include="ocean\util\app\ext\ConfigExt.d" />
+    <Compile Include="ocean\util\app\ext\LogExt.d" />
+    <Compile Include="ocean\util\app\ext\UnittestExt.d" />
+    <Compile Include="ocean\util\app\ext\VersionArgsExt.d" />
+    <Compile Include="ocean\util\app\ext\VersionInfo.d" />
+    <Compile Include="ocean\util\app\model\ExtensibleClassMixin.d" />
+    <Compile Include="ocean\util\app\model\IApplicationExtension.d" />
+    <Compile Include="ocean\util\app\model\IExtension.d" />
+    <Compile Include="ocean\util\app\Application.d" />
+    <Compile Include="ocean\util\app\CommandLineApp.d" />
+    <Compile Include="ocean\util\app\ConfiguredApp.d" />
+    <Compile Include="ocean\util\app\ConfiguredCliApp.d" />
+    <Compile Include="ocean\util\app\ExitException.d" />
+    <Compile Include="ocean\util\app\LoggedCliApp.d" />
+    <Compile Include="ocean\util\app\UnittestedApp.d" />
+    <Compile Include="ocean\util\app\VersionedCliApp.d" />
+    <Compile Include="ocean\util\config\ClassFiller.d" />
+    <Compile Include="ocean\util\config\ConfigParser.d" />
+    <Compile Include="ocean\util\container\mem\MemManager.d" />
+    <Compile Include="ocean\util\container\queue\model\IByteQueue.d" />
+    <Compile Include="ocean\util\container\queue\model\IQueue.d" />
+    <Compile Include="ocean\util\container\queue\model\IQueueInfo.d" />
+    <Compile Include="ocean\util\container\queue\model\IRingQueue.d" />
+    <Compile Include="ocean\util\container\queue\FixedRingQueue.d" />
+    <Compile Include="ocean\util\container\queue\FlexibleFileQueue.d" />
+    <Compile Include="ocean\util\container\queue\FlexibleRingQueue.d" />
+    <Compile Include="ocean\util\container\queue\NotifyingQueue.d" />
+    <Compile Include="ocean\util\container\queue\QueueChain.d" />
+    <Compile Include="ocean\util\container\queue\SimplifiedFlexibleRingQueue.d" />
+    <Compile Include="ocean\util\container\AppendBuffer.d" />
+    <Compile Include="ocean\util\container\ConcatBuffer.d" />
+    <Compile Include="ocean\util\container\FixedKeyMap.d" />
+    <Compile Include="ocean\util\log\CounterAppender.d" />
+    <Compile Include="ocean\util\log\InsertConsole.d" />
+    <Compile Include="ocean\util\log\LayoutStatsLog.d" />
+    <Compile Include="ocean\util\log\MessageLogger.d" />
+    <Compile Include="ocean\util\log\PeriodicTrace.d" />
+    <Compile Include="ocean\util\log\SimpleLayout.d" />
+    <Compile Include="ocean\util\log\StaticTrace.d" />
+    <Compile Include="ocean\util\log\Stats.d" />
+    <Compile Include="ocean\util\log\StatsLog.d" />
+    <Compile Include="ocean\util\log\Trace.d" />
+    <Compile Include="ocean\util\log\Util.d" />
+    <Compile Include="ocean\util\Config.d" />
+    <Compile Include="ocean\util\Main.d" />
+    <Compile Include="ocean\util\MemUsage.d" />
+    <Compile Include="ocean\util\OceanException.d" />
+    <Compile Include="ocean\util\Profiler.d" />
+    <Compile Include="ocean\util\ReusableException.d" />
+    <Compile Include="ocean\util\TraceLog.d" />
+    <Compile Include="ocean\util\Unittest.d" />
+    <Compile Include="ocean\util\VariadicArg.d" />
+    <Compile Include="test\main.d" />
+    <Compile Include="ocean\io\console\Tables.d" />
+    <Compile Include="ocean\io\console\StructTable.d" />
+    <Compile Include="ocean\util\container\map\HashSet.d" />
+    <Compile Include="ocean\util\container\map\HashMap.d" />
+    <Compile Include="ocean\util\container\map\model\BucketSet.d" />
+    <Compile Include="ocean\util\container\map\model\Bucket.d" />
+    <Compile Include="ocean\io\select\event\EpollFile.d" />
+    <Compile Include="ocean\sys\AsyncFileIO.d" />
+    <Compile Include="ocean\util\log\StaticModuleLogger.d" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ocean\db\ebtree\c\lib\libebtree.a" />
+    <None Include="ocean\db\ebtree\c\lib64\libebtree.a" />
+    <None Include="ocean\db\ebtree\c\src\compiler.h" />
+    <None Include="ocean\db\ebtree\c\src\eb128tree.c" />
+    <None Include="ocean\db\ebtree\c\src\eb128tree.h" />
+    <None Include="ocean\db\ebtree\c\src\eb32tree.c" />
+    <None Include="ocean\db\ebtree\c\src\eb32tree.h" />
+    <None Include="ocean\db\ebtree\c\src\eb64tree.c" />
+    <None Include="ocean\db\ebtree\c\src\eb64tree.h" />
+    <None Include="ocean\db\ebtree\c\src\ebimtree.c" />
+    <None Include="ocean\db\ebtree\c\src\ebimtree.h" />
+    <None Include="ocean\db\ebtree\c\src\ebistree.c" />
+    <None Include="ocean\db\ebtree\c\src\ebistree.h" />
+    <None Include="ocean\db\ebtree\c\src\ebmbtree.c" />
+    <None Include="ocean\db\ebtree\c\src\ebmbtree.h" />
+    <None Include="ocean\db\ebtree\c\src\ebpttree.c" />
+    <None Include="ocean\db\ebtree\c\src\ebpttree.h" />
+    <None Include="ocean\db\ebtree\c\src\ebsttree.c" />
+    <None Include="ocean\db\ebtree\c\src\ebsttree.h" />
+    <None Include="ocean\db\ebtree\c\src\ebtree.c" />
+    <None Include="ocean\db\ebtree\c\src\ebtree.h" />
+    <None Include="ocean\db\ebtree\c\src\Makefile" />
+    <None Include="ocean\db\tokyocabinet\c\tcbdb.h" />
+    <None Include="ocean\db\tokyocabinet\c\tchdb.h" />
+    <None Include="ocean\db\tokyocabinet\c\tcutil.h" />
+    <None Include="ocean\io\compress\lzo\c\lib\libminilzo.a" />
+    <None Include="ocean\io\compress\lzo\c\lib64\libminilzo.a" />
+    <None Include="ocean\io\compress\lzo\c\src\COPYING" />
+    <None Include="ocean\io\compress\lzo\c\src\lzo_crc.c" />
+    <None Include="ocean\io\compress\lzo\c\src\lzoconf.h" />
+    <None Include="ocean\io\compress\lzo\c\src\lzodefs.h" />
+    <None Include="ocean\io\compress\lzo\c\src\Makefile" />
+    <None Include="ocean\io\compress\lzo\c\src\minilzo.c" />
+    <None Include="ocean\io\compress\lzo\c\src\minilzo.h" />
+    <None Include="ocean\io\compress\lzo\c\src\README.LZO" />
+    <None Include="ocean\io\compress\lzo\c\src\testmini.c" />
+    <None Include="ocean\net\client\curl\c\curl.h" />
+    <None Include="ocean\net\client\curl\c\easy.h" />
+    <None Include="ocean\net\client\curl\c\multi.h" />
+    <None Include="ocean\net\client\sphinx\c\sphinx.patch.txt" />
+    <None Include="ocean\net\client\sphinx\c\sphinxclient.h" />
+    <None Include="ocean\text\regex\c\pcre.h" />
+    <None Include="script\appVersion.d.tpl" />
+    <None Include="script\mkversion.sh" />
+    <None Include="script\tmuxconnect.sh" />
+    <None Include="script\tmuxconnectscreen.sh" />
+    <None Include="script\Version.d.tpl" />
+    <None Include="test\dsss.conf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ocean\io\console\" />
+    <Folder Include="ocean\util\container\map\model\" />
+  </ItemGroup>
+</Project>

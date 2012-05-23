@@ -58,7 +58,7 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
     /***************************************************************************
 
         Write period
-        
+
     ***************************************************************************/
 
     private const time_t period;
@@ -72,7 +72,6 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
     private alias T delegate ( ) ValueDg;
 
     private ValueDg dg;
-
 
     /***************************************************************************
 
@@ -95,7 +94,7 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
     }
 
     public this ( EpollSelectDispatcher epoll, ValueDg dg, size_t file_count = 10,
-           size_t max_file_size = 10 * 1024 * 1024, time_t period = 300 )
+           size_t max_file_size = 10 * 1024 * 1024, time_t period = default_period )
     {
         this.dg     = dg;
         this.period = period;
@@ -129,7 +128,7 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
 deprecated public class Stats ( T ) : PeriodicStatsLog!(T)
 {
     public this ( EpollSelectDispatcher epoll, ValueDg dg, size_t file_count = 10,
-           size_t max_file_size = 10 * 1024 * 1024, time_t period = 300 )
+           size_t max_file_size = 10 * 1024 * 1024, time_t period = default_period )
     {
         super(epoll, dg, file_count, max_file_size, period);
     }
@@ -154,6 +153,15 @@ deprecated public class Stats ( T ) : PeriodicStatsLog!(T)
 
 public class StatsLog ( T )
 {
+    /***************************************************************************
+
+        Stats log update period (for use with timers, etc)
+
+    ***************************************************************************/
+
+    static public const time_t default_period = 300; // 5 mins
+
+
     /***************************************************************************
 
         Logger instance
