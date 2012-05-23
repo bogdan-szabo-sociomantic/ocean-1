@@ -150,6 +150,7 @@ struct StructSerializer ( bool AllowUnions = false )
     /**************************************************************************
 
         Dumps/serializes the content of s and its array members.
+        THe method will resize the output array to fit the size of the content.
         
         Params:
             s    = struct instance (pointer)
@@ -185,6 +186,8 @@ struct StructSerializer ( bool AllowUnions = false )
     /**************************************************************************
 
         Dumps/serializes the content of s and its array members.
+        THe method won't resize the output array to fit the content, it will
+        rather try to use it as it is.
         
         Params:
             s    = struct instance (pointer)

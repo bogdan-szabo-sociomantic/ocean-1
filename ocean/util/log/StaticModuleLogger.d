@@ -54,19 +54,19 @@ module ocean.util.log.StaticModuleLogger;
 
 *******************************************************************************/
 
-template StaticModuleLogger ( char[] logger )
+template StaticModuleLogger ( char[] logger__name__ )
 {
     private import tango.util.log.Log;
 
     private class _AutoModuleNameDummyClass { }
 
-    mixin("private Logger " ~ logger ~ ";");
+    mixin("private Logger " ~ logger__name__ ~ ";");
 
-    const cut_len = 50 + logger.length;
+    const cut_len = 50 + logger__name__.length;
 
     static this ( )
     {
-        mixin(logger) =
+        mixin(logger__name__) =
             Log.lookup(_AutoModuleNameDummyClass.classinfo.name[0..$-cut_len]);
     }
 }
