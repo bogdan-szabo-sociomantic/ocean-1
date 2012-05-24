@@ -22,7 +22,7 @@ class BufferedFiberSelectWriter : FiberSelectWriter
 {
     /**************************************************************************
 
-        Default buffer size (64 kB)
+        Default output buffer size (64 kB)
             
      **************************************************************************/
 
@@ -87,24 +87,21 @@ class BufferedFiberSelectWriter : FiberSelectWriter
         return this.buffer.capacity;
     }
     
-    
     /**************************************************************************
     
-        Flushes the buffer.
+        Flushes the buffer and sends all pending data.
         
         Returns:
             this instance.
             
      **************************************************************************/
 
-    public size_t flush ( )
+    public override typeof (this) flush ( )
     {
-        scope (success)
-        {
-            super.send(this.buffer.dump());
-        }
+        this.flushBuffer();
+        super.flush();
         
-        return this.buffer.length;
+        return this;
     }
     
     /**************************************************************************
@@ -136,7 +133,7 @@ class BufferedFiberSelectWriter : FiberSelectWriter
     {
         if (s < this.buffer.length)
         {
-            this.flush();
+            this.flushBuffer();
         }
         
         return this.buffer.capacity = s;
@@ -166,7 +163,7 @@ class BufferedFiberSelectWriter : FiberSelectWriter
             
             if (left.length || this.buffer.length == this.buffer.capacity)
             {
-                this.flush();
+                this.flushBuffer();
             }
             
             if (left.length)
@@ -176,10 +173,22 @@ class BufferedFiberSelectWriter : FiberSelectWriter
         }
         else
         {
-            this.flush();
+            this.flushBuffer();
             super.send(data);
         }
         
         return this;
+    }
+    
+    /**************************************************************************
+    
+        Flushes the buffer. Pending data may not be sent immediately, for
+        example, if the TCP_CORK feature is enabled in the super class.
+            
+     **************************************************************************/
+    
+    private void flushBuffer ( )
+    {
+        super.send(this.buffer.dump());
     }
 }

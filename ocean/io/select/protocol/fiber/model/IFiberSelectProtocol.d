@@ -49,15 +49,6 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
     
     /**************************************************************************
 
-        Default I/O data buffer size (if a buffer is actually involved; this
-        depends on the subclass implementation)
-    
-     **************************************************************************/
-    
-    const buffer_size = 0x4000;
-
-    /**************************************************************************
-
         IOWarning exception instance 
 
      **************************************************************************/
@@ -173,8 +164,6 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
     {
         // The reported events are reset at this point to avoid using the
         // events set by a previous run of this method.
-            
-        this.events_reported = this.events_reported.init;
         
         try for (bool more = this.transmit(this.events_reported = this.events_reported.init);
                       more;
