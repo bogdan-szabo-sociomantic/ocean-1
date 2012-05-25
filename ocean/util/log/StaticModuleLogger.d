@@ -6,8 +6,8 @@
 
     authors:        Gavin Norman, Leandro Lucarella
 
-    Mixin template to set up a static Logger instance with the same name as the
-    module which the template is mixed into.
+    String mixin template to set up a static Logger instance with the same name
+    as the module which the template is mixed into.
 
     Of course, the code to set up such a logger without this template is fairly
     simple, but one advantage of using the template is that if the module name
@@ -22,7 +22,7 @@
 
         // Creates a static Logger instance with the specified name ("log", in
         // this example).
-        mixin StaticModuleLogger!("log");
+        mixin(StaticModuleLogger!("log"));
 
         // The Logger instance can then be used as normal in this module.
         // Here it is used in a static constructor, for example.
@@ -54,20 +54,45 @@ module ocean.util.log.StaticModuleLogger;
 
 *******************************************************************************/
 
-template StaticModuleLogger ( char[] logger__name__ )
+template StaticModuleLogger ( char[] logger_name_ )
 {
-    private import tango.util.log.Log;
+    const char[] StaticModuleLogger = 
+        `private import tango.util.log.Log;
+    
+        private class _AutoModuleNameDummyClass { }
+    
+        private Logger ` ~ logger_name_ ~ `;
+    
+        const cut_len = 50 + ` ~ logger_name_.length.stringof ~`;
+    
+        static this ( )
+        {
+            ` ~ logger_name_ ~ ` =
+                Log.lookup(_AutoModuleNameDummyClass.classinfo.name[0..$-cut_len]);
+        }`;
+}
 
-    private class _AutoModuleNameDummyClass { }
 
-    mixin("private Logger " ~ logger__name__ ~ ";");
-
-    const cut_len = 50 + logger__name__.length;
-
-    static this ( )
+// FIXME: this should work as a template mixin, as below, but this led to
+// compile errors in the case when using the mixin in a module which imports
+// another module which also uses the mixin.
+version ( none )
+{
+    template StaticModuleLogger ( char[] logger_name_ )
     {
-        mixin(logger__name__) =
-            Log.lookup(_AutoModuleNameDummyClass.classinfo.name[0..$-cut_len]);
+        private import tango.util.log.Log;
+    
+        private class _AutoModuleNameDummyClass { }
+    
+        mixin("private Logger " ~ logger_name_ ~ ";");
+    
+        const cut_len = 50 + logger_name_.length;
+    
+        static this ( )
+        {
+            mixin(logger_name_) =
+                Log.lookup(_AutoModuleNameDummyClass.classinfo.name[0..$-cut_len]);
+        }
     }
 }
 
