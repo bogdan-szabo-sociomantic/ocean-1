@@ -164,6 +164,8 @@ private import ocean.util.Config;
 private import Class = ocean.util.config.ClassFiller;
 private import ocean.util.Unittest;
 
+public import ocean.util.app.ext.VersionInfo;
+
 // Can't use just Log because of the (in)famous DMD bug:
 // http://d.puremagic.com/issues/show_bug.cgi?id=314
 // Using Log instead of LogUtil will make it conflict with tango.util.log.Log.
@@ -176,24 +178,8 @@ private import tango.io.Stdout;
 
 
 
-/*******************************************************************************
-
-    Helper struct to store version information.
-
-    This struct is meant to be filled automatically by the mkversion.sh script.
-
-    See the module documentation for details.
-
-*******************************************************************************/
-
-public struct VersionInfo
-{
-    public char[]         revision     = "<unknown>";
-    public char[]         gc           = "<unknown>";
-    public char[]         build_date   = "<unknown>";
-    public char[]         build_author = "<unknown>";
-    public char[][char[]] libraries;
-}
+//There was a VersionInfo struct that existed here but now it is replaced
+// by the ocean.util.app.ext.VersionInfo
 
 
 /*******************************************************************************
