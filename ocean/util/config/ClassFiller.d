@@ -618,7 +618,8 @@ public template IsSupported ( T )
         const IsSupported = true;
     }
     else static if ( is(T U : U[]) &&
-                   ( is(U : char) || is(U : wchar) || is(U:dchar)) )
+                   ( is(U : char)   || is(U : wchar)   || is(U:dchar)  ||
+                     is(U : char[]) || is(U : wchar[]) || is(U:dchar[]) ) )
     {
         const IsSupported = true;
     }
@@ -973,7 +974,15 @@ protected void readFields ( T, Source )
                 
         if ( config.exists(group, key) )
         {
-            reference.tupleof[si] = config.getStrict!(DynamicArrayType!(Type))(group, key);
+            static if ( is(Type U : U[]) && is(U V: V[]) )
+            {
+                reference.tupleof[si] = config.getListStrict!(DynamicArrayType!(U))(group, key);
+            }
+            else
+            {
+                reference.tupleof[si] = config.getStrict!(DynamicArrayType!(Type))(group, key);
+            }
+
 
             debug (Config) Trace.formatln("Config Debug: {}.{} = {}", group,
                              reference.tupleof[si]
