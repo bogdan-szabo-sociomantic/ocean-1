@@ -315,8 +315,6 @@
     <Compile Include="ocean\util\container\map\HashMap.d" />
     <Compile Include="ocean\util\container\map\model\BucketSet.d" />
     <Compile Include="ocean\util\container\map\model\Bucket.d" />
-    <Compile Include="ocean\io\select\event\EpollFile.d" />
-    <Compile Include="ocean\sys\AsyncFileIO.d" />
     <Compile Include="ocean\util\log\StaticModuleLogger.d" />
   </ItemGroup>
   <ItemGroup>
