@@ -1,17 +1,102 @@
+/******************************************************************************
+
+    Struct data deserializer 
+    
+    copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
+    
+    version:        June 2012: Initial release
+    
+    author:         David Eckardt
+    
+    Loads a struct instance from serialized data, which were previously produced
+    by StructSerializer.dump(), by referencing the data.
+    
+    The struct may or may not contain branched dynamic arrays. "Branched" means
+    that the dynamic array element type contains a dynamic array. Examples:
+    
+        - multi-dimensional dynamic arrays like int[][] x,
+        - arrays of structs that contain dynamic arrays like
+          struct S { int[] x; } S[] y
+    
+    Note that static arrays of dynamic arrays or vice versa are no branched
+    dynamic arrays in this sense as long as there is only one dynamic array in
+    the type nesting:
+    
+        - int[x][], int[][x], int[x][][y] are not branched dynamic arrays,
+        - int[][x][], int[][][x], int[x][][] are branched dynamic arrays.
+    
+    If the struct does not contain dynamic arrays at all, then the struct data
+    can simply be deserialized by casting the data pointer:
+    ---
+        void[] data;
+        // populate data...
+        
+        // data[0 .. S.sizeof] makes sure the buffer is long enough.
+        S* s = cast (S*) data[0 .. S.sizeof].ptr;
+        // *s is now a valid S instance as long as data exists.
+    ---
+    In this case there is no need for using the StructLoader.
+    
+    If the struct contains dynamic arrays, which are not branched, the input
+    data need to be modified in-place when loading the struct instance, but no
+    additional data buffers are required.
+    Use StructLoader.load() or StructLoader.loadCopy() in this case.
+
+    If the struct contains branched dynamic arrays, the input data need to be
+    modified and an extra data buffer needs to be allocated when loading the
+    struct instance.
+    Use StructLoader.loadCopy() in this case.
+
+ ******************************************************************************/
+
 module ocean.io.serialize.StructLoader;
+
+/******************************************************************************/
 
 class StructLoader
 {
+    /**************************************************************************
+    
+        Maximum allowed dynamic array length.
+        If any dynamic array is longer than this value, a StructLoaderException
+        is thrown.
+
+     **************************************************************************/
+
     public size_t max_length = size_t.max;
     
+    /**************************************************************************
+    
+        Reused Exception instance
+
+     **************************************************************************/
+
     private const StructLoaderException e;
     
+    /**************************************************************************
+    
+        Type alias definition
+
+     **************************************************************************/
+    
     alias void[] delegate ( size_t len ) GetBufferDg;
+    
+    /**************************************************************************
+    
+        Constructor
+
+     **************************************************************************/
     
     public this ( )
     {
         this.e = new StructLoaderException;
     }
+    
+    /**************************************************************************
+    
+        Disposer
+
+     **************************************************************************/
     
     protected override void dispose ( )
     {
@@ -25,7 +110,7 @@ class StructLoader
         
         S must not contain branched dynamic arrays.
         
-        The content of src is modified in-place.
+        If S contains dynamic arrays, the content of src is modified in-place.
         
         Notes:
             1. After this method has returned, do not change src.length to a
@@ -68,7 +153,7 @@ class StructLoader
 
      **************************************************************************/
     
-    S* load ( S ) ( void[] src )
+    public S* load ( S ) ( void[] src )
     out (s)
     {
         assert (s is src.ptr);
@@ -82,11 +167,12 @@ class StructLoader
     
         Loads the S instance represented by data by setting the dynamic array
         slices. data must have been obtained by StructSerializer.dump!(S)().
-        The content of src is modified in-place.
+        
         S must not contain branched dynamic arrays.
                     
-        3. It is safe to use "cast (S*) src.ptr" to obtain the S instance.
-
+        If S contains dynamic arrays, the content of src is modified in-place.
+        
+        It is safe to use "cast (S*) src.ptr" to obtain the S instance.
         
         Notes:
             1. After this method has returned, do not change src.length to a
@@ -114,7 +200,7 @@ class StructLoader
         
      **************************************************************************/
     
-    void[] setSlices ( S ) ( void[] src )
+    public void[] setSlices ( S ) ( void[] src )
     out (data)
     {
         assert (data.ptr    is src.ptr);
@@ -166,7 +252,8 @@ class StructLoader
 
      **************************************************************************/
     
-    S* loadCopy ( S, bool allow_branched_arrays = true ) ( ref void[] dst, void[] src )
+    public S* loadCopy ( S, bool allow_branched_arrays = true )
+                       ( ref void[] dst, void[] src )
     out (s)
     {
         assert (s is dst.ptr);
@@ -246,7 +333,7 @@ class StructLoader
         
      **************************************************************************/
     
-    size_t sliceArraysBytes ( S ) ( void[] data, out size_t bytes )
+    private size_t sliceArraysBytes ( S ) ( void[] data, out size_t bytes )
     {
         this.e.assertDataLongEnough!(S)(data.length, S.sizeof, __FILE__, __LINE__);
         
@@ -274,7 +361,7 @@ class StructLoader
         
      **************************************************************************/
     
-    size_t sliceArrayBytes ( T ) ( void[] data, ref size_t n )
+    private size_t sliceArrayBytes ( T ) ( void[] data, ref size_t n )
     {
         this.e.assertDataLongEnough!(T)(data.length, size_t.sizeof, __FILE__, __LINE__);
         
@@ -340,7 +427,7 @@ class StructLoader
         
      **************************************************************************/
     
-    size_t sliceSubArraysBytes ( T ) ( size_t len, void[] data, ref size_t n )
+    private size_t sliceSubArraysBytes ( T ) ( size_t len, void[] data, ref size_t n )
     {
         size_t pos = 0;
         
@@ -398,8 +485,8 @@ class StructLoader
         
      **************************************************************************/
     
-    size_t sliceArrays ( bool allow_branched_arrays, S ) ( ref S s, void[] data,
-                                                     GetBufferDg get_slices_buffer )
+    private size_t sliceArrays ( bool allow_branched_arrays, S )
+                               ( ref S s, void[] data, GetBufferDg get_slices_buffer )
     in
     {
         static if (allow_branched_arrays) assert (get_slices_buffer !is null);
@@ -465,8 +552,8 @@ class StructLoader
             
      **************************************************************************/
     
-    size_t sliceArray ( bool allow_branched_arrays, T ) ( out T[] array, void[] data,
-                                                          GetBufferDg get_slices_buffer )
+    private size_t sliceArray ( bool allow_branched_arrays, T )
+                              ( out T[] array, void[] data, GetBufferDg get_slices_buffer )
     in
     {
         static if (allow_branched_arrays) assert (get_slices_buffer !is null);
@@ -552,8 +639,8 @@ class StructLoader
             
      **************************************************************************/
     
-    size_t sliceSubArrays ( bool allow_branched_arrays, T ) ( T[] array, void[] data,
-                                                              GetBufferDg get_slices_buffer )
+    private size_t sliceSubArrays ( bool allow_branched_arrays, T )
+                                  ( T[] array, void[] data, GetBufferDg get_slices_buffer )
     in
     {
         static if (allow_branched_arrays) assert (get_slices_buffer !is null);
