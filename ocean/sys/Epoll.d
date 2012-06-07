@@ -601,8 +601,6 @@ struct Epoll
     
     public int ctl ( CtlOp op, int fd, Event events, Object obj )
     {
-        pragma (msg, typeof (this).stringof, ".ctl: ", typeof (obj).stringof);
-        
         epoll_event_t event;
         
         event.events   = events;
@@ -632,7 +630,6 @@ struct Epoll
     
     public int ctl ( CtlOp op, ISelectClient client )
     {
-        pragma (msg, ">>>>>>> ", typeof (this).stringof, ".ctl: ", ISelectClient.stringof);
         return this.ctl(op, client.conduit.fileHandle, client.events, client);
     }
     
