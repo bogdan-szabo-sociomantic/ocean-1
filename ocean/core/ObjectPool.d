@@ -1442,8 +1442,9 @@ abstract class PoolCore : IObjectPoolInfo
             body
             {
                 this.outer.safe_iterator_open = true;
-                this.outer.iteration_items.copyExtend(this.outer.items[start .. end]);
-                super(this.outer.iteration_items[]);
+                auto slice = this.outer.iteration_items.copyExtend(
+                    this.outer.items[start .. end]);
+                super(slice);
             }
 
             /*******************************************************************
