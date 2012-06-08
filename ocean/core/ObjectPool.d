@@ -849,7 +849,7 @@ abstract class PoolCore : IObjectPoolInfo
 
         /***********************************************************************
 
-            Object to store class instances in the pool
+            Pointer to store struct instances in the pool
 
         ***********************************************************************/
 
