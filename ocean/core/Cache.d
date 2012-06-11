@@ -1241,7 +1241,7 @@ class ExpiringCache ( size_t ValueSize = 0 ) : Cache!(ValueSize, true)
     
     ***************************************************************************/
 
-    public bool exists ( hash_t key, time_t access_time )
+    public bool exists ( hash_t key, lazy time_t access_time )
     {
         return this.getRemove(key, access_time) !is null;
     }
@@ -1271,33 +1271,34 @@ class ExpiringCache ( size_t ValueSize = 0 ) : Cache!(ValueSize, true)
     
     /***************************************************************************
     
-        Obtains the cache item for key
+        Obtains the cache item for key.
         
         Params:
-            key      = key of item to remove
-            map_item = map item (may be null)
+            key          = key of item to remove
+            access_time_ = current time
         
         Returns:
-            true if removed or false if map_item is null and nothing has been
-            done.
+            the obtained cache item 
     
     ***************************************************************************/
 
-    private CacheItem* getRemove ( hash_t key, time_t access_time )
+    private CacheItem* getRemove ( hash_t key, lazy time_t access_time_ )
     {
         TimeToIndex.Node**  node = key in this;
         
-        this.stats.total++;
+        CacheItem* cache_item = null;
         
         if (node)
         {
             /*
              * If there is a node, there is also a cache item. get__() will only
              * return null if the current access time of the item is later than
-             * access_time. This can only be if realtime is disabled.
+             * access_time. This can only happen if realtime is disabled.
              */
             
-            CacheItem* cache_item = this.get__(**node, access_time);
+            time_t access_time = access_time_;
+            
+            cache_item = this.get__(**node, access_time);
             
             if (cache_item)
             {
@@ -1309,8 +1310,6 @@ class ExpiringCache ( size_t ValueSize = 0 ) : Cache!(ValueSize, true)
                     this.remove_(key, **node);
                     cache_item = null;
                 }
-                
-                this.stats.misses += !cache_item;
             }
             else
             {
@@ -1318,13 +1317,13 @@ class ExpiringCache ( size_t ValueSize = 0 ) : Cache!(ValueSize, true)
                         "attempted to access a cache item whose time of last "
                         "access is in the future");
             }
-            
-            return cache_item;
         }
-        else
-        {
-            return null;
-        }
+        
+        this.stats.total++;
+        
+        this.stats.misses += !cache_item;
+        
+        return cache_item;
     }
 }
 
