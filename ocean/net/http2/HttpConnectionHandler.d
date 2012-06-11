@@ -72,7 +72,7 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
         
      **************************************************************************/
 
-    protected HttpException             http_exception;
+    protected const HttpException             http_exception;
     
     /**************************************************************************
 
@@ -85,8 +85,8 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
     
     /**************************************************************************
 
-        Status code for the case when a message parse error occurs or required
-        message header parameters are missing
+        Status code for the case when a required message header parameters are
+        missing.
         
      **************************************************************************/
 
@@ -152,7 +152,7 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
         
         this.request  = request;
         this.response = response;
-        this.http_exception = new HttpException;
+        this.http_exception = request.http_exception;
         
         foreach (method; supported_methods)
         {
@@ -175,7 +175,6 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
         
         delete this.request;
         delete this.response;
-        delete this.http_exception;
     }
     
     /***************************************************************************
@@ -194,7 +193,7 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
         {
             super.reader.reset();
             
-            do
+            do try try
             {
                 StatusCode status = StatusCode.OK; 
                 
@@ -211,6 +210,17 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
                     
                     status = this.handleRequest(response_msg_body);
                 }
+                catch (HttpParseException e)
+                {
+                    this.handleHttpException(e);
+                    /*
+                     * On request parse error this connection cannot stay alive
+                     * because when the request was not completely parsed, its
+                     * end and therefore the beginning of the next request is
+                     * unknown, so the server-client communication is broken.
+                     */
+                    break;
+                }
                 catch (HttpException e)
                 {
                     keep_alive &= this.handleHttpException(e);
@@ -223,6 +233,14 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
                 }
                 
                 this.sendResponse(status, response_msg_body, keep_alive);
+            }
+            finally
+            {
+                this.onResponseSent();
+            }
+            finally
+            {
+                this.request.reset();
             }
             while (keep_alive)
         }
@@ -257,6 +275,19 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
     
     abstract protected StatusCode handleRequest ( out char[] response_msg_body );
 
+    /***************************************************************************
+    
+        Called after handleRequest() has returned and when the response message
+        buffer is no longer referenced or after handleRequest() has thrown an
+        exception.
+        A subclass may override this method to release resources. This is useful
+        especially when a large number of persistent connections is open where
+        each connection is only used sporadically.
+        
+    ***************************************************************************/
+    
+    protected void onResponseSent ( ) { }
+    
     /**************************************************************************
 
         Receives the HTTP request message.
@@ -276,8 +307,6 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
     
     private void receiveRequest ( )
     {
-        this.request.reset();
-        
         super.reader.read((void[] data)
         {
              size_t consumed = this.request.parse(cast (char[]) data, this.request_msg_body_length);
@@ -314,7 +343,7 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
             
             set(HeaderFieldNames.General.Names.Connection, keep_alive? "keep-alive" : "close");
             
-            super.writer.send(render(status, response_msg_body));
+            super.writer.send(render(status, response_msg_body)).flush();
         }
     }
     

@@ -65,14 +65,6 @@ class HttpRequest : HttpHeader
 {
     /**************************************************************************
     
-        Message header parser
-        
-     **************************************************************************/
-
-    private HttpHeaderParser parser;
-    
-    /**************************************************************************
-    
         Maximum accepted request URI length
         
      **************************************************************************/
@@ -86,6 +78,23 @@ class HttpRequest : HttpHeader
      **************************************************************************/
 
     public HttpMethod method;
+    
+    /**************************************************************************
+    
+        URI parser
+        
+     **************************************************************************/
+    
+    public const Uri uri;
+    
+    /**************************************************************************
+    
+        Message header parser instance to get header parse results and set
+        limitations.
+        
+     **************************************************************************/
+    
+    public const IHttpHeaderParser header;
     
     /**************************************************************************
     
@@ -105,11 +114,11 @@ class HttpRequest : HttpHeader
     
     /**************************************************************************
     
-        URI instance
+        Message header parser
         
      **************************************************************************/
 
-    private const Uri uri_;
+    private const HttpHeaderParser parser;
     
     /**************************************************************************
     
@@ -126,8 +135,8 @@ class HttpRequest : HttpHeader
         
      **************************************************************************/
 
-    private HttpException               http_exception;
-    private HeaderParameterException    header_param_exception;
+    package const HttpException               http_exception;
+    private const HeaderParameterException    header_param_exception;
     
     /**************************************************************************
     
@@ -155,13 +164,13 @@ class HttpRequest : HttpHeader
         super(HeaderFieldNames.Request.NameList,
               add_entity_headers? HeaderFieldNames.Entity.NameList : null);
         
-        this.parser = new HttpHeaderParser;
+        this.header = this.parser = new HttpHeaderParser;
         
-        this.uri_ = new Uri;
+        this.uri = new Uri;
         
         this.msg_body_ = new char[msg_body_prealloc_length];
         
-        this.http_exception = new HttpException;
+        this.http_exception         = new HttpException;
         this.header_param_exception = new HeaderParameterException;
         
         this.reset();
@@ -180,15 +189,19 @@ class HttpRequest : HttpHeader
     
     /**************************************************************************
     
-        Returns:
-            message header parser instance to get header parse results and set
-            limitations
+        Disposer
         
      **************************************************************************/
-
-    public IHttpHeaderParser header ( )
+    
+    protected override void dispose ( )
     {
-        return this.parser;
+        super.dispose();
+        
+        delete this.parser;
+        delete this.uri;
+        delete this.msg_body_;
+        delete this.http_exception;
+        delete this.header_param_exception;
     }
     
     /**************************************************************************
@@ -202,19 +215,6 @@ class HttpRequest : HttpHeader
     public char[] method_name ( )
     {
         return this.parser.start_line_tokens[0];
-    }
-    
-    /**************************************************************************
-    
-        Returns:
-            URI instance which is set to the requested URI if the start line has
-            already been parsed
-        
-     **************************************************************************/
-
-    public Uri uri ( )
-    {
-        return this.uri_;
     }
     
     /**************************************************************************
@@ -461,7 +461,7 @@ class HttpRequest : HttpHeader
         this.http_exception.assertEx!(__FILE__, __LINE__)(this.parser.start_line_tokens[1].length,StatusCode.BadRequest, "no uri in request");
         this.http_exception.assertEx!(__FILE__, __LINE__)(this.parser.start_line_tokens[1].length <= this.max_uri_length, StatusCode.RequestURITooLarge);
         
-        this.uri_.parse(this.parser.start_line_tokens[1]);
+        this.uri.parse(this.parser.start_line_tokens[1]);
     }
     
     /**************************************************************************
@@ -476,7 +476,7 @@ class HttpRequest : HttpHeader
         this.http_version_   = this.http_version_.init;
         this.msg_body_pos    = 0;
         this.header_complete = false;
-        this.uri_.reset();
+        this.uri.reset();
         this.parser.reset();
         
         super.reset();
