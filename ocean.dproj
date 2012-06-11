@@ -316,6 +316,7 @@
     <Compile Include="ocean\util\container\map\model\BucketSet.d" />
     <Compile Include="ocean\util\container\map\model\Bucket.d" />
     <Compile Include="ocean\util\log\StaticModuleLogger.d" />
+    <Compile Include="ocean\util\app\VersionedLoggedCliApp.d" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ocean\db\ebtree\c\lib\libebtree.a" />

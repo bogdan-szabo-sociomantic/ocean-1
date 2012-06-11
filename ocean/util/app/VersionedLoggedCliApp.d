@@ -10,14 +10,13 @@
 
 *******************************************************************************/
 
-module ocean.util.app.VersionedLoggingCliApp;
+module ocean.util.app.VersionedLoggedCliApp;
 
 /*******************************************************************************
 
     Imports
 
 *******************************************************************************/
-
 
 public import ocean.util.app.Application : Application;
 public import ocean.util.config.ConfigParser : ConfigParser;
@@ -28,7 +27,7 @@ private import ocean.util.app.ext.VersionArgsExt;
 
 
 
-abstract class VersionedLoggingCliApp : LoggedCliApp
+abstract class VersionedLoggedCliApp : LoggedCliApp
 {
 
     /***************************************************************************
@@ -76,7 +75,7 @@ abstract class VersionedLoggingCliApp : LoggedCliApp
 
     ***************************************************************************/
 
-    this ( char[] name2, char[] desc, VersionInfo ver,
+    this ( char[] name, char[] desc, VersionInfo ver,
             char[] usage = null, char[] help = null,
             bool use_insert_appender = false,
             bool loose_config_parsing = false,
