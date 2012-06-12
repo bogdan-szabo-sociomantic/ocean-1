@@ -12,18 +12,14 @@
 
     Notes regarding using this module in a threaded application:
 
-    1. If using this module in an application running with with the basic
-    garbage collector and threads, you need to wrap all access to TokyoCabinetM
-    with a signal mask for SIGUSR1 and SIGUSR2. These signals are used by the
-    garbage collector internally to suspend and resume running threads, and have
-    been observed (in the old threaded / basic GC dht node) to conflict with the
-    libc malloc() and free() behaviour.
+    If using this module in an application running with with the basic garbage
+    collector and threads, you need to wrap all access to TokyoCabinetM with a
+    signal mask for SIGUSR1 and SIGUSR2. These signals are used by the garbage
+    collector internally to suspend and resume running threads, and have been
+    observed (in the old threaded / basic GC dht node) to conflict with the libc
+    malloc() and free() behaviour.
 
     Signal masking can be achieved using ocean.sys.SignalMask.
-
-    2. The methods getFirstKey() and getNextKey() will both need to be called in
-    a thread-synchronized manner as they rely on calling tcmdbiterinit2
-    directly followed by tcmdbiternext.
 
 *******************************************************************************/
 
@@ -58,15 +54,16 @@ debug private import ocean.util.log.Trace;
     Very fast and lightweight database with 10K to 200K inserts per second.
 
     Usage Example: pushing item to db
+
     ---
 
-    import ocean.db.tokyocabinet.TokyoCabinetM;
+        import ocean.db.tokyocabinet.TokyoCabinetM;
 
-    scope db = new TokyoCabinetM;
+        auto db = new TokyoCabinetM;
 
-    db.put("foo", "bar");
+        db.put("foo", "bar");
 
-    db.close();
+        db.close();
 
     ---
 
@@ -74,7 +71,6 @@ debug private import ocean.util.log.Trace;
 
 public class TokyoCabinetM
 {
-
     /**************************************************************************
 
         Iterator alias definition
@@ -98,7 +94,6 @@ public class TokyoCabinetM
      **************************************************************************/
 
     private TCMDB* db;
-
 
     /**************************************************************************
 
@@ -249,6 +244,12 @@ public class TokyoCabinetM
         Gets the key of first record in the database. (The database's internal
         iteration position is reset to the first record.)
 
+        Note that the getFirstKey() and getNextKey() methods are synchronized on
+        this instance of the class, ensuring that only one caller at a time can
+        invoke either of those methods. This is required for safety in threaded
+        applications, as the methods rely on calling tcmdbiterinit2 directly
+        followed by tcmdbiternext (in the iterateNextKey() method).
+
         Params:
             key   = record key output
 
@@ -264,14 +265,23 @@ public class TokyoCabinetM
     }
     body
     {
-        tcmdbiterinit(this.db);
-        return iterateNextKey(key);
+        synchronized ( this )
+        {
+            tcmdbiterinit(this.db);
+            return this.iterateNextKey(key);
+        }
     }
 
     /**************************************************************************
 
         Iterates from the given key, getting the key of next record in the
         database.
+
+        Note that the getFirstKey() and getNextKey() methods are synchronized on
+        this instance of the class, ensuring that only one caller at a time can
+        invoke either of those methods. This is required for safety in threaded
+        applications, as the methods rely on calling tcmdbiterinit2 directly
+        followed by tcmdbiternext (in the iterateNextKey() method).
 
         Params:
             last_key = key to iterate from
@@ -289,21 +299,24 @@ public class TokyoCabinetM
     }
     body
     {
-        key.length = 0;
-
-        if ( exists(last_key) )
+        synchronized ( this )
         {
-            tcmdbiterinit2(this.db, last_key.ptr, last_key.length);
+            key.length = 0;
 
-            if ( !iterateNextKey(key) )
+            if ( exists(last_key) )
+            {
+                tcmdbiterinit2(this.db, last_key.ptr, last_key.length);
+
+                if ( !this.iterateNextKey(key) )
+                {
+                    return false;
+                }
+                return this.iterateNextKey(key);
+            }
+            else
             {
                 return false;
             }
-            return iterateNextKey(key);
-        }
-        else
-        {
-            return false;
         }
     }
 
@@ -419,53 +432,6 @@ public class TokyoCabinetM
     body
     {
         tcmdbvanish(this.db);
-    }
-
-    /**************************************************************************
-
-        "foreach" iterator over key/value pairs of records in database. The
-        "key" and "val" parameters of the delegate correspond to the iteration
-        variables.
-
-        deprecated: use getFirstKey() and getNextKey() instead
-
-     ***************************************************************************/
-
-    deprecated public int opApply ( TcIterator.KeyValIterDg delg )
-    in
-    {
-        this.assertDb();
-    }
-    body
-    {
-        int result;
-
-        TcIterator.tcdbopapply(this.db, delg, result);
-
-        return result;
-    }
-
-    /**************************************************************************
-
-        "foreach" iterator over keys of records in database. The "key"
-        parameter of the delegate corresponds to the iteration variable.
-
-        deprecated: use getFirstKey() and getNextKey() instead
-
-     ***************************************************************************/
-
-    deprecated public int opApply ( TcIterator.KeyIterDg delg )
-    in
-    {
-        this.assertDb();
-    }
-    body
-    {
-        int result;
-
-        TcIterator.tcdbopapply(this.db, delg, result);
-
-        return result;
     }
 
     /**************************************************************************
