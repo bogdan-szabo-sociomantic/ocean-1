@@ -44,11 +44,11 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
 {
     /***************************************************************************
 
-        Default fiber stack size. 
+        Default fiber stack size (16K in 64-bit builds, 8K in 32-bit builds).
     
     ***************************************************************************/
-    
-    public static size_t default_stack_size = 0x2000;
+
+    public static size_t default_stack_size = size_t.sizeof * 2 * 1024;
     
     /***************************************************************************
 
