@@ -32,11 +32,8 @@ private import tango.stdc.posix.unistd: read, write, close;
 
 private import tango.stdc.errno: EAGAIN, EWOULDBLOCK, errno;
 
-debug
-{
-    private import ocean.util.log.Trace;
-    private import ocean.text.convert.Layout;
-}
+private import ocean.util.log.Trace;
+private import ocean.text.convert.Layout;
 
 /// <sys/timerfd.h>
 
@@ -299,7 +296,7 @@ abstract class ITimerEvent : ISelectClient, ISelectable
     
     ***************************************************************************/
 
-    protected TimerException e;
+    protected const TimerException e;
     
     /***********************************************************************
 
@@ -315,17 +312,29 @@ abstract class ITimerEvent : ISelectClient, ISelectable
 
     protected this ( bool realtime = false )
     {
-        this.e = new TimerException;
-        
         this.fd = .timerfd_create(realtime? CLOCK_REALTIME : CLOCK_MONOTONIC,
                                   TFD_NONBLOCK);
         
-        if (fd < 0)
+        if (this.fd < 0)
         {
-            throw this.e("timerfd_create", __FILE__, __LINE__);
+            throw (new TimerException)("timerfd_create", __FILE__, __LINE__);
         }
         
+        this.e = new TimerException;
+        
         super(this);
+    }
+    
+    /**************************************************************************
+    
+        Called immediately when this instance is deleted.
+        (Must be protected to prevent an invariant from failing.)
+    
+     **************************************************************************/
+
+    protected override void dispose ( )
+    {
+        delete this.e;
     }
     
     /***********************************************************************
@@ -535,20 +544,18 @@ abstract class ITimerEvent : ISelectClient, ISelectable
     
     ***************************************************************************/
     
-    debug
+    private char[] time_buffer;
+
+    protected char[] id ( )
     {
-        private char[] time_buffer;
+        this.time_buffer.length = 0;
+        auto time = this.time();
 
-        protected char[] id ( )
-        {
-            this.time_buffer.length = 0;
-            auto time = this.time();
-
-            Layout!(char).print(this.time_buffer, ": {}s {}ns", time.it_value.tv_sec, time.it_value.tv_nsec);
-            return typeof(this).stringof ~ this.time_buffer;
-        }
+        Layout!(char).print(this.time_buffer, ": {}s {}ns", time.it_value.tv_sec,
+            time.it_value.tv_nsec);
+        return typeof(this).stringof ~ this.time_buffer;
     }
-    
+
     /**************************************************************************/
     
     static class TimerException : ErrnoIOException

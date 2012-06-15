@@ -460,7 +460,37 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
     {
         return super.connection_limit;
     }
-
+    
+    /**************************************************************************
+    
+        Minimizes the connection pool to n connections by deleting idle
+        connection objects. If more than n connections are currently busy,
+        all idle connections are deleted.
+        
+        Params:
+            n = minimum number of connection objects to keep in the pool.
+            
+        Returns:
+            the number of connection object in the pool after minimizing, which
+            is the greater of n and the number of currently busy connections. 
+    
+     **************************************************************************/
+    
+    public uint minimize ( uint n = 0 )
+    out (still_existent)
+    {
+        assert (still_existent >= n);
+    }
+    body
+    {
+        uint limit = this.receiver_pool.limit,
+        busy = this.receiver_pool.num_busy;
+        
+        scope (exit) this.receiver_pool.limit = limit;
+        
+        return this.receiver_pool.limit = (n > busy)? n : busy;
+    }
+    
     /**************************************************************************
 
         Returns:

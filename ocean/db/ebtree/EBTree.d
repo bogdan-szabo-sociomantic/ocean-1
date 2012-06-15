@@ -70,7 +70,13 @@ private import tango.core.Traits;
 
 debug private import tango.util.log.Trace;
 
+/*******************************************************************************
 
+    Superseded by EBTree32, EBTree64 and EBTree128.
+
+*******************************************************************************/
+
+deprecated:
 
 /*******************************************************************************
 
@@ -641,3 +647,50 @@ public class EBTree ( T )
     }
 }
 
+import tango.stdc.posix.stdlib: srand48, mrand48;
+import tango.stdc.time: time;
+
+unittest
+{
+    struct HugeVal
+    {
+        version ( BigEndian )
+        {
+            ulong lo, hi;
+        }
+        else version ( LittleEndian )
+        {
+            ulong hi, lo;
+        }
+        else
+        {
+            static assert(false, This.stringof ~ ": endianness version not found, cannot safely use this template");
+        }
+        
+        typeof (this) set ( uint lolo, uint lohi, uint hilo, uint hihi )
+        {
+            this.lo = (cast (ulong) lolo) << 32 | lohi;
+            this.hi = (cast (ulong) hilo) << 32 | hihi;
+            
+            return this;
+        }
+        
+        int opCmp ( ref typeof (*this) other )
+        {
+            return (this.hi >  other.hi)?  1 :
+                   (this.hi <  other.hi)? -1 :
+                   (this.lo >= other.lo)? (this.lo > other.lo) : -1;
+        }
+    }
+    
+    srand48(time(null));
+    
+    scope ebt = new EBTree!(HugeVal);
+    
+    HugeVal[0x400] vals;
+    
+    foreach (ref val; vals)
+    {
+        ebt.add(*val.set(mrand48(), mrand48(), mrand48(), mrand48()));
+    }
+}

@@ -192,7 +192,7 @@ public class FiberSelectEvent : IFiberSelectClient, ISelectable
 
     ***************************************************************************/
 
-    debug protected char[] id ( )
+    protected char[] id ( )
     {
         return typeof(this).stringof;
     }

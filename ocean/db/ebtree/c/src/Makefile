@@ -88,7 +88,7 @@ $(LIB_EBTREE_SHARED): $(EBTREE_OBJS)
 	$(LD) $(LDFLAGS) -shared -o $@ $^
 
 %.o: %.c
-	$(CC) $(CFLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) -o $@ -c $< -std=c99 -fPIC
 
 cleanup:
 	rm -f *.o

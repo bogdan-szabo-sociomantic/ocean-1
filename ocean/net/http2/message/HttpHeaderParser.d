@@ -22,9 +22,18 @@ private import ocean.text.util.SplitIterator: ChrSplitIterator, ISplitIterator;
 
 private import ocean.net.http2.HttpException: HttpParseException;
 
-private import ocean.util.container.AppendBuffer;
+static if (is (size_t == uint))
+{
+    alias int ssize_t;
+}
+else
+{
+    static assert (is (size_t == ulong), "expected size_t to be uint or ulong, not \"" ~ size_t.stringof ~ '"');
+    
+    alias long ssize_t;
+}
 
-extern (C) private char* g_strstr_len(char* haystack, size_t haystack_len, char* needle);
+extern (C) private char* g_strstr_len(char* haystack, ssize_t haystack_len, char* needle);
 
 /******************************************************************************
 
@@ -211,11 +220,20 @@ class HttpHeaderParser : IHttpHeaderParser
     
     /**************************************************************************
 
-         HTTP message header content buffer
+         HTTP message header content buffer.
+         content.length determines the header length limit.
     
      **************************************************************************/
 
-    private const AppendBuffer!(char) content;
+    private char[] content;
+    
+    /**************************************************************************
+
+         Length of actual data in content.
+    
+     **************************************************************************/
+    
+    private size_t content_length;
     
     /**************************************************************************
 
@@ -286,9 +304,11 @@ class HttpHeaderParser : IHttpHeaderParser
 
     invariant
     {
-        assert (this.pos                     <= this.content.length);
+        assert (this.pos <= this.content_length);
         assert (this.header_elements_.length == this.header_lines_.length);
-        assert (this.n_header_lines          <= this.header_lines_.length);
+        assert (this.n_header_lines <= this.header_lines_.length);
+        
+        assert (this.content_length <= this.content.length);
     }
     
     /**************************************************************************
@@ -318,7 +338,7 @@ class HttpHeaderParser : IHttpHeaderParser
     public this ( uint size_limit, uint lines_limit )
     {
         this.exception        = new HttpParseException;
-        this.content          = new AppendBuffer!(char)(size_limit, true);
+        this.content          = new char[size_limit];
         this.header_lines_    = new char[][lines_limit];
         this.header_elements_ = new HeaderElement[lines_limit];
     }
@@ -425,7 +445,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
     public uint header_length_limit ( )
     {
-        return this.content.capacity;
+        return this.content.length;
     }
     
     /**************************************************************************
@@ -448,7 +468,7 @@ class HttpHeaderParser : IHttpHeaderParser
     {
         this.reset();
         
-        return this.content.capacity = n;
+        return this.content.length = n;
     }
     
     /**************************************************************************
@@ -465,7 +485,7 @@ class HttpHeaderParser : IHttpHeaderParser
         this.start_line_tokens[] = null;
         
         this.pos            = 0;
-        this.content.clear();
+        this.content_length = 0;
         
         this.n_header_lines = 0;
         
@@ -524,7 +544,9 @@ class HttpHeaderParser : IHttpHeaderParser
         
         split_header.include_remaining = false;
         
-        foreach (header_line; split_header.reset(this.appendContent(content)))
+        char[] content_remaining = this.appendContent(content);
+        
+        foreach (header_line; split_header.reset(this.content[this.pos .. this.content_length]))
         {
             char[] remaining = split_header.remaining;
             
@@ -541,7 +563,7 @@ class HttpHeaderParser : IHttpHeaderParser
                     this.have_start_line = true;
                 }
                 
-                this.pos = this.content.length - remaining.length;
+                this.pos = this.content_length - remaining.length;
             }
             else
             {
@@ -549,7 +571,7 @@ class HttpHeaderParser : IHttpHeaderParser
                 
                 if (this.finished)
                 {
-                    msg_body_start = remaining;
+                    msg_body_start = remaining.length? remaining : content_remaining;
                     break;
                 }
             }
@@ -576,14 +598,56 @@ class HttpHeaderParser : IHttpHeaderParser
             limit.
             
      **************************************************************************/
-
+    
     private char[] appendContent ( char[] chunk )
+    in
     {
-        char[] appended = this.content.append(chunk);
+        assert (this.content_length <= this.content.length);
+    }
+    out (remaining)
+    {
+        assert (remaining.length <= chunk.length);
+    }
+    body
+    {
+        size_t max_len  = this.content.length - this.content_length,
+               consumed = chunk.length;
         
-        this.exception.assertEx!(__FILE__, __LINE__)(appended.length == chunk.length, "request header too long");
+        if (consumed > max_len)
+        {
+            /*
+             * If the chunk exceeds the header length limit, it may contain the
+             * start of the message body: Look for the end-of-header token in
+             * chunk[0 .. max_len]. If not found, the header is really too long.
+             */
+            
+            const end_of_header = "\r\n\r\n";
+            
+            char* header_end = g_strstr_len(chunk.ptr, max_len, end_of_header.ptr);
+            
+            this.exception.assertEx!(__FILE__, __LINE__)
+                                    (header_end !is null, "request header too long: ", this.start_line_tokens[1]);
+            
+            consumed = (header_end - chunk.ptr) + end_of_header.length;
+            
+            assert (chunk[consumed - end_of_header.length .. consumed] == end_of_header);
+        }
         
-        return this.content[this.pos .. this.content.length];
+        // Append chunk to this.content.
+        
+        size_t end = this.content_length + consumed;
+        
+        this.content[this.content_length .. end] = chunk[0 .. consumed];
+        
+        this.content_length = end;
+        
+        /*
+         * Return the tail of chunk that was not appended. This tail is empty
+         * unless chunk exceeded the header length limit and the end-of-header
+         * token was found in chunk.
+         */
+        
+        return chunk[consumed .. $];
     }
     
     /**************************************************************************
@@ -681,6 +745,38 @@ version (OceanPerformanceTest)
 
 unittest
 {
+    
+    {
+        scope parser = new HttpHeaderParser;
+        
+        const content = "POST / HTTP/1.1\r\n"      // 17
+                        "Content-Length: 12\r\n"   // 37
+                        "\r\n"                     // 39
+                        "Hello World!";
+
+        
+        parser.header_length_limit = 39;
+        
+        try
+        {
+            parser.parse(content);
+        }
+        catch (HttpParseException e)
+        {
+            assert (false);
+        }
+        
+        parser.reset();
+        
+        parser.header_length_limit = 38;
+        
+        try
+        {
+            parser.parse(content);
+        }
+        catch (HttpParseException e) { }
+    }
+
     const char[] lorem_ipsum =
         "Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod "
         "tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim "
@@ -737,7 +833,7 @@ unittest
         "amet.";
     
     const char[] content =
-        "GET /dir?query=Hello%20World!&abc=def&ghi HTTP/1.1\r\n"
+        "POST /dir?query=Hello%20World!&abc=def&ghi HTTP/1.1\r\n"
         "Host: www.example.org:12345\r\n"
         "User-Agent: Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.17) Gecko/20110422 Ubuntu/9.10 (karmic) Firefox/3.6.17\r\n"
         "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
@@ -817,7 +913,7 @@ unittest
             }
         }
         
-        assert (parser.start_line_tokens[0]  == "GET");
+        assert (parser.start_line_tokens[0]  == "POST");
         assert (parser.start_line_tokens[1]  == "/dir?query=Hello%20World!&abc=def&ghi");
         assert (parser.start_line_tokens[2]  == "HTTP/1.1");
         

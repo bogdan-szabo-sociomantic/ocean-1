@@ -101,7 +101,7 @@ public class SignalEvent : ISelectClient, ISelectable
 
     ***************************************************************************/
 
-    public this ( Handler handler, int[] signals )
+    public this ( Handler handler, int[] signals ... )
     {
         assert(handler !is null);
         assert(signals.length);
@@ -209,7 +209,7 @@ public class SignalEvent : ISelectClient, ISelectable
 
     ***************************************************************************/
 
-    debug protected char[] id ( )
+    protected char[] id ( )
     {
         return typeof(this).stringof;
     }

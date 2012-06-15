@@ -46,7 +46,7 @@ class ReadConduit
     
      **************************************************************************/
 
-    private InputStream conduit;
+    private const InputStream conduit;
     
     /**************************************************************************
 
@@ -54,9 +54,9 @@ class ReadConduit
     
      **************************************************************************/
 
-    private IOWarning warning;
+    private const IOWarning warning;
     
-    private IOError   error;
+    private const IOError   error;
     
     /**************************************************************************
 

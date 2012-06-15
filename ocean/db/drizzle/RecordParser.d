@@ -30,7 +30,7 @@
             char[] name;
         }
 
-        void query_callback ( RequestContext context, Result result )
+        void query_callback ( ContextUnion context, Result result )
         {
             foreach ( row; result )
             {
@@ -72,7 +72,7 @@
             }
         }
 
-        void query_callback ( RequestContext context, Result result )
+        void query_callback ( ContextUnion context, Result result )
         {
             foreach ( row; result )
             {
@@ -465,6 +465,14 @@ public scope class RecordParser ( R )
         else static if ( isRealType!(T) )
         {
             (*field) = Float.toFloat(value);
+        }
+        else static if ( is(T == typedef) && is(T : double) && !is( T : int))
+        {
+            (*field) = Float.toFloat(value);
+        }
+        else static if ( is(T == typedef) && is( T : int))
+        {
+            (*field) = cast(T)(Integer.toLong(value));
         }
         else
         {

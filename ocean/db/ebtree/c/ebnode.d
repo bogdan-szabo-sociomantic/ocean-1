@@ -22,6 +22,14 @@ module ocean.db.ebtree.c.ebnode;
 
 private import ocean.db.ebtree.c.ebtree;
 
+/*****************************************************************************
+
+    Superseded by eb32_node, eb64_node and eb128_node. 
+
+ *****************************************************************************/
+
+deprecated:
+
 /* This structure carries a node, a leaf, and a key. It must start with the
  * eb_node so that it can be cast into an eb_node. We could also have put some
  * sort of transparent union here to reduce the indirection level, but the fact

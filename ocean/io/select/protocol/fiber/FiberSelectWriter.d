@@ -284,6 +284,26 @@ class FiberSelectWriter : IFiberSelectProtocol
     
     /**************************************************************************
 
+        Sends all pending data immediately.
+        May be overridden by a subclass; calls corkFlush() by default.
+            
+        Returns:
+            this instance.
+        
+     **************************************************************************/
+    
+    public typeof (this) flush ( )
+    {
+        if (this.cork_)
+        {
+            this.corkFlush();
+        }
+        
+        return this;
+    }
+    
+    /**************************************************************************
+
         Attempts to write data to the output conduit. The output conduit may or
         may not write all elements of data.
         
@@ -369,7 +389,7 @@ class FiberSelectWriter : IFiberSelectProtocol
     
      **************************************************************************/
     
-    debug char[] id ( )
+    char[] id ( )
     {
         return typeof (this).stringof;
     }

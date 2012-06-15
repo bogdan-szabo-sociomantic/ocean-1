@@ -73,9 +73,17 @@
 
     ---
 
+    TODO: move this module into ocean.uitl.container.pool, and split classes
+    into separate modules.
+
+    TODO: implement a reduced functionality version of the pool which is simply
+    a free-list. It would thus not require the object_pool_index member in the
+    pool item, and would not be able to support iteration over busy items.
+
 *******************************************************************************/
 
 module ocean.core.ObjectPool;
+
 
 /*******************************************************************************
 
@@ -143,7 +151,7 @@ deprecated interface PoolItem
 
 *******************************************************************************/
 
-interface IObjectPoolInfo
+public interface IObjectPoolInfo
 {
     /**************************************************************************
 
@@ -841,7 +849,7 @@ abstract class PoolCore : IObjectPoolInfo
 
         /***********************************************************************
 
-            Object to store class instances in the pool
+            Pointer to store struct instances in the pool
 
         ***********************************************************************/
 
@@ -893,8 +901,8 @@ abstract class PoolCore : IObjectPoolInfo
 
     /**************************************************************************
 
-        List of items (objects) in pool for iteration. items is copied into
-        this array on iterator instantiation.
+        List of items (objects) in pool for safe iteration. items is copied into
+        this array on safe iterator instantiation.
 
      **************************************************************************/
 
@@ -902,11 +910,23 @@ abstract class PoolCore : IObjectPoolInfo
 
     /**************************************************************************
 
-        true if an iterator instance exists currently, used for assertions.
+        true if a safe iterator instance exists currently, used for assertions
+        to ensure that only a single safe iterator can exist at a time (as it
+        uses the single buffer, iteration_items, above).
 
      **************************************************************************/
 
-    private bool iterator_open = false;
+    private bool safe_iterator_open = false;
+
+    /**************************************************************************
+
+        Count of unsafe iterator instances which exist currently, used for
+        assertions to ensure that while an unsafe iterator exists the object
+        pool may not be modified.
+
+     **************************************************************************/
+
+    private uint unsafe_iterators_open = 0;
 
     /**************************************************************************
 
@@ -1034,7 +1054,8 @@ abstract class PoolCore : IObjectPoolInfo
     protected uint limit_ ( uint limit, lazy Item new_item )
     in
     {
-        assert (!this.iterator_open, "cannot set the limit while iterating over items");
+        assert (!this.safe_iterator_open, "cannot set the limit while iterating over items");
+        assert (!this.unsafe_iterators_open, "cannot set the limit while iterating over items");
     }
     out
     {
@@ -1090,6 +1111,10 @@ abstract class PoolCore : IObjectPoolInfo
     **************************************************************************/
 
     protected Item get_ ( lazy Item new_item )
+    in
+    {
+        assert (!this.unsafe_iterators_open, "cannot get from pool while iterating over items");
+    }
     out (item_out)
     {
         assert (!this.isNull(item_out));
@@ -1183,6 +1208,8 @@ abstract class PoolCore : IObjectPoolInfo
         assert (this.isSame(item_in, this.items[index]), "wrong index in recycled item");
 
         assert (index < this.num_busy_, "recycled item is idle");
+
+        assert (!this.unsafe_iterators_open, "cannot recycle while iterating over items");
     }
     body
     {
@@ -1212,7 +1239,17 @@ abstract class PoolCore : IObjectPoolInfo
     **************************************************************************/
 
     public PoolCore clear ( )
+    in
     {
+        assert (!this.unsafe_iterators_open, "cannot clear pool while iterating over items");
+    }
+    body
+    {
+        foreach (item; this.items[0..this.num_busy_])
+        {
+            this.resetItem(item);
+        }
+
         this.num_busy_ = 0;
 
         return this;
@@ -1298,65 +1335,39 @@ abstract class PoolCore : IObjectPoolInfo
     /***************************************************************************
 
         Iterator classes, each one provides 'foreach' iteration over a subset
-        if the items in the pool. During iteration all methods of
-        ObjectPoolImpl may be called except limit(uint, PoolItem). However, the
-        list of items iterated over is not updated to changes made by get(),
-        recycle() and clear().
-    
+        if the items in the pool.
+
         Note that, if the pool items are structs, 'ref' iteration is required to
         make the modification of the items iterated over permanent. For objects
         'ref' should not be used.
-    
+
     ***************************************************************************/
 
     template ItemIterators ( T )
     {
         /***********************************************************************
 
-            Provides 'foreach' iteration over items[start .. end]. During
-            iteration all methods of ObjectPoolImpl may be called except
-            limit(uint, PoolItem). However, the list of items iterated over is
-            not updated to changes made by get(), clear() and recycle().
+            Base class for pool 'foreach' iterators. The constructor receives a
+            slice of the items to be iterated over.
 
         ***********************************************************************/
 
         protected abstract scope class ItemsIterator
         {
-            private Item[] iteration_items;
+            protected Item[] iteration_items;
 
             /*******************************************************************
 
                 Constructor
 
                 Params:
-                    start = start item index
-                    end   = end item index (excluded like array slice end index)
-
-                In:
-                    No instance of this class may exist.
+                    iteration_items = items to be iterated over (sliced)
 
             *******************************************************************/
 
-            protected this ( uint start, uint end )
-            in
+            protected this ( Item[] iteration_items )
             {
-                assert (!this.outer.iterator_open);
-            }
-            body
-            {
-                this.outer.iterator_open = true;
-                this.iteration_items = this.outer.iteration_items.copyExtend(this.outer.items[start .. end]);
-            }
-
-            /*******************************************************************
-
-                Destructor
-
-            *******************************************************************/
-
-            ~this ( )
-            {
-                this.outer.iterator_open = false;
+                this.iteration_items = iteration_items;
             }
 
             /*******************************************************************
@@ -1365,7 +1376,7 @@ abstract class PoolCore : IObjectPoolInfo
 
             *******************************************************************/
 
-            int opApply ( int delegate ( ref T item ) dg )
+            public int opApply ( int delegate ( ref T item ) dg )
             {
                 int ret = 0;
 
@@ -1398,11 +1409,103 @@ abstract class PoolCore : IObjectPoolInfo
 
         /***********************************************************************
 
-            Provides 'foreach' iteration over all items in the pool.
+            Provides 'foreach' iteration over items[start .. end]. During
+            iteration all methods of PoolCore may be called except limit_().
+
+            The iteration is actually over a copy of the items in the pool which
+            are specified in the constructor. Thus the pool may be modified
+            while iterating. However, the list of items iterated over is not
+            updated to changes made by get(), clear() and recycle().
 
         ***********************************************************************/
 
-        scope class AllItemsIterator : ItemsIterator
+        protected abstract scope class SafeItemsIterator : ItemsIterator
+        {
+            /*******************************************************************
+
+                Constructor
+
+                Params:
+                    start = start item index
+                    end   = end item index (excluded like array slice end index)
+
+                In:
+                    No instance of this class may exist.
+
+            *******************************************************************/
+
+            protected this ( uint start, uint end )
+            in
+            {
+                assert (!this.outer.safe_iterator_open);
+            }
+            body
+            {
+                this.outer.safe_iterator_open = true;
+                auto slice = this.outer.iteration_items.copyExtend(
+                    this.outer.items[start .. end]);
+                super(slice);
+            }
+
+            /*******************************************************************
+
+                Destructor
+
+            *******************************************************************/
+
+            ~this ( )
+            {
+                this.outer.safe_iterator_open = false;
+            }
+        }
+
+        /***********************************************************************
+
+            Provides 'foreach' iteration over items[start .. end]. During
+            iteration only read-only methods of PoolCore may be called.
+
+            The unsafe iterator is more efficient as it does not require the
+            copy of the items being iterated, which the safe iterator performs.
+
+        ***********************************************************************/
+
+        protected abstract scope class UnsafeItemsIterator : ItemsIterator
+        {
+            /*******************************************************************
+
+                Constructor
+
+                Params:
+                    start = start item index
+                    end   = end item index (excluded like array slice end index)
+
+            *******************************************************************/
+
+            protected this ( uint start, uint end )
+            {
+                this.outer.unsafe_iterators_open++;
+                super(this.outer.items[start .. end]);
+            }
+
+            /*******************************************************************
+
+                Destructor
+
+            *******************************************************************/
+
+            ~this ( )
+            {
+                this.outer.unsafe_iterators_open--;
+            }
+        }
+
+        /***********************************************************************
+
+            Provides safe 'foreach' iteration over all items in the pool.
+
+        ***********************************************************************/
+
+        scope class AllItemsIterator : SafeItemsIterator
         {
             this ( )
             {
@@ -1412,11 +1515,25 @@ abstract class PoolCore : IObjectPoolInfo
 
         /***********************************************************************
 
-            Provides 'foreach' iteration over the busy items in the pool.
+            Provides unsafe 'foreach' iteration over all items in the pool.
 
         ***********************************************************************/
 
-        scope class BusyItemsIterator : ItemsIterator
+        scope class ReadOnlyAllItemsIterator : UnsafeItemsIterator
+        {
+            this ( )
+            {
+                super(0, this.outer.items.length);
+            }
+        }
+
+        /***********************************************************************
+
+            Provides safe 'foreach' iteration over the busy items in the pool.
+
+        ***********************************************************************/
+
+        scope class BusyItemsIterator : SafeItemsIterator
         {
             this ( )
             {
@@ -1426,11 +1543,39 @@ abstract class PoolCore : IObjectPoolInfo
 
         /***********************************************************************
 
-            Provides 'foreach' iteration over the idle items in the pool.
+            Provides unsafe 'foreach' iteration over the busy items in the pool.
 
         ***********************************************************************/
 
-        scope class IdleItemsIterator : ItemsIterator
+        scope class ReadOnlyBusyItemsIterator : UnsafeItemsIterator
+        {
+            this ( )
+            {
+                super(0, this.outer.num_busy_);
+            }
+        }
+
+        /***********************************************************************
+
+            Provides safe 'foreach' iteration over the idle items in the pool.
+
+        ***********************************************************************/
+
+        scope class IdleItemsIterator : SafeItemsIterator
+        {
+            this ( )
+            {
+                super(this.outer.num_busy_, this.outer.items.length);
+            }
+        }
+
+        /***********************************************************************
+
+            Provides unsafe 'foreach' iteration over the idle items in the pool.
+
+        ***********************************************************************/
+
+        scope class ReadOnlyIdleItemsIterator : UnsafeItemsIterator
         {
             this ( )
             {
@@ -1678,33 +1823,4 @@ debug ( OceanUnitTest )
         debug (Verbose) Trace.formatln("Test finished");
     }
 }
-
-/*******************************************************************************
-
-    Constructs a new pool, takes the first c'tor automatically.
-
-        Template Params:
-            T = type of object to construct
-            A = (optional) list of argument types for the c'tor. If non-type
-                values will be passed, takes the default constructor
-
-         Params:
-             args = arguments for the constructor of the newly created object
-
-*******************************************************************************/
-
-version (none) public ObjectPool!(T,A) newAutoPool(T, A ...) ( A args )
-{
-    static if(A.length == 0)
-    {
-        alias ParameterTupleOf!(typeof(&T._ctor)) A;
-    }
-    else static if(!is(A))
-    {
-        alias Tuple!() A;
-    }
-    return new ObjectPool!(T,A)(args);
-}
-
-
 

@@ -47,7 +47,7 @@ class IOWarning : ErrnoIOException
         
      **************************************************************************/
 
-    private ISelectClient client;
+    private const ISelectClient client;
     
     /**************************************************************************
         
@@ -144,7 +144,7 @@ class IOError : ErrnoIOException
         
      **************************************************************************/
     
-    private ISelectClient client;
+    public const ISelectClient client;
     
     /**************************************************************************
         

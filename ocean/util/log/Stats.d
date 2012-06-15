@@ -33,6 +33,8 @@ public import ocean.util.log.Util;
 private import tango.util.log.Log;
 private import tango.util.log.AppendSyslog;
 
+private import tango.stdc.time : time_t;
+
 
 
 /*******************************************************************************
@@ -56,7 +58,7 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
     /***************************************************************************
 
         Write period
-        
+
     ***************************************************************************/
 
     private const time_t period;
@@ -70,11 +72,11 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
     private alias T delegate ( ) ValueDg;
 
     private ValueDg dg;
-    
+
     /***************************************************************************
 
         Constructor
-        
+
         Params:
             epoll    = epoll select dispatcher
             dg       = delegate to query the current values
@@ -85,13 +87,14 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
 
     ***************************************************************************/
 
-    this ( )
+    deprecated public this ( ) // TODO: what's the point of this constructor, without a timer?
     {
         period = 1;
         super(10, 10);
     }
+
     public this ( EpollSelectDispatcher epoll, ValueDg dg, size_t file_count = 10,
-           size_t max_file_size = 10 * 1024 * 1024, time_t period = 300 )
+           size_t max_file_size = 10 * 1024 * 1024, time_t period = default_period )
     {
         this.dg     = dg;
         this.period = period;
@@ -120,12 +123,12 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
 
 
 
-// Deprecated class -- name changed to PeriodicStats (above)
+// Deprecated class -- name changed to PeriodicStatsLog (above)
 
 deprecated public class Stats ( T ) : PeriodicStatsLog!(T)
 {
     public this ( EpollSelectDispatcher epoll, ValueDg dg, size_t file_count = 10,
-           size_t max_file_size = 10 * 1024 * 1024, time_t period = 300 )
+           size_t max_file_size = 10 * 1024 * 1024, time_t period = default_period )
     {
         super(epoll, dg, file_count, max_file_size, period);
     }
@@ -150,6 +153,15 @@ deprecated public class Stats ( T ) : PeriodicStatsLog!(T)
 
 public class StatsLog ( T )
 {
+    /***************************************************************************
+
+        Stats log update period (for use with timers, etc)
+
+    ***************************************************************************/
+
+    static public const time_t default_period = 300; // 5 mins
+
+
     /***************************************************************************
 
         Logger instance
@@ -180,9 +192,8 @@ public class StatsLog ( T )
 
     ***************************************************************************/
 
-    public this ( size_t file_count = 10,
-            size_t max_file_size = 10 * 1024 * 1024,
-            char[] file_name = "log/stats.log" )
+    public this ( size_t file_count = 10, size_t max_file_size = 10 * 1024 * 1024,
+        char[] file_name = "log/stats.log" )
     {
         this.logger = Log.lookup("Stats");
         this.logger.clear();
@@ -214,7 +225,8 @@ public class StatsLog ( T )
 
     /***************************************************************************
 
-        Writes the values from the provided struct to the logger.
+        Writes the values from the provided struct to the logger. Each member of
+        the struct is output as <member name>:<member value>.
 
         Params:
             values = struct containing values to write to the log
@@ -223,19 +235,165 @@ public class StatsLog ( T )
 
     public void write ( T values )
     {
-        this.format_buffer.length = 0;
-
-        char[] separator = "";
-
-        foreach (i, value; values.tupleof)
-        {
-            Layout!(char).print(this.format_buffer, "{}{}:{}", separator,
-                                values.tupleof[i].stringof[7 .. $], value);
-
-            separator = " ";
-        }
+        this.format(values);
 
         this.logger.info(this.format_buffer);
+    }
+
+
+    /***************************************************************************
+
+        Writes the values from the provided struct to the logger, followed by
+        the additional values contained in the provided associative array. Each
+        member of the struct is output as <member name>:<member value>. Each
+        entry in the associative array is output as <key>:<value>.
+
+        This method can be useful when some of the values which are to be
+        written to the log are only known at run-time (for example a list of
+        names of channels in a dht or queue).
+
+        Params:
+            values = struct containing values to write to the log
+            additional = associative array of additional values to write to the
+                log
+
+    ***************************************************************************/
+
+    public void writeExtra ( A ) ( T values, A[char[]] additional )
+    {
+        this.formatExtra(values, additional);
+
+        this.logger.info(this.format_buffer);
+    }
+
+
+    /***************************************************************************
+
+        Formats the values from the provided struct to the internal string
+        buffer. Each member of the struct is formatted as
+        <member name>:<member value>.
+
+        Params:
+            values = struct containing values to format
+
+        Returns:
+            formatted string
+
+    ***************************************************************************/
+
+    public char[] format ( T values )
+    {
+        this.format_buffer.length = 0;
+
+        bool add_separator = false;
+        this.formatStruct(values, add_separator);
+
+        return this.format_buffer;
+    }
+
+
+    /***************************************************************************
+
+        Formats the values from the provided struct to the internal string
+        buffer, followed by the additional values contained in the provided
+        associative array. Each member of the struct is formatted as
+        <member name>:<member value>. Each entry in the associative array is
+        formatted as <key>:<value>.
+
+        This method can be useful when some of the values which are to be
+        written to the log are only known at run-time (for example a list of
+        names of channels in a dht or queue).
+
+        Params:
+            values = struct containing values to write to format
+            additional = associative array of additional values to format
+
+        Returns:
+            formatted string
+
+    ***************************************************************************/
+
+    public char[] formatExtra ( A ) ( T values, A[char[]] additional )
+    {
+        this.format_buffer.length = 0;
+
+        bool add_separator = false;
+        this.formatStruct(values, add_separator);
+        this.formatAssocArray(additional, add_separator);
+
+        return this.format_buffer;
+    }
+
+
+    /***************************************************************************
+
+        Writes the values from the provided struct to the format_buffer member.
+        Each member of the struct is output as <member name>:<member value>.
+
+        Params:
+            values = struct containing values to write to the log
+            add_separator = flag telling whether a separator (space) should be
+                added before a stats value is formatted. After a single value
+                has been formatted the value of add_separator is set to true.
+
+    ***************************************************************************/
+
+    private void formatStruct ( T values, ref bool add_separator )
+    {
+        foreach ( i, value; values.tupleof )
+        {
+            // stringof results in something like "values.somename", we want
+            // only "somename"
+            this.formatValue(values.tupleof[i].stringof["values.".length .. $],
+                             value,
+                             add_separator);
+            add_separator = true;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Writes the entries of the provided associative array to the
+        format_buffer member. Each entry of the associative array is output as
+        <key>:<value>.
+
+        Params:
+            values = associative array of values to write to the log
+            add_separator = flag telling whether a separator (space) should be
+                added before a stats value is formatted. After a single value
+                has been formatted the value of add_separator is set to true.
+
+    ***************************************************************************/
+
+    private void formatAssocArray ( A ) ( A[char[]] values, ref bool add_separator )
+    {
+        foreach ( name, value; values )
+        {
+            this.formatValue(name, value, add_separator);
+            add_separator = true;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Writes the specified name:value pair to the format_buffer member.
+
+        Params:
+            name = name of stats log entry
+            value = value of stats log entry
+            add_separator = flag telling whether a separator (space) should be
+                added before the stats value is formatted
+
+    ***************************************************************************/
+
+    private void formatValue ( V ) ( char[] name, V value, bool add_separator )
+    {
+        auto separator = add_separator ? " " : "";
+
+        Layout!(char).print(this.format_buffer, "{}{}:{}", separator, name,
+            value);
     }
 }
 

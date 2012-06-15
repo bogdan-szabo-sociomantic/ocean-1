@@ -40,6 +40,14 @@ class FiberSelectReader : IFiberSelectProtocol
 {
     /**************************************************************************
 
+        Default input buffer size (16 kB).
+
+     **************************************************************************/
+
+    public const size_t default_buffer_size = 0x4000;
+    
+    /**************************************************************************
+
         Delegate to be called when data is received.
 
      **************************************************************************/
@@ -118,7 +126,7 @@ class FiberSelectReader : IFiberSelectProtocol
             
      **************************************************************************/
 
-    this ( ISelectable conduit, SelectFiber fiber, size_t buffer_size = super.buffer_size )
+    this ( ISelectable conduit, SelectFiber fiber, size_t buffer_size = this.default_buffer_size )
     in
     {
         assert ((cast (InputStream) conduit) !is null);
@@ -364,7 +372,7 @@ class FiberSelectReader : IFiberSelectProtocol
     
      **************************************************************************/
     
-    debug public char[] id ( )
+    public char[] id ( )
     {
         return typeof (this).stringof;
     }

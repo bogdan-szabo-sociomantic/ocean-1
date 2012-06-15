@@ -711,15 +711,7 @@ private abstract class AppendBufferImpl: IAppendBufferBase
 
     public bool limited ( bool limited_ )
     {
-        with (this.limit_invariants) if (limited_)
-        {
-            ptr = this.content.ptr;
-            len = this.content.length;
-        }
-        else
-        {
-            ptr = null;
-        }
+        scope (exit) this.setLimitInvariants();
         
         return this.limited_ = limited_;
     }
@@ -780,7 +772,7 @@ private abstract class AppendBufferImpl: IAppendBufferBase
         elements will be removed at the end. If limitation is enabled, the
         new number of elements is truncated to capacity().
         
-        Note that, unless limitaion is enabled, previously returned slices must
+        Note that, unless limitation is enabled, previously returned slices must
         not be used after this method has been invoked because the content
         buffer may be relocated, turning existing slices to it into dangling
         references.
@@ -879,25 +871,18 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     
     public size_t capacity ( size_t capacity )
     {
-        /*
-         *  Disable limitation and re-enable it on exit to avoid the invariant
-         *  to fail. See comment on LimitInvariants struct above.
-         */
-        
-        bool limited = this.limited_;
-        
-        this.limited_ = false;
-        
-        scope (exit) if (limited) this.limited(true);
-        
-        if (capacity < this.n)
+        if (capacity > this.n)
         {
-            capacity = this.n;
+            this.setContentLength(this.content, capacity * this.e);
+            
+            this.setLimitInvariants();
+            
+            return capacity;
         }
-        
-        this.setContentLength(this.content, capacity * this.e);
-        
-        return capacity;
+        else
+        {
+            return this.n;
+        }
     }
     
     /**************************************************************************
@@ -1241,6 +1226,25 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     body
     {
         delete content_;
+    }
+    
+    /**************************************************************************
+    
+        Readjusts limit_invariants.
+        
+     **************************************************************************/
+    
+    private void setLimitInvariants ( )
+    {
+        with (this.limit_invariants) if (this.limited_)
+        {
+            ptr = this.content.ptr;
+            len = this.content.length;
+        }
+        else
+        {
+            ptr = null;
+        }
     }
 }
 

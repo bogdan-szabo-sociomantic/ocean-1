@@ -153,7 +153,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
         
         ***********************************************************************/
 
-        Expiry register ( IExpiryRegistration registration, ulong timeout_us )
+        Expiry* register ( IExpiryRegistration registration, ulong timeout_us )
         {
             return this.outer.register(registration, timeout_us);
         }
@@ -171,7 +171,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
             
         ***********************************************************************/
 
-        void unregister ( Expiry expiry )
+        void unregister ( ref Expiry expiry )
         {
             this.outer.unregister(expiry);
         }
@@ -205,7 +205,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
     ***************************************************************************/
 
-    private const ExpiryTree expiry_tree;
+    private ExpiryTree expiry_tree;
 
 
     /***************************************************************************
@@ -215,7 +215,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
     ***************************************************************************/
 
-    private const ArrayMap!(IExpiryRegistration, Expiry) expiry_to_client;
+    private ArrayMap!(IExpiryRegistration, Expiry*) expiry_to_client;
 
 
     /***************************************************************************
@@ -224,7 +224,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
     ***************************************************************************/
 
-    private const AppendBuffer!(IExpiryRegistration) expired_registrations;
+    private AppendBuffer!(IExpiryRegistration) expired_registrations;
 
     /***************************************************************************
 
@@ -235,7 +235,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
     protected this ( )
     {
         this.expiry_tree = new ExpiryTree;
-        this.expiry_to_client = new ArrayMap!(IExpiryRegistration, Expiry);
+        this.expiry_to_client = new ArrayMap!(IExpiryRegistration, Expiry*);
         this.expired_registrations = new AppendBuffer!(IExpiryRegistration);
     }
 
@@ -252,7 +252,9 @@ abstract class TimeoutManagerBase : ITimeoutManager
     
     public ulong next_expiration_us ( )
     {
-        ulong us = this.expiry_tree.length? this.expiry_tree.first : ulong.max;
+        Expiry* expiry = this.expiry_tree.first;
+        
+        ulong us = expiry? expiry.key : ulong.max;
         
         debug ( TimeoutManager ) if (!this.next_expiration_us_called_from_internal)
         {
@@ -287,9 +289,11 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
     public ulong us_left ( )
     {
-        if (this.expiry_tree.length)
+        Expiry* expiry = this.expiry_tree.first;
+        
+        if (expiry)
         {
-            ulong next_expiration_us = this.expiry_tree.first,
+            ulong next_expiration_us = expiry.key,
                   now                = this.now;
             
             debug ( TimeoutManager )
@@ -379,11 +383,25 @@ abstract class TimeoutManagerBase : ITimeoutManager
         ulong previously_next = this.next_expiration_us;
 
         this.expired_registrations.clear();
-
+        
         // We first build up a list of all expired registrations, in order to
         // avoid the situation of the timeout() delegates potentially modifying
         // the tree while iterating over it.
-        foreach (expiry, expire_time; this.expiry_tree.lessEqual(now))
+        
+        version (all)
+        {
+            scope expiries = this.expiry_tree.new PartIterator(now);
+            
+            foreach_reverse (ref expiry; expiries)
+            {
+                IExpiryRegistration registration = this.expiry_to_client[&expiry];
+    
+                debug ( TimeoutManager ) Stderr('\t')(registration.id)(" timed out\n");
+    
+                this.expired_registrations ~= registration;
+            }
+        }
+        else foreach (expiry, expire_time; this.expiry_tree.lessEqual(now))
         {
             IExpiryRegistration registration = this.expiry_to_client[expiry];
 
@@ -391,7 +409,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
             this.expired_registrations ~= registration;
         }
-
+        
         debug ( TimeoutManager ) Stderr.flush();
 
         // All expired registrations are removed from the expiry tree. They are
@@ -438,7 +456,12 @@ abstract class TimeoutManagerBase : ITimeoutManager
     
     ***************************************************************************/
     
-    protected Expiry register ( IExpiryRegistration registration, ulong timeout_us )
+    protected Expiry* register ( IExpiryRegistration registration, ulong timeout_us )
+    out (expiry)
+    {
+        assert (expiry);
+    }
+    body
     {
         ulong now = this.now;
         
@@ -448,7 +471,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
         
         ulong previously_next = this.next_expiration_us;
         
-        Expiry expiry = this.expiry_tree.add(t);
+        Expiry* expiry = this.expiry_tree.add(t);
         this.expiry_to_client.put(expiry, registration);
         
         debug ( TimeoutManager )
@@ -490,45 +513,42 @@ abstract class TimeoutManagerBase : ITimeoutManager
         
     ***************************************************************************/
     
-    protected void unregister ( Expiry expiry )
+    protected void unregister ( ref Expiry expiry )
     {
-        if (expiry)
+        debug ( TimeoutManager ) this.next_expiration_us_called_from_internal = true;
+
+        ulong previously_next = this.next_expiration_us;
+        
+        debug ulong t = expiry.key;
+
+        try try
         {
-            debug ( TimeoutManager ) this.next_expiration_us_called_from_internal = true;
-
-            ulong previously_next = this.next_expiration_us;
-            
-            debug ulong t = expiry.key;
-
-            try try
+            this.expiry_to_client.remove(&expiry);
+        }
+        finally
+        {
+            this.expiry_tree.remove(expiry);
+        }
+        finally
+        {
+            debug ( TimeoutManager )
             {
-                this.expiry_to_client.remove(expiry);
-            }
-            finally
-            {
-                this.expiry_tree.remove(expiry);
-            }
-            finally
-            {
-                debug ( TimeoutManager )
-                {
-                    size_t n = this.expiry_tree.length;
-                    
-                    Stderr("----------- ");
-                    this.printTime(now, false);
-                    Stderr(" unregistered ");
-                    this.printTime(t, false);
-                    Stderr("\n\t")(n)(" clients registered");
-                    if (n)
-                    {
-                        Stderr(", first times out at ");
-                        this.printTime(this.expiry_tree.first, false);
-                    }
-                    Stderr('\n');
-                }
+                size_t n = this.expiry_tree.length;
                 
-                this.setTimeout_(previously_next);
+                Stderr("----------- ");
+                this.printTime(now, false);
+                Stderr(" unregistered ");
+                this.printTime(t, false);
+                Stderr("\n\t")(n)(" clients registered");
+                if (n)
+                {
+                    Stderr(", first times out at ");
+                    this.printTime(this.expiry_tree.first, false);
+                }
+                Stderr('\n');
             }
+            
+            this.setTimeout_(previously_next);
         }
     }
 
@@ -565,9 +585,11 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
     private void setTimeout_ ( ulong previously_next )
     {
-        if (this.expiry_tree.length)
+        Expiry* expiry = this.expiry_tree.first;
+        
+        if (expiry)
         {
-            ulong next_now = this.expiry_tree.first;
+            ulong next_now = expiry.key;
 
             if (next_now != previously_next)
             {

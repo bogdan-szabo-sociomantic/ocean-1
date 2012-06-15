@@ -57,7 +57,7 @@ private import ocean.util.log.Trace;
 
 *******************************************************************************/
 
-public import ocean.db.drizzle.RequestContext;
+public import ocean.core.ContextUnion;
 
 public import ocean.db.drizzle.Result;
 
@@ -91,7 +91,7 @@ private import tango.core.Thread;
 
 *******************************************************************************/
 
-public alias void delegate ( RequestContext context, Result result, 
+public alias void delegate ( ContextUnion context, Result result, 
                              DrizzleException exception ) QueryCallback;
 
 /*******************************************************************************
@@ -173,7 +173,7 @@ package class Connection : ISelectClient, ISelectable
 
     ***************************************************************************/
 
-    private RequestContext requestContext;
+    private ContextUnion requestContext;
 
     /***************************************************************************
 
@@ -436,7 +436,7 @@ package class Connection : ISelectClient, ISelectable
 
         this.queryString    = request.query;
         this.callback       = *(cast(QueryCallback*) request.callback.ptr);
-        this.requestContext = *(cast(RequestContext*) request.context.ptr);
+        this.requestContext = *(cast(ContextUnion*) request.context.ptr);
 
         this.queryInternal();
     }
@@ -621,10 +621,10 @@ package class Connection : ISelectClient, ISelectable
     {
         this.queryString.length = 0;
         this.callback = null;
-        this.requestContext = RequestContext.init;
+        this.requestContext = ContextUnion.init;
     }
     
-    debug protected char[] id()
+    protected char[] id()
     {
         return "DrizzleConnection";
     }

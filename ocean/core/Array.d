@@ -39,13 +39,13 @@ module ocean.core.Array;
 
 private import tango.core.Traits;
 
-private import tango.stdc.string : memmove;
+private import tango.stdc.string : memmove, memset;
 
 private import tango.stdc.posix.sys.types : ssize_t;
 
 private import tango.text.Util : patterns;
 
-
+private import tango.stdc.math: fabs;
 
 /*******************************************************************************
 
@@ -702,6 +702,104 @@ public T[] toArray ( T ) ( ref T val )
 {
     return (&val)[0 .. 1];
 }
+
+/*******************************************************************************
+
+    Shuffles the elements of array in-place.
+    
+    Params:
+        array = array with elements to shuffle
+        rand  = random number generator, will be invoked array.length - 1 times
+    
+    Returns:
+        shuffled array
+
+*******************************************************************************/
+
+public T[] shuffle ( T ) ( T[] array, lazy double rand )
+{
+    return shuffle(array,
+                   (size_t i) {return cast (size_t) (fabs(rand) * (i + 1));});
+}
+
+/*******************************************************************************
+
+    Shuffles the elements of array in-place.
+    
+    Params:
+        array     = array with elements to shuffle
+        new_index = returns the new index for the array element whose index is
+                    currently i. i is guaranteed to be in the range
+                    [1 .. array.length - 1]; the returned index should be in the
+                    range [0 .. i] and must be in range [0 .. array.length - 1].
+    
+    Returns:
+        shuffled array
+
+*******************************************************************************/
+
+public T[] shuffle ( T ) ( T[] array, size_t delegate ( size_t i ) new_index )
+{
+    for (auto i = array.length? array.length - 1 : 0; i; i--)
+    {
+        auto j = new_index(i);
+        auto tmp = array[i];
+        array[i] = array[j];
+        array[j] = tmp;
+    }
+    
+    return array;
+}
+
+/******************************************************************************
+
+    Resets each elements of array to its initial value.
+    
+    T.init must consist only of zero bytes.
+    
+    Params:
+        array = array to clear elements
+        
+    Returns:
+        array with cleared elements
+    
+ ******************************************************************************/
+
+public T[] clear ( T ) ( T[] array )
+in
+{
+    assert(isClearable!(T), T.stringof ~ ".init contains a non-zero byte so " ~
+           (T[]).stringof ~ " cannot be simply cleared");
+}
+body
+{
+    memset(array.ptr, 0, array.length * array[0].sizeof);
+    
+    return array;
+}
+
+
+/******************************************************************************
+    
+    Checks if T.init consists only of zero bytes so that a T[] array can be
+    cleared by clear().
+    
+    Returns:
+        true if a T[] array can be cleared by clear() or false if not.
+
+ ******************************************************************************/
+
+bool isClearable ( T ) ( )
+{
+    const size_t n = T.sizeof;
+    
+    T init;
+    
+    ubyte[n] zero_data;
+    
+    return (cast (void*) &init)[0 .. n] == zero_data;
+}
+
 
 /*******************************************************************************
 

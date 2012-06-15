@@ -266,7 +266,9 @@ private struct StatsValue
 
 *******************************************************************************/
 
-public class StatsLog ( char[] AppName, T ... )
+// deprecated: ocean.util.log.Stats is the standard now
+
+deprecated public class StatsLog ( char[] AppName, T ... )
 {
     /***************************************************************************
 

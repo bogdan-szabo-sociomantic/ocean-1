@@ -21,7 +21,7 @@
 
     ---
 
-    void resultHandler (RequestContext rc, Result result, DrizzleException e )
+    void resultHandler (ContextUnion rc, Result result, DrizzleException e )
     {
         if (result !is null)
         {
@@ -105,7 +105,7 @@ private import ocean.db.drizzle.c.structs;
 
 *******************************************************************************/
 
-public import ocean.db.drizzle.RequestContext;
+public import ocean.core.ContextUnion;
 
 public import ocean.db.drizzle.Result;
 
@@ -206,7 +206,7 @@ class LibDrizzleEpoll
     {
         char[] query;
         ubyte[QueryCallback.sizeof] callback;
-        ubyte[RequestContext.sizeof] context;
+        ubyte[ContextUnion.sizeof] context;
     }
 
     package NotifyingQueue!(DrizzleRequest) connections;
@@ -399,7 +399,7 @@ class LibDrizzleEpoll
         The QueryCallback is defined in Connection.d and
         must have the following signature:
         
-            void delegate ( RequestContext context, 
+            void delegate ( ContextUnion context, 
                             Result result, 
                             Exception exception )
 
@@ -429,7 +429,7 @@ class LibDrizzleEpoll
     ***************************************************************************/
 
     public bool query ( char[] query, QueryCallback cb, 
-                        RequestContext rc = RequestContext.init )
+                        ContextUnion rc = ContextUnion.init )
     {
         DrizzleRequest req;
         
@@ -461,7 +461,7 @@ class LibDrizzleEpoll
     public bool mayQuery ( char[] query )
     {
         return connections.willFit(query.length + 
-                                   RequestContext.sizeof + 
+                                   ContextUnion.sizeof + 
                                    QueryCallback.sizeof);
     }
 

@@ -56,9 +56,21 @@ debug private import ocean.util.log.Trace;
 
  ******************************************************************************/
 
-abstract class ISelectClient : ITimeoutClient
+public abstract class ISelectClient : ITimeoutClient
 {
+    /**************************************************************************
+
+        Convenience alias to avoid public imports
+
+     **************************************************************************/
+
     public alias .ISelectable ISelectable;
+
+    /**************************************************************************
+
+        Enum of event types
+
+     **************************************************************************/
 
     public enum Event
     {
@@ -72,8 +84,7 @@ abstract class ISelectClient : ITimeoutClient
         Hangup          = EPOLLHUP,
         Error           = EPOLLERR
     }
-    
-    
+
     /**************************************************************************
 
         I/O device instance

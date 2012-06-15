@@ -79,11 +79,11 @@ inline void eb32_delete(struct eb32_node *eb32)
  * Find the first occurence of a key in the tree <root>. If none can be
  * found, return NULL.
  */
-struct eb32_node *eb32_lookup(struct eb_root *root, u32 x)
+struct eb32_node *eb32_lookup(struct eb_root *root, uint32_t x)
 {
 	struct eb32_node *node;
 	eb_troot_t *troot;
-	u32 y;
+	uint32_t y;
 	int node_bit;
 
 	troot = root->b[EB_LEFT];
@@ -130,12 +130,12 @@ struct eb32_node *eb32_lookup(struct eb_root *root, u32 x)
  * Find the first occurence of a signed key in the tree <root>. If none can
  * be found, return NULL.
  */
-struct eb32_node *eb32i_lookup(struct eb_root *root, s32 x)
+struct eb32_node *eb32i_lookup(struct eb_root *root, int32_t x)
 {
 	struct eb32_node *node;
 	eb_troot_t *troot;
-	u32 key = x ^ 0x80000000;
-	u32 y;
+	uint32_t key = x ^ 0x80000000;
+	uint32_t y;
 	int node_bit;
 
 	troot = root->b[EB_LEFT];
@@ -146,7 +146,7 @@ struct eb32_node *eb32i_lookup(struct eb_root *root, s32 x)
 		if ((eb_gettag(troot) == EB_LEAF)) {
 			node = container_of(eb_untag(troot, EB_LEAF),
 					    struct eb32_node, node.branches);
-			if (node->key == (u32)x)
+			if (node->key == (uint32_t)x)
 				return node;
 			else
 				return NULL;
@@ -186,7 +186,7 @@ struct eb32_node *eb32_insert(struct eb_root *root, struct eb32_node *new) {
 	struct eb32_node *old;
 	unsigned int side;
 	eb_troot_t *troot, **up_ptr;
-	u32 newkey; /* caching the key saves approximately one cycle */
+	uint32_t newkey; /* caching the key saves approximately one cycle */
 	eb_troot_t *root_right = root;
 	eb_troot_t *new_left, *new_rght;
 	eb_troot_t *new_leaf;
@@ -418,7 +418,7 @@ struct eb32_node *eb32i_insert(struct eb_root *root, struct eb32_node *new) {
 		/* otherwise fall through */
 	}
 
-	if ((s32)new->key >= (s32)old->key) {
+	if ((int32_t)new->key >= (int32_t)old->key) {
 		new->node.branches.b[EB_LEFT] = troot;
 		new->node.branches.b[EB_RGHT] = new_leaf;
 		new->node.leaf_p = new_rght;
@@ -445,7 +445,7 @@ struct eb32_node *eb32i_insert(struct eb_root *root, struct eb32_node *new) {
  * Find the last occurrence of the highest key in the tree <root>, which is
  * equal to or less than <x>. NULL is returned is no key matches.
  */
-struct eb32_node *eb32_lookup_le(struct eb_root *root, u32 x)
+struct eb32_node *eb32_lookup_le(struct eb_root *root, uint32_t x)
 {
 	struct eb32_node *node;
 	eb_troot_t *troot;
@@ -533,7 +533,7 @@ struct eb32_node *eb32_lookup_le(struct eb_root *root, u32 x)
  * Find the first occurrence of the lowest key in the tree <root>, which is
  * equal to or greater than <x>. NULL is returned is no key matches.
  */
-struct eb32_node *eb32_lookup_ge(struct eb_root *root, u32 x)
+struct eb32_node *eb32_lookup_ge(struct eb_root *root, uint32_t x)
 {
 	struct eb32_node *node;
 	eb_troot_t *troot;

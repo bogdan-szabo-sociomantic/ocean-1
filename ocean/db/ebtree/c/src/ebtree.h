@@ -257,7 +257,9 @@
 #define _EBTREE_H
 
 #include <stdlib.h>
+#include <stdint.h>
 #include "compiler.h"
+#include "int128.h"
 
 /* Number of bits per node, and number of leaves per node */
 #define EB_NODE_BITS          1
@@ -465,72 +467,55 @@ static inline int flsnz8_generic(unsigned int x)
 /* Note: we never need to run fls on null keys, so we can optimize the fls
  * function by removing a conditional jump.
  */
-#if defined(__i386__) || defined(__x86_64__)
-/* this code is similar on 32 and 64 bit */
-static inline int flsnz(int x)
+static inline int flsnz(const int x)
 {
 	int r;
-	__asm__("bsrl %1,%0\n"
-	        : "=r" (r) : "rm" (x));
-	return r+1;
+#if defined(__i386__) || defined(__x86_64__)
+/* this code is similar on 32 and 64 bit */
+	__asm__("bsrl %1,%0\n" : "=r" (r) : "rm" (x));
+#else
+	r = 0;
+	if (x & 0xffff0000) { x &= 0xffff0000; r += 0x10;}
+	if (x & 0xff00ff00) { x &= 0xff00ff00; r += 0x08;}
+	if (x & 0xf0f0f0f0) { x &= 0xf0f0f0f0; r += 0x04;}
+	if (x & 0xcccccccc) { x &= 0xcccccccc; r += 0x02;}
+	if (x & 0xaaaaaaaa) { x &= 0xaaaaaaaa; r += 0x01;}
+
+#endif
+	return r + 1;
 }
 
-static inline int flsnz8(unsigned char x)
+static inline int flsnz8(const uint8_t x)
 {
+#if defined(__i386__) || defined(__x86_64__)
 	int r;
 	__asm__("movzbl %%al, %%eax\n"
 		"bsrl %%eax,%0\n"
 	        : "=r" (r) : "a" (x));
 	return r+1;
-}
-
 #else
-// returns 1 to 32 for 1<<0 to 1<<31. Undefined for 0.
-#define flsnz(___a) ({ \
-	register int ___x, ___bits = 0; \
-	___x = (___a); \
-	if (___x & 0xffff0000) { ___x &= 0xffff0000; ___bits += 16;} \
-	if (___x & 0xff00ff00) { ___x &= 0xff00ff00; ___bits +=  8;} \
-	if (___x & 0xf0f0f0f0) { ___x &= 0xf0f0f0f0; ___bits +=  4;} \
-	if (___x & 0xcccccccc) { ___x &= 0xcccccccc; ___bits +=  2;} \
-	if (___x & 0xaaaaaaaa) { ___x &= 0xaaaaaaaa; ___bits +=  1;} \
-	___bits + 1; \
-	})
-
-static inline int flsnz8(unsigned int x)
-{
 	return flsnz8_generic(x);
-}
-
-
 #endif
-
-static inline int fls64(unsigned long long x)
-{
-	unsigned int h;
-	unsigned int bits = 32;
-
-	h = x >> 32;
-	if (!h) {
-		h = x;
-		bits = 0;
-	}
-	return flsnz(h) + bits;
 }
 
-#ifdef __SIZEOF_INT128__
-
-static inline int fls128(__int128_t x)
+static inline int fls64(const uint64_t x)
 {
-	unsigned int h;
-	unsigned int bits = 64;
+#ifdef __x86_64__
+	long r = -1;
+	__asm__("bsrq %1,%0" : "+r" (r) : "rm" (x));
+	return r + 1;
+#else
+	const uint32_t h = x >> 0x20;
+	return h? flsnz(h) + 0x20 : flsnz(x);
+#endif
+}
 
-	h = x >> 64;
-	if (!h) {
-		h = x;
-		bits = 0;
-	}
-	return fls64(h) + bits;
+#ifdef INT128_SUPPORTED
+
+static inline int fls128(const uint128_t x)
+{
+	const uint64_t h = x >> 0x40;
+	return h? fls64(h) + 0x40 : fls64(x);
 }
 
 #define fls_auto(x) (sizeof(x) > 8) ? fls128(x) : (sizeof(x) > 4) ? fls64(x) : flsnz(x))

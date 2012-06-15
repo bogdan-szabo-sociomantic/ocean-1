@@ -621,9 +621,9 @@ struct eb_node *eb_insert_dup(struct eb_node *sub, struct eb_node *new)
 	 * struct eb_troot_t *. Suggest a cast.
 	 */
 
-	struct eb_troot *new_left = eb_dotag(&new->branches, EB_LEFT);
-	struct eb_troot *new_rght = eb_dotag(&new->branches, EB_RGHT);
-	struct eb_troot *new_leaf = eb_dotag(&new->branches, EB_LEAF);
+	struct eb_troot *new_left = (struct eb_troot *)eb_dotag(&new->branches, EB_LEFT);
+	struct eb_troot *new_rght = (struct eb_troot *)eb_dotag(&new->branches, EB_RGHT);
+	struct eb_troot *new_leaf = (struct eb_troot *)eb_dotag(&new->branches, EB_LEAF);
 
 	/* first, identify the deepest hole on the right branch */
 	while (eb_gettag(head->branches.b[EB_RGHT]) != EB_LEAF) {
