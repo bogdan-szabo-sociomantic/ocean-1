@@ -5,17 +5,12 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{99AE8F94-2303-4AF6-B96C-216E95B6976A}</ProjectGuid>
+    <ProjectGuid>{B370A7EC-9FA1-4662-8ED2-AF024FDCD7A6}</ProjectGuid>
     <Target>Executable</Target>
     <IncrementalLinking>true</IncrementalLinking>
     <UseDefaultCompiler>true</UseDefaultCompiler>
     <PreferOneStepBuild>true</PreferOneStepBuild>
-    <Compiler>DMD</Compiler>
-    <Includes>
-      <Includes>
-        <Path>../tango</Path>
-      </Includes>
-    </Includes>
+    <BaseDirectory>.</BaseDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -70,6 +65,9 @@
     <Compile Include="ocean\db\drizzle\LibDrizzleEpoll.d" />
     <Compile Include="ocean\db\drizzle\RecordParser.d" />
     <Compile Include="ocean\db\drizzle\Result.d" />
+    <Compile Include="ocean\db\ebtree\c\eb128tree.d" />
+    <Compile Include="ocean\db\ebtree\c\eb32tree.d" />
+    <Compile Include="ocean\db\ebtree\c\eb64tree.d" />
     <Compile Include="ocean\db\ebtree\c\ebimtree.d" />
     <Compile Include="ocean\db\ebtree\c\ebistree.d" />
     <Compile Include="ocean\db\ebtree\c\ebmbtree.d" />
@@ -77,7 +75,15 @@
     <Compile Include="ocean\db\ebtree\c\ebpttree.d" />
     <Compile Include="ocean\db\ebtree\c\ebsttree.d" />
     <Compile Include="ocean\db\ebtree\c\ebtree.d" />
+    <Compile Include="ocean\db\ebtree\model\IEBTree.d" />
+    <Compile Include="ocean\db\ebtree\model\Iterators.d" />
+    <Compile Include="ocean\db\ebtree\model\KeylessMethods.d" />
+    <Compile Include="ocean\db\ebtree\model\Node.d" />
+    <Compile Include="ocean\db\ebtree\nodepool\NodePool.d" />
     <Compile Include="ocean\db\ebtree\EBTree.d" />
+    <Compile Include="ocean\db\ebtree\EBTree128.d" />
+    <Compile Include="ocean\db\ebtree\EBTree32.d" />
+    <Compile Include="ocean\db\ebtree\EBTree64.d" />
     <Compile Include="ocean\db\ebtree\EBTreeMap.d" />
     <Compile Include="ocean\db\mysql\MySQL.d" />
     <Compile Include="ocean\db\sqlite\SQLite.d" />
@@ -106,6 +112,8 @@
     <Compile Include="ocean\io\compress\Lzo.d" />
     <Compile Include="ocean\io\compress\Zlib.d" />
     <Compile Include="ocean\io\compress\ZlibStream.d" />
+    <Compile Include="ocean\io\console\StructTable.d" />
+    <Compile Include="ocean\io\console\Tables.d" />
     <Compile Include="ocean\io\device\AsyncFileEpoll.d" />
     <Compile Include="ocean\io\device\ProgressFile.d" />
     <Compile Include="ocean\io\digest\Fnv1.d" />
@@ -145,6 +153,7 @@
     <Compile Include="ocean\io\serialize\JsonStructSerializer.d" />
     <Compile Include="ocean\io\serialize\SimpleSerializer.d" />
     <Compile Include="ocean\io\serialize\StringStructSerializer.d" />
+    <Compile Include="ocean\io\serialize\StructLoader.d" />
     <Compile Include="ocean\io\serialize\StructSerializer.d" />
     <Compile Include="ocean\io\serialize\TraceStructSerializer.d" />
     <Compile Include="ocean\io\serialize\XmlStructSerializer.d" />
@@ -175,7 +184,6 @@
     <Compile Include="ocean\net\http\HttpServer.d" />
     <Compile Include="ocean\net\http\HttpTime.d" />
     <Compile Include="ocean\net\http\Url.d" />
-    <Compile Include="ocean\net\http2\consts\util\NameList.d" />
     <Compile Include="ocean\net\http2\consts\CookieAttributeNames.d" />
     <Compile Include="ocean\net\http2\consts\HeaderFieldNames.d" />
     <Compile Include="ocean\net\http2\consts\HttpMethod.d" />
@@ -201,6 +209,7 @@
     <Compile Include="ocean\net\util\UrlDecoder.d" />
     <Compile Include="ocean\net\util\UrlEncoder.d" />
     <Compile Include="ocean\sys\CmdPath.d" />
+    <Compile Include="ocean\sys\Epoll.d" />
     <Compile Include="ocean\sys\EventFD.d" />
     <Compile Include="ocean\sys\SafeFork.d" />
     <Compile Include="ocean\sys\SignalFD.d" />
@@ -249,7 +258,9 @@
     <Compile Include="ocean\time\timeout\model\IExpiryRegistration.d" />
     <Compile Include="ocean\time\timeout\model\ITimeoutClient.d" />
     <Compile Include="ocean\time\timeout\model\ITimeoutManager.d" />
+    <Compile Include="ocean\time\timeout\ExpiryPoolTimeoutManager.d" />
     <Compile Include="ocean\time\timeout\TimeoutManager.d" />
+    <Compile Include="ocean\time\Ctime.d" />
     <Compile Include="ocean\time\MicrosecondsClock.d" />
     <Compile Include="ocean\time\UnixTime.d" />
     <Compile Include="ocean\util\app\ext\model\IArgumentsExtExtension.d" />
@@ -272,8 +283,13 @@
     <Compile Include="ocean\util\app\LoggedCliApp.d" />
     <Compile Include="ocean\util\app\UnittestedApp.d" />
     <Compile Include="ocean\util\app\VersionedCliApp.d" />
+    <Compile Include="ocean\util\app\VersionedLoggedCliApp.d" />
     <Compile Include="ocean\util\config\ClassFiller.d" />
     <Compile Include="ocean\util\config\ConfigParser.d" />
+    <Compile Include="ocean\util\container\map\model\Bucket.d" />
+    <Compile Include="ocean\util\container\map\model\BucketSet.d" />
+    <Compile Include="ocean\util\container\map\HashMap.d" />
+    <Compile Include="ocean\util\container\map\HashSet.d" />
     <Compile Include="ocean\util\container\mem\MemManager.d" />
     <Compile Include="ocean\util\container\queue\model\IByteQueue.d" />
     <Compile Include="ocean\util\container\queue\model\IQueue.d" />
@@ -294,6 +310,7 @@
     <Compile Include="ocean\util\log\MessageLogger.d" />
     <Compile Include="ocean\util\log\PeriodicTrace.d" />
     <Compile Include="ocean\util\log\SimpleLayout.d" />
+    <Compile Include="ocean\util\log\StaticModuleLogger.d" />
     <Compile Include="ocean\util\log\StaticTrace.d" />
     <Compile Include="ocean\util\log\Stats.d" />
     <Compile Include="ocean\util\log\StatsLog.d" />
@@ -309,14 +326,6 @@
     <Compile Include="ocean\util\Unittest.d" />
     <Compile Include="ocean\util\VariadicArg.d" />
     <Compile Include="test\main.d" />
-    <Compile Include="ocean\io\console\Tables.d" />
-    <Compile Include="ocean\io\console\StructTable.d" />
-    <Compile Include="ocean\util\container\map\HashSet.d" />
-    <Compile Include="ocean\util\container\map\HashMap.d" />
-    <Compile Include="ocean\util\container\map\model\BucketSet.d" />
-    <Compile Include="ocean\util\container\map\model\Bucket.d" />
-    <Compile Include="ocean\util\log\StaticModuleLogger.d" />
-    <Compile Include="ocean\util\app\VersionedLoggedCliApp.d" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ocean\db\ebtree\c\lib\libebtree.a" />
@@ -340,6 +349,7 @@
     <None Include="ocean\db\ebtree\c\src\ebsttree.h" />
     <None Include="ocean\db\ebtree\c\src\ebtree.c" />
     <None Include="ocean\db\ebtree\c\src\ebtree.h" />
+    <None Include="ocean\db\ebtree\c\src\int128.h" />
     <None Include="ocean\db\ebtree\c\src\Makefile" />
     <None Include="ocean\db\tokyocabinet\c\tcbdb.h" />
     <None Include="ocean\db\tokyocabinet\c\tchdb.h" />
@@ -367,9 +377,5 @@
     <None Include="script\tmuxconnectscreen.sh" />
     <None Include="script\Version.d.tpl" />
     <None Include="test\dsss.conf" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="ocean\io\console\" />
-    <Folder Include="ocean\util\container\map\model\" />
   </ItemGroup>
 </Project>
