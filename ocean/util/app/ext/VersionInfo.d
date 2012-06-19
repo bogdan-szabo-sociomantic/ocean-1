@@ -28,6 +28,7 @@ class VersionInfo
     public char[]         gc           = "<unknown>";
     public char[]         build_date   = "<unknown>";
     public char[]         build_author = "<unknown>";
+    public char[]         dmd_version  = "<unknown>";
     public char[][char[]] libraries;
 }
 

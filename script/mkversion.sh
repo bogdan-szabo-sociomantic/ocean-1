@@ -4,6 +4,7 @@
 rev_file=src/main/Version.d
 lib_dir=../
 author="`id -un`"
+dmd="`dmd | head -1`"
 
 # Command used to get the date (we use day resolution to avoid unnecesary
 # rebuilds)
@@ -87,7 +88,8 @@ sed -i "$tmp" \
 	-e "s/@GC@/$gc/" \
 	-e "s/@REVISION@/`get_rev .`/" \
 	-e "s/@DATE@/$date/" \
-	-e "s/@AUTHOR@/$author/"
+	-e "s/@AUTHOR@/$author/" \
+    -e "s/@DMD@/$dmd/"
 
 # Generate the libraries info
 libs=''

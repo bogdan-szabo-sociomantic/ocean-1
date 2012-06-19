@@ -30,6 +30,7 @@ static this()
     Version.gc           = "@GC@";
     Version.build_date   = "@DATE@";
     Version.build_author = "@AUTHOR@";
+    Version.dmd_version  = "@DMD@";
 @LIBRARIES@
 }
 
