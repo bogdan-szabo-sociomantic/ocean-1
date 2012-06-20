@@ -38,7 +38,6 @@
 
         // Construct required objects.
         auto epoll = new EpollSelectDispatcher;
-        auto clock = new IntervalClock;
         auto scheduler = new EpollScheduler!(Params)(epoll, clock);
 
         // Schedule some events.
@@ -52,9 +51,6 @@
         Trace.formatln("Event loop finished");
 
     ---
-
-    TODO: the interval clock isn't working properly, see commented out method at
-          end of module.
 
 *******************************************************************************/
 
@@ -71,8 +67,6 @@ module ocean.io.select.event.Scheduler;
 private import ocean.core.ObjectPool;
 
 private import ocean.io.select.EpollSelectDispatcher;
-
-private import ocean.io.select.event.IntervalClock;
 
 private import ocean.io.select.timeout.TimerEventTimeoutManager;
 
