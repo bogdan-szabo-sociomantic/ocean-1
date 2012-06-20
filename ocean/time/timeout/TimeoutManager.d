@@ -191,14 +191,6 @@ abstract class TimeoutManagerBase : ITimeoutManager
     
     /***************************************************************************
 
-        Optional custom clock. By default the system real time clock is used.
-
-    ***************************************************************************/
-
-    public IMicrosecondsClock clock = null;
-    
-    /***************************************************************************
-
         EBTree storing expiry time of registred clients in terms of microseconds
         since the construction of this object (for direct comparison against
         this.now_).
@@ -341,7 +333,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
     
     public final ulong now ( )
     {
-        return (this.clock !is null)? this.clock.now_us : MicrosecondsClock.now_us_static;
+        return MicrosecondsClock.now_us_static;
     }
     
     /***************************************************************************
