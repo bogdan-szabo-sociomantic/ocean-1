@@ -240,11 +240,15 @@ private class CurlProcess : EpollProcess
                     this.setup.context, this.setup.url));
 
         this.args.length = 0;
+        this.args ~= "curl";
 
         // Standard options
         this.args ~= "-s"; // silent -- nothing sent to stderr
         this.args ~= "-S"; // show errors
         this.args ~= `-w %{http_code}`; // output HTTP status as last 3 bytes of stdout stream
+
+        // Switch off the URL globbing parser, so that URLs can contain {}[]
+        this.args ~= "-g";
 
         // Authentication
         if ( this.setup.authentication_set )
@@ -274,13 +278,11 @@ private class CurlProcess : EpollProcess
             this.args ~= "-k";
         }
         
-        // Switch off the URL globbing parser, so that URLs can contain {}[]
-        this.args ~= "-g";
 
         // Url
         this.args ~= this.setup.url;
 
-        super.start("curl", this.args);
+        super.start(this.args);
     }
 }
 

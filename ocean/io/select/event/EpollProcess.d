@@ -651,14 +651,14 @@ public abstract class EpollProcess
         Starts the process with the specified command and arguments. Registers
         the handlers for the process' stdout and stderr streams with epoll, so
         that notifications will be triggered when the process generates output.
+        The command to execute is args_with_command[0].
 
         Params:
-            command = command to run
-            args = arguments for command
+            args_with_command = command followed by arguments
 
     ***************************************************************************/
 
-    public void start ( char[] command, char[][] args )
+    public void start (char[][] args_with_command )
     {
         assert(this.state == State.None); // TODO: error notification?
 
@@ -666,10 +666,10 @@ public abstract class EpollProcess
         this.stderr_finalized = false;
         this.exited = false;
 
-        this.process.args(command, args);
+        this.process.argsWithCommand(args_with_command);
         this.process.execute();
 
-        debug ( EpollProcess ) Stdout.formatln("Starting process pid {}, {} {}", this.process.pid, command, args);
+        debug ( EpollProcess ) Stdout.formatln("Starting process pid {}, {}", this.process.pid, args_with_command);
 
         this.epoll.register(this.stdout_handler);
         this.epoll.register(this.stderr_handler);
