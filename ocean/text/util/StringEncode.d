@@ -184,31 +184,54 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 
 	***************************************************************************/
 
-	public void convert ( char[] input, ref char[] output )
-	{
-		output.length = input.length;
+    public void convert ( char[] input, ref char[] output )
+    {
+        output.length = input.length;
 
-		bool succeeded = false;
-		do
-		{
-			try
-			{
-				this.convert_(input, output);
-				succeeded = true;
-			}
-			// If the conversion fails because the output buffer was too small,
-			// resize the output buffer and try again.
-			catch ( IconvException.TooBig )
-			{
-				output.length = output.length + input.length;
+        bool succeeded = false;
 
+        for(;;)
+        {
+            size_t inbytesleft  = input.length;
+            size_t outbytesleft = output.length;
+            char* inptr  = input.ptr;
+            char* outptr = output.ptr;
+
+            // Do the conversion
+            ptrdiff_t result = iconv(this.cd, &inptr, &inbytesleft, &outptr, &outbytesleft);
+
+            // If the conversion fails because the output buffer was too small,
+            // resize the output buffer and try again.
+            if (result < 0 && errno() == E2BIG)
+            {
                 // TODO: performance could be improved here by passing the
                 // number of bytes already processed to iconv
-			}
-		}
-        while ( !succeeded );
-	}
+                output.length = output.length + input.length;
+                continue;
+            }
 
+            output.length = output.length - outbytesleft;
+            // Check for any errors from iconv and throw them as exceptions
+            if (result < 0)
+            {
+                switch (errno())
+                {
+                    case EILSEQ:
+                        throw this.exception_InvalidMbSeq;
+
+                    case EINVAL:
+                        throw this.exception_IncompleteMbSeq;
+
+                    case E2BIG:
+                        throw this.exception_TooBig;
+
+                    default:
+                        throw this.exception_Generic;
+                }
+            }
+            break;
+        }
+    }
 
 	/***************************************************************************
 
