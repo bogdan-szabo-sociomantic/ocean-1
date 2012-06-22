@@ -106,6 +106,8 @@ debug private import ocean.io.Stdout;
 
 private import ocean.util.log.Trace;
 
+private import tango.stdc.errno;
+
 
 
 /*******************************************************************************
@@ -223,6 +225,16 @@ public abstract class EpollProcess
                 int status;
                 pid = waitpid(-1, &status, WNOHANG);
 
+                // waitpid returns -1 and error ECHILD if the calling process
+                // has no children
+
+                if (pid == -1)
+                {
+                    assert( errno() == ECHILD );
+                    assert( this.processes.length == 0 );
+                    return;
+                }
+
                 // waitpid returns 0 in the case where it would hang (if no
                 // pid has changed state).
                 if ( pid )
@@ -244,6 +256,9 @@ public abstract class EpollProcess
                     if ( this.processes.length == 0 )
                     {
                         this.epoll.unregister(this.signal_event);
+
+                        // There cannot be any more children.
+                        return;
                     }
                 }
             }
