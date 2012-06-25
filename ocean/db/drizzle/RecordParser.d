@@ -391,7 +391,7 @@ public scope class RecordParser ( R )
 
         Formats the provided string buffer with a comma seperated list of the
         members of the record struct. Each member name is additionally prepended
-        with the corresponding sting from the provided list of prependers.
+        with the corresponding string from the provided list of prependers.
 
         This is useful for making parameter lists to MySql SELECT commands over
         multiple tables (see usage example below).

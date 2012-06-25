@@ -136,6 +136,14 @@ package class Connection : ISelectClient, ISelectable
 
     /***************************************************************************
 
+        Whether the timezone for this connection was initialized
+
+    ***************************************************************************/
+
+    package bool timezone_initialized;
+
+    /***************************************************************************
+
         file handle for this connection
 
     ***************************************************************************/
@@ -244,6 +252,8 @@ package class Connection : ISelectClient, ISelectable
 
         this.drizzle = drizzle;
 
+        timezone_initialized = false;
+
         if (null == drizzle_con_add_tcp(&drizzle.drizzle, 
                                         &this.connection,
                                         drizzle.host, drizzle.port,
@@ -345,6 +355,7 @@ package class Connection : ISelectClient, ISelectable
                 {
                     returnCode = drizzle_return_t.DRIZZLE_RETURN_COULD_NOT_CONNECT;
                     msg = "Couldn't connect to server";
+                    timezone_initialized = false;
                 }
                 else
                 {
@@ -367,7 +378,7 @@ package class Connection : ISelectClient, ISelectable
         Fiber function
     
     ***************************************************************************/
-    
+
     private void internalHandler ( )
     in
     {
@@ -381,6 +392,18 @@ package class Connection : ISelectClient, ISelectable
 
             if (request !is null)
             {
+                // After an error happened, epoll will unregister us
+                // after we cede, setting this makes sure we will be re-registered
+                register_again = true;
+
+                if ( !timezone_initialized )
+                {
+                    this.queryString    = drizzle.timezone_query;
+                    this.callback       = &timezoneCallback;
+
+                    this.queryInternal();
+                }
+
                 this.request(*request);
             }
             else if ( this.request_queue.ready(&this.notify) )
@@ -389,8 +412,19 @@ package class Connection : ISelectClient, ISelectable
             }
         }
     }
-    
-        
+
+
+    private void timezoneCallback ( ContextUnion context, Result result,
+                                    DrizzleException exception )
+    {
+        if ( exception is null ) timezone_initialized = true;
+        else
+        {
+           timezone_initialized = false;
+        }
+
+    }
+
     /***************************************************************************
 
         Called by RequestQueue when this Handler is waiting for new
@@ -411,8 +445,8 @@ package class Connection : ISelectClient, ISelectable
             fiber.call();
         }
     }
-    
-    
+
+
     /***************************************************************************
 
         Sends a query using this connection and will call the provided
@@ -427,9 +461,9 @@ package class Connection : ISelectClient, ISelectable
     
     protected void request ( ref LibDrizzleEpoll.DrizzleRequest request )
     in
-	{
-		assert (this.fiber.state == Fiber.State.EXEC, "Fiber not in state EXEC!");
-	}
+    {
+        assert (this.fiber.state == Fiber.State.EXEC, "Fiber not in state EXEC!");
+    }
     body
     {
         assert (this.queryString.length == 0, "Connection already in use");
@@ -438,7 +472,15 @@ package class Connection : ISelectClient, ISelectable
         this.callback       = *(cast(QueryCallback*) request.callback.ptr);
         this.requestContext = *(cast(ContextUnion*) request.context.ptr);
 
-        this.queryInternal();
+        // internalHandler should have initialized the timezone
+        if ( !timezone_initialized )
+        {
+            if ( callback !is null )
+                // if that failed, the last exception should contain the error
+                this.callback (this.requestContext, null, this.exception);
+        }
+        else
+            this.queryInternal();
     }
     
     
@@ -505,6 +547,8 @@ package class Connection : ISelectClient, ISelectable
     override public void timeout ( )
     {
         auto lost_connection = drizzle_return_t.DRIZZLE_RETURN_LOST_CONNECTION;
+
+        timezone_initialized = false;
 
         if (this.callback !is null)
         {
@@ -591,7 +635,15 @@ package class Connection : ISelectClient, ISelectable
 
         return register_again;
     }
-    
+
+    public void finalize ( )
+    {
+        if ( register_again )
+        {
+            drizzle.epoll.register(this);
+        }
+    }
+
     /***************************************************************************
 
         Set by LibDrizzleEpoll.drizzleCallback in case an exception was

@@ -20,48 +20,52 @@
     Usage Example:
 
     ---
+    import ocean.db.drizzle.LibDrizzleEpoll;
+    import ocean.io.select.EpollSelectDispatcher;
 
-    void resultHandler (ContextUnion rc, Result result, DrizzleException e )
+    void main ( )
     {
-        if (result !is null)
+        void resultHandler (ContextUnion rc, Result result, DrizzleException e )
         {
-            foreach (row; result)
+            if (result !is null)
             {
-                Stdout.format("Row: ");
-                
-                foreach (field; row)
+                foreach (row; result)
                 {
-                    Stdout.format("\t{}", field);
+                    Stdout.format("Row: ");
+                    
+                    foreach (field; row)
+                    {
+                        Stdout.format("\t{}", field);
+                    }
+        
+                    Stdout.formatln("");
                 }
-    
-                Stdout.formatln("");
             }
-        }
-        else
-        {
-            if (e !is null)
+            else
             {
-                Stdout.formatln("Query {} failed: {}", e.query, e.msg);
+                if (e !is null)
+                {
+                    Stdout.formatln("Query {} failed: {}", e.query, e.msg);
+                }
             }
         }
+    
+        auto epoll   = new EpollSelectDispatcher;
+    
+        auto drizzle = new LibDrizzleEpoll(epoll, "mysql.host.tld", 
+                                           "username", "password",
+                                           "database", 1024);
+    
+        bool added = drizzle.query("SELECT 'this', 'is', 'an', 'example', 'query'",
+                                   &resultHandler);
+    
+        if ( added == false )
+        {
+            Stdout.formatln("Couldn't add query, queue full"); // also calling the callback
+        }
+    
+        epoll.eventLoop;
     }
-
-    auto epoll   = new EpollSelectDispatcher;
-
-    auto drizzle = new LibDrizzleEpoll(epoll, "mysql.host.tld", 
-                                       "username", "password",
-                                       "database", 1024);
-
-    bool added = drizzle.query("SELECT 'this', 'is', 'an', 'example', 'query'",
-                               &resultHandler);
-
-    if ( added == false )
-    {
-        Stdout.formatln("Couldn't add query, queue full"); // also calling the callback
-    }
-
-    epoll.eventLoop;
-
     ---
 
     Link with:
@@ -171,7 +175,7 @@ class LibDrizzleEpoll
                    database;
 
     package in_port_t port;
-                   
+
     /***************************************************************************
 
         Drizzle instance
@@ -186,7 +190,7 @@ class LibDrizzleEpoll
 
     ***************************************************************************/
 
-    private EpollSelectDispatcher epoll = void;
+    package EpollSelectDispatcher epoll = void;
 
     /***************************************************************************
 
@@ -210,7 +214,15 @@ class LibDrizzleEpoll
     }
 
     package NotifyingQueue!(DrizzleRequest) connections;
-    
+
+    /***************************************************************************
+
+        Sql query request to set the timezone
+
+    ***************************************************************************/
+
+    package char[] timezone_query;
+
     QueueFullException queue_full_exc;
     
     /***************************************************************************
@@ -233,7 +245,7 @@ class LibDrizzleEpoll
            size_t bytes, size_t connections = 1 )
     {
         this(epoll, host, 3306, username, password, database,
-             new FlexibleByteRingQueue(bytes), connections);        
+             new FlexibleByteRingQueue(bytes), connections);
     }   
     
     
@@ -322,7 +334,9 @@ class LibDrizzleEpoll
         this.database = toStringz(database);
         this.port     = port;
         this.num_connections = connections;
-        
+
+        setupTimezone();
+
         this.connections = new NotifyingQueue!(DrizzleRequest)(queue);
         
         if (null == drizzle_create(&this.drizzle))
@@ -340,7 +354,21 @@ class LibDrizzleEpoll
         
         this.queue_full_exc = new QueueFullException;
     }
+
+    /***************************************************************************
+
+        Timezone setup.
+
+        DO NOT TOUCH: this is fixed to GMT 00:00 and it is not intended to be
+                      modified. Ever.
     
+    ***************************************************************************/
+
+    private void setupTimezone ( )
+    {
+        timezone_query = "SET TIME_ZONE = '+00:00'";
+    }
+
     /***************************************************************************
 
         Number of requests stored in the queue
