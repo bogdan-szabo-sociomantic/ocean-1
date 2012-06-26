@@ -207,7 +207,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
         return dump(s, (void[] chunk)
         {
-            assert ( data.length <= written + chunk.length, "output buffer too small!" );
+            assert ( data.length >= written + chunk.length, "output buffer too small!" );
 
             data[written .. written + chunk.length] = cast(D[]) chunk[];
             
