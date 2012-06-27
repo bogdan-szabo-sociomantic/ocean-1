@@ -392,10 +392,6 @@ package class Connection : ISelectClient, ISelectable
 
             if (request !is null)
             {
-                // After an error happened, epoll will unregister us
-                // after we cede, setting this makes sure we will be re-registered
-                register_again = true;
-
                 if ( !timezone_initialized )
                 {
                     this.queryString    = drizzle.timezone_query;
@@ -408,11 +404,17 @@ package class Connection : ISelectClient, ISelectable
             }
             else if ( this.request_queue.ready(&this.notify) )
             {
+                register_again = false;
                 this.fiber.cede();
             }
         }
     }
 
+    /***************************************************************************
+
+        Callback for timezone query
+    
+    ***************************************************************************/
 
     private void timezoneCallback ( ContextUnion context, Result result,
                                     DrizzleException exception )
@@ -504,7 +506,7 @@ package class Connection : ISelectClient, ISelectable
         drizzle_con_set_revents(&this.connection, ev);
 
         disconnected = Event.Hangup && ev;
-        
+
         Exception exc = e;
         
         if ( this.fiber.state != Fiber.State.TERM )
@@ -609,7 +611,7 @@ package class Connection : ISelectClient, ISelectable
         register_again = false;
         
         drizzle_con_set_revents(&this.connection, event);
-        
+
         try this.fiber.call();
         catch ( DrizzleException e )
         {
@@ -624,8 +626,8 @@ package class Connection : ISelectClient, ISelectable
         }
         catch ( Exception e )
         {
-            Trace.formatln("FailSafe Exception Catcher triggered: {} ({}:{})",
-                           e.msg, e.file, e.line);
+        Trace.formatln("{} FailSafe Exception Catcher triggered: {} ({}:{})",
+                       cast(void*) this, e.msg, e.file, e.line);
         }
 
         if (this.queryString.length == 0)
@@ -638,7 +640,7 @@ package class Connection : ISelectClient, ISelectable
 
     public void finalize ( )
     {
-        if ( register_again )
+        if ( !timezone_initialized && disconnected && register_again )
         {
             drizzle.epoll.register(this);
         }
