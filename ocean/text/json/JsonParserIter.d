@@ -212,7 +212,7 @@ class JsonParserIter : JsonParser!(char)
             
             result = dg(type, value);
         }
-        while (!result && super.next())
+        while (!result && super.next());
             
         return result;
     }
@@ -248,7 +248,7 @@ class JsonParserIter : JsonParser!(char)
                 name = null;
             }
         }
-        while (!result && super.next())
+        while (!result && super.next());
         
         return result;
     }
