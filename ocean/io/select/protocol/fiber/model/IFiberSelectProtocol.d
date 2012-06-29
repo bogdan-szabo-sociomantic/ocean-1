@@ -27,7 +27,7 @@ private import ocean.io.select.EpollSelectDispatcher;
 
 private import ocean.io.select.fiber.SelectFiber;
 
-private import ocean.io.select.protocol.generic.ErrnoIOException: IOError, IOWarning;
+private import ocean.io.select.protocol.generic.ErrnoIOException: IOError, IOWarning, SocketError;
 
 debug private import ocean.util.log.Trace;
 
@@ -47,6 +47,10 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
     public alias .IOWarning IOWarning;
     public alias .IOError   IOError;
     
+    protected const ISelectable conduit;
+    
+    protected const Event events_;
+    
     /**************************************************************************
 
         IOWarning exception instance 
@@ -64,7 +68,6 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
 
     protected const IOError error_e;
 
-
     /**************************************************************************
 
         Events reported to handle()
@@ -77,32 +80,63 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
 
         Constructor
         
-         Params:
-             conduit = I/O device
-             fiber   = fiber to use to suspend and resume operation
+        Note: If distinguishing between warnings and errors is not desired or
+              required, pass the same object for warning_e and error_e. 
+        
+        
+        Params:
+            conduit   = I/O device
+            events    = the epoll events to register the device for
+            fiber     = fiber to use to suspend and resume operation
+            warning_e = Exception instance to throw for warnings
+            error_e   = Exception instance to throw on errors 
     
      **************************************************************************/
 
-    this ( ISelectable conduit, SelectFiber fiber )
+    this ( ISelectable conduit, Event events, SelectFiber fiber,
+           IOWarning warning_e, IOError error_e )
     {
-        super(conduit, fiber);
-        this.warning_e = new IOWarning(this);
-        this.error_e   = new IOError(this);
+        super(fiber);
+        this.conduit   = conduit;
+        this.events_   = events;
+        this.warning_e = warning_e;
+        this.error_e   = error_e;
     }
     
     /**************************************************************************
     
-        Called immediately when this instance is deleted.
-        (Must be protected to prevent an invariant from failing.)
+        Returns:
+            the I/O device file handle.
+    
+     **************************************************************************/
+    
+    public Handle fileHandle ( )
+    {
+        return this.conduit.fileHandle();
+    }
+    
+    /**************************************************************************
+    
+        Returns:
+            the events to register this I/O device for.
     
      **************************************************************************/
 
-    protected override void dispose ( )
+    public Event events ( )
     {
-        super.dispose();
-        
-        delete this.warning_e;
-        delete this.error_e;
+        return this.events_;
+    }
+    
+    /**************************************************************************
+    
+        Returns:
+            current socket error code, if available, or 0 otherwise.
+    
+     **************************************************************************/
+    
+    public override int error_code ( )
+    {
+        return this.error_e.error_code;
     }
     
     /**************************************************************************
@@ -162,8 +196,8 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
     }
     body
     {
-        // The reported events are reset at this point to avoid using the
-        // events set by a previous run of this method.
+        // The reported events are reset at this point to avoid using the events
+        // set by a previous run of this method.
         
         try for (bool more = this.transmit(this.events_reported = this.events_reported.init);
                       more;
@@ -171,13 +205,12 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
         {
             super.fiber.register(this);
             
-            // Calling suspend() triggers an epoll wait, which will in
-            // turn call handle_() (above) when an event fires for this
-            // client. handle_() sets this.events_reported to the event
-            // reported by epoll.
+            // Calling suspend() triggers an epoll wait, which will in turn call
+            // handle_() (above) when an event fires for this client. handle_()
+            // sets this.events_reported to the event reported by epoll.
             super.fiber.suspend(fiber.Message(true));
 
-            this.error_e.assertEx(!(this.events_reported & Event.Error), "socket error", __FILE__, __LINE__);
+            this.error_e.assertEx(!(this.events_reported & Event.EPOLLERR), "I/O error", __FILE__, __LINE__);
         }
         catch (SelectFiber.KilledException e)
         {
@@ -190,9 +223,9 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
                 debug ( SelectFiber) Trace.formatln("{}.transmitLoop: suspending fd {} fiber ({} @ {}:{})",
                     typeof(this).stringof, this.conduit.fileHandle, e.msg, e.file, e.line);
 
-                // Exceptions thrown by transmit() or in the case of the Error event
-                // are passed to the fiber resume() to be rethrown in handle_(),
-                // above.
+                // Exceptions thrown by transmit() or in the case of the Error
+                // event are passed to the fiber resume() to be rethrown in
+                // handle_(), above.
                 super.fiber.suspend(e);
 
                 debug ( SelectFiber) Trace.formatln("{}.transmitLoop: resumed fd {} fiber, rethrowing ({} @ {}:{})",
