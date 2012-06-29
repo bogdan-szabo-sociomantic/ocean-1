@@ -73,8 +73,44 @@ else
     private import tango.core.Vararg: va_list, va_arg;
 }
 
-class Layout ( T )
+/*******************************************************************************
+
+    
+
+*******************************************************************************/
+
+abstract class Layout ( T = char )
 {
+    /**************************************************************************
+    
+        Layout formatter instance
+    
+     **************************************************************************/
+    
+    private const TangoLayout.Layout!(T) layout;
+    
+    /**************************************************************************
+    
+        Constructor
+    
+     **************************************************************************/
+    
+    protected this ( )
+    {
+        this.layout = new TangoLayout.Layout!(T);
+    }
+    
+    /**************************************************************************
+    
+        Disposer
+    
+     **************************************************************************/
+    
+    protected override void dispose ( )
+    {
+        delete this.layout;
+    }
+    
     /***************************************************************************
 
         Outputs a formatted string into the provided buffer.
@@ -104,9 +140,7 @@ class Layout ( T )
         
         vaArgCall((TypeInfo[] arguments, va_list argptr)
         {
-            scope layout = new TangoLayout.Layout!(T);
-            
-            layout.convert(&layoutSink, arguments, argptr, formatStr);
+            TangoLayout.Layout!(T).instance.convert(&layoutSink, arguments, argptr, formatStr);
         });
         
         return output;
@@ -176,9 +210,7 @@ class Layout ( T )
     {
         if (arguments.length)
         {
-            scope layout = new TangoLayout.Layout!(T);
-            
-            layout.convert(&this.append, arguments, argptr, fmt);
+            this.layout.convert(&this.append, arguments, argptr, fmt);
         }
         else
         {
@@ -296,7 +328,13 @@ class Layout ( T )
 
 class StringLayout ( T = char ) : AppendBuffer!(T)
 {
-    scope class AppendLayout : Layout!(T)
+    /***************************************************************************
+
+        Buffer appending layout formatter
+    
+    ***************************************************************************/
+    
+    class AppendLayout : Layout!(T)
     {
         protected uint append ( T[] chunk )
         {
@@ -304,13 +342,7 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
         }
     }
     
-    /***************************************************************************
-
-        Constructor
-    
-    ***************************************************************************/
-
-    public this ( ) { }
+    private const Layout!(T) layout;
     
     /***************************************************************************
 
@@ -321,9 +353,23 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
     
     ***************************************************************************/
 
-    public this ( size_t n )
+    public this ( size_t n = 0 )
     {
         super(n);
+        
+        this.layout = this.new AppendLayout;
+    }
+    
+    /***************************************************************************
+
+        Disposer
+    
+    ***************************************************************************/
+    
+    protected override void dispose ( )
+    {
+        super.dispose();
+        delete this.layout;
     }
     
     /**************************************************************************
@@ -385,13 +431,11 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
             this instance
     
      **************************************************************************/
-
+    
     T[] vformat ( T[] fmt, TypeInfo[] arguments, va_list argptr )
     {
-        scope append = new AppendLayout;
-        
-        append.vformat(fmt, arguments, argptr);
-        
+        this.layout.vformat(fmt, arguments, argptr);
+            
         return this[];
     }
     
@@ -411,9 +455,7 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
     
     T[] vwrite ( TypeInfo[] arguments, va_list argptr )
     {
-        scope append = new AppendLayout;
-        
-        append.vwrite(arguments, argptr);
+        this.layout.vwrite(arguments, argptr);
         
         return this[];
     }
