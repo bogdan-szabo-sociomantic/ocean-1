@@ -26,9 +26,9 @@ private import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
 private import ocean.io.select.model.ISelectClient;
 
-private import ocean.io.device.IODevice: IOutputDevice;
+private import tango.io.model.IConduit: OutputStream;
 
-private import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK, EINTR;
+private import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK;
 
 private import tango.stdc.posix.sys.socket: setsockopt;
 
@@ -54,14 +54,20 @@ class FiberSelectWriter : IFiberSelectProtocol
     
     /**************************************************************************
 
-        Output device
+        Delegate to be called when data is sent.
 
      **************************************************************************/
 
-    public alias .IOutputDevice IOutputDevice;
+    public alias void delegate ( void[] ) SentCallback;
     
-    private const IOutputDevice output;
-    
+    /**************************************************************************
+
+        Delegate to be called when data is sent.
+
+     **************************************************************************/
+
+    private SentCallback on_sent;
+
     /**************************************************************************
 
         Data buffer (slices the buffer provided to send())
@@ -103,12 +109,45 @@ class FiberSelectWriter : IFiberSelectProtocol
             
      **************************************************************************/
 
-    this ( IOutputDevice output, SelectFiber fiber,
-           IOWarning warning_e, IOError error_e )
+    this ( ISelectable conduit, SelectFiber fiber )
+    in
     {
-        super(this.output = output, Event.EPOLLOUT, fiber, warning_e, error_e);
+        assert (conduit !is null, typeof (this).stringof ~ ": conduit is null");
+        assert ((cast (OutputStream) conduit) !is null, typeof (this).stringof ~ ": conduit is not an output stream");
+    }
+    body
+    {
+        super(conduit, fiber);
     }
     
+    /**************************************************************************
+
+        Mandated by the ISelectClient interface
+        
+        Returns:
+            I/O events to register the conduit of this instance for
+    
+     **************************************************************************/
+    
+    Event events ( )
+    {
+        return Event.Write;
+    }
+    
+    /**************************************************************************
+
+        Sets a delegate to be called when data is sent.
+    
+        Params:
+            on_sent = delegate to call when data is sent
+
+     **************************************************************************/
+
+    public void sentCallback ( SentCallback on_sent )
+    {
+        this.on_sent = on_sent;
+    }
+
     /**************************************************************************
 
         Writes data to the output conduit. Whenever the output conduit is not
@@ -272,12 +311,13 @@ class FiberSelectWriter : IFiberSelectProtocol
             events = events reported for the output conduit
         
         Returns:
-            true if all data has been sent or false to try again.
+            true if all data has been sent
             
         Throws:
-            IOException if the connection is closed or broken:
-                - IOWarning if the remote hung up,
-                - IOError (IOWarning subclass) on I/O error.
+            IOException on end-of-flow condition:
+                - IOWarning if neither error is reported by errno nor socket
+                  error
+                - IOError if an error is reported by errno or socket error
     
      **************************************************************************/
 
@@ -290,38 +330,36 @@ class FiberSelectWriter : IFiberSelectProtocol
     {
         debug (Raw) Trace.formatln("[{}] <<< {:X2} ({} bytes)", super.conduit.fileHandle, this.data_slice, this.data_slice.length);
 
-        if (this.sent < this.data_slice.length)
+        if ( this.on_sent !is null )
         {
-            .errno = 0;
-    
-            output.ssize_t n = this.output.write(this.data_slice[this.sent .. $]);
-    
-            if (n >= 0)
+            this.on_sent(this.data_slice[this.sent .. $]);
+        }
+
+        errno = 0;
+
+        size_t n = (cast (OutputStream) super.conduit).write(this.data_slice[this.sent .. $]);
+
+        if (n == OutputStream.Eof)
+        {
+            super.error_e.checkSocketError("write error", __FILE__, __LINE__);
+
+            switch (errno)
             {
-                this.sent += n;
-            }
-            else
-            {
-                this.error_e.checkDeviceError("write error", __FILE__, __LINE__);
-                
-                this.warning_e.assertEx(!(events & events.EPOLLHUP), "connection hung up", __FILE__, __LINE__);
-                
-                int errnum = .errno;
-                
-                switch (errnum)
-                {
-                    default:
-                        throw this.error_e(errnum, "write error", __FILE__, __LINE__);
-                    
-                    case EINTR, EAGAIN:
-                        static if ( EAGAIN != EWOULDBLOCK )
-                        {
-                            case EWOULDBLOCK:
-                        }
-                }
+                case EAGAIN:
+                    break;
+
+                case 0:
+                    throw super.warning_e("end of flow whilst writing", __FILE__, __LINE__);
+
+                default:
+                    throw super.error_e(errno, "write error", __FILE__, __LINE__);
             }
         }
-        
+        else
+        {
+            this.sent += n;
+        }
+
         return this.sent < this.data_slice.length;
     }
     
@@ -343,5 +381,16 @@ class FiberSelectWriter : IFiberSelectProtocol
     {
         return !.setsockopt(super.conduit.fileHandle, .IPPROTO_TCP, .TCP_CORK,
                             &enable, enable.sizeof);
+    }
+    
+    /**************************************************************************
+
+        Class ID string for debugging
+    
+     **************************************************************************/
+    
+    char[] id ( )
+    {
+        return typeof (this).stringof;
     }
 }

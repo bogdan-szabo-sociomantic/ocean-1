@@ -20,11 +20,9 @@ module ocean.io.select.protocol.generic.ErrnoIOException;
 
 private import ocean.core.ErrnoIOException;
 
-private import ocean.sys.IPSocket: IIPSocket;
+private import ocean.io.select.model.ISelectClient;
 
-private import tango.io.model.IConduit: ISelectable;
-
-private import tango.stdc.errno: errno;
+private import ocean.core.Array: copy;
 
 /******************************************************************************
 
@@ -49,7 +47,7 @@ class IOWarning : ErrnoIOException
         
      **************************************************************************/
 
-    protected const ISelectable conduit;
+    private const ISelectClient client;
     
     /**************************************************************************
         
@@ -60,9 +58,29 @@ class IOWarning : ErrnoIOException
         
      **************************************************************************/
 
-    this ( ISelectable conduit )
+    this ( ISelectClient client )
     {
-        this.conduit = conduit;
+        this.client = client;
+    }
+    
+    /**************************************************************************
+    
+        Throws this instance if ok is false, 0 or null.
+        
+        Params:
+            ok   = condition that must not be false, 0 or null
+            msg  = message
+            file = source code file name
+            line = source code line
+        
+        Throws:
+            this instance if ok is false, 0 or null
+        
+     **************************************************************************/
+    
+    void assertEx ( T ) ( T ok, char[] msg, char[] file = "", long line = 0 )
+    {
+        if (!ok) throw this.opCall(msg, file, line);
     }
     
     /**************************************************************************
@@ -79,10 +97,10 @@ class IOWarning : ErrnoIOException
         
      **************************************************************************/
     
-    public override typeof (this) opCall ( char[] msg, char[] file = "", long line = 0 )
+    public typeof (this) opCall ( char[] msg, char[] file = "", long line = 0 )
     {
-        super.opCall(msg, file, line);
-        this.handle = this.conduit.fileHandle;
+        super.set(msg, file, line);
+        this.handle = this.client.conduit.fileHandle;
         
         return this;
     }
@@ -102,17 +120,32 @@ class IOWarning : ErrnoIOException
         
      **************************************************************************/
     
-    public override typeof (this) opCall  ( int errnum, char[] msg, char[] file = "", long line = 0 )
+    public typeof (this) opCall  ( int errnum, char[] msg, char[] file = "", long line = 0 )
     {
-        super.opCall(errnum, msg, file, line);
-        this.handle = this.conduit.fileHandle;
+        super.set(errnum, msg, file, line);
+        this.handle = this.client.conduit.fileHandle;
         
         return this;
     }
 }
 
-class IOError : IOWarning
+/******************************************************************************
+
+    IOError class; to be thrown on end-of-flow conditions where either errno
+    or getsockopt() indicate an error.
+
+ ******************************************************************************/
+
+class IOError : ErrnoIOException
 {
+    /**************************************************************************
+    
+        Select client hosting the I/O device
+        
+     **************************************************************************/
+    
+    public const ISelectClient client;
+    
     /**************************************************************************
         
         Constructor
@@ -122,93 +155,17 @@ class IOError : IOWarning
         
      **************************************************************************/
     
-    this ( ISelectable conduit )
+    this ( ISelectClient client )
     {
-        super(conduit);
-    }
-    
-    /**************************************************************************
-    
-        Obtains the current error code of the underlying device of the conduit.
-        
-        To be overridden by a subclass for I/O devices that support querying a
-        device specific error status (e.g. sockets with getsockopt()).
-        
-        Returns:
-            the current error code of the underlying device of the conduit.
-        
-     **************************************************************************/
-    
-    public int error_code ( )
-    {
-        return 0;
-    }
-    
-    /**************************************************************************
-    
-        Checks the error state of the underlying device of the conduit and
-        throws this instance on error.
-        
-        This will in fact only happen if a subclass overrides error_code().
-        
-        Params:
-            msg    = message
-            file   = source code file name
-            line   = source code line
-        
-        Throws:
-            this instance if an error is reported for the underlying device of
-            the conduit.
-        
-     **************************************************************************/
-    
-    public void checkDeviceError ( char[] msg, char[] file = "", long line = 0 )
-    {
-        int device_errnum = this.error_code;
-        
-        if (device_errnum)
-        {
-            throw this.opCall(device_errnum, msg, file, line);
-        }
-    }
-}
-
-class SocketError : IOError
-{
-    /**************************************************************************
-    
-        Constructor
-        
-        Params:
-            conduit = I/O device, the file descriptor is expected to be
-                      associated with a socket.
-        
-     **************************************************************************/
-    
-    this ( ISelectable conduit )
-    {
-        super(conduit);
-    }
-    
-    /**************************************************************************
-    
-        Returns:
-            the current socket error code.
-        
-     **************************************************************************/
-    
-    int socket_error ( )
-    {
-        return IIPSocket.error(this.handle = this.conduit.fileHandle);
+        this.client = client;
     }
 
-    
     /**************************************************************************
     
-        Throws this instance if ok is false.
+        Throws this instance if ok is false, 0 or null.
         
         Params:
-            ok   = condition that should not be false
+            ok   = condition that must not be false, 0 or null
             msg  = message
             file = source code file name
             line = source code line
@@ -218,9 +175,9 @@ class SocketError : IOError
         
      **************************************************************************/
     
-    void assertExSock ( bool ok, char[] msg, char[] file = "", long line = 0 )
+    void assertEx ( T ) ( T ok, char[] msg, char[] file = "", long line = 0 )
     {
-        if (!ok) throw this.setSock(msg, file, line);
+        if (!ok) throw this.opCall(msg, file, line);
     }
     
     /**************************************************************************
@@ -237,31 +194,57 @@ class SocketError : IOError
         
      **************************************************************************/
     
-    public typeof (this) setSock ( lazy int errnum, char[] msg, char[] file = "", long line = 0 )
+    public typeof (this) opCall ( char[] msg, char[] file = "", long line = 0 )
     {
-        int socket_errnum = this.error_code;
-        
-        this.opCall(socket_errnum? socket_errnum : errnum, msg, file, line);
-        
+        super.set(msg, file, line);
         return this;
     }
     
     /**************************************************************************
     
-        Queries and resets errno and sets the exception parameters.
+        Sets the exception parameters.
         
         Params:
-            msg  = message
-            file = source code file name
-            line = source code line
+            errnum = error number
+            msg    = message
+            file   = source code file name
+            line   = source code line
         
         Returns:
             this instance
         
      **************************************************************************/
     
-    public typeof (this) setSock ( char[] msg, char[] file = "", long line = 0 )
+    public typeof (this) opCall  ( int errnum, char[] msg, char[] file = "", long line = 0 )
     {
-        return this.setSock(.errno, msg, file, line);
+        super.set(errnum, msg, file, line);
+        return this;
+    }
+    
+    /**************************************************************************
+    
+        Checks the socket error state of the conduit of the outer instance.
+        Does nothing if the conduit is not a socket. 
+         
+        Params:
+            msg    = message
+            file   = source code file name
+            line   = source code line
+        
+        Throws:
+            this instance if an error is reported for the conduit of the
+            outer instance
+        
+     **************************************************************************/
+    
+    void checkSocketError ( char[] msg, char[] file = "", long line = 0 )
+    {
+        if (this.client.getSocketErrorT(super.errnum, super.msg, msg, ": "))
+        {
+            super.file.copy(file);
+            super.line = line;
+            throw this;
+        }
     }
 }
+
