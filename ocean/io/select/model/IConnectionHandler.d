@@ -24,9 +24,11 @@ private import ocean.io.select.EpollSelectDispatcher;
     
 private import ocean.io.select.model.ISelectClient : IAdvancedSelectClient;
 
-private import tango.io.model.IConduit : ISelectable;
+private import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
 
-private import tango.net.device.Socket;
+private import ocean.sys.IPSocket;
+
+private import ocean.io.device.IODevice: IInputDevice, IOutputDevice;
 
 debug private import ocean.util.log.Trace;
 
@@ -54,7 +56,7 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
 
     ***************************************************************************/
 
-    public alias .ISelectable ISelectable;
+    public alias .IPSocket!() IPSocket;
 
     public alias .EpollSelectDispatcher EpollSelectDispatcher;
     
@@ -66,18 +68,9 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
 
     ***************************************************************************/
 
-    private const Socket socket;
+    protected const IPSocket socket;
     
-    protected const ISelectable conduit;
-    
-    /***************************************************************************
-
-        Flag that tells whether finalize() should close the client connection
-        socket. 
-
-    ***************************************************************************/
-
-    private bool connection_open = false;
+    protected const SocketError socket_error;
     
     /***************************************************************************
 
@@ -159,7 +152,9 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
         this.finalize_dg_ = finalize_dg_;
         this.error_dg_ = error_dg_;
 
-        this.conduit = this.socket = new Socket;
+        this.socket = new IPSocket;
+        
+        this.socket_error = new SocketError(this.socket);
         
         debug this.connection_id = connection_count++;
     }
@@ -216,6 +211,19 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
     }
 
     /***************************************************************************
+
+        Returns:
+            true if a client connection is currently established or false if
+            not.
+
+    ***************************************************************************/
+
+    public bool connected ( )
+    {
+        return this.socket.fd >= 0;
+    }
+    
+    /***************************************************************************
         
         Invokes assign_to_conduit with the connection socket of this instance
         and starts the handler coroutine.
@@ -226,18 +234,19 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
     
     ***************************************************************************/
     
-    public void assign ( void delegate ( Socket ) assign_to_conduit )
+    public void assign ( int listening_fd )
     in
     {
-        assert (!this.connection_open, "client connection was open before assigning");
+        assert (!this.connected, "client connection was open before assigning");
     }
     body
     {
         debug ( ConnectionHandler ) Trace.formatln("[{}]: New connection", this.connection_id);
 
-        assign_to_conduit(this.socket);
-        
-        this.connection_open = true;
+        if (this.socket.accept(listening_fd, true) < 0)
+        {
+            this.error(this.socket_error.setSock("error accepting connection", __FILE__, __LINE__));
+        }
     }
     
     /***************************************************************************
@@ -260,35 +269,30 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IFinalizer, IAdvancedS
         
         The closure of the socket after handling a connection is quite
         sensitive. If a connection has actually been assigned, the socket must
-        be closed *unless* an I/O error has been reported for the socket because
-        then it will already have been closed automatically. The abstract
-        io_error() method is used to determine whether the an I/O error was
-        reported for the socket or not.
+        be shut down *unless* an I/O error has been reported for the socket
+        because then it will already have been shut down automatically. The
+        abstract io_error() method is used to determine whether the an I/O error
+        was reported for the socket or not.
         
     ***************************************************************************/
     
     public void finalize ( )
     {
-        try
+        if ( this.connected )
         {
-            try
+            debug ( ConnectionHandler ) Trace.formatln("[{}]: Closing connection", this.connection_id);
+            
+            if (this.io_error) if (this.socket.shutdown())
             {
-                if ( this.connection_open && !this.io_error )
-                {
-                    debug ( ConnectionHandler ) Trace.formatln("[{}]: Closing connection", this.connection_id);
-                    
-                    this.socket.shutdown().close();
-                }
+                this.error(this.socket_error.setSock("error closing connection", __FILE__, __LINE__));
             }
-            finally
-            {
-                this.connection_open = false;
-                
-                if ( this.finalize_dg_ )
-                {
-                    this.finalize_dg_(this);
-                }
-            }
+            
+            this.socket.close();
+        }
+        
+        if ( this.finalize_dg_ ) try
+        {
+            this.finalize_dg_(this);
         }
         catch ( Exception e )
         {
