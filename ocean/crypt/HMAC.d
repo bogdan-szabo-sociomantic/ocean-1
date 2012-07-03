@@ -297,7 +297,7 @@ public class HMAC
 
     ***************************************************************************/
     	
-    unittest
+    debug unittest
     {
         static char[][] test_keys = [
             "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
