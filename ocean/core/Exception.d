@@ -368,20 +368,6 @@ class IconvException : Exception
 
 		this ( ) { super(this.msg); }
 	}
-
-
-	/**************************************************************************
-
-		Too Big (output buffer full)
-
-	 **************************************************************************/
-
-	static class TooBig :  IconvException
-	{
-		const msg = "Iconv: Too Big (output buffer full)";
-
-		this ( ) { super(this.msg); }
-	}
 }
 
 /******************************************************************************

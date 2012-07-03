@@ -50,7 +50,6 @@ debug
 }
 
 
-
 /*******************************************************************************
 
     Encoder interface.
@@ -106,8 +105,6 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 
     private IconvException.IncompleteMbSeq exception_IncompleteMbSeq;
 
-    private IconvException.TooBig exception_TooBig;
-
     private IconvException exception_Generic;
 
 
@@ -126,8 +123,6 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
         this.exception_InvalidMbSeq = new IconvException.InvalidMbSeq;
 
         this.exception_IncompleteMbSeq = new IconvException.IncompleteMbSeq;
-
-        this.exception_TooBig = new IconvException.TooBig;
 
         this.exception_Generic = new IconvException;
     }
@@ -158,8 +153,6 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 
         delete this.exception_IncompleteMbSeq;
 
-        delete this.exception_TooBig;
-
         delete this.exception_Generic; 
     }
 
@@ -169,7 +162,7 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 		class' template parameters).
 
 		Makes a guess at the required size of output buffer, simply setting it
-		to the same size as the input buffer. Then repeatedly trys converting
+		to the same size as the input buffer. Then repeatedly tries converting
 		the input and increasing the size of the output buffer until the
 		conversion succeeds.
 
@@ -188,94 +181,64 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
     {
         output.length = input.length;
 
-        bool succeeded = false;
 
-        for(;;)
+        // Do the conversion. Keep trying until there is no E2BIG error.
+        size_t inbytesleft  = input.length;
+        size_t outbytesleft = output.length;
+        char* inptr  = input.ptr;
+        char* outptr = output.ptr;
+
+        ptrdiff_t result;
+
+        bool too_big = false;
+
+        do
         {
-            size_t inbytesleft  = input.length;
-            size_t outbytesleft = output.length;
-            char* inptr  = input.ptr;
-            char* outptr = output.ptr;
+            // Attempt the conversion
+            result = iconv(this.cd, &inptr, &inbytesleft, &outptr, &outbytesleft);
 
-            // Do the conversion
-            ptrdiff_t result = iconv(this.cd, &inptr, &inbytesleft, &outptr, &outbytesleft);
+            // If it wasn't E2BIG, we're finished
+            too_big = (result < 0 && errno() == E2BIG);
 
-            // If the conversion fails because the output buffer was too small,
-            // resize the output buffer and try again.
-            if (result < 0 && errno() == E2BIG)
+            if (too_big)
             {
-                // TODO: performance could be improved here by passing the
-                // number of bytes already processed to iconv
+                // Conversion failed because the output buffer was too small.
+                // Resize the output buffer and try again.
+                // To improve performance, we pass the number of bytes already
+                // processed to iconv. But, because extending the buffer may
+                // result in a memory allocation, outptr may become invalid.
+
+                // Convert 'outptr' to an index
+                size_t out_so_far = outptr - output.ptr;
+
                 output.length = output.length + input.length;
-                continue;
-            }
+                outbytesleft += input.length;
 
-            output.length = output.length - outbytesleft;
-            // Check for any errors from iconv and throw them as exceptions
-            if (result < 0)
+                // Readjust outptr to the same position relative to output.ptr,
+                // in case memory allocation just occured
+                outptr = output.ptr + out_so_far;
+            }
+        }
+        while ( !too_big );
+
+        output.length = output.length - outbytesleft;
+
+        // Check for any errors from iconv and throw them as exceptions
+        if (result < 0)
+        {
+            switch (errno())
             {
-                switch (errno())
-                {
-                    case EILSEQ:
-                        throw this.exception_InvalidMbSeq;
+                case EILSEQ:
+                    throw this.exception_InvalidMbSeq;
 
-                    case EINVAL:
-                        throw this.exception_IncompleteMbSeq;
+                case EINVAL:
+                    throw this.exception_IncompleteMbSeq;
 
-                    case E2BIG:
-                        throw this.exception_TooBig;
-
-                    default:
-                        throw this.exception_Generic;
-                }
+                default:
+                    throw this.exception_Generic;
             }
-            break;
         }
     }
-
-	/***************************************************************************
-
-		Internal conversion method which calls the C iconv function.
-		The error return values from iconv are thrown as exceptions.
-	
-		Params:
-			input = the array of characters to be converted.
-			output = array of characters which will be filled with the results
-			         of the conversion. The output array is resized to fit the
-                     results.
-	
-	***************************************************************************/
-
-	protected void convert_ ( char[] input, ref char[] output )
-	{
-		size_t inbytesleft  = input.length;
-		size_t outbytesleft = output.length;
-		char* inptr  = input.ptr;
-		char* outptr = output.ptr;
-
-		// Do the conversion
-		ptrdiff_t result = iconv(this.cd, &inptr, &inbytesleft, &outptr, &outbytesleft);
-		output.length = output.length - outbytesleft;
-
-		// Check for any errors from iconv and throw them as exceptions
-		if (result < 0)
-		{
-			switch (errno())
-			{
-				case EILSEQ:
-                    throw this.exception_InvalidMbSeq;
-					
-				case EINVAL:
-                    throw this.exception_IncompleteMbSeq;
-					
-				case E2BIG:
-                    throw this.exception_TooBig;
-					
-				default:
-                    throw this.exception_Generic;
-			}
-		}
-	}
 }
 
 
