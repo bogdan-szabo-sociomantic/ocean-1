@@ -219,7 +219,7 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
                 outptr = output.ptr + out_so_far;
             }
         }
-        while ( !too_big );
+        while ( too_big );
 
         output.length = output.length - outbytesleft;
 
