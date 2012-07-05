@@ -11,6 +11,9 @@
     Map template with a fixed set of keys. If an item is added whose key is not
     in the fixed set, an exception is thrown.
 
+    Such a map can be faster than a standard hash map, as the fixed set of
+    possible keys means that 
+
     Usage example:
 
     ---
@@ -52,7 +55,7 @@ module ocean.util.container.FixedKeyMap;
 
 *******************************************************************************/
 
-private import ocean.core.Array: bsearch;
+private import ocean.core.Array: copy, bsearch;
 
 debug private import tango.io.Stdout;
 
@@ -114,12 +117,13 @@ public class FixedKeyMap ( K, V )
         }
     }
 
-    private FixedKeyMapException exception;
+    private const FixedKeyMapException exception;
 
 
     /***************************************************************************
 
-        Constructor.
+        Constructor. The passed list of allowed keys is shallow copied into the
+        keys class member.
 
         Params:
             keys = list of allowed keys
@@ -128,10 +132,7 @@ public class FixedKeyMap ( K, V )
 
     public this ( K[] keys )
     {
-        foreach ( key; keys )
-        {
-            this.keys ~= key;
-        }
+        this.keys.copy(keys);
         this.keys.sort;
 
         this.values.length = this.keys.length;
@@ -208,8 +209,8 @@ public class FixedKeyMap ( K, V )
 
     public V* opIn_r ( K key )
     {
-        size_t pos;
-        auto found = this.keys.bsearch(key, pos);
+        auto pos = this.keyIndex(key, false);
+        auto found = pos < this.keys.length;
 
         return found ? &this.values[pos] : null;
     }
@@ -221,7 +222,7 @@ public class FixedKeyMap ( K, V )
 
     ***************************************************************************/
 
-    public int opApply ( int delegate ( ref char[] ) dg )
+    public int opApply ( int delegate ( ref K ) dg )
     {
         int res;
         foreach ( key; this.keys )
@@ -239,7 +240,7 @@ public class FixedKeyMap ( K, V )
 
     ***************************************************************************/
 
-    public int opApply ( int delegate ( ref char[], ref char[] ) dg )
+    public int opApply ( int delegate ( ref K, ref V ) dg )
     {
         int res;
         foreach ( i, key; this.keys )
@@ -257,7 +258,7 @@ public class FixedKeyMap ( K, V )
 
     ***************************************************************************/
 
-    public int opApply ( int delegate ( ref size_t, ref char[], ref char[] ) dg )
+    public int opApply ( int delegate ( ref size_t, ref K, ref V ) dg )
     {
         int res;
         foreach ( i, key; this.keys )
@@ -275,23 +276,33 @@ public class FixedKeyMap ( K, V )
 
         Params:
             key = key to look up
+            throw_if_not_found = if true, an exception is thrown when looking up
+                a key which isn't in the array
 
         Returns:
-            index of key in array
+            index of key in array, or keys.length if throw_if_not_found is false
+                and key is not found
 
         Throws:
-            if the key is not in the array
+            if throw_if_not_found is true and the key is not in the array
 
     ***************************************************************************/
 
-    private size_t keyIndex ( K key )
+    private size_t keyIndex ( K key, bool throw_if_not_found )
     {
         size_t pos;
         auto found = this.keys.bsearch(key, pos);
 
         if ( !found )
         {
-            throw this.exception("Key not in map", __LINE__);
+            if ( throw_if_not_found )
+            {
+                throw this.exception("Key not in map", __LINE__);
+            }
+            else
+            {
+                pos = this.keys.length;
+            }
         }
 
         return pos;

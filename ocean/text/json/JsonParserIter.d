@@ -457,29 +457,29 @@ class JsonParserIter : JsonParser!(char)
     public T nextNamedNumber ( T ) ( char[] name, out bool found )
     {
         T ret;
-        auto string = this.nextNamedValue(name, found, ( Token token ) { return token == Token.Number; });
+        auto str = this.nextNamedValue(name, found, ( Token token ) { return token == Token.Number; });
 
         if ( found )
         {
             static if ( isRealType!(T) )
             {
-                ret = Float.toFloat(string);
+                ret = Float.toFloat(str);
             }
-            else static if ( isIntegerType!(T) )
+            else static if ( isSignedIntegerType!(T) )
             {
-                ret = Integer.toLong(string);
+                ret = Integer.toLong(str);
+            }
+            else static if ( isUnsignedIntegerType!(T) )
+            {
+                ret = Integer.toUlong(str);
             }
             else
             {
                 static assert(false, typeof(this).stringof ~ ".nextNamedNumber - template type must be numerical, not " ~ T.stringof);
             }
+        }
 
-            return ret;
-        }
-        else
-        {
-            return T.init;
-        }
+        return ret;
     }
 
     /**************************************************************************
@@ -504,7 +504,8 @@ class JsonParserIter : JsonParser!(char)
     
      **************************************************************************/
 
-    private char[] nextNamedValue ( char[] name, out bool found, bool delegate ( Token ) type_match_dg )
+    private char[] nextNamedValue ( char[] name, out bool found,
+        bool delegate ( Token ) type_match_dg )
     {
         bool got_name;
         foreach ( type, value; this )
