@@ -326,6 +326,7 @@
     <Compile Include="ocean\util\Unittest.d" />
     <Compile Include="ocean\util\VariadicArg.d" />
     <Compile Include="test\main.d" />
+    <Compile Include="ocean\text\convert\Integer.d" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ocean\db\ebtree\c\lib\libebtree.a" />
