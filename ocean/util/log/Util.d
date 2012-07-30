@@ -35,7 +35,9 @@
     Log.configureLoggers(Config().iterateClasses!(Log.Config)("LOG"),
                          Config().get!(Log.MetaConfig)("LOG"));
     -------
-    
+
+    TODO: rename this module to something more meaningful
+
 *******************************************************************************/
 
 module ocean.util.log.Util;
