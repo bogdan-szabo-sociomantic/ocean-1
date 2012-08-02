@@ -131,14 +131,6 @@
     <Compile Include="ocean\io\select\model\IFiberSelectClient.d" />
     <Compile Include="ocean\io\select\model\ISelectClient.d" />
     <Compile Include="ocean\io\select\model\ITimeoutSelectClient.d" />
-    <Compile Include="ocean\io\select\protocol\chain\model\IChainSelectProtocol.d" />
-    <Compile Include="ocean\io\select\protocol\chain\serializer\model\ISelectArraysTransmitter.d" />
-    <Compile Include="ocean\io\select\protocol\chain\serializer\SelectArraysDeserializer.d" />
-    <Compile Include="ocean\io\select\protocol\chain\serializer\SelectArraysSerializer.d" />
-    <Compile Include="ocean\io\select\protocol\chain\serializer\SelectDeserializer.d" />
-    <Compile Include="ocean\io\select\protocol\chain\serializer\SelectSerializer.d" />
-    <Compile Include="ocean\io\select\protocol\chain\ChainSelectReader.d" />
-    <Compile Include="ocean\io\select\protocol\chain\ChainSelectWriter.d" />
     <Compile Include="ocean\io\select\protocol\fiber\model\IFiberSelectProtocol.d" />
     <Compile Include="ocean\io\select\protocol\fiber\BufferedFiberSelectWriter.d" />
     <Compile Include="ocean\io\select\protocol\fiber\FiberSelectReader.d" />
