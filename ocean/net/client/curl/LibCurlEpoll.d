@@ -534,7 +534,7 @@ public class LibCurlEpoll
         {
             this.finalize();
 
-            this.outer.epoll.safeUnregister(this);
+            this.outer.epoll.unregister(this);
         }
 
 
@@ -578,7 +578,7 @@ public class LibCurlEpoll
             if ( this.outer.still_running == 0 )
             {
                 this.outer.unregister_timer = true;
-                this.outer.epoll.safeUnregister(this.outer.timer);
+                this.outer.epoll.unregister(this.outer.timer);
                 this.outer.timer.reset();
             }
 
@@ -1217,7 +1217,7 @@ public class LibCurlEpoll
             {
                 if ( conn.fd > 0 )
                 {
-                    this.epoll.safeUnregister(conn);
+                    this.epoll.unregister(conn);
                 }
             }
 

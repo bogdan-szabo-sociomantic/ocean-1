@@ -28,7 +28,7 @@ public enum ExitStatus
 {
     ProcessTerminatedAbnormally = -1,
 
-    None = 0,
+    OK = 0,
 
     UnsupportedProtocol = 1, // Unsupported protocol. This build of curl has no support for this protocol.
     FailedToInitialize = 2, // Failed to initialize.
@@ -104,8 +104,6 @@ public enum ExitStatus
     RTSPCSeqMismatch = 85, // RTSP: mismatch of CSeq numbers
     RTSPSessionIdMismatch = 86, // RTSP: mismatch of Session Identifiers
     FTPCouldntParseFileList = 87, // unable to parse FTP file list
-    FTPChunkCallbackError = 88, // FTP chunk callback reported error
-
-    OK = 1000
+    FTPChunkCallbackError = 88 // FTP chunk callback reported error
 }
 
