@@ -971,6 +971,19 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
              if (result) break;
          }
 
+         return result;
+     }
+
+     public int opApply ( int delegate ( ref size_t i, ref K key, ref V value ) dg )
+     {
+         int result = 0;
+
+         foreach ( i, ref value; this.v_map[0 .. this.len] )
+         {
+             result = dg(i, value.key, value.value);
+
+             if (result) break;
+         }
 
          return result;
      }

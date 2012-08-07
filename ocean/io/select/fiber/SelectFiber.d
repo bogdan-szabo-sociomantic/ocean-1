@@ -122,16 +122,16 @@ public class SelectFiber : MessageFiber, SelectFiberControl
         {
             if ( this.current.conduit.fileHandle == client.conduit.fileHandle )
             {
-                if ( this.current.events != client.events )
+                debug ( SelectFiber) if ( this.current.events != client.events )
                 {
-                    debug ( SelectFiber) Trace.formatln("   Changing event registration fd {}, events = {}",
+                    Trace.formatln("   Changing event registration fd {}, events = {}",
                             this.current.conduit.fileHandle, this.current.events);
-                    debug ( SelectFiber) Trace.formatln("   Register fd {}, events = {}",
+                    Trace.formatln("   Register fd {}, events = {}",
                             client.conduit.fileHandle, client.events);
                 }
                 else
                 {
-                    debug ( SelectFiber) Trace.formatln("   Leaving registered fd {}, events = {}",
+                    Trace.formatln("   Leaving registered fd {}, events = {}",
                             this.current.conduit.fileHandle, this.current.events);
                 }
             }
@@ -139,7 +139,9 @@ public class SelectFiber : MessageFiber, SelectFiberControl
             {
                 debug ( SelectFiber) Trace.formatln("   Unregister fd {}, events = {}",
                         this.current.conduit.fileHandle, this.current.events);
+
                 this.epoll.unregister(this.current);
+
                 debug ( SelectFiber) Trace.formatln("   Register fd {}, events = {}",
                         client.conduit.fileHandle, client.events);
             }
