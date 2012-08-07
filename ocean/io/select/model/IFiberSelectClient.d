@@ -12,10 +12,10 @@
     Contains the five things that the fiber based SelectDispatcher needs:
         1. the I/O device instance,
         2. the I/O events to register the device for,
-        3. the event handler to invocate when an event occured for the device,
+        3. the event handler to invoke when an event occured for the device,
         4. the finalizer that resumes the fiber,
         5. the error handler that kills the fiber.
-        
+
  ******************************************************************************/
 
 module ocean.io.select.model.IFiberSelectClient;
