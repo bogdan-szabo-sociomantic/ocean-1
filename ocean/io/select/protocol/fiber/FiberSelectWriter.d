@@ -382,15 +382,4 @@ class FiberSelectWriter : IFiberSelectProtocol
         return !.setsockopt(super.conduit.fileHandle, .IPPROTO_TCP, .TCP_CORK,
                             &enable, enable.sizeof);
     }
-    
-    /**************************************************************************
-
-        Class ID string for debugging
-    
-     **************************************************************************/
-    
-    char[] id ( )
-    {
-        return typeof (this).stringof;
-    }
 }

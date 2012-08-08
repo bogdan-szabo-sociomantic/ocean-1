@@ -196,22 +196,5 @@ public class SignalEvent : ISelectClient, ISelectable
     {
         this.event.unmaskHandledSignals();
     }
-
-
-    /***************************************************************************
-
-        Returns an identifier string for this instance
-
-        (Implements an abstract super class method.)
-
-        Returns:
-            identifier string for this instance
-
-    ***************************************************************************/
-
-    protected char[] id ( )
-    {
-        return typeof(this).stringof;
-    }
 }
 

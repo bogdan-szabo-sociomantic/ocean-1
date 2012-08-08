@@ -636,6 +636,8 @@ public class LibCurlEpoll
         {
             char[1] id_str;
             id_str[0] = '0' + cast(char)this.id_num;
+            // TODO: this series of ~ operators is probably allocating memory
+            // rewrite to format into a re-used buffer
             return super.id() ~ " " ~ id_str ~ ": " ~ this.url;
         }
     

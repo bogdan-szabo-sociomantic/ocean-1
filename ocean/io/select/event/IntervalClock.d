@@ -407,16 +407,4 @@ public class IntervalClock : ITimerEvent, IMicrosecondsClock
                                                                                 // of localtime_r() gmtime_r() but in this
         return datetime;                                                        // usage they should never fail ;)
     }
-
-    /**************************************************************************
-    
-        Returns:
-            class identifier string for select dispatcher debugging
-        
-     **************************************************************************/
-
-    char[] id ( )
-    {
-        return typeof (this).stringof;
-    }
 }

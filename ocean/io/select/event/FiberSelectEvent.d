@@ -161,6 +161,7 @@ public class FiberSelectEvent : IFiberSelectClient, ISelectable
         (Implements an abstract super class method.)
 
         Returns:
+            TODO: correct this comment
             always false, to unregister the event from epoll once it has fired
 
     ***************************************************************************/
@@ -176,25 +177,9 @@ public class FiberSelectEvent : IFiberSelectClient, ISelectable
 
         super.fiber.resume();
 
-        // TODO: CHECK THIS
-        return true; // TODO: was false (see comment)
-    }
-
-
-    /***************************************************************************
-
-        Returns an identifier string for this instance
-
-        (Implements an abstract super class method.)
-
-        Returns:
-            identifier string for this instance
-
-    ***************************************************************************/
-
-    protected char[] id ( )
-    {
-        return typeof(this).stringof;
+        // TODO: should this use the same return behaviour as
+        // ocean.io.select.protocol.fiber.model.IFiberSelectProtocol?
+        return true;
     }
 }
 

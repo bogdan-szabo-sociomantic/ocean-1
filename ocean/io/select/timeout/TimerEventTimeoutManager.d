@@ -98,18 +98,6 @@ class TimerEventTimeoutManager : TimeoutManager
             this.outer.checkTimeouts();
             return true;
         }
-
-        /***********************************************************************
-
-            Returns:
-                id string for this instance
-
-        ***********************************************************************/
-
-        debug override public char[] id ( )
-        {
-            return super.id() ~ "." ~ super.id();
-        }
     }
 
     /***************************************************************************

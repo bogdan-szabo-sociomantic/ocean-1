@@ -21,6 +21,7 @@ module ocean.io.select.event.TimerEvent;
 private import ocean.io.select.model.ISelectClient: ISelectClient;
 
 private import ocean.core.ErrnoIOException;
+private import ocean.core.Array : copy;
 
 private import tango.io.model.IConduit: ISelectable;
 
@@ -532,28 +533,29 @@ abstract class ITimerEvent : ISelectClient, ISelectable
             return this.handle_(n);
         }
     }
-    
+
     /***************************************************************************
-    
+
         Returns an identifier string for this instance
-    
-        (Implements an abstract super class method.)
-    
+
         Returns:
             identifier string for this instance
-    
+
     ***************************************************************************/
-    
-    private char[] time_buffer;
 
-    protected char[] id ( )
+    debug
     {
-        this.time_buffer.length = 0;
-        auto time = this.time();
+        private char[] time_buffer;
 
-        Layout!(char).print(this.time_buffer, ": {}s {}ns", time.it_value.tv_sec,
-            time.it_value.tv_nsec);
-        return typeof(this).stringof ~ this.time_buffer;
+        public override char[] id ( )
+        {
+            this.time_buffer.copy(super.id());
+            auto time = this.time();
+
+            Layout!(char).print(this.time_buffer, ": {}s {}ns",
+                time.it_value.tv_sec, time.it_value.tv_nsec);
+            return this.time_buffer;
+        }
     }
 
     /**************************************************************************/

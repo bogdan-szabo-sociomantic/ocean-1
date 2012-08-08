@@ -198,10 +198,10 @@ public abstract class ISelectEvent : IAdvancedSelectClient, ISelectable
 
     ***************************************************************************/
 
-    protected char[] id ( )
-    {
-        return typeof(this).stringof;
-    }
+//    protected char[] id ( )
+//    {
+//        return typeof(this).stringof;
+//    }
 }
 
 
