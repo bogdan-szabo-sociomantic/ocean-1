@@ -77,13 +77,13 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
 
         Constructor
         
-         Params:
-             conduit = I/O device
-             fiber   = fiber to use to suspend and resume operation
+        Params:
+            conduit = I/O device
+            fiber   = fiber to use to suspend and resume operation
     
      **************************************************************************/
 
-    this ( ISelectable conduit, SelectFiber fiber )
+    public this ( ISelectable conduit, SelectFiber fiber )
     {
         super(conduit, fiber);
         this.warning_e = new IOWarning(this);
@@ -145,16 +145,16 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
 
         Registers this instance in the select dispatcher and repeatedly calls
         transmit() until the transmission is finished.
-        
+
         Throws:
             IOException on I/O error, KillableFiber.KilledException if the
             fiber was killed.
-            
+
         In:
             The fiber must be running.
-        
+
      **************************************************************************/
-    
+
     protected void transmitLoop ( )
     in
     {
@@ -162,12 +162,13 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
     }
     body
     {
-        // The reported events are reset at this point to avoid using the
-        // events set by a previous run of this method.
-        
-        try for (bool more = this.transmit(this.events_reported = this.events_reported.init);
-                      more;
-                      more = this.transmit(this.events_reported))
+        // The reported events are reset at the start of the loop to avoid using
+        // the events set by a previous run of this method.
+
+        try for (bool more =
+                 this.transmit(this.events_reported = this.events_reported.init);
+                 more;
+                 more = this.transmit(this.events_reported))
         {
             super.fiber.register(this);
             
@@ -202,18 +203,18 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
             throw e;
         }
     }
-    
+
     /**************************************************************************
 
         Reads/writes data from/to super.conduit for which events have been
         reported.
-        
+
         Params:
             events = events reported for super.conduit
-            
+
         Returns:
-            true to be invoked again or false if finished
-        
+            true to be invoked again (after an epoll wait) or false if finished
+
      **************************************************************************/
 
     abstract protected bool transmit ( Event events );
