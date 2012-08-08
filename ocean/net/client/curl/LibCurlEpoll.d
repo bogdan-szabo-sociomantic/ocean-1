@@ -632,14 +632,11 @@ public class LibCurlEpoll
 
         ***********************************************************************/
 
-        debug
+        debug override public char[] id ( )
         {
-            public char[] id ( )
-            {
-                char[1] id_str;
-                id_str[0] = '0' + cast(char)this.id_num;
-                return typeof(this).stringof ~ " " ~ id_str ~ ": " ~ this.url;
-            }
+            char[1] id_str;
+            id_str[0] = '0' + cast(char)this.id_num;
+            return super.id() ~ " " ~ id_str ~ ": " ~ this.url;
         }
     
     

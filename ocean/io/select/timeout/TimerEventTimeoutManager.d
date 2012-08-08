@@ -108,7 +108,7 @@ class TimerEventTimeoutManager : TimeoutManager
 
         debug override public char[] id ( )
         {
-            return typeof(this.outer).stringof ~ "." ~ super.id();
+            return super.id() ~ "." ~ super.id();
         }
     }
 

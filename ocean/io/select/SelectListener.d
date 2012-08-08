@@ -550,16 +550,5 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
         this.receiver_pool.recycle(cast (T) connection);
     }
-    
-    /**************************************************************************
-
-        Class ID string for debugging
-    
-     **************************************************************************/
-
-    debug public char[] id ( )
-    {
-        return typeof (this).stringof;
-    }
 }
 

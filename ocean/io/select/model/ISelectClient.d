@@ -349,10 +349,11 @@ public abstract class ISelectClient : ITimeoutClient
         Returns:
             true if an error code could be obtained and is different from 0 or
             false otherwise
-        
+
      **************************************************************************/
 
-    public bool getSocketErrorT ( T ... ) ( out int errnum, ref char[] errmsg, T msg )
+    public bool getSocketErrorT ( T ... ) ( out int errnum, ref char[] errmsg,
+        T msg )
     {
         bool have_errnum = this.getSocketError(errnum);
         
@@ -368,19 +369,37 @@ public abstract class ISelectClient : ITimeoutClient
         
         return have_errnum;
     }
-    
+
     alias getSocketErrorT!(char[]) getSocketError;
-    
+
     /**************************************************************************
 
-        Returns an identifier string of this instance
-        
+        Returns an identifier string of this instance. Defaults to the name of
+        the class, but may be overridden if more detailed information is
+        required.
+
+        Note that this method is only ever called in cases where one or more
+        debug compile flags are switched on (ISelectClient, for example). Hence
+        the loop to extract the class name from the full module/class name
+        string is not considered a performance problem.
+
         Returns:
              identifier string of this instance
-    
+
      **************************************************************************/
 
-    debug (ISelectClient) abstract public char[] id ( );
+    debug public char[] id ( )
+    {
+        auto full_name = this.classinfo.name;
+        foreach_reverse ( i, c; full_name )
+        {
+            if ( c == '.' )
+            {
+                return full_name[i+1..$];
+            }
+        }
+        return full_name;
+    }
 }
 
 /******************************************************************************

@@ -441,19 +441,6 @@ public abstract class EpollProcess
             assert(!this.outer.stdout_finalized);
             this.outer.stdout(data);
         }
-
-
-        /***********************************************************************
-
-            Returns:
-                identifier string for this class
-
-        ***********************************************************************/
-
-        public char[] id ( )
-        {
-            return typeof(this).stringof;
-        }
     }
 
 
@@ -520,19 +507,6 @@ public abstract class EpollProcess
         {
             assert(!this.outer.stderr_finalized);
             this.outer.stderr(data);
-        }
-
-
-        /***********************************************************************
-
-            Returns:
-                identifier string for this class
-
-        ***********************************************************************/
-
-        public char[] id ( )
-        {
-            return typeof(this).stringof;
         }
     }
 
