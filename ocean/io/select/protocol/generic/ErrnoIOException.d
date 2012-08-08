@@ -1,6 +1,6 @@
 /******************************************************************************
 
-    Chain/Fiber Select Protocol I/O Exception Classes
+    Fiber Select Protocol I/O Exception Classes
     
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
     
