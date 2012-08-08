@@ -6,9 +6,8 @@
 
     authors:        David Eckardt, Gavin Norman
 
-    Template for a class implementing a set of hashes. The set is built on top
-    of an efficient bucket algorithm, allowing for fast look up of hashes in the
-    set.
+    Class implementing a set of hashes. The set is built on top of an efficient
+    bucket algorithm, allowing for fast look up of hashes in the set.
 
     Usage example:
 
