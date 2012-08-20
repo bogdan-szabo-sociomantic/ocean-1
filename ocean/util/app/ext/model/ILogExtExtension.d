@@ -18,7 +18,7 @@ module ocean.util.app.ext.model.ILogExtExtension;
 
 *******************************************************************************/
 
-public import ocean.util.app.Application : Application;
+public import ocean.util.app.model.IApplication;
 public import ocean.util.config.ConfigParser : ConfigParser;
 
 private import ocean.util.app.model.IExtension;
@@ -48,7 +48,7 @@ interface ILogExtExtension : IExtension
 
     ***************************************************************************/
 
-    void preConfigureLoggers ( Application app, ConfigParser config,
+    void preConfigureLoggers ( IApplication app, ConfigParser config,
             bool loose_config_parsing, bool use_insert_appender );
 
 
@@ -66,7 +66,7 @@ interface ILogExtExtension : IExtension
 
     ***************************************************************************/
 
-    void postConfigureLoggers ( Application app, ConfigParser config,
+    void postConfigureLoggers ( IApplication app, ConfigParser config,
             bool loose_config_parsing, bool use_insert_appender );
 
 }

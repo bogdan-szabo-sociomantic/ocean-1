@@ -98,9 +98,9 @@ class LogExt : IConfigExtExtension
 
     ***************************************************************************/
 
-    public override void processConfig ( Application app, ConfigParser config )
+    public void processConfig ( IApplication app, ConfigParser config )
     {
-        auto conf_ext = app.getExtension!(ConfigExt);
+        auto conf_ext = (cast(Application)app).getExtension!(ConfigExt);
 
         foreach (ext; this.extensions)
         {
@@ -129,12 +129,12 @@ class LogExt : IConfigExtExtension
 
     ***************************************************************************/
 
-    public override void preParseConfig ( Application app, ConfigParser config )
+    public void preParseConfig ( IApplication app, ConfigParser config )
     {
         // Unused
     }
 
-    public override char[][] filterConfigFiles ( Application app,
+    public char[][] filterConfigFiles ( IApplication app,
             ConfigParser config, char[][] files )
     {
         // Unused

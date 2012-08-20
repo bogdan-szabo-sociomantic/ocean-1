@@ -19,9 +19,9 @@ module ocean.util.app.model.IApplicationExtension;
 *******************************************************************************/
 
 public import ocean.util.app.ExitException : ExitException;
-public import ocean.util.app.Application : Application;
 
 private import ocean.util.app.model.IExtension;
+private import ocean.util.app.model.IApplication;
 
 
 
@@ -36,6 +36,16 @@ interface IApplicationExtension : IExtension
 
     /***************************************************************************
 
+        Alias of IApplication, for use by implementing classes without needing
+        to import ocean.util.app.model.IApplication.
+
+    ***************************************************************************/
+
+    alias .IApplication IApplication;
+
+
+    /***************************************************************************
+
         Function executed before the program runs.
 
         Params:
@@ -44,7 +54,7 @@ interface IApplicationExtension : IExtension
 
     ***************************************************************************/
 
-    void preRun ( Application app, char[][] args );
+    void preRun ( IApplication app, char[][] args );
 
 
     /***************************************************************************
@@ -61,7 +71,7 @@ interface IApplicationExtension : IExtension
 
     ***************************************************************************/
 
-    void postRun ( Application app, char[][] args, int status );
+    void postRun ( IApplication app, char[][] args, int status );
 
 
     /***************************************************************************
@@ -85,7 +95,7 @@ interface IApplicationExtension : IExtension
 
     ***************************************************************************/
 
-    void atExit ( Application app, char[][] args, int status,
+    void atExit ( IApplication app, char[][] args, int status,
             ExitException exception );
 
 
@@ -106,7 +116,7 @@ interface IApplicationExtension : IExtension
 
     ***************************************************************************/
 
-    ExitException onExitException ( Application app, char[][] args,
+    ExitException onExitException ( IApplication app, char[][] args,
             ExitException exception );
 
 }

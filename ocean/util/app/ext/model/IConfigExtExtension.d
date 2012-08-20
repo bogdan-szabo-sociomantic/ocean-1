@@ -18,7 +18,7 @@ module ocean.util.app.ext.model.IConfigExtExtension;
 
 *******************************************************************************/
 
-public import ocean.util.app.Application : Application;
+public import ocean.util.app.model.IApplication;
 public import ocean.util.config.ConfigParser : ConfigParser;
 
 private import ocean.util.app.model.IExtension;
@@ -44,7 +44,7 @@ interface IConfigExtExtension : IExtension
 
     ***************************************************************************/
 
-    void preParseConfig ( Application app, ConfigParser config );
+    void preParseConfig ( IApplication app, ConfigParser config );
 
 
     /***************************************************************************
@@ -61,7 +61,7 @@ interface IConfigExtExtension : IExtension
 
     ***************************************************************************/
 
-    char[][] filterConfigFiles ( Application app, ConfigParser config,
+    char[][] filterConfigFiles ( IApplication app, ConfigParser config,
             char[][] files );
 
 
@@ -75,7 +75,7 @@ interface IConfigExtExtension : IExtension
 
     ***************************************************************************/
 
-    void processConfig ( Application app, ConfigParser config );
+    void processConfig ( IApplication app, ConfigParser config );
 
 }
 

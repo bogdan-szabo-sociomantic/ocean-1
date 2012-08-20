@@ -19,7 +19,7 @@ module ocean.util.app.CommandLineApp;
 
 *******************************************************************************/
 
-public import ocean.util.app.Application : Application;
+public import ocean.util.app.Application;
 public import ocean.text.Arguments : Arguments;
 
 private import ocean.util.app.ext.ArgumentsExt;
@@ -156,7 +156,7 @@ abstract class CommandLineApp : Application, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    protected override int run ( char[][] args )
+    protected int run ( char[][] args )
     {
         return this.run(this.args);
     }
@@ -192,18 +192,18 @@ abstract class CommandLineApp : Application, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public override void setupArgs ( Application app, Arguments args )
+    public void setupArgs ( IApplication app, Arguments args )
     {
         // Dummy implementation of the interface
     }
 
-    public override char[] validateArgs ( Application app, Arguments args )
+    public char[] validateArgs ( IApplication app, Arguments args )
     {
         // Dummy implementation of the interface
         return null;
     }
 
-    public override void processArgs ( Application app, Arguments args )
+    public void processArgs ( IApplication app, Arguments args )
     {
         // Dummy implementation of the interface
     }

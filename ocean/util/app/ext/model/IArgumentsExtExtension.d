@@ -18,7 +18,7 @@ module ocean.util.app.ext.model.IArgumentsExtExtension;
 
 *******************************************************************************/
 
-public import ocean.util.app.Application : Application;
+public import ocean.util.app.model.IApplication;
 public import ocean.text.Arguments : Arguments;
 
 private import ocean.util.app.model.IExtension;
@@ -45,7 +45,7 @@ interface IArgumentsExtExtension : IExtension
 
     ***************************************************************************/
 
-    void setupArgs ( Application app, Arguments args );
+    void setupArgs ( IApplication app, Arguments args );
 
 
     /***************************************************************************
@@ -63,7 +63,7 @@ interface IArgumentsExtExtension : IExtension
 
     ***************************************************************************/
 
-    char[] validateArgs ( Application app, Arguments args );
+    char[] validateArgs ( IApplication app, Arguments args );
 
 
     /***************************************************************************
@@ -77,7 +77,7 @@ interface IArgumentsExtExtension : IExtension
 
     ***************************************************************************/
 
-    void processArgs ( Application app, Arguments args );
+    void processArgs ( IApplication app, Arguments args );
 
 }
 

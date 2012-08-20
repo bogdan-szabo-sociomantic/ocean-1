@@ -138,7 +138,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public override void setupArgs ( Application app, Arguments args )
+    public void setupArgs ( IApplication app, Arguments args )
     {
         args("config").aliased('c').params(1).smush()
             .help("use the configuration file CONFIG instead of the default "
@@ -168,7 +168,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public override void processArgs ( Application app, Arguments args )
+    public void processArgs ( IApplication app, Arguments args )
     {
         if (!this.loose_config_parsing)
         {
@@ -205,7 +205,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public override char[] validateArgs ( Application app, Arguments args )
+    public char[] validateArgs ( IApplication app, Arguments args )
     {
         char[][] errors;
         foreach (opt; args("override-config").assigned)
@@ -250,7 +250,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public override void preRun ( Application app, char[][] cl_args )
+    public void preRun ( IApplication app, char[][] cl_args )
     {
         foreach (ext; this.extensions)
         {
@@ -258,7 +258,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
         }
 
         auto config_files = this.default_configs;
-        auto args_ext = app.getExtension!(ArgumentsExt);
+        auto args_ext = (cast(Application)app).getExtension!(ArgumentsExt);
         if (args_ext !is null)
         {
             config_files ~= args_ext.args("config").assigned;
@@ -304,20 +304,20 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public override void postRun ( Application app, char[][] args, int status )
+    public void postRun ( IApplication app, char[][] args, int status )
     {
         // Unused
     }
 
     /// ditto
-    public override void atExit ( Application app, char[][] args, int status,
+    public void atExit ( IApplication app, char[][] args, int status,
             ExitException exception )
     {
         // Unused
     }
 
     /// ditto
-    public override ExitException onExitException ( Application app,
+    public ExitException onExitException ( IApplication app,
             char[][] args, ExitException exception )
     {
         // Unused

@@ -21,6 +21,7 @@ module ocean.util.app.Application;
 
 private import ocean.util.app.model.ExtensibleClassMixin;
 private import ocean.util.app.model.IApplicationExtension;
+private import ocean.util.app.model.IApplication;
 private import ocean.util.app.ExitException;
 
 private import ocean.io.Stdout;
@@ -95,7 +96,7 @@ private import ocean.io.Stdout;
 
 *******************************************************************************/
 
-class Application : IApplicationExtension
+class Application : IApplication
 {
 
     /***************************************************************************
@@ -110,14 +111,24 @@ class Application : IApplicationExtension
 
     /***************************************************************************
 
-        Name of the application.
-
-        Usually should be set in the constructor and remain read-only for the
-        rest of the life of the program.
+        Alias of Application, for use by sub-classes without needing to import
+        ocean.util.app.Application.
 
     ***************************************************************************/
 
-    public char[] name;
+    protected alias .Application Application;
+
+
+    /***************************************************************************
+
+        Name of the application.
+
+        Set in the constructor and remains read-only for the rest of the life of
+        the program.
+
+    ***************************************************************************/
+
+    private const char[] name_;
 
 
     /***************************************************************************
@@ -176,10 +187,23 @@ class Application : IApplicationExtension
 
     public this ( char[] name, char[] desc )
     {
-        this.name = name;
+        this.name_ = name;
         this.desc = desc;
         this.status = -1;
         this.registerExtension(this);
+    }
+
+
+    /***************************************************************************
+
+        Returns:
+            the name of the application
+
+    ***************************************************************************/
+
+    public char[] name ( )
+    {
+        return this.name_;
     }
 
 
@@ -329,23 +353,23 @@ class Application : IApplicationExtension
 
     ***************************************************************************/
 
-    public override void preRun ( Application app, char[][] args )
+    public void preRun ( IApplication app, char[][] args )
     {
         // Dummy implementation of the interface
     }
 
-    public override void postRun ( Application app, char[][] args, int status )
+    public void postRun ( IApplication app, char[][] args, int status )
     {
         // Dummy implementation of the interface
     }
 
-    public override void atExit ( Application app, char[][] args, int status,
+    public void atExit ( IApplication app, char[][] args, int status,
             ExitException exception )
     {
         // Dummy implementation of the interface
     }
 
-    public override ExitException onExitException ( Application app,
+    public ExitException onExitException ( IApplication app,
             char[][] args, ExitException exception )
     {
         // Dummy implementation of the interface

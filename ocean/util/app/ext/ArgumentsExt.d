@@ -21,7 +21,7 @@ module ocean.util.app.ext.ArgumentsExt;
 private import ocean.util.app.model.ExtensibleClassMixin;
 private import ocean.util.app.model.IApplicationExtension;
 private import ocean.util.app.ext.model.IArgumentsExtExtension;
-private import ocean.util.app.Application;
+//private import ocean.util.app.model.IApplication;
 
 private import ocean.text.Arguments;
 private import ocean.io.Stdout;
@@ -109,7 +109,7 @@ class ArgumentsExt : IApplicationExtension
 
     ***************************************************************************/
 
-    public override void preRun ( Application app, char[][] cl_args )
+    public void preRun ( IApplication app, char[][] cl_args )
     {
         auto args = this.args;
 
@@ -169,18 +169,18 @@ class ArgumentsExt : IApplicationExtension
 
     ***************************************************************************/
 
-    public override void postRun ( Application app, char[][] args, int status )
+    public void postRun ( IApplication app, char[][] args, int status )
     {
         // Unused
     }
 
-    public override void atExit ( Application app, char[][] args, int status,
+    public void atExit ( IApplication app, char[][] args, int status,
             ExitException exception )
     {
         // Unused
     }
 
-    public override ExitException onExitException ( Application app,
+    public ExitException onExitException ( IApplication app,
             char[][] args, ExitException exception )
     {
         // Unused

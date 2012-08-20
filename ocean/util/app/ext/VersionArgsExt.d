@@ -21,11 +21,11 @@ module ocean.util.app.ext.VersionArgsExt;
 public import ocean.util.app.ext.VersionInfo;
 
 private import ocean.util.app.model.IApplicationExtension;
-private import ocean.util.app.Application;
 private import ocean.util.app.ext.model.IArgumentsExtExtension;
 private import ocean.util.app.ext.model.ILogExtExtension;
 private import ocean.util.app.ext.LogExt;
 private import ocean.util.app.ext.ConfigExt;
+private import ocean.util.app.Application;
 
 private import ocean.text.Arguments;
 private import ocean.util.config.ConfigParser;
@@ -177,7 +177,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public override void setupArgs ( Application app, Arguments args )
+    public void setupArgs ( IApplication app, Arguments args )
     {
         args("version").params(0).help("show version information and exit");
     }
@@ -189,7 +189,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public override void processArgs ( Application app, Arguments args )
+    public void processArgs ( IApplication app, Arguments args )
     {
         if (args("version").set)
         {
@@ -208,7 +208,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public override void postConfigureLoggers ( Application app, ConfigParser config,
+    public void postConfigureLoggers ( IApplication app, ConfigParser config,
             bool loose_config_parsing, bool use_insert_appender )
     {
         this.default_logging = config.get("VERSION", "default_version_log",
@@ -227,9 +227,9 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public override void preRun ( Application app, char[][] args )
+    public void preRun ( IApplication app, char[][] args )
     {
-        auto conf_ext = app.getExtension!(ConfigExt)();
+        auto conf_ext = (cast(Application)app).getExtension!(ConfigExt)();
         if (conf_ext is null)
         {
             return;
@@ -254,18 +254,18 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public override void postRun ( Application app, char[][] args, int status )
+    public void postRun ( IApplication app, char[][] args, int status )
     {
         // Unused
     }
 
-    public override void atExit ( Application app, char[][] args, int status,
+    public void atExit ( IApplication app, char[][] args, int status,
             ExitException exception )
     {
         // Unused
     }
 
-    public override ExitException onExitException ( Application app,
+    public ExitException onExitException ( IApplication app,
             char[][] args, ExitException exception )
     {
         // Unused
@@ -282,7 +282,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public override char[] validateArgs ( Application app, Arguments args )
+    public char[] validateArgs ( IApplication app, Arguments args )
     {
         // Unused
         return null;
@@ -298,7 +298,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public override void preConfigureLoggers ( Application app, ConfigParser config,
+    public void preConfigureLoggers ( IApplication app, ConfigParser config,
             bool loose_config_parsing, bool use_insert_appender )
     {
         // Unused
