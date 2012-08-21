@@ -283,9 +283,8 @@ private class CurlProcess : EpollProcess
         {
             this.args ~= "-k";
         }
-        
-        
-        //extra header... extra info to header...
+
+        // extra info to header...
         if(this.params.extra_header_set)
         {
             foreach(head;this.params.extra_header_params)
@@ -295,7 +294,6 @@ private class CurlProcess : EpollProcess
             }
         }
 
-        
         //request command
         if(this.params.req_command_set)
         {
@@ -305,19 +303,10 @@ private class CurlProcess : EpollProcess
                 this.args ~= cmd;
             }
         }
-        
 
         // Url
         this.args ~= this.params.url;
-        
-        
-//        char[] buf;
-//        foreach(a;args)
-//            buf ~=a;
-//        
-//                
-//        Stdout.formatln("{}",args);
-//        Stdout.formatln("{}",buf);
+
         super.start(this.args);
     }
 }

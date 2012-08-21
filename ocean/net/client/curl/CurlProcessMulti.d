@@ -315,7 +315,41 @@ public abstract class CurlRequests
     {
         return PostSetup(url, receive_dg, error_dg, finished_dg,data);
     }
+
     
+    /***************************************************************************
+
+        Sets up a PutSetup struct describing a new put request. Any desired
+        methods of the struct should be called (to configure optional post
+        settings), and it should be passed to the assign() method to start the
+        request.
+
+        Params:
+            url = url to use
+            receive_dg = delegate which will be called when data is received
+                from the url
+            error_dg = delegate which will be called when error messages are
+                sent from curl
+            finished_dg = delegate which will be called when the request
+                process finishes
+            data = the data to be posted
+
+        Returns:
+            PutSetup struct to be passed to assign
+
+    ***************************************************************************/
+        
+    struct PutSetup
+    {
+        mixin RequestBase; //contains the base functions
+        mixin PutRequest;  //contains the post "constructor"
+    }
+    
+    public PutSetup put ( char[] url, CurlReceiveDg receive_dg,
+            CurlReceiveDg error_dg, CurlNotificationDg finished_dg, char[] data)
+    {
+        return PutSetup(url, receive_dg, error_dg, finished_dg,data);
+    }    
     /***************************************************************************
 
         Sets up a DeleteSetup struct describing a new post request. Any desired

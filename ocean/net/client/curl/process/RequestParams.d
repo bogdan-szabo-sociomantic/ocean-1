@@ -7,7 +7,7 @@
     authors:        Hans Bjerkander
 
     Contains all the different parameters needed for creating a hhtp request
-    with curl. 
+    with curl.
 
 *******************************************************************************/
 
@@ -255,36 +255,36 @@ public struct RequestParams
     {
         return this.append_statuscode;
     }
-    
+
+
     /***************************************************************************
 
         Getter and Setter methods for variables with the type struct template
         Serialized ( T ). Calls the set and get method from the template.
 
-    ***************************************************************************/    
-    
-    
+    ***************************************************************************/
+
     public CurlReceiveDg get_receive_dg()
     {
-        return this.receive_dg.get();   
+        return this.receive_dg.get();
     }
 
 
     public void set_receive_dg( CurlReceiveDg dg)
     {
-        this.receive_dg.set(dg);   
+        this.receive_dg.set(dg);
     }
 
 
     public CurlReceiveDg get_error_dg()
     {
-        return this.error_dg.get();   
+        return this.error_dg.get();
     }
 
 
     public void set_error_dg( CurlReceiveDg dg)
     {
-        this.error_dg.set(dg);        
+        this.error_dg.set(dg);
     }
 
 
@@ -308,7 +308,7 @@ public struct RequestParams
 
     public void set_context(ContextUnion c)
     {
-        this.context.set(c);   
+        this.context.set(c);
     }
 
     public char[][] get_req_command()
