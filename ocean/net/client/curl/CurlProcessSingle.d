@@ -1,18 +1,19 @@
 /*******************************************************************************
 
-    Url download functionality using child process running curl.
+    HTTP request functionality using child process running curl.
 
     copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
 
     version:        January 2012: Initial release
+                    August  2012: Added support for more request then get
 
-    authors:        Gavin Norman
+    authors:        Gavin Norman, Hans Bjerkander
 
     Usage example:
 
     ---
 
-        TODO
+        see CurlProcessMulti
 
     ---
 
@@ -28,10 +29,10 @@ module ocean.net.client.curl.CurlProcessSingle;
 
 *******************************************************************************/
 
-private import ocean.net.client.curl.process.DownloadSetup;
 private import ocean.net.client.curl.process.NotificationInfo;
 private import ocean.net.client.curl.process.ExitStatus;
 private import ocean.net.client.curl.process.HttpResponse;
+private import ocean.net.client.curl.process.RequestParams;
 
 private import ocean.io.select.event.EpollProcess;
 
@@ -66,14 +67,14 @@ private class CurlProcess : EpollProcess
 
     /***************************************************************************
 
-        Initialisation settings for this download. Set by the start()
+        Initialisation settings for this request. Set by the start()
         method.
 
     ***************************************************************************/
 
-    private ubyte[] serialized_setup;
+    private ubyte[] serialized_params;
 
-    private DownloadSetup* setup;
+    private RequestParams* params;
 
 
     /***************************************************************************
@@ -127,16 +128,16 @@ private class CurlProcess : EpollProcess
 
     /***************************************************************************
 
-        Starts the download process according to the specified configuration.
+        Starts the request process according to the specified configuration.
 
         Params:
-            setup = download configuration settings
+            params = request configuration settings
 
     ***************************************************************************/
 
-    public void start ( DownloadSetup setup )
+    public void start ( RequestParams params)
     {
-        StructSerializer!().dump(&setup, this.serialized_setup);
+        StructSerializer!().dump(&params, this.serialized_params);
 
         this.start();
     }
@@ -144,16 +145,16 @@ private class CurlProcess : EpollProcess
 
     /***************************************************************************
 
-        Starts the download process according to the specified configuration.
+        Starts the request process according to the specified configuration.
 
         Params:
-            serialized_setup = serialized download configuration settings
+            serialized_params = serialized request configuration settings
 
     ***************************************************************************/
 
-    public void start ( ubyte[] serialized_setup )
+    public void start ( ubyte[] serialized_params )
     {
-        this.serialized_setup.copy(serialized_setup);
+        this.serialized_params.copy(serialized_params);
 
         this.start();
     }
@@ -170,8 +171,8 @@ private class CurlProcess : EpollProcess
 
     protected void stdout ( ubyte[] data )
     {
-        auto receive_dg = this.setup.receive_dg();
-        receive_dg(this.setup.context, this.setup.url, data);
+        auto receive_dg = this.params.get_receive_dg();
+        receive_dg(this.params.get_context(), this.params.url, data);
 
         this.http_response.update(data);
     }
@@ -188,8 +189,8 @@ private class CurlProcess : EpollProcess
 
     protected void stderr ( ubyte[] data )
     {
-        auto error_dg = this.setup.error_dg();
-        error_dg(this.setup.context, this.setup.url, data);
+        auto error_dg = this.params.get_error_dg();
+        error_dg(this.params.get_context(), this.params.url, data);
     }
 
 
@@ -216,28 +217,29 @@ private class CurlProcess : EpollProcess
         ? cast(ExitStatus)exit_code
                 : ExitStatus.ProcessTerminatedAbnormally;
 
-        auto notification_dg = this.setup.notification_dg();
+        auto notification_dg = this.params.get_notification_dg();
         notification_dg(NotificationInfo(NotificationInfo.Type.Finished,
-            this.setup.context, this.setup.url, status, this.http_response.code));
+            this.params.get_context(), this.params.url, status, 
+            this.http_response.code));
     }
 
 
     /***************************************************************************
 
-        Starts the download described by the configuration settings in
-        this.serialized_setup.
+        Starts the request described by the configuration settings in
+        this.serialized_params.
 
     ***************************************************************************/
 
     private void start ( )
     {
-        StructSerializer!().loadSlice(this.setup, this.serialized_setup);
+        StructSerializer!().loadSlice(this.params, this.serialized_params);
 
         this.http_response.reset;
 
-        auto notification_dg = this.setup.notification_dg();
+        auto notification_dg = this.params.get_notification_dg();
         notification_dg(NotificationInfo(NotificationInfo.Type.Started,
-                    this.setup.context, this.setup.url));
+                    this.params.get_context(), this.params.url));
 
         this.args.length = 0;
         this.args ~= "curl";
@@ -245,43 +247,77 @@ private class CurlProcess : EpollProcess
         // Standard options
         this.args ~= "-s"; // silent -- nothing sent to stderr
         this.args ~= "-S"; // show errors
-        this.args ~= `-w %{http_code}`; // output HTTP status as last 3 bytes of stdout stream
+        if(this.params.appendStatusCode() )
+        {
+            this.args ~= "-w";
+            this.args ~= "%{http_code}"; // output HTTP status as last 3 bytes of stdout stream
+        }
 
         // Switch off the URL globbing parser, so that URLs can contain {}[]
         this.args ~= "-g";
 
         // Authentication
-        if ( this.setup.authentication_set )
+        if ( this.params.authentication_set )
         {
             this.args ~= "-u";
 
             this.authenticate_buf.length = 0;
             Layout!(char).print(this.authenticate_buf, "{}:{}",
-                    this.setup.username, this.setup.passwd);
+                    this.params.username, this.params.passwd);
 
             this.args ~= this.authenticate_buf;
         }
 
         // Timeout
-        if ( this.setup.timeout_set )
+        if ( this.params.timeout_set )
         {
             this.args ~= "-m";
             this.timeout_buf.length = 0;
-            Layout!(char).print(this.timeout_buf, "{}", this.setup.timeout_s);
+            Layout!(char).print(this.timeout_buf, "{}", this.params.timeout_s);
 
             this.args ~= this.timeout_buf;
         }
 
         // SSL
-        if ( this.setup.ssl_insecure_set )
+        if ( this.params.ssl_insecure_set )
         {
             this.args ~= "-k";
         }
         
+        
+        //extra header... extra info to header...
+        if(this.params.extra_header_set)
+        {
+            foreach(head;this.params.extra_header_params)
+            {
+                this.args ~= "-H";
+                this.args ~= head;
+            }
+        }
+
+        
+        //request command
+        if(this.params.req_command_set)
+        {
+            this.args ~= "-X";
+            foreach(cmd;this.params.req_command.get())
+            {
+                this.args ~= cmd;
+            }
+        }
+        
 
         // Url
-        this.args ~= this.setup.url;
-
+        this.args ~= this.params.url;
+        
+        
+//        char[] buf;
+//        foreach(a;args)
+//            buf ~=a;
+//        
+//                
+//        Stdout.formatln("{}",args);
+//        Stdout.formatln("{}",buf);
         super.start(this.args);
     }
 }

@@ -1,12 +1,13 @@
 /*******************************************************************************
 
-    Url download functionality using a set of child processes running curl.
+    HTTP request functionality using a set of child processes running curl.
 
     copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
 
     version:        January 2012: Initial release
+                    August  2012: Added support for other request then get.
 
-    authors:        Gavin Norman
+    authors:        Gavin Norman, Hans Bjerkander
 
     Usage example:
 
@@ -16,21 +17,41 @@
         import ocean.net.client.curl.CurlProcess;
         import ocean.io.select.EpollSelectDispatcher;
 
+        char[] rec_data;
+        char[] err_data;
+        bool ok,err;
+        
+        void rec ( ContextUnion context, char[] url, ubyte[] data )
+        {
+            rec_data ~= cast(char[])data;
+        }
+        void not ( NotificationInfo info )
+        {
+            ok = info.succeeded ( );
+        }
+        void error ( ContextUnion context, char[] url, ubyte[] data )
+        {
+            err_data ~= cast(char[])data;
+            err = true;
+        }     
+        
         // Create epoll selector instance.
         auto epoll = new EpollSelectDispatcher;
-
+    
         // Create a curl downloads instance which can process a maximum of 10
-        // downloads in parallel.
-        const max_downloads = 10;
-        auto curl = new CurlDownloads(epoll, max_downloads);
-
+        // requests in parallel.
+        const max_processes = 10;
+        auto curl = new QueuedRequests(epoll, max_processes, size_t.max);
+    
         // Initialise some downloads, one with authorization.
-        curl.assign(curl.download("http://www.google.com"));
-        curl.assign(curl.download("http://www.wikipedia.org"));
-        curl.assign(
-            curl.download("http://www.zalando.de/var/export/display_zalando_de.csv")
-            .authorize("zalando-user", "dewE23#f4"));
-
+        
+        curl.assign(curl.get("http://www.google.com",&rec,&error,&not));
+        curl.assign(curl.get("http://www.wikipedia.org",&rec,&error,&not));
+        curl.assign(*curl.get(
+            "http://www.zalando.de/var/export/display_zalando_de.csv",
+            &rec,&error,&not)
+            .authenticate("zalando-user", "dewE23#f4"));
+    
         // Handle arriving data.
         epoll.eventLoop;
 
@@ -61,11 +82,13 @@ module ocean.net.client.curl.CurlProcessMulti;
 
 *******************************************************************************/
 
+private import ocean.net.client.curl.process.RequestParams;
+
 private import ocean.net.client.curl.CurlProcessSingle;
 
-private import ocean.net.client.curl.process.DownloadSetup;
 private import ocean.net.client.curl.process.ExitStatus;
 private import ocean.net.client.curl.process.NotificationInfo;
+private import ocean.net.client.curl.process.RequestSetup;
 
 private import ocean.core.ContextUnion;
 
@@ -83,14 +106,14 @@ debug private import ocean.io.Stdout;
 
 /*******************************************************************************
 
-    Class encapsulating a set of one or more parallel url downloads using curl.
-    The maximum number of parallel downloads is set in the constructor. When all
-    downloads are busy, any further downloads which are assigned will simply be
+    Class encapsulating a set of one or more parallel url request using curl.
+    The maximum number of parallel requests is set in the constructor. When all
+    requests are busy, any further requests which are assigned will simply be
     ignored.
 
 *******************************************************************************/
 
-public abstract class CurlDownloads
+public abstract class CurlRequests
 {
     /***************************************************************************
 
@@ -109,13 +132,13 @@ public abstract class CurlDownloads
 
     /***************************************************************************
 
-        Curl process which downloads a url. Class derived in order to allow it
-        to be used in a Pool. The pool (in the outer class) needs to be notified
-        when a download has finished, so that it can be recycled.
+        Curl process which request with a url. Class derived in order to allow 
+        it to be used in a Pool. The pool (in the outer class) needs to be 
+        notified when a request has finished, so that it can be recycled.
 
     ***************************************************************************/
 
-    private class CurlDownloadProcess : CurlProcess
+    private class CurlRequestProcess : CurlProcess
     {
         /***********************************************************************
 
@@ -143,7 +166,7 @@ public abstract class CurlDownloads
 
             Called when the process has finished. Calls the super method for the
             standard behaviour, and also notifies the outer class that this
-            download can be recycled.
+            request can be recycled.
 
             Params:
                 exited_ok = if true, the process exited normally and the
@@ -157,15 +180,14 @@ public abstract class CurlDownloads
         override protected void finished ( bool exited_ok, int exit_code )
         {
             super.finished(exited_ok, exit_code);
-
-            this.outer.downloadFinished(this);
+            this.outer.requestFinished(this);
         }
     }
 
 
     /***************************************************************************
 
-        Maximum number of concurrent download processes.
+        Maximum number of concurrent processes.
 
     ***************************************************************************/
 
@@ -174,13 +196,13 @@ public abstract class CurlDownloads
 
     /***************************************************************************
 
-        Pool of download processes.
+        Pool of requests processes.
 
     ***************************************************************************/
 
-    private alias Pool!(CurlDownloadProcess) DownloadPool;
+    private alias Pool!(CurlRequestProcess) RequestPool;
 
-    private const DownloadPool downloads;
+    private const RequestPool requests;
 
 
     /***************************************************************************
@@ -195,8 +217,8 @@ public abstract class CurlDownloads
 
     /***************************************************************************
 
-        Flag which is set when downloads are suspended using the supsend()
-        method. Reset by resume(). When suspended_ is true, no new downloads may
+        Flag which is set when requests are suspended using the supsend()
+        method. Reset by resume(). When suspended_ is true, no new requests may
         be assigned.
 
     ***************************************************************************/
@@ -210,7 +232,7 @@ public abstract class CurlDownloads
 
         Params:
             epoll = epoll dispatcher to use
-            max = maximum number of concurrent download processes
+            max = maximum number of concurrent request processes
 
     ***************************************************************************/
 
@@ -219,68 +241,147 @@ public abstract class CurlDownloads
         this.epoll = epoll;
         this.max = max;
 
-        this.downloads = new DownloadPool;
+        this.requests = new RequestPool;
     }
 
-
+    
     /***************************************************************************
 
-        Sets up a DownloadSetup struct describing a new download. Any desired
-        methods of the struct should be called (to configure optional download
+        Sets up a GetSetup struct describing a new get request. Any desired
+        methods of the struct should be called (to configure optional get
         settings), and it should be passed to the assign() method to start the
-        download.
+        request.
 
         Params:
-            url = url to download
+            url = url to use
             receive_dg = delegate which will be called when data is received
                 from the url
             error_dg = delegate which will be called when error messages are
                 sent from curl
-            finished_dg = delegate which will be called when the download
+            finished_dg = delegate which will be called when the request
                 process finishes
 
         Returns:
-            DownloadSetup struct to be passed to assign
+            GetSetup struct to be passed to assign
 
     ***************************************************************************/
 
-    public DownloadSetup download ( char[] url, CurlReceiveDg receive_dg,
-            CurlReceiveDg error_dg, CurlNotificationDg finished_dg )
+    struct GetSetup
     {
-        return DownloadSetup(url, receive_dg, error_dg, finished_dg);
+        mixin RequestBase; //contains the base functions
+        mixin GetRequest;  //contains the get "constructor"
     }
+    
+    public GetSetup get ( char[] url, CurlReceiveDg receive_dg,
+            CurlReceiveDg error_dg, CurlNotificationDg finished_dg)
+    {
+        return GetSetup(url, receive_dg, error_dg, finished_dg);
+    }
+    
+    //for backwards compability. Should be removed in the future
+    public alias get download;    
 
-
+    
     /***************************************************************************
 
-        Assigns a new download as described by a DownloadSetup struct.
-
-        Two versions of this method exist, accepting either a DownloadSetup
-        struct, or a pointer to such a struct.
+        Sets up a PostSetup struct describing a new post request. Any desired
+        methods of the struct should be called (to configure optional post
+        settings), and it should be passed to the assign() method to start the
+        request.
 
         Params:
-            setup = DownloadSetup struct describing a new download
+            url = url to use
+            receive_dg = delegate which will be called when data is received
+                from the url
+            error_dg = delegate which will be called when error messages are
+                sent from curl
+            finished_dg = delegate which will be called when the request
+                process finishes
+            data = the data to be posted
 
         Returns:
-            true if the download was started, or false if all download processes
-            are busy or suspended
+            PostSetup struct to be passed to assign
+
+    ***************************************************************************/
+        
+    struct PostSetup
+    {
+        mixin RequestBase; //contains the base functions
+        mixin PostRequest; //contains the post "constructor"
+    }
+    
+    public PostSetup post ( char[] url, CurlReceiveDg receive_dg,
+            CurlReceiveDg error_dg, CurlNotificationDg finished_dg, char[] data)
+    {
+        return PostSetup(url, receive_dg, error_dg, finished_dg,data);
+    }
+    
+    /***************************************************************************
+
+        Sets up a DeleteSetup struct describing a new post request. Any desired
+        methods of the struct should be called (to configure optional post
+        settings), and it should be passed to the assign() method to start the
+        request.
+
+        Params:
+            url = url to use
+            receive_dg = delegate which will be called when data is received
+                from the url
+            error_dg = delegate which will be called when error messages are
+                sent from curl
+            finished_dg = delegate which will be called when the request
+                process finishes
+            data = the data to be posted
+
+        Returns:
+            DeleteSetup struct to be passed to assign
+
+    ***************************************************************************/
+        
+    struct DeleteSetup
+    {
+        mixin RequestBase; //contains the base functions
+        mixin DeleteRequest; //contains the delete "constructor"
+    }
+    
+    public DeleteSetup del ( char[] url, CurlReceiveDg receive_dg,
+            CurlReceiveDg error_dg, CurlNotificationDg finished_dg)
+    {
+        return DeleteSetup(url, receive_dg, error_dg, finished_dg);
+    }
+    
+          
+    /***************************************************************************
+
+        Assigns a new request as described by a PostSetup or GetSetup struct.
+
+        Two versions of this method exist, accepting either a struct, or a 
+        pointer to such a struct.
+
+        Params:
+            setup = a struct describing a new request
+
+        Returns:
+            true if the request was started, or false if all processes are 
+            busy or suspended.
 
     ***************************************************************************/
 
-    public bool assign ( DownloadSetup* setup )
+
+    public bool assign (T) ( T* setup )
     {
         return this.assign(*setup);
     }
 
-    public bool assign ( DownloadSetup setup )
+    public bool assign (T) ( T setup )
     {
         if ( this.all_busy || this.suspended_ )
         {
             return false;
         }
 
-        auto dl = this.downloads.get(new CurlDownloadProcess);
-        dl.start(setup);
+        auto dl = this.requests.get(new CurlRequestProcess);
+        dl.start(setup.params);
 
         return true;
     }
@@ -289,20 +390,20 @@ public abstract class CurlDownloads
     /***************************************************************************
 
         Returns:
-            the number of currently active downloads
+            the number of currently active requests
 
     ***************************************************************************/
 
     public size_t num_busy ( )
     {
-        return this.downloads.num_busy;
+        return this.requests.num_busy;
     }
 
 
     /***************************************************************************
 
         Returns:
-            true if all download processes are busy
+            true if all request processes are busy
 
     ***************************************************************************/
 
@@ -314,7 +415,7 @@ public abstract class CurlDownloads
 
     /***************************************************************************
 
-        Suspends all active downloads.
+        Suspends all active requests.
 
     ***************************************************************************/
 
@@ -327,8 +428,8 @@ public abstract class CurlDownloads
 
         this.suspended_ = true;
 
-        scope active_downloads = this.downloads.new BusyItemsIterator;
-        foreach ( dl; active_downloads )
+        scope active_requests = this.requests.new BusyItemsIterator;
+        foreach ( dl; active_requests )
         {
             dl.suspend;
         }
@@ -338,7 +439,7 @@ public abstract class CurlDownloads
     /***************************************************************************
 
         Returns:
-            true if downloads are suspended
+            true if the request processes are suspended
 
     ***************************************************************************/
 
@@ -350,7 +451,7 @@ public abstract class CurlDownloads
 
     /***************************************************************************
 
-        Resumes any suspended downloads.
+        Resumes any suspended requests.
 
     ***************************************************************************/
 
@@ -363,8 +464,8 @@ public abstract class CurlDownloads
 
         this.suspended_ = false;
 
-        scope active_downloads = this.downloads.new BusyItemsIterator;
-        foreach ( dl; active_downloads )
+        scope active_requests = this.requests.new BusyItemsIterator;
+        foreach ( dl; active_requests )
         {
             dl.resume;
         }
@@ -373,35 +474,35 @@ public abstract class CurlDownloads
 
     /***************************************************************************
 
-        Called when a download process finishes. Recycles the download to the
-        pool.
+        Called when a request process finishes. Recycles the request process
+        to the pool.
 
         Params:
-            process = download process which has just finished
+            process = request process which has just finished
 
     ***************************************************************************/
 
-    protected void downloadFinished ( CurlDownloadProcess process )
+    protected void requestFinished ( CurlRequestProcess process )
     {
-        this.downloads.recycle(process);
+        this.requests.recycle(process);
     }
 }
 
 
 /*******************************************************************************
 
-    Expands the CurlDownloads class with a downloads queue. When all downloads
-    are busy, any further downloads which are assigned will be pushed into the
-    queue and processed when one of the active download processes becomes free.
+    Expands the CurlRequests class with a requests queue. When all requests
+    are busy, any further requests which are assigned will be pushed into the
+    queue and processed when one of the active request processes becomes free.
 
 *******************************************************************************/
 
-public class QueuedDownloads : CurlDownloads
+public class QueuedRequests : CurlRequests
 {
     /***************************************************************************
 
-        Queue used to store downloads which are assigned when all download
-        processes are busy or when downloading is suspended.
+        Queue used to store requests which are assigned when all requests
+        processes are busy or when requests is suspended.
 
     ***************************************************************************/
 
@@ -414,8 +515,8 @@ public class QueuedDownloads : CurlDownloads
 
         Params:
             epoll = epoll dispatcher to use
-            max = maximum number of concurrent download processes
-            queue_size = maximum size of download queue (in bytes)
+            max = maximum number of concurrent request processes
+            queue_size = maximum size of request queue (in bytes)
 
     ***************************************************************************/
 
@@ -429,49 +530,52 @@ public class QueuedDownloads : CurlDownloads
 
     /***************************************************************************
 
-        Assigns a new download as described by a DownloadSetup struct. If all
-        downloads in the pool are currently busy, the download will be queued.
+        Assigns a new requests as described by different request structs. If all
+        request in the pool are currently busy, the request will be queued.
 
-        Two versions of this method exist, accepting either a DownloadSetup
-        struct, or a pointer to such a struct.
+        Two versions of this method exist, accepting either a struct, or a 
+        pointer to such a struct.
 
         Params:
-            setup = DownloadSetup struct describing a new download
+            setup = a struct describing a new request, defined in CurlRequests
 
         Returns:
-            true if the download was started or queued, or false if there was no
+            true if the request was started or queued, or false if there was no
             space in the queue
 
     ***************************************************************************/
 
-    override public bool assign ( DownloadSetup* setup )
+    override public bool assign (T) ( T* setup )
     {
         return this.assign(*setup);
     }
 
-    override public bool assign ( DownloadSetup setup )
+    override public bool assign (T) ( T setup )
     {
         if ( this.all_busy || this.suspended_ )
         {
-            auto length = StructSerializer!().length(&setup);
+            auto length = StructSerializer!().length(&setup.params);
 
             auto target = this.queue.push(length);
             if ( target is null )
             {
                 return false; 
             }
+            
+            StructSerializer!().dump(&setup.params, target);
 
-            StructSerializer!().dump(&setup, target);
-
-            auto notification_dg = setup.notification_dg();
+            auto notification_dg = setup.params.notification_dg.get();
+            
+            pragma(msg, typeof(notification_dg).stringof);
+            
             notification_dg(NotificationInfo(NotificationInfo.Type.Queued,
-                        setup.context, setup.url));
+                        setup.params.context.get(), setup.params.url));
 
             return true;
         }
 
-        auto dl = this.downloads.get(new CurlDownloadProcess);
-        dl.start(setup);
+        auto dl = this.requests.get(new CurlRequestProcess);
+        dl.start(setup.params);
 
         return true;
     }
@@ -480,7 +584,7 @@ public class QueuedDownloads : CurlDownloads
     /***************************************************************************
 
         Returns:
-            the number of queued downloads
+            the number of queued requests
 
     ***************************************************************************/
 
@@ -492,27 +596,27 @@ public class QueuedDownloads : CurlDownloads
 
     /***************************************************************************
 
-        Called when a download process finishes. Recycles the download to the
+        Called when a request process finishes. Recycles the request to the
         pool (by calling the super method), and pops the next request from the
         queue, if one is waiting.
 
         Params:
-            process = download process which has just finished
+            process = request process which has just finished
 
     ***************************************************************************/
 
-    override protected void downloadFinished ( CurlDownloadProcess process )
+    override protected void requestFinished ( CurlRequestProcess process )
     {
-        super.downloadFinished(process);
+        super.requestFinished(process);
 
-        assert(this.downloads.num_idle > 0);
+        assert(this.requests.num_idle > 0);
 
         // pop from queue
         if ( !this.queue.is_empty )
         {
             auto serialized_setup = this.queue.pop;
 
-            auto dl = this.downloads.get(new CurlDownloadProcess);
+            auto dl = this.requests.get(new CurlRequestProcess);
             dl.start(serialized_setup);
         }
     }

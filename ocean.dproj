@@ -157,7 +157,6 @@
     <Compile Include="ocean\math\SlidingAverage.d" />
     <Compile Include="ocean\net\client\curl\c\curl.d" />
     <Compile Include="ocean\net\client\curl\c\multi.d" />
-    <Compile Include="ocean\net\client\curl\process\DownloadSetup.d" />
     <Compile Include="ocean\net\client\curl\process\ExitStatus.d" />
     <Compile Include="ocean\net\client\curl\process\HttpResponse.d" />
     <Compile Include="ocean\net\client\curl\process\NotificationInfo.d" />
@@ -319,6 +318,8 @@
     <Compile Include="ocean\util\VariadicArg.d" />
     <Compile Include="test\main.d" />
     <Compile Include="ocean\text\convert\Integer.d" />
+    <Compile Include="ocean\net\client\curl\process\RequestSetup.d" />
+    <Compile Include="ocean\net\client\curl\process\RequestParams.d" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ocean\db\ebtree\c\lib\libebtree.a" />
