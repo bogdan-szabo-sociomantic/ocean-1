@@ -13,17 +13,22 @@
 
     ---
 
-        import ocean.io.Stdout;
-        import ocean.net.client.curl.CurlProcess;
-        import ocean.io.select.EpollSelectDispatcher;
+import ocean.io.Stdout;
+import ocean.net.client.curl.CurlProcessMulti;
+import ocean.io.select.EpollSelectDispatcher;
+import ocean.core.ContextUnion;
+import ocean.net.client.curl.process.NotificationInfo;
 
+void main()
+{
         char[] rec_data;
         char[] err_data;
         bool ok,err;
         
         void rec ( ContextUnion context, char[] url, ubyte[] data )
         {
-            rec_data ~= cast(char[])data;
+            rec_data ~= cast( char[] ) data;
+            Stdout.formatln("{}",rec_data);
         }
         void not ( NotificationInfo info )
         {
@@ -45,15 +50,16 @@
     
         // Initialise some downloads, one with authorization.
         
-        curl.assign(curl.get("http://www.google.com",&rec,&error,&not));
-        curl.assign(curl.get("http://www.wikipedia.org",&rec,&error,&not));
-        curl.assign(*curl.get(
+        curl.assign( curl.get("http://www.google.com",    &rec, &error, &not) );
+        curl.assign( curl.get("http://www.wikipedia.org", &rec, &error, &not) );
+        curl.assign( curl.get(
             "http://www.zalando.de/var/export/display_zalando_de.csv",
-            &rec,&error,&not)
-            .authenticate("zalando-user", "dewE23#f4"));
+            &rec, &error, &not)
+            .authenticate("zalando-user", "dewE23#f4") );
     
         // Handle arriving data.
         epoll.eventLoop;
+}
 
     ---
 
@@ -244,168 +250,168 @@ public abstract class CurlRequests
         this.requests = new RequestPool;
     }
 
-    
+
     /***************************************************************************
 
-        Sets up a GetSetup struct describing a new get request. Any desired
-        methods of the struct should be called (to configure optional get
-        settings), and it should be passed to the assign() method to start the
-        request.
-
-        Params:
-            url = url to use
-            receive_dg = delegate which will be called when data is received
-                from the url
-            error_dg = delegate which will be called when error messages are
-                sent from curl
-            finished_dg = delegate which will be called when the request
-                process finishes
-
-        Returns:
-            GetSetup struct to be passed to assign
+        Struct describing a request with no data to send.
 
     ***************************************************************************/
-
-    struct GetSetup
-    {
-        mixin RequestBase; //contains the base functions
-        mixin GetRequest;  //contains the get "constructor"
-    }
     
-    public GetSetup get ( char[] url, CurlReceiveDg receive_dg,
-            CurlReceiveDg error_dg, CurlNotificationDg finished_dg)
+    private struct BaseRequest
     {
-        return GetSetup(url, receive_dg, error_dg, finished_dg);
-    }
-    
-    //for backwards compability. Should be removed in the future
-    public alias get download;    
-
-    
-    /***************************************************************************
-
-        Sets up a PostSetup struct describing a new post request. Any desired
-        methods of the struct should be called (to configure optional post
-        settings), and it should be passed to the assign() method to start the
-        request.
-
-        Params:
-            url = url to use
-            receive_dg = delegate which will be called when data is received
-                from the url
-            error_dg = delegate which will be called when error messages are
-                sent from curl
-            finished_dg = delegate which will be called when the request
-                process finishes
-            data = the data to be posted
-
-        Returns:
-            PostSetup struct to be passed to assign
-
-    ***************************************************************************/
-        
-    struct PostSetup
-    {
-        mixin RequestBase; //contains the base functions
-        mixin PostRequest; //contains the post "constructor"
-    }
-    
-    public PostSetup post ( char[] url, CurlReceiveDg receive_dg,
-            CurlReceiveDg error_dg, CurlNotificationDg finished_dg, char[] data)
-    {
-        return PostSetup(url, receive_dg, error_dg, finished_dg,data);
-    }
-
-    
-    /***************************************************************************
-
-        Sets up a PutSetup struct describing a new put request. Any desired
-        methods of the struct should be called (to configure optional post
-        settings), and it should be passed to the assign() method to start the
-        request.
-
-        Params:
-            url = url to use
-            receive_dg = delegate which will be called when data is received
-                from the url
-            error_dg = delegate which will be called when error messages are
-                sent from curl
-            finished_dg = delegate which will be called when the request
-                process finishes
-            data = the data to be posted
-
-        Returns:
-            PutSetup struct to be passed to assign
-
-    ***************************************************************************/
-        
-    struct PutSetup
-    {
-        mixin RequestBase; //contains the base functions
-        mixin PutRequest;  //contains the post "constructor"
-    }
-    
-    public PutSetup put ( char[] url, CurlReceiveDg receive_dg,
-            CurlReceiveDg error_dg, CurlNotificationDg finished_dg, char[] data)
-    {
-        return PutSetup(url, receive_dg, error_dg, finished_dg,data);
+        mixin RequestBase; //contains the base functionality
     }    
+
+
     /***************************************************************************
 
-        Sets up a DeleteSetup struct describing a new post request. Any desired
-        methods of the struct should be called (to configure optional post
-        settings), and it should be passed to the assign() method to start the
-        request.
+        Struct describing a request with the possibility to send data.
+
+    ***************************************************************************/
+
+    private struct DataRequest
+    {
+        mixin RequestBase; //contains the base functionality
+        mixin RequestData; //contains the data method        
+    }
+
+
+    /***************************************************************************
+
+        Sets up a BaseRequest struct describing a get request. Any desired
+        methods of the struct should be called (to configure optional settings),
+        and it should be passed to the assign() method to start the request.
 
         Params:
             url = url to use
             receive_dg = delegate which will be called when data is received
                 from the url
-            error_dg = delegate which will be called when error messages are
+            error_dg = delegate which will be called when error data are
                 sent from curl
             finished_dg = delegate which will be called when the request
-                process finishes
-            data = the data to be posted
+                process changes status.
 
         Returns:
-            DeleteSetup struct to be passed to assign
+            BaseRequest struct to be passed to assign
 
     ***************************************************************************/
-        
-    struct DeleteSetup
-    {
-        mixin RequestBase; //contains the base functions
-        mixin DeleteRequest; //contains the delete "constructor"
-    }
-    
-    public DeleteSetup del ( char[] url, CurlReceiveDg receive_dg,
+
+    public BaseRequest get ( char[] url, CurlReceiveDg receive_dg,
             CurlReceiveDg error_dg, CurlNotificationDg finished_dg)
     {
-        return DeleteSetup(url, receive_dg, error_dg, finished_dg);
+        return BaseRequest (url, receive_dg, error_dg, finished_dg, "GET");
     }
-    
-          
+
+
     /***************************************************************************
 
-        Assigns a new request as described by a PostSetup or GetSetup struct.
+        The old version of this class had a method called download whith the 
+        same functionality and arguments as get. This alias exist only for
+        backwards compatibility.
 
-        Two versions of this method exist, accepting either a struct, or a 
-        pointer to such a struct.
+    ***************************************************************************/
+
+    public alias get download;
+
+
+    /***************************************************************************
+
+        Sets up a BaseRequest struct describing a delete request. Any desired
+        methods of the struct should be called (to configure optional settings),
+        and it should be passed to the assign() method to start the request.
 
         Params:
-            setup = a struct describing a new request
+            url = url to use
+            receive_dg = delegate which will be called when data is received
+                from the url
+            error_dg = delegate which will be called when error data are
+                sent from curl
+            finished_dg = delegate which will be called when the request
+                process changes status.
+
+        Returns:
+            BaseRequest struct to be passed to assign
+
+    ***************************************************************************/
+
+    public BaseRequest del ( char[] url, CurlReceiveDg receive_dg,
+            CurlReceiveDg error_dg, CurlNotificationDg finished_dg)
+    {
+        return BaseRequest (url, receive_dg, error_dg, finished_dg, "DELETE");
+    }
+
+
+    /***************************************************************************
+
+        Sets up a DataRequest struct describing a post request. Any desired
+        methods of the struct should be called (to configure optional settings),
+        and it should be passed to the assign() method to start the request.
+
+        Params:
+            url = url to use
+            receive_dg = delegate which will be called when data is received
+                from the url
+            error_dg = delegate which will be called when error data are
+                sent from curl
+            finished_dg = delegate which will be called when the request
+                process changes status.
+
+        Returns:
+            BaseRequest struct to be passed to assign
+
+    ***************************************************************************/
+    
+    public DataRequest post (char[] url, CurlReceiveDg receive_dg,
+            CurlReceiveDg error_dg, CurlNotificationDg finished_dg, char[] data)
+    {
+        return *DataRequest (url, receive_dg, error_dg, finished_dg, "POST").
+            setRequestData (data);
+    }
+
+
+    /***************************************************************************
+
+        Sets up a DataRequest struct describing a put request. Any desired
+        methods of the struct should be called (to configure optional settings),
+        and it should be passed to the assign() method to start the request.
+
+        Params:
+            url = url to use
+            receive_dg = delegate which will be called when data is received
+                from the url
+            error_dg = delegate which will be called when error data are
+                sent from curl
+            finished_dg = delegate which will be called when the request
+                process changes status.
+
+        Returns:
+            BaseRequest struct to be passed to assign
+
+    ***************************************************************************/
+    
+    public DataRequest put (char[] url, CurlReceiveDg receive_dg,
+            CurlReceiveDg error_dg, CurlNotificationDg finished_dg, char[] data)
+    {
+        return *DataRequest (url, receive_dg, error_dg, finished_dg, "PUT").
+            setRequestData (data);
+    }
+
+
+    /***************************************************************************
+
+        Assigns a new request as described by a BaseRequest or DataRequest 
+        struct.
+
+        This method accepts either a struct, or a pointer to such a struct.
+
+        Params:
+            setup = a struct or pointer to a struct describing a new request
 
         Returns:
             true if the request was started, or false if all processes are 
             busy or suspended.
 
     ***************************************************************************/
-
-
-    public bool assign (T) ( T* setup )
-    {
-        return this.assign(*setup);
-    }
 
     public bool assign (T) ( T setup )
     {
@@ -564,27 +570,21 @@ public class QueuedRequests : CurlRequests
 
     /***************************************************************************
 
-        Assigns a new requests as described by different request structs. If all
-        request in the pool are currently busy, the request will be queued.
+        Assigns a new request as described by a BaseRequest or DataRequest 
+        struct.
 
-        Two versions of this method exist, accepting either a struct, or a 
-        pointer to such a struct.
+        This method accepts either a struct, or a pointer to such a struct.
 
         Params:
-            setup = a struct describing a new request, defined in CurlRequests
+            setup = a struct or pointer to a struct describing a new request
 
         Returns:
-            true if the request was started or queued, or false if there was no
-            space in the queue
+            true if the request was started, or false if all processes are 
+            busy or suspended.
 
     ***************************************************************************/
 
-    override public bool assign (T) ( T* setup )
-    {
-        return this.assign(*setup);
-    }
-
-    override public bool assign (T) ( T setup )
+    public bool assign (T) ( T setup )
     {
         if ( this.all_busy || this.suspended_ )
         {
@@ -593,14 +593,12 @@ public class QueuedRequests : CurlRequests
             auto target = this.queue.push(length);
             if ( target is null )
             {
-                return false; 
+                return false;
             }
             
             StructSerializer!().dump(&setup.params, target);
 
             auto notification_dg = setup.params.notification_dg.get();
-            
-            pragma(msg, typeof(notification_dg).stringof);
             
             notification_dg(NotificationInfo(NotificationInfo.Type.Queued,
                         setup.params.context.get(), setup.params.url));
@@ -655,4 +653,3 @@ public class QueuedRequests : CurlRequests
         }
     }
 }
-

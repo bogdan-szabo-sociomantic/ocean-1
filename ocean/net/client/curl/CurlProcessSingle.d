@@ -171,8 +171,8 @@ private class CurlProcess : EpollProcess
 
     protected void stdout ( ubyte[] data )
     {
-        auto receive_dg = this.params.get_receive_dg();
-        receive_dg(this.params.get_context(), this.params.url, data);
+        auto receive_dg = this.params.receive_dg.get();
+        receive_dg(this.params.context.get(), this.params.url, data);
 
         this.http_response.update(data);
     }
@@ -189,8 +189,8 @@ private class CurlProcess : EpollProcess
 
     protected void stderr ( ubyte[] data )
     {
-        auto error_dg = this.params.get_error_dg();
-        error_dg(this.params.get_context(), this.params.url, data);
+        auto error_dg = this.params.error_dg.get();
+        error_dg(this.params.context.get(), this.params.url, data);
     }
 
 
@@ -217,9 +217,9 @@ private class CurlProcess : EpollProcess
         ? cast(ExitStatus)exit_code
                 : ExitStatus.ProcessTerminatedAbnormally;
 
-        auto notification_dg = this.params.get_notification_dg();
+        auto notification_dg = this.params.notification_dg.get();
         notification_dg(NotificationInfo(NotificationInfo.Type.Finished,
-            this.params.get_context(), this.params.url, status, 
+            this.params.context.get(), this.params.url, status, 
             this.http_response.code));
     }
 
@@ -237,9 +237,9 @@ private class CurlProcess : EpollProcess
 
         this.http_response.reset;
 
-        auto notification_dg = this.params.get_notification_dg();
+        auto notification_dg = this.params.notification_dg.get();
         notification_dg(NotificationInfo(NotificationInfo.Type.Started,
-                    this.params.get_context(), this.params.url));
+                    this.params.context.get(), this.params.url));
 
         this.args.length = 0;
         this.args ~= "curl";
@@ -295,13 +295,14 @@ private class CurlProcess : EpollProcess
         }
 
         //request command
-        if(this.params.req_command_set)
+        this.args ~= "-X";
+        this.args ~= this.params.req_command;
+
+        if(this.params.req_data)
         {
-            this.args ~= "-X";
-            foreach(cmd;this.params.req_command.get())
-            {
-                this.args ~= cmd;
-            }
+            this.args ~= "-d";
+            this.args ~= this.params.req_data;
+            
         }
 
         // Url
@@ -310,4 +311,3 @@ private class CurlProcess : EpollProcess
         super.start(this.args);
     }
 }
-

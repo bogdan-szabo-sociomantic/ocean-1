@@ -1,12 +1,14 @@
 /*******************************************************************************
 
+    Struct containing parameters for curl.
+
     copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
 
     version:        August: Initial release
 
-    authors:        Hans Bjerkander
+    authors:        Gavin Norman, Hans Bjerkander
 
-    Contains all the different parameters needed for creating a hhtp request
+    Contains all the different parameters needed for creating a http request
     with curl.
 
 *******************************************************************************/
@@ -21,6 +23,7 @@ module ocean.net.client.curl.process.RequestParams;
 *******************************************************************************/
 
 private import ocean.core.ContextUnion;
+
 private import ocean.net.client.curl.process.NotificationInfo;
 
 
@@ -85,11 +88,21 @@ public struct RequestParams
     
     /***************************************************************************
 
-        Request command, if empty GET will be used
+        Request command
 
     ***************************************************************************/
 
-    public Serialized!(char[][]) req_command;
+    public char[] req_command;
+
+    
+    /***************************************************************************
+
+        Request data, can be empty
+
+    ***************************************************************************/
+
+    public char[] req_data;
+
 
 
     /***************************************************************************
@@ -234,90 +247,13 @@ public struct RequestParams
     /***************************************************************************
 
         Returns:
-            true if request command set.
-
-    ***************************************************************************/
-
-    public bool req_command_set ( )
-    {
-        return this.req_command.get().length > 0;   
-    }
-
-
-    /***************************************************************************
-
-        Returns:
-           true if the last 3 bytes of the output should be the http statuscode.
+           true if the output should be appended with 3 bytes with the http
+                statuscode.
 
     ***************************************************************************/
 
     public bool appendStatusCode( )
     {
         return this.append_statuscode;
-    }
-
-
-    /***************************************************************************
-
-        Getter and Setter methods for variables with the type struct template
-        Serialized ( T ). Calls the set and get method from the template.
-
-    ***************************************************************************/
-
-    public CurlReceiveDg get_receive_dg()
-    {
-        return this.receive_dg.get();
-    }
-
-
-    public void set_receive_dg( CurlReceiveDg dg)
-    {
-        this.receive_dg.set(dg);
-    }
-
-
-    public CurlReceiveDg get_error_dg()
-    {
-        return this.error_dg.get();
-    }
-
-
-    public void set_error_dg( CurlReceiveDg dg)
-    {
-        this.error_dg.set(dg);
-    }
-
-
-    public CurlNotificationDg get_notification_dg()
-    {
-        return this.notification_dg.get();
-    }
-
-
-    public void set_notification_dg(CurlNotificationDg dg)
-    {
-        this.notification_dg.set(dg);
-    }
-
-
-    public ContextUnion get_context()
-    {
-        return this.context.get();   
-    }
-
-
-    public void set_context(ContextUnion c)
-    {
-        this.context.set(c);
-    }
-
-    public char[][] get_req_command()
-    {
-        return req_command.get();
-    }
-
-    public void set_req_command(char[][] req)
-    {
-        this.req_command.set(req.dup);//do I need to dup?
     }
 }
