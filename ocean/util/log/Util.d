@@ -147,7 +147,7 @@ class MetaConfig
     
         Index of the first file that should be compressed
         
-        E.g. 4 means, start compressing with the forth file
+        E.g. 4 means, start compressing with the fourth file
     
     ***************************************************************************/
 

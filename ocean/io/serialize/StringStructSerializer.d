@@ -42,7 +42,7 @@
         char[] output;
     
         // Dump struct to buffer via serializer
-        ser.serialize(buffer, data);
+        ser.serialize(output, data);
     
     ---
 

@@ -46,6 +46,19 @@ alias Fnv1Generic!(true,  uint)   Fnv1a32;
 alias Fnv1Generic!(true,  ulong)  Fnv1a64;
 
 
+
+private const FNV_prime = 16777619;
+private const offset_basis = 2166136261;
+
+template StaticFnv1a32 ( char[] input )
+{
+    static if ( input.length > 0 )
+        const uint StaticFnv1a32 = (StaticFnv1a32!(input[0 .. $-1]) ^ input[$-1]) * FNV_prime;
+    else
+        const uint StaticFnv1a32 = offset_basis;
+}
+
+
 abstract class FnvDigest : Digest
 {
     /**************************************************************************
@@ -706,6 +719,10 @@ debug ( OceanUnitTest )
 	    }
 
 	    debug (Verbose) Trace.formatln("\nDone unittest\n");
+
+
+        assert ( StaticFnv1a32!("myString") == Fnv1a32("myString"), "CompileTime Fnv1a32 failed");
+        assert ( StaticFnv1a32!("TEST") == Fnv1a32("TEST"), "CompileTime Fnv1a32 failed");
 	}
 }
 

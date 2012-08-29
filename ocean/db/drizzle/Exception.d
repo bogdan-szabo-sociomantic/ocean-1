@@ -101,7 +101,15 @@ class DrizzleException : Exception
     ***************************************************************************/
     
     public Exception exception;
+    
+    /***************************************************************************
+
+        Number of the connection that failed
+
+    ***************************************************************************/
         
+    public size_t connection;
+    
     /***************************************************************************
 
         Constructor
@@ -121,7 +129,7 @@ class DrizzleException : Exception
             query      = query that failed
             code       = drizzle return code
             errString  = string representation of the error
-            e          = exception that happenend if it wasn't a drizzle error
+            e          = exception that happened if it wasn't a drizzle error
 
     ***************************************************************************/
         
@@ -165,7 +173,17 @@ class DrizzleException : Exception
     /***************************************************************************
 
         Finds out whether the error code implies an error in the connection
-        
+
+        DRIZZLE_RETURN_AUTH_FAILED is not really a connection error,
+        but it causes the
+
+             drizzle_state_handshake_server_read:Host '...' is blocked
+             because of many connection errors; unblock with
+             'mysqladmin flush-hosts'
+
+        error which can be fixed without restarting the application,
+        thus I consider it a connection error here
+
         Returns:
             true if the error code is a connection related problem 
 
@@ -175,12 +193,11 @@ class DrizzleException : Exception
     {
         with (ErrorCode) switch (this.error_code)
         {
-            /+case DRIZZLE_RETURN_BAD_HANDSHAKE_PACKET:
-            case DRIZZLE_RETURN_BAD_PACKET_NUMBER:
-            case DRIZZLE_RETURN_BAD_PACKET:+/
             case DRIZZLE_RETURN_LOST_CONNECTION:
             case DRIZZLE_RETURN_COULD_NOT_CONNECT:
             case DRIZZLE_RETURN_TIMEOUT:
+            case DRIZZLE_RETURN_HANDSHAKE_FAILED:
+            case DRIZZLE_RETURN_AUTH_FAILED:
                 return true;
                 
             default:

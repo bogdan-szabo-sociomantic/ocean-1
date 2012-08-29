@@ -464,6 +464,7 @@ public class FlexibleFileQueue : IByteQueue
     in
     {
         assert ( item.length < this.size, "Pushed item will not fit read buffer");
+        assert ( item.length > 0, "denied push of item of size zero");
     }
     body
     {
@@ -471,7 +472,9 @@ public class FlexibleFileQueue : IByteQueue
         {
             this.file_out is null && this.openExternal();
 
-            ubyte[] header = (cast(ubyte*)&Header(item.length))[0 .. Header.sizeof];
+            Header h = Header(item.length);
+
+            ubyte[] header = (cast(ubyte*)&h)[0 .. Header.sizeof];
 
             this.ext_out.write(header);
             this.ext_out.write(item);
