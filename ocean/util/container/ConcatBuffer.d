@@ -9,15 +9,28 @@
     Class templates for reusable buffers with minimal memory allocation.
 
     Each class has its own detailed description and usage example below.
-    
-    The difference between this and AppendBuffer is, that AppendBuffer basically
-    wraps a dynamic array and keeps track of the length while this class
-    provides a way to store things in a streaming way and to throw them all away
-    afterwards but reusing the memory for the next bunch of things.
+
+    The difference between this and AppendBuffer is that AppendBuffer basically
+    wraps a dynamic array and keeps track of the length, while this class
+    provides a way to store multiple arrays by appending them into a single
+    buffer. The basic ConcatBuffer class returns the slices to the appended
+    arrays from its 'add' method. The extended SliceBuffer class internally
+    keeps track of the appended slices, and offers opIndex and opApply methods
+    over them.
 
 *******************************************************************************/
 
 module ocean.util.container.ConcatBuffer;
+
+
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+private import ocean.core.Array : removeShift;
 
 
 
@@ -40,7 +53,7 @@ module ocean.util.container.ConcatBuffer;
     Internally the class stores a single buffer. If an item is added which does
     not fit in the currently allocated buffer, then a new expanded buffer is
     newed and replaces the old buffer. This means that the old buffer still
-    exists in memory, and will not be garbage collected until here are no more
+    exists in memory, and will not be garbage collected until there are no more
     references to it. As a result of this behaviour, any slices remaining to the
     previous buffer may still safely be used. Only at the point where all these
     slices no longer reference the old buffer will it be garbage collected.
@@ -120,8 +133,8 @@ public class ConcatBuffer ( T )
     {
         return this.add(data.length)[] = data[];
     }
-    
-    
+
+
     /***************************************************************************
 
         Reserves a new piece of data at the end of the buffer.
@@ -271,6 +284,37 @@ public class SliceBuffer ( T ) : ConcatBuffer!(T)
     {
         auto slice = super.add(data);
         this.slices ~= slice;
+        return slice;
+    }
+
+
+    /***************************************************************************
+
+        Removes an indexed item in the items list, maintaining the order of the
+        list.
+
+        Note that the item's content in the buffer is *not* removed, the item is
+        simply removed from the list of slices.
+
+        Beware that this removal involves a call to memmove.
+
+        Params:
+            index = index of item to remove
+
+        Returns:
+            indexed item
+
+        Throws:
+            out of bounds exception if index is > the number of items added to
+            the buffer
+
+    ***************************************************************************/
+
+    public T[] removeSlice ( size_t index )
+    {
+        auto slice = this.slices[index];
+        this.slices.removeShift(index);
+
         return slice;
     }
 

@@ -508,7 +508,7 @@ class LibDrizzleEpoll
                       the LibDrizzleEpoll instance.
 
     ***************************************************************************/
-
+    
     static private extern (C) drizzle_return_t drizzleCallback ( drizzle_con_st* con, 
                                                                  short action, 
                                                                  void* context)
@@ -518,10 +518,9 @@ class LibDrizzleEpoll
 
         ISelectClient.Event events;
 
-        if (action & ISelectClient.Event.Read)  events |= ISelectClient.Event.Read;
-
-        if (action & ISelectClient.Event.Write) events |= ISelectClient.Event.Write;
-
+        events |= action;
+        debug ( Drizzle ) Trace.formatln("Epoll.register for action {}", action);
+        
         connection.setEvents(events);
         connection.fd = cast(ISelectClient.ISelectable.Handle) drizzle_con_fd(con);
 

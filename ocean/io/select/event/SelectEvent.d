@@ -56,8 +56,6 @@ module ocean.io.select.event.SelectEvent;
 
 private import ocean.sys.EventFD;
 
-private import tango.io.model.IConduit;
-
 private import ocean.io.select.model.ISelectClient;
 
 debug private import tango.util.log.Trace;
@@ -72,7 +70,7 @@ debug private import tango.util.log.Trace;
 
 *******************************************************************************/
 
-public abstract class ISelectEvent : IAdvancedSelectClient, ISelectable
+public abstract class ISelectEvent : IAdvancedSelectClient
 {
     /***************************************************************************
 
@@ -93,10 +91,20 @@ public abstract class ISelectEvent : IAdvancedSelectClient, ISelectable
     public this ( )
     {
         this.event_fd = new EventFD;
-
-        super(this);
     }
 
+
+    /***************************************************************************
+
+        Returs:
+            the epoll events to register for.
+
+    ***************************************************************************/
+
+    Event events ( )
+    {
+        return Event.EPOLLIN;
+    }
 
     /***************************************************************************
 
@@ -111,21 +119,7 @@ public abstract class ISelectEvent : IAdvancedSelectClient, ISelectable
     {
         return this.event_fd.fileHandle;
     }
-
-
-    /***************************************************************************
-
-        Returns:
-            select events which this class is registered with
-
-    ***************************************************************************/
-
-    public Event events ( )
-    {
-        return Event.Read;
-    }
-
-
+    
     /***************************************************************************
 
         Called from the select dispatcher when the event fires. Calls the
@@ -145,8 +139,9 @@ public abstract class ISelectEvent : IAdvancedSelectClient, ISelectable
     public bool handle ( Event event )
     in
     {
-        assert(event == Event.Read);
-        assert(this.handler);
+        assert (event == event.EPOLLIN);
+        
+        assert(this.handler !is null);
     }
     body
     {
@@ -185,23 +180,6 @@ public abstract class ISelectEvent : IAdvancedSelectClient, ISelectable
     {
         this.event_fd.trigger();
     }
-
-
-    /***************************************************************************
-
-        Returns an identifier string for this instance
-
-        (Implements an abstract super class method.)
-
-        Returns:
-            identifier string for this instance
-
-    ***************************************************************************/
-
-//    protected char[] id ( )
-//    {
-//        return typeof(this).stringof;
-//    }
 }
 
 

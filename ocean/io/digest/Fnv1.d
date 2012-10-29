@@ -30,6 +30,78 @@ private import tango.core.ByteSwap;
 debug private import ocean.util.log.Trace;
 
 
+template Fnv1Const ( T = hash_t )
+{
+    /**************************************************************************
+
+        FNV magic constants and endianness
+    
+     **************************************************************************/
+    alias T DigestType;
+    
+    static if (is (DigestType == uint))
+    {
+        const DigestType PRIME = 0x0100_0193; // 32 bit prime
+        const DigestType INIT  = 0x811C_9DC5; // 32 bit inital digest
+        alias ByteSwap.swap32 toBigEnd;
+    }
+    else static if (is (DigestType == ulong))
+    {
+        const DigestType PRIME = 0x0000_0100_0000_01B3; // 64 bit prime
+        const DigestType INIT  = 0xCBF2_9CE4_8422_2325; // 64 bit inital digest
+        alias ByteSwap.swap64 toBigEnd;
+    }
+    /*
+    // be prepared for the day when Walter introduces cent...
+    else static if (is (DigestType == ucent))
+    {
+        const DigestType PRIME = 0x0000_0000_0100_0000_0000_0000_0000_013B; // 128 bit prime
+        const DigestType PRIME = 0x6C62_272E_07BB_0142_62B8_2175_6295_C58D; // 128 bit inital digest
+    }
+    */
+    else static assert (false, "type '" ~ DigestType.stringof ~
+                               "' is not supported, only uint and ulong");
+}
+
+/******************************************************************************
+
+    CompileTime fnv1a hash function, calculates a hash value of type T where T
+    must be uint or ulong.
+
+*******************************************************************************/
+
+template StaticFnv1a ( T = hash_t )
+{
+    /***************************************************************************
+
+        Calculates the Fnv1a hash value of type T from input.
+
+    ***************************************************************************/
+    
+    template Fnv1a ( char[] input )
+    {
+        const Fnv1a = Fnv1a!(Fnv1Const!(T).INIT, input);
+    }
+    
+    /***************************************************************************
+
+        Calculates the Fnv1a hash value of type T from input using hash as
+        initial hash value.
+    
+    ***************************************************************************/
+    
+    template Fnv1a ( T hash, char[] input )
+    {
+        static if ( input.length )
+        {
+            const Fnv1a = Fnv1a!((hash ^ input[0]) * Fnv1Const!(T).PRIME, input[1 .. $]);
+        }
+        else
+        {
+            const Fnv1a = hash;
+        }
+    }
+}
 
 /******************************************************************************
 
@@ -45,6 +117,28 @@ alias Fnv1Generic!(true)          Fnv1a;
 alias Fnv1Generic!(true,  uint)   Fnv1a32;
 alias Fnv1Generic!(true,  ulong)  Fnv1a64;
 
+alias Fnv1Const!(uint)  Fnv132Const;
+alias Fnv1Const!(ulong) Fnv164Const;
+
+template StaticFnv1a32 ( char[] input )
+{
+    const StaticFnv1a32 = StaticFnv1a!(uint).Fnv1a!(input);
+}
+
+template StaticFnv1a32 ( uint hash, char[] input )
+{
+    const StaticFnv1a32 = StaticFnv1a!(uint).Fnv1a!(hash, input);
+}
+
+template StaticFnv1a64 ( char[] input )
+{
+    const StaticFnv1a64 = StaticFnv1a!(ulong).Fnv1a!(input);
+}
+
+template StaticFnv1a64 ( ulong hash, char[] input )
+{
+    const StaticFnv1a64 = StaticFnv1a!(ulong).Fnv1a!(hash, input);
+}
 
 
 private const FNV_prime = 16777619;
@@ -183,8 +277,10 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 
      **************************************************************************/
 
-    alias T DigestType;
-
+    mixin Fnv1Const!(T);
+    
+//    pragma (msg, DigestType.stringof);
+    
     /**************************************************************************
 
         Binary digest length and hexadecimal digest string length constants
@@ -196,37 +292,6 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 
     alias char[HEXDGT_LENGTH] HexDigest;
 
-    /**************************************************************************
-
-        FNV magic constants and endianness
-
-     **************************************************************************/
-
-
-    static if (is (DigestType == uint))
-    {
-        public static const DigestType PRIME = 0x0100_0193; // 32 bit prime
-        public static const DigestType INIT  = 0x811C_9DC5; // 32 bit inital digest
-
-        private alias ByteSwap.swap32 toBigEnd;
-    }
-    else static if (is (DigestType == ulong))
-    {
-        public static const DigestType PRIME = 0x0000_0100_0000_01B3; // 64 bit prime
-        public static const DigestType INIT  = 0xCBF2_9CE4_8422_2325; // 64 bit inital digest
-
-        private alias ByteSwap.swap64 toBigEnd;
-    }
-    /*
-    // be prepared for the day when Walter introduces cent...
-    else static if (is (DigestType == ucent))
-    {
-        static const DigestType PRIME = 0x0000_0000_0100_0000_0000_0000_0000_013B; // 128 bit prime
-        static const DigestType PRIME = 0x6C62_272E_07BB_0142_62B8_2175_6295_C58D; // 128 bit inital digest
-    }
-    */
-    else static assert (false, "type '" ~ DigestType.stringof ~
-                               "' is not supported, only uint and ulong");
 
 
     /**************************************************************************

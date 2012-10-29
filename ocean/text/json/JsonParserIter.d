@@ -52,7 +52,7 @@ debug private import tango.util.log.Trace;
 
 /******************************************************************************/
 
-class JsonParserIter : JsonParser!(char)
+class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
 {
     /**************************************************************************
 
@@ -94,7 +94,10 @@ class JsonParserIter : JsonParser!(char)
         Token.EndArray:     "EndArray",
         Token.True:         "True",
         Token.False:        "False",
-        Token.Null:         "Null"
+        Token.Null:         "Null",
+        Token.NaN:          "NaN",
+        Token.Infinity:     "Inf",
+        Token.NegInfinity:  "-Inf"
     ];
 
     
@@ -113,6 +116,9 @@ class JsonParserIter : JsonParser!(char)
         Token.True:        TokenClass.ValueType, 
         Token.False:       TokenClass.ValueType, 
         Token.Null:        TokenClass.ValueType,
+        Token.NaN:         TokenClass.ValueType,
+        Token.Infinity:    TokenClass.ValueType,
+        Token.NegInfinity: TokenClass.ValueType,
         Token.BeginObject: TokenClass.Container, 
         Token.BeginArray:  TokenClass.Container, 
         Token.EndObject:   TokenClass.Container,
@@ -457,7 +463,13 @@ class JsonParserIter : JsonParser!(char)
     public T nextNamedNumber ( T ) ( char[] name, out bool found )
     {
         T ret;
-        auto str = this.nextNamedValue(name, found, ( Token token ) { return token == Token.Number; });
+        auto str = this.nextNamedValue(name, found,
+            ( Token token )
+            {
+                return token == Token.Number || token == Token.NaN ||
+                       token == Token.Infinity || token == Token.NegInfinity;
+            }
+        );
 
         if ( found )
         {

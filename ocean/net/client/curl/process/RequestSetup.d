@@ -186,6 +186,21 @@ public template RequestBase ( )
         return this;
     }
 
+    /***************************************************************************
+
+        Sets this download to download header only
+
+        Returns:
+            this pointer for method chaining
+
+    ***************************************************************************/
+
+    public typeof(this) header_only ()
+    {
+        this.params.header_only = true;
+        return this;
+    }
+
 
     /***************************************************************************
 
@@ -198,31 +213,19 @@ public template RequestBase ( )
 
     public typeof(this) extraHeader(char[] header)
     {
-        this.params.extra_header_params ~= header;
+        if(header.length)
+        {
+            this.params.extra_header_params ~= header;
+        }
         return this;   
     }
 
-
-    /***************************************************************************
-
-        Adds status code to standard output? Default yes
-
-        Returns:
-            this pointer for method chaining
-
-    ***************************************************************************/
-
-    public typeof(this) appendStatusCode(bool append)
-    {
-        this.params.append_statuscode = append;
-        return this;   
-    }
 
     /***************************************************************************
 
         "Constructor" method. Creates an instance of this struct from the given
-        parameters. This struct is essentail a wrapper around a RequestParams
-        struct which opens only a cerntain methods to use.
+        parameters. This struct is essentially a wrapper around a RequestParams
+        struct which opens only certain methods to use.
 
         Params:
             url = url to request

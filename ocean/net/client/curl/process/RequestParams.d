@@ -164,6 +164,15 @@ public struct RequestParams
 
     /***************************************************************************
 
+        Flag set to true to download header only
+
+    ***************************************************************************/
+
+    public bool header_only;
+
+
+    /***************************************************************************
+
         To be used when extra information is needed to be add to the header. 
 
     ***************************************************************************/
@@ -179,15 +188,6 @@ public struct RequestParams
     ***************************************************************************/
 
     public Serialized!(ContextUnion) context;
-
-
-    /***************************************************************************
-
-        Should the last 3 bytes of the standard output be the http status code?
-
-    ***************************************************************************/
-
-    public bool append_statuscode = true;
 
 
     /***************************************************************************
@@ -234,6 +234,19 @@ public struct RequestParams
     /***************************************************************************
 
         Returns:
+            true if want header only
+
+    ***************************************************************************/
+
+    public bool header_only_set ( )
+    {
+        return this.header_only;
+    }
+
+
+    /***************************************************************************
+
+        Returns:
             true if more information should be added to the header.
 
     ***************************************************************************/
@@ -241,19 +254,5 @@ public struct RequestParams
     public bool extra_header_set ( )
     {
         return this.extra_header_params.length > 0;
-    }
-
-
-    /***************************************************************************
-
-        Returns:
-           true if the output should be appended with 3 bytes with the http
-                statuscode.
-
-    ***************************************************************************/
-
-    public bool appendStatusCode( )
-    {
-        return this.append_statuscode;
     }
 }

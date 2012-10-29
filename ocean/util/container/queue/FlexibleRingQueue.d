@@ -645,19 +645,6 @@ debug ( OceanUnitTest )
          scope random = new Random();
 
         /***********************************************************************
-
-            Test for empty queue
-
-        ***********************************************************************/
-        
-        {
-           auto caught = false;
-           try scope queue = new FlexibleByteRingQueue(0); 
-           catch ( Exception e ) caught = true;
-           assert (caught == true);
-        }
-
-        /***********************************************************************
             
             Test wrapping
         

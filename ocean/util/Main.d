@@ -192,7 +192,7 @@ private import tango.io.Stdout;
 
 *******************************************************************************/
 
-struct ProcessArgsResult
+deprecated struct ProcessArgsResult
 {
     public bool exit;
     public int  exit_code;
@@ -205,7 +205,7 @@ struct ProcessArgsResult
 
 *******************************************************************************/
 
-public class Main
+deprecated public class Main
 {
     /***************************************************************************
 

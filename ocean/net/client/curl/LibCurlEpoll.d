@@ -79,7 +79,8 @@ debug private import ocean.util.log.Trace;
 
 *******************************************************************************/
 
-public class LibCurlEpoll
+pragma(msg, "LibCurlEpoll is deprecated, use CurlProcessMulti instead");
+deprecated public class LibCurlEpoll
 {
     /***************************************************************************
 

@@ -43,12 +43,14 @@ private import ocean.core.Array : append;
 
 private import ocean.util.container.AppendBuffer;
 
+private import ocean.util.VariadicArg;
+
 private import TangoLayout = tango.text.convert.Layout;
 
 
 /*******************************************************************************
 
- Platform issues ...
+    Platform issues ...
 
 *******************************************************************************/
 
@@ -57,8 +59,26 @@ version (DigitalMars) version (X86_64)
     version = DigitalMarsX86_64;
 }
 
+/*******************************************************************************
+
+    On Digital Mars x86-64 va_start() merely returns &__va_argsave.va and
+    va_end() does nothing so there is no need to do the cumbersome
+    va_start()/va_end() businness, instead
+    ---
+        va_list arglist = &__va_argsave.va;
+    ---
+    can simply be used to obtain the variadic argument list. Since va_list is an
+    alias for void* (why not a typedef... ?), even a cast isn't required. 
+    
+    Note: Of course it is always advisable to use standard routines but in this
+    case the code gets much easier to read and maintain when using the argument
+    list directly.
+    
+*******************************************************************************/
+
 version (DigitalMarsX86_64)
 {
+    
     /*
      * va_list/_start/_arg/_end must be public imported because they are used in
      * the vaArg template, which is instantiated in other modules as well.
@@ -68,10 +88,7 @@ version (DigitalMarsX86_64)
                                // implicitly referenced by the compiler... YEAH!
                                      __va_argsave_t;
 }
-else
-{
-    private import tango.core.Vararg: va_list, va_arg;
-}
+else static assert (false, "only Digital Mars x86-64 supported");
 
 /*******************************************************************************
 
@@ -127,21 +144,40 @@ abstract class Layout ( T = char )
         Returns:
             resulting string (output)
 
-    ***************************************************************************/
-
+     ***************************************************************************/
+    
     static public T[] print ( ref T[] output, T[] formatStr, ... )
     {
-        uint layoutSink ( T[] s )
-        {
-            return cast (uint) .append(output, s).length;
-        }
-        
-        mixin vaArgCall!();
-        
-        vaArgCall((TypeInfo[] arguments, va_list argptr)
-        {
-            TangoLayout.Layout!(T).instance.convert(&layoutSink, arguments, argptr, formatStr);
-        });
+        return vprint(output, formatStr, _arguments, &__va_argsave.va);
+    }
+    
+    /***************************************************************************
+
+        Outputs a formatted string into the provided buffer.
+
+        Note that the formatted string is appended into the buffer, it will not
+        overwrite any existing content.
+
+        Params:
+            output = output buffer, length will be increased to accommadate
+                formatted string
+            formatStr = format string
+            arguments = argument types
+            argptr    = argument list
+
+        Returns:
+            resulting string (output)
+
+    ***************************************************************************/
+
+    static public T[] vprint ( ref T[] output, T[] formatStr, TypeInfo[] arguments, va_list argptr )
+    {
+        TangoLayout.Layout!(T).instance.convert(
+            (T[] s)
+            {
+                return cast (uint) .append(output, s).length;
+            },
+            arguments, argptr, formatStr);
         
         return output;
     }
@@ -164,9 +200,7 @@ abstract class Layout ( T = char )
 
     public typeof (this) format ( T[] fmt, ... )
     {
-        mixin vaArgCall!(typeof (this), T[]);
-        
-        return vaArgCall(&this.vformat, fmt);
+        return this.vformat(fmt, _arguments, &__va_argsave.va);
     }
     
     /**************************************************************************
@@ -184,9 +218,7 @@ abstract class Layout ( T = char )
 
     public typeof (this) opCall ( ... )
     {
-        mixin vaArgCall!(typeof (this));
-        
-        return vaArgCall(&this.vwrite);
+        return this.vwrite(_arguments, &__va_argsave.va);
     }
     
     /**************************************************************************
@@ -236,69 +268,21 @@ abstract class Layout ( T = char )
     
     public typeof (this) vwrite ( TypeInfo[] arguments, va_list argptr )
     {
+        scope va_list = new VaList(argptr);
+        
         foreach (ref argument; arguments)
         {
-            /**************************************************************
-            
-                Shifts argptr to the next argument. 
-                
-                Returns:
-                    argptr before shifting
-                
-             **************************************************************/
-            
-            version (X86) void* va_arg_ptr ( )
-            {
-                const size_t n = size_t.sizeof - 1;
-                
-                scope (exit) argptr += ((argument.tsize + n) & ~n);
-                
-                return argptr;
-            }
-            
             if (argument is typeid (T[]))
             {
-                 this.append(va_arg!(T[])(argptr));
+                 this.append(*cast (T[]*) va_list.next(argument).ptr);
             }
             else if (argument is typeid (T))
             {
-                version (X86)
-                {
-                    T* xp = cast (T*) va_arg_ptr;
-                }
-                else
-                {
-                    T x   = va_arg!(T)(argptr);
-                    T* xp = &x;
-                }
-                
-                this.append(xp[0 .. 1]);
+                this.append((cast (T*) va_list.next(argument).ptr)[0 .. 1]);
             }
             else
             {
-                /**************************************************************
-                
-                    For x86 (not x86-64) va_list is void*, argptr points to the
-                    current argument and must be shifted to the next one. Since
-                    argptr is forwarded to vformat as value, we need to shift it
-                    here.
-                    
-                    For x86-64 va_list is a reference to an object which is
-                    shifted automatically by va_arg(), indirectly called from
-                    this.vformat(), so we do not need to care about it. 
-                
-                 **************************************************************/
-                
-                version (X86)
-                {
-                    void* xp = va_arg_ptr;
-                }
-                else
-                {
-                    void* xp = argptr;
-                }
-                
-                this.vformat("{}", (&argument)[0 .. 1], xp);
+                this.vformat("{}", (&argument)[0 .. 1], argptr);
             }
         }
         
@@ -387,9 +371,7 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
 
     T[] opCall ( ... )
     {
-        mixin vaArgCall!(T[]);
-        
-        return vaArgCall(&this.vwrite);
+        return this.vwrite(_arguments, &__va_argsave.va);
     }
     
     /**************************************************************************
@@ -410,9 +392,7 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
 
     T[] format ( T[] fmt, ... )
     {
-        mixin vaArgCall!(T[], T[]);
-        
-        return vaArgCall(&this.vformat, fmt);
+        return this.vformat(fmt, _arguments, &__va_argsave.va);
     }
     
     /**************************************************************************

@@ -85,7 +85,7 @@ class UnittestExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public override void setupArgs ( Application app, Arguments args )
+    public void setupArgs ( IApplication app, Arguments args )
     {
         if (!this.omit_unittest)
         {
@@ -101,9 +101,9 @@ class UnittestExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    protected override void preRun ( Application app, char[][] cl_args )
+    protected void preRun ( IApplication app, char[][] cl_args )
     {
-        auto args_ext = app.getExtension!(ArgumentsExt);
+        auto args_ext = (cast(Application)app).getExtension!(ArgumentsExt);
         if (args_ext !is null && !this.omit_unittest)
         {
             this.omit_unittest = args_ext.args("omit-unittest").set;
@@ -125,18 +125,18 @@ class UnittestExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public override void postRun ( Application app, char[][] args, int status )
+    public void postRun ( IApplication app, char[][] args, int status )
     {
         // Unused
     }
 
-    public override void atExit ( Application app, char[][] args, int status,
+    public void atExit ( IApplication app, char[][] args, int status,
             ExitException exception )
     {
         // Unused
     }
 
-    public override ExitException onExitException ( Application app,
+    public ExitException onExitException ( IApplication app,
             char[][] args, ExitException exception )
     {
         // Unused
@@ -153,13 +153,13 @@ class UnittestExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public override char[] validateArgs ( Application app, Arguments args )
+    public char[] validateArgs ( IApplication app, Arguments args )
     {
         // Unused
         return null;
     }
 
-    public override void processArgs ( Application app, Arguments args )
+    public void processArgs ( IApplication app, Arguments args )
     {
         // Unused
     }

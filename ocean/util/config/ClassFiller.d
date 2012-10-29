@@ -682,8 +682,6 @@ public bool enable_loose_parsing ( bool state = true )
 
     Params:
         group     = the group/section of the variable
-        loose     = true, output a warning for invalid variables
-                    false, throw an exception for invalid variables
         config    = instance of the source to use (defaults to Config)
 
     Returns:

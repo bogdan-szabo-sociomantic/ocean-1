@@ -10,18 +10,25 @@
     <IncrementalLinking>true</IncrementalLinking>
     <UseDefaultCompiler>true</UseDefaultCompiler>
     <PreferOneStepBuild>true</PreferOneStepBuild>
-    <BaseDirectory>.</BaseDirectory>
+    <DependentProjectIds>
+      <DependentProjectIds>
+        <String>{5F8B6543-96C2-400B-A27A-78FCF602919D}</String>
+      </DependentProjectIds>
+    </DependentProjectIds>
+    <Compiler>DMD</Compiler>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\Debug</OutputPath>
     <ObjectsDirectory>obj/Debug</ObjectsDirectory>
     <OutputName>ocean</OutputName>
+    <Externalconsole>true</Externalconsole>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release</OutputPath>
     <ObjectsDirectory>obj/Release</ObjectsDirectory>
     <OutputName>ocean</OutputName>
+    <Externalconsole>true</Externalconsole>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Unittest|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -29,6 +36,7 @@
     <ObjectsDirectory>obj/Unittest</ObjectsDirectory>
     <ExtraCompilerArguments>-unittest </ExtraCompilerArguments>
     <OutputName>ocean</OutputName>
+    <Externalconsole>true</Externalconsole>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ocean\core\Array.d" />
@@ -80,11 +88,9 @@
     <Compile Include="ocean\db\ebtree\model\KeylessMethods.d" />
     <Compile Include="ocean\db\ebtree\model\Node.d" />
     <Compile Include="ocean\db\ebtree\nodepool\NodePool.d" />
-    <Compile Include="ocean\db\ebtree\EBTree.d" />
     <Compile Include="ocean\db\ebtree\EBTree128.d" />
     <Compile Include="ocean\db\ebtree\EBTree32.d" />
     <Compile Include="ocean\db\ebtree\EBTree64.d" />
-    <Compile Include="ocean\db\ebtree\EBTreeMap.d" />
     <Compile Include="ocean\db\mysql\MySQL.d" />
     <Compile Include="ocean\db\sqlite\SQLite.d" />
     <Compile Include="ocean\db\tokyocabinet\c\bdb\tcbdbcur.d" />
@@ -125,7 +131,6 @@
     <Compile Include="ocean\io\select\event\SignalEvent.d" />
     <Compile Include="ocean\io\select\event\TimerEvent.d" />
     <Compile Include="ocean\io\select\fiber\SelectFiber.d" />
-    <Compile Include="ocean\io\select\model\IChainConnectionHandler.d" />
     <Compile Include="ocean\io\select\model\IConnectionHandler.d" />
     <Compile Include="ocean\io\select\model\IFiberConnectionHandler.d" />
     <Compile Include="ocean\io\select\model\IFiberSelectClient.d" />
@@ -136,11 +141,9 @@
     <Compile Include="ocean\io\select\protocol\fiber\FiberSelectReader.d" />
     <Compile Include="ocean\io\select\protocol\fiber\FiberSelectWriter.d" />
     <Compile Include="ocean\io\select\protocol\generic\ErrnoIOException.d" />
-    <Compile Include="ocean\io\select\protocol\generic\ReadConduit.d" />
     <Compile Include="ocean\io\select\timeout\TimerEventTimeoutManager.d" />
     <Compile Include="ocean\io\select\EpollSelectDispatcher.d" />
     <Compile Include="ocean\io\select\SelectListener.d" />
-    <Compile Include="ocean\io\select\TimeoutEpollSelectDispatcher.d" />
     <Compile Include="ocean\io\serialize\JsonStructDeserializer.d" />
     <Compile Include="ocean\io\serialize\JsonStructSerializer.d" />
     <Compile Include="ocean\io\serialize\SimpleSerializer.d" />
@@ -191,9 +194,6 @@
     <Compile Include="ocean\net\http2\HttpException.d" />
     <Compile Include="ocean\net\http2\HttpRequest.d" />
     <Compile Include="ocean\net\http2\HttpResponse.d" />
-    <Compile Include="ocean\net\socket\model\IConnectionHandler.d" />
-    <Compile Include="ocean\net\socket\ServerSocketThread.d" />
-    <Compile Include="ocean\net\socket\SocketProtocol.d" />
     <Compile Include="ocean\net\util\GetSocketAddress.d" />
     <Compile Include="ocean\net\util\ParamSet.d" />
     <Compile Include="ocean\net\util\QueryParams.d" />
@@ -317,11 +317,44 @@
     <Compile Include="ocean\util\Unittest.d" />
     <Compile Include="ocean\util\VariadicArg.d" />
     <Compile Include="test\main.d" />
+    <Compile Include="ocean\io\select\protocol\fiber\FiberSocketConnection.d" />
+    <Compile Include="ocean\sys\IPSocket.d" />
+    <Compile Include="ocean\util\container\cache\model\ICache.d" />
+    <Compile Include="ocean\util\container\cache\model\ICacheInfo.d" />
+    <Compile Include="ocean\util\container\cache\model\IExpiringCacheInfo.d" />
+    <Compile Include="ocean\util\container\cache\model\ITrackCreateTimesCache.d" />
+    <Compile Include="ocean\util\container\cache\Cache.d" />
+    <Compile Include="ocean\util\container\cache\CachingDataLoader.d" />
+    <Compile Include="ocean\util\container\cache\CachingStructLoader.d" />
+    <Compile Include="ocean\util\container\cache\ExpiringCache.d" />
+    <Compile Include="ocean\util\container\map\model\BucketElementFreeList.d" />
+    <Compile Include="ocean\util\container\map\model\BucketInfo.d" />
+    <Compile Include="ocean\util\container\map\model\MapIterator.d" />
+    <Compile Include="ocean\util\container\map\model\StandardHash.d" />
+    <Compile Include="ocean\util\container\map\Map.d" />
+    <Compile Include="ocean\util\container\map\Set.d" />
+    <Compile Include="ocean\io\device\IODevice.d" />
+    <Compile Include="ocean\util\container\pool\model\IPoolInfo.d" />
+    <Compile Include="ocean\util\container\pool\model\IPool.d" />
+    <Compile Include="ocean\util\container\pool\model\IAggregatePool.d" />
+    <Compile Include="ocean\util\container\pool\model\IResettable.d" />
+    <Compile Include="ocean\util\container\pool\ObjectPool.d" />
+    <Compile Include="ocean\util\container\pool\StructPool.d" />
+    <Compile Include="ocean\util\app\model\IApplication.d" />
+    <Compile Include="ocean\core\VersionIdentifiers.d" />
     <Compile Include="ocean\text\convert\Integer.d" />
     <Compile Include="ocean\net\client\curl\process\RequestSetup.d" />
     <Compile Include="ocean\net\client\curl\process\RequestParams.d" />
-  </ItemGroup>
-  <ItemGroup>
+    <Compile Include="ocean\io\select\selector\RegisteredClients.d" />
+    <Compile Include="ocean\util\container\pool\FreeList.d" />
+    <Compile Include="ocean\util\container\pool\model\ILimitable.d" />
+    <Compile Include="ocean\util\container\pool\model\IFreeList.d" />
+    <Compile Include="ocean\util\container\map\utils\FileSerializer.d" />
+    <Compile Include="ocean\net\email\EmailSender.d" />
+    <Compile Include="ocean\io\serialize\TypeId.d" />
+    <Compile Include="ocean\io\serialize\PHPSerializer.d" />
+    <Compile Include="ocean\io\serialize\StructDumper.d" />
+    <Compile Include="ocean\core\Enum.d" />
     <None Include="ocean\db\ebtree\c\lib\libebtree.a" />
     <None Include="ocean\db\ebtree\c\lib64\libebtree.a" />
     <None Include="ocean\db\ebtree\c\src\compiler.h" />
@@ -369,7 +402,32 @@
     <None Include="script\mkversion.sh" />
     <None Include="script\tmuxconnect.sh" />
     <None Include="script\tmuxconnectscreen.sh" />
-    <None Include="script\Version.d.tpl" />
     <None Include="test\dsss.conf" />
+    <Compile Include="ocean\net\client\xmlrpc\Xmlrpc.d" />
+    <Compile Include="ocean\net\client\xmlrpc\c\libxmlrpc_client.d" />
+    <None Include="ocean\net\client\xmlrpc\c\base.h" />
+    <None Include="ocean\net\client\xmlrpc\c\client.h" />
+    <None Include="ocean\net\client\xmlrpc\c\transport.h" />
+    <None Include="ocean\net\client\xmlrpc\c\util.h" />
+    <None Include="ocean\net\client\xmlrpc\c\client_global.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ocean\util\container\pool\" />
+    <Folder Include="ocean\util\container\pool\model\" />
+    <Folder Include="ocean\io\select\selector\" />
+    <Folder Include="ocean\net\email\" />
+  </ItemGroup>
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <Policies>
+          <TextStylePolicy inheritsSet="null" scope="text/x-d" />
+          <DFormattingPolicy CommentOutStandardHeaders="False" InsertStarAtCommentNewLine="False" inheritsSet="Mono" inheritsScope="text/x-d" scope="text/x-d" />
+          <VersionControlPolicy inheritsSet="Mono">
+            <CommitMessageStyle FirstFilePrefix="" FileSeparator=", " LastFilePostfix=":&#xA;" LineAlign="0" />
+          </VersionControlPolicy>
+        </Policies>
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
 </Project>

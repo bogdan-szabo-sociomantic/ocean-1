@@ -274,7 +274,7 @@ public abstract class EpollProcess
 
     ***************************************************************************/
 
-    abstract private static class OutputStreamHandler : ISelectClient, ISelectable
+    abstract private static class OutputStreamHandler : ISelectClient
     {
         /***********************************************************************
 
@@ -287,29 +287,16 @@ public abstract class EpollProcess
 
         /***********************************************************************
 
-            Constructor.
-
+            Events to register for
+    
         ***********************************************************************/
     
-        public this ( )
-        {
-            super(this);
-        }
-
-
-        /***********************************************************************
-
-            Returns:
-                events to register with epoll (read, in this case)
-
-        ***********************************************************************/
-
         public Event events ( )
         {
-            return Event.Read;
+            return Event.EPOLLIN;
         }
-	
-		protected void error_ ( Exception exception, Event event )
+
+		protected override void error_ ( Exception exception, Event event )
 		{
             Trace.formatln("EPOLL error {} at {} {} event = {}", exception.msg, exception.file, exception.line, event);
 		}
@@ -339,15 +326,21 @@ public abstract class EpollProcess
              * simultaneously. If this happens, just deal with the
              * Read. We will be called again with the Hangup.
              */
-            size_t received = ( event & Event.Read ) ? 
+            
+            size_t received = ( event & event.EPOLLIN ) ? 
                     this.stream.read(this.buf) : 0;
+
+                    
             if ( received > 0 && received != InputStream.Eof )
             {
                 this.handle_(this.buf[0..received]);
             }
-            else if ( event & Event.Hangup )
+            else
             {
-                return false;
+                if ( event & Event.EPOLLHUP )
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -407,7 +400,7 @@ public abstract class EpollProcess
 
         ***********************************************************************/
 
-        protected void finalize ( )
+        override public void finalize ( FinalizeStatus status )
         {
             this.outer.stdoutFinalize();
         }
@@ -474,7 +467,7 @@ public abstract class EpollProcess
 
         ***********************************************************************/
 
-        protected void finalize ( )
+        override public void finalize ( FinalizeStatus status )
         {
             this.outer.stderrFinalize();
         }
@@ -526,7 +519,7 @@ public abstract class EpollProcess
 
     ***************************************************************************/
 
-    private Process process;
+    private const Process process;
 
 
     /***************************************************************************
@@ -536,9 +529,9 @@ public abstract class EpollProcess
 
     ***************************************************************************/
 
-    private StdoutHandler stdout_handler;
+    private const StdoutHandler stdout_handler;
 
-    private StderrHandler stderr_handler;
+    private const StderrHandler stderr_handler;
 
 
     /***************************************************************************
@@ -647,7 +640,7 @@ public abstract class EpollProcess
 
     ***************************************************************************/
 
-    public void start (char[][] args_with_command )
+    public void start ( char[][] args_with_command )
     {
         assert(this.state == State.None); // TODO: error notification?
 

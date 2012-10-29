@@ -14,6 +14,8 @@ module ocean.io.select.protocol.fiber.BufferedFiberSelectWriter;
 
 private import ocean.io.select.protocol.fiber.FiberSelectWriter;
 
+private import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
+
 private import ocean.util.container.AppendBuffer;
 
 /******************************************************************************/
@@ -34,31 +36,68 @@ class BufferedFiberSelectWriter : FiberSelectWriter
             
      **************************************************************************/
 
-    private const AppendBuffer!(ubyte) buffer;
+    private const AppendBuffer!(void) buffer;
     
     /**************************************************************************
 
         Constructor
         
         Params:
-            conduit = output conduit (must be an OutputStream)
-            fiber   = output reading fiber
-            size    = buffer size
-            
+            output = output device
+            fiber = output reading fiber
+            warning_e = exception to throw on end-of-flow condition or if the
+                remote hung up
+            error_e = exception to throw on I/O error
+            size = buffer size
+
         In:
             The buffer size must not be 0.
 
      **************************************************************************/
 
-    public this ( ISelectable conduit, SelectFiber fiber, size_t size = default_buffer_size )
+    public this ( IOutputDevice output, SelectFiber fiber,
+                  IOWarning warning_e, IOError error_e,
+                  size_t size = default_buffer_size )
     in
     {
-        assert (size, typeof (this).stringof ~ ": initial buffer size is 0");
+        assert (size, "zero input buffer size specified");
     }
     body
     {
-        super(conduit, fiber);
-        this.buffer = new AppendBuffer!(ubyte)(size, true);
+        super(output, fiber, warning_e, error_e);
+        this.buffer = new AppendBuffer!(void)(size, true);
+    }
+    
+    /**************************************************************************
+
+        Constructor
+        
+        Uses the conduit, fiber and exceptions from the other
+        IFiberSelectProtocol instance. This is useful when this instance shares
+        the conduit and fiber with another IFiberSelectProtocol instance, e.g.
+        a FiberSelectWriter.
+        
+        The conduit owned by the other instance must have been downcast from
+        IInputDevice.
+        
+        Params:
+            other       = other instance of this class
+            buffer_size = output buffer size
+    
+        In:
+            buffer_size must not be 0.
+        
+     **************************************************************************/
+    
+    public this ( IFiberSelectProtocol other, size_t size = default_buffer_size )
+    in
+    {
+        assert (size, "zero input buffer size specified");
+    }
+    body
+    {
+        super(other);
+        this.buffer = new AppendBuffer!(void)(size, true);
     }
     
     /**************************************************************************
@@ -105,6 +144,23 @@ class BufferedFiberSelectWriter : FiberSelectWriter
     }
     
     /**************************************************************************
+
+        Clears any pending data in the buffer.
+
+        Returns:
+            this instance
+
+     **************************************************************************/
+
+    public override typeof (this) reset ( )
+    {
+        this.buffer.clear();
+        super.reset();
+
+        return this;
+    }
+
+    /**************************************************************************
     
         Sets the buffer size to s. If there are currently more than s bytes of
         data in the buffer, flush() is called before setting the size. 
@@ -138,7 +194,7 @@ class BufferedFiberSelectWriter : FiberSelectWriter
         
         return this.buffer.capacity = s;
     }
-    
+
     /**************************************************************************
     
         Sends data_.
@@ -168,7 +224,7 @@ class BufferedFiberSelectWriter : FiberSelectWriter
             
             if (left.length)
             {
-                this.buffer ~= cast (ubyte[]) left;
+                this.buffer ~= left;
             }
         }
         else

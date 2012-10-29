@@ -184,7 +184,13 @@ struct PeriodicTracer
 
     public typeof(this) format ( char[] fmt, ... )
     {
-        return this.format(fmt, _argptr, _arguments);
+        va_list ap;
+
+            va_start(ap, __va_argsave);
+
+            scope(exit) va_end(ap);
+
+        return this.format(fmt, ap, _arguments);
     }
 
 

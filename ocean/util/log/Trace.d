@@ -12,7 +12,7 @@
     version:        June 2011: initial release
     
     authors:        Mathias L. Baumann
-                    Gavin Normann
+                    Gavin Norman
     
 *******************************************************************************/
 

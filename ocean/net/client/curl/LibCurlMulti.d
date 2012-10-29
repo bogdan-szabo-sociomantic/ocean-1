@@ -76,7 +76,8 @@ debug private import tango.util.log.Trace;
     
 *******************************************************************************/
 
-class CurlConnection : LibCurl, Resettable
+pragma(msg, "LibCurlMulti is deprecated, use CurlProcessMulti instead");
+deprecated class CurlConnection : LibCurl, Resettable
 {
     /***************************************************************************
     
@@ -136,7 +137,7 @@ class CurlConnection : LibCurl, Resettable
 
 *******************************************************************************/
 
-class LibCurlMulti
+deprecated class LibCurlMulti
 {
     /***************************************************************************
     

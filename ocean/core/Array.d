@@ -295,6 +295,36 @@ public T[] substitute ( T ) ( T[] source, T[] match, T[] replacement, ref T[] re
 
 /*******************************************************************************
 
+    Removes and returns (via the 'popped' out parameter) the last element in an
+    array. If the provided array is empty, the function returns false.
+
+    Template params:
+        T = type of array element
+
+    Params:
+        array = array to pop an element from
+        popped = popped element (if array contains > 0 elements)
+
+    Returns:
+        true if an element was popped
+
+*******************************************************************************/
+
+public bool pop ( T ) ( ref T[] array, out T popped )
+{
+    if ( array.length )
+    {
+        popped = array[$-1];
+        array.length = array.length - 1;
+        return true;
+    }
+
+    return false;
+}
+
+
+/*******************************************************************************
+
     Removes all instances of match from source.
     
     Template params:
@@ -478,7 +508,7 @@ body
 
 *******************************************************************************/
 
-public T[] uniq ( T, bool sort = true ) ( ref T[] array )
+public T[] uniq ( T, bool sort = true ) ( T[] array )
 {
     if (array.length)
     {
@@ -500,10 +530,13 @@ public T[] uniq ( T, bool sort = true ) ( ref T[] array )
             }
         }
         
-        array.length = n + 1;
+        return array[0 .. n + 1];
+    }
+    else
+    {
+        return array;
     }
     
-    return array;
 }
 
 /*******************************************************************************

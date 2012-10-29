@@ -40,13 +40,19 @@
 
 module ocean.core.SmartUnion;
 
+public import ocean.core.Traits : FieldName;
+
+
+
 /******************************************************************************
 
     Provides a getter and setter method for each member of U. Additionally an
     "Active" enumerator and an "active" getter method is provided. The "Active"
     enumerator members copy the U member names, the values of that members start
-    with 1. The "Actve" enumerator has an additional "none" member with the
-    value 0. The "active" getter method returns
+    with 1. The "Active" enumerator has an additional "none" member with the
+    value 0. The "active" getter method returns the "Active" enumerator value of
+    the type currently set in the union -- this may be "none" if the union is in
+    its initial state.
 
  ******************************************************************************/
 
@@ -121,66 +127,37 @@ private struct SmartUnionIntern ( U )
     
     /**************************************************************************
 
-        Required for V.tupleof[i].stringof[4 .. $] to work
-    
-     **************************************************************************/
+        Evaluates to a ',' separated list of the names of the members of U.
 
-    typedef U V;
-    
-    /**************************************************************************
-
-        Evaluates to the name of the i-th member of U.
-        
         Template params:
-            i = U member index
-        
-        Evaluates to:
-            the name of the i-th member of U
-        
-     **************************************************************************/
-
-    template Member ( uint i )
-    {
-        const Member = V.tupleof[i].stringof[4 .. $];                           // V.tupleof[i].stringof is "(V).{name}"
-    }
-    
-    /**************************************************************************
-
-        Appends a ',' separated list of the names of the members of U to pre.
-        
-        Template params:
-            pre = prefix, the name list will appended to pre
             i   = U member start index
         
         Evaluates to:
-            a ',' separated list of the names of the members of U to pre
-        
+            a ',' separated list of the names of the members of U
+
      **************************************************************************/
 
-    template MemberList ( char[] pre = "", uint i = 0 )
+    template MemberList ( uint i = 0 )
     {
-        static if (i < N)
+        static if ( i == N )
         {
-            const MemberList = MemberList!(pre ~ ',' ~ Member!(i), i + 1);
+            const MemberList = "";
         }
         else
         {
-            const MemberList = pre;
+            const MemberList = "," ~ FieldName!(i, U) ~ MemberList!(i + 1);
         }
     }
-    
+
     /**************************************************************************
 
         Active enumerator definition string mixin
         
      **************************************************************************/
 
-    const EnumCode = MemberList!("enum Active{none") ~ '}';
-    
-//    pragma (msg, EnumCode);
-    
-    mixin (EnumCode);
-    
+//    pragma(msg,"enum Active{none" ~ MemberList!() ~ "}");
+    mixin("enum Active{none" ~ MemberList!() ~ "}");
+
     /**************************************************************************
 
         Memorizes which member is currently active (initially none which is 0)
@@ -191,15 +168,16 @@ private struct SmartUnionIntern ( U )
     
     /**************************************************************************
 
-        Evaluates to code defining a getter, a setter and/or a static opCall()
-        initializer method where the name of the getter/setter method is
+        Evaluates to code defining a getter, a setter and a static opCall()
+        initializer method, where the name of the getter/setter method is
         pre ~ ".u." ~ the name of the i-th member of U.
+
         The getter/setter methods use pre ~ ".active" which must be the Active
         enumerator:
             - the getter uses an 'in' contract to make sure the active member is
               accessed,
             - the setter method sets pre ~ ".active" to the active member.
-        
+
         Example: For
         ---
             union U {int x; char y;}
@@ -236,42 +214,42 @@ private struct SmartUnionIntern ( U )
             }
         ---
         .
-        
+
         Methods.get and Methods.set evaluate to only the getter or setter
         method, respectively.
-        
+
         Template params:
             pre = prefix for U instance "u"
             i   = index of U instance "u" member
-        
+
         Evaluates to:
             get  = getter method for the U member
             set  = setter method for the U member
-            both = both getter and setter method for the U member
-        
+            opCall = static SmartUnion initialiser with the value set to the U
+                member
+
      **************************************************************************/
 
     template Methods ( char[] u_pre, uint i )
     {
-        const member = Member!(i);
+        const member = FieldName!(i, U);
         
         const member_access = u_pre ~ ".u." ~ member;
-        
-        const type = typeof (U.tupleof)[i].stringof;
-        
+
+        const type = "typeof(" ~ member_access ~ ")";
+
         const get = type ~ ' ' ~  member ~ "()"
                     "in{assert(" ~ u_pre ~ ".active==" ~ u_pre ~ ".active." ~ member ~ ","
-                    "\"SmartUnion: \\\"" ~ member ~ "\\\" not active\");}"
+                    `"SmartUnion: '` ~ member ~ `' not active");}`
                     "body{return " ~ member_access ~ ";}";
 
-        
         const set = type ~ ' ' ~  member ~ '(' ~ type ~ ' ' ~ member ~ ")"
                     "{" ~ u_pre ~ ".active=" ~ u_pre ~ ".active." ~ member ~ ";"
                     "return " ~ member_access ~ '=' ~ member ~ ";}";
-        
+
         const ini = "static typeof(*this) opCall(" ~ type ~ ' ' ~ member ~ ")"
                     "{typeof(*this)su;su." ~ member ~ '=' ~ member ~ ";return su;}";
-        
+
         const all = get ~ '\n' ~ set ~ '\n' ~ ini;
     }
     
@@ -293,7 +271,8 @@ private struct SmartUnionIntern ( U )
     {
         static if (i < N)
         {
-            const AllMethods = AllMethods!(u_pre, pre ~ '\n' ~ Methods!(u_pre, i).all, i + 1);
+            const AllMethods =
+                AllMethods!(u_pre, pre ~ '\n' ~ Methods!(u_pre, i).all, i + 1);
         }
         else
         {

@@ -29,7 +29,7 @@ private import ocean.io.select.model.ISelectClient;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
-debug private import ocean.util.log.Trace;
+debug (SelectFiber) private import ocean.util.log.Trace;
 
 interface SelectFiberControl : MessageFiberControl
 {
@@ -111,43 +111,69 @@ public class SelectFiber : MessageFiber, SelectFiberControl
     body
     {
         debug ( SelectFiber) Trace.formatln("{}.register fd {}:",
-                typeof(this).stringof, client.conduit.fileHandle);
+                typeof(this).stringof, client.fileHandle);
 
         if ( this.current is null )
         {
-            debug ( SelectFiber) Trace.formatln("   Register new fd {}, events = {}",
-                    client.conduit.fileHandle, client.events);
+            debug ( SelectFiber) Trace.formatln("   Register new {}", client);
+
+            this.epoll.register(this.current = client);
+            
+            return true;
         }
         else
         {
-            if ( this.current.conduit.fileHandle == client.conduit.fileHandle )
+            if ( this.current.fileHandle == client.fileHandle )
             {
-                debug ( SelectFiber) if ( this.current.events != client.events )
+                if ( this.current.events != client.events )
                 {
-                    Trace.formatln("   Changing event registration fd {}, events = {}",
-                            this.current.conduit.fileHandle, this.current.events);
-                    Trace.formatln("   Register fd {}, events = {}",
-                            client.conduit.fileHandle, client.events);
+                    debug ( SelectFiber)
+                    {
+                        Trace.formatln("   Changing event registration {}",
+                            this.current);
+                        Trace.formatln("   Register {}", client);
+                    }
+
+                    this.epoll.changeClient(this.current, client);
+                    
+                    this.current = client;
+                    
+                    return true;
                 }
                 else
                 {
-                    Trace.formatln("   Leaving registered fd {}, events = {}",
-                            this.current.conduit.fileHandle, this.current.events);
+                    debug ( SelectFiber)
+                    {
+                        Trace.formatln("   Leaving registered {}", this.current);
+                    }
+                    
+                    // As there is not way to modify a registration with the
+                    // timeout manager, it is necessary to call unregistered(),
+                    // then registered() even if this.current and client are
+                    // identical. This ensures that, even if the epoll
+                    // registration doesn't need to be updated, that the timeout
+                    // timeout registration is updated correctly.
+                    
+                    this.current.unregistered();
+                    client.registered();
+                    
+                    return false;
                 }
             }
             else
             {
-                debug ( SelectFiber) Trace.formatln("   Unregister fd {}, events = {}",
-                        this.current.conduit.fileHandle, this.current.events);
+                debug ( SelectFiber) Trace.formatln("   Unregister {}",
+                    this.current);
 
                 this.epoll.unregister(this.current);
 
-                debug ( SelectFiber) Trace.formatln("   Register fd {}, events = {}",
-                        client.conduit.fileHandle, client.events);
+                debug ( SelectFiber) Trace.formatln("   Register {}", client);
+
+                this.epoll.register(this.current = client);
+                
+                return true;
             }
         }
-
-        return this.epoll.register(this.current = client);
     }
 
     /**************************************************************************
@@ -165,7 +191,7 @@ public class SelectFiber : MessageFiber, SelectFiberControl
         if ( this.current !is null )
         {
             debug ( SelectFiber) Trace.formatln("{}.unregister fd {}",
-                    typeof(this).stringof, this.current.conduit.fileHandle);
+                    typeof(this).stringof, this.current.fileHandle);
 
             this.epoll.unregister(this.current);
             this.current = null;

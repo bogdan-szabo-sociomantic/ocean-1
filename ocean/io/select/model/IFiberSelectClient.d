@@ -55,10 +55,28 @@ abstract class IFiberSelectClient : IAdvancedSelectClient
     /**************************************************************************
 
         Fiber instance
-    
+
+        Note that the instance is not const, as it is occasionally useful to be
+        able to change the select client's fiber after construction. An example
+        of this use case would be when a select client instance is created for
+        use with a socket connection (i.e. fd, i.e. fiber), but then, some time
+        later, needs to be re-used for a different socket connection -
+        necessitating a fiber switch.
+
      **************************************************************************/
 
-    public const SelectFiber fiber;
+    public SelectFiber fiber;
+
+    /**************************************************************************
+
+        The fiber must always be non-null.
+
+     **************************************************************************/
+
+    invariant
+    {
+        assert(this.fiber !is null, typeof(this).stringof ~ " fiber is null");
+    }
 
     /**************************************************************************
 
@@ -79,12 +97,11 @@ abstract class IFiberSelectClient : IAdvancedSelectClient
     
      **************************************************************************/
     
-    protected this ( ISelectable conduit, SelectFiber fiber )
+    protected this ( SelectFiber fiber )
     {
-        super(conduit);
         this.fiber = fiber;
     }
-    
+
     /**************************************************************************
     
         Finalize method, called after this instance has been unregistered from
@@ -94,9 +111,12 @@ abstract class IFiberSelectClient : IAdvancedSelectClient
         The fiber must be waiting or finished as it is ought to be when in
         Dispatcher context.
         
+        Params:
+            status = status why this method is called
+        
      **************************************************************************/
     
-    public override void finalize ( )
+    public override void finalize ( FinalizeStatus status )
     {
         assert (!this.fiber.running);
         
@@ -108,7 +128,7 @@ abstract class IFiberSelectClient : IAdvancedSelectClient
             }
     
             this.fiber.clear();
-            super.finalize();
+            super.finalize(status);
         }
         finally
         {
@@ -118,8 +138,8 @@ abstract class IFiberSelectClient : IAdvancedSelectClient
 
     /**************************************************************************
     
-        Error reporting method, called when an Exception is caught from
-        handle(); kills the fiber.
+        Error reporting method, called when either an Exception is caught from
+        handle() or an error event is reported; kills the fiber.
         
         Params:
             exception = Exception thrown by handle()

@@ -15,8 +15,8 @@
         
     In addition a subclass may override finalize(). When handle() returns false
     or throws an Exception, the ISelectClient instance is unregistered from the
-    SelectDispatcher and finalize() is invoked. 
-    
+    SelectDispatcher and finalize() is invoked.
+
  ******************************************************************************/
 
 module ocean.io.select.model.ISelectClient;
@@ -29,11 +29,7 @@ module ocean.io.select.model.ISelectClient;
 
  ******************************************************************************/
 
-private import tango.sys.linux.epoll: EPOLLIN, EPOLLOUT, EPOLLPRI,
-                                      EPOLLONESHOT, EPOLLET,
-                                      EPOLLHUP, EPOLLERR;
-
-private const EPOLLRDHUP = 0x2000;
+private import ocean.sys.Epoll;
 
 private import tango.io.model.IConduit: ISelectable;
 
@@ -42,13 +38,11 @@ private import ocean.time.timeout.model.ITimeoutClient,
 
 private import ocean.core.Array: concat, append;
 
-private import tango.stdc.posix.sys.socket: getsockopt, SOL_SOCKET, SO_ERROR, socklen_t;
-
-private import tango.stdc.string: strlen;
+private import ocean.text.util.ClassName;
 
 debug private import ocean.util.log.Trace;
 
-
+debug private import ocean.text.convert.Layout;
 
 /******************************************************************************
 
@@ -56,7 +50,7 @@ debug private import ocean.util.log.Trace;
 
  ******************************************************************************/
 
-public abstract class ISelectClient : ITimeoutClient
+public abstract class ISelectClient : ITimeoutClient, ISelectable
 {
     /**************************************************************************
 
@@ -72,19 +66,21 @@ public abstract class ISelectClient : ITimeoutClient
 
      **************************************************************************/
 
-    public enum Event
-    {
-        None            = 0,
-        Read            = EPOLLIN,
-        UrgentRead      = EPOLLPRI,
-        Write           = EPOLLOUT,
-        EdgeTriggered   = EPOLLET,
-        OneShot         = EPOLLONESHOT,
-        ReadHangup      = EPOLLRDHUP,
-        Hangup          = EPOLLHUP,
-        Error           = EPOLLERR
-    }
+    alias Epoll.Event Event;
 
+    /**************************************************************************
+
+        Enum of the status when finalize() is called.
+
+     **************************************************************************/
+
+    enum FinalizeStatus : uint
+    {
+        Success = 0,
+        Error,
+        Timeout
+    }
+    
     /**************************************************************************
 
         I/O device instance
@@ -98,7 +94,15 @@ public abstract class ISelectClient : ITimeoutClient
 
      **************************************************************************/
 
-    public const ISelectable conduit;
+    public abstract Handle fileHandle ( );
+    
+    /**************************************************************************
+
+        Events to register the conduit for.
+        
+     **************************************************************************/
+    
+    public abstract Event events ( );
     
     /**************************************************************************
 
@@ -120,23 +124,23 @@ public abstract class ISelectClient : ITimeoutClient
     
     /**************************************************************************
 
-        Constructor
+        The "my conduit is registered with epoll with my events and me as
+        attachment" flag, set by registered() and cleared by unregistered().
         
-        Params:
-            conduit     = I/O device instance
+        Notes:
+            1. The system can automatically unregister the conduit when its
+               file descriptor is closed; when this happens this flag is true by
+               mistake. The EpollSelectDispatcher is aware of that. However,
+               this flag can never be false by mistake.
+            2. There are use cases where several instances of this class share
+               the same conduit. Exactly one instance is associated to the
+               conduit registration and has is_registered_ = true. For the other
+               instances is_registered_ is false although their conduit is in
+               fact registered with epoll.
     
      **************************************************************************/
 
-    protected this ( ISelectable conduit )
-    in
-    {
-        debug (ISelectClient) assert (conduit !is null, this.id ~ ": conduit is null");
-        else  assert (conduit !is null, typeof (this).stringof ~ ": conduit is null");
-    }
-    body
-    {
-        this.conduit = conduit;
-    }
+    private bool is_registered_;
     
     /**************************************************************************
 
@@ -157,41 +161,6 @@ public abstract class ISelectClient : ITimeoutClient
     
     /***************************************************************************
 
-        Registers this client with the timeout manager.
-        On timeout this client will automatically be unregistered.
-        This client must currently not be registered.
-        
-        Returns:
-            true if registered or false if timeout_us is 0.
-        
-    ***************************************************************************/
-
-    public bool registerTimeout ( )
-    {
-        return (this.expiry_registration_ !is null)?
-                    this.expiry_registration_.register(this.timeout_us) : false;
-    }
-    
-    /***************************************************************************
-
-        Unregisters the this client from the timeout manager.
-        If a client is currently not registered, nothing is done.
-        
-        Must not be called from within timeout().
-        
-        Returns:
-            true on success or false if this client was not registered.
-        
-    ***************************************************************************/
-
-    public bool unregisterTimeout ( )
-    {
-        return (this.expiry_registration_ !is null)?
-                    this.expiry_registration_.unregister : false;
-    }
-    
-    /***************************************************************************
-
         Returns:
             true if this client has timed out or false otherwise.
     
@@ -203,17 +172,6 @@ public abstract class ISelectClient : ITimeoutClient
                     this.expiry_registration_.timed_out : false;
     }
 
-    /**************************************************************************
-
-        Returns the I/O events to register the device for
-        
-        Returns:
-             the I/O events to register the device for
-    
-     **************************************************************************/
-
-    abstract public Event events ( );
-    
     /**************************************************************************
 
         I/O event handler
@@ -244,9 +202,12 @@ public abstract class ISelectClient : ITimeoutClient
         Finalize method, called after this instance has been unregistered from
         the Dispatcher. Intended to be overridden by a subclass if required.
         
+        Params:
+            status = status why this method is called
+        
      **************************************************************************/
-
-    public void finalize ( ) { }
+    
+    public void finalize ( FinalizeStatus status ) { }
     
     /**************************************************************************
 
@@ -280,19 +241,24 @@ public abstract class ISelectClient : ITimeoutClient
 
     protected void error_ ( Exception exception, Event event ) { }
     
+    
     /**************************************************************************
-
-        Method to get string formatted information about a connection (for
-        example the address and port of a socket connection). Intended to be
-        overridden by a subclass if required.
-
-        Params:
-            buffer = string to receive formatted connection information
+    
+        Obtains the current error code of the underlying I/O device.
+        
+        To be overridden by a subclass for I/O devices that support querying a
+        device specific error status (e.g. sockets with getsockopt()).
+        
+        Returns:
+            the current error code of the underlying I/O device.
         
      **************************************************************************/
-
-    public void connectionInfo ( ref char[] buffer ) { }
-
+    
+    public int error_code ( )
+    {
+        return 0;
+    }
+    
     /**************************************************************************
 
         Register method, called after this client is registered with the
@@ -300,8 +266,25 @@ public abstract class ISelectClient : ITimeoutClient
 
      **************************************************************************/
 
-    public void registered ( ) { }
-
+    final public void registered ( )
+    in
+    {
+        assert (!this.is_registered_, classname(this) ~ ".registered(): already registered");
+    }
+    body
+    {
+        this.is_registered_ = true;
+        
+        try if (this.expiry_registration_ !is null)
+        {
+            this.expiry_registration_.register(this.timeout_us);
+        }
+        finally
+        {
+            this.registered_();
+        }
+    }
+    
     /**************************************************************************
 
         Unregister method, called after this client is unregistered from the
@@ -309,68 +292,63 @@ public abstract class ISelectClient : ITimeoutClient
 
      **************************************************************************/
 
-    public void unregistered ( ) { }
-
-    /**************************************************************************
-
-        Obtains the socket error reported for conduit. Returns normally if the
-        conduit is actually not a socket.
-        
-        Params:
-            errnum = output of system error code of the reported socket error
-            
-        Returns:
-            true if an error code could be obtained and is different from 0 or
-            false otherwise
-        
-     **************************************************************************/
-
-    public bool getSocketError ( out int errnum )
+    final public void unregistered ( )
+    in
     {
-        socklen_t len = errnum.sizeof;
+        assert (this.is_registered_, classname(this) ~ ".unregistered(): not registered");
+    }
+    body
+    {
+        this.is_registered_ = false;
         
-        bool ok = !getsockopt(this.conduit.fileHandle, SOL_SOCKET, SO_ERROR, &errnum, &len);
-        
-        return ok && errnum;
+        try if (this.expiry_registration_ !is null)
+        {
+            this.expiry_registration_.unregister();
+        }
+        finally
+        {
+            this.unregistered_();
+        }
     }
     
     /**************************************************************************
-
-        Obtains the socket error reported for conduit and the corresponding
-        error message. Returns normally if the conduit is actually not a socket.
         
-        Params:
-            errnum = output of system error code of the reported socket error
-            errmsg = error message output, will remain untouched if the return
-                     value is false
-            msg    = message strings to concatenate and prepend to the error
-                     message
-            
+        Returns true if this.conduit is currently registered for this.events
+        with this as attachment. Returns false if this.conduit is not registered
+        with epoll or, when multiple instances of this class share the same
+        conduit, if it is registered with another instance.
+
+        Note that the returned value can be true by mistake when epoll
+        unexpectedly unregistered the conduit file descriptor as it happens when
+        the file descriptor is closed (e.g. on error). However, the returned
+        value cannot be true by mistake.
+        
         Returns:
-            true if an error code could be obtained and is different from 0 or
-            false otherwise
+            true if this.conduit is currently registered for this.events with
+            this as attachment or false otherwise.
+
+     **************************************************************************/
+    
+    public bool is_registered ( )
+    {
+        return this.is_registered_;
+    }
+
+    /**************************************************************************
+
+        Called by registered(); may be overridden by a subclass.
+
+     **************************************************************************/
+    
+    protected void registered_ ( ) { }
+
+    /**************************************************************************
+
+        Called by unregistered(); may be overridden by a subclass.
 
      **************************************************************************/
 
-    public bool getSocketErrorT ( T ... ) ( out int errnum, ref char[] errmsg,
-        T msg )
-    {
-        bool have_errnum = this.getSocketError(errnum);
-        
-        if (have_errnum)
-        {
-            char[0x100] buf;
-            
-            char* errmsg_ = strerror_r(errnum, buf.ptr, buf.length);
-            
-            errmsg.concat(msg);
-            errmsg.append(errmsg_[0 .. strlen(errmsg_)]);
-        }
-        
-        return have_errnum;
-    }
-
-    alias getSocketErrorT!(char[]) getSocketError;
+    protected void unregistered_ ( ) { }
 
     /**************************************************************************
 
@@ -400,6 +378,36 @@ public abstract class ISelectClient : ITimeoutClient
         }
         return full_name;
     }
+
+    /***************************************************************************
+
+        Returns a string describing this client, for use in debug messages.
+
+        Returns:
+            string describing client
+
+    ***************************************************************************/
+
+    debug
+    {
+        private char[] to_string_buf;
+
+        public char[] toString ( )
+        {
+            this.to_string_buf.length = 0;
+            Layout!(char).print(this.to_string_buf, "{} fd={} events=", this.id,
+                this.fileHandle);
+            foreach ( event, name; epoll_event_t.event_to_name )
+            {
+                if ( this.events & event )
+                {
+                    this.to_string_buf ~= name;
+                }
+            }
+
+            return this.to_string_buf;
+        }
+    }
 }
 
 /******************************************************************************
@@ -428,7 +436,9 @@ abstract class IAdvancedSelectClient : ISelectClient
 
     interface IFinalizer
     {
-        void finalize ( );
+        alias IAdvancedSelectClient.FinalizeStatus FinalizeStatus;
+        
+        void finalize ( FinalizeStatus status );
     }
     
     /**************************************************************************/
@@ -436,13 +446,6 @@ abstract class IAdvancedSelectClient : ISelectClient
     interface IErrorReporter
     {
         void error ( Exception exception, Event event = Event.None );
-    }
-
-    /**************************************************************************/
-
-    interface IConnectionInfo
-    {
-        void connectionInfo ( ref char[] buffer );
     }
 
     /**************************************************************************/
@@ -460,22 +463,7 @@ abstract class IAdvancedSelectClient : ISelectClient
     
     private IFinalizer       finalizer_        = null;
     private IErrorReporter   error_reporter_   = null;
-    private IConnectionInfo  connection_info_  = null;
     private ITimeoutReporter timeout_reporter_ = null;
-    
-    /**************************************************************************
-
-        Constructor
-
-        Params:
-            conduit     = I/O device instance
-
-     **************************************************************************/
-    
-    protected this ( ISelectable conduit )
-    {
-        super(conduit);
-    }
     
     /**************************************************************************
 
@@ -521,32 +509,17 @@ abstract class IAdvancedSelectClient : ISelectClient
     }
     
     /**************************************************************************
-    
-        Sets the Connection Info. May be set to null to disable fetching of
-        connection info.
-        
-        Params:
-            connection_info_ = IConnectionInfo instance
-    
-     **************************************************************************/
-    
-    public void connection_info ( IConnectionInfo connection_info_ )
-    {
-        this.connection_info_ = connection_info_;
-    }
-
-    /**************************************************************************
 
         Finalize method, called after this instance has been unregistered from
         the Dispatcher.
     
      **************************************************************************/
     
-    public override void finalize ( )
+    public override void finalize ( FinalizeStatus status )
     {
         if (this.finalizer_ !is null)
         {
-            this.finalizer_.finalize();
+            this.finalizer_.finalize(status);
         }
     }
 
@@ -570,23 +543,6 @@ abstract class IAdvancedSelectClient : ISelectClient
     }
     
     /**************************************************************************
-    
-        Connection info fetching method.
-    
-        Params:
-            buffer = string buffer to receive formatted connection info
-        
-     **************************************************************************/
-    
-    override public void connectionInfo ( ref char[] buffer )
-    {
-        if (this.connection_info_)
-        {
-            this.connection_info_.connectionInfo(buffer);
-        }
-    }
-
-    /**************************************************************************
 
         Timeout method, called after this a timeout has occurred in the
         SelectDispatcher.
@@ -601,34 +557,3 @@ abstract class IAdvancedSelectClient : ISelectClient
         }
     }
 }
-
-/******************************************************************************
-
-    Obtains the system error message corresponding to errnum (reentrant/
-    thread-safe version of strerror()).
-    
-    Note: This is the GNU (not the POSIX) version of strerror_r().
-    
-    @see http://www.kernel.org/doc/man-pages/online/pages/man3/strerror.3.html
-    
-    "The GNU-specific strerror_r() returns a pointer to a string containing the
-     error message.  This may be either a pointer to a string that the function
-     stores in buf, or a pointer to some (immutable) static string (in which case
-     buf is unused).  If the function stores a string in buf, then at most buflen
-     bytes are stored (the string may be truncated if buflen is too small) and
-     the string always includes a terminating null byte."
-    
-    Tries have shown that buffer may actually not be populated.
-    
-    Params:
-        errnum = error number
-        buffer = error message destination buffer (may or may not be populated)
-        buflen = destination buffer length
-    
-    Returns:
-        a NUL-terminated string containing the error message
-
-******************************************************************************/
-
-private extern (C) char* strerror_r ( int errnum, char* buffer, size_t buflen );
-

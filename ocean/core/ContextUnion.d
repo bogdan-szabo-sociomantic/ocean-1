@@ -1,8 +1,7 @@
 /*******************************************************************************
 
-    Structure holding the user-specified context for a client request. The
-    specified request context is passed back to the calling code when the i/o
-    delegate is called.
+    Structure holding a user-specified context in the form of a pointer, a class
+    reference or a platform-dependant unsigned integer (a hash_t).
 
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
 

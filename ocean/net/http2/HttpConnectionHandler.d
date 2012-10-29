@@ -191,8 +191,6 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
         
         try
         {
-            super.reader.reset();
-            
             do try try
             {
                 StatusCode status = StatusCode.OK; 
@@ -252,6 +250,19 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
         {
             this.notifyIOException(e, false);
         }
+    }
+    
+    /**************************************************************************
+
+        Resettable interface method; resets the request.
+        
+     **************************************************************************/
+    
+    public override void reset ( )
+    {
+        super.reset();
+        
+        this.request.reset();
     }
     
     /**************************************************************************

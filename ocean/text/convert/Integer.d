@@ -428,5 +428,11 @@ unittest
     assert(toUlong("0x10", ul, 10) == false);
     assert(toUlong("0b10", ul, 10) == false);
     assert(toUlong("0o10", ul, 10) == false);
+
+    // empty string handling (pasring error)
+    assert(toInt("", i) == false);
+    assert(toUint("", ui) == false);
+    assert(toLong("", l) == false);
+    assert(toUlong("", ul) == false);
 }
 

@@ -50,6 +50,8 @@ module ocean.text.util.StringReplace;
 
 private import ocean.text.util.StringSearch;
 
+private import ocean.text.convert.Layout;
+
 /******************************************************************************
 
     StringReplace class
@@ -92,6 +94,15 @@ class StringReplace ( bool wide_char = false )
     private size_t[] items;
 
     private Char[] replacement;
+    
+    /**************************************************************************
+
+        A re-usable buffer to use with the Layout formatter in the 
+        replacePatternLayout method.
+
+     **************************************************************************/
+    
+    private char[] buf;
 
     /**************************************************************************
 
@@ -136,6 +147,31 @@ class StringReplace ( bool wide_char = false )
         return this.replace(content, pattern, replacement, false);
     }
 
+    
+    /**************************************************************************
+
+        The method will accept any aribtary replacement pattern and will pass it
+        through the Layout formatter.  The resulting string will replace 
+        any occurrance of the target pattern. The content length is decreased or
+        increased where appropriate.
+
+        Params:
+             content     = content to process
+             pattern     = string pattern to replace
+             replacement = replacement object
+
+        Returns:
+             the number of occurrences
+
+     **************************************************************************/
+    
+    public size_t replacePatternLayout(T) ( ref Char[] content, Char[] pattern,
+            T replacement )
+    {
+        this.buf.length = 0;
+        Layout!(char).print(this.buf, "{}", replacement );
+        return this.replacePattern(content, pattern, this.buf);
+    }
 
 
     /**************************************************************************
@@ -597,7 +633,7 @@ class StringReplace ( bool wide_char = false )
     }
     body
     {
-        destin[dst_pos .. dst_pos + source.length] = source.dup;
+        destin[dst_pos .. dst_pos + source.length] = source;
 
         return destin;
     }

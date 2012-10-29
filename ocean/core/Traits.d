@@ -298,6 +298,93 @@ private template StripFieldName ( char[] name, size_t n = size_t.max )
 
 /*******************************************************************************
 
+    Template to get the size in bytes of the passed type tuple.
+
+    Template parameter:
+        Tuple = variadic type tuple
+
+    Evaluates to:
+        size_t constant equal to the sizeof each type in the tuple
+
+*******************************************************************************/
+
+public template SizeofTuple ( Tuple ... )
+{
+    static if ( Tuple.length > 0 )
+    {
+        const size_t SizeofTuple = Tuple[0].sizeof + SizeofTuple!(Tuple[1..$]);
+    }
+    else
+    {
+        const size_t SizeofTuple = 0;
+    }
+}
+
+
+/*******************************************************************************
+
+    Function which iterates over the type tuple of T and copies all fields from
+    one instance to another. Note that, for classes, according to:
+
+        http://digitalmars.com/d/1.0/class.html
+
+    "The .tupleof property returns an ExpressionTuple of all the fields in the
+    class, excluding the hidden fields and the fields in the base class."
+
+    (This is not actually true with current versions of the compiler, but
+    anyway.)
+
+    Template params:
+        T = type of instances to copy fields from and to
+
+    Params:
+        dst = instance of type T to be copied into
+        src = instance of type T to be copied from
+
+*******************************************************************************/
+
+public void copyFields ( T ) ( ref T dst, ref T src )
+{
+    foreach ( i, t; typeof(dst.tupleof) )
+    {
+        dst.tupleof[i] = src.tupleof[i];
+    }
+}
+
+
+/*******************************************************************************
+
+    Function which iterates over the type tuple of T and sets all fields of the
+    provided instance to their default (.init) values. Note that, for classes,
+    according to:
+
+        http://digitalmars.com/d/1.0/class.html
+
+    "The .tupleof property returns an ExpressionTuple of all the fields in the
+    class, excluding the hidden fields and the fields in the base class."
+
+    (This is not actually true with current versions of the compiler, but
+    anyway.)
+
+    Template params:
+        T = type of instances to initialise
+
+    Params:
+        o = instance of type T to be initialised
+
+*******************************************************************************/
+
+public void initFields ( T ) ( ref T o )
+{
+    foreach ( i, t; typeof(o.tupleof) )
+    {
+        o.tupleof[i] = o.tupleof[i].init;
+    }
+}
+
+
+/*******************************************************************************
+
     Template to determine if a type tuple is composed of unique types, with no
     duplicates.
 
@@ -306,6 +393,8 @@ private template StripFieldName ( char[] name, size_t n = size_t.max )
 
     Evaluates to:
         true if no duplicate types exist in Tuple
+
+    TODO: could be re-phrased in terms of tango.core.Tuple : Unique
 
 *******************************************************************************/
 
@@ -333,6 +422,8 @@ public template isUniqueTypesInTuple ( Tuple ... )
 
     Evaluates to:
         number of times Type appears in Tuple
+
+    TODO: could be re-phrased in terms of tango.core.Tuple : Unique
 
 *******************************************************************************/
 

@@ -168,12 +168,9 @@ class StrSplitIterator : ISplitIterator
      **************************************************************************/
 
     protected size_t skipDelim ( char[] str )
-    in
     {
         assert (str.length >= this.delim.length);
-    }
-    body
-    {
+        
         return this.sf.match.length;
     }
     
@@ -192,14 +189,15 @@ class StrSplitIterator : ISplitIterator
                        
                        "123""123""ab""123""123""cd""123""efg",
                        "ab""123""123""cd""123""efg""123""123"])
-                       
-        foreach (element; split.reset(str))
         {
-            const char[][] elements = ["ab", "cd", "efg"];
-            
-            assert (split.n);
-            assert (split.n <= elements.length);
-            assert (element == elements[split.n - 1]);
+            foreach (element; split.reset(str))
+            {
+                const char[][] elements = ["ab", "cd", "efg"];
+                
+                assert (split.n);
+                assert (split.n <= elements.length);
+                assert (element == elements[split.n - 1]);
+            }
         }
         
         split.collapse = false;
@@ -221,6 +219,12 @@ class StrSplitIterator : ISplitIterator
             assert (split.n <= elements.length);
             assert (element == elements[split.n - 1]);
         }
+        
+        split.reset("ab""123""cd""123""efg");
+        
+        assert (split.next == "ab");
+        assert (split.next == "cd");
+        assert (split.next == "efg");
     }
 }
 
@@ -379,7 +383,6 @@ abstract class ISplitIterator
     {
         if (this.n_)
         {
-            assert (this.remaining_);
             assert (this.content);
         }
         
@@ -573,6 +576,54 @@ abstract class ISplitIterator
         }
          
         return this.remaining_ = this.remaining_[start .. $];
+    }
+    
+    /**************************************************************************
+    
+        Searches the next delimiter.
+        
+        Returns:
+            a slice to the content between the previous and next delimiter, if
+            found. If not found and include_remaining is true, the remaining
+            content is returned or null if include_remaining is false.
+        
+     **************************************************************************/
+    
+    public char[] next ( )
+    {
+        if (this.remaining_.length)
+        {
+            this.n_++;
+            
+            if (this.collapse)
+            {
+                this.skipLeadingDelims();
+            }
+            
+            size_t start = this.content.length - this.remaining_.length,
+                   end   = this.locateDelim(start);
+            
+            if (end < this.content.length)
+            {
+                this.remaining_ = this.content[end + this.skipDelim(this.content[end .. $]) .. $];
+                
+                return this.content[start .. end];
+            }
+            else if (this.include_remaining)
+            {
+                scope (success) this.remaining_ = null;
+                
+                return this.remaining_;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        else
+        {
+            return null;
+        }
     }
     
     /**************************************************************************

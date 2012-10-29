@@ -43,9 +43,12 @@
         // Add a mapping
         *(map.put(hash)) = 12;
 
-        // Check if a mapping exists (null if not found)
-        auto exists = hash in map;
-
+        // Look up a mapping and obtain a pointer to the value if found or null
+        // if not found;
+        int* val = hash in map;
+        
+        bool exists = val !is null;
+        
         // Remove a mapping
         map.remove(hash);
 
@@ -56,8 +59,11 @@
         auto map2 = new HashMap!(char[]);
 
         // Add a mapping
-        map2.put(hash).copy("hello");
-
+        char[]* val2 = map2.put(hash);
+        
+        (*val2).length = "hello".length;
+        (*val2)[]      = "hello";
+        
         // Mapping from hash_t -> struct
         struct MyStruct
         {
@@ -67,29 +73,23 @@
 
         auto map3 = new HashMap!(MyStruct);
 
-        // Add a mapping
-        *(map3.put(hash)) = MyStruct(12, 23.23);
-
+        // Add a mapping, put() never returns null
+        
+        with (*map3.put(hash))
+        {
+            x = 12;
+            y = 23.23;
+        }
+        
     ---
-
+    
 *******************************************************************************/
 
 module ocean.util.container.map.HashMap;
 
-
-
-/*******************************************************************************
-
-    Imports
-
-*******************************************************************************/
-
-private import ocean.util.container.map.model.BucketSet;
-
-private import ocean.util.container.map.model.Bucket;
+private import ocean.util.container.map.Map;
 
 debug private import ocean.io.Stdout;
-
 
 
 /*******************************************************************************
@@ -98,9 +98,12 @@ debug private import ocean.io.Stdout;
 
 *******************************************************************************/
 
-//debug = UnittestVerbose;
+//    debug = UnittestVerbose;
 
-
+debug ( UnittestVerbose )
+{
+    private import ocean.io.Stdout;
+}
 
 /*******************************************************************************
 
@@ -111,7 +114,7 @@ debug private import ocean.io.Stdout;
 
 *******************************************************************************/
 
-public class HashMap ( V ) : BucketSet!(ValueBucketElement!(V.sizeof))
+public class HashMap ( V ) : Map!(V, hash_t)
 {
     /***************************************************************************
 
@@ -133,135 +136,25 @@ public class HashMap ( V ) : BucketSet!(ValueBucketElement!(V.sizeof))
     {
         super(n, load_factor);
     }
-
-
+    
     /***************************************************************************
-
-        In operator. Checks if a mapping exists for the given key.
-
+    
+        Calculates the hash value from key. Uses the identity since key is
+        expected to be a suitable hash value.
+        
         Params:
-            key = key to look for
-
+            key = key to hash
+            
         Returns:
-            pointer to the value mapped by key, if it exists. null otherwise.
-
+            the hash value that corresponds to key, which is key itself.
+    
     ***************************************************************************/
-
-    public V* opIn_r ( hash_t key )
+    
+    public hash_t toHash ( hash_t key )
     {
-        Bucket.Element* element = this.getBucket(key).find(key);
-
-        return element ? cast(V*)element.val.ptr : null;
+        return key;
     }
-
-
-    /***************************************************************************
-
-        Adds or updates a mapping from the specified key.
-
-        Params:
-            key = key to add/update mapping for
-
-        Returns:
-            pointer to the value mapped to by the specified key. The caller
-            should set the value as desired.
-
-    ***************************************************************************/
-
-    public V* put ( hash_t key )
-    {
-        auto bucket = this.getBucket(key);
-        return cast(V*)bucket.add(key, this.bucket_elements.get()).val.ptr;
-    }
-
-
-    /***************************************************************************
-
-        Removes the mapping for the specified key.
-
-        Params:
-            key = key to remove mapping for
-
-        Returns:
-            pointer to the value mapped to by the specified key
-
-    ***************************************************************************/
-
-    public V* remove ( hash_t key )
-    {
-        auto element = this.removeElement(key);
-
-        if ( element )
-        {
-            this.bucket_elements.recycle(element);
-            return cast(V*)element.val.ptr;
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-
-    /***************************************************************************
-
-        Iterator scope class.
-
-        The iteration is actually over a copy of the hashmap. Thus the mappings
-        may be modified while iterating. However, the list of mappings iterated
-        over is not updated to any changes made.
-
-    ***************************************************************************/
-
-    public scope class Iterator
-    {
-        public int opApply ( int delegate ( ref Bucket.Element.Key, ref V* ) dg )
-        {
-            int r;
-
-            scope it = this.outer.new ElementsIterator;
-            foreach ( element; it )
-            {
-                auto value = cast(V*)element.val.ptr;
-                r = dg(element.key, value);
-                if ( r ) break;
-            }
-
-            return r;
-        }
-    }
-
-
-    /***************************************************************************
-
-        Read only iterator scope class.
-
-        The read-only iterator is more efficient as it does not require the
-        copy of the items being iterated, which the safe iterator performs. The
-        hashmap should not be modified while using this iterator. (The values of
-        mappings may be modified while iterating, at the user's discretion.)
-
-    ***************************************************************************/
-
-    public scope class ReadOnlyIterator
-    {
-        public int opApply ( int delegate ( ref Bucket.Element.Key, ref V* ) dg )
-        {
-            int r;
-
-            scope it = this.outer.new ReadOnlyElementsIterator;
-            foreach ( element; it )
-            {
-                auto value = cast(V*)element.val.ptr;
-                r = dg(element.key, value);
-                if ( r ) break;
-            }
-
-            return r;
-        }
-    }
-
-
+    
     /***************************************************************************
 
         HashMap unittest.
@@ -274,7 +167,7 @@ public class HashMap ( V ) : BucketSet!(ValueBucketElement!(V.sizeof))
         {
             Stdout.formatln("{} unittest ---------------",
                 typeof(this).stringof);
-            scope ( exit ) Stdout.formatln("{} unittest ---------------",
+            scope ( success ) Stdout.formatln("{} unittest ---------------",
                typeof(this).stringof);
         }
 
@@ -289,11 +182,10 @@ public class HashMap ( V ) : BucketSet!(ValueBucketElement!(V.sizeof))
 
         bool lengthIs ( int expected )
         {
-            assert(map.length == expected);
+            assert(map.bucket_info.length == expected);
 
             int c;
-            scope it = map.new ReadOnlyIterator;
-            foreach ( k, v; it )
+            foreach ( k, v; map )
             {
                 c++;
             }
@@ -302,28 +194,48 @@ public class HashMap ( V ) : BucketSet!(ValueBucketElement!(V.sizeof))
 
         void put ( hash_t key, bool should_exist )
         {
-            auto len = map.length;
+            auto len = map.bucket_info.length;
 
-            assert(!!(key in map) == should_exist);
+            assert(((key in map) !is null) == should_exist);
 
             auto e = map.put(key);
+            
+            *e = V.init;
+
             debug ( UnittestVerbose )
             {
                 Stdout.format("put {}: {}", key, e);
                 printState();
             }
 
-            assert(key in map);
-            assert(*(key in map) == V.init);
+            assert((key in map) !is null);
+            
+            static if (is (V U : U[]) && !is (V == V[]))
+            {
+                // work around DMD bug 7752
+                
+                V v_init;
+                
+                assert(*map.get(key) == v_init);
+            }
+            else static if ( is ( V == class ) )
+            {
+                assert(*map.get(key) is V.init);
+            }
+            else
+            {
+                assert(*map.get(key) == V.init, "Value does not equal previously set value");
+            }
+            
             assert(lengthIs(len + (should_exist ? 0 : 1)));
         }
 
         void remove ( hash_t key, bool should_exist )
         {
-            auto len = map.length;
-            auto pool_len = map.bucket_elements.length;
+            auto len = map.bucket_info.length;
+            auto pool_len = map.bucket_info.num_buckets;
 
-            assert(!!(key in map) == should_exist);
+            assert(((key in map) !is null) == should_exist);
 
             auto e = map.remove(key);
             debug ( UnittestVerbose )
@@ -334,12 +246,12 @@ public class HashMap ( V ) : BucketSet!(ValueBucketElement!(V.sizeof))
 
             assert(!(key in map));
             assert(lengthIs(len - (should_exist ? 1 : 0)));
-            assert(pool_len == map.bucket_elements.length);
+            assert(pool_len == map.bucket_info.num_buckets);
         }
 
         void clear ( )
         {
-            auto pool_len = map.bucket_elements.length;
+            auto pool_len = map.bucket_info.num_buckets;
 
             map.clear();
             debug ( UnittestVerbose )
@@ -350,39 +262,107 @@ public class HashMap ( V ) : BucketSet!(ValueBucketElement!(V.sizeof))
 
             assert(lengthIs(0));
 
-            assert(pool_len == map.bucket_elements.length);
+            assert(pool_len == map.bucket_info.num_buckets);
         }
 
+        uint[hash_t] expected_keys;
+        
+        void checkContent ( )
+        {
+            foreach (key, val; map)
+            {
+                uint* n = key in expected_keys;
+                
+                assert (n !is null);
+                
+                assert (!*n, "duplicate key");
+                
+                (*n)++;
+            }
+            
+            foreach (n; expected_keys)
+            {
+                assert (n == 1);
+            }
+        }
+        
         put(4711, false);   // put
         put(4711, true);    // double put
         put(23, false);     // put
         put(12, false);     // put
+        
+        expected_keys[4711] = 0;
+        expected_keys[23]   = 0;
+        expected_keys[12]   = 0;
+        
+        checkContent();
+        
         remove(23, true);   // remove
         remove(23, false);  // double remove
+
+        expected_keys[4711] = 0;
+        expected_keys[12]   = 0;
+
+        expected_keys.remove(23);
+
+        checkContent();
+        
         put(23, false);     // put
         put(23, true);      // double put
 
+        expected_keys[4711] = 0;
+        expected_keys[12]   = 0;
+        expected_keys[23]   = 0;            
+        
+        checkContent();
+        
         clear();
-
+        
+        foreach (key, val; map)
+        {
+            assert (false);
+        }
+        
         put(4711, false);   // put
         put(11, false);     // put
         put(11, true);      // double put
         put(12, false);     // put
+        
+        expected_keys[4711] = 0;
+        expected_keys[12]   = 0;
+        expected_keys[11]   = 0;
+        expected_keys.remove(23);            
+        
+        checkContent();
+        
         remove(23, false);  // remove
         put(23, false);     // put
         put(23, true);      // double put
 
+        expected_keys[4711] = 0;
+        expected_keys[12]   = 0;
+        expected_keys[11]   = 0;
+        expected_keys[23]   = 0;
+        
+        checkContent();
+        
         clear();
 
-//        foreach (i, bucket; map.buckets)
-//        {
-//            Stdout.formatln("Bucket {,2}: {,2} elements:", i, bucket.length);
-//            foreach ( element; bucket )
+        foreach (key, val; map)
+        {
+            assert (false);
+        }
+        
+//            foreach (i, bucket; map.buckets)
 //            {
-//                Stdout.formatln("  {,2}->{,2}", element.key,
-//                    *(cast(V*)element.val.ptr));
+//                Stdout.formatln("Bucket {,2}: {,2} elements:", i, bucket.length);
+//                foreach ( element; bucket )
+//                {
+//                    Stdout.formatln("  {,2}->{,2}", element.key,
+//                        *(cast(V*)element.val.ptr));
+//                }
 //            }
-//        }
     }
+    
+    
 }
-

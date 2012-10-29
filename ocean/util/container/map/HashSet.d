@@ -46,9 +46,7 @@ module ocean.util.container.map.HashSet;
 
 *******************************************************************************/
 
-private import ocean.util.container.map.model.BucketSet;
-
-private import ocean.util.container.map.model.Bucket;
+private import ocean.util.container.map.Set;
 
 debug private import ocean.io.Stdout;
 
@@ -62,7 +60,10 @@ debug private import ocean.io.Stdout;
 
 //debug = UnittestVerbose;
 
-
+debug ( UnittestVerbose )
+{
+    private import tango.io.Stdout;
+}
 
 /*******************************************************************************
 
@@ -70,7 +71,7 @@ debug private import ocean.io.Stdout;
 
 *******************************************************************************/
 
-public class HashSet : BucketSet!(BucketElement!())
+public class HashSet : Set!(hash_t)
 {
     /***************************************************************************
 
@@ -86,143 +87,25 @@ public class HashSet : BucketSet!(BucketElement!())
     {
         super(n, load_factor);
     }
-
-
+    
     /***************************************************************************
-
-        Looks up key in the set.
-
+    
+        Calculates the hash value from key. Uses the identity since key is
+        expected to be a suitable hash value.
+        
         Params:
-            key = key to look up
-
+            key = key to hash
+            
         Returns:
-            true if found or false if not.
-
+            the hash value that corresponds to key, which is key itself.
+    
     ***************************************************************************/
-
-    public bool opIn_r ( hash_t key )
+    
+    public hash_t toHash ( hash_t key )
     {
-        Bucket.Element* element = this.getBucket(key).find(key);
-
-        if (element)
-        {
-            assert (element.key == key);
-
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return key;
     }
-
-
-    /***************************************************************************
-
-        Puts key into the set.
-
-        Params:
-            key = key to put into set
-
-        Returns:
-            true if the key was already on the set, false otherwise
-
-    ***************************************************************************/
-
-    public bool put ( hash_t key )
-    {
-        bool existed;
-
-        this.getBucket(key).add(key, this.bucket_elements.get(), existed);
-
-        return existed;
-    }
-
-
-    /***************************************************************************
-
-        Removes key from the set.
-
-        Params:
-            key = key to remove from set
-
-        Returns:
-            true if the key was in the set, false otherwise
-
-    ***************************************************************************/
-
-    public bool remove ( hash_t key )
-    {
-        auto element = this.removeElement(key);
-
-        if ( element )
-        {
-            this.bucket_elements.recycle(element);
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-
-    /***************************************************************************
-
-        Iterator scope class.
-
-        The iteration is actually over a copy of the whole hashset. Thus the set
-        may be modified while iterating. However, the list of iems iterated
-        over is not updated to any changes made.
-
-    ***************************************************************************/
-
-    public scope class Iterator
-    {
-        public int opApply ( int delegate ( ref Bucket.Element.Key ) dg )
-        {
-            int r;
-
-            scope it = this.outer.new ElementsIterator;
-            foreach ( element; it )
-            {
-                r = dg(element.key);
-                if ( r ) break;
-            }
-
-            return r;
-        }
-    }
-
-
-    /***************************************************************************
-
-        Read only iterator scope class.
-
-        The read-only iterator is more efficient as it does not require the
-        copy of the items being iterated, which the safe iterator performs. The
-        hashset should not be modified while using this iterator.
-
-    ***************************************************************************/
-
-    public scope class ReadOnlyIterator
-    {
-        public int opApply ( int delegate ( ref Bucket.Element.Key ) dg )
-        {
-            int r;
-
-            scope it = this.outer.new ReadOnlyElementsIterator;
-            foreach ( element; it )
-            {
-                r = dg(element.key);
-                if ( r ) break;
-            }
-
-            return r;
-        }
-    }
-
-
+    
     /***************************************************************************
 
         HashSet unittest.
@@ -241,7 +124,7 @@ public class HashSet : BucketSet!(BucketElement!())
 
         scope set = new typeof(this)(10);
 
-        void printState ( )
+        debug ( UnittestVerbose ) void printState ( )
         {
             Stdout.formatln("  ::  len={}, load={}, max_load={}, pool={} ({} busy)",
                 set.length, set.load, set.max_load,
@@ -250,11 +133,10 @@ public class HashSet : BucketSet!(BucketElement!())
 
         bool lengthIs ( int expected )
         {
-            assert(set.length == expected);
+            assert(set.bucket_info.length == expected);
 
             int c;
-            scope it = set.new ReadOnlyIterator;
-            foreach ( k; it )
+            foreach ( k; set )
             {
                 c++;
             }
@@ -263,7 +145,7 @@ public class HashSet : BucketSet!(BucketElement!())
 
         void put ( hash_t key, bool should_exist )
         {
-            auto len = set.length;
+            auto len = set.bucket_info.length;
 
             assert(!!(key in set) == should_exist);
 
@@ -280,8 +162,8 @@ public class HashSet : BucketSet!(BucketElement!())
 
         void remove ( hash_t key, bool should_exist )
         {
-            auto len = set.length;
-            auto pool_len = set.bucket_elements.length;
+            auto len = set.bucket_info.length;
+            auto pool_len = set.bucket_info.num_buckets;
 
             assert(!!(key in set) == should_exist);
 
@@ -294,12 +176,12 @@ public class HashSet : BucketSet!(BucketElement!())
 
             assert(!(key in set));
             assert(lengthIs(len - (should_exist ? 1 : 0)));
-            assert(pool_len == set.bucket_elements.length);
+            assert(pool_len == set.bucket_info.num_buckets);
         }
 
         void clear ( )
         {
-            auto pool_len = set.bucket_elements.length;
+            auto pool_len = set.bucket_info.num_buckets;
 
             set.clear();
             debug ( UnittestVerbose )
@@ -310,7 +192,7 @@ public class HashSet : BucketSet!(BucketElement!())
 
             assert(lengthIs(0));
 
-            assert(pool_len == set.bucket_elements.length);
+            assert(pool_len == set.bucket_info.num_buckets);
         }
 
         put(4711, false);   // put
@@ -335,4 +217,3 @@ public class HashSet : BucketSet!(BucketElement!())
         clear();
     }
 }
-

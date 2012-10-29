@@ -210,7 +210,7 @@ private class CurlProcess : EpollProcess
 
     protected void finished ( bool exited_ok, int exit_code )
     {
-        debug ( EpollProcess ) Stdout.formatln("Curl finished: ok={}, code={}",
+        debug ( CurlProcess ) Stdout.formatln("Curl finished: ok={}, code={}",
                 exited_ok, exit_code);
 
         ExitStatus status = exited_ok
@@ -247,11 +247,9 @@ private class CurlProcess : EpollProcess
         // Standard options
         this.args ~= "-s"; // silent -- nothing sent to stderr
         this.args ~= "-S"; // show errors
-        if(this.params.appendStatusCode() )
-        {
-            this.args ~= "-w";
-            this.args ~= "%{http_code}"; // output HTTP status as last 3 bytes of stdout stream
-        }
+        this.args ~= "-w";
+        this.args ~= "%{http_code}"; 
+            // output HTTP status as last 3 bytes of stdout stream
 
         // Switch off the URL globbing parser, so that URLs can contain {}[]
         this.args ~= "-g";
@@ -284,8 +282,14 @@ private class CurlProcess : EpollProcess
             this.args ~= "-k";
         }
 
+        // Header only
+        if ( this.params.header_only_set )
+        {
+            this.args ~= "-I";
+        }
+
         // extra info to header...
-        if(this.params.extra_header_set)
+        if ( this.params.extra_header_set )
         {
             foreach(head;this.params.extra_header_params)
             {
@@ -295,10 +299,13 @@ private class CurlProcess : EpollProcess
         }
 
         //request command
-        this.args ~= "-X";
-        this.args ~= this.params.req_command;
+        if (this.params.req_command)
+        {
+            this.args ~= "-X";
+            this.args ~= this.params.req_command;
+        }
 
-        if(this.params.req_data)
+        if ( this.params.req_data.length )
         {
             this.args ~= "-d";
             this.args ~= this.params.req_data;
@@ -308,6 +315,10 @@ private class CurlProcess : EpollProcess
         // Url
         this.args ~= this.params.url;
 
+        debug ( CurlProcess ) 
+            Stdout.formatln("Starting curl process with parameters: {}",
+                this.args);
+        
         super.start(this.args);
     }
 }

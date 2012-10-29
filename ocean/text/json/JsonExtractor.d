@@ -581,7 +581,7 @@ struct JsonExtractor
             Constructor
             
             Params:
-                json       = JSON parser
+                json       = JSON parser, can't be null
                 start_type = opening token type of the aggregate this instance
                              iterates over (usually BeginObject or BeginArray)
                 end_type   = closing token type of the aggregate this instance
@@ -591,6 +591,7 @@ struct JsonExtractor
         
         public this ( Parser json, Type start_type, Type end_type )
         {
+            assert(json !is null);
             this.start_type = start_type;
             this.end_type   = end_type;
             this.json       = json;

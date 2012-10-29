@@ -242,12 +242,12 @@ abstract class ConfiguredCliApp : CommandLineApp, IConfigExtExtension
 
     ***************************************************************************/
 
-    public override void preParseConfig ( Application app, ConfigParser config )
+    public override void preParseConfig ( IApplication app, ConfigParser config )
     {
         // Dummy implementation of the interface
     }
 
-    public override char[][] filterConfigFiles ( Application app,
+    public override char[][] filterConfigFiles ( IApplication app,
             ConfigParser config, char[][] files )
     {
         // Dummy implementation of the interface
@@ -258,7 +258,7 @@ abstract class ConfiguredCliApp : CommandLineApp, IConfigExtExtension
         return files;
     }
 
-    public override void processConfig ( Application app, ConfigParser config )
+    public override void processConfig ( IApplication app, ConfigParser config )
     {
         // Dummy implementation of the interface
     }

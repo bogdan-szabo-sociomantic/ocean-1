@@ -63,12 +63,12 @@ private import tango.util.log.Log;
                     "{0} [OPTIONS]", "This program is a simple test for the "
                     "LoggedCliApp class, and this is a sample help text");
         }
-        public override void setupArgs( Application app, Arguments args )
+        public override void setupArgs( IApplication app, Arguments args )
         {
             args("return").aliased('r').params(1).smush().defaults("0")
                 .help("code to return to the OS");
         }
-        public override char[] validateArgs( Application app, Arguments args )
+        public override char[] validateArgs( IApplication app, Arguments args )
         {
             if (toInt(args("return").assigned[0]) < 0)
             {
@@ -76,7 +76,7 @@ private import tango.util.log.Log;
             }
             return null;
         }
-        public override void processConfig( Application app, ConfigParser config )
+        public override void processConfig( IApplication app, ConfigParser config )
         {
             this.r = config.get("RETURN", "return_code", 0);
             if (this.args("return").set)
@@ -223,14 +223,14 @@ abstract class LoggedCliApp : ConfiguredCliApp, ILogExtExtension
 
     ***************************************************************************/
 
-    public override void preConfigureLoggers ( Application app,
+    public override void preConfigureLoggers ( IApplication app,
             ConfigParser config, bool loose_config_parsing,
             bool use_insert_appender )
     {
         // Dummy implementation of the interface
     }
 
-    public override void postConfigureLoggers ( Application app,
+    public override void postConfigureLoggers ( IApplication app,
             ConfigParser config, bool loose_config_parsing,
             bool use_insert_appender )
     {

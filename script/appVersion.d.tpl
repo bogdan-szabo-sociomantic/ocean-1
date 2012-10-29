@@ -18,6 +18,7 @@
 
 module @MODULE@;
 
+private import ocean.core.VersionIdentifiers;
 private import ocean.util.app.ext.VersionInfo;
 
 public VersionInfo Version;
@@ -28,9 +29,14 @@ static this()
     // TODO: Version.release = "@RELEASE@";
     Version.revision     = "@REVISION@";
     Version.gc           = "@GC@";
-    Version.build_date   = "@DATE@";
+    Version.build_date   = "@DATE@"; // could we use __TIMESTAMP__ here?
     Version.build_author = "@AUTHOR@";
     Version.dmd_version  = "@DMD@";
+    // TODO: Version.version_flags = [@VERSIONS@];
+    versionIdentifiers(( char[] version_name )
+    {
+        Version.version_flags ~= version_name;
+    });
 @LIBRARIES@
 }
 

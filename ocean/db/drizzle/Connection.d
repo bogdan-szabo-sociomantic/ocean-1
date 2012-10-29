@@ -100,7 +100,7 @@ public alias void delegate ( ContextUnion context, Result result,
 
 *******************************************************************************/
 
-package class Connection : ISelectClient, ISelectable
+package class Connection : ISelectClient
 {
     /***************************************************************************
 
@@ -242,8 +242,6 @@ package class Connection : ISelectClient, ISelectable
 
     package this ( LibDrizzleEpoll drizzle )
     {
-        super(this);
-        
         this.buffer = new ubyte[1024];
         
         this.fiber  = new Fiber (&this.internalHandler, 16*1024);
@@ -276,7 +274,7 @@ package class Connection : ISelectClient, ISelectable
 
     ***************************************************************************/
 
-    public Handle fileHandle ( )
+    override public Handle fileHandle ( )
     {
         return this.fd;
     }
@@ -291,6 +289,7 @@ package class Connection : ISelectClient, ISelectable
     {
         if (code == drizzle_return_t.DRIZZLE_RETURN_IO_WAIT)
         {
+            debug ( Drizzle ) Trace.formatln("Waiting for data .. ");
             Fiber.yield();
             return true;
         }
@@ -312,7 +311,8 @@ package class Connection : ISelectClient, ISelectable
     body
     {
         drizzle_return_t returnCode;
-        this.disconnected = false;
+        this.disconnected = false; // Disconnected is set to false because
+                                   // drizzle_query actually retries the connection
         
         do
         {
@@ -369,6 +369,7 @@ package class Connection : ISelectClient, ISelectable
             this.callback (this.requestContext, null, this.exception);
             
             this.reset();
+            debug ( Drizzle ) Trace.formatln("called reset");
         }
     }
     
@@ -390,10 +391,13 @@ package class Connection : ISelectClient, ISelectable
         {
             auto request = this.request_queue.pop(this.buffer);
 
+            debug ( Drizzle ) Trace.formatln("Request, fiber: {}, discon: {}", cast(void*)this.fiber, this.disconnected);
+            
             if (request !is null)
             {
                 if ( !timezone_initialized )
                 {
+                    debug ( Drizzle ) Trace.formatln("Init. timezone");
                     this.queryString    = drizzle.timezone_query;
                     this.callback       = &timezoneCallback;
 
@@ -401,6 +405,7 @@ package class Connection : ISelectClient, ISelectable
                 }
 
                 this.request(*request);
+                debug ( Drizzle ) Trace.formatln("After request()");
             }
             else if ( this.request_queue.ready(&this.notify) )
             {
@@ -425,6 +430,7 @@ package class Connection : ISelectClient, ISelectable
            timezone_initialized = false;
         }
 
+        debug ( Drizzle ) Trace.formatln("Timezone: {}", timezone_initialized);
     }
 
     /***************************************************************************
@@ -483,6 +489,7 @@ package class Connection : ISelectClient, ISelectable
         }
         else
             this.queryInternal();
+        debug ( Drizzle ) Trace.formatln("After queryInternal");
     }
     
     
@@ -505,8 +512,10 @@ package class Connection : ISelectClient, ISelectable
 
         drizzle_con_set_revents(&this.connection, ev);
 
-        disconnected = Event.Hangup && ev;
+        this.disconnected = (Event.EPOLLHUP & ev) != 0;
 
+        debug ( Drizzle ) Trace.formatln("Error called: Disconnected: {}", disconnected);
+        
         Exception exc = e;
         
         if ( this.fiber.state != Fiber.State.TERM )
@@ -570,7 +579,7 @@ package class Connection : ISelectClient, ISelectable
 
     ***************************************************************************/
 
-    public Event events ( )
+    override public Event events ( )
     {
         return _events;
     }
@@ -601,20 +610,22 @@ package class Connection : ISelectClient, ISelectable
 
     ***************************************************************************/
 
-    public bool handle ( Event event )
+    override public bool handle ( Event event )
     in
     {
         assert (this.fiber.state == Fiber.State.HOLD);
     }
     body
     {
+        debug ( Drizzle ) Trace.formatln("Handle: New data..");
         register_again = false;
         
         drizzle_con_set_revents(&this.connection, event);
-
+    
         try this.fiber.call();
         catch ( DrizzleException e )
         {
+            debug ( Drizzle ) Trace.formatln(" Exception in handle");
             if (this.callback !is null)            
             {
                 this.callback (this.requestContext, null, e); 
@@ -626,21 +637,40 @@ package class Connection : ISelectClient, ISelectable
         }
         catch ( Exception e )
         {
-        Trace.formatln("{} FailSafe Exception Catcher triggered: {} ({}:{})",
+            Trace.formatln("{} FailSafe Exception Catcher triggered: {} ({}:{})",
                        cast(void*) this, e.msg, e.file, e.line);
         }
 
-        if (this.queryString.length == 0)
-        {
-            return register_again;
-        }
-
+        debug ( Drizzle ) Trace.formatln("Register again: {}", register_again);
         return register_again;
     }
 
     public void finalize ( )
     {
         if ( !timezone_initialized && disconnected && register_again )
+        {
+            drizzle.epoll.register(this);
+        }
+    }
+
+    /***************************************************************************
+
+        When a connection broke, drizzle gets the next requests and retries it.
+        As all of this happens in the error callback called by epoll and as 
+        it only returns control back to epoll after the fiber yields,
+        which is after drizzle re-registered itself for a new event,
+        epoll continues with the normal way of things, which is, unregistering
+        the select-client (this class). After that finalize() is called.
+    
+        In finalize we have to re-register, else this connection will never be
+        called again, always waiting for a response which it never checks for.        
+
+    ***************************************************************************/
+    
+    override public void finalize ( FinalizeStatus status )
+    {
+        debug ( Drizzle ) Trace.formatln("Finalize called on {}, {} && {} && {}", this.id(), !timezone_initialized, disconnected, register_again);
+        if ( !timezone_initialized && register_again )
         {
             drizzle.epoll.register(this);
         }
@@ -677,9 +707,15 @@ package class Connection : ISelectClient, ISelectable
         this.callback = null;
         this.requestContext = ContextUnion.init;
     }
-    
-    protected char[] id()
-    {
-        return "DrizzleConnection";
-    }
+        
+    /***************************************************************************
+
+        Returns descriptive name of this class for debugging purposes
+
+    ***************************************************************************/
+
+//    override protected char[] id()
+//    {
+//        return "DrizzleConnection";
+//    }
 }

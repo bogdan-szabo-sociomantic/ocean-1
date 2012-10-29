@@ -22,12 +22,14 @@ module ocean.io.select.model.IFiberConnectionHandler;
 private import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol,
                ocean.io.select.protocol.fiber.FiberSelectReader,
                ocean.io.select.protocol.fiber.FiberSelectWriter,
-               ocean.io.select.protocol.fiber.BufferedFiberSelectWriter;
+               ocean.io.select.protocol.fiber.BufferedFiberSelectWriter,
+               ocean.io.select.protocol.generic.ErrnoIOException: IOWarning;
 
 private import ocean.io.select.model.IConnectionHandler;
 
 private import ocean.io.select.fiber.SelectFiber;
 private import ocean.core.MessageFiber : MessageFiberControl;
+private import ocean.util.container.pool.model.IResettable;
 
 private import tango.net.device.Socket : Socket;
 
@@ -66,7 +68,7 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
     ***************************************************************************/
 
     protected const SelectFiber fiber;
-
+    
     /***************************************************************************
 
         Constructor
@@ -171,21 +173,21 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
     {
         try
         {
-            debug ( ConnectionHandler ) Trace.formatln("[{}]: Handling connection", super.connection_id);
+            debug ( ConnectionHandler ) Trace.formatln("[{}]: Handling connection", this.connection_id);
 
             this.handle();
         }
         catch ( Exception e )
         {
-            super.error(e);
+            this.error(e);
         }
         catch ( Object o )
         {
-            debug ( ConnectionHandler ) Trace.formatln("[{}]: Caught object while handling connection", super.connection_id);
+            debug ( ConnectionHandler ) Trace.formatln("[{}]: Caught object while handling connection", this.connection_id);
         }
         finally
         {
-            super.finalize();
+            this.finalize();
         }
     }
 }
@@ -198,7 +200,7 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
 
 *******************************************************************************/
 
-abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase
+abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
 {
     /***************************************************************************
 
@@ -226,14 +228,14 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase
     protected const SelectReader reader;
     protected const SelectWriter writer;
     
-    /**************************************************************************/
-
-    invariant
-    {
-        assert (this.reader.conduit is super.conduit);
-        assert (this.reader.conduit is this.writer.conduit);
-    }
+    /***************************************************************************
     
+        IOWarning exception instance used by the reader and writer.
+
+    ***************************************************************************/
+    
+    protected const IOWarning io_warning;
+
     /***************************************************************************
 
         Constructor
@@ -258,8 +260,8 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase
                      FinalizeDg finalize_dg = null, ErrorDg error_dg = null )
     {
         this(epoll, buffered_writer?
-                        new BufferedFiberSelectWriter(super.conduit, super.fiber) :
-                        new FiberSelectWriter(super.conduit, super.fiber),
+                        new BufferedFiberSelectWriter(this.socket, this.fiber, this.io_warning, this.socket_error) :
+                        new FiberSelectWriter(this.socket, this.fiber, this.io_warning, this.socket_error),
                     finalize_dg, error_dg, stack_size);
     }
     
@@ -362,8 +364,10 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase
                    size_t stack_size )
     {
         super(epoll, stack_size, finalize_dg, error_dg);
-
-        this.reader = new SelectReader(super.conduit, super.fiber);
+        
+        this.io_warning = new IOWarning(this.socket);
+        
+        this.reader = new SelectReader(this.socket, this.fiber, this.io_warning, this.socket_error);
         this.writer = writer;
 
         this.reader.error_reporter = this;
@@ -383,6 +387,7 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase
         
         delete this.reader;
         delete this.writer;
+        delete this.io_warning;
     }
     
     /**************************************************************************
@@ -402,6 +407,17 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase
     protected bool io_error ( )
     {
         return this.reader.io_error || this.writer.io_error;
+    }
+    
+    /**************************************************************************
+
+        Resettable interface method, resets the reader.
+        
+     **************************************************************************/
+    
+    public void reset ( )
+    {
+        this.reader.reset();
     }
 }
 

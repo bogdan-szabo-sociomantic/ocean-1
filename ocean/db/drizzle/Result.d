@@ -408,6 +408,10 @@ class Result
         {
             if (throw_)
             {
+                if (!exception)
+                {
+                    exception = new DrizzleException;
+                }
                 auto e = exception.reset(query, returnCode,
                             fromStringz(
                                 drizzle_error(

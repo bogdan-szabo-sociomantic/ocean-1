@@ -47,8 +47,14 @@ private import ocean.time.timeout.model.ITimeoutManager,
 private import ocean.time.model.IMicrosecondsClock,
                ocean.time.MicrosecondsClock;
 
-private import ocean.core.ArrayMap,
-               ocean.util.container.AppendBuffer;
+private import ocean.util.container.AppendBuffer;
+
+version (HashMap)
+{
+    private import ocean.util.container.map.Map,
+                                ocean.util.container.map.model.StandardHash;
+}
+else private import ocean.core.ArrayMap;
 
 debug
 {
@@ -207,8 +213,34 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
     ***************************************************************************/
 
-    private ArrayMap!(IExpiryRegistration, Expiry*) expiry_to_client;
+    version (HashMap) static class ExpiryToClient : Map!(IExpiryRegistration, Expiry*)
+    {
+        
+        /***************************************************************************
 
+            Constructor.
+
+            Params:
+                n = expected number of elements in mapping
+            
+        ***************************************************************************/
+
+        public this ( size_t n )
+        {
+            super(n);
+        }
+        
+        protected hash_t toHash ( Expiry* expiry )
+        {
+            return StandardHash.fnv1aT(expiry);
+        }
+    }
+    else
+    {
+        alias ArrayMap!(IExpiryRegistration, Expiry*) ExpiryToClient;
+    }
+    
+    private ExpiryToClient expiry_to_client;
 
     /***************************************************************************
 
@@ -224,11 +256,11 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
     ***************************************************************************/
 
-    protected this ( )
+    protected this ( size_t n = 0x400 )
     {
-        this.expiry_tree = new ExpiryTree;
-        this.expiry_to_client = new ArrayMap!(IExpiryRegistration, Expiry*);
-        this.expired_registrations = new AppendBuffer!(IExpiryRegistration);
+        this.expiry_tree           = new ExpiryTree;
+        this.expiry_to_client      = new ExpiryToClient(n);
+        this.expired_registrations = new AppendBuffer!(IExpiryRegistration)(n);
     }
 
 
@@ -386,7 +418,15 @@ abstract class TimeoutManagerBase : ITimeoutManager
             
             foreach_reverse (ref expiry; expiries)
             {
-                IExpiryRegistration registration = this.expiry_to_client[&expiry];
+                version (HashMap)
+                {
+                    IExpiryRegistration registration = *this.expiry_to_client.get(&expiry);
+                }
+                else
+                {
+                    IExpiryRegistration registration = this.expiry_to_client[&expiry];
+                }
+                
     
                 debug ( TimeoutManager ) Stderr('\t')(registration.id)(" timed out\n");
     
@@ -464,7 +504,15 @@ abstract class TimeoutManagerBase : ITimeoutManager
         ulong previously_next = this.next_expiration_us;
         
         Expiry* expiry = this.expiry_tree.add(t);
-        this.expiry_to_client.put(expiry, registration);
+        
+        version (HashMap)
+        {
+            *this.expiry_to_client.put(expiry) = registration;
+        }
+        else
+        {
+            this.expiry_to_client[expiry] = registration;
+        }
         
         debug ( TimeoutManager )
         {
@@ -473,10 +521,10 @@ abstract class TimeoutManagerBase : ITimeoutManager
             Stderr(" registered ")(registration.id)(" for ")(timeout_us)(" µs, times out at ");
             this.printTime(t, false);
             Stderr("\n\t")(this.expiry_tree.length)(" clients registered, first times out at ");
-            this.printTime(this.expiry_tree.first, false);
+            this.printTime(this.expiry_tree.first.key, false);
             Stderr('\n');
 
-            foreach (expiry, expire_time; this.expiry_tree.lessEqual(now + 20_000_000))
+            version (none) foreach (expiry, expire_time; this.expiry_tree.lessEqual(now + 20_000_000))
             {
                 IExpiryRegistration registration = this.expiry_to_client[expiry];
 
@@ -535,7 +583,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
                 if (n)
                 {
                     Stderr(", first times out at ");
-                    this.printTime(this.expiry_tree.first, false);
+                    this.printTime(this.expiry_tree.first.key, false);
                 }
                 Stderr('\n');
             }

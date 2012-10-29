@@ -29,8 +29,6 @@ module ocean.net.util.GetSocketAddress;
     
  ******************************************************************************/
 
-private import tango.net.device.Socket;
-
 private import tango.io.model.IConduit: ISelectable;
 
 private import tango.stdc.posix.sys.socket: getsockname, getpeername, socklen_t, sockaddr;
@@ -300,11 +298,6 @@ class GetSocketAddress
      **************************************************************************/
 
     private Address get ( ISelectable conduit, typeof (&.getsockname) func, char[] funcname )
-    in
-    {
-        assert ((cast (Socket) conduit) !is null, "conduit is not a socket");
-    }
-    body
     {
         Address address;
         

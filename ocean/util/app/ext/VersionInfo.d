@@ -24,11 +24,12 @@ module ocean.util.app.ext.VersionInfo;
 
 class VersionInfo
 {
-    public char[]         revision     = "<unknown>";
-    public char[]         gc           = "<unknown>";
-    public char[]         build_date   = "<unknown>";
-    public char[]         build_author = "<unknown>";
-    public char[]         dmd_version  = "<unknown>";
+    public char[]         revision       = "<unknown>";
+    public char[]         gc             = "<unknown>";
+    public char[]         build_date     = "<unknown>";
+    public char[]         build_author   = "<unknown>";
+    public char[]         dmd_version    = "<unknown>";
+    public char[][]       version_flags  = [];
     public char[][char[]] libraries;
 }
 

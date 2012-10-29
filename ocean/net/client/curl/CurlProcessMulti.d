@@ -46,7 +46,7 @@ void main()
         // Create a curl downloads instance which can process a maximum of 10
         // requests in parallel.
         const max_processes = 10;
-        auto curl = new QueuedRequests(epoll, max_processes, size_t.max);
+        auto curl = new CurlQueued(epoll, max_processes, size_t.max);
     
         // Initialise some downloads, one with authorization.
         
@@ -119,7 +119,7 @@ debug private import ocean.io.Stdout;
 
 *******************************************************************************/
 
-public abstract class CurlRequests
+public class Curl
 {
     /***************************************************************************
 
@@ -260,7 +260,7 @@ public abstract class CurlRequests
     private struct BaseRequest
     {
         mixin RequestBase; //contains the base functionality
-    }    
+    }
 
 
     /***************************************************************************
@@ -320,6 +320,9 @@ public abstract class CurlRequests
         methods of the struct should be called (to configure optional settings),
         and it should be passed to the assign() method to start the request.
 
+        Note: this is an HTTP only request. TODO: either enforce this or adapt
+        to work with ftp as well, if needed.
+
         Params:
             url = url to use
             receive_dg = delegate which will be called when data is received
@@ -346,6 +349,9 @@ public abstract class CurlRequests
         Sets up a DataRequest struct describing a post request. Any desired
         methods of the struct should be called (to configure optional settings),
         and it should be passed to the assign() method to start the request.
+
+        Note: this is an HTTP only request. TODO: either enforce this or adapt
+        to work with ftp as well, if needed.
 
         Params:
             url = url to use
@@ -374,6 +380,9 @@ public abstract class CurlRequests
         Sets up a DataRequest struct describing a put request. Any desired
         methods of the struct should be called (to configure optional settings),
         and it should be passed to the assign() method to start the request.
+
+        Note: this is an HTTP only request. TODO: either enforce this or adapt
+        to work with ftp as well, if needed.
 
         Params:
             url = url to use
@@ -531,13 +540,13 @@ public abstract class CurlRequests
 
 /*******************************************************************************
 
-    Expands the CurlRequests class with a requests queue. When all requests
+    Expands the basic Curl class with a requests queue. When all requests
     are busy, any further requests which are assigned will be pushed into the
     queue and processed when one of the active request processes becomes free.
 
 *******************************************************************************/
 
-public class QueuedRequests : CurlRequests
+public class CurlQueued : Curl
 {
     /***************************************************************************
 

@@ -1,189 +1,740 @@
 /*******************************************************************************
 
-    Check and cast argument list of variadic functions.
+    Utility classes to encapsulate the handling of variadic arguments on
+    x86-64 DMD. 
 
     copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
-    version:        October 2009: Initial release
+    version:        August 2012: Initial release
 
-    author:        David Eckardt
+    author:         David Eckardt
 
     --
 
-    Usage:
-
-    Example 1: Using the getArgs() static method:
-
-    ---
-
-        import $(TITLE);
-
-        void myfunc( ... )
-        {
-
-            // This function expects to be called as "int myfunc(int, float, char[])"
-
-            int i;
-            float f;
-            char[] str;
-
-            VariadicArg.getArgs(_arguments, _argptr, i, f, str);
-
-            // i, f and str now contain the values on success. On failure an
-            // exeption was thrown.
-         }
-
-
-
-    ---
-
-    Example 2: Using an instance of VariadicArg:
-
+    Usage Example:
+    
     ---
 
     import $(TITLE);
 
-    int myfunc( ... )
+    void myfunc1 ( ... )
     {
+        scope valist = new VaList(__va_argsave);
+        
+        if (_arguments.length)
+        {
+            void[] data = valist.next(_arguments[0]);
+            
+            // data now contains the argument raw data and _arguments[0] is the
+            // run-time information of the argument type. 
+        }
+    }
 
-        // This function expects to be called as "int myfunc(int, float, char[])"
-
-        int i;
-        float f;
-        char[] str;
-
-        bool err = false;
-
-        VariadicArg varg = new VariadicArg(_arguments, _argptr);
-
-        // Call getArg() repeatedly to fill i, f and str with the
-        // values from the variable argument list.
-        // Each time getArg() returns the index of the retrieved
-        // argument starting with 1 on success, or 0 on error.
-
-        err |= !varg.getArg(i);
-        err |= !varg.getArg(f);
-        err |= !varg.getArg(str);
-
-        if (err) return -1;
-
-        // ...
-     }
+    void myfunc2 ( ... )
+    {
+        scope tivalist = new TypeInfoVaList(_arguments, __va_argsave);
+        
+        foreach (info, data; tivalist)
+        {
+            if (info is typeid(int))
+            {
+                int x = *cast (int*) data.ptr;
+                
+                // The current argument is an int and x contains the value.
+            }
+            else if (info is typeid(char[]))
+            {
+                char[] str = *cast (char[]*) data.ptr;
+                
+                // The current argument is a char[] and str contains the value.
+            }
+            
+            // Else skip the argument. 
+        }
+    }
 
 	---
 
 *******************************************************************************/
 
-module core.util.VariadicArg;
+module ocean.util.VariadicArg;
+
+version (DigitalMars) version (X86_64):
 
 /*******************************************************************************
 
-	Class for handling and accessing CLI arguments
-
-
-	@author  David Eckardt <david.eckardt () sociomantic () com>
-	@package ocean.util
-	@link    http://www.sociomantic.com
-
+    Imports.
+    
 *******************************************************************************/
 
-class VariadicArg
+public  import tango.stdc.stdarg: __va_argsave_t, __va_list, va_list;
+
+/*******************************************************************************
+
+    Provides sequential access to the elements of a variadic argument list.
+	
+*******************************************************************************/
+
+scope class VaList : IVaList
 {
-
-	/***************************************************************************
-
-        properties
-
-     **************************************************************************/
-
-    private uint       index = 0;
-    private uint       total = 0;
-    private TypeInfo[] arguments;
-    private void*      argptr;
-
-
-
     /***************************************************************************
 
-		Constructor
-
-     	Params:
-			arguments 	= variable arguments list typeinfo
-			argptr     	= variable arguments list data
-
+        Constructor
+    
+        Params:
+            va_argsave = variadic argument list (__va_argsave)
+    
      **************************************************************************/
-
-    this ( TypeInfo[] arguments, void* argptr )
+    
+    public this ( ref __va_argsave_t va_argsave )
     {
-        this.index     = 0;
-        this.total     = arguments.length;
-        this.argptr    = argptr;
-        this.arguments = arguments;
+        super(va_argsave);
     }
-
+    
     /***************************************************************************
 
-		Checks if there is a next argument in the list. If yes, then checks if
-		the next argument has type T. If yes, then calls va_arg() to pop it
-		from the variable arguments list and store its value in x.
+        Constructor
+    
+        Params:
+            arglist = variadic argument list (__va_argsave.va)
+    
+     **************************************************************************/
+    
+    public this ( ref __va_list arglist )
+    {
+        super(arglist);
+    }
+    
+    /***************************************************************************
 
-		Params:
-			x = The variable to store the value of next argument.
+        Constructor
+    
+        Params:
+            arglist = variadic argument list as obtained from va_start
+    
+     **************************************************************************/
+    
+    public this ( va_list arglist )
+    {
+        super(arglist);
+    }
+    
+    /***************************************************************************
 
-		Returns:
-			The index of the current argument starting with 1 on success, or 0
-			on type mismatch or end of list reached.
+        Pops the next argument from the list and obtains its raw data.
+        
+        Params:
+            info = typeinfo of the next argument
+            
+        Returns:
+            a slice of the raw data of the argument popped from the list.
+            
+        Out:
+            The data length is info.tsize.
+    
+     **************************************************************************/
+    
+    public void[] next ( TypeInfo info )
+    out (data)
+    {
+        assert (data.length == info.tsize);
+    }
+    body
+    {
+        return this.va_arg(info);
+    }
+    
+    /***************************************************************************
 
+        Pops the next argument from the list and copies its raw data into dst.
+        
+        Params:
+            info = typeinfo of the next argument
+            dst  = destination buffer
+            
+        Returns:
+            dst
+        
+        In:
+            dst.length must be info.tsize.
+        
+        Out:
+            The data length is info.tsize.
+    
+     **************************************************************************/
+    
+    public void[] next ( TypeInfo info, void[] dst )
+    in
+    {
+        assert (dst.length == info.tsize);
+    }
+    out (data)
+    {
+        assert (data.ptr is dst.ptr);
+        assert (data.length == dst.length);
+    }
+    body
+    {
+        return this.va_arg(info, dst);
+    }
+    
+    /***************************************************************************
+
+        Pops the next argument from the list and copies its value into dst.
+        
+        Params:
+            dst = destination variable
+            
+        Returns:
+            a pointer to dst.
+        
+        Out:
+            The returned pointer points to dst.
+    
+     **************************************************************************/
+    
+    public T* nextT ( T ) ( out T dst )
+    out (item)
+    {
+        assert (item is &dst);
+    }
+    body
+    {
+        return cast (T*) this.va_arg(typeid (T), (cast (void*) &dst)[0 .. dst.sizeof]).ptr;
+    }
+    
+    /***************************************************************************
+
+        Pops the next element from the argument list and discards it.
+        
+        Params:
+            info = typeinfo of the next argument
+    
+     **************************************************************************/
+    
+    public void skip ( TypeInfo info )
+    {
+        return this.va_arg(info, null);
+    }
+}
+
+scope class TypeInfoVaList : IVaList
+{
+    /***************************************************************************
+
+        List of type information objects of the argument list elements.
+    
+     **************************************************************************/
+    
+    private const TypeInfo[] arguments;
+    
+    /***************************************************************************
+
+        Number of remaining arguments.
+    
+     **************************************************************************/
+    
+    private uint n_remaining;
+    
+    /***************************************************************************
+
+        Constructor
+    
+        Params:
+            arguments  = list of argument typeinfos (_arguments)
+            va_argsave = variadic argument list (__va_argsave)
+    
+     **************************************************************************/
+    
+    public this ( TypeInfo[] arguments, ref __va_argsave_t va_argsave )
+    {
+        this(arguments, va_argsave.va);
+    }
+    
+    /***************************************************************************
+
+        Constructor
+    
+        Params:
+            arguments = list of argument typeinfos (_arguments)
+            arglist   = variadic argument list (__va_argsave.va)
+    
+     **************************************************************************/
+    
+    public this ( TypeInfo[] arguments, ref __va_list arglist )
+    {
+        super(arglist);
+        
+        this.arguments = arguments;
+        
+        this.n_remaining = arguments.length;
+    }
+    
+    /***************************************************************************
+
+        Constructor
+    
+        Params:
+            arguments = list of argument typeinfos (_arguments)
+            arglist   = variadic argument list as obtained from va_start
+    
+     **************************************************************************/
+    
+    public this ( TypeInfo[] arguments, va_list arglist )
+    {
+        this(arguments, *cast (__va_list*) arglist);
+    }
+    
+    /***************************************************************************
+        
+        Obtains the list of the typeinfos of the remaining arguments. The length
+        of this list reflects the number of remaining arguments.
+        (Slices an internal array, do not modify list elements in-place.)
+        
+        Returns:
+            the list of the typeinfos of the remaining arguments.
+    
      **************************************************************************/
 
-    public uint getArg ( T ) ( ref T x )
+    public TypeInfo[] remaining_typeinfos ( )
     {
-        bool ok = true;
-
-        ok &= (this.index < this.total);
-
-        if (ok)
+        return this.arguments[$ - this.n_remaining .. $];
+    }
+    
+    /***************************************************************************
+        
+        Obtains the typeinfo of the next argument. (Does not pop the argument
+        from the list.)
+        
+        Returns:
+            the typeinfo of the next argument.
+    
+     **************************************************************************/
+    
+    public TypeInfo next_typeinfo ( )
+    in
+    {
+        assert (this.n_remaining, "no more arguments left");
+    }
+    body
+    {
+        return this.arguments[$ - this.n_remaining];
+    }
+    
+    /***************************************************************************
+        
+        Returns:
+            the total number of arguments as specified to the constructor.
+    
+     **************************************************************************/
+    
+    public size_t length ( )
+    {
+        return this.arguments.length;
+    }
+    
+    /***************************************************************************
+        
+        Pops the next argument from the list and obtains its raw data.
+        (It is an error to call this method when no arguments are left.)
+        
+        Params:
+            info = output of argument type information
+        
+        Returns:
+            a slice of the raw data of the argument popped from the list.
+            
+        In:
+            There must be remaining arguments.
+            
+        Out:
+            - info is not null.
+            - The length of the returned data slice is info.tsize.
+    
+     **************************************************************************/
+    
+    public void[] next ( out TypeInfo info )
+    in
+    {
+        assert (this.n_remaining, "no more arguments left");
+    }
+    out (data)
+    {
+        assert (info !is null);
+        assert (data.length == info.tsize);
+    }
+    body
+    {
+        return this.va_arg(info = this.arguments[$ - this.n_remaining--]);
+    }
+    
+    /***************************************************************************
+        
+        Pops the next argument from the list, if any, and discards it.
+        (It is safe to call this method when no arguments are left.)
+        
+        Params:
+            info = output of argument type information; will be null if there
+                   was no argument left
+        
+        Returns:
+            the number of remaining arguments.
+            
+     **************************************************************************/
+    
+    public size_t skip ( out TypeInfo info )
+    {
+        if (this.n_remaining)
         {
-            if (this.arguments[this.index] == typeid(T))
+            this.va_arg(info = this.arguments[$ - this.n_remaining--], null);
+        }
+        
+        return this.n_remaining;
+    }
+    
+    /***************************************************************************
+        
+        Pops the next argument from the list, if any, and discards it.
+        (It is safe to call this method when no arguments are left.)
+        
+        Returns:
+            the number of remaining arguments.
+            
+     **************************************************************************/
+    
+    public size_t skip ( )
+    {
+        TypeInfo info;
+        
+        return this.skip(info);
+    }
+    
+    /***************************************************************************
+        
+        'foreach' iteration over the remaining arguments. info is the type
+        information and data the raw data of the current argument.
+        
+        It is safe to to do nested iterations and call any method during
+        iteration.
+            
+     **************************************************************************/
+    
+    public int opApply ( int delegate ( ref TypeInfo info, ref void[] data ) dg )
+    {
+        int n = 0;
+        
+        while (this.n_remaining && !n)
+        {
+            TypeInfo info = this.arguments[$ - this.n_remaining--];
+            
+            void[] data = this.va_arg(info);
+            
+            n = dg(info, data);
+        }
+        
+        return n;
+    }
+}
+
+/*******************************************************************************
+
+    Variadic arguments list base class for x86-64 DMD.
+    
+    Resembles tango.stdc.stdarg which unfortunately does not allow skipping 
+    arguments and popping an argument from the list without providing a buffer
+    to copy the argument data to.
+    
+    In in most of the cases it is possible to simply slice the argument data.
+    At all there are three possible locations where an argument can be passed:
+    
+    1. In memory (on the stack). In this case a simple pointer to the argument
+       can be used.
+    2. In one register. In this case the argument is automatically copied into
+       __va_list.reg_args so one can use a pointer to the argument inside there.
+    3. In two registers. Here the argument is scattered around two locations.
+       However, since the maximum argument length is 16 bytes (TODO: is that
+       true?) one can provide a ubyte[16] buffer, copy the two argument halves
+       into it and use a pointer to that buffer.  
+    
+*******************************************************************************/
+
+abstract scope class IVaList
+{
+    /***************************************************************************
+
+        Convenience type alias.
+    
+     **************************************************************************/
+    
+    alias .__va_argsave_t __va_argsave_t;
+    
+    /***************************************************************************
+
+        Variable argument list.
+    
+     **************************************************************************/
+    
+    private __va_list* arglist;
+    
+    /***************************************************************************
+
+        Buffer for arguments passed in two registers.
+    
+     **************************************************************************/
+    
+    private ubyte[0x10] buffer;
+    
+    /***************************************************************************
+
+        Constructor
+    
+        Params:
+            va_argsave = variadic argument list (__va_argsave)
+    
+     **************************************************************************/
+    
+    protected this ( ref __va_argsave_t va_argsave )
+    {
+        this(va_argsave.va);
+    }
+    
+    /***************************************************************************
+
+        Constructor
+    
+        Params:
+            arglist = variadic argument list (__va_argsave.va)
+    
+     **************************************************************************/
+    
+    protected this ( ref __va_list arglist )
+    {
+        this.arglist = &arglist;
+    }
+    
+    /***************************************************************************
+
+        Constructor
+    
+        Params:
+            arglist = variadic argument list as obtained from va_start
+    
+     **************************************************************************/
+    
+    protected this ( va_list arglist )
+    {
+        this(*cast (__va_list*) arglist);
+    }
+    
+    /***************************************************************************
+
+        Pops the next argument from the list.
+        
+        Params:
+            ti = typeinfo of the next argument
+            
+        Returns:
+            argument data.
+        
+        Out:
+            The data length is ti.tsize.
+    
+     **************************************************************************/
+    
+    protected void[] va_arg(TypeInfo ti)
+    out (data)
+    {
+        assert(data.length == ti.tsize);
+    }
+    body
+    {
+        TypeInfo arg1, arg2;
+        auto ok = !ti.argTypes(arg1, arg2);
+        assert(ok, "not a valid argument type for va_arg");
+
+        if (arg1 && arg1.tsize() <= 8)
+        {
+            // Arg is passed in one register
+            
+            void[] data = this.va_regparm(arg1);
+            
+            if (arg2)
             {
-                x = *(cast (T*) this.argptr);
+                void[] buffer = this.buffer[0 .. ti.tsize];
+                
+                buffer[0 .. 8] = data[];
+                buffer[8 .. $] = va_regparm(arg2)[];
+                
+                data = buffer;
+            }
+            
+            return data;
+        }
+        else
+        {
+            return this.va_memparm(ti);
+        }
+    }
+    
+    /***************************************************************************
 
-                this.argptr += T.sizeof;
+        Pops the next argument from the list and copies its raw data into dst if
+        dst.length is non-zero or discards it if dst is zero.
+        
+        Params:
+            ti  = typeinfo of the next argument
+            dst = destination buffer or a null or empty array 
+            
+        Returns:
+            dst
+        
+        In:
+            dst.length must be info.tsize or zero.
+        
+        Out:
+            The returned array is dst.
+    
+     **************************************************************************/
+    
+    protected void[] va_arg(TypeInfo ti, void[] dst)
+    in
+    {
+        assert (!dst.length || dst.length == ti.tsize);
+    }
+    out (parmn_out)
+    {
+        assert (parmn_out.ptr is dst.ptr);
+        assert (parmn_out.length == dst.length);
+    }
+    body
+    {
+        TypeInfo arg1, arg2;
+        auto ok = !ti.argTypes(arg1, arg2);
+        assert(ok, "not a valid argument type for va_arg");
+        
+        if (arg1 && arg1.tsize() <= 8)
+        {
+            // Arg is passed in one register
+            void[] data = va_regparm(arg1);
+            
+            if (dst.length)
+            {
+                dst[0 .. data.length] = data[];
+            }
 
-                this.index++;
+            if (arg2)
+            {
+                data = this.va_regparm(arg2);
+                
+                if (dst.length)
+                {
+                    dst[8 .. $] = data[];
+                }
             }
         }
-
-        return ok ? this.index : 0;
+        else
+        {
+            void[] data = this.va_memparm(ti);
+            
+            if (dst.length)
+            {
+                dst[] = data[];
+            }
+        }
+        
+        return dst;
     }
-
+    
     /***************************************************************************
 
-        Converts the variable arguments given by arguments and argptr to argptr_out.
-        Number and types of expected arguments are given by number and types of
-        argptr_out.
-        Throws an exception on type mismatch.
-
+        Obtains the data of an argument passed in memory (on the stack).
+        
         Params:
-            arguments = list of typeids of variable arguments
-            argptr     = variable arguments data
-            argptr_out = output parameters to store values of variable arguments
-
+            ti  = argument typeinfo
+            
+        Returns:
+            argument data
+        
      **************************************************************************/
-
-    public static void getArgs ( Types ... ) ( TypeInfo[] arguments, void* argptr, out Types args_out )
+    
+    private void[] va_memparm ( TypeInfo ti )
     {
-        assert (Types.length == arguments.length, "Variable argument list length mismatch");
+        void[] data = (cast(void*)
+                       this.roundUp(cast(size_t)this.arglist.stack_args,
+                                    ti.talign))[0 .. ti.tsize];
+        
+        this.arglist.stack_args = cast(void*)
+                                (cast(size_t)data.ptr +
+                                 this.roundUp(data.length, size_t.sizeof));
+        
+        return data;
+    }
+    
+    /***************************************************************************
 
-        foreach (i, T; Types)
-        {
-            assert (arguments[i] == typeid (T),
-                    "Variable argument type mismatch: expected '" ~ T.stringof ~
-                    "' but got '" ~ arguments[i].toString ~ '\'');
-
-            args_out[i] = *(cast (T*) argptr);
-
-            argptr += T.sizeof;
+        Obtains the data of an argument passed in a register.
+        
+        Params:
+            ti  = argument typeinfo
+            
+        Returns:
+            argument data
+        
+     **************************************************************************/
+    
+    private void[] va_regparm(TypeInfo ti)
+    {
+        void* p;
+        auto tsize = ti.tsize();
+        
+        if (ti is typeid(double)  || ti is typeid(float) ||
+            ti is typeid(idouble) || ti is typeid(ifloat))
+        {   // Passed in XMM register
+            if (this.arglist.offset_fpregs < (__va_argsave_t.regs.sizeof +  __va_argsave_t.fpregs.sizeof))
+            {
+                p = this.arglist.reg_args + this.arglist.offset_fpregs;
+                this.arglist.offset_fpregs += __va_argsave_t.fpregs[0].sizeof;
+            }
+            else
+            {
+                p = this.arglist.stack_args;
+                this.arglist.stack_args += this.roundUp(tsize, size_t.sizeof);
+            }
         }
+        else
+        {   // Passed in regular register
+            if (this.arglist.offset_regs < __va_argsave_t.regs.sizeof)
+            {
+                p = this.arglist.reg_args + this.arglist.offset_regs;
+                this.arglist.offset_regs += __va_argsave_t.regs[0].sizeof;
+            }
+            else
+            {
+                p = this.arglist.stack_args;
+                this.arglist.stack_args += size_t.sizeof;
+            }
+        }
+        
+        return p[0 .. tsize];
+    }
+    
+    /***************************************************************************
+
+        Calculates the least integer multiple of q greater than or equal to n.
+        
+        Params:
+            n = number to round up to the next integer multiple of b
+            q = quantiser
+        
+        Returns:
+            n rounded up to the next integer multiple of q.
+        
+     **************************************************************************/
+    
+    private static size_t roundUp ( size_t n, size_t q )
+    {
+        q--;
+        
+        return (n + q) & ~q;
     }
 }

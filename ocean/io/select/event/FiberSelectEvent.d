@@ -49,8 +49,6 @@ private import ocean.sys.EventFD;
 
 private import ocean.io.select.model.IFiberSelectClient;
 
-private import tango.io.model.IConduit: ISelectable;
-
 debug private import ocean.util.log.Trace;
 
 /*******************************************************************************
@@ -59,7 +57,7 @@ debug private import ocean.util.log.Trace;
 
 *******************************************************************************/
 
-public class FiberSelectEvent : IFiberSelectClient, ISelectable
+public class FiberSelectEvent : IFiberSelectClient
 {
     /***************************************************************************
 
@@ -81,11 +79,22 @@ public class FiberSelectEvent : IFiberSelectClient, ISelectable
 
     public this ( SelectFiber fiber )
     {
-        super(this, fiber);
+        super(fiber);
 
         this.event = new EventFD;
     }
 
+    /***************************************************************************
+
+        Returs:
+            the epoll events to register for.
+
+    ***************************************************************************/
+
+    public Event events ( )
+    {
+        return Event.EPOLLIN;
+    }
 
     /***************************************************************************
     
@@ -99,19 +108,6 @@ public class FiberSelectEvent : IFiberSelectClient, ISelectable
     public Handle fileHandle ( )
     {
         return this.event.fileHandle;
-    }
-
-
-    /***************************************************************************
-
-        Returns:
-            select events which this class is registered with
-
-    ***************************************************************************/
-
-    public Event events ( )
-    {
-        return Event.Read;
     }
 
 
@@ -161,8 +157,7 @@ public class FiberSelectEvent : IFiberSelectClient, ISelectable
         (Implements an abstract super class method.)
 
         Returns:
-            TODO: correct this comment
-            always false, to unregister the event from epoll once it has fired
+            false if the fiber is finished or true if it keeps going
 
     ***************************************************************************/
 
@@ -175,11 +170,9 @@ public class FiberSelectEvent : IFiberSelectClient, ISelectable
     {
         this.event.handle();
 
-        super.fiber.resume();
+        SelectFiber.Message message = super.fiber.resume();
 
-        // TODO: should this use the same return behaviour as
-        // ocean.io.select.protocol.fiber.model.IFiberSelectProtocol?
-        return true;
+        return (message.active == message.active.num)? message.num != 0 : false;
     }
 }
 

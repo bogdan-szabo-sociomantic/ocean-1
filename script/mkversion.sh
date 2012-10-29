@@ -54,7 +54,7 @@ done
 shift `expr $OPTIND - 1`
 
 # Fill missing options
-test -z "$template" && template="$lib_dir/ocean/script/Version.d.tpl"
+test -z "$template" && template="$lib_dir/ocean/script/appVersion.d.tpl"
 test -z "$date" && date="`$date_cmd`"
 
 get_rev()

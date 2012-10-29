@@ -49,16 +49,16 @@ const CLOCK_MONOTONIC = 1;
 extern (C) private
 {
     /**************************************************************************
-        
+
         Creates a new timer object.
-        
+
         The file descriptor supports the following operations:
 
         read(2)
                If  the timer has already expired one or more times since its
                settings were last modified using timerfd_settime(), or since the
                last successful read(2), then the buffer given to read(2) returns
-               an unsigned 8-byte integer (uint64_t) containing  the  number of 
+               an unsigned 8-byte integer (uint64_t) containing  the  number of
                expirations that have occurred.  (The returned value is in host
                byte order, i.e., the native byte order for integers on the host
                machine.)
@@ -92,52 +92,52 @@ extern (C) private
             underlying  timer  object  as the corresponding file descriptor in
             the parent, and read(2)s in the child will return information about
             expirations of the timer.
-    
+
         execve(2) semantics
             A file descriptor created by timerfd_create() is preserved across
             execve(2), and continues to generate timer expirations if the  timer
             was armed.
-        
+
         Params:
             clockid = Specifies the clock  that is used to mark the progress of
                       the timer, and must be either CLOCK_REALTIME or
                       CLOCK_MONOTONIC.
-                      - CLOCK_REALTIME is a settable system-wide clock. 
+                      - CLOCK_REALTIME is a settable system-wide clock.
                       - CLOCK_MONOTONIC is a non-settable clock that is not
                           affected by discontinuous changes in the system clock
                           (e.g., manual changes to system time). The current
                           value of each of these clocks can be retrieved using
                           clock_gettime(2).
-            
+
             flags   = Starting with Linux 2.6.27: 0 or a bitwise OR combination
                       of
                       - TFD_NONBLOCK: Set the O_NONBLOCK file status flag on the
                             new open file description.
                       - TFD_CLOEXEC: Set the close-on-exec (FD_CLOEXEC) flag on
-                            the new file descriptor. (See the description of the 
+                            the new file descriptor. (See the description of the
                             O_CLOEXEC  flag  in open(2) for reasons why this may
                             be useful.)
-                      
+
                       Up to Linux version 2.6.26: Must be 0.
-            
+
         Returns:
             a file descriptor that refers to that timer
-        
+
      **************************************************************************/
-    
+
     int timerfd_create(int clockid, int flags = 0);
-    
+
     /**************************************************************************
-    
+
         Sets next expiration time of interval timer source fd to new_value.
-        
+
         Params:
             fd        = file descriptor referring to the timer
-            
+
             flags     = 0 starts a relative timer using new_value.it_interval;
                         TFD_TIMER_ABSTIME starts an absolute timer using
                         new_value.it_value.
-            
+
             new_value = - it_value: Specifies the initial expiration of the
                             timer. Setting either field to a non-zero value arms
                             the timer. Setting both fields to zero disarms the
@@ -147,22 +147,22 @@ extern (C) private
                             expirations after the initial expiration. If both
                             fields are zero, the timer expires just once, at the
                             time specified by it_value.
-            
+
             old_value = Returns the old expiration time as timerfd_gettime().
 
         Returns:
             0 on success or -1 on error. Sets errno in case of error.
-        
+
      **************************************************************************/
-    
+
     int timerfd_settime(int fd, int flags,
                         itimerspec* new_value,
                         itimerspec* old_value);
-    
+
     /**************************************************************************
-    
+
         Returns the next expiration time of fd.
-        
+
         Params:
             fd         = file descriptor referring to the timer
             curr_value = - it_value:
@@ -176,10 +176,10 @@ extern (C) private
                              both fields are zero, then the timer is set to
                              expire just once, at the time specified by
                              it_value.
-        
+
         Returns:
             0 on success or -1 on error. Sets errno in case of error.
-    
+
      **************************************************************************/
 
     int timerfd_gettime(int fd, itimerspec* curr_value);
@@ -188,58 +188,58 @@ extern (C) private
 class TimerEvent : ITimerEvent
 {
     /***************************************************************************
-    
+
         Alias for event handler delegate.
-        
+
         Returns:
             true to stay registered in epoll or false to unregister.
-    
+
     ***************************************************************************/
-    
+
     public alias bool delegate ( ) Handler;
-    
+
     /***************************************************************************
-    
+
         Event handler delegate.
-    
+
     ***************************************************************************/
-    
+
     private Handler handler;
 
     /***********************************************************************
 
         Constructor. Creates a file descriptor to manage the event.
-        
+
         Constructor. Creates a custom event and hooks it up to the provided
         event handler.
-    
+
         Params:
             handler = event handler
-        
+
     ***********************************************************************/
-    
+
     public this ( Handler handler, bool realtime = false )
     {
         super(realtime);
-        
+
         this.handler = handler;
     }
-    
+
     /***************************************************************************
-    
+
         Called from the select dispatcher when the event fires. Calls the user-
         provided event handler.
-    
+
         Params:
             event = select event which fired, must be Read
-    
+
         Returns:
             forwards return value of event handler -- false indicates that the
             event should be unregistered with the selector, true indicates that
             it should remain registered and able to fire again
-    
+
     ***************************************************************************/
-    
+
     protected bool handle_ ( ulong n )
     in
     {
@@ -249,16 +249,16 @@ class TimerEvent : ITimerEvent
     {
         return this.handler();
     }
-    
+
     /***********************************************************************
 
         Set a new handler
-    
+
         Params:
             handler = event handler
-        
+
     ***********************************************************************/
-    
+
     public void setHandler ( Handler handler )
     {
         this.handler = handler;
@@ -276,12 +276,12 @@ abstract class ITimerEvent : ISelectClient, ISelectable
     /***************************************************************************
 
         Set to true to use an absolute or false for a relative timer. On default
-        a relative timer is used. 
-    
+        a relative timer is used.
+
     ***************************************************************************/
 
     public bool absolute = false;
-    
+
     /***************************************************************************
 
         Integer file descriptor provided by the operating system and used to
@@ -294,54 +294,59 @@ abstract class ITimerEvent : ISelectClient, ISelectable
     /***************************************************************************
 
         Reused Exception instance
-    
+
     ***************************************************************************/
 
     protected const TimerException e;
-    
+
     /***********************************************************************
 
         Constructor. Creates a file descriptor to manage the event.
-        
+
         Params:
             realtime = true:  use a settable system-wide clock.
                        false: use a non-settable clock that is not affected by
                        discontinuous changes in the system clock (e.g., manual
                        changes to system time).
-        
+
     ***********************************************************************/
 
     protected this ( bool realtime = false )
     {
         this.fd = .timerfd_create(realtime? CLOCK_REALTIME : CLOCK_MONOTONIC,
                                   TFD_NONBLOCK);
-        
+
         if (this.fd < 0)
         {
-            throw (new TimerException)("timerfd_create", __FILE__, __LINE__);
+            throw this.e("timerfd_create", __FILE__, __LINE__);
         }
-        
+
         this.e = new TimerException;
-        
-        super(this);
     }
-    
+
+    public Event events ( )
+    {
+        return Event.EPOLLIN;
+    }
+
     /**************************************************************************
-    
+
         Called immediately when this instance is deleted.
         (Must be protected to prevent an invariant from failing.)
-    
+
      **************************************************************************/
 
     protected override void dispose ( )
     {
+        super.dispose();
+
         delete this.e;
     }
-    
+
     /***********************************************************************
 
         Destructor. Destroys the file descriptor used to manage the event.
-    
+
     ***********************************************************************/
 
     ~this ( )
@@ -349,23 +354,23 @@ abstract class ITimerEvent : ISelectClient, ISelectable
         .close(this.fd);
     }
 
-    
+
     /***************************************************************************
-    
+
         Timer expiration event handler.
-        
+
         Params:
             n =  number of  expirations that have occurred
-        
+
         Returns:
             true to stay registered in epoll or false to unregister.
-    
+
     ***************************************************************************/
-    
+
     abstract protected bool handle_ ( ulong n );
 
     /***********************************************************************
-    
+
         Returns the next expiration time.
 
         Returns:
@@ -376,77 +381,77 @@ abstract class ITimerEvent : ISelectClient, ISelectable
             - it_interval: the interval of the timer. If both fields are zero,
                  then the timer is set to expire just once, at the time
                  specified by it_value.
-                             
+
      ***********************************************************************/
-    
+
     public itimerspec time ( )
     {
         itimerspec t;
-        
+
         this.e.check(timerfd_gettime(this.fd, &t), "timerfd_gettime", __FILE__, __LINE__);
-        
+
         return t;
     }
-    
+
     /***************************************************************************
-    
+
         Sets next expiration time of interval timer.
-        
+
         Params:
             first =    Specifies the initial expiration of the timer. Setting
                        either field to a non-zero value arms the timer. Setting
                        both fields to zero disarms the timer.
-                    
+
             interval = Setting one or both fields to non-zero values specifies
                        the period for repeated timer expirations after the
                        initial expiration. If both fields are zero, the timer
                        expires just once, at the time specified by it_value.
-            
+
         Returns:
             the previous expiration time as time().
 
      **************************************************************************/
-    
+
     public itimerspec set ( timespec first, timespec interval = timespec.init )
     {
         itimerspec t_new = itimerspec(interval, first),
                    t_old;
-        
+
         this.e.check(timerfd_settime(this.fd,
                                      this.absolute? TFD_TIMER_ABSTIME : 0,
                                      &t_new, &t_old),
                                      "timerfd_settime", __FILE__, __LINE__);
-        
+
         return t_old;
     }
-    
+
     /***************************************************************************
-    
+
         Sets next expiration time of interval timer.
-        
+
         Setting first_s or first_ms to a non-zero value arms the timer. Setting
         both to zero disarms the timer.
         If both interval_s and interval_,s are zero, the timer expires just
         once, at the time specified by first_s and first_ms.
-        
-        
+
+
         Params:
             first_s     = Specifies the number of seconds of the initial
                           expiration of the timer.
-                          
+
             first_ms    = Specifies an amount of milliseconds that will be added
                           to first_s.
-                          
-            interval_ms = Specifies the number of seconds of the period for
+
+            interval_s = Specifies the number of seconds of the period for
                           repeated timer expirations after the initial
                           expiration.
-                          
+
             interval_ms = Specifies an amount of milliseconds that will be added
                           to interval_ms.
-            
+
         Returns:
             the previous expiration time as time().
-    
+
      **************************************************************************/
 
     public itimerspec set ( time_t first_s,        uint first_ms,
@@ -455,21 +460,21 @@ abstract class ITimerEvent : ISelectClient, ISelectable
         return this.set(timespec(first_s,    first_ms    * 1_000_000),
                         timespec(interval_s, interval_ms * 1_000_000));
     }
-    
+
     /***************************************************************************
-        
+
         Resets/disarms the timer.
-        
+
         Returns:
             Returns the previous expiration time as time().
-    
+
      **************************************************************************/
 
     public itimerspec reset ( )
     {
         return this.set(timespec.init);
     }
-    
+
     /***********************************************************************
 
         Required by ISelectable interface.
@@ -483,47 +488,35 @@ abstract class ITimerEvent : ISelectClient, ISelectable
     {
         return cast(Handle)this.fd;
     }
-    
+
     /***************************************************************************
-    
-        Returns:
-            select events which this class is registered with
-    
-    ***************************************************************************/
-    
-    final Event events ( )
-    {
-        return Event.Read;
-    }
-    
-    /***************************************************************************
-        
+
         Event handler, invoked by the epoll select dispatcher.
-        
+
         Params:
             event = event(s) reported by epoll
-        
+
         Returns:
             true to stay registered in epoll or false to unregister.
-    
+
     ***************************************************************************/
 
     final bool handle ( Event event )
     {
         ulong n;
-        
+
         if (.read(this.fd, &n, n.sizeof) < 0)
         {
             scope (exit) errno = 0;
-            
+
             int errnum = errno;
-            
+
             switch (errnum)
             {
                 case EAGAIN:
                 static if (EAGAIN != EWOULDBLOCK) case EWOULDBLOCK:
                     return true;
-                
+
                 default:
                     throw this.e(errnum, "reading from timerfd", __FILE__, __LINE__);
             }
@@ -559,80 +552,37 @@ abstract class ITimerEvent : ISelectClient, ISelectable
     }
 
     /**************************************************************************/
-    
+
     static class TimerException : ErrnoIOException
     {
         /***********************************************************************
-        
+
             Throws this instance if n is different from 0.
-            
+
             Params:
                 n    = return code to check
                 msg  = error message
                 file = source code file name
                 line = source code line number
-            
+
             Returns:
                 n
-                
+
             Throws:
                 this instance if n is different from 0.
-            
+
         ***********************************************************************/
-        
+
         int check ( int n, char[] msg, char[] file = "", long line = 0 )
         {
             if (n)
             {
-                super.set(msg, file, line);
-                
-                throw this;
+                throw this.opCall(msg, file, line);
             }
             else
             {
                 return n;
             }
-        }
-        
-        /**********************************************************************
-        
-            Queries and resets errno and sets the exception parameters.
-            
-            Params:
-                msg  = message
-                file = source code file name
-                line = source code line
-            
-            Returns:
-                this instance
-            
-         **********************************************************************/
-        
-        public typeof (this) opCall ( char[] msg, char[] file = "", long line = 0 )
-        {
-            super.set(msg, file, line);
-            return this;
-        }
-        
-        /**********************************************************************
-        
-            Queries and resets errno and sets the exception parameters.
-            
-            Params:
-                errnum = error code (errno)
-                msg    = message
-                file   = source code file name
-                line   = source code line
-            
-            Returns:
-                this instance
-            
-         **********************************************************************/
-        
-        public typeof (this) opCall ( int errnum, char[] msg, char[] file = "", long line = 0 )
-        {
-            super.set(errnum, msg, file, line);
-            return this;
         }
     }
 }

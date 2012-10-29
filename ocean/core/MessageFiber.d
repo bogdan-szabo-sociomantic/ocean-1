@@ -84,7 +84,7 @@ class MessageFiber : MessageFiberControl
         
         void set ( char[] file, long line )
         {
-            super.file.copy(file);
+            super.file = file;
             super.line = line;
         }
     }
@@ -177,7 +177,7 @@ class MessageFiber : MessageFiberControl
     public Message start ( Message msg = Message.init )
     in
     {
-        assert (this.fiber.state != this.fiber.State.EXEC);
+        assert (this.fiber.state != this.fiber.State.EXEC, "attempt to start an active fiber");
     }
     out (msg_out)
     {
@@ -221,7 +221,7 @@ class MessageFiber : MessageFiberControl
     public Message suspend ( Message msg = Message.init )
     in
     {
-        assert (this.fiber.state == this.fiber.State.EXEC);
+        assert (this.fiber.state == this.fiber.State.EXEC, "attempt to suspend an inactive fiber");
         with (msg) if (active == active.exc) assert (exc !is null);
     }
     out (msg_out)
@@ -302,7 +302,7 @@ class MessageFiber : MessageFiberControl
     public Message resume ( Message msg = Message.init )
     in
     {
-        assert (this.fiber.state == this.fiber.State.HOLD);
+        assert (this.fiber.state == this.fiber.State.HOLD, "attempt to resume a non-held fiber");
     }
     out (msg_out)
     {
@@ -350,7 +350,7 @@ class MessageFiber : MessageFiberControl
     public void kill ( char[] file = null, long line = 0 )
     in
     {
-        assert (this.fiber.state == this.fiber.State.HOLD);
+        assert (this.fiber.state == this.fiber.State.HOLD, "attempt to kill a non-helpd fiber");
         assert (!this.killed);
     }
     body
@@ -425,7 +425,7 @@ class MessageFiber : MessageFiberControl
     private void suspend_ ( )
     in
     {
-        assert (this.fiber.state == this.fiber.State.EXEC);
+        assert (this.fiber.state == this.fiber.State.EXEC, "attempt to suspend a non-active fiber");
     }
     body
     {

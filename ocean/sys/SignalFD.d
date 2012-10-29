@@ -173,29 +173,7 @@ public class SignalFD : ISelectable
 
     ***************************************************************************/
 
-    private static class SignalErrnoException : ErrnoIOException
-    {
-        /***********************************************************************
-
-            Sets the exception parameters.
-
-            Params:
-                errnum = error code (errno)
-                msg    = message
-                file   = source code file name
-                line   = source code line
-
-            Returns:
-                this instance
-
-        ***********************************************************************/
-
-        public typeof (this) opCall ( int errnum, char[] msg, char[] file = "", long line = 0 )
-        {
-            super.set(errnum, msg, file, line);
-            return this;
-        }
-    }
+    private static class SignalErrnoException : ErrnoIOException { }
 
 
     /***************************************************************************

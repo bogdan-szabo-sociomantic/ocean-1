@@ -394,17 +394,25 @@ private template SmartEnumCore ( BaseType )
 /*******************************************************************************
 
     Wrapper for the ctfe_i2a fucntion (see tango.core.Traits), allowing it to
-    also handle byte & ubyte types.
+    also handle (u)byte & (u)short types.
 
 *******************************************************************************/
 
-private char[] CTFE_Int2String ( T ) ( T num )
+public char[] CTFE_Int2String ( T ) ( T num )
 {
     static if ( is(T == ubyte) )
     {
         return ctfe_i2a(cast(uint)num);
     }
     else static if ( is(T == byte) )
+    {
+        return ctfe_i2a(cast(int)num);
+    }
+    else static if ( is(T == ushort) )
+    {
+        return ctfe_i2a(cast(uint)num);
+    }
+    else static if ( is(T == short) )
     {
         return ctfe_i2a(cast(int)num);
     }

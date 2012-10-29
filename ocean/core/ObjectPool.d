@@ -73,16 +73,18 @@
 
     ---
 
-    TODO: move this module into ocean.uitl.container.pool, and split classes
-    into separate modules.
-
-    TODO: implement a reduced functionality version of the pool which is simply
-    a free-list. It would thus not require the object_pool_index member in the
-    pool item, and would not be able to support iteration over busy items.
-
 *******************************************************************************/
 
 module ocean.core.ObjectPool;
+
+
+// *****************************************************************************
+// *****************************************************************************
+// *****************************************************************************
+pragma(msg, "Deprecated: use ocean.util.container.pool.* instead");
+// *****************************************************************************
+// *****************************************************************************
+// *****************************************************************************
 
 
 /*******************************************************************************

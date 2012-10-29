@@ -131,7 +131,7 @@ public struct MetricPrefix
 
     **************************************************************************/
 
-    public static const DecimalPrefixes = ['p', 'n', 'µ', 'm', ' ', 'k', 'M', 'G', 'T'];
+    public static const DecimalPrefixes = [cast(wchar)'p', 'n', 'µ', 'm', ' ', 'k', 'M', 'G', 'T'];
 
     typeof (this) dec ( T : float ) ( T n, int e = 0 )
     in

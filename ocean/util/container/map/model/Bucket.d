@@ -49,139 +49,12 @@ module ocean.util.container.map.model.Bucket;
     with this.
 
     Template params:
-        K = Key type
-
-*******************************************************************************/
-
-// TODO: do we need to handle non-hash keys?
-
-private template BucketElementCore ( K = hash_t )
-{
-    /**********************************************************************
-
-        Object pool index
-
-     **********************************************************************/
-
-    public uint object_pool_index;
-
-    /**********************************************************************
-
-        Key = bucket element key type
-
-     **************************************************************************/
-
-    public alias K Key;
-
-    /**************************************************************************
-
-        Element key
-
-     **********************************************************************/
-
-    public Key key;
-
-    /**********************************************************************
-
-        Next and previous element. For the first/last bucket element
-        next/prev is null, respectively.
-
-     **********************************************************************/
-
-    private typeof (this) next = null,
-                          prev = null;
-
-    /**********************************************************************
-
-        Bucket which this instance is an element in
-
-     **********************************************************************/
-
-    debug (HostingArrayMapBucket) private Bucket* bucket = null;
-
-    /**********************************************************************
-
-        Resets next/prev.
-
-     **********************************************************************/
-
-    private void reset ( )
-    {
-        this.next = this.prev = null;
-    }
-}
-
-
-
-/*******************************************************************************
-
-    Struct template for a bucket element.
-
-    Template params:
+        V = value size (.sizeof of the value type), may be 0 to store no value
         K = key type
 
 *******************************************************************************/
 
-package struct BucketElement ( K = hash_t )
-{
-    mixin BucketElementCore!(K);
-}
-
-
-
-/*******************************************************************************
-
-    Struct template for a bucket element with a value. The element's value is
-    stored as a simple array of ubytes, either dynamic or static, depending on
-    the value of the template parameter V.
-
-    Template params:
-        V = value length in bytes, 0 specifies a variable value length
-        K = key type
-
-*******************************************************************************/
-
-package struct ValueBucketElement ( size_t V, K = hash_t )
-{
-    mixin BucketElementCore!(K);
-
-    /**************************************************************************
-
-        Val = bucket element value type, if any
-
-     **************************************************************************/
-
-    private const val_length = V;
-
-    /**********************************************************************
-
-        Element value
-
-     **********************************************************************/
-
-    static if (val_length)
-    {
-        public alias ubyte[val_length] Val;
-    }
-    else
-    {
-        public alias ubyte[] Val;
-    }
-
-    public Val val;
-}
-
-
-
-/*******************************************************************************
-
-    Template params:
-        E = type of element stored in bucket (should be one of the bucket
-            element structs defined above)
-
-*******************************************************************************/
-
-public struct Bucket ( E )
+public struct Bucket ( size_t V, K = hash_t )
 {
     /**************************************************************************
 
@@ -189,18 +62,46 @@ public struct Bucket ( E )
 
      **************************************************************************/
 
-    public alias E Element;
+    struct Element
+    {
+        /**********************************************************************
 
-
-    /**************************************************************************
-
-        Number of elements in this bucket
-
-     **************************************************************************/
-
-    private size_t length_ = 0;
-
-
+            Key = bucket element key type
+        
+         **********************************************************************/
+        
+        public alias K Key;
+        
+        /**********************************************************************
+        
+            Element key
+        
+         **********************************************************************/
+        
+        public Key key;
+        
+        /**********************************************************************
+    
+            Element value, may be a dummy of zero size if no value is stored.
+    
+         **********************************************************************/
+        
+        public alias ubyte[V] Val;
+        
+        public Val val;
+        
+        /**********************************************************************
+        
+            Next and previous element. For the first/last bucket element
+            next/prev is null, respectively.
+        
+         **********************************************************************/
+        
+        private typeof (this) next = null;
+        
+        debug (HostingArrayMapBucket) private Bucket!(V, K)* bucket;
+    }
+    
     /**************************************************************************
 
         First bucket element
@@ -208,42 +109,21 @@ public struct Bucket ( E )
      **************************************************************************/
 
     private Element* first = null;
-
-
+    
     /**************************************************************************
 
-        Invariant
-
-     **************************************************************************/
-
-    invariant ( )
-    {
-        if (this.length_)
-        {
-            assert (this.first, "have no first element but length is positive");
-        }
-        else
-        {
-            assert (!this.first, "have first element but length is 0");
-        }
-    }
-
-
-    /**************************************************************************
-
-        Length getter.
-
+        Tells whether there is at least one element in this bucket.
+        
         Returns:
-            number of elements in this bucket
-
+            false if the bucket is empty or true otherwise.
+    
      **************************************************************************/
-
-    public size_t length ( )
+    
+    public bool has_element ( )
     {
-        return this.length_;
+        return this.first !is null;
     }
-
-
+    
     /**************************************************************************
 
         Looks up the element whose key equals key.
@@ -262,67 +142,43 @@ public struct Bucket ( E )
         debug (HostingArrayMapBucket) if (element)
         {
             assert (element.bucket, "bucket not set in found element");
-            assert (element.bucket == this, "element found is not from this bucket");
+            assert (element.bucket is this,
+                    "element found is not from this bucket");
         }
     }
     body
     {
-        Element* result = null; 
-
-        switch (this.length_)
+        for (Element* element = this.first; element; element = element.next)
         {
-            case 1:
-                if (this.first.key == key)
-                {
-                    result = this.first;
-                }
-
-            case 0:
-                break;
-
-            default:
-                for (Element* element = this.first; element; element = element.next)
-                {
-                    if (element.key == key)
-                    {
-                        result = element;
-                        break;
-                    }
-                }
+            if (element.key == key)
+            {
+                return element;
+            }
         }
-
-        return result;
+        
+        return null;
     }
 
 
     /**************************************************************************
 
         'foreach' iteration over elements in this bucket.
-
-        Asserts that the length of the bucket is not modified while iterating.
-
+        
+        TODO: Add support for removing the current element during iteration.
+        
      **************************************************************************/
 
     public int opApply ( int delegate ( ref Element element ) dg )
     {
         int result = 0;
-
-        size_t n = 0;
-
-        for (Element* element = this.first;
-                      element && !result;
-                      element = element.next)
+        
+        for (Element* element = this.first; element && !result; element = element.next)
         {
-            assert (n++ < this.length_);
-
             result = dg(*element);
         }
-
-        assert (n == this.length_ || result);
-
+        
         return result;
     }
-
 
     /**************************************************************************
 
@@ -338,12 +194,20 @@ public struct Bucket ( E )
 
         Returns:
             pointer to inserted element
-
+        
+        Out:
+            The returned pointer is never null.
+        
      **************************************************************************/
 
     public Element* add ( Element.Key key, lazy Element* new_element )
+    out (element)
     {
-        Bucket.Element* element = this.find(key);
+        assert (element !is null);
+    }
+    body
+    {
+        Element* element = this.find(key);
 
         if (!element)
         {
@@ -352,139 +216,8 @@ public struct Bucket ( E )
 
         return element;
     }
-
-
-    /**************************************************************************
-
-        Adds a bucket element with key as key. An out parameter reports whether
-        the added element was newly added to the bucket, or whether it replaced
-        an existing element.
-
-        The element is inserted as the first bucket element.
-
-        Params:
-            key = key for the new element
-            new_element = expression returning a new element, evaluated exactly
-                once, if the key to be added does not already exist in the
-                bucket
-            existed = flag set to true if an element already existed for the
-                specified key
-
-        Returns:
-            pointer to inserted element
-
-     **************************************************************************/
-
-    public Element* add ( Element.Key key, lazy Element* new_element,
-        out bool existed )
-    {
-        Bucket.Element* element = this.find(key);
-
-        if (element)
-        {
-            existed = true;
-        }
-        else
-        {
-            (element = this.add(new_element)).key = key;
-        }
-
-        return element;
-    }
-
-
-    /**************************************************************************
-
-        Removes element from this bucket. element must in fact be in this
-        bucket, otherwise the map may get corrupted.
-
-        The removed element must be recycled by the owner of the bucket.
-
-        Element may be null; in this case nothing is done. This is to make
-        remove/find call chains convenient:
-
-        ---
-            remove(find(key))
-        ---
-
-        Params:
-            element = element to remove (or null to do nothing)
-
-        Returns:
-            element
-
-     **************************************************************************/
-
-    public Element* remove ( Element* element )
-    in
-    {
-        if (element)
-        {
-            assert (this.length_, "attempted to remove from empty bucket");
-
-            debug (HostingArrayMapBucket)
-            {
-                assert (element.bucket, "bucket not set in element to remove");
-                assert (element.bucket == this, "element to remove is not from this bucket");
-            }
-        }
-    }
-    out (element)
-    {
-        debug (HostingArrayMapBucket) if (element) element.bucket = null;
-    }
-    body
-    {
-        if (element)
-        {
-            if (element.prev)
-            {
-                element.prev.next = element.next;
-            }
-
-            if (element.next)
-            {
-                element.next.prev = element.prev;
-            }
-
-            if (--this.length_)
-            {
-                if (!element.prev)
-                {
-                    assert (element is this.first);
-
-                    this.first = element.next;
-                }
-            }
-            else
-            {
-                assert (element is this.first);
-
-                this.first = null;
-            }
-        }
-
-        return element;
-    }
-
-
-    /**************************************************************************
-
-        Removes all elements from the bucket. The bucket elements themselves
-        must be recycled by the owner of the bucket.
-
-        Note that it is also safe to clear a bucket by simply assigning
-        Bucket.init to it.
-
-     **************************************************************************/
-
-    public void clear ( )
-    {
-        this.length_ = 0;
-        this.first = null;
-    }
-
-
+    
+    
     /**************************************************************************
 
         Adds an element to the bucket.
@@ -495,31 +228,164 @@ public struct Bucket ( E )
             element = element to add
 
         Returns:
-            pointer to inserted element
+            element
 
      **************************************************************************/
 
-    private Element* add ( Element* element )
+    public Element* add ( Element* element )
     in
     {
         debug (HostingArrayMapBucket) element.bucket = this;
     }
     body
     {
-        Element* first_prev = this.first;
+        element.next = this.first;
+        this.first   = element;
+        
+        return element;
+    }
+    
+    /**************************************************************************
 
-        with (*(this.first = element))
+        Looks up the element corresponding to key in this bucket and removes it,
+        if found.
+    
+        The removed element must be recycled by the owner of the bucket.
+    
+        Params:
+            key = key of the element to remove
+    
+        Returns:
+            removed element or null if not found.
+    
+     **************************************************************************/
+    
+    public Element* remove ( K key )
+    out (removed)
+    {
+        if (removed !is null)
         {
-            next = first_prev;
-            prev = null;
+            assert (removed.next is null, "remove: forgot to clear removed.next");
+            
+            debug (HostingArrayMapBucket) if (removed)
+            {
+                assert (removed.bucket is this,
+                        "element to remove is not from this bucket");
+                
+                removed.bucket = null;
+            }
         }
-
-        if (this.length_++)
+    }
+    body
+    { 
+        if (this.first !is null)
         {
-            first_prev.prev = this.first;
+            if (this.first.key == key)
+            {
+                Element* removed = this.first;
+                
+                this.first   = this.first.next;
+                removed.next = null;
+                
+                return removed;
+            }
+            else
+            {
+                Element* element = this.first.next;
+                
+                for (Element* prev = this.first; element;)
+                {
+                    if (element.key == key)
+                    {
+                        Element* removed = element;
+                        
+                        prev.next    = element.next;
+                        removed.next = null;
+                        
+                        return removed;
+                    }
+                    else
+                    {
+                        prev    = element;
+                        element = element.next;
+                    }
+                }
+            }
         }
-
-        return this.first;
+        
+        return null;
     }
 }
+
+version (none):
+
+/**
+Order the provided members to minimize size while preserving alignment.
+Returns a declaration to be mixed in.
+
+Example:
+---
+struct Banner {
+mixin(alignForSize!(byte[6], double)(["name", "height"]));
+}
+---
+
+Alignment is not always optimal for 80-bit reals, nor for structs declared
+as align(1).
+*/
+char[] alignForSize(E...)(string[] names...)
+{
+  // Sort all of the members by .alignof.
+  // BUG: Alignment is not always optimal for align(1) structs
+  // or 80-bit reals or 64-bit primitives on x86.
+  // TRICK: Use the fact that .alignof is always a power of 2,
+  // and maximum 16 on extant systems. Thus, we can perform
+  // a very limited radix sort.
+  // Contains the members with .alignof = 64,32,16,8,4,2,1
+
+  assert(E.length == names.length,
+      "alignForSize: There should be as many member names as the types");
+
+  char[][7] declaration = ["", "", "", "", "", "", ""];
+
+  foreach (i, T; E) {
+      auto a = T.alignof;
+      auto k = a>=64? 0 : a>=32? 1 : a>=16? 2 : a>=8? 3 : a>=4? 4 : a>=2? 5 : 6;
+      declaration[k] ~= T.stringof ~ " " ~ names[i] ~ ";\n";
+  }
+
+  auto s = "";
+  foreach (decl; declaration)
+      s ~= decl;
+  return s;
+}
+
+unittest {
+  const x = alignForSize!(int[], char[3], short, double[5])("x", "y","z", "w");
+  struct Foo{ int x; }
+  const y = alignForSize!(ubyte, Foo, cdouble)("x", "y","z");
+
+  static if(size_t.sizeof == uint.sizeof)
+  {
+      const passNormalX = x == "double[5u] w;\nint[] x;\nshort z;\nchar[3u] y;\n";
+      const passNormalY = y == "cdouble z;\nFoo y;\nubyte x;\n";
+
+      const passAbnormalX = x == "int[] x;\ndouble[5u] w;\nshort z;\nchar[3u] y;\n";
+      const passAbnormalY = y == "Foo y;\ncdouble z;\nubyte x;\n";
+      // ^ blame http://d.puremagic.com/issues/show_bug.cgi?id=231
+
+      static assert(passNormalX || double.alignof <= (int[]).alignof && passAbnormalX);
+      static assert(passNormalY || double.alignof <= int.alignof && passAbnormalY);
+  }
+  else
+  {
+      static assert(x == "int[] x;\ndouble[5LU] w;\nshort z;\nchar[3LU] y;\n");
+      static assert(y == "cdouble z;\nFoo y;\nubyte x;\n");
+  }
+}
+
+
+
+
+
 

@@ -26,9 +26,7 @@ private import tango.stdc.errno : errno;
 
 private import tango.stdc.string : strlen;
 
-private import ocean.core.Array : copy, concat, append, toArray;
-
-
+private import ocean.core.Array : concat, append, toArray;
 
 /*******************************************************************************
 
@@ -54,6 +52,11 @@ public class ErrnoIOException : IOException
     
     this ( ) {super("");}
     
+    public void assertEx ( bool ok, char[] msg, char[] file = "", long line = 0 )
+    {
+        if (!ok) throw this.opCall(msg, file, line);
+    }
+    
     /**************************************************************************
     
         Queries and resets errno and sets the exception parameters.
@@ -67,11 +70,11 @@ public class ErrnoIOException : IOException
         
      **************************************************************************/
     
-    protected void set ( char[] file = "", long line = 0 )
+    public typeof (this) opCall ( char[] file = "", long line = 0 )
     {
         char[][] msg = null;
         
-        this.set(msg, file, line);
+        return this.opCall(msg, file, line);
     }
     
     /**************************************************************************
@@ -88,9 +91,9 @@ public class ErrnoIOException : IOException
         
      **************************************************************************/
     
-    protected void set ( char[] msg, char[] file = "", long line = 0 )
+    public typeof (this) opCall ( char[] msg, char[] file = "", long line = 0 )
     {
-        this.set(toArray(msg), file, line);
+        return this.opCall(toArray(msg), file, line);
     }
     
     /**************************************************************************
@@ -107,11 +110,11 @@ public class ErrnoIOException : IOException
         
      **************************************************************************/
 
-    protected void set ( char[][] msg, char[] file = "", long line = 0 )
+    public typeof (this) opCall ( char[][] msg, char[] file = "", long line = 0 )
     {
         scope (exit) .errno = 0;
         
-        this.set(.errno, msg, file, line);
+        return this.opCall(.errno, msg, file, line);
     }
     
     /**************************************************************************
@@ -129,11 +132,11 @@ public class ErrnoIOException : IOException
         
      **************************************************************************/
     
-    protected void set ( int errnum, char[] file = "", long line = 0 )
+    public typeof (this) opCall ( int errnum, char[] file = "", long line = 0 )
     {
         char[][] msg = null;
         
-        this.set(errnum, msg, file, line);
+        return this.opCall(errnum, msg, file, line);
     }
     
     /**************************************************************************
@@ -151,9 +154,9 @@ public class ErrnoIOException : IOException
         
      **************************************************************************/
     
-    protected void set ( int errnum, char[] msg, char[] file = "", long line = 0 )
+    public typeof (this) opCall ( int errnum, char[] msg, char[] file = "", long line = 0 )
     {
-        this.set(errnum, toArray(msg), file, line);
+        return this.opCall(errnum, toArray(msg), file, line);
     }
     
     /**************************************************************************
@@ -171,7 +174,7 @@ public class ErrnoIOException : IOException
         
      **************************************************************************/
 
-    protected void set ( int errnum, char[][] msg, char[] file = "", long line = 0 )
+    public typeof (this) opCall ( int errnum, char[][] msg, char[] file = "", long line = 0 )
     {
         this.errnum = errnum;
         
@@ -190,8 +193,34 @@ public class ErrnoIOException : IOException
             super.msg.append(e[0 .. strlen(e)]);
         }
         
-        super.file.copy(file);
+        super.file = file;
         super.line = line;
+        
+        return this;
+    }
+    
+    /**************************************************************************
+    
+        Obtains the system error message for errnum.
+        
+        The system error message buffer may or may not be copied to buffer, do
+        not change characters in the returned string. The message length may be
+        truncated to buffer.length - 1.  
+        
+        Params:
+            buffer = string buffer, may or may not be populated
+            errnum = error code
+            
+        Returns:
+            the system error message for errnum.
+        
+     **************************************************************************/
+    
+    public static char[] strerror ( char[] buffer, int errnum )
+    {
+        char* e = strerror_r(errnum, buffer.ptr, buffer.length);
+        
+        return e? e[0 .. strlen(e)] : null;
     }
     
     /**************************************************************************

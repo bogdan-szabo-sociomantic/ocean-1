@@ -8,6 +8,12 @@
     
     author:         David Eckardt
     
+    Link with
+    
+        -L-lglib-2.0
+        
+    .
+    
  ******************************************************************************/
 
 module ocean.net.http2.message.HttpHeaderParser;
@@ -32,6 +38,29 @@ else
     
     alias long ssize_t;
 }
+
+/******************************************************************************
+
+    Searches the haystack[0 .. haystack_len], if haystack_len is >= 0, for the
+    first occurrence of the string needle. If haystack[0 .. haystack_len]
+    contains a NUL byte, the search will stop there.
+    If haystack_len is -1, haystack is assumed to be a NUL-terminated string and
+    needle is searched in the whole haystack string. 
+    
+    This is a GLib function.
+    
+    @see http://developer.gnome.org/glib/stable/glib-String-Utility-Functions.html#g-strstr-len
+    
+    Params:
+        haystack     = haystack.ptr for haystack_len >= 0 or a pointer to a
+                       NUL-terminated string if haystack_len = -1
+        haystack_len = haystack.length or -1 if haystack is NUL-terminated
+        needle       = the string to search for (NUL-terminated)
+        
+    Returns:
+        a pointer to the found occurrence, or null if not found.
+
+ ******************************************************************************/
 
 extern (C) private char* g_strstr_len(char* haystack, ssize_t haystack_len, char* needle);
 
@@ -141,6 +170,15 @@ interface IHttpHeaderParser
 
 class HttpHeaderParser : IHttpHeaderParser
 {
+    /***************************************************************************
+
+         Object pool index -- allows the construction of a pool of objects of
+         this type.
+
+    ***************************************************************************/
+
+    public uint object_pool_index;
+
     /**************************************************************************
 
         Default values for header size limitation
@@ -721,10 +759,22 @@ class HttpHeaderParser : IHttpHeaderParser
         {
             i = split_tokens.n;
             
-            this.exception.assertEx!(__FILE__, __LINE__)(i <= this.start_line_tokens.length,
-                                                         "invalid start line (too many tokens)");
-            
             this.start_line_tokens[i - 1] = token;
+
+            /*
+             * For http responses, the third token is the error description,
+             * which may contain spaces. eg,
+             * "HTTP/1.1 301 Moved Permanently"
+             *
+             * TODO: Replace this foreach with calls to split_tokens.next
+             */
+
+            if (i >= this.start_line_tokens.length - 1)
+            {
+                this.start_line_tokens[i] = split_tokens.remaining;
+                ++i;
+                break;
+            }
         }
         
         this.exception.assertEx!(__FILE__, __LINE__)(i == this.start_line_tokens.length,

@@ -114,11 +114,11 @@ public interface IMemManager
         Note that it is up to the user of classes which implement this interface
         to ensure that the buffer passed was in fact allocated by the same
         instance.
-        
-        The destructor is always being called when the object is being collected
-        or when the object is explicitly deleted. This method is intended to be
-        called from the destructor.
-        
+
+        The destructor is always called when an object is collected or when it
+        is explicitly deleted. This method is intended to be called from the
+        destructor.
+
         Params:
             buffer = buffer to cleanup
 
@@ -197,9 +197,9 @@ private class GCMemManager : IMemManager
         to ensure that the buffer passed was in fact allocated by the same
         instance.
         
-        The destructor is always being called when the object is being collected
-        or when the object is explicitly deleted. This method is intended to be
-        called from the destructor.
+        The destructor is always called when an object is collected or when it
+        is explicitly deleted. This method is intended to be called from the
+        destructor.
         
         Params:
             buffer = buffer to cleanup
@@ -208,7 +208,6 @@ private class GCMemManager : IMemManager
 
     public void dtor ( ubyte[] buffer )
     {
-        
     }    
 }
 
@@ -245,47 +244,6 @@ private class MallocMemManager : IMemManager
 
     /***************************************************************************
 
-        Does nothing.
-
-        Params:
-            buffer = buffer to deallocate
-
-    ***************************************************************************/
-
-    public void dispose ( ubyte[] buffer )
-    {
-
-    }
-    
-
-    /***************************************************************************
-
-        Destructor compatible deallocation
-              
-        Note that it is up to the user of classes which implement this interface
-        to ensure that the buffer passed was in fact allocated by the same
-        instance.
-        
-        The destructor is always being called when the object is being collected
-        or when the object is explicitly deleted. This method is intended to be
-        called from the destructor.
-        
-        Params:
-            buffer = buffer to cleanup
-
-    ***************************************************************************/
-
-    public void dtor ( ubyte[] buffer )
-    {
-        if ( buffer.ptr !is null )
-        {
-            free(buffer.ptr);
-        }
-    }
-        
-
-    /***************************************************************************
-
         Explicit deallocation
 
         Note that it is up to the user of classes which implement this interface
@@ -298,6 +256,46 @@ private class MallocMemManager : IMemManager
     ***************************************************************************/
 
     public void destroy ( ubyte[] buffer )
+    {
+        if ( buffer.ptr !is null )
+        {
+            free(buffer.ptr);
+        }
+    }
+
+
+    /***************************************************************************
+
+        Does nothing.
+
+        Params:
+            buffer = buffer to deallocate
+
+    ***************************************************************************/
+
+    public void dispose ( ubyte[] buffer )
+    {
+    }
+    
+
+    /***************************************************************************
+
+        Destructor compatible deallocation
+              
+        Note that it is up to the user of classes which implement this interface
+        to ensure that the buffer passed was in fact allocated by the same
+        instance.
+        
+        The destructor is always called when an object is collected or when it
+        is explicitly deleted. This method is intended to be called from the
+        destructor.
+        
+        Params:
+            buffer = buffer to cleanup
+
+    ***************************************************************************/
+
+    public void dtor ( ubyte[] buffer )
     {
         if ( buffer.ptr !is null )
         {

@@ -185,17 +185,29 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     /***************************************************************************
 
-        If --version is specified, show the version information and exits.
+        Unused ILogExtExtension methods.
+
+        We just need to provide an "empty" implementation to satisfy the
+        interface. The version information is display through the displayVersion
+        method and will be called from the ArgumentsExt class. 
 
     ***************************************************************************/
 
     public void processArgs ( IApplication app, Arguments args )
     {
-        if (args("version").set)
-        {
-            Stdout(getVersionString(app.name, this.ver)).newline;
-            app.exit(0);
-        }
+        // Unused
+    }
+
+    /***************************************************************************
+
+        Show the version information and exits.
+
+    ***************************************************************************/
+
+    public void displayVersion ( IApplication app )
+    {
+        Stdout(getVersionString(app.name, this.ver)).newline;
+        app.exit(0);
     }
 
 

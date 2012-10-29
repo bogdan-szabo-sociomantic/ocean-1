@@ -52,12 +52,15 @@ module ocean.io.serialize.SimpleSerializer;
 
 *******************************************************************************/
 
-private import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
-
-private import tango.core.Exception: IOException;
 private import ocean.core.Exception: assertEx;
 
+private import tango.core.Exception: IOException;
+
+private import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
+
 debug private import ocean.util.log.Trace;
+
+
 
 /*******************************************************************************
 
@@ -74,6 +77,7 @@ static:
         Writes something to an output stream. Single elements are written
         straight to the output stream, while array types have their length
         written, followed by each element.
+
         If data is a pointer to a struct or union, it is dereferenced
         automatically.
     
@@ -94,42 +98,60 @@ static:
     
     public size_t write ( T ) ( OutputStream output, T data )
     {
-        size_t written = 0;
-        
-        static if ( is(T A : A[]) )
-        {
-            written += write(output, data.length);
-    
-            static if ( is(A B == B[])) // recursively write arrays of arrays
-            {
-                foreach ( d; data )
-                {
-                    written += write(output, d);
-                }
-            }
-            else
-            {
-                written += transmitArrayData(output, data);
-            }
-        }
-        else static if (is (T A == A*) && (is (A == struct) || is (A == union)))
-        {
-            written += writeData(output, data, A.sizeof);
-        }
-        else
-        {
-            written += writeData(output, &data, T.sizeof);
-        }
-        
-        return written;
+        return transmit(output, data);
     }
 
+    /***************************************************************************
+    
+        Writes data to output, consuming the data buffer content to its
+        entirety.
+    
+        Params:
+            output = stream to write to
+            data = pointer to data buffer
+            bytes = length of data in bytes
+        
+        Returns:
+            number of bytes transmitted
+        
+        Throws:
+            IOException on End Of Flow condition
+        
+    ***************************************************************************/
 
+    public size_t writeData ( OutputStream output, void* data, size_t bytes )
+    {
+        return transmitData(output, data[0..bytes]);
+    }
+
+    /***************************************************************************
+    
+        Writes data to output, consuming the data buffer content to its
+        entirety.
+    
+        Params:
+            output = stream to write to
+            data = data buffer
+        
+        Returns:
+            number of bytes transmitted
+        
+        Throws:
+            IOException on End Of Flow condition
+        
+    ***************************************************************************/
+
+    public size_t writeData ( OutputStream output, void[] data )
+    {
+        return transmitData(output, data);
+    }
+    
     /***************************************************************************
     
         Reads something from an input stream. Single elements are read straight
         from the input stream, while array types have their length read,
         followed by each element.
+
         If data is a pointer to a struct or union, it is dereferenced
         automatically.
     
@@ -150,38 +172,125 @@ static:
     
     public size_t read ( T ) ( InputStream input, ref T data )
     {
-        size_t read_ = 0;
+        return transmit(input, data);
+    }
+
+    /***************************************************************************
+    
+        Reads data from input, populating the data buffer to its entirety.
+    
+        Params:
+            input = stream to read from
+            data = pointer to data buffer
+            bytes = length of data in bytes
         
+        Returns:
+            number of bytes transmitted
+        
+        Throws:
+            IOException on End Of Flow condition
+        
+    ***************************************************************************/
+
+    public size_t readData ( InputStream input, void* data, size_t bytes )
+    {
+        return transmitData(input, data[0..bytes]);
+    }
+    
+    /***************************************************************************
+    
+        Reads data from input, populating the data buffer to its entirety.
+    
+        Params:
+            input = stream to read from
+            data = data buffer
+        
+        Returns:
+            number of bytes transmitted
+        
+        Throws:
+            IOException on End Of Flow condition
+        
+    ***************************************************************************/
+
+    public size_t readData ( InputStream input, void[] data )
+    {
+        return transmitData(input, data);
+    }
+
+    /***************************************************************************
+
+        Reads/writes something from/to an io stream. Single elements are
+        transmitted straight to the stream, while array types have their length
+        transmitted, followed by each element.
+
+        If data is a pointer to a struct or union, it is dereferenced
+        automatically.
+
+        Template params:
+            Stream = type of stream; must be either InputStream or OutputStream
+            T = type of data to transmit
+
+        Params:
+            stream = stream to read from / write to
+            data = data to transmit
+
+        Returns:
+            number of bytes transmitted
+
+        Throws:
+            IOException on End Of Flow condition
+
+    ***************************************************************************/
+
+    public size_t transmit ( Stream : IOStream, T ) ( Stream stream, ref T data )
+    {
+        size_t transmitted = 0;
+
         static if ( is(T A : A[]) )
         {
-            size_t length;
-            read_ += read(input, length);
-            data.length = length;
+            // transmit array length
+            static if ( is(Stream : OutputStream) )
+            {
+                size_t length = data.length;
+                transmitted += transmit(stream, length);
+            }
+            else
+            {
+                static assert ( is(Stream : InputStream),
+                    "stream must be either InputStream or OutputStream, "
+                    "not '" ~ Stream.stringof ~ '\'' );
 
-            static if ( is(A B == B[])) // recursively read arrays of arrays
+                size_t length;
+                transmitted += transmit(stream, length);
+                data.length = length;
+            }
+
+            // recursively transmit arrays of arrays
+            static if ( is(A B == B[]) )
             {
                 foreach ( ref d; data )
                 {
-                    read_ += read(input, d);
+                    transmitted += transmit(stream, d);
                 }
             }
             else
             {
-                read_ += transmitArrayData(input, data);
+                transmitted += transmitArrayData(stream, data);
             }
         }
         else static if (is (T A == A*) && (is (A == struct) || is (A == union)))
         {
-            read_ += readData(input, data, A.sizeof);
+            transmitted += transmitData(stream, data, A.sizeof);
         }
         else
         {
-            read_ += readData(input, &data, T.sizeof);
+            transmitted += transmitData(stream, cast(void*)&data, T.sizeof);
         }
-        
-        return read_;
+
+        return transmitted;
     }
-    
+
     /***************************************************************************
     
         Reads/writes data from/to an io stream, populating/consuming
@@ -203,9 +312,10 @@ static:
         
     ***************************************************************************/
 
-    public size_t transmit ( Stream : IOStream ) ( Stream stream, void* data, size_t bytes )
+    public size_t transmitData ( Stream : IOStream ) ( Stream stream, void* data,
+        size_t bytes )
     {
-        return transmit(stream, data[0 .. bytes]);
+        return transmitData(stream, data[0 .. bytes]);
     }
 
     /***************************************************************************
@@ -229,7 +339,7 @@ static:
         
     ***************************************************************************/
     
-    public size_t transmit ( Stream : IOStream ) ( Stream stream, void[] data )
+    public size_t transmitData ( Stream : IOStream ) ( Stream stream, void[] data )
     {
         static assert ( !(is(Stream : InputStream) && is(Stream : OutputStream)),
                         "stream is '" ~ Stream.stringof ~  "; please cast it "
@@ -239,7 +349,7 @@ static:
         
         while (transmitted < data.length)
         {
-            static if ( is(Stream == OutputStream) )
+            static if ( is(Stream : OutputStream) )
             {
                 size_t ret = stream.write(data[transmitted .. $]);
                 
@@ -247,7 +357,7 @@ static:
             }
             else
             {
-                static assert ( is(Stream == InputStream),
+                static assert ( is(Stream : InputStream),
                                 "stream must be either InputStream or OutputStream, "
                                 "not '" ~ Stream.stringof ~ '\'' );
                 
@@ -267,94 +377,6 @@ static:
     
     /***************************************************************************
     
-        Writes data to output, consuming the data buffer content to its
-        entirety.
-    
-        Params:
-            output = stream to write to
-            data = pointer to data buffer
-            bytes = length of data in bytes
-        
-        Returns:
-            number of bytes transmitted
-        
-        Throws:
-            IOException on End Of Flow condition
-        
-    ***************************************************************************/
-
-    public size_t writeData ( OutputStream output, void* data, size_t bytes )
-    {
-        return transmit(output, data, bytes);
-    }
-    
-    /***************************************************************************
-    
-        Reads data from input, populating the data buffer to its entirety.
-    
-        Params:
-            input = stream to read from
-            data = pointer to data buffer
-            bytes = length of data in bytes
-        
-        Returns:
-            number of bytes transmitted
-        
-        Throws:
-            IOException on End Of Flow condition
-        
-    ***************************************************************************/
-
-    public size_t readData ( InputStream input, void* data, size_t bytes )
-    {
-        return transmit(input, data, bytes);
-    }
-    
-    /***************************************************************************
-    
-        Writes data to output, consuming the data buffer content to its
-        entirety.
-    
-        Params:
-            output = stream to write to
-            data = data buffer
-        
-        Returns:
-            number of bytes transmitted
-        
-        Throws:
-            IOException on End Of Flow condition
-        
-    ***************************************************************************/
-
-    public size_t writeData ( OutputStream output, void[] data )
-    {
-        return transmit(output, data);
-    }
-    
-    /***************************************************************************
-    
-        Reads data from input, populating the data buffer to its entirety.
-    
-        Params:
-            input = stream to read from
-            data = data buffer
-        
-        Returns:
-            number of bytes transmitted
-        
-        Throws:
-            IOException on End Of Flow condition
-        
-    ***************************************************************************/
-
-    public size_t readData ( InputStream input, void[] data )
-    {
-        return transmit(input, data);
-    }
-    
-    /***************************************************************************
-    
         Reads/writes the content of array from/to stream, populating array to
         its entirety.
     
@@ -367,12 +389,22 @@ static:
         
         Throws:
             IOException on End Of Flow condition
-        
+
     ***************************************************************************/
 
-    public size_t transmitArrayData ( Stream : IOStream, T = T[] ) ( Stream stream, T array )
+    public size_t transmitArrayData ( Stream : IOStream, T = T[] )
+        ( Stream stream, T array )
     {
-        return transmit(stream, cast (void*) array.ptr, array.length * (*array.ptr).sizeof);
+        static if ( is(T U : U[]) )
+        {
+            return transmitData(stream, cast (void*) array.ptr,
+                    array.length * U.sizeof);
+        }
+        else
+        {
+            static assert(false,
+                "transmitArrayData cannot handle non-array type " ~ T.stringof);
+        }
     }
 }
 
@@ -380,10 +412,10 @@ static:
 
 debug ( OceanUnitTest )
 {
-    private import tango.util.log.Trace;
+    private import ocean.io.Stdout;
     private import tango.io.device.TempFile;
 
-    void test ( T ) (T write )
+    void test ( T ) ( T write )
     {
         T read;
 
@@ -391,15 +423,15 @@ debug ( OceanUnitTest )
 
         SimpleSerializer.write(file, write);
         file.seek(0);
+
         SimpleSerializer.read(file, read);
-        assert(read == write, "Error serializing, results in file " ~
-                file.toString());
+        debug ( Verbose ) Stdout.formatln("Wrote {} to conduit, read {}", write, read);
+        assert(read == write, "Error serializing " ~ T.stringof);
     }
-    
+
     unittest
     {
-        debug (Verbose) Trace.formatln("Running ocean.io.serialize.SimpleSerializer unittest");
-
+        debug (Verbose) Stdout.formatln("Running ocean.io.serialize.SimpleSerializer unittest");
 
         uint an_int = 23;
         test(an_int);
@@ -410,7 +442,7 @@ debug ( OceanUnitTest )
         char[][] a_string_array = ["hollow world", "journey to the centre", "of the earth"];
         test(a_string_array);
 
-        debug (Verbose) Trace.formatln("done unittest\n");
+        debug (Verbose) Stdout.formatln("done unittest\n");
     }
 }
 

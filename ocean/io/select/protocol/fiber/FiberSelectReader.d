@@ -26,11 +26,9 @@ module ocean.io.select.protocol.fiber.FiberSelectReader;
 
 private import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
-private import ocean.io.select.protocol.generic.ReadConduit;
+private import ocean.io.device.IODevice: IInputDevice;
 
-private import tango.io.model.IConduit: InputStream;
-
-private import tango.math.Math : min;
+private import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK, EINTR;
 
 debug private import ocean.util.log.Trace;
 
@@ -46,16 +44,6 @@ class FiberSelectReader : IFiberSelectProtocol
 
     public const size_t default_buffer_size = 0x4000;
     
-    /**************************************************************************
-
-        Delegate to be called when data is received.
-
-     **************************************************************************/
-
-    public alias void delegate ( void[] ) ReceivedCallback;
-
-    private ReceivedCallback on_received;
-
     /**************************************************************************
 
         Consumer callback delegate type
@@ -74,19 +62,21 @@ class FiberSelectReader : IFiberSelectProtocol
 
     /**************************************************************************
 
+        Input device
+    
+     **************************************************************************/
+    
+    public alias .IInputDevice IInputDevice;
+    
+    private const IInputDevice input;
+    
+    /**************************************************************************
+
         Data buffer
     
      **************************************************************************/
 
     private void[] data;
-    
-    /**************************************************************************
-
-        Conduit reader, handles Eof, EAGAIN and socket errors.
-    
-     **************************************************************************/
-
-    private const ReadConduit           readConduit;
     
     /**************************************************************************
 
@@ -117,25 +107,77 @@ class FiberSelectReader : IFiberSelectProtocol
     
     /**************************************************************************
 
-        Constructor
+        Constructor.
+        
+        error_e and warning_e may be the same object if distinguishing between
+        error and warning is not required.
         
         Params:
-            conduit     = input conduit (must be an InputStream)
+            input       = input device
             fiber       = input reading fiber
+            warning_e   = exception to throw on end-of-flow condition or if the
+                          remote hung up
+            error_e     = exception to throw on I/O error
             buffer_size = input buffer size
-            
+        
+        In:
+            buffer_size must not be 0.
+        
      **************************************************************************/
 
-    this ( ISelectable conduit, SelectFiber fiber, size_t buffer_size = this.default_buffer_size )
+    public this ( IInputDevice input, SelectFiber fiber,
+                  IOWarning warning_e, IOError error_e,
+                  size_t buffer_size = this.default_buffer_size )
     in
     {
-        assert ((cast (InputStream) conduit) !is null);
+        assert (buffer_size, "zero input buffer size specified");
     }
     body
     {
-        super(conduit, fiber);
+        super(this.input = input, Event.EPOLLIN | Event.EPOLLRDHUP,
+              fiber, warning_e, error_e);
+        
         this.data = new ubyte[buffer_size];
-        this.readConduit = new ReadConduit(cast (InputStream) conduit, super.warning_e, super.error_e);
+    }
+
+    /**************************************************************************
+
+        Constructor
+        
+        Uses the conduit, fiber and exceptions from the other
+        IFiberSelectProtocol instance. This is useful when this instance shares
+        the conduit and fiber with another IFiberSelectProtocol instance, e.g.
+        a FiberSelectWriter.
+        
+        The conduit owned by the other instance must have been downcast from
+        IInputDevice.
+        
+        Params:
+            other       = other instance of this class
+            buffer_size = input buffer size
+    
+        In:
+            buffer_size must not be 0.
+        
+     **************************************************************************/
+    
+    public this ( typeof (super) other,
+                  size_t buffer_size = this.default_buffer_size )
+    in
+    {
+        assert (buffer_size, "zero input buffer size specified");
+    }
+    body
+    {
+        super(other, Event.EPOLLIN | Event.EPOLLRDHUP);
+        
+        this.data = new ubyte[buffer_size];
+        
+        this.input = cast (IInputDevice) this.conduit;
+        
+        assert (this.input !is null, typeof (this).stringof ~ ": the conduit of "
+                "the other " ~ typeof (super).stringof ~ " instance must be a "
+                ~ IInputDevice.stringof);
     }
     
     /**************************************************************************
@@ -150,23 +192,8 @@ class FiberSelectReader : IFiberSelectProtocol
         super.dispose();
         
         delete this.data;
-        delete this.readConduit;
     }
     
-    /**************************************************************************
-
-        Mandated by the ISelectClient interface
-        
-        Returns:
-            I/O events to register the conduit of this instance for
-    
-     **************************************************************************/
-    
-    Event events ( )
-    {
-        return Event.Read | Event.ReadHangup;
-    }
-
     /**************************************************************************
 
         Resets the amount of consumed/available data to 0.
@@ -210,19 +237,12 @@ class FiberSelectReader : IFiberSelectProtocol
     
     /**************************************************************************
 
-        Sets a delegate to be called when data is received.
-    
-        Params:
-            on_received = delegate to call when data is received
-
-     **************************************************************************/
-
-    public void receivedCallback ( ReceivedCallback on_received )
-    {
-        this.on_received = on_received;
-    }
-
-    /**************************************************************************
+        Invokes consume with the data that are currently available and haven't
+        yet been consumed.
+        If the amount of data is sufficient, consume must return the number of
+        bytes it consumed. Otherwise if comsume consumed all data and needs more
+        input data to be read from the I/O device, it must return a value
+        greater than the number of data bytes passed to it. 
 
         Invokes consume to consume the available data until consume indicates to
         be finished or all available data is consumed.
@@ -239,19 +259,26 @@ class FiberSelectReader : IFiberSelectProtocol
 
     public bool consume ( Consumer consume )
     {
-        bool more = false;
+        size_t n   = consume(this.data[this.consumed .. this.available]),
+               end = this.consumed + n;
         
-        do
+        // n can be very big (size_t.max) so end may overflow, n will be greater
+        // than this.available in this case.
+        
+        if (end <= this.available && n <= this.available)
         {
-            size_t consumed = consume(this.remaining_data);
+            this.consumed = end;
             
-            more = consumed > this.remaining_data.length;
-            
-            this.consumed += (more? this.remaining_data.length : consumed);
+            return false;
         }
-        while (more && this.consumed < this.available)
+        else
+        {
+            // All data consumed: reset and return false if end == available.
             
-        return more;
+            this.reset();
+            
+            return end != this.available;
+        }
     }
     
     /**************************************************************************
@@ -266,10 +293,9 @@ class FiberSelectReader : IFiberSelectProtocol
             number of bytes read
         
         Throws:
-            IOException on end-of-flow condition:
-                - IOWarning if neither error is reported by errno nor socket
-                  error
-                - IOError if an error is reported by errno or socket error
+            IOException if no data were received and won't arrive later:
+                - IOWarning on end-of-flow condition or if the remote hung up,
+                - IOError (IOWarning subclass) on I/O error.
         
      **************************************************************************/
 
@@ -282,7 +308,7 @@ class FiberSelectReader : IFiberSelectProtocol
         
         size_t available_before = this.available;
         
-        super.transmitLoop();
+        this.transmitLoop();
         
         return this.available - available_before;
     }
@@ -290,9 +316,15 @@ class FiberSelectReader : IFiberSelectProtocol
     /**************************************************************************
 
         Reads data from the input conduit, appends them to the data buffer and
-        invokes consume with the available data until consume indicates to be
-        finished. Whenever no data is available from the input conduit, the
-        input reading fiber is suspended and continues reading on resume.
+        invokes consume with the data that are currently available and haven't
+        yet been consumed.
+        If consume feels that the amount of data passed to it is sufficient,
+        it must return the number of bytes it consumed. Otherwise if comsume
+        consumed all data and needs more input data to be read from the I/O
+        device, it must return a value greater than length of the the data 
+        passed to it. The fiber is then suspended to wait for more data to be
+        available from the input device, and consume is invoked again with the
+        newly available data.
         
         Params:
             consume = consumer callback delegate
@@ -301,10 +333,9 @@ class FiberSelectReader : IFiberSelectProtocol
             this instance
             
         Throws:
-            IOException on end-of-flow condition:
-                - IOWarning if neither error is reported by errno nor socket
-                  error
-                - IOError if an error is reported by errno or socket error
+            IOException if no data were received and won't arrive later:
+                - IOWarning on end-of-flow condition or if the remote hung up,
+                - IOError (IOWarning subclass) on I/O error.
 
      **************************************************************************/
 
@@ -314,14 +345,14 @@ class FiberSelectReader : IFiberSelectProtocol
 
         do
         {
-            if (this.consumed >= this.available)                                // only this.consumed == this.available possible
+            if (this.consumed >= this.available) // only this.consumed == this.available possible
             {
                 this.receive();
             }
 
             more = this.consume(consume);
         }
-        while (more)
+        while (more);
 
         return this;
     }
@@ -330,14 +361,34 @@ class FiberSelectReader : IFiberSelectProtocol
 
         Reads data from the input conduit and appends them to the data buffer.
         
+        Params:
+            events = events reported for the input device
+        
         Returns:
-            number of bytes read
+            true if data were received or false to retry later.
         
         Throws:
-            IOException on end-of-flow condition:
-                - IOWarning if neither error is reported by errno nor socket
-                  error
-                - IOError if an error is reported by errno or socket error
+            IOException if no data were received and won't arrive later:
+                - IOWarning on end-of-flow condition or if the remote hung up,
+                - IOError (IOWarning subclass) on I/O error.
+        
+        Note: POSIX says the following about the return value of read():
+        
+            When attempting to read from an empty pipe or FIFO [remark: includes
+            sockets]:
+
+            - If no process has the pipe open for writing, read() shall return 0
+              to indicate end-of-file.
+
+            - If some process has the pipe open for writing and O_NONBLOCK is
+              set, read() shall return -1 and set errno to [EAGAIN].
+
+            - If some process has the pipe open for writing and O_NONBLOCK is
+              clear, read() shall block the calling thread until some data is
+              written or the pipe is closed by all processes that had the pipe
+              open for writing.
+        
+        @see http://pubs.opengroup.org/onlinepubs/009604499/functions/read.html
 
      **************************************************************************/
 
@@ -352,18 +403,62 @@ class FiberSelectReader : IFiberSelectProtocol
     }
     body
     {
-        size_t received = this.readConduit(this.data[this.available .. $], events);
-
-        if ( this.on_received !is null )
-        {
-            this.on_received(this.data[this.available .. this.available + received]);
-        }
-
-        debug (Raw) Trace.formatln("[{}] >>> {:X2} ({} bytes)", super.conduit.fileHandle, this.data[this.available .. this.available + received], received);
-
-        this.available += received;
+        .errno = 0;
         
-        return !received;
+        input.ssize_t n = this.input.read(this.data[this.available .. $]);
+        
+        if (n <= 0)
+        {
+             // EOF or error: Check for socket error and hung-up event first.
+            
+            this.error_e.checkDeviceError(n? "read error" : "end of flow whilst reading", __FILE__, __LINE__);
+            
+            this.warning_e.assertEx(!(events & events.EPOLLRDHUP), "connection hung up on read", __FILE__, __LINE__);
+            this.warning_e.assertEx(!(events & events.EPOLLHUP),   "connection hung up", __FILE__, __LINE__);
+            
+            if (n)
+            {
+                // read() error and no socket error or hung-up event: Check
+                // errno. Carry on if there are just currently no data available
+                // (EAGAIN/EWOULDBLOCK/EINTR) or throw error otherwise.
+                
+                int errnum = .errno;
+                
+                switch (errnum)
+                {
+                    default:
+                        throw this.error_e(errnum, "read error", __FILE__, __LINE__);
+                    
+                    case EINTR, EAGAIN:
+                        static if ( EAGAIN != EWOULDBLOCK )
+                        {
+                            case EWOULDBLOCK:
+                        }
+                    
+                        // EAGAIN/EWOULDBLOCK: currently no data available.
+                        // EINTR: read() was interrupted by a signal before data
+                        //        became available.
+                    
+                        n = 0;
+                }
+            }
+            else 
+            {
+                // EOF and no socket error or hung-up event: Throw EOF warning.
+                
+                throw this.warning_e("end of flow whilst reading", __FILE__, __LINE__);
+            }
+        }
+        else
+        {
+            debug (Raw) Trace.formatln("[{}] >>> {:X2} ({} bytes)", super.conduit.fileHandle, this.data[this.available .. this.available + n], n);
+            
+            this.available += n;
+        }
+        
+        assert (n >= 0);
+        
+        return !n;
     }
 }
 

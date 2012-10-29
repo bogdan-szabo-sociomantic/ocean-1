@@ -135,10 +135,10 @@ class NotifyingByteQueue : IQueueInfo
     private bool enabled = true;
     
     /***************************************************************************
-	
-	    Array of delegates waiting for notification of data in queue
-	
-	***************************************************************************/
+    
+        Array of delegates waiting for notification of data in queue
+    
+    ***************************************************************************/
 
     const private AppendBuffer!(NotificationDg) notifiers;
     
@@ -266,8 +266,8 @@ class NotifyingByteQueue : IQueueInfo
     
     
     /***************************************************************************
-	
-	    register an handler as available
+
+        register an handler as available
         
         Params:
             handler = handler that is now available
@@ -276,8 +276,8 @@ class NotifyingByteQueue : IQueueInfo
             false if the handler was called right away without 
             even registering
             true if the handler was just added to the queue
-	
-	***************************************************************************/
+
+    ***************************************************************************/
 
     public bool ready ( NotificationDg notifier )
     in
@@ -317,26 +317,26 @@ class NotifyingByteQueue : IQueueInfo
 
 
     /***************************************************************************
-		
-	    Push an item into the queue and notify the next waiting notification
+        
+        Push an item into the queue and notify the next waiting notification
         delegate about it.
-	    
-	    Params:
-	    	data = array of data that the item consists of
-	    
-	    Returns:
-	    	true if push was successful
-	    	false if not
-	
-	***************************************************************************/
-	  
+        
+        Params:
+          data = array of data that the item consists of
+        
+        Returns:
+          true if push was successful
+          false if not
+
+   **************************************************************************/
+  
     public bool push ( ubyte[] data )
     {
-    	if ( !this.queue.push(data) ) return false;    	
+        if ( !this.queue.push(data) ) return false;    	
         
-    	this.notify();
-    	
-    	return true;
+        this.notify();
+        
+        return true;
     }
           
     
@@ -446,10 +446,10 @@ class NotifyingByteQueue : IQueueInfo
 
 /*******************************************************************************
 
-	Templated Notifying Queue implementation
-	
-	A concrete client should have an instance of this class and use it
-	to manage the connections and requests
+    Templated Notifying Queue implementation
+    
+    A concrete client should have an instance of this class and use it
+    to manage the connections and requests
 
     Note: the stored type T is automatically de/serialized using the
     StructSerializer. This performs a deep serialization of sub-structs and
@@ -488,54 +488,54 @@ class NotifyingQueue ( T ) : NotifyingByteQueue
     {
         super(queue);
     }
-	
-    
+        
+        
     /***************************************************************************
-
-	    Push a new request on the queue
-
-	    Params:
-	    	request = The request to push
+        
+        Push a new request on the queue
+        
+        Params:
+            request = The request to push
 
         Returns:
             true if push was successful
             false if not
 
-	***************************************************************************/
+    ***************************************************************************/
 
     bool push ( ref T request )
     {
-    	auto length = StructSerializer!(true).length(&request);
+        auto length = StructSerializer!(true).length(&request);
 
         void filler ( ubyte[] target )
         {
             StructSerializer!(true).dump(&request, target);
         }
         
-    	return super.push(length, &filler);
+        return super.push(length, &filler);
     }
     
     
     /***************************************************************************
-	
-	    Pops an Request instance from the queue
-	    
-	    Params:
-	    	buffer = deserialisation buffer to use
-	    	
-	   	Returns:
-	   		pointer to the deserialized struct, completely allocated in the
-	   		given buffer
-	
-	***************************************************************************/
-	    
+        
+        Pops an Request instance from the queue
+        
+        Params:
+            buffer = deserialisation buffer to use
+        
+        Returns:
+            pointer to the deserialized struct, completely allocated in the
+            given buffer
+        
+        ***************************************************************************/
+        
     T* pop ( ref ubyte[] buffer )
     {
         if ( !this.enabled ) return null;
         
         T* instance;
 
-    	auto data = super.pop();
+        auto data = super.pop();        
 
         if (data is null)
         {
@@ -544,8 +544,8 @@ class NotifyingQueue ( T ) : NotifyingByteQueue
 
         buffer.copy(data);
 
-    	StructSerializer!(true).loadSlice (instance, buffer);
-    	
-    	return instance; 
+        StructSerializer!(true).loadSlice (instance, buffer);
+        
+        return instance; 
     }
 }

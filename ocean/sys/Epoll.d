@@ -79,7 +79,7 @@ align (1) struct epoll_event_t
         
          **********************************************************************/
         
-        EPOLLERR        = 1 << 11, //0x008,
+        EPOLLERR        = 1 << 3, //0x008,
         
         /**********************************************************************
         
@@ -127,7 +127,40 @@ align (1) struct epoll_event_t
         
         EPOLLET         = 1 << 31
     }
+
+    /**************************************************************************
+
+        Mapping from Event -> string, useful for printouts (debug only at the
+        moment)
+
+     **************************************************************************/
+
+    debug
+    {
+        static char[][Event] event_to_name;
     
+        static this ( )
+        {
+            with ( Event )
+            {
+                event_to_name[EPOLLIN]       = "Re";
+                event_to_name[EPOLLPRI]      = "Pr";
+                event_to_name[EPOLLOUT]      = "Wr";
+                event_to_name[EPOLLRDNORM]   = "Rn";
+                event_to_name[EPOLLRDBAND]   = "Rb";
+                event_to_name[EPOLLWRNORM]   = "Wn";
+                event_to_name[EPOLLWRBAND]   = "Wb";
+                event_to_name[EPOLLMSG]      = "Ms";
+                event_to_name[EPOLLERR]      = "Er";
+                event_to_name[EPOLLHUP]      = "Hu";
+                event_to_name[EPOLLRDHUP]    = "Rh";
+                event_to_name[EPOLLONESHOT]  = "Os";
+                event_to_name[EPOLLET]       = "Et";
+            }
+            event_to_name.rehash;
+        }
+    }
+
     /**************************************************************************
     
         Convenience type alias
@@ -534,7 +567,8 @@ struct Epoll
     
     /**************************************************************************
 
-        Calls epoll_ctl() using the current epoll file descriptor.
+        Calls epoll_ctl() using the current epoll file descriptor to modify the
+        registration of fd for events with data as user data.
         
         Creates the epoll_event_t instance passed to epoll_ctl() from events and
         data where the type of data must match one of the epoll_data_t members.
@@ -547,9 +581,8 @@ struct Epoll
             op     = epoll_ctl opcode
             fd     = file descriptor to register for events
             events = events to register fd for
-            data   = user data, passed to the corresponding member of the "data"
-                     field of the created epoll_data_t instance depending on the
-                     type
+            data   = user data; the member of the data field of the created
+                     epoll_data_t instance that matches the type is set to it
             
         Returns:
             0 on success or -1 on error. On error errno is set appropriately.
@@ -578,10 +611,42 @@ struct Epoll
     
     /**************************************************************************
 
-        Calls epoll_ctl() using the current epoll file descriptor.
+        Calls epoll_ctl() using the current epoll file descriptor to modify the
+        registration of fd for events with fd as user data.
         
         Creates the epoll_event_t instance passed to epoll_ctl() from events and
-        obj where obj is passed to "data.obj" of the epoll_data_t instance.
+        fd where data.fd is set to fd.
+        
+        The current epoll file descriptor should have been sucessfully obtained
+        by create() or epoll_create1() and not already been closed, otherwise
+        epoll_ctl() will fail so that this method returns -1.
+        
+        Params:
+            op     = epoll_ctl opcode
+            fd     = file descriptor to register for events and to set data.fd
+                     of the created epoll_data_t instance to
+            events = events to register fd for
+            
+        Returns:
+            0 on success or -1 on error. On error errno is set appropriately.
+    
+     **************************************************************************/
+    
+    public int ctl ( CtlOp op, int fd, Event events )
+    {
+        // FIXME: Apparently the mixin ctlT!() doesn't overload properly :(
+        
+//        return this.ctl(op, fd, events, fd);
+        return ctlT!(1).ctl(op, fd, events, fd);
+    }
+    
+    /**************************************************************************
+
+        Calls epoll_ctl() using the current epoll file descriptor to modify the
+        registration of fd for events with obj as user data.
+        
+        Creates the epoll_event_t instance passed to epoll_ctl() from events and
+        obj where data.obj is set to obj.
         
         The current epoll file descriptor should have been sucessfully obtained
         by create() or epoll_create1() and not already been closed, otherwise
@@ -591,8 +656,8 @@ struct Epoll
             op     = epoll_ctl opcode
             fd     = file descriptor to register for events
             events = events to register fd for
-            obj    = user object, passed to "data.obj" of the created
-                    epoll_data_t instance
+            obj    = user object to set data.obj of the created epoll_data_t
+                     instance to
             
         Returns:
             0 on success or -1 on error. On error errno is set appropriately.
@@ -612,8 +677,8 @@ struct Epoll
     /**************************************************************************
 
         Calls epoll_ctl() using the current epoll file descriptor to modify the
-        registration of client.conduit.fileHandle for client.events, passing
-        client to "data.obj" of the created epoll_data_t instance.
+        registration of client.conduit.fileHandle for client.events, setting
+        data.obj of the created epoll_data_t instance to client.
         
         The current epoll file descriptor should have been sucessfully obtained
         by create() or epoll_create1() and not already been closed, otherwise
@@ -630,7 +695,7 @@ struct Epoll
     
     public int ctl ( CtlOp op, ISelectClient client )
     {
-        return this.ctl(op, client.conduit.fileHandle, client.events, client);
+        return this.ctl(op, client.fileHandle, client.events, client);
     }
     
     /**************************************************************************
@@ -663,7 +728,7 @@ struct Epoll
     }
     out (n)
     {
-        assert (n <= events.length);
+        assert (n <= cast (int) events.length);
     }
     body
     {
@@ -684,3 +749,4 @@ struct Epoll
         return .close(this.fd);
     }
 }
+

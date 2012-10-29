@@ -22,6 +22,7 @@ private import ocean.util.app.model.ExtensibleClassMixin;
 private import ocean.util.app.model.IApplicationExtension;
 private import ocean.util.app.ext.model.IArgumentsExtExtension;
 //private import ocean.util.app.model.IApplication;
+private import ocean.util.app.ext.VersionArgsExt;
 
 private import ocean.text.Arguments;
 private import ocean.io.Stdout;
@@ -102,7 +103,9 @@ class ArgumentsExt : IApplicationExtension
 
         This function do all the extension processing invoking all the
         extensions hooks. It also adds the --help option, and if it's present in
-        the arguments, shows the help and exits the program.
+        the arguments, shows the help and exits the program. If the version
+        argument is present and the version extension is in use, the version
+        text will be displayed and then the program will exit.
 
         If argument parsing or validation fails (including extensions
         validation), it also prints an error message and exits.
@@ -127,6 +130,15 @@ class ArgumentsExt : IApplicationExtension
         {
             args.displayHelp(Stdout);
             app.exit(0);
+        }
+
+        if ( args.exists("version") )
+        {
+            auto ext = this.getExtension!(VersionArgsExt)();
+            if ( ext !is null )
+            {
+                ext.displayVersion(app);
+            }
         }
 
         char[][] errors;

@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module ocean.util.container.queue.FlexibleRingQueue;
+module ocean.util.container.queue.SimplifiedFlexibleRingQueue;
 
 
 
@@ -149,10 +149,14 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     
     /***************************************************************************
 
-        Pushes an item into the queue.
+        Acquires space in the queue into which a new item can be written.
 
         Params:
-            item = data item to push
+            size = number of bytes to acquire for new item
+
+        Returns:
+            slice to data buffer which can be written to, may be null if item
+            cannot fit
 
     ***************************************************************************/
 
@@ -160,14 +164,15 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     {
         if ( size > 0 && this.willFit(size) )
         {
-            ubyte[] header = (cast(ubyte*)&Header(size))[0 .. Header.sizeof];
+            Header h; h.length = size;
+            ubyte[] header = (cast(ubyte*)&h)[0 .. Header.sizeof];
     
             if (this.needsWrapping(size))
             {
                 this.gap = super.write_to;
                 super.write_to = 0;            
             }
-    
+            
             super.data[super.write_to .. super.write_to + header.length] = header[];
             
             auto pos = super.write_to + header.length;
@@ -201,7 +206,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
             read_pos = 0;                                          // if no, set it to the beginning (wrapping around)
         }        
         
-        Header* header = cast(Header*) this.data.ptr + read_pos;
+        Header* header = cast(Header*) (this.data.ptr + read_pos);
           
         auto pos = read_pos + header.sizeof;
 
@@ -228,7 +233,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
             this.gap = super.data.length;
         }
         
-        Header* header = cast(Header*) this.data.ptr + this.read_from;
+        Header* header = cast(Header*) (this.data.ptr + this.read_from);
                 
         auto pos = super.read_from + header.sizeof;
 
@@ -340,7 +345,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     ***************************************************************************/
 
-    bool willFit ( ubyte[] item )
+    public bool willFit ( ubyte[] item )
     {
         return this.willFit(item.length);
     }
@@ -383,7 +388,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
         else
         {
             assert(super.write_to == 0, typeof(this).stringof ~ ".willFit: queue should be in the zeroed state");
-            return push_size <= super.data.length;                               // Queue is empty and item at most
+            return push_size <= super.data.length;                              // Queue is empty and item at most
         }                                                                       // as long as the whole queue
     }
 
@@ -567,20 +572,42 @@ debug ( OceanUnitTest )
             assert(queue.data[FlexibleByteRingQueue.Header.sizeof .. 
                               1+FlexibleByteRingQueue.Header.sizeof] == 
                                   cast(ubyte[]) "1");
-            
+                        
             // [#__] r=0 w=5
             assert(queue.push(cast(ubyte[])"2"));
+            assert(queue.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*2);
+
+            assert((cast(FlexibleByteRingQueue.Header*) 
+                (queue.data.ptr + 1 + FlexibleByteRingQueue.Header.sizeof)).length == 1);
+            
+            assert(queue.data[1+FlexibleByteRingQueue.Header.sizeof*2 .. 
+                              1+FlexibleByteRingQueue.Header.sizeof*2+1] == 
+                                  cast(ubyte[]) "2");
+            //assert(queue.data[queue.write_to-1-FlexibleByteRingQueue.h .. ])
+            
+            
             
             // [##_] r=0 w=10
             assert(queue.push(cast(ubyte[])"3"));
+            assert(queue.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*3);
             
             // [###] r=0 w=15
             assert(!queue.push(cast(ubyte[])"4"));
+            assert(queue.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*3);
+            assert(queue.read_from == 0);
+            
             assert(queue.free_space == 0);
             assert(queue.pop() == cast(ubyte[])"1");
-    
+            
+            assert(queue.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*3);
+            assert(queue.read_from == 1+FlexibleByteRingQueue.Header.sizeof);
+            
             // [_##] r=5 w=15
             assert(queue.free_space() == 1+FlexibleByteRingQueue.Header.sizeof);
+            
+            assert(queue.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*3);
+            assert(queue.read_from == 1+FlexibleByteRingQueue.Header.sizeof);
+
             assert(queue.pop() == cast(ubyte[])"2");
             
             // [__#] r=10 w=15

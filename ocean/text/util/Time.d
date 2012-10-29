@@ -13,18 +13,24 @@
     ---
 
         import ocean.text.util.Time;
+        import tango.stdc.time : time_t;
+
+        time_t timestamp = 23897129;
+        char[20] static_str;
+        formatTime(timestamp, static_str);
+
+        // static_str now contains "1970-10-04 14:05:29"
 
         char[] str;
-
         uint seconds = 94523;
 
         formatDuration(seconds, str);
 
-        // str will now hold the string "1 day, 2 hours, 15 minutes, 23 seconds"
+        // str now contains "1 day, 2 hours, 15 minutes, 23 seconds"
 
         formatDurationShort(seconds, str);
 
-        // str will now hold the string "1d2h15m23s"
+        // str now contains "1d2h15m23s"
 
     ---
 
@@ -44,6 +50,48 @@ private import ocean.text.convert.Layout;
 
 private import ocean.core.Array : copy;
 
+private import tango.stdc.time : gmtime, strftime, time_t, tm;
+
+
+
+/*******************************************************************************
+
+    Formats a string with the human-readable form of the specified unix
+    timestamp. The timestamp is formatted as follows:
+
+        1970-10-04 14:05:29
+
+    Params:
+        utc = timestamp to format
+        output = slice to destination string buffer, must be long enough to
+            contain formatted string (at least 20 characters) -- intended for
+            use with a static array
+
+    Returns:
+        slice to the string formatted in 'output', may be an empty slice if the
+        provided buffer is too small
+
+*******************************************************************************/
+
+public char[] formatTime ( time_t utc, char[] output )
+in
+{
+    assert(output.length >= 20);
+}
+body
+{
+    tm time;
+
+    synchronized // gmtime returns a pointer to a shared tm instance
+    {
+        time = *gmtime(&utc);
+    }
+
+    const format = "%F %T\0";
+    output.length = strftime(output.ptr, output.length, format.ptr, &time);
+
+    return output;
+}
 
 
 /*******************************************************************************
@@ -110,7 +158,6 @@ public char[] formatDuration ( uint s, ref char[] output )
 }
 
 
-
 /*******************************************************************************
 
     Formats a string with the number of years, days, hours, minutes & seconds
@@ -169,7 +216,6 @@ public char[] formatDurationShort ( uint s, ref char[] output )
 
     return output;
 }
-
 
 
 /*******************************************************************************

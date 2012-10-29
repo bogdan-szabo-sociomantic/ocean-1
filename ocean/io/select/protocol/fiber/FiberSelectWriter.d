@@ -26,9 +26,9 @@ private import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
 private import ocean.io.select.model.ISelectClient;
 
-private import tango.io.model.IConduit: OutputStream;
+private import ocean.io.device.IODevice: IOutputDevice;
 
-private import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK;
+private import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK, EINTR;
 
 private import tango.stdc.posix.sys.socket: setsockopt;
 
@@ -54,20 +54,14 @@ class FiberSelectWriter : IFiberSelectProtocol
     
     /**************************************************************************
 
-        Delegate to be called when data is sent.
+        Output device
 
      **************************************************************************/
 
-    public alias void delegate ( void[] ) SentCallback;
+    public alias .IOutputDevice IOutputDevice;
     
-    /**************************************************************************
-
-        Delegate to be called when data is sent.
-
-     **************************************************************************/
-
-    private SentCallback on_sent;
-
+    private const IOutputDevice output;
+    
     /**************************************************************************
 
         Data buffer (slices the buffer provided to send())
@@ -101,53 +95,53 @@ class FiberSelectWriter : IFiberSelectProtocol
 
     /**************************************************************************
 
-        Constructor
+        Constructor.
+        
+        error_e and warning_e may be the same object if distinguishing between
+        error and warning is not required.
         
         Params:
-            conduit = output conduit (must be an OutputStream)
-            fiber   = output reading fiber
+            output    = output device
+            fiber     = output writing fiber
+            warning_e = exception to throw if the remote hung up
+            error_e   = exception to throw on I/O error
             
      **************************************************************************/
 
-    this ( ISelectable conduit, SelectFiber fiber )
-    in
+    public this ( IOutputDevice output, SelectFiber fiber,
+           IOWarning warning_e, IOError error_e )
     {
-        assert (conduit !is null, typeof (this).stringof ~ ": conduit is null");
-        assert ((cast (OutputStream) conduit) !is null, typeof (this).stringof ~ ": conduit is not an output stream");
-    }
-    body
-    {
-        super(conduit, fiber);
+        super(this.output = output, Event.EPOLLOUT, fiber, warning_e, error_e);
     }
     
     /**************************************************************************
 
-        Mandated by the ISelectClient interface
+        Constructor
         
-        Returns:
-            I/O events to register the conduit of this instance for
-    
-     **************************************************************************/
-    
-    Event events ( )
-    {
-        return Event.Write;
-    }
-    
-    /**************************************************************************
-
-        Sets a delegate to be called when data is sent.
-    
+        Uses the conduit, fiber and exceptions from the other
+        IFiberSelectProtocol instance. This is useful when this instance shares
+        the conduit and fiber with another IFiberSelectProtocol instance, e.g.
+        a FiberSelectReader.
+        
+        The conduit owned by the other instance must have been downcast from
+        IOuputDevice.
+        
         Params:
-            on_sent = delegate to call when data is sent
-
+            other       = other instance of this class
+        
      **************************************************************************/
-
-    public void sentCallback ( SentCallback on_sent )
+    
+    public this ( typeof (super) other )
     {
-        this.on_sent = on_sent;
+        super(other, Event.EPOLLOUT);
+        
+        this.output = cast (IOutputDevice) this.conduit;
+        
+        assert (this.output !is null, typeof (this).stringof ~ ": the conduit of "
+                "the other " ~ typeof (super).stringof ~ " instance must be a "
+                ~ IOutputDevice.stringof);
     }
-
+    
     /**************************************************************************
 
         Writes data to the output conduit. Whenever the output conduit is not
@@ -161,10 +155,9 @@ class FiberSelectWriter : IFiberSelectProtocol
             this instance
             
         Throws:
-            IOException on end-of-flow condition:
-                - IOWarning if neither error is reported by errno nor socket
-                  error
-                - IOError if an error is reported by errno or socket error
+            IOException if the connection is closed or broken:
+                - IOWarning if the remote hung up,
+                - IOError (IOWarning subclass) on I/O error.
     
      **************************************************************************/
 
@@ -294,14 +287,27 @@ class FiberSelectWriter : IFiberSelectProtocol
     
     public typeof (this) flush ( )
     {
-        if (this.cork_)
-        {
-            this.corkFlush();
-        }
-        
+        this.corkFlush();
+
         return this;
     }
-    
+
+    /**************************************************************************
+
+        Clears any pending data in the buffer.
+
+        Returns:
+            this instance
+
+     **************************************************************************/
+
+    public typeof (this) reset ( )
+    {
+        this.corkFlush();
+
+        return this;
+    }
+
     /**************************************************************************
 
         Attempts to write data to the output conduit. The output conduit may or
@@ -311,57 +317,59 @@ class FiberSelectWriter : IFiberSelectProtocol
             events = events reported for the output conduit
         
         Returns:
-            true if all data has been sent
+            true if all data has been sent or false to try again.
             
         Throws:
-            IOException on end-of-flow condition:
-                - IOWarning if neither error is reported by errno nor socket
-                  error
-                - IOError if an error is reported by errno or socket error
+            IOException if the connection is closed or broken:
+                - IOWarning if the remote hung up,
+                - IOError (IOWarning subclass) on I/O error.
     
      **************************************************************************/
 
     protected bool transmit ( Event events )
     out
     {
-        assert (this.sent <= this.data_slice.length);
+        assert (this);
     }
     body
     {
         debug (Raw) Trace.formatln("[{}] <<< {:X2} ({} bytes)", super.conduit.fileHandle, this.data_slice, this.data_slice.length);
 
-        if ( this.on_sent !is null )
+        if (this.sent < this.data_slice.length)
         {
-            this.on_sent(this.data_slice[this.sent .. $]);
-        }
-
-        errno = 0;
-
-        size_t n = (cast (OutputStream) super.conduit).write(this.data_slice[this.sent .. $]);
-
-        if (n == OutputStream.Eof)
-        {
-            super.error_e.checkSocketError("write error", __FILE__, __LINE__);
-
-            switch (errno)
+            .errno = 0;
+    
+            output.ssize_t n = this.output.write(this.data_slice[this.sent .. $]);
+    
+            if (n >= 0)
             {
-                case EAGAIN:
-                    break;
-
-                case 0:
-                    throw super.warning_e("end of flow whilst writing", __FILE__, __LINE__);
-
-                default:
-                    throw super.error_e(errno, "write error", __FILE__, __LINE__);
+                this.sent += n;
+            }
+            else
+            {
+                this.error_e.checkDeviceError("write error", __FILE__, __LINE__);
+                
+                this.warning_e.assertEx(!(events & events.EPOLLHUP), "connection hung up", __FILE__, __LINE__);
+                
+                int errnum = .errno;
+                
+                switch (errnum)
+                {
+                    default:
+                        throw this.error_e(errnum, "write error", __FILE__, __LINE__);
+                    
+                    case EINTR, EAGAIN:
+                        static if ( EAGAIN != EWOULDBLOCK )
+                        {
+                            case EWOULDBLOCK:
+                        }
+                }
             }
         }
-        else
-        {
-            this.sent += n;
-        }
-
+        
         return this.sent < this.data_slice.length;
     }
+    
     
     /**************************************************************************
 

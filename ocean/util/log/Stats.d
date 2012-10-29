@@ -24,7 +24,7 @@ private import ocean.io.select.EpollSelectDispatcher;
 
 private import ocean.io.select.event.TimerEvent;
 
-private import ocean.text.convert.Layout;
+private import ocean.text.convert.Layout: StringLayout;
 
 private import ocean.util.log.LayoutStatsLog;
 
@@ -34,8 +34,6 @@ private import tango.util.log.Log;
 private import tango.util.log.AppendSyslog;
 
 private import tango.stdc.time : time_t;
-
-
 
 /*******************************************************************************
 
@@ -72,6 +70,8 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
     private alias T delegate ( ) ValueDg;
 
     private ValueDg dg;
+    
+    private const TimerEvent timer;
 
     /***************************************************************************
 
@@ -87,22 +87,16 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
 
     ***************************************************************************/
 
-    deprecated public this ( ) // TODO: what's the point of this constructor, without a timer?
-    {
-        period = 1;
-        super(10, 10);
-    }
-
     public this ( EpollSelectDispatcher epoll, ValueDg dg, size_t file_count = 10,
            size_t max_file_size = 10 * 1024 * 1024, time_t period = default_period )
     {
         this.dg     = dg;
         this.period = period;
 
-        auto timer = new TimerEvent(&this.write_);
+        this.timer = new TimerEvent(&this.write_);
         epoll.register(timer);
         timer.set(5, 0, period, 0);
-
+        
         super(file_count, max_file_size);
     }
 
@@ -173,13 +167,13 @@ public class StatsLog ( T )
 
     /***************************************************************************
 
-        Buffer for message formatting
+        Message formatter
 
     ***************************************************************************/
 
-    private char[] format_buffer;
+    private const StringLayout!() layout;
 
-
+    
     /***************************************************************************
 
         Constructor
@@ -202,6 +196,8 @@ public class StatsLog ( T )
         this.logger.add(new AppendSyslog(file_name, file_count,
                                          max_file_size, "gzip {}", "gz", 4,
                                          new LayoutStatsLog));
+        
+        this.layout = new StringLayout!();
     }
 
 
@@ -237,7 +233,7 @@ public class StatsLog ( T )
     {
         this.format(values);
 
-        this.logger.info(this.format_buffer);
+        this.logger.info(this.layout[]);
     }
 
 
@@ -263,7 +259,7 @@ public class StatsLog ( T )
     {
         this.formatExtra(values, additional);
 
-        this.logger.info(this.format_buffer);
+        this.logger.info(this.layout[]);
     }
 
 
@@ -283,12 +279,12 @@ public class StatsLog ( T )
 
     public char[] format ( T values )
     {
-        this.format_buffer.length = 0;
+        this.layout.clear();
 
         bool add_separator = false;
         this.formatStruct(values, add_separator);
 
-        return this.format_buffer;
+        return this.layout[];
     }
 
 
@@ -315,13 +311,13 @@ public class StatsLog ( T )
 
     public char[] formatExtra ( A ) ( T values, A[char[]] additional )
     {
-        this.format_buffer.length = 0;
+        this.layout.clear();
 
         bool add_separator = false;
         this.formatStruct(values, add_separator);
         this.formatAssocArray(additional, add_separator);
 
-        return this.format_buffer;
+        return this.layout[];
     }
 
 
@@ -390,10 +386,15 @@ public class StatsLog ( T )
 
     private void formatValue ( V ) ( char[] name, V value, bool add_separator )
     {
-        auto separator = add_separator ? " " : "";
-
-        Layout!(char).print(this.format_buffer, "{}{}:{}", separator, name,
-            value);
+//        auto separator = add_separator ? " " : "";
+//        Layout!(char).print(this.format_buffer, "{}{}:{}", separator, name,
+//                            value);
+        if (add_separator)
+        {
+            this.layout(' ');
+        }
+        
+        this.layout(name, ':', value);
     }
 }
 

@@ -297,7 +297,8 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
 
     ***************************************************************************/
 
-    public void schedule ( EventSetupDg setup_dg, EventFiredDg fired_dg, ulong schedule_us )
+    public void schedule ( EventSetupDg setup_dg, EventFiredDg fired_dg,
+        ulong schedule_us )
     in
     {
         assert(setup_dg !is null, typeof(this).stringof ~ ".schedule: event setup delegate is null");

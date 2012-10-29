@@ -41,139 +41,229 @@ module ocean.util.container.map.model.BucketSet;
 
 *******************************************************************************/
 
-private import ocean.util.container.map.model.Bucket;
+private import ocean.util.container.map.model.Bucket,
+               ocean.util.container.map.model.BucketInfo;
 
-private import ocean.core.ObjectPool;
+private import ocean.core.Array: clear, isClearable;
 
-private import tango.stdc.string : memset;
+private import tango.core.BitManip: bsr;
 
+private import ocean.util.container.map.model.BucketElementFreeList;
 
-
-/*******************************************************************************
+/******************************************************************************
 
     Generic BucketSet base class
 
-*******************************************************************************/
+ ******************************************************************************/
 
 public abstract class IBucketSet
 {
-    /***************************************************************************
+    /**************************************************************************
 
-        Pool of bucket elements, downcast to IObjectPoolInfo.
+        Map and and bucket statistics like the map length or the number of
+        buckets.
     
-    ***************************************************************************/
+     **************************************************************************/
     
-    protected const IObjectPoolInfo bucket_elements_info;
+    public const BucketInfo bucket_info;
     
-    /***************************************************************************
+    /**************************************************************************
+
+        Bucket elements free list.
     
-        Constructor
+     **************************************************************************/
+    
+    protected const FreeList free_bucket_elements;
+    
+    /**************************************************************************
+
+        Bit mask used by the getBucket() method to determine which bucket is
+        responsible for a key.
+    
+     **************************************************************************/
+    
+    private size_t bucket_mask;
+    
+    /**************************************************************************
+    
+        Constructor.
         
         Params:
             bucket_elements_info = Pool of bucket elements
     
-    ***************************************************************************/
+     **************************************************************************/
     
-    protected this ( IObjectPoolInfo bucket_elements_info )
+    protected this ( size_t n, float load_factor = 0.75 )
     {
-        this.bucket_elements_info = bucket_elements_info;
+        size_t num_buckets = 1 << this.calcNumBucketsExp2(n, load_factor);
+        
+        this.bucket_mask = num_buckets - 1;
+        
+        this.bucket_info          = new BucketInfo(num_buckets);
+        this.free_bucket_elements = new FreeList(n);
     }
     
     /***************************************************************************
 
-        Returns:
-            the current number of buckets
+        Disposer.
     
-    ***************************************************************************/
+     **************************************************************************/
     
-    public abstract size_t num_buckets ( );
-    
-    /***************************************************************************
-
-        Returns:
-            the number of items in all buckets
-    
-    ***************************************************************************/
-    
-    public size_t length ( )
+    protected override void dispose ( )
     {
-        return this.bucket_elements_info.num_busy;
+        delete this.bucket_info;
+        delete this.free_bucket_elements;
     }
     
     /***************************************************************************
 
-        Returns:
-            the average load of the bucket set
-    
-    ***************************************************************************/
-    
-    public float load ( )
-    {
-        return (cast(float)this.length) / this.num_buckets;
-    }
-    
-    /***************************************************************************
-
-        Clears the map.
+        Removes all elements from all buckets.
         
         Returns:
             this instance
     
+     **************************************************************************/
+    
+    public typeof(this) clear ( )
+    {
+        this.clear_();
+        
+        return this;
+    }
+    
+    /***************************************************************************
+    
+        Changes the number of buckets to 2 ^ exp2.
+        
+        Params:
+            exp2 = exponent of 2 of the new number of buckets
+            
+        Returns:
+            this instance.
+            
+        In:
+            2 ^ exp2 must fit into size_t.
+    
+    ***************************************************************************/
+
+    abstract typeof (this) setNumBuckets ( uint exp2 );
+    
+    /***************************************************************************
+    
+        Changes the number of buckets to the lowest power of 2 that results in a
+        load factor of at least load_factor with the current number of elements.
+        
+        Params:
+            exp2 = exponent of 2 of the new number of buckets
+            
+        Returns:
+            this instance.
+            
+        In:
+            load_factor must be greater than 0.
+    
     ***************************************************************************/
     
-    public abstract typeof(this) clear ( );
+    public typeof (this) redistribute ( float load_factor = 0.75 )
+    in
+    {
+        assert (load_factor > 0);
+    }
+    body
+    {
+        return this.setNumBuckets(this.calcNumBucketsExp2(this.bucket_info.length, load_factor));
+    }
+    
+    /***************************************************************************
+
+        Removes all elements from all buckets and sets the values to val_init if
+        val_init is not empty.
+        
+        Params:
+            val_init = initial element value
+        
+        Returns:
+            this instance
+        
+     **************************************************************************/
+    
+    protected typeof(this) clear_ ( void[] val_init = null )
+    {
+        this.bucket_info.clear();
+        
+        this.clearBuckets(val_init);
+        
+        return this;
+    }
+    
+    /***************************************************************************
+    
+        Removes all elements from all buckets.
+        
+        Returns:
+            this instance
+    
+     **************************************************************************/
+    
+    abstract protected void clearBuckets ( void[] val_init );
+    
+    /***************************************************************************
+    
+        Calculates the lowest exponent of 2 so that a power of 2 with this
+        exponent is at least n / load_factor.
+        
+        Params:
+            n           = number of expected elements in the set
+            load_factor = desired maximum load factor
+            
+        Returns:
+            exponent of 2.
+            
+        In:
+            load_factor must be greater than 0.
+    
+    ***************************************************************************/
+    
+    public static uint calcNumBucketsExp2 ( size_t n, float load_factor = 0.75 )
+    in
+    {
+        assert (load_factor > 0);
+    }
+    body
+    {
+        return n? bsr(cast(size_t)(n / load_factor)) + 1 : 0;
+    }
 }
 
-/*******************************************************************************
+/******************************************************************************
 
     Bucket set class template.
 
     Template params:
-        E = element type
+        V = value size (.sizeof of the value type), may be 0 to store no value
+        K = key type
 
-*******************************************************************************/
+ ******************************************************************************/
 
-public abstract class BucketSet ( E ) : IBucketSet
+public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 {
-    /***************************************************************************
+    /**************************************************************************
 
         Bucket type
 
-    ***************************************************************************/
-
-    protected alias .Bucket!(E) Bucket;
-
-
+    **************************************************************************/
+    
+    protected alias .Bucket!(V, K) Bucket;
+    
+    
     /***************************************************************************
 
         List of buckets
 
     ***************************************************************************/
-
-    protected const Bucket[] buckets;
-
-
-    /***************************************************************************
-
-        Pool of bucket elements
-
-    ***************************************************************************/
-
-    protected alias Pool!(Bucket.Element) BucketElementPool;
-
-    protected const BucketElementPool bucket_elements;
-
-
-    /***************************************************************************
-
-        Bit mask used by the getBucket() method to determine which bucket is
-        responsible for a key.
-
-    ***************************************************************************/
-
-    private const hash_t bucketMask;
-
-
+    
+    private Bucket[] buckets;
+    
     /***************************************************************************
 
         Constructor, sets the number of buckets to n / load_factor, rounded up
@@ -190,8 +280,8 @@ public abstract class BucketSet ( E ) : IBucketSet
                 bucket).
 
     ***************************************************************************/
-
-    public this ( size_t n, float load_factor = 0.75 )
+    
+    protected this ( size_t n, float load_factor = 0.75 )
     in
     {
         assert (n);
@@ -199,215 +289,359 @@ public abstract class BucketSet ( E ) : IBucketSet
     }
     body
     {
-        super(this.bucket_elements = new BucketElementPool);
+        super(n, load_factor);
         
-        auto num_buckets = cast(size_t)(n / load_factor);
-
-        size_t pow2 = 1;
-        while ( pow2 < num_buckets )
-        {
-            pow2 *= 2;
-        }
-
-        this.bucketMask = pow2 - 1;
-
-        this.buckets = new Bucket[pow2];
+        this.buckets = new Bucket[this.bucket_info.num_buckets];
     }
-
-
+    
     /***************************************************************************
 
-        Removes all elements from all buckets.
-        
-        Returns:
-            this instance
+        Disposer.
 
     ***************************************************************************/
-
-    public typeof(this) clear ( )
+    
+    protected override void dispose ( )
     {
-        // Clear bucket contents.
-        memset(this.buckets.ptr, 0,
-               this.buckets.length * this.buckets[0].sizeof);
-
-        // Recycle all bucket elements.
-        this.bucket_elements.clear();
-
-        return this;
+        super.dispose();
+        
+        delete this.buckets;
     }
+    
+    
+    /***************************************************************************
 
-
+        Removes all elements from all buckets and sets the values to val_init if
+        val_init is not empty.
+        
+        Params:
+            val_init = initial element value, the length must be V or 0
+        
+        In:
+            val_init.length must be V.
+    
+    ***************************************************************************/
+    
+    protected void clearBuckets ( void[] val_init = null )
+    in
+    {
+        assert (!val_init.length || val_init.length == V);
+    }
+    body
+    {
+        this.bucket_info.clear();
+        
+        // Clear bucket contents.
+        .clear(this.buckets);
+        
+        // Recycle all bucket elements.
+        
+        foreach (ref element; this)
+        {
+            static if (V) if (val_init.length)
+            {
+                element.val[] = cast (ubyte[]) val_init[];
+            }
+            
+            this.free_bucket_elements.recycle(&element);
+        }
+    }
+    
     /**************************************************************************
 
         Ensures that Bucket.init consists only of zero bytes so that the
         memset() method in clear() will work.
     
      **************************************************************************/
-
+    
     unittest
     {
-        const size_t n = Bucket.sizeof;
-
-        Bucket init;
-
-        ubyte[n] zero_data;
-
-        assert((cast (void*) &init)[0 .. n] == zero_data,
+        assert(isClearable!(Bucket),
                Bucket.stringof ~ ".init contains non-zero byte: " ~
-               typeof (this).stringof ~ ".clear() will not work");
+               typeof (this).stringof ~ ".clear_() will not work");
     }
-
-
+    
+    
     /***************************************************************************
 
-        Returns:
-            the number of buckets
-
-    ***************************************************************************/
-
-    public size_t num_buckets ( )
-    {
-        return this.buckets.length;
-    }
-
-
-    /***************************************************************************
-
-        Returns:
-            the average load of the bucket set (i.e. the average number of
-            elements per bucket)
-
-    ***************************************************************************/
-
-    public float load ( )
-    {
-        return cast(float)this.bucket_elements.length /
-               cast(float)this.buckets.length;
-    }
-
-
-    /***************************************************************************
-
-        Returns:
-            the maximum load of the bucket set (i.e. the number of elements in
-            the most-filled bucket)
-
-    ***************************************************************************/
-
-    public size_t max_load ( )
-    {
-        size_t max_load;
-
-        foreach ( i, bucket; this.buckets )
-        {
-            if ( bucket.length > max_load )
-            {
-                max_load = bucket.length;
-            }
-        }
-
-        return max_load;
-    }
-
-
-    /***************************************************************************
-
-        Removes the specified element from the bucket in which it is stored. If
-        the element does not exist in any bucket, then nothing happens.
-
+        Looks up a mapping from the specified key.
+    
         Params:
-            key = key of element to remove
-
+            key        = key to look up mapping for
+            must_exist = true: assert that the mapping exists, false: the
+                         mapping may or may not exist
+            
         Returns:
-            the average load of the bucket set
-
-    ***************************************************************************/
-
-    protected Bucket.Element* removeElement ( hash_t key )
+            a pointer to the element mapped to by the specified key or null if
+            not found and must_exist is false.
+            The caller should make sure that the key is not changed.
+            
+        Out:
+            - The returned array can only be null if must_exist is false.
+            - The length of the returned array is V unless the array is null.
+    
+     ***************************************************************************/
+    
+    final protected Bucket.Element* get_ ( K key, bool must_exist = false )
+    out (element)
     {
-        Bucket.Element* element = null;
-
-        with (*this.getBucket(key))
+        // FIXME: Disabled due to DMD bug 6417, the method parameter argument
+        // values are junk inside this contract.
+        
+        version (none) if (element)
         {
-            element = remove(find(key));
+            assert (element.key == key, "key mismatch");
         }
-
+        else
+        {
+            assert (!must_exist, "element not found");
+        }
+    }
+    body
+    {
+        auto element = this.buckets[this.toHash(key) & this.bucket_mask].find(key);
+        
+        if (element)
+        {
+            assert (element.key == key, "key mismatch");
+        }
+        else
+        {
+            assert (!must_exist, "element not found");
+        }
+        
         return element;
     }
-
-
+    
     /***************************************************************************
 
-        Iterator scope class.
-
-        The iteration is actually over a copy of the elements. Thus the bucket
-        contents may be modified while iterating. However, the list of elements
-        iterated over is not updated to any changes made.
-
-    ***************************************************************************/
-
-    protected scope class ElementsIterator
-    {
-        public int opApply ( int delegate ( ref Bucket.Element* ) dg )
-        {
-            int r;
-
-            scope it = this.outer.bucket_elements.new BusyItemsIterator;
-            foreach ( ref element; it )
-            {
-                auto ptr = &element;
-                r = dg(ptr);
-                if ( r ) break;
-            }
-
-            return r;
-        }
-    }
-
-
-    /***************************************************************************
-
-        Read only iterator scope class.
-
-        The read-only iterator is more efficient as it does not require the
-        copy of the items being iterated, which the safe iterator performs.
-
-    ***************************************************************************/
-
-    protected scope class ReadOnlyElementsIterator
-    {
-        public int opApply ( int delegate ( ref Bucket.Element* ) dg )
-        {
-            int r;
-
-            scope it = this.outer.bucket_elements.new ReadOnlyBusyItemsIterator;
-            foreach ( ref element; it )
-            {
-                auto ptr = &element;
-                r = dg(ptr);
-                if ( r ) break;
-            }
-
-            return r;
-        }
-    }
-
-
-    /***************************************************************************
-
-        Gets the bucket which is responsible for the given key.
-
+        Adds or updates a mapping from the specified key.
+    
         Params:
-            key = key to get bucket for
-
+            key   = key to add/update mapping for
+            added = set to true if the record did not exist but was added
+    
         Returns:
-            pointer to bucket responsible for the given key
-
-    ***************************************************************************/
-
-    protected Bucket* getBucket ( hash_t key )
+            a pointer to the element mapped to by the specified key. The caller
+            should set the value as desired and make sure that the key is not
+            changed.
+    
+     ***************************************************************************/
+    
+    final protected Bucket.Element* put_ ( K key, out bool added )
+    out (element)
     {
-        return this.buckets.ptr + (key & this.bucketMask);
+        // FIXME: Disabled due to DMD bug 6417, the method parameter argument
+        // values are junk inside this contract.
+        
+        version (none)
+        {
+            assert (element !is null);
+            
+            assert (element.key == key, "key mismatch");
+        }
+    }
+    body
+    {
+        size_t bucket_index = this.toHash(key) & this.bucket_mask;
+        
+        with (this.buckets[bucket_index])
+        {
+            auto element = add(key,
+            {
+                added = true;
+                
+                if (has_element)
+                {
+                    this.bucket_info.put(bucket_index);
+                }
+                else
+                {
+                    this.bucket_info.create(bucket_index);
+                }
+                
+                return cast (Bucket.Element*) this.free_bucket_elements.get(new Bucket.Element);
+            }());
+
+            assert (element !is null);
+            
+            assert (element.key == key, "key mismatch");
+            
+            return element;
+        }
+    }
+    
+    /***************************************************************************
+
+        Adds or updates a mapping from the specified key.
+    
+        Params:
+            key = key to add/update mapping for
+    
+        Returns:
+            the element mapped to by the specified key. The caller should set
+            the value as desired and make sure that the key is not changed.
+    
+    ***************************************************************************/
+    
+    final protected Bucket.Element* put_ ( K key )
+    {
+        bool added;
+        
+        return this.put_(key, added);
+    }
+    
+    /***************************************************************************
+    
+        Removes the mapping for the specified key.
+    
+        Params:
+            key = key to remove mapping for
+    
+        Returns:
+            the removed element. It is guaranteed to remain unchanged until the
+            next call to put_(), which may reuse it, or to clear().
+        
+    ***************************************************************************/
+    
+    final protected Bucket.Element* remove_ ( K key )
+    out (element)
+    {
+        // FIXME: Disabled due to DMD bug 6417, the method parameter argument
+        // values are junk inside this contract.
+        
+        version (none) if (element)
+        {
+            assert (element.key == key, "key mismatch");
+        }
+    }
+    body
+    {
+        size_t bucket_index = this.toHash(key) & this.bucket_mask;
+        
+        Bucket.Element* element = this.buckets[bucket_index].remove(key);
+        
+        if ( element )
+        {
+            this.bucket_info.remove(bucket_index);
+            
+            this.free_bucket_elements.recycle(element);
+            
+            assert (element.key == key, "key mismatch");
+        }
+        
+        return element;
+    }
+    
+    /***************************************************************************
+    
+        Calculates the hash value from key.
+        
+        Params:
+            key = key to hash
+            
+        Returns:
+            the hash value that corresponds to key.
+    
+    ***************************************************************************/
+    
+    abstract public hash_t toHash ( K key );
+    
+    /***************************************************************************
+    
+        Changes the number of buckets to 2 ^ exp2.
+        
+        Params:
+            exp2 = exponent of 2 of the new number of buckets
+            
+        Returns:
+            this instance.
+            
+        In:
+            2 ^ exp2 must fit into size_t.
+    
+    ***************************************************************************/
+    
+    public typeof (this) setNumBuckets ( uint exp2 )
+    in
+    {
+        assert (exp2 < size_t.sizeof * 8);
+    }
+    body
+    {
+        size_t n_prev = this.buckets.length,
+        n_new  = 1 << exp2;
+        
+        if (n_prev != n_new)
+        {
+            // Park the bucket elements that are currently in the set.
+            
+            scope parked_elements = this.free_bucket_elements.new ParkingStack(this.bucket_info.length);
+            
+            foreach (ref element; this)
+            {
+                parked_elements.push(&element);
+            }
+            
+            // Resize the array of buckets and the bucket_info and calculate
+            // the new bucket_mask. 
+            
+            this.buckets.length = n_new;
+            
+            .clear(this.buckets[0 .. (n_prev < $)? n_prev : $]);
+            
+            this.bucket_info.clearResize(n_new);
+            
+            this.bucket_mask = n_new - 1;
+            
+            // Put the parked elements back into the buckets.
+            
+            foreach (element_; parked_elements[])
+            {
+                auto element = cast (Bucket.Element*) element_,
+                bucket_index = this.toHash(element.key) & this.bucket_mask;
+                
+                assert (!this.bucket_info[bucket_index] ^ this.buckets[bucket_index].has_element,
+                        "bucket with zero length has an element or "
+                        "bucket with non-zero length has no element");
+                
+                this.bucket_info.put(bucket_index);
+                
+                this.buckets[bucket_index].add(element);
+            }
+        }
+        
+        // This call must be outside the scope of parked_elements.
+        
+        this.free_bucket_elements.minimize(n_new);
+        
+        return this;
+    }
+    
+    /***************************************************************************
+    
+        'foreach' iteration over elements in the set.
+        DO NOT change the element keys during iteration because this will
+        corrupt the map (unless it is guaranteed that the element will go to the
+        same bucket).
+    
+    ***************************************************************************/
+    
+    protected int opApply ( int delegate ( ref Bucket.Element element ) dg )
+    {
+        int result = 0;
+        
+        foreach (i, info; this.bucket_info.filled_buckets)
+        {
+            with (this.buckets[info.index])
+            {
+                assert (has_element);
+                
+                result = opApply(dg);
+            }
+            
+            if (result) break;
+        }
+        
+        return result;
     }
 }
-

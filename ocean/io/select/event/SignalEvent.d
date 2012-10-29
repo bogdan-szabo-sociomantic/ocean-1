@@ -35,12 +35,6 @@ private import ocean.io.select.model.ISelectClient;
 
 private import ocean.sys.SignalFD;
 
-private import tango.io.model.IConduit;
-
-private import tango.stdc.posix.sys.types: ssize_t;
-
-private import tango.stdc.posix.unistd: read, write, close;
-
 debug private import ocean.util.log.Trace;
 
 
@@ -51,7 +45,7 @@ debug private import ocean.util.log.Trace;
 
 *******************************************************************************/
 
-public class SignalEvent : ISelectClient, ISelectable
+public class SignalEvent : ISelectClient
 {
     /***************************************************************************
 
@@ -108,11 +102,20 @@ public class SignalEvent : ISelectClient, ISelectable
 
         this.handler = handler;
 
-        super(this);
-
         this.event = new SignalFD(signals, false);
     }
 
+    /***************************************************************************
+
+        Returs:
+            the epoll events to register for.
+
+    ***************************************************************************/
+
+    public Event events ( )
+    {
+        return Event.EPOLLIN;
+    }
 
     /***************************************************************************
 
@@ -126,19 +129,6 @@ public class SignalEvent : ISelectClient, ISelectable
     public Handle fileHandle ( )
     {
         return this.event.fileHandle;
-    }
-
-
-    /***************************************************************************
-
-        Returns:
-            select events which this class is registered with
-
-    ***************************************************************************/
-
-    public Event events ( )
-    {
-        return Event.Read;
     }
 
 
@@ -176,7 +166,7 @@ public class SignalEvent : ISelectClient, ISelectable
 
     ***************************************************************************/
 
-    public void registered ( )
+    protected override void registered_ ( )
     {
         this.event.maskHandledSignals();
     }
@@ -192,7 +182,7 @@ public class SignalEvent : ISelectClient, ISelectable
 
     ***************************************************************************/
 
-    public void unregistered ( )
+    protected override void unregistered_ ( )
     {
         this.event.unmaskHandledSignals();
     }

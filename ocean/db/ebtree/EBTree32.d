@@ -196,7 +196,7 @@ class EBTree32 ( bool signed = false ) : IEBTree
     private static Key getKey ( eb32_node* node_ )
     in
     {
-        assert (node_);
+        assert (node_ !is null);
     }
     body
     {
@@ -298,7 +298,7 @@ class EBTree32 ( bool signed = false ) : IEBTree
     public Node* add ( Key key )
     out (node_out)
     {
-        assert (node_out);
+        assert (node_out !is null);
     }
     body
     {
@@ -323,7 +323,7 @@ class EBTree32 ( bool signed = false ) : IEBTree
     public Node* add ( Dual16Key key )
     out (node_out)
     {
-        assert (node_out);
+        assert (node_out !is null);
     }
     body
     {
@@ -346,7 +346,7 @@ class EBTree32 ( bool signed = false ) : IEBTree
     public Node* update ( ref Node node, Key key )
     out (node_out)
     {
-        assert (node_out);
+        assert (node_out !is null);
     }
     body
     {
@@ -370,7 +370,7 @@ class EBTree32 ( bool signed = false ) : IEBTree
     public Node* update ( ref Node node, Dual16Key key )
     out (node_out)
     {
-        assert (node_out);
+        assert (node_out !is null);
     }
     body
     {
@@ -393,7 +393,7 @@ class EBTree32 ( bool signed = false ) : IEBTree
     public Node* add ( Dual16Key key )
     out (node_out)
     {
-        assert (node_out);
+        assert (node_out !is null);
     }
     body
     {
@@ -480,11 +480,11 @@ class EBTree32 ( bool signed = false ) : IEBTree
     private Node* add_ ( Node* node, Key key )
     in
     {
-        assert (node, "attempted to add null node (node pool returned null?)");
+        assert (node !is null, "attempted to add null node (node pool returned null?)");
     }
     out (node_out)
     {
-        assert (node_out);
+        assert (node_out !is null);
     }
     body
     {
