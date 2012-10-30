@@ -548,45 +548,20 @@ abstract scope class IVaList
     }
     body
     {
-        TypeInfo arg1, arg2;
-        auto ok = !ti.argTypes(arg1, arg2);
-        assert(ok, "not a valid argument type for va_arg");
-
-        if (arg1 && arg1.tsize() <= 8)
-        {
-            // Arg is passed in one register
-            
-            void[] data = this.va_regparm(arg1);
-            
-            if (arg2)
-            {
-                void[] buffer = this.buffer[0 .. ti.tsize];
-                
-                buffer[0 .. 8] = data[];
-                buffer[8 .. $] = va_regparm(arg2)[];
-                
-                data = buffer;
-            }
-            
-            return data;
-        }
-        else
-        {
-            return this.va_memparm(ti);
-        }
+        return this.va_arg(ti, this.buffer[0 .. ti.tsize]);
     }
     
     /***************************************************************************
 
         Pops the next argument from the list and copies its raw data into dst if
-        dst.length is non-zero or discards it if dst is zero.
+        dst.length is non-zero or discards it if dst is empty or null.
         
         Params:
             ti  = typeinfo of the next argument
             dst = destination buffer or a null or empty array 
             
         Returns:
-            dst
+            dst, which contains the argument data if not empty/null.
         
         In:
             dst.length must be info.tsize or zero.
@@ -612,19 +587,36 @@ abstract scope class IVaList
         auto ok = !ti.argTypes(arg1, arg2);
         assert(ok, "not a valid argument type for va_arg");
         
-        if (arg1 && arg1.tsize() <= 8)
-        {
-            // Arg is passed in one register
-            void[] data = va_regparm(arg1);
+        if (arg1 && arg1.tsize <= 8)
+        {   // Arg is passed in one register
+            auto stack = false,
+                 offset_fpregs_save = this.arglist.offset_fpregs,
+                 offset_regs_save   = this.arglist.offset_regs;
+            
+            L1: void[] data = this.va_regparm(arg1, stack, stack = true);
             
             if (dst.length)
             {
                 dst[0 .. data.length] = data[];
             }
-
+            
             if (arg2)
             {
-                data = this.va_regparm(arg2);
+                bool redo = false;
+                
+                data = this.va_regparm(arg2, stack,
+                                       {
+                                           redo = !stack;
+                                           return stack;
+                                       }());
+                
+                if (redo)
+                {   // arg1 is really on the stack, so rewind and redo
+                    this.arglist.offset_fpregs = offset_fpregs_save;
+                    this.arglist.offset_regs = offset_regs_save;
+                    stack = true;
+                    goto L1;
+                }
                 
                 if (dst.length)
                 {
@@ -633,7 +625,9 @@ abstract scope class IVaList
             }
         }
         else
-        {
+        {   // Always passed in memory
+            // The arg may have more strict alignment than the stack
+            
             void[] data = this.va_memparm(ti);
             
             if (dst.length)
@@ -675,43 +669,58 @@ abstract scope class IVaList
         Obtains the data of an argument passed in a register.
         
         Params:
-            ti  = argument typeinfo
-            
+            ti        = argument typeinfo
+            stack     = true if the argument is for sure located on the stack
+                        even if the arglist.offset_(f)pregs indicates it is in
+                        a register
+            set_stack = evaluated if arglist.offset_(f)pregs and/or stack
+                        indicate that the argument is on the stack; should
+                        return true to use the stack argument or false to do
+                        nothing 
+                        
         Returns:
-            argument data
+            argument data or null if set_stack returned false.
         
      **************************************************************************/
     
-    private void[] va_regparm(TypeInfo ti)
+    private void[] va_regparm(TypeInfo ti, bool stack, lazy bool set_stack)
     {
         void* p;
         auto tsize = ti.tsize();
         
-        if (ti is typeid(double)  || ti is typeid(float) ||
-            ti is typeid(idouble) || ti is typeid(ifloat))
+        with (*this.arglist) if (ti is typeid(double)  || ti is typeid(float) ||
+                                 ti is typeid(idouble) || ti is typeid(ifloat))
         {   // Passed in XMM register
-            if (this.arglist.offset_fpregs < (__va_argsave_t.regs.sizeof +  __va_argsave_t.fpregs.sizeof))
+            if (offset_fpregs < (__va_argsave_t.regs.sizeof +  __va_argsave_t.fpregs.sizeof) && !stack)
             {
-                p = this.arglist.reg_args + this.arglist.offset_fpregs;
-                this.arglist.offset_fpregs += __va_argsave_t.fpregs[0].sizeof;
+                p = reg_args + offset_fpregs;
+                offset_fpregs += __va_argsave_t.fpregs[0].sizeof;
+            }
+            else if (set_stack)
+            {
+                p = stack_args;
+                stack_args += this.roundUp(tsize, size_t.sizeof);
             }
             else
             {
-                p = this.arglist.stack_args;
-                this.arglist.stack_args += this.roundUp(tsize, size_t.sizeof);
+                return null;
             }
         }
         else
         {   // Passed in regular register
-            if (this.arglist.offset_regs < __va_argsave_t.regs.sizeof)
+            if (offset_regs < __va_argsave_t.regs.sizeof && !stack)
             {
-                p = this.arglist.reg_args + this.arglist.offset_regs;
-                this.arglist.offset_regs += __va_argsave_t.regs[0].sizeof;
+                p = reg_args + offset_regs;
+                offset_regs += __va_argsave_t.regs[0].sizeof;
+            }
+            else if (set_stack)
+            {
+                p = stack_args;
+                stack_args += size_t.sizeof;
             }
             else
             {
-                p = this.arglist.stack_args;
-                this.arglist.stack_args += size_t.sizeof;
+                return null;
             }
         }
         
