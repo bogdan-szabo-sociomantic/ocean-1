@@ -328,8 +328,6 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
     }
     body
     {
-        this.bucket_info.clear();
-        
         // Clear bucket contents.
         .clear(this.buckets);
         
@@ -459,7 +457,7 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
                     this.bucket_info.create(bucket_index);
                 }
                 
-                return cast (Bucket.Element*) this.free_bucket_elements.get(new Bucket.Element);
+                return cast (Bucket.Element*) this.free_bucket_elements.get(this.newElement());
             }());
 
             assert (element !is null);
@@ -468,6 +466,21 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
             
             return element;
         }
+    }
+    
+    /***************************************************************************
+        
+        Creates a new bucket element. May be overridden by a subclass to
+        implement a different allocation method.
+        
+        Returns:
+            a new bucket element.
+    
+    ***************************************************************************/
+    
+    protected Bucket.Element* newElement ( )
+    {
+        return new Bucket.Element;
     }
     
     /***************************************************************************
@@ -595,7 +608,7 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
             
             // Put the parked elements back into the buckets.
             
-            foreach (element_; parked_elements[])
+            foreach (element_; parked_elements)
             {
                 auto element = cast (Bucket.Element*) element_,
                 bucket_index = this.toHash(element.key) & this.bucket_mask;
