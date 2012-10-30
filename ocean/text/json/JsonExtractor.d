@@ -171,9 +171,9 @@ struct JsonExtractor
     
      **************************************************************************/
 
-    alias JsonParserIter Parser;
+    alias JsonParserIter!(false) Parser;
     
-    alias JsonParserIter.Token Type;
+    alias JsonParserIter!(false).Token Type;
     
     /**************************************************************************
 

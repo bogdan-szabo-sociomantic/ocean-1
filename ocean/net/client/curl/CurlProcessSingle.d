@@ -291,10 +291,19 @@ private class CurlProcess : EpollProcess
         // extra info to header...
         if ( this.params.extra_header_set )
         {
-            foreach(head;this.params.extra_header_params)
+            foreach ( head; this.params.extra_header_params )
             {
                 this.args ~= "-H";
                 this.args ~= head;
+            }
+        }
+        
+        if ( this.params.form_params.length )
+        {
+            foreach ( form; this.params.form_params )
+            {
+                this.args ~= "-F";
+                this.args ~= form;
             }
         }
 

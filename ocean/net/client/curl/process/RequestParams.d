@@ -182,6 +182,15 @@ public struct RequestParams
 
     /***************************************************************************
 
+        To be used to emulate a filled-in form (curl -F)
+
+    ***************************************************************************/
+
+    public char[][] form_params;
+    
+
+    /***************************************************************************
+
         User-defined context associated with download. Set using the
         context() methods.
 

@@ -195,7 +195,7 @@ public template RequestBase ( )
 
     ***************************************************************************/
 
-    public typeof(this) header_only ()
+    public typeof(this) header_only ( )
     {
         this.params.header_only = true;
         return this;
@@ -211,13 +211,32 @@ public template RequestBase ( )
 
     ***************************************************************************/
 
-    public typeof(this) extraHeader(char[] header)
+    public typeof(this) extraHeader ( char[] header )
     {
-        if(header.length)
+        if ( header.length )
         {
             this.params.extra_header_params ~= header;
         }
         return this;   
+    }
+
+
+    /***************************************************************************
+
+        Adds a form parameter
+
+        Returns:
+            this pointer for method chaining
+
+    ***************************************************************************/
+    
+    public typeof(this) addForm ( char[] form )
+    {
+        if ( form.length )
+        {
+            this.params.form_params ~= form;
+        }
+        return this;
     }
 
 
@@ -271,7 +290,7 @@ public template RequestData ( )
 
     ***************************************************************************/
 
-    public typeof(this) setRequestData(char[] data)
+    public typeof(this) setRequestData ( char[] data )
     {
         this.params.req_data = data;
         return this;   

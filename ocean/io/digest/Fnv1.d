@@ -30,6 +30,28 @@ private import tango.core.ByteSwap;
 debug private import ocean.util.log.Trace;
 
 
+/******************************************************************************
+
+    Convenience aliases for 32-bit and 64-bit Fnv1 class template
+    instances.
+
+*******************************************************************************/
+
+alias Fnv1Generic!(false)         Fnv1;
+alias Fnv1Generic!(false, uint)   Fnv132;
+alias Fnv1Generic!(false, ulong)  Fnv164;
+alias Fnv1Generic!(true)          Fnv1a;
+alias Fnv1Generic!(true,  uint)   Fnv1a32;
+alias Fnv1Generic!(true,  ulong)  Fnv1a64;
+
+
+/******************************************************************************
+
+    template for creating FNV magic constants and endianness, depending on 
+    if 32bit (uint) or 64bit (ulong) are used.
+
+*******************************************************************************/
+
 template Fnv1Const ( T = hash_t )
 {
     /**************************************************************************
@@ -62,6 +84,7 @@ template Fnv1Const ( T = hash_t )
     else static assert (false, "type '" ~ DigestType.stringof ~
                                "' is not supported, only uint and ulong");
 }
+
 
 /******************************************************************************
 
@@ -103,19 +126,12 @@ template StaticFnv1a ( T = hash_t )
     }
 }
 
+
 /******************************************************************************
 
-    Convenience aliases for 32-bit and 64-bit Fnv1 class template
-    instances.
+    alias for Fnv1 32 and 64bit constants
 
 *******************************************************************************/
-
-alias Fnv1Generic!(false)         Fnv1;
-alias Fnv1Generic!(false, uint)   Fnv132;
-alias Fnv1Generic!(false, ulong)  Fnv164;
-alias Fnv1Generic!(true)          Fnv1a;
-alias Fnv1Generic!(true,  uint)   Fnv1a32;
-alias Fnv1Generic!(true,  ulong)  Fnv1a64;
 
 alias Fnv1Const!(uint)  Fnv132Const;
 alias Fnv1Const!(ulong) Fnv164Const;
@@ -141,17 +157,11 @@ template StaticFnv1a64 ( ulong hash, char[] input )
 }
 
 
-private const FNV_prime = 16777619;
-private const offset_basis = 2166136261;
+/******************************************************************************
 
-template StaticFnv1a32 ( char[] input )
-{
-    static if ( input.length > 0 )
-        const uint StaticFnv1a32 = (StaticFnv1a32!(input[0 .. $-1]) ^ input[$-1]) * FNV_prime;
-    else
-        const uint StaticFnv1a32 = offset_basis;
-}
+    abstract Fnv1 digest class
 
+*******************************************************************************/
 
 abstract class FnvDigest : Digest
 {
@@ -164,6 +174,7 @@ abstract class FnvDigest : Digest
              digest
 
      **************************************************************************/
+    
     abstract ulong ulongDigest ( );
 }
 
