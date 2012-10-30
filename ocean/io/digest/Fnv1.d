@@ -59,6 +59,7 @@ template Fnv1Const ( T = hash_t )
         FNV magic constants and endianness
     
      **************************************************************************/
+    
     alias T DigestType;
     
     static if (is (DigestType == uint))
@@ -90,6 +91,10 @@ template Fnv1Const ( T = hash_t )
 
     CompileTime fnv1a hash function, calculates a hash value of type T where T
     must be uint or ulong.
+    
+    Convenience aliases for 32 bit (T = uint) or 64 bit (T = ulong) hashes are
+    defined below. They have to appear after this template definition because
+    DMD can currently (v1.075) not handle forward aliases in this case. >:-(
 
 *******************************************************************************/
 
@@ -129,12 +134,18 @@ template StaticFnv1a ( T = hash_t )
 
 /******************************************************************************
 
-    alias for Fnv1 32 and 64bit constants
+    Aliases for Fnv1 32 and 64 bit magic constants.
 
 *******************************************************************************/
 
 alias Fnv1Const!(uint)  Fnv132Const;
 alias Fnv1Const!(ulong) Fnv164Const;
+
+/******************************************************************************
+
+    Templates for compile-time FNV1a hashing.
+
+*******************************************************************************/
 
 template StaticFnv1a32 ( char[] input )
 {
