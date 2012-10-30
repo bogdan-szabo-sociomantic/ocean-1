@@ -32,21 +32,6 @@ debug private import ocean.util.log.Trace;
 
 /******************************************************************************
 
-    Convenience aliases for 32-bit and 64-bit Fnv1 class template
-    instances.
-
-*******************************************************************************/
-
-alias Fnv1Generic!(false)         Fnv1;
-alias Fnv1Generic!(false, uint)   Fnv132;
-alias Fnv1Generic!(false, ulong)  Fnv164;
-alias Fnv1Generic!(true)          Fnv1a;
-alias Fnv1Generic!(true,  uint)   Fnv1a32;
-alias Fnv1Generic!(true,  ulong)  Fnv1a64;
-
-
-/******************************************************************************
-
     template for creating FNV magic constants and endianness, depending on 
     if 32bit (uint) or 64bit (ulong) are used.
 
@@ -86,6 +71,20 @@ template Fnv1Const ( T = hash_t )
                                "' is not supported, only uint and ulong");
 }
 
+
+/******************************************************************************
+
+    Convenience aliases for 32-bit and 64-bit Fnv1 class template
+    instances. Most be under Fnv1Const to avoid DMD errors
+
+*******************************************************************************/
+
+alias Fnv1Generic!(false)         Fnv1;
+alias Fnv1Generic!(false, uint)   Fnv132;
+alias Fnv1Generic!(false, ulong)  Fnv164;
+alias Fnv1Generic!(true)          Fnv1a;
+alias Fnv1Generic!(true,  uint)   Fnv1a32;
+alias Fnv1Generic!(true,  ulong)  Fnv1a64;
 
 /******************************************************************************
 
@@ -300,7 +299,7 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
      **************************************************************************/
 
     mixin Fnv1Const!(T);
-    
+
 //    pragma (msg, DigestType.stringof);
     
     /**************************************************************************
