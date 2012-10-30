@@ -377,5 +377,24 @@ class FreeList
         {
             return this.outer.free_list[this.start .. this.end];
         }
+        
+        /**********************************************************************
+        
+            'foreach' iteration, each cycle pops an element from the stack and
+            iterates over it.
+        
+         **********************************************************************/
+        
+        public int opApply ( int delegate ( ref void* object ) dg )
+        {
+            int r = 0;
+            
+            for (void* object = this.pop(); object && !r; object = this.pop())
+            {
+                r = dg(object);
+            }
+            
+            return r;
+        }
     }
 }
