@@ -9,8 +9,10 @@
     Mixin for an enum class with the following features:
         * Contains an enum, called E, with members specified by an associative
           array passed to the enum mixin.
-        * Contains a constant char[][] with the names of all enum members.
-        * Contains a constant int[] with the values of all enum members.
+        * Contains a constant char[][], called names, with the names of all enum
+          members.
+        * Contains a constant int[], called values, with the values of all enum
+          members.
         * Implements an interface, IEnum, with common shared methods: opIn (for
           enum names (strings) and values (ints)), opApply (over names &
           values), length (number of enum members), min & max (enum values).
@@ -44,11 +46,12 @@
             mixin EnumBase!(["GetAll"[]:4, "RemoveAll":5]);
         }
 
-        // Check for a few names
-        assert("Get" in BasicCommands);
-        assert("Get" in ExtendedCommands);
-        assert(!("GetAll" in BasicCommands));
-        assert("GetAll" in ExtendedCommands);
+        // Check for a few names. (Note that the singleton instance of the enum
+        // class is passed, using the static opCall method.)
+        assert("Get" in BasicCommands());
+        assert("Get" in ExtendedCommands());
+        assert(!("GetAll" in BasicCommands()));
+        assert("GetAll" in ExtendedCommands());
 
         // Example of abstract usage of enum classes
         import ocean.io.Stdout;
@@ -291,6 +294,25 @@ public template EnumBase ( T ... )
 
     /***************************************************************************
 
+        Constants determining whether this class is derived from another class
+        which implements IEnum.
+
+    ***************************************************************************/
+
+    static if ( is(typeof(this) S == super) )
+    {
+        private const super_class_index = SuperClassIndex!(0, S);
+
+        private const is_derived_enum = super_class_index < S.length;
+    }
+    else
+    {
+        private const is_derived_enum = false;
+    }
+
+
+    /***************************************************************************
+
         Constant arrays of enum member names and values.
 
         If the class into which this template is mixed has a super class which
@@ -299,11 +321,12 @@ public template EnumBase ( T ... )
 
     ***************************************************************************/
 
-    static if ( is(typeof(this) S == super) && SuperClassIndex!(0, S) < S.length )
+    static if ( is_derived_enum )
     {
-        const i = SuperClassIndex!(0, S);
-        static private const names = S[i].names[0..$] ~ T[0].keys[0..$];
-        static private const values = S[i].values[0..$] ~ T[0].values[0..$];
+        static private const names =
+            S[super_class_index].names[0..$] ~ T[0].keys[0..$];
+        static private const values =
+            S[super_class_index].values[0..$] ~ T[0].values[0..$];
     }
     else
     {
@@ -351,7 +374,23 @@ public template EnumBase ( T ... )
 
     /***************************************************************************
 
-        Singleton instance of this type.
+        Protected constructor, prevents external instantiation. (Use the
+        singleton instance returned by opCall().)
+
+    ***************************************************************************/
+
+    protected this ( )
+    {
+        static if ( is_derived_enum )
+        {
+            super();
+        }
+    }
+
+
+    /***************************************************************************
+
+        Singleton instance of this class (used to access the IEnum methods).
 
     ***************************************************************************/
 
