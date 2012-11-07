@@ -451,7 +451,9 @@ class FiberSelectReader : IFiberSelectProtocol
         }
         else
         {
-            debug (Raw) Trace.formatln("[{}] >>> {:X2} ({} bytes)", super.conduit.fileHandle, this.data[this.available .. this.available + n], n);
+            debug (Raw) Trace.formatln("[{}] Read  {:X2} ({} bytes)",
+                super.conduit.fileHandle,
+                this.data[this.available .. this.available + n], n);
             
             this.available += n;
         }

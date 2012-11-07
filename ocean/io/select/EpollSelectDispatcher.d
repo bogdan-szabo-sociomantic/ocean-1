@@ -744,8 +744,13 @@ public class EpollSelectDispatcher
             {
                 debug (ISelectClient)
                 {
-                    Trace.formatln("{} :: ISelectClient handle exception: '{}' @{}:{}",
-                        client, e.msg, e.file, e.line);
+                    // TODO: printing on separate lines for now as a workaround
+                    // for a dmd bug with varargs
+                    Trace.formatln("{} :: ISelectClient handle exception:", client);
+                    Trace.formatln("    '{}'", e.msg);
+                    Trace.formatln("    @{}:{}", e.file, e.line);
+//                    Trace.formatln("{} :: ISelectClient handle exception: '{}' @{}:{}",
+//                        client, e.msg, e.file, e.line);
                 }
 
                 this.clientError(client, key.events, e);
@@ -991,13 +996,16 @@ public class EpollSelectDispatcher
     {
         debug (ISelectClient)
         {
-            Trace.format("{} :: Error during handle: '{}'",
-                client, e.msg);
+            // TODO: printing on separate lines for now as a workaround for a
+            // dmd bug with varargs
+            Trace.formatln("{} :: Error during handle:", client);
+            Trace.formatln("    '{}'", e.msg);
+//            Trace.format("{} :: Error during handle: '{}'",
+//                client, e.msg);
             if ( e.line )
             {
-                Trace.format("@ {}:{}", e.file, e.line);
+                Trace.formatln("    @ {}:{}", e.file, e.line);
             }
-            Trace.formatln("");
         }
 
         client.error(e, events);

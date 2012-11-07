@@ -333,7 +333,8 @@ class FiberSelectWriter : IFiberSelectProtocol
     }
     body
     {
-        debug (Raw) Trace.formatln("[{}] <<< {:X2} ({} bytes)", super.conduit.fileHandle, this.data_slice, this.data_slice.length);
+        debug (Raw) Trace.formatln("[{}] Write {:X2} ({} bytes)",
+            super.conduit.fileHandle, this.data_slice, this.data_slice.length);
 
         if (this.sent < this.data_slice.length)
         {
