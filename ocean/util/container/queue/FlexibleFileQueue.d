@@ -246,7 +246,7 @@ public class FlexibleFileQueue : IByteQueue
             
             h = *Header.fromSlice(this.ext_in.slice(Header.sizeof, false));
             
-            assert ( h.length < this.size, "Unrealistic size" );
+            assert ( h.length <= this.size, "Unrealistic size" );
             
             if ( h.length + Header.sizeof > this.ext_in.readable() && 
                  this.fill() == 0 )
@@ -463,7 +463,7 @@ public class FlexibleFileQueue : IByteQueue
     private bool filePush ( ubyte[] item )
     in
     {
-        assert ( item.length < this.size, "Pushed item will not fit read buffer");
+        assert ( item.length <= this.size, "Pushed item will not fit read buffer");
         assert ( item.length > 0, "denied push of item of size zero");
     }
     body
@@ -504,7 +504,7 @@ public class FlexibleFileQueue : IByteQueue
         this.file_in  = new File(this.path, File.ReadExisting);
 
         this.ext_out = new BufferedOutput(this.file_out);
-        this.ext_in  = new BufferedInput(this.file_in, this.size);
+        this.ext_in  = new BufferedInput(this.file_in, this.size+Header.sizeof);
    }
     
         
@@ -543,4 +543,27 @@ public class FlexibleFileQueue : IByteQueue
         
         Filesystem.remove(this.path);
     }
+    
+    
+    unittest
+    {
+        
+        for (ubyte size; size < ubyte.max; size++)
+        {
+            auto queue = new FlexibleFileQueue("testfile", 4);
+            
+            for ( ubyte i = 0; i < size; i++ )
+            {
+                assert( queue.push( cast(ubyte[])[i, ubyte.max-i, i, i*i] ), "push failed" );
+                
+            }
+            for ( ubyte i = 0; i < size; i++ )
+            {
+                auto pop = queue.pop;
+                assert( pop == cast(ubyte[])[i, ubyte.max-i, i, i*i], "pop failed "~pop.stringof );
+                
+            }
+        }
+    }
+    
 }

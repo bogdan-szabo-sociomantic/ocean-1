@@ -59,6 +59,7 @@
         else
         {
             Stderr.formatln("Unknown key: {}",key);
+            x.freeValue(v);
         }
     }
     
@@ -200,6 +201,9 @@ public class Xmlrpc
     body
     {
         char*[T.length] c_strings;
+        ubyte*[T.length] c_ubytes;
+        size_t[T.length] l_ubytes;
+        int[T.length] c_bools;
         Value result;
 
         foreach ( i, a; args )
@@ -210,6 +214,16 @@ public class Xmlrpc
                 args[i] ~= "\0";
                 c_strings[i] = args[i].ptr;
             }
+            else static if ( is(typeof(a) == ubyte[]) )
+            {
+                assert(args[i].ptr, "ubyte[] "~args[i].stringof ~ " can't be null");
+                c_ubytes[i] = args[i].ptr;
+                l_ubytes[i] = args[i].length;
+            }
+            else static if ( is(typeof(a) == bool) )
+            {
+                c_bools[i] = cast(int) a; 
+            }            
         }
         scope ( exit )
         {
@@ -272,18 +286,16 @@ public class Xmlrpc
     public bool parseValue (T ...) (Value value, ref T args )
     {
         char*[T.length] c_strings;
-
+        ubyte*[T.length] c_ubytes;
+        size_t[T.length] l_ubytes;
+        int[T.length] c_bools;        
+        
         foreach ( i, a; args )
         {
-            static assert ( Type!(T[0]).length, T[i].stringof ~ " is not supported");
-                        
-            static if ( is(typeof(a) == char[]) )
-            {
-                c_strings[i] = args[i].ptr;
-            }
+            static assert ( Type!(T[0]).length, T[i].stringof ~ " is not supported");      
         }
         auto format = Format!(T);
-        
+
         mixin(DecomposeValue!(T));
 
         foreach ( i, a; args )
@@ -292,6 +304,14 @@ public class Xmlrpc
             {
                 args[i] = c_strings[i][0 .. strlen(c_strings[i])];
             }
+            else static if ( is(typeof(a) == ubyte[]) )
+            {
+                args[i] = c_ubytes[i][0 .. l_ubytes[i]];
+            }
+            else static if ( is(typeof(a) == bool) )
+            {
+                args[i] = cast(bool) c_bools[i];
+            }                       
         }
 
         if ( this.faultOccurred ) return false;
@@ -403,6 +423,26 @@ public class Xmlrpc
         xmlrpc_DECREF(arr);
         return true;
     }
+    
+
+    /***************************************************************************
+
+        Is the array value empty?
+
+        Params:
+            arr    = a xmlrpc value containing an array
+
+        Returns:
+            true if array is empty
+
+    ***************************************************************************/
+    
+    public bool isArrayEmpty ( Value arr )
+    {
+        return xmlrpc_array_size(&this.env, arr) == 0;
+    }
+    
+    
 
 
     /***************************************************************************
@@ -419,6 +459,7 @@ public class Xmlrpc
 
     public char[] getFaultString(ref char[] str)
     {
+        str.length = 0;
         return str.append(getFaultCodeDescription(env.fault_code),
            env.fault_string?env.fault_string[0 .. strlen(env.fault_string)]:"");
     }
@@ -441,6 +482,20 @@ public class Xmlrpc
 
     /***************************************************************************
 
+        Checks if a fault occurred
+
+        Returns:
+            true if a fault occurred
+
+    ***************************************************************************/
+
+    public void increaseResponseSizeLimit ( size_t value  )
+    {
+        xmlrpc_limit_set(XMLRPC_XML_SIZE_LIMIT_ID, value);
+    }
+
+    /***************************************************************************
+
         Convert the Tuple member i to a argument, if string use a cstring instead
 
     ***************************************************************************/
@@ -451,12 +506,20 @@ public class Xmlrpc
         {
             const char[] Arg = Addr!(addr) ~ "c_strings[" ~ i.stringof ~ "]";
         }
+        else static if ( is(T == ubyte[]) )
+        {
+            const char[] Arg = Addr!(addr) ~ "c_ubytes[" ~ i.stringof ~ "],"~
+                               Addr!(addr) ~ "l_ubytes[" ~ i.stringof ~ "]";
+        }
+        else static if ( is(T == bool) )
+        {
+            const char[] Arg = Addr!(addr) ~ "c_bools[" ~ i.stringof ~ "]";
+        }             
         else
         {
             const char[] Arg = Addr!(addr) ~ "args[" ~ i.stringof ~ "]";
         }
     }
-
 
     /***************************************************************************
 
@@ -625,6 +688,10 @@ public class Xmlrpc
         {
             const char[] Type = "d";
         }
+        else static if ( is( T == ubyte[] ) )
+        {
+            const char[] Type = "6";
+        }        
         else
         {
             static assert(false, T.stringof ~ " is not supported");

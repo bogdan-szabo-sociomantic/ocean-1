@@ -41,6 +41,9 @@ extern ( C )
         XMLRPC_TYPE_I8       = 10,
         XMLRPC_TYPE_DEAD     = 0xDEAD
     }
+    
+    
+    int XMLRPC_XML_SIZE_LIMIT_ID = 1;
 
 
     /***************************************************************************
@@ -332,6 +335,23 @@ extern ( C )
     ***************************************************************************/
     
     xmlrpc_value* xmlrpc_build_value(xmlrpc_env* env, char* format, ...);
+
+    
+    /***************************************************************************
+
+        sets the limit ( limit_id ) to value
+
+        Params:
+            limit_id  = the limits id
+            value     = the value
+
+    ***************************************************************************/
+    
+    void xmlrpc_limit_set (int limit_id, size_t value);
+    
+    
+    
+    
     
     xmlrpc_value* xmlrpc_struct_new(xmlrpc_env* envP);
     
@@ -339,7 +359,7 @@ extern ( C )
  
     
     void xmlrpc_struct_set_value(xmlrpc_env* env, xmlrpc_value* structP, 
-        char* key, xmlrpc_value* valueP);    
+        char* key, xmlrpc_value* valueP);
        
 }
 
