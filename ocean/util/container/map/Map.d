@@ -116,6 +116,8 @@ debug ( UnittestVerbose )
     
     - If K is a primitive type (integer, floating point, character), the hash
       value is calculated from the raw key data using the FNV1a hash function.
+      That means, if the keys are dynamic arrays, including strings, the array
+      content is used as the key, not the array instance (ptr/length).
     - If K is a dynamic or static array of a  primitive type, the hash value is
       calculated from the raw data of the key array content using the FNV1a hash
       function.
