@@ -340,6 +340,14 @@ abstract class ISelectListener : ISelectClient
     }
     
     /**************************************************************************
+
+        Closes all connections and terminates the listener.
+    
+     **************************************************************************/
+    
+    abstract public void shutdown ( );
+    
+    /**************************************************************************
     
         Obtains a connection handler instance from the pool.
         
