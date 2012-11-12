@@ -83,12 +83,13 @@ class StructLoader
     
     /***************************************************************************
     
-        Loads the S instance represented by data. data must have been obtained
-        by StructSerializer.dump!(S)().
-        
-        S must not contain branched dynamic arrays.
+        Loads the S instance represented by data by setting the dynamic array
+        slices. data must have been obtained by StructSerializer.dump!(S)().
         
         If S contains dynamic arrays, the content of src is modified in-place.
+        
+        allow_branched_arrays = true is useful to adjust the slices after a
+        buffer previously created by loadCopy() is copied or relocated.
         
         Notes:
             1. After this method has returned, do not change src.length to a
@@ -122,7 +123,10 @@ class StructLoader
         Template params:
             S                     = struct type
             allow_branched_arrays = true: allow branced arrays; src must be long
-                                    enough to store the branched array instances
+                                    enough to store the branched array
+                                    instances. If false, a static assertion
+                                    makes sure that S does not contain branched
+                                    arrays.
              
          Params:
              src = data of a serialized S instance
@@ -154,8 +158,6 @@ class StructLoader
         Loads the S instance represented by data by setting the dynamic array
         slices. data must have been obtained by StructSerializer.dump!(S)().
         
-        S must not contain branched dynamic arrays.
-                    
         If S contains dynamic arrays, the content of src is modified in-place.
         
         allow_branched_arrays = true is useful to adjust the slices after a
@@ -179,8 +181,11 @@ class StructLoader
         Template params:
             S                     = struct type
             allow_branched_arrays = true: allow branced arrays; src must be long
-                                    enough to store the branched array instances
-             
+                                    enough to store the branched array
+                                    instances. If false, a static assertion
+                                    makes sure that S does not contain branched
+                                    arrays.
+         
          Params:
              src = data of a serialized S instance
              
