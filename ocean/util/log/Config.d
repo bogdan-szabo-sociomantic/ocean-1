@@ -36,18 +36,16 @@
                          Config().get!(Log.MetaConfig)("LOG"));
     -------
 
-    TODO: rename this module to something more meaningful
-
 *******************************************************************************/
 
-module ocean.util.log.Util;
+module ocean.util.log.Config;
 
-/***************************************************************************
+/*******************************************************************************
 
     Imports
 
-***************************************************************************/
-    
+*******************************************************************************/
+
 private import ocean.util.Config;
 private import ocean.util.config.ClassFiller;
 private import ocean.util.config.ConfigParser;

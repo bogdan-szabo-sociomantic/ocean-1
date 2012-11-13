@@ -19,8 +19,8 @@
     adding an option to specify the location of the configuration file:
         * --config / -c argument.
         * The logging system is configured from the config file reading the
-          [LOG*] sections using ocean.util.log.Util.configureLoggers(). See its
-          documentation for details.
+          [LOG*] sections using ocean.util.log.Config.configureLoggers(). See
+          its documentation for details.
         * An extra config option is added to the [LOG] section:
           'default_version_log', which is a boolean defaulting to true, which
           indicates if the default version log appender should be added (it
@@ -152,6 +152,14 @@
 module ocean.util.Main;
 
 
+// *****************************************************************************
+// *****************************************************************************
+// *****************************************************************************
+pragma(msg, "ocean.util.Main is deprecated: use ocean.util.app.* instead");
+// *****************************************************************************
+// *****************************************************************************
+// *****************************************************************************
+
 
 /*******************************************************************************
 
@@ -169,7 +177,7 @@ public import ocean.util.app.ext.VersionInfo;
 // Can't use just Log because of the (in)famous DMD bug:
 // http://d.puremagic.com/issues/show_bug.cgi?id=314
 // Using Log instead of LogUtil will make it conflict with tango.util.log.Log.
-private import LogUtil = ocean.util.log.Util;
+private import LogUtil = ocean.util.log.Config;
 
 private import tango.util.log.Log;
 private import tango.util.log.AppendFile;

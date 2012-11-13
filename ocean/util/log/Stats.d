@@ -6,7 +6,8 @@
 
     authors:        Mathias, Gavin
 
-    TODO: description of module
+    Classes to write statistics log files in the standard format expected by
+    cacti.
 
 *******************************************************************************/
 
@@ -27,8 +28,6 @@ private import ocean.io.select.event.TimerEvent;
 private import ocean.text.convert.Layout: StringLayout;
 
 private import ocean.util.log.LayoutStatsLog;
-
-public import ocean.util.log.Util;
 
 private import tango.util.log.Log;
 private import tango.util.log.AppendSyslog;
@@ -112,19 +111,6 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
         this.write(this.dg());
 
         return true;
-    }
-}
-
-
-
-// Deprecated class -- name changed to PeriodicStatsLog (above)
-
-deprecated public class Stats ( T ) : PeriodicStatsLog!(T)
-{
-    public this ( EpollSelectDispatcher epoll, ValueDg dg, size_t file_count = 10,
-           size_t max_file_size = 10 * 1024 * 1024, time_t period = default_period )
-    {
-        super(epoll, dg, file_count, max_file_size, period);
     }
 }
 

@@ -25,7 +25,7 @@ private import ocean.util.app.ext.model.ILogExtExtension;
 private import ocean.util.app.ext.ConfigExt;
 
 private import ocean.util.config.ConfigParser;
-private import LogUtil = ocean.util.log.Util;
+private import LogUtil = ocean.util.log.Config;
 private import ClassFiller = ocean.util.config.ClassFiller;
 
 private import tango.util.log.Log;
