@@ -744,7 +744,8 @@ struct DumpArrays
                     }
                     else
                     {
-                        const ContainsDynamicArray = ContainsDynamicArray!(Base);
+                        const ContainsDynamicArray = ContainsDynamicArray!(Base) ||
+                                                     ContainsDynamicArray!(T[1 .. $]);
                     }
                 }
                 else
