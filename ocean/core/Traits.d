@@ -22,6 +22,9 @@ module ocean.core.Traits;
 
     This function is designed to be used at compile time.
 
+    Note that any string identifier beginning with __ is also reserved by D.
+    This function does not check for this case.
+
     Params:
         string = string to check
 
@@ -33,27 +36,31 @@ module ocean.core.Traits;
 public bool isKeyword ( char[] string )
 {
     const char[][] keywords = [
-        "__FILE__",     "__gshared",    "__LINE__",     "__thread",     "__traits",
-        "abstract",     "alias",        "align",        "asm",          "assert",
-        "auto",         "body",         "bool",         "break",        "byte",
-        "case",         "cast",         "catch",        "cdouble",      "cent",
-        "cfloat",       "char",         "class",        "const",        "continue",
-        "creal",        "dchar",        "debug",        "default",      "delegate",
-        "delete",       "deprecated",   "do",           "double",       "else",
-        "enum",         "export",       "extern",       "false",        "final",
-        "finally",      "float",        "for",          "foreach",      "foreach_reverse",
-        "function",     "goto",         "idouble",      "if",           "ifloat",
-        "import",       "in",           "inout",        "int",          "interface",
-        "invariant",    "ireal",        "is",           "lazy",         "long",
-        "macro",        "mixin",        "module",       "new",          "null",
-        "out",          "override",     "package",      "pragma",       "private",
-        "protected",    "public",       "real",         "ref",          "return",
-        "scope",        "shared",       "short",        "static",       "struct",
-        "super",        "switch",       "synchronized", "template",     "this",
-        "throw",        "true",         "try",          "typedef",      "typeid",
-        "typeof",       "ubyte",        "ucent",        "uint",         "ulong",
-        "union",        "unittest",     "ushort",       "version",      "void",
-        "volatile",     "wchar",        "while",        "with"
+        "abstract",     "alias",        "align",        "asm",
+        "assert",       "auto",         "body",         "bool",
+        "break",        "byte",         "case",         "cast",
+        "catch",        "cdouble",      "cent",         "cfloat",
+        "char",         "class",        "const",        "continue",
+        "creal",        "dchar",        "debug",        "default",
+        "delegate",     "delete",       "deprecated",   "do",
+        "double",       "else",         "enum",         "export", 
+        "extern",       "false",        "final",        "finally", 
+        "float",        "for",          "foreach",      "foreach_reverse", 
+        "function",     "goto",         "idouble",      "if", 
+        "ifloat",       "import",       "in",           "inout", 
+        "int",          "interface",    "invariant",    "ireal", 
+        "is",           "lazy",         "long",         "macro", 
+        "mixin",        "module",       "new",          "null", 
+        "out",          "override",     "package",      "pragma", 
+        "private",      "protected",    "public",       "real", 
+        "ref",          "return",       "scope",        "short", 
+        "static",       "struct",       "super",        "switch", 
+        "synchronized", "template",     "this",         "throw", 
+        "true",         "try",          "typedef",      "typeid", 
+        "typeof",       "ubyte",        "ucent",        "uint", 
+        "ulong",        "union",        "unittest",     "ushort", 
+        "version",      "void",         "volatile",     "wchar", 
+        "while",        "with"
     ];
 
     for ( int i; i < keywords.length; i++ )
