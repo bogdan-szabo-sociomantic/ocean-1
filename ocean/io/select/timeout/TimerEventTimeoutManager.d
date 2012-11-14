@@ -20,10 +20,7 @@
     
     Initially the object returned by TimerEventTimeoutManager.select_client
     must be registered to an epoll select dispatcher.
-    
-    It is recommended to derive from TimerEventTimeoutManager and overload the
-    now() method using the IntervalClock.
-    
+
     Link with:
         -Llibebtree.a
 
