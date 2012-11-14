@@ -116,15 +116,6 @@ public class HMAC
 
         this.ipad = new ubyte[this.blockSize];
         this.opad = new ubyte[this.blockSize];
-
-    }
-
-    version (D_Version2)
-    {
-        public this (Hash hash, char[] key)
-        {
-            this(hash, cast(ubyte[])key);
-        }
     }
 
 
@@ -134,11 +125,11 @@ public class HMAC
 
 	    Params:
 	    	k 	   = the key to initialize from
-			buffer = optional buffer to use
+			buffer = buffer to use
 
 	***************************************************************************/
 
-    public void init ( ubyte[] k, ubyte[] buffer = null )
+    public void init ( ubyte[] k, ubyte[] buffer )
     {
         this.hash.reset();
 
@@ -182,7 +173,7 @@ public class HMAC
     public void update ( ubyte[] input )
     {
         if (!this.initialized)
-            throw new HMACException(this.name()~": MAC not initialized.");
+            throw new HMACException(this.name()~": HMAC not initialized.");
             
         this.hash.update(input);
     }
@@ -245,7 +236,7 @@ public class HMAC
 	    Computes the digest and returns it 
 	    
         Params:
-            buffer = optional buffer to use
+            buffer = buffer to use
 
 	***************************************************************************/
     
