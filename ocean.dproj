@@ -430,6 +430,7 @@
           <VersionControlPolicy inheritsSet="Mono">
             <CommitMessageStyle FirstFilePrefix="" FileSeparator=", " LastFilePostfix=":&#xA;" LineAlign="0" />
           </VersionControlPolicy>
+          <TextStylePolicy inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/plain" />
         </Policies>
       </Properties>
     </MonoDevelop>
