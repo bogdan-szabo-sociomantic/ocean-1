@@ -20,8 +20,7 @@ module ocean.util.container.cache.model.ICache;
 
 private import ocean.util.container.cache.model.ICacheInfo;
 
-version (HashMap) private import ocean.util.container.map.HashMap;
-else                   private import ocean.core.ArrayMap;
+private import ocean.util.container.map.HashMap;
 
 private import ocean.db.ebtree.EBTree128;
 
@@ -69,8 +68,7 @@ abstract class ICache : ICacheInfo
     
     ***************************************************************************/
     
-    version (HashMap) protected alias HashMap!(TimeToIndex.Node*) KeyToNode;
-    else protected alias ArrayMap!(TimeToIndex.Node*, hash_t) KeyToNode;
+    protected alias HashMap!(TimeToIndex.Node*) KeyToNode;
     
     private const KeyToNode key_to_node;
     
@@ -399,14 +397,9 @@ abstract class ICache : ICacheInfo
             this.key_to_node.remove(this.keyByIndex(index));
         }
         
-        version (HashMap)
-        {
-            *this.key_to_node.put(key) = this.time_to_index.add(TimeToIndex.Key(index, access_time));
-        }
-        else
-        {
-            this.key_to_node.put(key, this.time_to_index.add(TimeToIndex.Key(index, access_time)));
-        }
+
+        *this.key_to_node.put(key) = this.time_to_index.add(TimeToIndex.Key(index, access_time));
+
         
         return index;
     }
@@ -494,16 +487,9 @@ abstract class ICache : ICacheInfo
             
             src_node_key.lo = index;
             
-            version (HashMap)
-            {
-                *this.key_to_node.put(src_key) = this.time_to_index.update(*src_node,
-                                                                           src_node_key);
-            }
-            else
-            {
-                this.key_to_node.put(src_key, this.time_to_index.update(*src_node,
-                                                                        src_node_key));
-            }
+            *this.key_to_node.put(src_key) = this.time_to_index.update(*src_node,
+                                                                  src_node_key);
+
         }
 
         // Remove the tree map entry of the removed cache item. 

@@ -86,7 +86,7 @@ module ocean.io.select.event.EpollProcess;
 
 *******************************************************************************/
 
-private import ocean.core.ArrayMap;
+private import ocean.util.container.map.Map;
 
 private import ocean.io.select.model.ISelectClient;
 
@@ -158,7 +158,7 @@ public abstract class EpollProcess
 
         ***********************************************************************/
 
-        private const ArrayMap!(EpollProcess, int) processes;
+        private const StandardKeyHashingMap!(EpollProcess, int) processes;
 
 
         /***********************************************************************
@@ -175,7 +175,7 @@ public abstract class EpollProcess
         {
             this.epoll = epoll;
 
-            this.processes = new ArrayMap!(EpollProcess, int);
+            this.processes = new StandardKeyHashingMap!(EpollProcess, int)(20);
 
             this.signal_event = new SignalEvent(&this.signalHandler,
                     [SignalHandler.Signals.SIGCHLD]);
@@ -195,7 +195,7 @@ public abstract class EpollProcess
 
         public void add ( EpollProcess process )
         {
-            this.processes.put(process.process.pid, process);
+            this.processes[process.process.pid] = process;
             this.epoll.register(this.signal_event);
         }
 
@@ -231,7 +231,7 @@ public abstract class EpollProcess
                 if (pid == -1)
                 {
                     assert( errno() == ECHILD );
-                    assert( this.processes.length == 0 );
+                    assert( this.processes.bucket_info.length == 0 );
                     return;
                 }
 
@@ -253,7 +253,7 @@ public abstract class EpollProcess
 
                     this.processes.remove(pid);
 
-                    if ( this.processes.length == 0 )
+                    if ( this.processes.bucket_info.length == 0 )
                     {
                         this.epoll.unregister(this.signal_event);
 

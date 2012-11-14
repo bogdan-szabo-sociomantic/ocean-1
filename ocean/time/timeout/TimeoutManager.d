@@ -49,12 +49,10 @@ private import ocean.time.model.IMicrosecondsClock,
 
 private import ocean.util.container.AppendBuffer;
 
-version (HashMap)
-{
-    private import ocean.util.container.map.Map,
-                                ocean.util.container.map.model.StandardHash;
-}
-else private import ocean.core.ArrayMap;
+
+private import ocean.util.container.map.Map,
+               ocean.util.container.map.model.StandardHash;
+
 
 debug
 {
@@ -213,7 +211,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
     ***************************************************************************/
 
-    version (HashMap) static class ExpiryToClient : Map!(IExpiryRegistration, Expiry*)
+    static class ExpiryToClient : Map!(IExpiryRegistration, Expiry*)
     {
         
         /***************************************************************************
@@ -235,10 +233,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
             return StandardHash.fnv1aT(expiry);
         }
     }
-    else
-    {
-        alias ArrayMap!(IExpiryRegistration, Expiry*) ExpiryToClient;
-    }
+
     
     private ExpiryToClient expiry_to_client;
 
@@ -418,16 +413,8 @@ abstract class TimeoutManagerBase : ITimeoutManager
             
             foreach_reverse (ref expiry; expiries)
             {
-                version (HashMap)
-                {
-                    IExpiryRegistration registration = *this.expiry_to_client.get(&expiry);
-                }
-                else
-                {
-                    IExpiryRegistration registration = this.expiry_to_client[&expiry];
-                }
-                
-    
+                IExpiryRegistration registration = *this.expiry_to_client.get(&expiry);
+
                 debug ( TimeoutManager ) Stderr('\t')(registration.id)(" timed out\n");
     
                 this.expired_registrations ~= registration;
@@ -505,14 +492,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
         
         Expiry* expiry = this.expiry_tree.add(t);
         
-        version (HashMap)
-        {
-            *this.expiry_to_client.put(expiry) = registration;
-        }
-        else
-        {
-            this.expiry_to_client[expiry] = registration;
-        }
+        *this.expiry_to_client.put(expiry) = registration;
         
         debug ( TimeoutManager )
         {

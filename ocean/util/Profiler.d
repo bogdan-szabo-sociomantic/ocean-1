@@ -96,7 +96,7 @@ module ocean.util.Profiler;
 
 private import ocean.core.Array;
 
-private import ocean.core.ArrayMap;
+private import ocean.util.container.map.Map;
 
 private import ocean.util.TraceProgress;
 
@@ -220,7 +220,7 @@ class Profiler
 	
 	***************************************************************************/
 
-    private ArrayMap!(ulong, char[]) section_start;
+    private StandardKeyHashingMap!(ulong, char[]) section_start;
 
     
 	/***************************************************************************
@@ -229,7 +229,7 @@ class Profiler
 	
 	***************************************************************************/
 
-    private ArrayMap!(ulong, char[]) section_end;
+    private StandardKeyHashingMap!(ulong, char[]) section_end;
 
 
 	/***************************************************************************
@@ -239,7 +239,7 @@ class Profiler
 
 	***************************************************************************/
 	
-    private ArrayMap!(float, char[]) section_avg_time;
+    private StandardKeyHashingMap!(float, char[]) section_avg_time;
 
 
 	/***************************************************************************
@@ -249,7 +249,7 @@ class Profiler
 
 	 ***************************************************************************/
 
-    private ArrayMap!(uint, char[]) section_avg_count;
+    private StandardKeyHashingMap!(uint, char[]) section_avg_count;
 
 
     /***************************************************************************
@@ -260,10 +260,10 @@ class Profiler
 
     public this ( )
     {
-        this.section_start = new ArrayMap!(ulong, char[])();
-        this.section_end = new ArrayMap!(ulong, char[])();
-        this.section_avg_time = new ArrayMap!(float, char[])();
-        this.section_avg_count = new ArrayMap!(uint, char[])();
+        this.section_start = new StandardKeyHashingMap!(ulong, char[])();
+        this.section_end = new StandardKeyHashingMap!(ulong, char[])();
+        this.section_avg_time = new StandardKeyHashingMap!(float, char[])();
+        this.section_avg_count = new StandardKeyHashingMap!(uint, char[])();
     }
 
 

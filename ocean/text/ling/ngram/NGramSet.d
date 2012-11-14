@@ -14,6 +14,12 @@
     So make sure the original text is still in memory, otherwise the slices will
     be invalid.
 
+
+    Since none is using the class and it uncerntain if it works it's deprecated.
+    To make it workable:
+        Switch from ocean.core.ArrayMap to ocean.util.container.map.Map
+        Remove the threadsafe part since threads wont be used.
+
 *******************************************************************************/
 
 module text.ling.ngram.NGramSet;
@@ -66,7 +72,7 @@ public alias NGramSet_!(true) ThreadSafeNGramSet;
 
 *******************************************************************************/
 
-class NGramSet_ ( bool ThreadSafe = false )
+deprecated class NGramSet_ ( bool ThreadSafe = false )
 {
 	/***************************************************************************
 

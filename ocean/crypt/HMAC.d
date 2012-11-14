@@ -109,7 +109,7 @@ public class HMAC
 
     ***************************************************************************/
 
-    public this ( MerkleDamgard hash, ubyte[] key = null )
+    public this ( MerkleDamgard hash)
     {
         this.hash = hash;
         this.hash.reset();
@@ -117,10 +117,6 @@ public class HMAC
         this.ipad = new ubyte[this.blockSize];
         this.opad = new ubyte[this.blockSize];
 
-        if ( key )
-        {
-            this.init(key);
-        }
     }
 
     version (D_Version2)
@@ -253,7 +249,7 @@ public class HMAC
 
 	***************************************************************************/
     
-    public ubyte[] digest ( ubyte[] buffer = null )
+    public ubyte[] digest ( ubyte[] buffer )
     {   
         ubyte[] t = this.hash.binaryDigest(buffer)[0 .. this.hash.digestSize()];
         this.hash.update(this.opad);
@@ -285,7 +281,7 @@ public class HMAC
 
 	***************************************************************************/
     
-    public char[] hexDigest ( ubyte[] buffer = null )
+    public char[] hexDigest ( ubyte[] buffer )
     {
         return ByteConverter.hexEncode(this.digest(buffer));
     }    
@@ -337,8 +333,8 @@ public class HMAC
             for (int j = 0; j < test_repeat[i]; j++)
                 h.update(ByteConverter.hexDecode(test_inputs[i]));
             char[] mac = h.hexDigest(buffer);
-            assert(mac == test_results[i], 
+            assert(mac == test_results[i],
                     h.name~": ("~mac~") != ("~test_results[i]~")");
         }
-    }    
+    }
 }
