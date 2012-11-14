@@ -8,11 +8,18 @@
 
     authors:        Gavin Norman
 
-    Map template with a fixed set of keys. If an item is added whose key is not
-    in the fixed set, an exception is thrown.
+    Map template with a fixed set of keys, specified in the class' constructor.
+    If an item is added whose key is not in the fixed set, an exception is
+    thrown.
 
     Such a map can be faster than a standard hash map, as the fixed set of
-    possible keys means that 
+    possible keys means that a fast binary search can be used to find the index
+    of the corresponding value. This of course only holds true when the time
+    taken to generate a hash from a key would be slower than the time taken to
+    do a binary search over the key. In the case of char[] keys, tests have
+    shown that for keys of 5 characters or longer, the FixedKeyMap starts to be
+    faster than the StandardKeyHashingMap, and that in the case of long keys
+    (100 characters) it is an order of magnitude faster.
 
     Usage example:
 
@@ -32,7 +39,7 @@
         {
             map["fifth"] = "should fail";
         }
-        catch ( FixedKeyMapException e )
+        catch ( map.FixedKeyMapException e )
         {
             // expected
         }
@@ -57,7 +64,7 @@ module ocean.util.container.FixedKeyMap;
 
 private import ocean.core.Array: copy, bsearch;
 
-debug private import tango.io.Stdout;
+debug private import ocean.io.Stdout;
 
 
 
@@ -81,7 +88,7 @@ public class FixedKeyMap ( K, V )
 
     ***************************************************************************/
 
-    private K[] keys; // TODO: could be const?
+    private const K[] keys;
 
 
     /***************************************************************************
@@ -92,7 +99,7 @@ public class FixedKeyMap ( K, V )
 
     ***************************************************************************/
 
-    private V[] values; // TODO: could also be const?
+    private const V[] values;
 
 
     /***************************************************************************
@@ -171,7 +178,7 @@ public class FixedKeyMap ( K, V )
 
     public V opIndex ( K key )
     {
-        return this.values[this.keyIndex(key)];
+        return this.values[this.keyIndex(key, true)];
     }
 
 
@@ -190,7 +197,7 @@ public class FixedKeyMap ( K, V )
 
     public void opIndexAssign ( V value, K key )
     {
-        this.values[this.keyIndex(key)] = value;
+        this.values[this.keyIndex(key, true)] = value;
     }
 
 
@@ -313,14 +320,18 @@ public class FixedKeyMap ( K, V )
 
 unittest
 {
-    auto map = new FixedKeyMap!(char[], char[])("first", "second", "third");
-    assert(("first" in map) is null);
-    assert(("second" in map) is null);
-    assert(("third" in map) is null);
+    auto map = new FixedKeyMap!(char[], char[])(["first", "second", "third"]);
+    assert(("first" in map) !is null);
+    assert(("second" in map) !is null);
+    assert(("third" in map) !is null);
+    assert(("fourth" in map) is null);
+
+    assert(*("first" in map) == "");
+    assert(*("second" in map) == "");
+    assert(*("third" in map) == "");
 
     map["first"] = "hello";
     assert(("first" in map) !is null);
-    assert(map["first"] == "world");
     assert(*("first" in map) == "hello");
     assert(map["first"] == "hello");
 
@@ -334,7 +345,7 @@ unittest
     {
         map["fifth"];
     }
-    catch ( FixedKeyMapException e )
+    catch ( map.FixedKeyMapException e )
     {
         caught = true;
     }
