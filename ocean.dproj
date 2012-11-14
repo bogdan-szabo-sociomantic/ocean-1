@@ -23,12 +23,16 @@
     <ObjectsDirectory>obj/Debug</ObjectsDirectory>
     <OutputName>ocean</OutputName>
     <Externalconsole>true</Externalconsole>
+    <UnittestMode>false</UnittestMode>
+    <DebugLevel>0</DebugLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release</OutputPath>
     <ObjectsDirectory>obj/Release</ObjectsDirectory>
     <OutputName>ocean</OutputName>
     <Externalconsole>true</Externalconsole>
+    <UnittestMode>false</UnittestMode>
+    <DebugLevel>0</DebugLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Unittest|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -37,6 +41,8 @@
     <ExtraCompilerArguments>-unittest </ExtraCompilerArguments>
     <OutputName>ocean</OutputName>
     <Externalconsole>true</Externalconsole>
+    <UnittestMode>false</UnittestMode>
+    <DebugLevel>0</DebugLevel>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ocean\core\Array.d" />
@@ -301,12 +307,9 @@
     <Compile Include="ocean\util\log\MessageLogger.d" />
     <Compile Include="ocean\util\log\PeriodicTrace.d" />
     <Compile Include="ocean\util\log\SimpleLayout.d" />
-    <Compile Include="ocean\util\log\StaticModuleLogger.d" />
     <Compile Include="ocean\util\log\StaticTrace.d" />
     <Compile Include="ocean\util\log\Stats.d" />
-    <Compile Include="ocean\util\log\StatsLog.d" />
     <Compile Include="ocean\util\log\Trace.d" />
-    <Compile Include="ocean\util\log\Util.d" />
     <Compile Include="ocean\util\Config.d" />
     <Compile Include="ocean\util\Main.d" />
     <Compile Include="ocean\util\MemUsage.d" />
@@ -410,6 +413,7 @@
     <None Include="ocean\net\client\xmlrpc\c\transport.h" />
     <None Include="ocean\net\client\xmlrpc\c\util.h" />
     <None Include="ocean\net\client\xmlrpc\c\client_global.h" />
+    <Compile Include="ocean\util\log\Config.d" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ocean\util\container\pool\" />
