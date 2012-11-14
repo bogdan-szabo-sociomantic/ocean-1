@@ -22,7 +22,7 @@ module ocean.core.Traits;
 
     This function is designed to be used at compile time.
 
-    Note that any string identifier beginning with __ is also reserved by D.
+    Note that any string identifier beginning with __ is also reserved by D 1.0.
     This function does not check for this case.
 
     Params:
@@ -78,6 +78,9 @@ public bool isKeyword ( char[] string )
 
     This function is designed to be used at compile time.
 
+    Note that this function does not check whether the passed string is a D
+    keyword (see isKeyword(), above) -- all keywords are also identifiers.
+
     Params:
         string = string to check
 
@@ -98,14 +101,16 @@ public bool isIdentifier ( char[] string )
         return alphaUnderscore(c) || (c >= '0' && c <= '9');
     }
 
+    // Identifiers must have a length
     if ( string.length == 0 ) return false;
 
+    // Identifiers must begin with an alphabetic or underscore character
     if ( !alphaUnderscore(string[0]) ) return false;
 
-    if ( string.length == 1 && string[0] == '_' ) return false;
-
+    // Strings beginning with "__" are reserved (not identifiers)
     if ( string.length > 1 && string[0] == '_' && string[1] == '_' ) return false;
 
+    // All characters after the first must be alphanumerics or underscores
     for ( int i = 1; i < string.length; i++ )
     {
         if ( !validChar(string[i]) ) return false;
