@@ -26,15 +26,7 @@ module ocean.text.entities.model.IEntityCodec;
 
 private import ocean.text.entities.model.IEntitySet;
 
-private import ocean.util.OceanException;
-
 private import Utf = tango.text.convert.Utf;
-
-debug
-{
-	private import tango.util.log.Trace;
-}
-
 
 
 /*******************************************************************************
@@ -202,30 +194,22 @@ public abstract class IEntityCodec ( E : IEntitySet )
 	{
         output.length = text.length;
 
-        try
-        {
-    		static if ( is(Char == dchar) )
-    		{
-    			return Utf.toString32(text, output);
-    		}
-    		else static if ( is(Char == wchar) )
-    		{
-    			return Utf.toString16(text, output);
-    		}
-    		else static if ( is(Char == char) )
-    		{
-    			return text;
-    		}
-    		else
-    		{
-    			static assert(false, This.stringof ~ ".charTo - template parameter must be one of {char, wchar, dchar}");
-    		}
-        }
-        catch ( Exception e )
-        {
-            OceanException.Warn("{}.charTo error - {}", typeof(this).stringof, e.msg);
-            return "";
-        }
+		static if ( is(Char == dchar) )
+		{
+			return Utf.toString32(text, output);
+		}
+		else static if ( is(Char == wchar) )
+		{
+			return Utf.toString16(text, output);
+		}
+		else static if ( is(Char == char) )
+		{
+			return text;
+		}
+		else
+		{
+			static assert(false, This.stringof ~ ".charTo - template parameter must be one of {char, wchar, dchar}");
+		}
 	}
 
 
