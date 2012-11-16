@@ -59,6 +59,15 @@ abstract class CachingDataLoaderBase
     
     /**************************************************************************
 
+        Flag to determine whether empty values returned by the value getter
+        delegate passed to load() are added to the cache or not.
+
+     **************************************************************************/
+
+    public bool add_empty_values = true;
+
+    /**************************************************************************
+
         Constructor
         
         Params:
@@ -116,29 +125,32 @@ abstract class CachingDataLoaderBase
     
      **************************************************************************/
     
-    protected void[] load ( hash_t key, void delegate ( void delegate ( void[] data ) got ) get_data )
+    protected void[] load ( hash_t key,
+        void delegate ( void delegate ( void[] data ) got ) get_data )
     {
-        bool existed;
+        auto value_in_cache = this.cache_.getRaw(key);
         
-        auto value_in_cache = this.cache_.getOrCreateRaw(key, existed);
-        
-        if (existed)
+        if (value_in_cache)
         {
             return this.loadRaw((*value_in_cache)[]);
         }
         else
         {
             void[] value_out = null;
-            
+
             get_data((void[] data)
                      {
-                         value_out = this.loadRaw((*value_in_cache)[] = data[]);
+                         if ( data || this.add_empty_values )
+                         {
+                             value_in_cache = this.cache_.createRaw(key);
+                             value_out = this.loadRaw((*value_in_cache)[] = data[]);
+                         }
                      });
-            
+
             return value_out;
         }
     }
-    
+
     /**************************************************************************
 
         Loads/deserializes data if it is not null or empty.
