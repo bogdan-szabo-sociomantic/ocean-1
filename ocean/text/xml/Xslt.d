@@ -254,6 +254,53 @@ public class XsltResult
     }
 }
 
+/*******************************************************************************
+
+    Xslt parameter class
+
+    Stores parameters to be passed to an XsltStylesheet object.
+    Parameters must be null-terminated.
+
+*******************************************************************************/
+
+public class XsltParameters
+{
+    /***************************************************************************
+
+        Null-terminated parameters, in C-format.
+        Consists of key, value, key, value, null.
+
+    ***************************************************************************/
+
+    private char *[] c_params;
+
+    /***************************************************************************
+
+        Accepts a list of strings in the form
+        ----
+            key, value, key, value, ...
+        ----
+        Each string must be null-terminated since it will be passed to C.
+
+    ***************************************************************************/
+
+    void setParams(char[][] keyvaluelist...)
+    {
+        // Check that it is even
+        assert(!(keyvaluelist.length & 1), "XSLT parameters must have equal number of keys and values");
+
+        this.c_params = new char *[keyvaluelist.length + 1];
+
+        foreach (int i, p; keyvaluelist)
+        {
+            assert(p[$-1]=='\0', "XSLT parameters must be null terminated");
+            this.c_params[ i ] = p.ptr;
+        }
+
+        this.c_params[$-1] = null;
+    }
+}
+
 
 
 /*******************************************************************************
@@ -338,10 +385,11 @@ public class XsltProcessor
             source = xml to transform
             result = result instance to receive transformed xml
             stylesheet = xslt transformation stylesheet instance
+            params  = xslt parameters to pass to the stylesheet
 
     ***************************************************************************/
 
-    public void transform ( ref char[] source, XsltResult result, XsltStylesheet stylesheet )
+    public void transform ( ref char[] source, XsltResult result, XsltStylesheet stylesheet, XsltParameters params = null )
     in
     {
         assert(stylesheet.stylesheet !is null, typeof(this).stringof ~ ".transform: xslt stylesheet not initialised");
@@ -361,8 +409,7 @@ public class XsltProcessor
 
         this.original_xml = xmlParseDoc(source.ptr);
         throwXmlErrors(this.exception);
-
-        this.transformed_xml = xsltApplyStylesheet(stylesheet.stylesheet, this.original_xml, null);
+        this.transformed_xml = xsltApplyStylesheet(stylesheet.stylesheet, this.original_xml, params ? params.c_params.ptr : null);
         throwXmlErrors(this.exception);
 
         result.set(this.transformed_xml, stylesheet);
