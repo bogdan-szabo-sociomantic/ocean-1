@@ -98,7 +98,7 @@ class FiberSelectReader : IFiberSelectProtocol
     
      **************************************************************************/
     
-    invariant
+    invariant()
     {
         assert (available <= this.data.length);
         assert (consumed  <= this.data.length);
