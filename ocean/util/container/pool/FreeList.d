@@ -39,6 +39,8 @@ private import ocean.util.container.pool.model.IFreeList;
 
 private import ocean.core.Array : pop;
 
+private import ocean.core.Traits : StripTypedef;
+
 private import tango.core.Traits;
 
 
@@ -54,8 +56,9 @@ private import tango.core.Traits;
 
 private template ItemType_ ( T )
 {
-    static if ( isReferenceType!(T) || isDynamicArrayType!(T)
-        || isAssocArrayType!(T) )
+    static if ( isReferenceType!(StripTypedef!(T)) || 
+                isDynamicArrayType!(StripTypedef!(T)) ||
+                isAssocArrayType!(StripTypedef!(T)) )
     {
         alias T ItemType_;
     }
