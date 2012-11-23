@@ -189,9 +189,9 @@ public abstract class IBucketSet
     
     protected typeof(this) clear_ ( void[] val_init = null )
     {
-        this.bucket_info.clear();
-        
         this.clearBuckets(val_init);
+        
+        this.bucket_info.clear();
         
         return this;
     }
@@ -328,9 +328,6 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
     }
     body
     {
-        // Clear bucket contents.
-        .clear(this.buckets);
-        
         // Recycle all bucket elements.
         
         foreach (ref element; this)
@@ -342,6 +339,10 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
             
             this.free_bucket_elements.recycle(&element);
         }
+        
+        // Clear bucket contents.
+        
+        .clear(this.buckets);
     }
     
     /**************************************************************************
