@@ -12,33 +12,57 @@
 
 module ocean.util.container.cache.model.IExpiringCacheInfo;
 
+
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
 private import ocean.util.container.cache.model.ICacheInfo;
+
+
 
 interface IExpiringCacheInfo : ICacheInfo
 {
     /***************************************************************************
-    
+
         Statistics counters for get()/exists() calls, caches misses and expired
-        elements. 
-    
+        elements.
+
     ***************************************************************************/
-    
+
     struct GetExpiredStats
     {
         /**********************************************************************
-        
+
             total   = total number of get()/exists() calls so far,
             misses  = number of get()/exists() calls that returned no value
                       because the element was either not in the cache or was
                       removed because it was expired,
             expired = number of get()/exists() calls that found but removed the
                       element because it was expired.
-        
+
         ***********************************************************************/
-    
+
         uint total, misses, expired;
     }
-    
+
+
+    /***************************************************************************
+
+        Gets statistics information for get()/exists() calls, caches misses and
+        expired elements.
+
+        Params:
+            reset = if true, the internal stats counters are reset to 0
+
+        Returns:
+            struct containing stats information
+
+    ***************************************************************************/
+
     GetExpiredStats get_remove_stats ( bool reset = false );
 }
 
