@@ -350,6 +350,9 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
         {
             if (this.needsWrapping(bytes))
             {
+                // check also if read needs to wrap, in that case will not fit
+                if (super.read_from >= this.gap)
+                    return false;
                 return push_size <= super.read_from;
             }
             else
@@ -621,6 +624,46 @@ unittest
     assert(middle.push(cast(ubyte[])"5"));
     assert(middle.push(cast(ubyte[])"6"));
     assert(middle.free_space() == 0);
+
+    // https://github.com/sociomantic/ocean/issues/5
+    void bug5()
+    {
+        const Q_SIZE = 20;
+        FlexibleByteRingQueue q = new FlexibleByteRingQueue(Q_SIZE);
+
+        void push(size_t n)
+        {
+            for (size_t i = 0; i < n; i++)
+            {
+                ubyte[] push_slice = q.push(1);
+                if (push_slice is null)
+                    break;
+                push_slice[] = cast(ubyte[]) [i];
+            }
+        }
+
+        void pop(size_t n)
+        {
+            for (size_t i = 0; i < n; i++)
+            {
+                auto popped = q.pop();
+                if (!popped.length)
+                    break;
+                assert (popped[0] != Q_SIZE+1);
+                popped[0] = Q_SIZE+1;
+            }
+        }
+
+        push(2);
+        pop(1);
+        push(2);
+        pop(1);
+        push(3);
+        pop(4);
+        pop(1);
+    }
+    bug5();
+
 }
 
 /*******************************************************************************
