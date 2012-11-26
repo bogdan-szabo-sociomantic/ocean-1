@@ -9,7 +9,8 @@
 
     authors:        Gavin Norman
 
-    Creates a deep copy from one instance of a type to another.
+    Creates a deep copy from one instance of a type to another. Also provides   
+    a method to do a deep reset of a struct.
     
     'Deep' meaning:
         * The contents of arrays are copied (rather than sliced).
@@ -30,6 +31,8 @@ module ocean.core.DeepCopy;
 *******************************************************************************/
 
 private import ocean.core.Array : copy;
+
+private import ocean.text.convert.Layout;
 
 private import tango.core.Traits;
 
@@ -305,3 +308,385 @@ public void ClassDeepCopy ( T ) ( T src, T dst )
     }
 }
 
+
+
+/*******************************************************************************
+
+    Template to determine the correct DeepCopy function to call dependant on the
+    type given.
+
+    Template params:
+        T = type to deep reset
+
+    Evaluates to:
+        aliases function appropriate to T
+
+*******************************************************************************/
+
+public template DeepReset ( T )
+{
+    static if ( is(T == class) )
+    {
+        alias ClassDeepReset DeepReset;
+    }
+    else static if ( is(T == struct) )
+    {
+        alias StructDeepReset DeepReset;
+    }
+    else static if ( isAssocArrayType!(T) )
+    {
+        // TODO: reset associative arrays
+        pragma(msg, "Warning: deep reset of associative arrays not yet implemented");
+        alias nothing DeepReset;
+    }
+    else static if ( is(T S : S[]) && is(T S == S[]) )
+    {
+        alias DynamicArrayDeepReset DeepReset;
+    }
+    else static if ( is(T S : S[]) && !is(T S == S[]) )
+    {
+        alias StaticArrayDeepReset DeepReset;
+    }
+    else
+    {
+        pragma(msg, "Warning: DeepReset template could not expand for type " ~ T.stringof);
+        alias nothing DeepReset;
+    }
+}
+
+
+
+/*******************************************************************************
+
+    Deep reset function for dynamic arrays. To reset a dynamic array set the
+    length to 0.
+
+    Params:
+        dst = destination array
+
+    Template params:
+        T = type of array to deep copy
+
+*******************************************************************************/
+
+public void DynamicArrayDeepReset ( T ) ( ref T[] dst )
+{
+    ArrayDeepReset(dst);
+    dst.length = 0;
+}
+
+
+
+/*******************************************************************************
+
+    Deep reset function for static arrays. To reset a static array go through
+    the whole array and set the items to the init values for the type of the
+    array.
+    
+    Params:
+        dst = destination array
+    
+    Template params:
+        T = type of array to deep copy
+
+*******************************************************************************/
+
+public void StaticArrayDeepReset ( T ) ( T[] dst )
+{
+    ArrayDeepReset(dst);
+    for ( int i = 0; i < dst.length; i++ )
+    {
+        dst[i] = T.init;
+    }
+}
+
+
+
+/*******************************************************************************
+
+    Deep reset function for arrays.
+
+    Params:
+        dst = destination array
+
+    Template params:
+        T = type of array to deep copy
+
+*******************************************************************************/
+
+private void ArrayDeepReset ( T ) ( ref T[] dst )
+{
+    static if ( isAssocArrayType!(T) )
+    {
+        // TODO: copy associative arrays
+        pragma(msg, "Warning: deep reset of associative arrays not yet implemented");
+    }
+    else static if ( is(T S : S[]) )
+    {
+        foreach ( i, e; dst )
+        {
+            static if ( is(T S == S[]) ) // dynamic array
+            {
+                DynamicArrayDeepReset(dst[i]);
+            }
+            else // static array
+            {
+                StaticArrayDeepReset(dst[i]);
+            }
+        }
+    }
+    else static if ( is(T == struct) )
+    {
+        foreach ( i, e; dst )
+        {
+            StructDeepReset(dst[i]);
+        }
+    }
+    else static if ( is(T == class) )
+    {
+        foreach ( i, e; dst )
+        {
+            ClassDeepReset(dst[i]);
+        }
+    }
+}
+
+
+
+/*******************************************************************************
+
+    Deep copy function for structs.
+    
+    Params:
+        src = source struct
+        dst = destination struct
+    
+    Template params:
+        T = type of struct to deep copy
+
+*******************************************************************************/
+
+// TODO: struct & class both share basically the same body, could be shared?
+
+public void StructDeepReset ( T ) ( ref T dst )
+{
+    static if ( !is(T == struct) )
+    {
+        static assert(false, "StructDeepReset: " ~ T.stringof ~ " is not a struct");
+    }
+    
+    foreach ( i, member; dst.tupleof )
+    {
+        static if ( isAssocArrayType!(typeof(member)) )
+        {
+            // TODO: copy associative arrays
+            pragma(msg, "Warning: deep reset of associative arrays not yet implemented");
+        }
+        else static if ( is(typeof(member) S : S[]) )
+        {
+            static if ( is(typeof(member) U == S[]) ) // dynamic array
+            {
+                DynamicArrayDeepReset(dst.tupleof[i]);
+            }
+            else // static array
+            {
+                StaticArrayDeepReset(dst.tupleof[i]);
+            }
+        }
+        else static if ( is(typeof(member) == class) )
+        {
+            ClassDeepReset(dst.tupleof[i]);
+        }
+        else static if ( is(typeof(member) == struct) )
+        {
+            StructDeepReset(dst.tupleof[i]);
+        }
+        else
+        {
+            dst.tupleof[i] = dst.tupleof[i].init;
+        }
+    }
+}
+
+
+
+/*******************************************************************************
+
+    Deep copy function for dynamic class instances.
+    
+    Params:
+        src = source instance
+        dst = destination instance
+    
+    Template params:
+        T = type of class to deep copy
+
+*******************************************************************************/
+
+public void ClassDeepReset ( T ) ( ref T dst )
+{
+    static if ( !is(T == class) )
+    {
+        static assert(false, "ClassDeepReset: " ~ T.stringof ~ " is not a class");
+    }
+
+    foreach ( i, member; dst.tupleof )
+    {
+        static if ( isAssocArrayType!(typeof(member)) )
+        {
+            // TODO: copy associative arrays
+            pragma(msg, "Warning: deep reset of associative arrays not yet implemented");
+        }
+        else static if ( is(typeof(member) S : S[]) )
+        {
+            static if ( is(typeof(member) S == S[]) ) // dynamic array
+            {
+                DynamicArrayDeepReset(dst.tupleof[i]);
+            }
+            else // static array
+            {
+                StaticArrayDeepReset(dst.tupleof[i]);
+            }
+        }
+        else static if ( is(typeof(member) == class) )
+        {
+            ClassDeepReset(dst.tupleof[i]);
+        }
+        else static if ( is(typeof(member) == struct) )
+        {
+            StructDeepReset(dst.tupleof[i]);
+        }
+        else
+        {
+            dst.tupleof[i] = dst.tupleof[i].init;
+        }
+    }
+
+    // Recurse into super any classes
+    static if ( is(T S == super ) )
+    {
+        foreach ( V; S )
+        {
+            static if ( !is(V == Object) )
+            {
+                ClassDeepReset(cast(V)dst);
+            }
+        }
+    }
+}
+
+
+
+/*******************************************************************************
+
+    unit test for the DeepReset method. Makes a test structure and fills it
+    with data before calling reset and making sure it is cleared.
+
+    We first build a basic struct that has both a single sub struct and a 
+    dynamic array of sub structs. Both of these are then filled along with
+    the fursther sub sub struct.
+
+    The DeepReset method is then called. The struct is then confirmed to
+    have had it's members reset to the correct values
+
+*******************************************************************************/
+
+
+unittest
+{
+    struct TestStruct
+    {
+        int a;
+        char[] b;
+        int[7] c;
+        
+        public struct SubStruct
+        {
+            int d;
+            char[] e;
+            char[][] f;
+            int[7] g;
+            
+            public struct SubSubStruct
+            {
+                int h;
+                char[] i;
+                char[][] j;
+                int[7] k;
+                
+                void InitStructure()
+                {
+                    this.h = -52;
+                    this.i = "even more test text";
+                    this.j = ["abc", "def", "ghi"];
+                    foreach ( ref item; this.k )
+                    {
+                        item = 120000;
+                    }  
+                }
+            }
+            
+            void InitStructure()
+            {
+                this.d = 32;
+                this.e = "more test text";
+                this.f = ["abc", "def", "ghi"];
+                foreach ( ref item; this.g )
+                {
+                    item = 32400;
+                }
+            }
+            
+            SubSubStruct[] sub_sub_struct;
+        }
+        
+        SubStruct sub_struct;
+        
+        SubStruct[] sub_struct_array;
+    }
+    
+    TestStruct test_struct;
+    test_struct.a = 7;
+    test_struct.b = "some test text";
+    foreach ( i, ref item; test_struct.c )
+    {
+        item = 64800;
+    }
+    
+    TestStruct.SubStruct sub_struct;
+    sub_struct.InitStructure;
+    test_struct.sub_struct = sub_struct;
+    test_struct.sub_struct_array ~= sub_struct;
+    test_struct.sub_struct_array ~= sub_struct;
+    
+    
+    TestStruct.SubStruct.SubSubStruct sub_sub_struct;
+    sub_sub_struct.InitStructure;
+    test_struct.sub_struct_array[0].sub_sub_struct ~= sub_sub_struct;
+    test_struct.sub_struct_array[1].sub_sub_struct ~= sub_sub_struct;
+    test_struct.sub_struct_array[1].sub_sub_struct ~= sub_sub_struct;
+    test_struct.sub_struct.sub_sub_struct ~= sub_sub_struct;
+    test_struct.sub_struct.sub_sub_struct ~= sub_sub_struct;
+    
+    DeepReset!(TestStruct)(test_struct);
+    
+    assert (test_struct.a == 0, "failed DeepReset check");
+    assert (test_struct.b == "", "failed DeepReset check");
+    foreach ( item; test_struct.c )
+    {
+        assert (item == 0, buffer);
+    }
+    
+    assert(test_struct.sub_struct_array.length == 0, "failed DeepReset check"); 
+
+    assert (test_struct.sub_struct.d == 0, "failed DeepReset check");
+    assert (test_struct.sub_struct.e == "", "failed DeepReset check");
+    assert (test_struct.sub_struct.f.length == 0, "failed DeepReset check");
+    foreach ( item; test_struct.sub_struct.g )
+    {
+        assert (item == 0, "failed DeepReset check");
+    }
+      
+    assert(test_struct.sub_struct.sub_sub_struct.length == 0, "failed DeepReset check");
+    
+}
