@@ -394,10 +394,6 @@ public void DynamicArrayDeepReset ( T ) ( ref T[] dst )
 public void StaticArrayDeepReset ( T ) ( T[] dst )
 {
     ArrayDeepReset(dst);
-    for ( int i = 0; i < dst.length; i++ )
-    {
-        dst[i] = T.init;
-    }
 }
 
 
@@ -449,16 +445,23 @@ private void ArrayDeepReset ( T ) ( ref T[] dst )
             ClassDeepReset(dst[i]);
         }
     }
+    else
+    {
+        // TODO this probably does not need to be done for a dynamic array        
+        foreach ( ref item; dst )
+        {
+            item = item.init;
+        }
+    }
 }
 
 
 
 /*******************************************************************************
 
-    Deep copy function for structs.
+    Deep reset function for structs.
     
     Params:
-        src = source struct
         dst = destination struct
     
     Template params:
@@ -512,10 +515,9 @@ public void StructDeepReset ( T ) ( ref T dst )
 
 /*******************************************************************************
 
-    Deep copy function for dynamic class instances.
+    Deep reset function for dynamic class instances.
     
     Params:
-        src = source instance
         dst = destination instance
     
     Template params:
@@ -589,6 +591,9 @@ public void ClassDeepReset ( T ) ( ref T dst )
     The DeepReset method is then called. The struct is then confirmed to
     have had it's members reset to the correct values
 
+    TODO Adjust the unit test so it also deals with struct being 
+    re-initialised to make sure they are not full of old data (~=)
+
 *******************************************************************************/
 
 
@@ -617,8 +622,11 @@ unittest
                 void InitStructure()
                 {
                     this.h = -52;
-                    this.i = "even more test text";
-                    this.j = ["abc", "def", "ghi"];
+                    this.i.copy("even even more test text");
+                    this.j.length = 3;
+                    this.j[0].copy("abc");
+                    this.j[1].copy("def");
+                    this.j[2].copy("ghi");
                     foreach ( ref item; this.k )
                     {
                         item = 120000;
@@ -629,8 +637,10 @@ unittest
             void InitStructure()
             {
                 this.d = 32;
-                this.e = "more test text";
-                this.f = ["abc", "def", "ghi"];
+                this.e.copy("even more test text");
+                
+                this.f.length = 1;
+                this.f[0].copy("abc");
                 foreach ( ref item; this.g )
                 {
                     item = 32400;
@@ -647,7 +657,7 @@ unittest
     
     TestStruct test_struct;
     test_struct.a = 7;
-    test_struct.b = "some test text";
+    test_struct.b.copy("some test");
     foreach ( i, ref item; test_struct.c )
     {
         item = 64800;
@@ -674,7 +684,7 @@ unittest
     assert (test_struct.b == "", "failed DeepReset check");
     foreach ( item; test_struct.c )
     {
-        assert (item == 0, buffer);
+        assert (item == 0, "failed DeepReset check");
     }
     
     assert(test_struct.sub_struct_array.length == 0, "failed DeepReset check"); 
@@ -688,5 +698,5 @@ unittest
     }
       
     assert(test_struct.sub_struct.sub_sub_struct.length == 0, "failed DeepReset check");
-    
+
 }
