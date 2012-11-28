@@ -92,6 +92,27 @@ public class FiberSocketConnection ( bool IPv6 = false ) : IFiberSocketConnectio
     
     /**************************************************************************
     
+        Constructor.
+        
+        warning_e and socket_error may be the same object.
+        
+        Params:
+            socket       = IPSocket instance to use internally
+            fiber        = fiber to be suspended when socket connection does not
+                           immediately succeed or fail
+            warning_e    = exception to be thrown when the remote hung up
+            socket_error = exception to be thrown on socket error
+        
+     **************************************************************************/
+
+    public this ( IPSocket socket, SelectFiber fiber,
+                  IOWarning warning_e, SocketError socket_error )
+    {
+        super(this.socket = socket, fiber, warning_e, socket_error);
+    }
+    
+    /**************************************************************************
+    
         Attempts to connect to the remote host, suspending the fiber if
         establishing the connection does not immediately succeed or fail. If a
         connection to the same address and port is already established, the
