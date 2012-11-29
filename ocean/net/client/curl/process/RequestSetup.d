@@ -39,7 +39,7 @@ public template RequestBase ( )
 
     ***************************************************************************/
        
-    invariant
+    invariant ( )
     {
         assert(this.params.url && this.params.req_command, 
             "Invalid request object -- command not set");
@@ -201,6 +201,20 @@ public template RequestBase ( )
         return this;
     }
 
+    /***************************************************************************
+
+        Set this download to follow redirects (HTTP header 3XX response codes)
+
+        Returns:
+            this pointer for method chaining
+
+    ***************************************************************************/
+
+    public typeof(this) follow_redirects ( )
+    {
+        this.params.follow_redirects = true;
+        return this;
+    }
 
     /***************************************************************************
 

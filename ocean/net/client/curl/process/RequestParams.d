@@ -173,6 +173,15 @@ public struct RequestParams
 
     /***************************************************************************
 
+        Flag set to true to follow redirects (HTTP header 3XX response codes)
+
+    ***************************************************************************/
+
+    public bool follow_redirects;
+
+
+    /***************************************************************************
+
         To be used when extra information is needed to be add to the header. 
 
     ***************************************************************************/
