@@ -228,7 +228,7 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IErrorReporter
 
     public bool connected ( )
     {
-        return this.socket.fd >= 0;
+        return this.socket.fileHandle >= 0;
     }
     
     /***************************************************************************
