@@ -281,6 +281,38 @@ class FiberSelectReader : IFiberSelectProtocol
         }
     }
     
+    public typeof (this) read ( T ) ( ref T value )
+    {
+        while ( this.available < T.sizeof )
+        {
+            this.receive();
+        }
+        
+        value = this.data[this.consumed .. this.consumed + T.sizeof];
+        
+        this.consumed += T.sizeof;
+        
+        return this;
+    }
+    
+    public typeof (this) readRaw ( ubyte[] data )
+    {
+        this.warning_e.assertEx(data.length > this.default_buffer_size, 
+                                "Requested array length longer than internal buffer", 
+                                __FILE__, __LINE__);
+
+        while ( this.available < data.length )
+        {
+            this.receive();
+        }
+        
+        data[] = this.data[this.consumed .. this.consumed + data.length];
+        
+        this.consumed += data.length;
+        
+        return this;
+    }
+    
     /**************************************************************************
 
         Reads data from the input conduit and appends them to the data buffer,
