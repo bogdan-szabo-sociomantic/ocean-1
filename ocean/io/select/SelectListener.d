@@ -222,7 +222,7 @@ abstract class ISelectListener : ISelectClient
 
     public Handle fileHandle ( )
     {
-        return cast (Handle) this.socket.fd;
+        return this.socket.fileHandle;
     }
 
     /**************************************************************************
@@ -402,7 +402,7 @@ abstract class ISelectListener : ISelectClient
     
     private void declineConnection ( )
     {
-        if (.close(.accept(this.socket.fd, null, null))) // returns non-zero on failure
+        if (.close(.accept(this.socket.fileHandle, null, null))) // returns non-zero on failure
         {
             .errno = 0;
         }
