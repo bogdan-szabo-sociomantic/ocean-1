@@ -529,7 +529,7 @@ public class IFiberSocketConnection : IFiberSelectProtocol
     {
         // Create a socket if it is currently closed.
         
-        if (this.socket.fd < 0)
+        if (this.socket.fileHandle < 0)
         {
             this.connected_ = false;
 
