@@ -66,6 +66,8 @@ module ocean.util.config.ClassFiller;
 *******************************************************************************/
 
 public  import ocean.core.Exception: ConfigException, assertEx;
+
+private import ocean.core.Traits;
                
 private import tango.core.Exception;
 
@@ -626,25 +628,6 @@ public template IsSupported ( T )
     else
     {
         const IsSupported = false;
-    }
-}
-
-
-/*******************************************************************************
-
-    Strips the typedef off T
-
-*******************************************************************************/
-
-private template StripTypedef ( T )
-{
-    static if ( is ( T Orig == typedef ) )
-    {
-        alias Orig StripTypedef;
-    }
-    else
-    {
-        alias T StripTypedef;
     }
 }
 
