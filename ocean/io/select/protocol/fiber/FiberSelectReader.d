@@ -280,7 +280,26 @@ class FiberSelectReader : IFiberSelectProtocol
             return end != this.available;
         }
     }
-    
+      
+     /**************************************************************************
+
+        Reads T.sizeof bytes from the socket and writes it to 'value'
+        Suspends if not enough data is available and resumes when 
+        the data became available
+        
+        Params:
+            value = reference to a variable to be filled
+            
+        Returns:
+            this instance
+            
+        Throws:
+            IOException if no data were received and won't arrive later:
+                - IOWarning on end-of-flow condition or if the remote hung up,
+                - IOError (IOWarning subclass) on I/O error.
+
+     **************************************************************************/
+ 
     public typeof (this) read ( T ) ( ref T value )
     {
         while ( this.available < T.sizeof )
@@ -288,27 +307,49 @@ class FiberSelectReader : IFiberSelectProtocol
             this.receive();
         }
         
-        value = this.data[this.consumed .. this.consumed + T.sizeof];
+        value = *cast(T*)this.data[this.consumed .. this.consumed + T.sizeof].ptr;
         
         this.consumed += T.sizeof;
         
         return this;
     }
     
-    public typeof (this) readRaw ( ubyte[] data )
+    /**************************************************************************
+
+        Reads data.length bytes from the socket and writes them to the array.
+        Can't read more than the internal buffer can hold and will throw if 
+        the request would exceeds it.
+    
+        Will only return once enough data is available and the array could 
+        be filled.
+    
+        Params:
+            data = pre-allocated array which will be filled
+            
+        Returns:
+            this instance
+            
+        Throws:
+            IOException if no data were received and won't arrive later:
+                - IOWarning on end-of-flow condition or if the remote hung up,
+                - IOError (IOWarning subclass) on I/O error.
+
+     **************************************************************************/
+
+    public typeof (this) readRaw ( ubyte[] data_out )
     {
-        this.warning_e.assertEx(data.length > this.default_buffer_size, 
+        this.warning_e.assertEx(data_out.length > this.default_buffer_size, 
                                 "Requested array length longer than internal buffer", 
                                 __FILE__, __LINE__);
 
-        while ( this.available < data.length )
+        while ( this.available < data_out.length )
         {
             this.receive();
         }
         
-        data[] = this.data[this.consumed .. this.consumed + data.length];
+        data_out[] = cast(ubyte[]) this.data[this.consumed .. this.consumed + data_out.length];
         
-        this.consumed += data.length;
+        this.consumed += data_out.length;
         
         return this;
     }
@@ -371,7 +412,7 @@ class FiberSelectReader : IFiberSelectProtocol
 
      **************************************************************************/
 
-    public typeof (this) read ( Consumer consume )
+    public typeof (this) readConsume ( Consumer consume )
     {
         bool more;
 
