@@ -338,7 +338,7 @@ class FiberSelectReader : IFiberSelectProtocol
 
     public typeof (this) readRaw ( ubyte[] data_out )
     {
-        this.warning_e.assertEx(data_out.length > this.default_buffer_size, 
+        this.warning_e.assertEx(data_out.length <= this.default_buffer_size, 
                                 "Requested array length longer than internal buffer", 
                                 __FILE__, __LINE__);
 

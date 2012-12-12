@@ -13,6 +13,23 @@
     Provides a kill() method where kill() resumes suspend() and suspend() throws
     a KilledException when it was resumed by kill(). 
 
+    suspend and resume require you to pass a template parameter to them
+    which must be the same for each suspend/resume pair. This prevents that
+    a fiber is resumed from a part of the code that wasn't intended to do so.
+    
+    Still, sometimes the correct position in a code could resume a fiber
+    that was waiting for a resume from another instance of the same code
+    (for example, a fiber is being resumed from a wrong class instance).
+    To catch these cases, a runtime-identifier parameter was added,
+    which is just an Object reference. If another object is resuming a fiber
+    an exception is thrown.
+
+    See also the documentation of suspend/resume.
+
+    Note: You can use -debug=MessageFiber to print the identifiers that
+          were used in the suspend/resume calls. It uses the FirstNames
+          functions to print pointers as names.
+
  ******************************************************************************/
 
 module ocean.core.MessageFiber;
@@ -29,6 +46,14 @@ private import ocean.core.Array: copy;
 
 private import ocean.core.SmartUnion;
 
+private import ocean.io.digest.Fnv1;
+
+debug ( MessageFiber )
+{
+    private import ocean.util.log.Trace;
+    private import ocean.io.digest.FirstName;
+}
+
 /******************************************************************************/
 
 interface MessageFiberControl
@@ -36,8 +61,8 @@ interface MessageFiberControl
     alias MessageFiber.Message         Message;
     alias MessageFiber.KilledException KilledException;
     
-    MessageFiber.Message suspend ( Message msg = Message.init );
-    MessageFiber.Message resume  ( Message msg = Message.init );
+    MessageFiber.Message suspend ( char[] Identifier ) ( Object identifier = null, Message msg = Message.init );
+    MessageFiber.Message resume  ( char[] Identifier ) ( Object identifier = null, Message msg = Message.init );    
     
     bool running  ( );
     bool waiting  ( );
@@ -91,11 +116,39 @@ class MessageFiber : MessageFiberControl
     
     /**************************************************************************
 
+        ResumedException; thrown by suspend() when resumed with the wrong
+        identifier
+    
+     **************************************************************************/
+
+    static class ResumeException : Exception
+    {
+        this ( )  {super("Resumed with invalid identifier!");}
+        
+        ResumeException set ( char[] file, long line )
+        {
+            super.file = file;
+            super.line = line;
+            
+            return this; 
+        }
+    }
+    
+    /**************************************************************************
+
         Fiber instance
     
      **************************************************************************/
 
     private const Fiber           fiber;
+    
+    /**************************************************************************
+
+        Identifier
+    
+     **************************************************************************/
+
+    private ulong           identifier;
     
     /**************************************************************************
 
@@ -111,7 +164,15 @@ class MessageFiber : MessageFiberControl
     
      **************************************************************************/
     
-    private const KilledException e_killed;
+    private const KilledException e_killed;    
+    
+    /**************************************************************************
+
+        ResumeException instance
+    
+     **************************************************************************/
+    
+    private const ResumeException e_resume;
 
     /**************************************************************************
 
@@ -134,6 +195,7 @@ class MessageFiber : MessageFiberControl
     {
         this.fiber = new Fiber(coroutine);
         this.e_killed = new KilledException;
+        this.e_resume = new ResumeException;
         this.msg.num = 0;
     }
     
@@ -150,7 +212,8 @@ class MessageFiber : MessageFiberControl
     this ( void delegate ( ) coroutine, size_t sz )
     {
         this.fiber = new Fiber(coroutine, sz);
-        this.e_killed = new KilledException;
+        this.e_killed = new KilledException;        
+        this.e_resume = new ResumeException;
         this.msg.num = 0;
     }
     
@@ -173,7 +236,7 @@ class MessageFiber : MessageFiberControl
             The fiber must not be running (but waiting or finished).
         
      **************************************************************************/
-
+     
     public Message start ( Message msg = Message.init )
     in
     {
@@ -193,7 +256,7 @@ class MessageFiber : MessageFiberControl
             this.msg.num = 0;
         }
         
-        return this.resume(msg);
+        return this.resume!("")(null, msg);
     }
     
     /**************************************************************************
@@ -203,8 +266,18 @@ class MessageFiber : MessageFiberControl
         start()/resume() call.
         
         Params:
+            identifier = reference to the object causing the suspend, use null
+                         to not pass anything. The caller to resume must
+                         pass the same object reference or else a ResumeException
+                         will be thrown inside the fiber
             msg = message to be returned by the next start()/resume() call.
-        
+    
+        Template Params:
+            Identifier = A string that optimally is describing the event the 
+                         fiber is waiting for, for example "DhtReadEvent".
+                         The same string has to be used in the next resume
+                         call, else a ResumeException is thrown inside the fiber.
+    
         Returns:
             the message passed to the resume() call which made this call resume.
             It has always an active member, by default num but never exc.
@@ -218,7 +291,7 @@ class MessageFiber : MessageFiberControl
         
      **************************************************************************/
 
-    public Message suspend ( Message msg = Message.init )
+    public Message suspend ( char[] Identifier ) ( Object identifier = null, Message msg = Message.init )
     in
     {
         assert (this.fiber.state == this.fiber.State.EXEC, "attempt to suspend an inactive fiber");
@@ -238,14 +311,23 @@ class MessageFiber : MessageFiberControl
         }
 
         scope (exit)
-        {
+        {            
             this.msg = msg;
+            
+            debug (MessageFiber) Trace.formatln("--FIBER {} SUSPENDED -- ({}:{})", 
+                FirstName(this), Identifier, FirstName(identifier));
+            
             this.suspend_();
+            
+            if ( this.identifier != Fnv1a64(StaticFnv1a64!(Identifier), cast(ulong)cast(void*)identifier) )
+            {
+                throw this.e_resume.set(__FILE__, __LINE__);
+            }
         }
         
         return this.msg;
-    }
-    
+    }    
+     
     /**************************************************************************
     
         Suspends the fiber coroutine, makes the resuming start()/resume() call
@@ -268,14 +350,14 @@ class MessageFiber : MessageFiberControl
         
      **************************************************************************/
 
-    public Message suspend ( Exception e )
+    public Message suspend () ( Exception e )
     in
     {
         assert (e !is null);
     }
     body
     {
-        return this.suspend(Message(e));
+        return this.suspend!("")(null, Message(e));
     }
     
     /**************************************************************************
@@ -283,9 +365,19 @@ class MessageFiber : MessageFiberControl
         Resumes the fiber coroutine and waits until it is suspended or killed.
             
         Params:
+            identifier = reference to the object causing the resume, use null
+                         to not pass anything. Must be the same reference
+                         that was used in the suspend call, or else a
+                         ResumeException will be thrown inside the fiber.
             msg = message to be returned by the next suspend() call. It has
-            always an active member, by default num but never exc.
-        
+                  always an active member, by default num but never exc.
+    
+        Template Params:
+            Identifier = String that optimally describes the event the fiber
+                         was waiting for. It must be the same string that was
+                         used in the call to suspend or else a ResumeException 
+                         will be thrown inside the fiber.
+    
         Returns:
             The message passed to the suspend() call which made this call
             resume.
@@ -299,7 +391,7 @@ class MessageFiber : MessageFiberControl
         
      **************************************************************************/
     
-    public Message resume ( Message msg = Message.init )
+    public Message resume ( char[] Identifier ) ( Object identifier = null, Message msg = Message.init )
     in
     {
         assert (this.fiber.state == this.fiber.State.HOLD, "attempt to resume a non-held fiber");
@@ -317,6 +409,11 @@ class MessageFiber : MessageFiberControl
             msg.num = 0;
         }
         
+        this.identifier = Fnv1a64(StaticFnv1a64!(Identifier), cast(ulong)cast(void*)identifier);
+        
+        debug (MessageFiber) Trace.formatln("--FIBER {} RESUMED -- ({}:{})", 
+                FirstName(this), Identifier, FirstName(identifier));
+        
         scope (exit) this.msg = msg;
         this.fiber.call();
         
@@ -328,8 +425,8 @@ class MessageFiber : MessageFiberControl
         {
             return this.msg;
         }
-    }
-
+    }  
+       
     /**************************************************************************
     
         Kills the fiber coroutine. That is, resumes it and makes resume() throw
