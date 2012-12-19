@@ -8,23 +8,53 @@
     
     authors:        Mathias Baumann
     
-    Configures tango loggers.
+    Configures tango loggers, uses the AppendSyslog class to provide logfile
+    rotation.
     
     A logger in the config file can be configured using the following syntax:
     
+        ; Which logger to configure. In this case LoggerName is being configured.
+        ; A whole hierachy can be specified like LOG.MyApp.ThatOutput.X
+        ; And each level can be configured.
         [LOG.LoggerName]
-        console   = true
-        file      = log/logger_name.log
-        propagate = false
-        level     = info
-        additive  = true
+
+        ; Whether to output to the terminal 
+        console   = true 
+
+        ; File to output to, no output to file if not given
+        file      = log/logger_name.log 
+
+        ; Whether to propagate the options down in the hierachy
+        propagate = false 
+
+        ; The verbosity level, corresponse to the tango logger levels
+        level     = info 
+
+        ; Is this logger additive? That is, should we walk ancestors
+        ; looking for more appenders?
+        additive  = true 
+
+    See the class Config for further options and documentation.
     
-    General logger configuration can be made like this:
+    There are global logger configuration options as well:
     
+        ; Global options are in the section [LOG]
         [LOG]
-        file_count    = 10
-        max_file_size = 500000
         
+        ; Maximum amount of files that will exist.
+        file_count    = 10
+        ; Maximum size of one file in bytes till it will be rotated
+        ; 
+        max_file_size = 500000
+
+        ; files equal or higher this value will be compressed
+        start_compress = 4
+
+        ; Buffer size for output
+        buffer_size = 2048
+
+    See the class MetaConfig for further options and documentation.
+
     Upon calling the configureLoggers function, logger related configuration
     will be read and the according loggers configured accordingly.
         
@@ -110,7 +140,8 @@ class Config
         
     /***************************************************************************
     
-        Buffer size of the buffer output
+        Buffer size of the buffer output, overwrites the global setting
+        given in MetaConfig
     
     ***************************************************************************/
 
