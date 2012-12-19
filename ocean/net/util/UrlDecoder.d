@@ -221,7 +221,7 @@ class UrlDecoder
             default:
                 if (src.length >= 2)
                 {
-                    written = hex2(src[1], src[0], dst[0]);
+                    written = hex2(src[0], src[1], dst[0]);
                     
                     if (written)
                     {
