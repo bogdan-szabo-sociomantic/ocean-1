@@ -363,7 +363,7 @@ class ParamSet
     bool matches ( char[] key, char[] val )
     {
         Element* element = this.get_(key);
-        
+
         return element?
             (element.val.length == val.length) &&
                 !this.strncasecmp(element.val, val) :
@@ -409,7 +409,7 @@ class ParamSet
         Compares a to b, treating ASCII characters case-insensitively. If a and
         b have a different length, the first common characters are compared. If
         these are equal, the longer string compares greater.
-        
+
         To see if the content of a and b is the same, use
         
         ---
@@ -425,20 +425,26 @@ class ParamSet
             
         Returns:
             a value greater than 0 if a compares greater than b, less than 0
-            if less or 0 if the first common characters in a and b are equal.
-        
+            if a compares less than b, or 0 if a and b are of equal length and
+            all characters are equal.
+
      **************************************************************************/
 
     public static int strncasecmp ( char[] a, char[] b )
     {
-        if (a.length && b.length)
+        if ( a.length && b.length )
         {
-            bool a_is_shorter = a.length < b.length;
-            
-            int c = g_ascii_strncasecmp(a.ptr, b.ptr,
-                                        a_is_shorter? a.length : b.length);
-            
-            return c? c : a_is_shorter? -1 : 1;
+            if ( a.length == b.length )
+            {
+                return g_ascii_strncasecmp(a.ptr, b.ptr, a.length);
+            }
+            else
+            {
+                bool a_is_shorter = a.length < b.length;
+                int c = g_ascii_strncasecmp(a.ptr, b.ptr,
+                    a_is_shorter? a.length : b.length);
+                return c? c : a_is_shorter? -1 : 1;
+            }
         }
         else
         {
@@ -447,7 +453,21 @@ class ParamSet
                        0;
         }
     }
-    
+
+    unittest
+    {
+        assert(strncasecmp("a", "b") < 0);
+        assert(strncasecmp("b", "a") > 0);
+        assert(strncasecmp("hello", "hello") == 0);
+        assert(strncasecmp("hello", "Hello") == 0);
+        assert(strncasecmp("hello", "HELLO") == 0);
+        assert(strncasecmp("hello", "hello there") < 0);
+        assert(strncasecmp("hello there", "hello") > 0);
+        assert(strncasecmp("", "hell0") < 0);
+        assert(strncasecmp("hello", "") > 0);
+        assert(strncasecmp("", "") == 0);
+    }
+
     /**************************************************************************
 
         Adds an entry for key.
