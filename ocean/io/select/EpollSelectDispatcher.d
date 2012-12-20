@@ -722,46 +722,53 @@ public class EpollSelectDispatcher
                 Trace.formatln("");
             }
 
-            bool unregister_key = true,
-                 error          = false;
-
-            try
+            // Only handle clients which are registered. Clients may have
+            // already been unregistered (presumably deliberately), as a side-
+            // effect of handling previous clients, so we don't unregister them
+            // again or call their finalizers.
+            if ( client.is_registered )
             {
-                this.checkKeyError(client, key.events);
+                bool unregister_key = true,
+                     error          = false;
 
-                unregister_key = !client.handle(key.events);
-
-                debug ( ISelectClient ) if ( unregister_key )
+                try
                 {
-                    Trace.formatln("{} :: Handled, unregistering fd", client);
+                    this.checkKeyError(client, key.events);
+
+                    unregister_key = !client.handle(key.events);
+
+                    debug ( ISelectClient ) if ( unregister_key )
+                    {
+                        Trace.formatln("{} :: Handled, unregistering fd", client);
+                    }
+                    else
+                    {
+                        Trace.formatln("{} :: Handled, leaving fd registered", client);
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    Trace.formatln("{} :: Handled, leaving fd registered", client);
-                }
-            }
-            catch (Exception e)
-            {
-                debug (ISelectClient)
-                {
-                    // TODO: printing on separate lines for now as a workaround
-                    // for a dmd bug with varargs
-                    Trace.formatln("{} :: ISelectClient handle exception:", client);
-                    Trace.formatln("    '{}'", e.msg);
-                    Trace.formatln("    @{}:{}", e.file, e.line);
-//                    Trace.formatln("{} :: ISelectClient handle exception: '{}' @{}:{}",
-//                        client, e.msg, e.file, e.line);
+                    debug (ISelectClient)
+                    {
+                        // FIXME: printing on separate lines for now as a workaround
+                        // for a dmd bug with varargs
+                        Trace.formatln("{} :: ISelectClient handle exception:", client);
+                        Trace.formatln("    '{}'", e.msg);
+                        Trace.formatln("    @{}:{}", e.file, e.line);
+    //                    Trace.formatln("{} :: ISelectClient handle exception: '{}' @{}:{}",
+    //                        client, e.msg, e.file, e.line);
+                    }
+
+                    this.clientError(client, key.events, e);
+                    error = true;
                 }
 
-                this.clientError(client, key.events, e);
-                error = true;
-            }
-
-            if (unregister_key)
-            {
-                this.unregisterAndFinalize(client,
-                                           error? client.FinalizeStatus.Error :
-                                                  client.FinalizeStatus.Success);
+                if (unregister_key)
+                {
+                    this.unregisterAndFinalize(client,
+                                               error? client.FinalizeStatus.Error :
+                                                      client.FinalizeStatus.Success);
+                }
             }
         }
     }
@@ -996,7 +1003,7 @@ public class EpollSelectDispatcher
     {
         debug (ISelectClient)
         {
-            // TODO: printing on separate lines for now as a workaround for a
+            // FIXME: printing on separate lines for now as a workaround for a
             // dmd bug with varargs
             Trace.formatln("{} :: Error during handle:", client);
             Trace.formatln("    '{}'", e.msg);
