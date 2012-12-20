@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    Utility functions to configure tango loggers
+    Utility functions to configure tango loggers from a config file.
 
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
     
@@ -11,7 +11,7 @@
     Configures tango loggers, uses the AppendSyslog class to provide logfile
     rotation.
     
-    A logger in the config file can be configured using the following syntax:
+    In the config file, a logger can be configured using the following syntax:
     
         ; Which logger to configure. In this case LoggerName is being configured.
         ; A whole hierachy can be specified like LOG.MyApp.ThatOutput.X
@@ -43,6 +43,7 @@
         
         ; Maximum amount of files that will exist.
         file_count    = 10
+
         ; Maximum size of one file in bytes till it will be rotated
         ; 
         max_file_size = 500000
@@ -57,14 +58,15 @@
 
     Upon calling the configureLoggers function, logger related configuration
     will be read and the according loggers configured accordingly.
-        
-    Usage Example (You probably will only need to do this):
-    -------
-    import Log = ocean.util.log.Util;
-    // ...
-    Log.configureLoggers(Config().iterateClasses!(Log.Config)("LOG"),
-                         Config().get!(Log.MetaConfig)("LOG"));
-    -------
+
+    Usage Example (you probably will only need to do this):
+
+    ----
+        import Log = ocean.util.log.Config;
+        // ...
+        Log.configureLoggers(Config().iterateClasses!(Log.Config)("LOG"),
+                             Config().get!(Log.MetaConfig)("LOG"));
+    ----
 
 *******************************************************************************/
 
