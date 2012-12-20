@@ -271,7 +271,7 @@ struct DumpArrays
         {
             alias typeof (field) T;
             
-            static if (is (T == struct))
+            static if (is (T == struct) && ContainsDynamicArray!(T))
             {
                 // Recurse into struct field.
                 
@@ -470,7 +470,7 @@ struct DumpArrays
         
         foreach (i, T; typeof (s.tupleof))
         {
-            static if (is (T == struct))
+            static if (is (T == struct) && ContainsDynamicArray!(T))
             {
                 // Recurse into struct field.
                 
