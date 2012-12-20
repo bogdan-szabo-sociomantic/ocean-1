@@ -104,16 +104,15 @@ struct StandardHash
         
         Params:
             data = input data
+            hash = optional input hash
             
         Returns:
             the FNV1a hash value calculated from data.
             
      **************************************************************************/
     
-    hash_t fnv1a ( void[] data )
+    hash_t fnv1a ( void[] data, hash_t hash = fnv1a_init )
     {
-        hash_t hash = this.fnv1a_init;
-        
         foreach (d; cast (ubyte[]) data)
         {
             hash = (hash ^ d) * this.fnv1a_prime;
@@ -131,16 +130,17 @@ struct StandardHash
         from the reference, not the referenced value.
         
         Params:
-            x = input value
+            x    = input value
+            hash = optional input hash
             
         Returns:
             the FNV1a hash value calculated from the raw data of x.
             
      **************************************************************************/
     
-    hash_t fnv1aT ( T ) ( T x )
+    hash_t fnv1aT ( T ) ( T x, hash_t hash = fnv1a_init )
     {
-        mixin (fnv1aCode!("hash", x.stringof, T.sizeof));
+        mixin (fnv1aCode!(hash.stringof, x.stringof, x.sizeof));
         
         return hash;
     }
@@ -149,12 +149,15 @@ struct StandardHash
         
         Evaluates to D code that implements the calculation of FNV1a of a
         variable named var with n bytes of size, storing the result in a
-        variable named hashvar.
+        variable named hashvar. The initial value of hashvar should be
+        fnv1a_init or a previously calculated FNV1a hash.
         
         Example: Let x be an int variable to calculate the hash value from and
             result be the result variable:
             ---
                 int x;
+                
+                hash_t result = fnv1a_init;
             ---
             
             Then
@@ -166,8 +169,7 @@ struct StandardHash
             , where x.sizeof is 4, evaluates to
             
             ---
-                auto result = 14695981039346656037LU,
-                     __x    = cast(ubyte*)&x;
+                auto __x = cast(ubyte*)&x;
                 
                 result = (result ^ __x[0LU]) * 1099511628211LU;
                 result = (result ^ __x[1LU]) * 1099511628211LU;
@@ -188,8 +190,7 @@ struct StandardHash
         }
         else
         {
-            const char[] fnv1aCode = "auto " ~ hashvar ~ "=" ~
-                                     fnv1a_init.stringof ~ ",__" ~ var ~
+            const char[] fnv1aCode = "auto __" ~ var ~
                                      "=cast(" ~ ubyte.stringof ~ "*)&" ~ var ~
                                      ";\n";
         }
