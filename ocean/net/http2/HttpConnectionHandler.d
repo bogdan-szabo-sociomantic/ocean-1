@@ -318,7 +318,7 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
     
     private void receiveRequest ( )
     {
-        super.reader.read((void[] data)
+        super.reader.readConsume((void[] data)
         {
              size_t consumed = this.request.parse(cast (char[]) data, this.request_msg_body_length);
              
