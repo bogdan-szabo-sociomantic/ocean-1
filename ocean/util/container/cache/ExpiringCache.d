@@ -50,11 +50,11 @@ class ExpiringCache ( size_t ValueSize = 0 ) : Cache!(ValueSize, true),
     
     /***************************************************************************
     
-        Statistics counters 
+        Counts the number of lookups where an existing element was expired.
     
     ***************************************************************************/
 
-    private GetExpiredStats stats;
+    protected uint n_expired = 0;
     
     /***************************************************************************
 
@@ -229,6 +229,34 @@ class ExpiringCache ( size_t ValueSize = 0 ) : Cache!(ValueSize, true),
     
     /***************************************************************************
     
+        Returns:
+            the number of cache lookups  since instantiation or the last call of
+            resetStats() where the element could be found but was expired.
+        
+    ***************************************************************************/
+
+    public uint num_expired ( )
+    {
+        return this.n_expired;
+    }
+    
+    /***************************************************************************
+    
+        Resets the statistics counter values.
+        
+    ***************************************************************************/
+    
+    public override void resetStats ( )
+    {
+        super.resetStats();
+        this.n_expired = 0;
+    }
+    
+    /***************************************************************************
+    
+        Please use num_expired() and ICacheInfo.num_lookups()/num_misses()/
+        resetStats() instead.
+        
         Obtains the statistics counters for getRaw()/exists() calls, caches
         misses and expired elements. 
         
@@ -240,14 +268,14 @@ class ExpiringCache ( size_t ValueSize = 0 ) : Cache!(ValueSize, true),
         
     ***************************************************************************/
 
-    public GetExpiredStats get_remove_stats ( bool reset = false )
+    deprecated public GetExpiredStats get_remove_stats ( bool reset = false )
     {
         scope (success) if (reset)
         {
-            this.stats = this.stats.init;
+            this.resetStats();
         }
         
-        return this.stats;
+        return GetExpiredStats(this.n_lookups, this.n_misses, this.n_expired);
     }
     
     /***************************************************************************
@@ -337,25 +365,18 @@ class ExpiringCache ( size_t ValueSize = 0 ) : Cache!(ValueSize, true),
                     cache_item = null;
                 }
                   
-                this.stats.expired++;
-                this.stats.misses++;
+                this.n_expired++;
+                this.n_misses++;
             }
         }
-        else
+        else if (create)
         {
-            if (create)
-            {
-                time_t access_time;
-                
-                cache_item = this.add(key, access_time);
-                
-                cache_item.create_time = access_time;
-            }
+            time_t access_time;
             
-            this.stats.misses++;
+            cache_item = this.add(key, access_time);
+            
+            cache_item.create_time = access_time;
         }
-        
-        this.stats.total++;
         
         return cache_item? cache_item.value_ref : null;
     }

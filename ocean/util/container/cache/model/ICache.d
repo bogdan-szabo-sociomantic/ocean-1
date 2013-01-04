@@ -82,6 +82,15 @@ abstract class ICache : ICacheInfo
     private const size_t max_items;
     
     /***************************************************************************
+
+        Counters for the cache lookups and misses.
+    
+    ***************************************************************************/
+    
+    protected uint n_lookups = 0,
+                   n_misses  = 0;
+    
+    /***************************************************************************
     
         Constructor.
     
@@ -148,6 +157,37 @@ abstract class ICache : ICacheInfo
     public size_t max_length ( )
     {
         return this.max_items;
+    }
+    
+    /***************************************************************************
+    
+        Returns:
+            the number of cache lookups since instantiation or the last call of
+            resetStats().
+    
+    ***************************************************************************/
+    
+    public uint num_lookups ( )
+    {
+        return this.n_lookups;
+    }
+    
+    /***************************************************************************
+    
+        Returns:
+            the number of cache lookups since instantiation or the last call of
+            resetStats().
+    
+    ***************************************************************************/
+    
+    public uint num_misses ( )
+    {
+        return this.n_misses;
+    }
+   
+    public void resetStats ( )
+    {
+        this.n_lookups = this.n_misses = 0;
     }
     
     /***************************************************************************
@@ -323,7 +363,12 @@ abstract class ICache : ICacheInfo
     }
     body
     {
-        return key in this.key_to_node;
+        TimeToIndex.Node** node = key in this.key_to_node;
+        
+        this.n_lookups++;
+        this.n_misses += (node is null);
+        
+        return node;
     }
     
     /***************************************************************************
