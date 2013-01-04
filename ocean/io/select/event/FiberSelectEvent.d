@@ -45,6 +45,8 @@ module ocean.io.select.event.FiberSelectEvent;
 
 *******************************************************************************/
 
+private import ocean.core.MessageFiber;
+
 private import ocean.sys.EventFD;
 
 private import ocean.io.select.model.IFiberSelectClient;
@@ -59,6 +61,27 @@ debug private import ocean.util.log.Trace;
 
 public class FiberSelectEvent : IFiberSelectClient
 {
+    /***************************************************************************
+
+        Token used when suspending / resuming fiber.
+
+    ***************************************************************************/
+
+    static private MessageFiber.Token EventFired;
+
+
+    /***************************************************************************
+
+        Static ctor. Initialises fiber token.
+
+    ***************************************************************************/
+
+    static this ( )
+    {
+        EventFired = MessageFiber.Token("event_fired");
+    }
+
+
     /***************************************************************************
 
         Custom event.
@@ -132,7 +155,7 @@ public class FiberSelectEvent : IFiberSelectClient
     public void wait ( )
     {
         super.fiber.register(this);
-        super.fiber.suspend!("FiberSelectEvent")(this, fiber.Message(true));
+        super.fiber.suspend(EventFired, this, fiber.Message(true));
     }
 
 
@@ -170,7 +193,7 @@ public class FiberSelectEvent : IFiberSelectClient
     {
         this.event.handle();
 
-        SelectFiber.Message message = super.fiber.resume!("FiberSelectEvent")(this);
+        SelectFiber.Message message = super.fiber.resume(EventFired, this);
 
         return (message.active == message.active.num)? message.num != 0 : false;
     }

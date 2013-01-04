@@ -31,14 +31,9 @@ private import ocean.io.select.EpollSelectDispatcher;
 
 debug (SelectFiber) private import ocean.util.log.Trace;
 
-interface SelectFiberControl : MessageFiberControl
-{
-    bool unregister ( ); 
-}
-
 /******************************************************************************/
 
-public class SelectFiber : MessageFiber, SelectFiberControl
+public class SelectFiber : MessageFiber
 {
     /**************************************************************************
 

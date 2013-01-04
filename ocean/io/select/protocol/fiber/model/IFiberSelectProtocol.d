@@ -21,6 +21,8 @@ module ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
  ******************************************************************************/
 
+private import ocean.core.MessageFiber;
+
 private import ocean.io.select.model.IFiberSelectClient;
 
 private import ocean.io.select.fiber.SelectFiber;
@@ -33,6 +35,25 @@ debug private import ocean.util.log.Trace;
 
 abstract class IFiberSelectProtocol : IFiberSelectClient
 {
+    /***************************************************************************
+
+        Token used when suspending / resuming fiber.
+
+    ***************************************************************************/
+
+    static private MessageFiber.Token IOReady;
+
+    /***************************************************************************
+
+        Static ctor. Initialises fiber token.
+
+    ***************************************************************************/
+
+    static this ( )
+    {
+        IOReady = MessageFiber.Token("io_ready");
+    }
+
     /**************************************************************************
 
         Local aliases
@@ -43,15 +64,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
     
     public alias .IOWarning IOWarning;
     public alias .IOError   IOError;
-       
-     /**************************************************************************
 
-        Name of this class. Used for fiber resume/suspend
-
-     **************************************************************************/
-      
-    static const ClassName = typeof(this).stringof;
-    
     /**************************************************************************
 
         I/O device 
@@ -59,7 +72,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
      **************************************************************************/
     
     protected const ISelectable conduit;
-    
+
     /**************************************************************************
 
         Events to register the I/O device for. 
@@ -67,7 +80,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
      **************************************************************************/
     
     protected const Event events_;
-    
+
     /**************************************************************************
 
         IOWarning exception instance 
@@ -76,7 +89,6 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
 
     protected const IOWarning warning_e;
 
-
     /**************************************************************************
 
         IOError exception instance 
@@ -84,7 +96,6 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
      **************************************************************************/
 
     protected const IOError error_e;
-
     
     /**************************************************************************
 
@@ -93,7 +104,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
      **************************************************************************/
 
     private Event events_reported;
-    
+
     /**************************************************************************
 
         Constructor
@@ -229,7 +240,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
 
         debug ( SelectFiber ) Trace.formatln("{}.handle: fd {} fiber resumed",
                 typeof(this).stringof, this.conduit.fileHandle);
-        SelectFiber.Message message = this.fiber.resume!(ClassName)(this); // SmartUnion
+        SelectFiber.Message message = this.fiber.resume(IOReady, this); // SmartUnion
         debug ( SelectFiber ) Trace.formatln("{}.handle: fd {} fiber yielded, message type = {}",
                 typeof(this).stringof, this.conduit.fileHandle, message.active);
 
@@ -269,7 +280,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
             // Calling suspend() triggers an epoll wait, which will in turn call
             // handle_() (above) when an event fires for this client. handle_()
             // sets this.events_reported to the event reported by epoll.
-            super.fiber.suspend!(ClassName)(this, fiber.Message(true));
+            super.fiber.suspend(IOReady, this, fiber.Message(true));
 
             this.error_e.assertEx(!(this.events_reported & Event.EPOLLERR), "I/O error", __FILE__, __LINE__);
         }
@@ -287,7 +298,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
                 // Exceptions thrown by transmit() or in the case of the Error
                 // event are passed to the fiber resume() to be rethrown in
                 // handle_(), above.
-                super.fiber.suspend(e);
+                super.fiber.suspend(IOReady, e);
 
                 debug ( SelectFiber) Trace.formatln("{}.transmitLoop: resumed fd {} fiber, rethrowing ({} @ {}:{})",
                     typeof(this).stringof, this.conduit.fileHandle, e.msg, e.file, e.line);
