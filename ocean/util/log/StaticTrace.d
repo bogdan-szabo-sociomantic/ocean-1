@@ -23,14 +23,15 @@ module ocean.util.log.StaticTrace;
 
 *******************************************************************************/
 
-private import ocean.util.log.Trace;
-
 private import ocean.io.Terminal;
 
 private import tango.text.convert.Layout;
 
 private import tango.text.Search;
 
+private import tango.io.model.IConduit;
+
+private import tango.io.Console;
 
 /*******************************************************************************
 
@@ -78,7 +79,7 @@ public static StaticSyncPrint StaticTrace;
 
 static this()
 {
-    StaticTrace = new StaticSyncPrint();
+    StaticTrace = new StaticSyncPrint(Cerr.stream);
 }
 
 
@@ -89,7 +90,7 @@ static this()
 
 *******************************************************************************/
 
-private class StaticSyncPrint
+public class StaticSyncPrint
 {
     /***************************************************************************
 
@@ -106,7 +107,20 @@ private class StaticSyncPrint
     ***************************************************************************/
 
     private auto finder = find("\n");
+    
+    /***************************************************************************
 
+        Outputstream to use.
+    
+    ***************************************************************************/
+
+    private OutputStream output;
+    
+    public this ( OutputStream output )
+    {
+        this.output = output;
+    }
+    
     /***************************************************************************
 
         Outputs a thread-synchronized string to the console.
@@ -147,9 +161,15 @@ private class StaticSyncPrint
         
         foreach ( token; this.finder.tokens(this.formatted) )
         {
-            Trace.format("{}{}{}{}", nl, token, 
-                         Terminal.CSI, Terminal.ERASE_REST_OF_LINE).flush;
-        
+            with ( this.output )
+            {
+                write(nl);
+                write(token);
+                write(Terminal.CSI);
+                write(Terminal.ERASE_REST_OF_LINE);
+                flush();                
+            }
+            
             nl = "\n";
             
             lines++;
@@ -157,11 +177,23 @@ private class StaticSyncPrint
 
         with (Terminal) if ( lines == 1 )
         {
-            Trace.format("{}0{}", CSI, HORIZONTAL_MOVE_CURSOR).flush; 
+            with ( this.output )
+            {
+                write(CSI);
+                write("0");
+                write(HORIZONTAL_MOVE_CURSOR);
+                flush();
+            }
         }
-        else 
+        else with ( this.output )
         {
-            Trace.format("{}{}{}", CSI, lines - 1, LINE_UP).flush;
+            formatted.length = 0;
+            Layout!(char).instance()(&sink, "{}", lines - 1);
+            
+            write(CSI);
+            write(formatted);
+            write(LINE_UP);
+            flush();
         }
         
         return this;
@@ -179,7 +211,7 @@ private class StaticSyncPrint
 
     public typeof(this) flush ( )
     {
-        Trace.flush();
+        this.output.flush();
         return this;
     }
 }
