@@ -115,7 +115,16 @@ public class StaticSyncPrint
     ***************************************************************************/
 
     private OutputStream output;
+        
+    /***************************************************************************
+
+        C'tor
     
+        Params:
+            output = Outputstream to use.
+    
+    ***************************************************************************/
+
     public this ( OutputStream output )
     {
         this.output = output;
