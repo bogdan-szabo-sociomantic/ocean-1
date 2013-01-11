@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -414,6 +414,11 @@
     <None Include="ocean\net\client\xmlrpc\c\util.h" />
     <None Include="ocean\net\client\xmlrpc\c\client_global.h" />
     <Compile Include="ocean\util\log\Config.d" />
+    <Compile Include="ocean\sys\socket\AddressIPSocket.d" />
+    <Compile Include="ocean\sys\socket\AddrInfo.d" />
+    <Compile Include="ocean\sys\socket\InetAddress.d" />
+    <Compile Include="ocean\sys\socket\IPSocket.d" />
+    <Compile Include="ocean\sys\socket\model\ISocket.d" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ocean\util\container\pool\" />
