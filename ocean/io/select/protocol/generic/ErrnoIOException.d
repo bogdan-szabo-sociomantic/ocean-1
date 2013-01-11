@@ -20,7 +20,7 @@ module ocean.io.select.protocol.generic.ErrnoIOException;
 
 private import ocean.core.ErrnoIOException;
 
-private import ocean.sys.IPSocket: IIPSocket;
+private import ocean.sys.socket.IPSocket: IIPSocket;
 
 private import tango.io.model.IConduit: ISelectable;
 

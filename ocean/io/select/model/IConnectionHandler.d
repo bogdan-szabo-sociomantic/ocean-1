@@ -26,7 +26,8 @@ private import ocean.io.select.model.ISelectClient : IAdvancedSelectClient;
 
 private import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
 
-private import ocean.sys.IPSocket;
+private import ocean.sys.socket.IPSocket;
+private import ocean.sys.socket.AddressIPSocket;
 
 private import ocean.io.device.IODevice: IInputDevice, IOutputDevice;
 
