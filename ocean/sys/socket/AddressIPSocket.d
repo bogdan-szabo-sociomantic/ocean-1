@@ -41,9 +41,9 @@ class AddressIPSocket ( bool IPv6 = false ) : IPSocket!(IPv6)
 
      **************************************************************************/
     
-    alias InetAddress.Addr InAddr;
+    alias InetAddress!(IPv6).Addr InAddr;
     
-    private InetAddress in_address;
+    private InetAddress!(IPv6) in_address;
     
     /**************************************************************************
 
@@ -278,9 +278,9 @@ class AddressIPSocket ( bool IPv6 = false ) : IPSocket!(IPv6)
             failure. On failure errno is set appropriately.
         
      **************************************************************************/
-    
+
     public override int accept ( ISelectable listening_socket,
-                                 SocketFlags flags = SocketFlags.init )
+                                 SocketFlags flags = SocketFlags.init )    
     {
         scope (exit) this.setAddress();
         
