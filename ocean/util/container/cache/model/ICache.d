@@ -185,6 +185,12 @@ abstract class ICache : ICacheInfo
         return this.n_misses;
     }
    
+    /***************************************************************************
+    
+        Resets the statistics counter values.
+    
+    ***************************************************************************/
+
     public void resetStats ( )
     {
         this.n_lookups = this.n_misses = 0;
