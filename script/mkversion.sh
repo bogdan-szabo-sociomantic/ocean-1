@@ -70,7 +70,7 @@ get_rev()
 		git --git-dir $1/.git svn info | grep '^Revision: ' | cut -b11-
 	elif git --git-dir $1/.git describe --dirty --tags --always > /dev/null 2>&1
 	then
-		git --git-dir $1/.git describe --tags --always --dirty
+		git --git-dir $1/.git describe --tags --always --dirty='!'
 	else
 		echo "Unknown version control system" >&2
 		echo "For now only svn, git and git-svn are supported" >&2
