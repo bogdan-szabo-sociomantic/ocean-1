@@ -83,7 +83,7 @@ private import tango.stdc.posix.sys.socket: accept, SOL_SOCKET, SO_ERROR, SO_REU
 private import tango.stdc.posix.unistd:     close;
 private import tango.stdc.errno:            errno;
 
-private import ocean.sys.IPSocket;
+private import ocean.sys.socket.AddressIPSocket;
 
 private import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
 
