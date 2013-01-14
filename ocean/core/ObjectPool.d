@@ -352,7 +352,7 @@ class Pool ( T ) : PoolCore
 
         static assert (is (I == uint), T.stringof ~ ".object_pool_index must be uint, not " ~ I.stringof);
 
-        static assert (is (typeof (T.object_pool_index = 4711)), T.stringof ~ ".object_pool_index must be assignable");
+        static assert (is (typeof (T.init.object_pool_index = 4711)), T.stringof ~ ".object_pool_index must be assignable");
     }
     else static assert (false, "need dynamic \"uint " ~ T.stringof ~ ".object_pool_index\"");
 
