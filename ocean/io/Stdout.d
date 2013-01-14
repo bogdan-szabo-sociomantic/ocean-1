@@ -331,7 +331,6 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
     public typeof(this) endrow ( )
     {
         auto layout = Layout!(char).instance;
-        //this.sink.write(Terminal.CSI);
         this.sink.write(layout("{}{};1H", Terminal.CSI, Terminal.rows));
         return this;
     }
