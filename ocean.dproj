@@ -419,6 +419,8 @@
     <Compile Include="ocean\sys\socket\InetAddress.d" />
     <Compile Include="ocean\sys\socket\IPSocket.d" />
     <Compile Include="ocean\sys\socket\model\ISocket.d" />
+    <Compile Include="ocean\util\log\MessageOnlyLayout.d" />
+    <Compile Include="ocean\io\console\AppStatus.d" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ocean\util\container\pool\" />
