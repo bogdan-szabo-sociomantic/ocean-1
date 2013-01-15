@@ -150,6 +150,24 @@ public class AppStatus
     
     /***************************************************************************
 
+        buffer used for the header line
+
+    ***************************************************************************/
+    
+    private char[] heading_line;
+    
+    
+    /***************************************************************************
+
+        buffer used for the footer
+
+    ***************************************************************************/
+    
+    private char[] footer_line;
+    
+    
+    /***************************************************************************
+
         insert console used to display the streaming lines
 
     ***************************************************************************/
@@ -164,7 +182,7 @@ public class AppStatus
     ***************************************************************************/
     
     private int old_terminal_size;
-    
+     
     
     /***************************************************************************
 
@@ -198,11 +216,11 @@ public class AppStatus
     
     /***************************************************************************
 
-        Print the current static lines set by the calling program to Stdout with
-        a title line showing the current time, runtime, and memory and cpu 
+        Print the current static lines set by the calling program to Stdout 
+        with a title line showing the current time, runtime, and memory and cpu 
         usage and a footer line showing the version information. 
     
-        Check if the size of ther terminal has changed. If it has move the
+        Check if the size of the terminal has changed and if it has move the
         cursor to the end of the terminal.
     
         Print a blank line for each logline and one for the footer. Then print 
@@ -230,6 +248,7 @@ public class AppStatus
         
         foreach_reverse ( line; this.static_lines )
         {
+            this.checkLength(line);
             Stdout.format(line).clearline.cr.flush.up;
         }
         
@@ -396,59 +415,64 @@ public class AppStatus
         auto time = this.interval_clock.now_DateTime.time;
         auto date = this.interval_clock.now_DateTime.date;
         
-        Stdout.bold(true).format("[{:d2}/{:d2}/{:d2} {:d2}:{:d2}:{:d2}] {}", 
-            date.day, date.month, date.year, time.hours, time.minutes, 
-            time.seconds, this.app_name);
+        this.heading_line.length = 0;
         
-        this.printRuntime();      
-        this.printMemoryUsage();       
-        this.printCpuUsage();
+        Layout!(char).print(this.heading_line, "[{:d2}/{:d2}/{:d2} "
+            "{:d2}:{:d2}:{:d2}] {}", date.day, date.month, date.year, 
+            time.hours, time.minutes, time.seconds, this.app_name);
         
-        Stdout.bold(false).clearline.cr.flush;
+        this.formatRuntime();      
+        this.formatMemoryUsage();       
+        this.formatCpuUsage();
+        
+        this.checkLength(this.heading_line);     
+        Stdout.bold(true).format(this.heading_line).bold(false).
+            clearline.cr.flush;
     }
     
     
     /***************************************************************************
 
-        Print the memory usage for the current program to stdout using the 
+        Format the memory usage for the current program to using the 
         tango memory module to calculate current usage
 
     ***************************************************************************/
     
-    private void printMemoryUsage ( ) 
+    private void formatMemoryUsage ( ) 
     {
         float mem_allocated, mem_free;
         this.getMemoryUsage(mem_allocated, mem_free);
-        Stdout.format(" Memory: Used {}Mb/Free {}Mb", mem_allocated, mem_free);
+        Layout!(char).print(this.heading_line, " Memory: Used {}Mb/Free {}Mb", 
+            mem_allocated, mem_free);
     }
     
     
     /***************************************************************************
 
-        Print the current runtime for the current program to stdout.
+        Format the current runtime for the current program.
 
     ***************************************************************************/
     
-    private void printRuntime ( )
+    private void formatRuntime ( )
     {
         uint weeks, days, hours, mins, secs;     
         this.getRuntime(weeks, days, hours, mins, secs);      
-        Stdout.format(" Runtime: {}w{:d1}d{:d2}:{:d2}:{:d2}", weeks, days, 
-            hours, mins, secs);
+        Layout!(char).print(this.heading_line, " Runtime: {}w{:d1}d{:d2}:"
+            "{:d2}:{:d2}", weeks, days, hours, mins, secs);
     }
     
     
     /***************************************************************************
 
-        Print the current cpu usage of this program.
+        Format the current cpu usage of this program.
 
     ***************************************************************************/
     
-    private void printCpuUsage ( )
+    private void formatCpuUsage ( )
     {
         long usage = 0;
         this.getCpuUsage(usage);
-        Stdout.format(" CPU: {}%", usage);
+        Layout!(char).print(this.heading_line, " CPU: {}%", usage);
     }
     
     
@@ -461,10 +485,32 @@ public class AppStatus
     
     private void printVersionInformation ( )
     {
-        Stdout.bold(true).format("Version {} built on {} by {}", 
-            this.app_version, this.app_build_date, this.app_build_author)
-            .bold(false); 
+        this.footer_line.length = 0;
+        
+        Layout!(char).print(this.footer_line, "Version {} built on {} by {}", 
+            this.app_version, this.app_build_date, this.app_build_author);
+        
+        this.checkLength(this.footer_line);
+        Stdout.bold(true).format(this.footer_line).bold(false); 
     }
 
+    
+    /***************************************************************************
+
+        Check the length of the buffer against the number of columns in the 
+        terminal. If the buffer is too long, set it to the terminal width.
+    
+        Params:
+            buffer = buffer to check the length of
+
+    ***************************************************************************/
+    
+    private void checkLength ( ref char[] buffer )
+    {
+        if ( buffer.length > Terminal.columns )
+        {
+            buffer.length = Terminal.columns;
+        }
+    }
 }
 
