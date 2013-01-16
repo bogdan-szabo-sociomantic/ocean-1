@@ -72,6 +72,10 @@
         // Handle arriving data.
         epoll.eventLoop;
 
+
+        Important to remember that all EpollProcesses needs to share the same
+        epoll instance.
+
     ---
 
 *******************************************************************************/
@@ -624,6 +628,11 @@ public abstract class EpollProcess
         if ( running_processes is null )
         {
             running_processes = new RunningProcesses(this.epoll);
+        }
+        else
+        {
+            assert(this.epoll == running_processes.epoll, "All Epollprocesses "
+                   "need to share the same instance of EpollSelectDispatcher");
         }
     }
 
