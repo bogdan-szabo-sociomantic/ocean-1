@@ -67,17 +67,58 @@ interface IAppendBufferReader ( T ) : IAppendBufferBase
     
     /**************************************************************************
     
-        Returns the i-th element in content.
-        
-        Params:
-            i = element index
-    
-        Returns:
-            i-th element in content
+        Checks if T is 'void' or a static array type.
     
      **************************************************************************/
-
-    static if (!is (T == void)) T opIndex ( size_t i );
+    
+    static if (!is (T == void))
+    {
+        /**********************************************************************
+        
+            Unless T is 'void' opIndex() is declared and the
+            static_array_element flag defined which tells whether T is a static
+            array type or not.
+            R is defined as return type of opIndex() and other methods which
+            return an array element. Normally this aliases T; however, if T is a
+            static array type which cannot be the return type, it aliases the
+            dynamic array of the same base type. For example, if T aliases
+            int[4], R aliases int[].
+            If T is 'void', static_array_element, R and opIndex are not
+            declared/defined at all.
+        
+         **********************************************************************/
+        
+        static if (is (T U : U[]) && !is (T == U[]))
+        {
+            const static_array_element = true;
+            
+            alias U[] R;
+        }
+        else
+        {
+            const static_array_element = false;
+            
+            alias T R;
+        }
+        
+        /**********************************************************************
+        
+            Returns the i-th element in content.
+            
+            Params:
+                i = element index
+        
+            Returns:
+                i-th element in content
+        
+         **********************************************************************/
+        
+        R opIndex ( size_t i );
+    }
+    else
+    {
+        const static_array_element = false;
+    }
     
     /**************************************************************************
     
@@ -184,26 +225,48 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
         this.limited = limited;
     }
     
+    /**************************************************************************
+    
+        Methods overloading array operations which deal with array elements.
+        As these array operations are not available for 'void[]', they are not
+        implemented if T is 'void' .
+    
+     **************************************************************************/
+    
     static if (!is (T == void))
     {
-        /**************************************************************************
+        /**********************************************************************
         
             Returns the i-th element in content.
+            
+            If T is a static array type, a slice to the element is returned.
             
             Params:
                 i = element index
         
             Returns:
                 i-th element in content
-        
-         **************************************************************************/
+            
+            Out:
+                If T is a static array type, the length of the returned slice is 
+                T.length.
+            
+         **********************************************************************/
     
-        T opIndex ( size_t i )
+        R opIndex ( size_t i )
+        out (element)
+        {
+            static if (static_array_element)
+            {
+                assert (element.length == T.length);
+            }
+        }
+        body
         {
             return *cast (T*) this.index_(i);
         }
         
-        /**************************************************************************
+        /**********************************************************************
         
             Sets the i-th element in content.
             
@@ -211,41 +274,33 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
                 i = element index
         
             Returns:
-                element
-        
-         **************************************************************************/
-    
-        T opIndexAssign ( T val, size_t i )
-        {
-            return *cast (T*) this.index_(i) = val;
-        }
-        
-        /**************************************************************************
-        
-            Cuts the last element from the current content. 
+                element (or a slice to the element if T is a static array type).
             
-            Returns:
-                element cut from the current content.
-                
-            In:
-                The content must not be empty. 
+            Out:
+                If T is a static array type, the length of the returned slice is 
+                T.length.
         
-         **************************************************************************/
+         **********************************************************************/
     
-        T cut ( )
-        in
+        R opIndexAssign ( T val, size_t i )
+        out (element)
         {
-            assert (this.length, "cannot cut last element: content is empty");
+            static if (static_array_element)
+            {
+                assert (element.length == T.length);
+            }
         }
         body
         {
-            size_t n = this.length - 1;
-     
-            scope (success) this.length = n;
-            
-            return this[n];
+            static if (static_array_element)
+            {
+                return (*cast (T*) this.index_(i))[] = val;
+            }
+            else
+            {
+                return *cast (T*) this.index_(i) = val;
+            }
         }
-        
         
         /**************************************************************************
         
@@ -299,7 +354,14 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
             
             if (dst.length)
             {
-                dst[0] = element;
+                static if (static_array_element)
+                {
+                    dst[0][] = element;
+                }
+                else
+                {
+                    dst[0] = element;
+                }
             }
             
             return this[];
@@ -441,6 +503,47 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
         return this[start .. end];
     }
     
+    static if (!static_array_element)
+    {
+        /**********************************************************************
+        
+            Cuts the last element from the current content.
+            
+            TODO: Not available if T is a static array type because a reference
+            to the removed element would be needed to be returned, but the
+            referenced element is erased and may theoretically relocated or
+            deallocated (in fact it currently stays at the same location but
+            there shouldn't be a guarantee.)
+            Should this method be available if T is a static array type? It then
+            would need to return 'void' or a struct with one member of type T.
+            (Or we wait for migration to D2.)
+            
+            Returns:
+                the element cut from the current content (unless T is void).
+                
+            In:
+                The content must not be empty. 
+        
+         **********************************************************************/
+    
+        T cut ( )
+        in
+        {
+            assert (this.length, "cannot cut last element: content is empty");
+        }
+        body
+        {
+            size_t n = this.length - 1;
+     
+            scope (success) this.length = n;
+            
+            static if (!is (T == void))
+            {
+                return this[n];
+            }
+        }
+    }
+    
     /**************************************************************************
     
         Cuts the last n elements from the current content. If n is greater than
@@ -569,16 +672,27 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 
     protected void erase ( void[] data )
     {
-        static if (is (T == void))
+        static if (static_array_element && is (T U : U[]) && is (typeof (T.init) == U))
         {
-            alias ubyte U;
+            // work around DMD bug 7752
+            
+            const t_init = [U.init];
+            
+            data[] = t_init;
         }
         else
         {
-            alias T U;
+            static if (is (T == void))
+            {
+                alias ubyte U;
+            }
+            else
+            {
+                alias T U;
+            }
+            
+            (cast (U[]) data)[] = U.init;
         }
-        
-        (cast (U[]) data)[] = U.init;
     }
 }
 
