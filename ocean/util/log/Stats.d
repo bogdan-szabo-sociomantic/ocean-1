@@ -87,7 +87,8 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
     ***************************************************************************/
 
     public this ( EpollSelectDispatcher epoll, ValueDg dg, size_t file_count = 10,
-           size_t max_file_size = 10 * 1024 * 1024, time_t period = default_period )
+           size_t max_file_size = 10 * 1024 * 1024, time_t period = default_period,
+           char[] file_name = "log/stats.log" )
     {
         this.dg     = dg;
         this.period = period;
@@ -96,7 +97,7 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
         epoll.register(timer);
         timer.set(5, 0, period, 0);
         
-        super(file_count, max_file_size);
+        super(file_count, max_file_size, file_name);
     }
 
     /***************************************************************************
