@@ -341,8 +341,8 @@ public class AppStatus
 
     ***************************************************************************/
     
-    public void getRuntime ( ref uint weeks, ref uint days, ref uint hours,
-        ref uint mins, ref uint secs )
+    public void getRuntime ( out uint weeks, out uint days, out uint hours,
+        out uint mins, out uint secs )
     {
         time_t uptime = this.interval_clock.now_sec - this.start_time;
         
@@ -374,7 +374,7 @@ public class AppStatus
 
     ***************************************************************************/
     
-    public void getMemoryUsage ( ref float mem_allocated, ref float mem_free )
+    public void getMemoryUsage ( out float mem_allocated, out float mem_free )
     {
         version ( CDGC )
         {
@@ -399,9 +399,9 @@ public class AppStatus
 
     ***************************************************************************/
     
-    public void getCpuUsage ( ref long usage )
+    public void getCpuUsage ( out long usage )
     {
-        clock_t ticks = clock();     
+        clock_t ticks = clock();
         if ( this.ticks >= 0 )
         {           
             usage = lroundf((ticks - this.ticks) / 10_000.f); 
