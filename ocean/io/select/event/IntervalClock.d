@@ -77,7 +77,7 @@ private import tango.stdc.time:           gmtime, tm, time_t;
 
 private import tango.time.Time;
 
-public class IntervalClock : ITimerEvent, IMicrosecondsClock
+public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
 {
     public alias MicrosecondsClock.us us;
     
