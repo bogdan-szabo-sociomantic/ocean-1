@@ -14,17 +14,24 @@
     as well as streaming lines that are scrolled above the static lines.
 
     Usage Example:
+
     ---
-    ulong c1, c2, c3, c4;
-    AppStatus app_status = new AppStatus("test", Version.revision, 
-        Version.build_date, Version.build_author, clock, 2);
 
-    app_status.formatStaticLine(0, "{} count1, {} count2", c1, c2);
-    app_status.formatStaticLine(1, "{} count3, {} count4", c3, c4);
-        
-    app_status.displayStaticLines();
+        const number_of_static_lines = 2;
 
-    app_status.displayStreamingLine("{} count5, {} count6", c5, c6);
+        AppStatus app_status = new AppStatus("test", Version.revision, 
+            Version.build_date, Version.build_author, clock,
+            number_of_static_lines);
+
+        ulong c1, c2, c3, c4;
+
+        app_status.formatStaticLine(0, "{} count1, {} count2", c1, c2);
+        app_status.formatStaticLine(1, "{} count3, {} count4", c3, c4);
+            
+        app_status.displayStaticLines();
+
+        app_status.displayStreamingLine("{} count5, {} count6", c5, c6);
+
     ---
 
 *******************************************************************************/
