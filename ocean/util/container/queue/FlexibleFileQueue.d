@@ -563,6 +563,8 @@ public class FlexibleFileQueue : IByteQueue
                 assert( pop == cast(ubyte[])[i, ubyte.max-i, i, i*i], "pop failed "~pop.stringof );
                 
             }
+
+            Filesystem.remove("testfile");
         }
     }
     
