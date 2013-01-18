@@ -132,8 +132,17 @@ public class FlexibleFileQueue : IByteQueue
     private size_t size;
     
     /***************************************************************************
+    
+        bool set if the files are currently open
 
-        Constructor
+    ***************************************************************************/
+    
+    private bool files_open;
+    
+    /***************************************************************************
+
+        Constructor. Creates and opens the files and buffered inputs and 
+        outputs. Marks the files as open.
 
         Params:
             path  = path to the file that will be used to swap the queue
@@ -150,6 +159,14 @@ public class FlexibleFileQueue : IByteQueue
         {
             Filesystem.remove(this.path);
         }
+        
+        this.file_out = new File(this.path, File.WriteCreate);
+        this.file_in = new File(this.path, File.ReadExisting);
+
+        this.ext_out = new BufferedOutput(this.file_out);
+        this.ext_in = new BufferedInput(this.file_in, this.size+Header.sizeof);
+        
+        this.files_open = true;
     }
     
     
@@ -424,8 +441,6 @@ public class FlexibleFileQueue : IByteQueue
     {
         this.items_in_file = this.bytes_in_file = 0;
         this.slice_push_buffer.length = 0;
-        this.ext_in.clear();
-        this.ext_out.clear();
         this.closeExternal();
     }
     
@@ -440,7 +455,7 @@ public class FlexibleFileQueue : IByteQueue
     {
         if ( this.slice_push_buffer.length != 0 )
         {
-            this.file_out is null && this.openExternal();
+            (!this.files_open) && this.openExternal();
             
             this.filePush(this.slice_push_buffer);
             this.slice_push_buffer.length = 0;
@@ -470,7 +485,7 @@ public class FlexibleFileQueue : IByteQueue
     {
         try 
         {
-            this.file_out is null && this.openExternal();
+            (!this.files_open) && this.openExternal();
 
             Header h = Header(item.length);
 
@@ -494,23 +509,22 @@ public class FlexibleFileQueue : IByteQueue
         
     /***************************************************************************
     
-        Opens and allocates the files and associated buffers
+        Opens the files and associated buffers. Mark the files open.
     
     ***************************************************************************/
     
     private void openExternal ( )
-    {
-        this.file_out = new File(this.path, File.WriteCreate);
-        this.file_in  = new File(this.path, File.ReadExisting);
-
-        this.ext_out = new BufferedOutput(this.file_out);
-        this.ext_in  = new BufferedInput(this.file_in, this.size+Header.sizeof);
+    {        
+        this.file_out.open(this.path, File.WriteCreate);
+        this.file_in.open(this.path, File.ReadExisting);
+        
+        this.files_open = true;
    }
     
         
     /***************************************************************************
     
-        Closes and deallocates all the files and related buffers 
+        Closes the files and clear the related buffers. Mark the files closed.
     
     ***************************************************************************/
         
@@ -528,20 +542,14 @@ public class FlexibleFileQueue : IByteQueue
     }
     body
     {
-        this.ext_in.close();
-        this.ext_out.close();
+        this.ext_in.clear();
+        this.ext_out.clear();
         this.file_out.close();
         this.file_in.close();
         
-        delete this.ext_in;
-        delete this.ext_out;
-        delete this.file_out;
-        delete this.file_in;
-        
-        this.ext_in = null, this.ext_out = null, 
-        this.file_out = null, this.file_in = null;
-        
         Filesystem.remove(this.path);
+        
+        this.files_open = false;
     }
     
     
