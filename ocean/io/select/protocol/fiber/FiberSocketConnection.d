@@ -41,6 +41,8 @@ private import tango.stdc.posix.sys.socket: SOL_SOCKET, IPPROTO_TCP, SO_KEEPALIV
 
 private import tango.stdc.errno: errno, EINPROGRESS, EINTR, EALREADY, EISCONN;
 
+debug ( EpollTiming ) private import tango.time.StopWatch;
+
 
 
 public class FiberSocketConnection ( bool IPv6 = false ) : IFiberSocketConnection
@@ -71,7 +73,7 @@ public class FiberSocketConnection ( bool IPv6 = false ) : IFiberSocketConnectio
     alias AddressIPSocket!(IPv6) IPSocket;
     
     protected const IPSocket socket;
-    
+
     /**************************************************************************
     
         Constructor.
@@ -318,7 +320,24 @@ public class IFiberSocketConnection : IFiberSelectProtocol
      **************************************************************************/
 
     private uint transmit_calls;
-    
+
+    /**************************************************************************
+
+        Delegate which is called (in EpollTiming debug mode) after a socket
+        connection is established.
+
+        FIXME: the logging of connection times was intended to be done directly
+        in this module, not via a delegate, but dmd bugs with varargs made this
+        impossible. The delegate solution is ok though.
+
+     **************************************************************************/
+
+    debug ( EpollTiming )
+    {
+        private alias void delegate ( ulong microsec ) ConnectionTimeDg;
+        public ConnectionTimeDg connection_time_dg;
+    }
+
     /**************************************************************************
     
         Constructor.
@@ -518,7 +537,7 @@ public class IFiberSocketConnection : IFiberSelectProtocol
         clarified.
         
      **************************************************************************/
-    
+
     protected ConnectionStatus connect_ ( lazy bool connect_syscall, bool force )
     out (status)
     {
@@ -528,7 +547,6 @@ public class IFiberSocketConnection : IFiberSelectProtocol
     body
     {
         // Create a socket if it is currently closed.
-        
         if (this.socket.fileHandle < 0)
         {
             this.connected_ = false;
@@ -541,6 +559,20 @@ public class IFiberSocketConnection : IFiberSelectProtocol
         
         if (!this.connected_ || force)
         {
+            debug ( EpollTiming )
+            {
+                StopWatch sw;
+                sw.start;
+
+                scope ( success )
+                {
+                    if ( this.connection_time_dg )
+                    {
+                        this.connection_time_dg(sw.microsec);
+                    }
+                }
+            }
+
             if ( connect_syscall )
             {
                 debug ( ISelectClient ) Trace.formatln("[{}:{}]: Connected to socket",
@@ -595,7 +627,7 @@ public class IFiberSocketConnection : IFiberSelectProtocol
             return ConnectionStatus.Already;
         }
     }
-    
+
     /***************************************************************************
 
         Returns:
