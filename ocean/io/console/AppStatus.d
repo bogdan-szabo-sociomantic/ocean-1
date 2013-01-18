@@ -48,7 +48,7 @@ module ocean.io.console.AppStatus;
 
 private import ocean.io.Terminal;
 
-private import ocean.io.select.event.IntervalClock;
+private import ocean.time.model.IMicrosecondsClock;
 
 private import ocean.core.Array;
 
@@ -82,12 +82,21 @@ public class AppStatus
 {
     /***************************************************************************
 
+        Alias for system clock function.
+
+    ***************************************************************************/
+
+    private alias .clock system_clock;
+
+
+    /***************************************************************************
+
         Interval clock, passed into the constructor. Used to display the current
         time and to calculate running time.
 
     ***************************************************************************/
-    
-    private const IntervalClock interval_clock;
+
+    private const IAdvancedMicrosecondsClock clock;
     
     
     /***************************************************************************
@@ -207,14 +216,14 @@ public class AppStatus
     ***************************************************************************/    
     
     this ( char[] app_name, char[] app_version, char[] app_build_date, 
-        char[] app_build_author, IntervalClock clock, int size )
+        char[] app_build_author, IAdvancedMicrosecondsClock clock, uint size )
     {
         this.app_name.copy(app_name);
         this.app_version.copy(app_version);
         this.app_build_date.copy(app_build_date);
         this.app_build_author.copy(app_build_author);
-        this.interval_clock = clock;
-        this.start_time = this.interval_clock.now_sec;
+        this.clock = clock;
+        this.start_time = this.clock.now_sec;
         this.static_lines.length = size;
         this.insert_console = new InsertConsole(new MessageOnlyLayout);
         this.old_terminal_size = Terminal.rows;
@@ -344,7 +353,7 @@ public class AppStatus
     public void getRuntime ( out uint weeks, out uint days, out uint hours,
         out uint mins, out uint secs )
     {
-        time_t uptime = this.interval_clock.now_sec - this.start_time;
+        time_t uptime = this.clock.now_sec - this.start_time;
         
         uint uptimeFract ( uint denom )
         {
@@ -401,7 +410,7 @@ public class AppStatus
     
     public void getCpuUsage ( out long usage )
     {
-        clock_t ticks = clock();
+        clock_t ticks = system_clock();
         if ( this.ticks >= 0 )
         {           
             usage = lroundf((ticks - this.ticks) / 10_000.f); 
@@ -419,8 +428,8 @@ public class AppStatus
     
     private void printHeadingLine ( )
     {
-        auto time = this.interval_clock.now_DateTime.time;
-        auto date = this.interval_clock.now_DateTime.date;
+        auto time = this.clock.now_DateTime.time;
+        auto date = this.clock.now_DateTime.date;
         
         this.heading_line.length = 0;
         
