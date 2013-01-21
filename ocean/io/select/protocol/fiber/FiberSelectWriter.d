@@ -76,7 +76,7 @@ class FiberSelectWriter : IFiberSelectProtocol
 
      **************************************************************************/
 
-    private size_t sent = 0;
+    protected size_t sent = 0;
 
     /**************************************************************************
 
