@@ -76,7 +76,7 @@ public class InsertConsole: Appender
     {
         assert (stream);
 
-        mask_ = register(name);
+        mask_ = register(name ~ stream.classinfo.name);
         stream_ = stream;
         flush_ = flush;
         layout(how);
