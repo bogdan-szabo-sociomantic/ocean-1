@@ -140,7 +140,7 @@ public class StatsLog ( T )
 
     ***************************************************************************/
 
-    static public const time_t default_period = 300; // 5 mins
+    static public const time_t default_period = 30; // 30 seconds
 
 
     /***************************************************************************
