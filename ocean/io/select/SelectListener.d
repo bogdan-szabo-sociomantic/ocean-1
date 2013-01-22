@@ -187,7 +187,7 @@ abstract class ISelectListener : ISelectClient
         
         this.e = new SocketError(this.socket);
         
-        this.e.assertEx(this.socket.socket(true) >= 0,
+        this.e.assertEx(this.socket.tcpSocket(true) >= 0,
                         "error creating socket", __FILE__, __LINE__);
         
         this.e.assertEx(!this.socket.setsockoptVal(SOL_SOCKET, SO_REUSEADDR, true),
