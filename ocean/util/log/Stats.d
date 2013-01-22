@@ -183,7 +183,11 @@ public class StatsLog ( T )
         this.logger.add(new AppendSyslog(file_name, file_count,
                                          max_file_size, "gzip {}", "gz", 4,
                                          new LayoutStatsLog));
-        
+
+        // Explcitly set the logger to output all levels, to avoid the situation
+        // where the root logger is configured to not output level 'info'.
+        this.logger.level = this.logger.Level.Trace;
+
         this.layout = new StringLayout!();
     }
 
