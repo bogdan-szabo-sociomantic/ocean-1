@@ -369,13 +369,14 @@ package class Connection : ISelectClient
                                    drizzle_con_drizzle(&this.connection)));
                 }
 
+                debug ( Drizzle ) Trace.formatln("{} ReturnCode: {}", cast(void*) this, returnCode);
                 exception.reset(queryString, returnCode, msg, null);
             }
             
             this.callback (this.requestContext, null, this.exception);
             
             this.reset();
-            debug ( Drizzle ) Trace.formatln("called reset");
+            debug ( Drizzle ) Trace.formatln("{} called reset", cast(void*) this);
         }
     }
     
@@ -397,13 +398,13 @@ package class Connection : ISelectClient
         {
             auto request = this.request_queue.pop(this.buffer);
 
-            debug ( Drizzle ) Trace.formatln("Request, fiber: {}, discon: {}", cast(void*)this.fiber, this.disconnected);
+            debug ( Drizzle ) Trace.formatln("{} Request: discon: {}", cast(void*)this, this.disconnected);
             
             if (request !is null)
             {
                 if ( !timezone_initialized )
                 {
-                    debug ( Drizzle ) Trace.formatln("Init. timezone");
+                    debug ( Drizzle ) Trace.formatln("{} Init. timezone", cast(void*) this);
                     this.queryString    = drizzle.timezone_query;
                     this.callback       = &timezoneCallback;
 
@@ -411,7 +412,7 @@ package class Connection : ISelectClient
                 }
 
                 this.request(*request);
-                debug ( Drizzle ) Trace.formatln("After request()");
+                debug ( Drizzle ) Trace.formatln("{} After request()", cast(void*) this);
             }
             else if ( this.request_queue.ready(&this.notify) )
             {
@@ -436,7 +437,7 @@ package class Connection : ISelectClient
            timezone_initialized = false;
         }
 
-        debug ( Drizzle ) Trace.formatln("Timezone: {}", timezone_initialized);
+        debug ( Drizzle ) Trace.formatln("{} TimezoneCB: {}", cast(void*) this, timezone_initialized);
     }
 
     /***************************************************************************
@@ -454,6 +455,8 @@ package class Connection : ISelectClient
 
     public void notify()
     {
+        debug ( Drizzle ) Trace.formatln("{} Notify called, fiber state:", cast(void*) this,
+            this.fiber.state);
         if ( this.fiber.state == Fiber.State.HOLD )
         {
             fiber.resume(sq, this);
@@ -495,7 +498,8 @@ package class Connection : ISelectClient
         }
         else
             this.queryInternal();
-        debug ( Drizzle ) Trace.formatln("After queryInternal");
+            
+        debug ( Drizzle ) Trace.formatln("{} After queryInternal", cast(void*) this);
     }
     
     
@@ -519,8 +523,8 @@ package class Connection : ISelectClient
         drizzle_con_set_revents(&this.connection, ev);
 
         this.disconnected = (Event.EPOLLHUP & ev) != 0;
-
-        debug ( Drizzle ) Trace.formatln("Error called: Disconnected: {}", disconnected);
+        
+        debug ( Drizzle ) Trace.formatln("{} Error called: Disconnected: {}", cast(void*) this, disconnected);
         
         Exception exc = e;
         
@@ -599,7 +603,8 @@ package class Connection : ISelectClient
     package void setEvents ( Event events )
     {
         _events = events;
-
+        debug ( Drizzle ) Trace.formatln("{} setEvents: {}", cast(void*) this, events);
+        
         register_again = true;
     }
 
@@ -631,7 +636,7 @@ package class Connection : ISelectClient
         try this.fiber.resume(dd, this);
         catch ( DrizzleException e )
         {
-            debug ( Drizzle ) Trace.formatln(" Exception in handle");
+            debug ( Drizzle ) Trace.formatln("{} Exception in handle", cast(void*) this);
             if (this.callback !is null)            
             {
                 this.callback (this.requestContext, null, e); 
@@ -643,11 +648,11 @@ package class Connection : ISelectClient
         }
         catch ( Exception e )
         {
-            Trace.formatln("{} FailSafe Exception Catcher triggered: {} ({}:{})",
+            Trace.formatln("{} FAILSAFE EXCEPTION CATCHER TRIGGERED: {} ({}:{})",
                        cast(void*) this, e.msg, e.file, e.line);
         }
 
-        debug ( Drizzle ) Trace.formatln("Register again: {}", register_again);
+        debug ( Drizzle ) Trace.formatln("{} Register again: {}", cast(void*) this, register_again);
         return register_again;
     }
 
@@ -675,7 +680,8 @@ package class Connection : ISelectClient
     
     override public void finalize ( FinalizeStatus status )
     {
-        debug ( Drizzle ) Trace.formatln("Finalize called on {}, {} && {} && {}", this.id(), !timezone_initialized, disconnected, register_again);
+        debug ( Drizzle ) Trace.formatln("{} Finalize called on {}, {} && {} && {}", 
+            cast(void*) this, this.id(), !timezone_initialized, disconnected, register_again);
         if ( !timezone_initialized && register_again )
         {
             drizzle.epoll.register(this);
@@ -698,6 +704,7 @@ package class Connection : ISelectClient
     package void callbackError ( Exception e )
     {
         this.drizzle_callback_error = e;
+        debug ( Drizzle ) Trace.formatln("{} Callback Error: {}", cast(void*) this, e.msg);        
     }
     
     /***************************************************************************
@@ -709,6 +716,8 @@ package class Connection : ISelectClient
 
     private void reset ( )
     {
+        debug ( Drizzle ) Trace.formatln("{} Reseting fiber", cast(void*) this);
+        
         this.queryString.length = 0;
         this.callback = null;
         this.requestContext = ContextUnion.init;
