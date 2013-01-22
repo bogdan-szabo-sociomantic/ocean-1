@@ -184,6 +184,13 @@ class DrizzleException : Exception
         error which can be fixed without restarting the application,
         thus I consider it a connection error here
 
+        DRIZZLE_RETURN_ERROR_CODE was explained as 
+            
+            Lock wait timeout exceeded; try restarting transaction.
+    
+        Thus it was, at least in that case, a retryable error, thus I added it
+        here.
+    
         Returns:
             true if the error code is a connection related problem 
 
@@ -198,6 +205,7 @@ class DrizzleException : Exception
             case DRIZZLE_RETURN_TIMEOUT:
             case DRIZZLE_RETURN_HANDSHAKE_FAILED:
             case DRIZZLE_RETURN_AUTH_FAILED:
+            case DRIZZLE_RETURN_ERROR_CODE:
                 return true;
                 
             default:
