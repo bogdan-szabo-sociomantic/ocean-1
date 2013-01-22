@@ -347,12 +347,12 @@ class LibDrizzleEpoll
         drizzle_add_options(&this.drizzle, drizzle_options_t.DRIZZLE_NON_BLOCKING);
         drizzle_set_event_watch_fn(&this.drizzle, &drizzleCallback, cast(void*) this);
       
+        this.queue_full_exc = new QueueFullException;
+        
         for (uint i = 0; i < connections; ++i)
         {
             this.connections.ready(&(new Connection(this)).notify);
-        }
-        
-        this.queue_full_exc = new QueueFullException;
+        }        
     }
 
     /***************************************************************************
