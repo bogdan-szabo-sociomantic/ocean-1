@@ -295,7 +295,15 @@ package class Connection : ISelectClient
         if (code == drizzle_return_t.DRIZZLE_RETURN_IO_WAIT)
         {
             debug ( Drizzle ) Trace.formatln("Waiting for data .. ");
+            if ( this.disconnected ) 
+            {
+                // Reset the flag so we don't get caught in a infinite loop
+                this.disconnected = false;                
+            }
+            else
+            {
                 fiber.suspend(dd, this);
+            }
             
             return true;
         }
@@ -312,7 +320,8 @@ package class Connection : ISelectClient
     private void queryInternal ()
     in
     {
-        assert (this.fiber.state == Fiber.State.EXEC);
+        assert ( this.fiber.state == Fiber.State.EXEC, "Fiber not in EXEC state" );
+        assert ( this.queryString.length > 0, "Query string is empty" );
     }
     body
     {
@@ -333,7 +342,7 @@ package class Connection : ISelectClient
                                       "Failed to allocate result", null);
             }
         }
-        while ( retry(returnCode) && !disconnected )
+        while ( retry(returnCode) ) // && !disconnected )
         
         scope (exit) this.resultObj.reset();
         
@@ -357,18 +366,20 @@ package class Connection : ISelectClient
             {
                 char[] msg;
                 
+                msg = fromStringz(drizzle_error(
+                                drizzle_con_drizzle(&this.connection)));
+                
                 if ( disconnected )
                 {
                     returnCode = drizzle_return_t.DRIZZLE_RETURN_COULD_NOT_CONNECT;
-                    msg = "Couldn't connect to server";
+                    //msg = "Couldn't connect to server";
                     timezone_initialized = false;
                 }
-                else
+                /*else
                 {
                     msg = fromStringz(drizzle_error(
                                    drizzle_con_drizzle(&this.connection)));
-                }
-
+                }*/
                 debug ( Drizzle ) Trace.formatln("{} ReturnCode: {}", cast(void*) this, returnCode);
                 exception.reset(queryString, returnCode, msg, null);
             }
@@ -395,7 +406,9 @@ package class Connection : ISelectClient
     body
     {
         while (true)
-        {
+        {            
+            assert ( this.queryString.length == 0, "Query string is not empty" );
+            
             auto request = this.request_queue.pop(this.buffer);
 
             debug ( Drizzle ) Trace.formatln("{} Request: discon: {}", cast(void*)this, this.disconnected);
@@ -495,6 +508,8 @@ package class Connection : ISelectClient
             if ( callback !is null )
                 // if that failed, the last exception should contain the error
                 this.callback (this.requestContext, null, this.exception);
+            
+            this.reset();
         }
         else
             this.queryInternal();
@@ -523,6 +538,7 @@ package class Connection : ISelectClient
         drizzle_con_set_revents(&this.connection, ev);
 
         this.disconnected = (Event.EPOLLHUP & ev) != 0;
+        this.timezone_initialized = false;
         
         debug ( Drizzle ) Trace.formatln("{} Error called: Disconnected: {}", cast(void*) this, disconnected);
         
@@ -603,6 +619,7 @@ package class Connection : ISelectClient
     package void setEvents ( Event events )
     {
         _events = events;
+        
         debug ( Drizzle ) Trace.formatln("{} setEvents: {}", cast(void*) this, events);
         
         register_again = true;
@@ -644,25 +661,21 @@ package class Connection : ISelectClient
             
             this.fiber.reset();
             this.reset();
-            this.notify();            
+            this.notify();               
         }
         catch ( Exception e )
         {
             Trace.formatln("{} FAILSAFE EXCEPTION CATCHER TRIGGERED: {} ({}:{})",
                        cast(void*) this, e.msg, e.file, e.line);
+            this.fiber.reset();
+            this.reset();            
         }
+        
 
         debug ( Drizzle ) Trace.formatln("{} Register again: {}", cast(void*) this, register_again);
         return register_again;
     }
 
-    public void finalize ( )
-    {
-        if ( !timezone_initialized && disconnected && register_again )
-        {
-            drizzle.epoll.register(this);
-        }
-    }
 
     /***************************************************************************
 
