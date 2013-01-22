@@ -49,6 +49,8 @@ private import ocean.util.container.queue.NotifyingQueue;
 
 private import ocean.core.Array : copy;
 
+private import ocean.core.MessageFiber;
+
 private import ocean.util.log.Trace;
 
 /*******************************************************************************
@@ -102,6 +104,9 @@ public alias void delegate ( ContextUnion context, Result result,
 
 package class Connection : ISelectClient
 {
+    private const MessageFiber.Token dd = MessageFiber.Token("DrizzleData");
+    private const MessageFiber.Token sq = MessageFiber.Token("SqlQuery");
+    
     /***************************************************************************
 
         Local Exception Object, to not allocate a new one each time.
@@ -213,7 +218,7 @@ package class Connection : ISelectClient
     
     ***************************************************************************/
 
-    protected Fiber fiber;
+    protected MessageFiber fiber;
     
     /***************************************************************************
 
@@ -244,7 +249,7 @@ package class Connection : ISelectClient
     {
         this.buffer = new ubyte[1024];
         
-        this.fiber  = new Fiber (&this.internalHandler, 16*1024);
+        this.fiber  = new MessageFiber (&this.internalHandler, 16*1024);
         
         this.request_queue = drizzle.connections;
 
@@ -285,12 +290,13 @@ package class Connection : ISelectClient
 
     ***************************************************************************/
 
-    private static bool retry ( drizzle_return_t code )
+    private bool retry ( drizzle_return_t code )
     {
         if (code == drizzle_return_t.DRIZZLE_RETURN_IO_WAIT)
         {
             debug ( Drizzle ) Trace.formatln("Waiting for data .. ");
-            Fiber.yield();
+                fiber.suspend(dd, this);
+            
             return true;
         }
 
@@ -410,7 +416,7 @@ package class Connection : ISelectClient
             else if ( this.request_queue.ready(&this.notify) )
             {
                 register_again = false;
-                this.fiber.cede();
+                this.fiber.suspend(sq, this);
             }
         }
     }
@@ -450,7 +456,7 @@ package class Connection : ISelectClient
     {
         if ( this.fiber.state == Fiber.State.HOLD )
         {
-            fiber.call();
+            fiber.resume(sq, this);
         }
     }
 
@@ -520,7 +526,7 @@ package class Connection : ISelectClient
         
         if ( this.fiber.state != Fiber.State.TERM )
         {
-            try this.fiber.call();
+            try this.fiber.resume(dd, this);
             catch (Exception ex) if (exc !is null) 
             {
                 exc.next = ex; 
@@ -622,7 +628,7 @@ package class Connection : ISelectClient
         
         drizzle_con_set_revents(&this.connection, event);
     
-        try this.fiber.call();
+        try this.fiber.resume(dd, this);
         catch ( DrizzleException e )
         {
             debug ( Drizzle ) Trace.formatln(" Exception in handle");
