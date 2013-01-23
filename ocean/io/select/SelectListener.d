@@ -141,12 +141,10 @@ abstract class ISelectListener : ISelectClient
                 supports retransmission, the request may be ignored so that a
                 later reattempt at connection succeeds.
                 (from http://linux.die.net/man/2/listen)
-            reuse      = (see ServerSocket constructor in tango.net.device.Socket)
 
      **************************************************************************/
 
-    protected this ( char[] address, ushort port, int backlog = 32,
-        bool reuse = true )
+    protected this ( char[] address, ushort port, int backlog = 32 )
     {
         this();
         
@@ -165,15 +163,14 @@ abstract class ISelectListener : ISelectClient
         
         Params:
             port       = server port
-            backlog    = (see ServerSocket constructor in tango.net.device.Socket)
-            reuse      = (see ServerSocket constructor in tango.net.device.Socket)
+            backlog    = (see ctor above)
 
      **************************************************************************/
 
-    protected this ( ushort port, int backlog = 32, bool reuse = true )
+    protected this ( ushort port, int backlog = 32 )
     {
         this();
-        
+
         this.e.assertExSock(!this.socket.bind(port),
                             "error binding socket", __FILE__, __LINE__);
         
@@ -195,7 +192,7 @@ abstract class ISelectListener : ISelectClient
         
         this.e.assertEx(this.socket.tcpSocket(true) >= 0,
                         "error creating socket", __FILE__, __LINE__);
-        
+
         this.e.assertEx(!this.socket.setsockoptVal(SOL_SOCKET, SO_REUSEADDR, true),
                         "error enabling reuse of address", __FILE__, __LINE__);
 
@@ -451,14 +448,13 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
             port       = listening port
             dispatcher = SelectDispatcher instance to use
             args       = additional T constructor arguments, might be empty
-            backlog    = (see ServerSocket constructor in tango.net.device.Socket)
-            reuse      = (see ServerSocket constructor in tango.net.device.Socket)
+            backlog    = (see ISelectListener ctor)
         
      **************************************************************************/
     
-    public this ( char[] address, ushort port, Args args, int backlog = 32, bool reuse = true )
+    public this ( char[] address, ushort port, Args args, int backlog = 32 )
     {
-        super(address, port, backlog, reuse);
+        super(address, port, backlog);
         
         this.receiver_pool = this.receiver_pool.newPool(&this.returnToPool, args);
     }
@@ -473,14 +469,13 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
             port       = listening port
             dispatcher = SelectDispatcher instance to use
             args       = additional T constructor arguments, might be empty
-            backlog    = (see ServerSocket constructor in tango.net.device.Socket)
-            reuse      = (see ServerSocket constructor in tango.net.device.Socket)
+            backlog    = (see ISelectListener ctor)
         
      **************************************************************************/
     
-    public this ( ushort port, Args args, int backlog = 32, bool reuse = true )
+    public this ( ushort port, Args args, int backlog = 32 )
     {
-        super(port, backlog, reuse);
+        super(port, backlog);
 
         this.receiver_pool = this.receiver_pool.newPool(&this.returnToPool, args);
     }
