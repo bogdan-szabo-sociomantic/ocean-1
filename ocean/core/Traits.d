@@ -476,3 +476,68 @@ public template StripTypedef ( T )
     }
 }
 
+
+/******************************************************************************
+
+    Tells whether the types in T are or contain dynamic arrays, recursing into
+    the member types of structs and union, the element types of dynamic and
+    static arrays and typedefs.
+    
+    Reference types other than dynamic arrays (classes, pointers, functions,
+    delegates and associative arrays) are ignored and not recursed into.
+    
+    Template parameter:
+        T = types to check
+    
+    Evaluates to:
+        true if any type in T is a or contains dynamic arrays or false if not
+        or T is empty. 
+    
+ ******************************************************************************/
+
+template ContainsDynamicArray ( T ... )
+{
+    static if (T.length)
+    {
+        static if (is (T[0] Base == typedef))
+        {
+            // Recurse into typedef.
+            
+            const ContainsDynamicArray = ContainsDynamicArray!(Base, T[1 .. $]);
+        }
+        else static if (is (T[0] == struct) || is (T[0] == union))
+        {
+            // Recurse into struct/union members.
+            
+            const ContainsDynamicArray = ContainsDynamicArray!(typeof (T[0].tupleof)) ||
+                                         ContainsDynamicArray!(T[1 .. $]);
+        }
+        else
+        {
+            static if (is (T[0] Element : Element[])) // array
+            {
+                static if (is (T[0] == Element[])) // dynamic array
+                {
+                    const ContainsDynamicArray = true;
+                }
+                else
+                {
+                    // Static array, recurse into base type.
+                    
+                    const ContainsDynamicArray = ContainsDynamicArray!(Base) ||
+                                                 ContainsDynamicArray!(T[1 .. $]);
+                }
+            }
+            else
+            {
+                // Skip non-dynamic or static array type.
+                
+                const ContainsDynamicArray = ContainsDynamicArray!(T[1 .. $]);
+            }
+        }
+    }
+    else
+    {
+        const ContainsDynamicArray = false;
+    }
+}
