@@ -524,7 +524,7 @@ template ContainsDynamicArray ( T ... )
                 {
                     // Static array, recurse into base type.
                     
-                    const ContainsDynamicArray = ContainsDynamicArray!(Base) ||
+                    const ContainsDynamicArray = ContainsDynamicArray!(Element) ||
                                                  ContainsDynamicArray!(T[1 .. $]);
                 }
             }
