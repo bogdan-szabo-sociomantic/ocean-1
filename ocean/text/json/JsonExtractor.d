@@ -88,7 +88,7 @@
     // Create one IterateArray instance for each JSON array that contains
     // members to extract.
     
-    GetArray imp = new GetArray(json,
+    GetArray imp = new GetArray(json, [imp_element]
                                (uint i, Type type, char[] value)
                                {
                                    // This delegate will be called for each
@@ -459,72 +459,98 @@ struct JsonExtractor
     class GetArray : IterateArray
     {
         /**********************************************************************
-        
+
             Iteration callback delegate type alias. The delegate must either use
             an appropriate GetField (or subclass) instance to handle and move
             the parser to the end of the field or indicate that this field is
             ignored and unhandled.
-            
+
             Params:
                 i     = element index counter, starts with 0
                 type  = element type
                 value = element value, meaningful only for certain types.
-            
+
             Returns:
                 true if an appropriate GetField (or subclass) instance was used
                 to handle and move the parser to the end of the field or false
                 if the field is ignored and unhandled and should be skipped.
-            
+
          **********************************************************************/
 
         alias bool delegate ( uint i, Type type, char[] value ) IteratorDg;
-        
+
         /**********************************************************************
-        
+
             Iteration callback delegate
-                        
+
          **********************************************************************/
 
         private const IteratorDg iterator_dg;
-        
+
         /**********************************************************************
-        
-            Constructor
-            
-            Params:
-                json        = JSON parser
-                iterator_dg = iteration callback delegate
-                
+
+            List of fields to reset when this.reset is called. 
+
          **********************************************************************/
-    
-        public this ( Parser json, IteratorDg iterator_dg )
+
+        private GetField[] fields_to_reset;
+
+        /**********************************************************************
+
+            Constructor
+
+            Params:
+                json            = JSON parser
+                fields_to_reset = fields to reset when this.reset is called
+                iterator_dg     = iteration callback delegate
+
+         **********************************************************************/
+
+        public this ( Parser json, GetField[] fields_to_reset, IteratorDg iterator_dg )
         {
             super(json);
-            
+
+            this.fields_to_reset = fields_to_reset;
+
             this.iterator_dg = iterator_dg;
         }
-        
+
         /**********************************************************************
-        
+
             Invokes the iteration callback delegate.
-            
+
             Params:
                 i     = field index
                 type  = field type
                 name  = (ignored)
                 value = field value
-                
+
             Returns:
                 passes through the return value of the delegate.
-                
+
          **********************************************************************/
 
         protected bool setField ( uint i, Type type, char[] name, char[] value )
         {
             return this.iterator_dg(i, type, value);
         }
+
+
+        /**********************************************************************
+
+            Called by super.reset() to reset all field given by fields_to_reset.
+
+         **********************************************************************/
+
+        protected override void reset_ ( )
+        {
+            foreach (get_field; this.fields_to_reset)
+            {
+                get_field.reset();
+            }
+        }
     }
-    
+
     /**************************************************************************
     
         Abstract JSON array iterator. As an alternative to the use of an
@@ -647,9 +673,9 @@ struct JsonExtractor
 
         abstract protected bool setField ( uint i, Type type, char[] name, char[] value );
     }
-    
+
     /**************************************************************************/
-    
+
     unittest
     {
         const content =
@@ -693,7 +719,7 @@ struct JsonExtractor
                 `"gender":"female"`
             `}`
         `}`;
-        
+
         scope json        = new Parser,
               id          = new GetField,
               impid       = new GetField,
@@ -704,41 +730,63 @@ struct JsonExtractor
               site        = new GetObject(json, ["page": page]),
               user        = new GetObject(json, ["uid": uid]),
               imp_element = new GetObject(json, [cast (char[]) "impid": impid, "w": w, "h": h]),
-              imp         = new GetArray(json,
+              imp         = new GetArray(json, [imp_element], 
                                        (uint i, Type type, char[] value)
                                        {
                                            bool handled = i == 0;
-                                       
+
                                            if (handled)
                                            {
                                                assert (type == type.BeginObject);
                                                imp_element.set(type);
                                            }
-                                           
+
                                            return handled;
                                        }),
            main          = new Main(json, [cast (char[]) "id": id, "imp": imp, "site": site, "user": user]);
-        
+
         bool ok = main.parse(content);
-        
+
         assert (ok);
-        
+
         assert (id.type  == Type.String);
         assert (id.value == "8c97472e-098e-4baa-aa63-4a3f2aab10c6");
-        
+
         assert (impid.type  == Type.String);
         assert (impid.value == "7682f6f1-810c-49b0-8388-f91ba4a00c1d");
-         
+
         assert (page.type  == Type.String);
         assert (page.value == "http://www.example.com/");
-        
+
         assert (uid.type  == Type.String);
         assert (uid.value == "45FB778");
-        
+
         assert (h.type  == Type.Number);
         assert (h.value == "480");
-        
+
         assert (w.type  == Type.Number);
         assert (w.value == "640");
+
+        ok = main.parse("{}");
+
+        assert (ok);
+
+        assert (id.value == null);
+        assert (id.type  == Type.Empty);
+
+        assert (impid.value == null);
+        assert (impid.type  == Type.Empty);
+
+        assert (page.value == null);
+        assert (page.type  == Type.Empty);
+
+        assert (uid.value == null);
+        assert (uid.type  == Type.Empty);
+
+        assert (h.value == null);
+        assert (h.type  == Type.Empty);
+
+        assert (w.value == null);
+        assert (w.type  == Type.Empty);
     }
 }
