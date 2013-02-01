@@ -17,6 +17,14 @@ module ocean.io.serialize.StructDumper;
 
 /******************************************************************************
 
+    Imports.
+
+ ******************************************************************************/
+
+private import ocean.core.Traits: ContainsDynamicArray;
+
+/******************************************************************************
+
     Serializes instances of struct type S and keeps a data buffer for the
     serialized data.
 
@@ -707,56 +715,5 @@ struct DumpArrays
         }
         
         return array;
-    }
-    
-    /**************************************************************************
-
-        Tells whether T is a reference type. That is
-        
-            - pointer, dynamic array, associative array,
-            - class, interface
-            - delegate, function reference
-        
-        Template parameter:
-            T = type to check
-        
-        Evaluates to:
-            true if T is a reference type or false otherwise
-        
-     **************************************************************************/
-    
-    template ContainsDynamicArray ( T ... )
-    {
-        static if (T.length)
-        {
-            static if (is (T[0] == struct) || is (T[0] == union))
-            {
-                const ContainsDynamicArray = ContainsDynamicArray!(typeof (T[0].tupleof)) ||
-                                             ContainsDynamicArray!(T[1 .. $]);
-            }
-            else
-            {
-                static if (is (T[0] Base : Base[]))
-                {
-                    static if (is (T[0] == Base[]))
-                    {
-                        const ContainsDynamicArray = true;
-                    }
-                    else
-                    {
-                        const ContainsDynamicArray = ContainsDynamicArray!(Base) ||
-                                                     ContainsDynamicArray!(T[1 .. $]);
-                    }
-                }
-                else
-                {
-                    const ContainsDynamicArray = ContainsDynamicArray!(T[1 .. $]);
-                }
-            }
-        }
-        else
-        {
-            const ContainsDynamicArray = false;
-        }
     }
 }
