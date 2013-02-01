@@ -674,7 +674,7 @@ class StructLoader
                 pos += this.sliceSubArraysBytes!(V)(T.length, data[pos .. $], n);
             }
         }
-        else pragma (msg, ind, "sliceSubArraysBytes: no subarrays (primitive ", T.stringof, ")");
+        else pragma (msg, n, "sliceSubArraysBytes: no subarrays (primitive ", T.stringof, ")");
         
         return pos;
     }
