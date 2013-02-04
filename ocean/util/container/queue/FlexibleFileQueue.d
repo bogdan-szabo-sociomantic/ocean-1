@@ -239,7 +239,7 @@ public class FlexibleFileQueue : IByteQueue
     {
         this.handleSliceBuffer();
 
-        if ( this.bytes_in_file == 0 && this.ext_out !is null )
+        if ( this.bytes_in_file == 0 && this.files_open )
         {
             this.closeExternal();
             return null;
