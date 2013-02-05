@@ -40,7 +40,7 @@ class StructDumper ( S )
 
      **************************************************************************/
     
-    const contains_dynamic_array = DumpArrays.ContainsDynamicArray!(S);
+    const contains_dynamic_array = ContainsDynamicArray!(S);
 
     /**************************************************************************
 
