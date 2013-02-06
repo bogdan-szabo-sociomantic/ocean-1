@@ -215,7 +215,7 @@ public class AppStatus
 
     ***************************************************************************/    
     
-    this ( char[] app_name, char[] app_version, char[] app_build_date, 
+    public this ( char[] app_name, char[] app_version, char[] app_build_date, 
         char[] app_build_author, IAdvancedMicrosecondsClock clock, uint size )
     {
         this.app_name.copy(app_name);
