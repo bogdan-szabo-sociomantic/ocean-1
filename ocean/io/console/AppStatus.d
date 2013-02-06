@@ -82,6 +82,19 @@ public class AppStatus
 {
     /***************************************************************************
 
+        Message buffer used for formatting streaming lines. The buffer is public
+        so that, if more complex formatting is needed than is provided by the
+        displayStreamingLine() methods, then it can be used externally to format
+        any required messages. The version of displayStreamingLine() with no
+        arguments can then be called to print the contents of the buffer.
+
+    ***************************************************************************/
+
+    public StringLayout!(char) msg;
+
+
+    /***************************************************************************
+
         Alias for system clock function.
 
     ***************************************************************************/
@@ -227,6 +240,8 @@ public class AppStatus
         this.static_lines.length = size;
         this.insert_console = new InsertConsole(new MessageOnlyLayout);
         this.old_terminal_size = Terminal.rows;
+
+        this.msg = new StringLayout!(char);
     }
 
     
@@ -284,55 +299,69 @@ public class AppStatus
             args = list of any extra arguments for the message
 
     ***************************************************************************/
-    
-    public void formatStaticLine ( T... )( int index, char[] format, T args )
+
+    public void formatStaticLine ( uint index, char[] format, ... )
     {
         assert( index < this.static_lines.length, "adding too many static lines" );
         
         this.static_lines[index].length = 0;       
-        if ( args.length == 0 )
-        {
-            Layout!(char).print(this.static_lines[index], format);   
-        }
-        else
-        {
-            Layout!(char).print(this.static_lines[index], format, args);
-        }
-
+        Layout!(char).vprint(this.static_lines[index], format,
+            _arguments, _argptr);
     }
-    
-    
+
+
     /***************************************************************************
 
-        Print a streaming line above the static lines. Creates an empty LogEvent
-        then sets the message of the log event to the streaming line. Uses the
-        InsertConsole to display the streaming line.
-    
+        Print a formatted streaming line above the static lines.
+
         Params:
             format = format string of the streaming line
-            args = list of any extra arguments for the streaming line
+            ... = list of any extra arguments for the streaming line
 
     ***************************************************************************/
-    
-    public void displayStreamingLine ( T... )( char[] format, T args )
+
+    public void displayStreamingLine ( char[] format, ... )
     {
-        char[] msg;
+        this.displayStreamingLine(format, _arguments, _argptr);
+    }
+
+
+    /***************************************************************************
+
+        Print a formatted streaming line above the static lines.
+
+        Params:
+            format = format string of the streaming line
+            arguments = typeinfos of any extra arguments for the streaming line
+            argptr = pointer to list of extra arguments for the streaming line
+
+    ***************************************************************************/
+
+    public void displayStreamingLine ( char[] format, TypeInfo[] arguments,
+        void* argptr )
+    {
+        this.msg.length = 0;
+        this.msg.vformat(format, arguments, argptr);
+        this.displayStreamingLine();
+    }
+
+
+    /***************************************************************************
+
+        Print the contents of this.msg as streaming line above the static lines.
+
+    ***************************************************************************/
+
+    public void displayStreamingLine ( )
+    {
         Hierarchy host_;
         Level level_;
         LogEvent event;
-        
-        if ( args.length == 0 )
-        {
-            Layout!(char).print(msg, format);   
-        }
-        else
-        {
-            Layout!(char).print(msg, format, args);
-        }
-   
-        event.set(host_, level_, msg, "");
+        event.set(host_, level_, this.msg[], "");
+
         this.insert_console.append(event);
-    } 
+    }
+
 
     
     /***************************************************************************
