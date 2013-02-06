@@ -341,6 +341,12 @@ public class AppStatus
         and current time. Then didivde the run time in to weeks, days, hours, 
         minutes, and seconds.
     
+    /***************************************************************************
+
+        Get the current uptime for the program using the start time and current
+        time. Then divide the uptime in to weeks, days, hours, minutes, and
+        seconds.
+
         Params:
             weeks = weeks of runtime
             days = days of runtime
@@ -350,7 +356,7 @@ public class AppStatus
 
     ***************************************************************************/
     
-    public void getRuntime ( out uint weeks, out uint days, out uint hours,
+    public void getUptime ( out uint weeks, out uint days, out uint hours,
         out uint mins, out uint secs )
     {
         time_t uptime = this.clock.now_sec - this.start_time;
@@ -437,7 +443,7 @@ public class AppStatus
             "{:d2}:{:d2}:{:d2}] {}", date.day, date.month, date.year, 
             time.hours, time.minutes, time.seconds, this.app_name);
         
-        this.formatRuntime();      
+        this.formatUptime();      
         this.formatMemoryUsage();       
         this.formatCpuUsage();
         
@@ -465,15 +471,15 @@ public class AppStatus
     
     /***************************************************************************
 
-        Format the current runtime for the current program.
+        Format the current uptime for the current program.
 
     ***************************************************************************/
     
-    private void formatRuntime ( )
+    private void formatUptime ( )
     {
         uint weeks, days, hours, mins, secs;     
-        this.getRuntime(weeks, days, hours, mins, secs);      
-        Layout!(char).print(this.heading_line, " Runtime: {}w{:d1}d{:d2}:"
+        this.getUptime(weeks, days, hours, mins, secs);      
+        Layout!(char).print(this.heading_line, " Uptime: {}w{:d1}d{:d2}:"
             "{:d2}:{:d2}", weeks, days, hours, mins, secs);
     }
     
