@@ -363,12 +363,40 @@ public class AppStatus
     }
 
 
-    
     /***************************************************************************
 
-        Get the current runtime for the current program using the start time 
-        and current time. Then didivde the run time in to weeks, days, hours, 
-        minutes, and seconds.
+        Print a list of arguments as a streaming line above the static lines.
+        Each argument is printed using its default format.
+
+        Params:
+            ... = list of arguments for the streaming line
+
+    ***************************************************************************/
+
+    public void displayStreamingLineArgs ( ... )
+    {
+        this.displayStreamingLineArgs(_arguments, _argptr);
+    }
+
+
+    /***************************************************************************
+
+        Print a list of arguments as a streaming line above the static lines.
+        Each argument is printed using its default format.
+    
+        Params:
+            arguments = typeinfos of arguments for the streaming line
+            argptr = pointer to list of arguments for the streaming line
+
+    ***************************************************************************/
+
+    public void displayStreamingLineArgs ( TypeInfo[] arguments, void* argptr )
+    {
+        this.msg.length = 0;
+        this.msg.vwrite(arguments, argptr);
+        this.displayStreamingLine();
+    }
+
     
     /***************************************************************************
 
