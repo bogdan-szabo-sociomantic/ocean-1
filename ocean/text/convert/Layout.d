@@ -43,8 +43,6 @@ private import ocean.core.Array : append;
 
 private import ocean.util.container.AppendBuffer;
 
-private import ocean.util.VariadicArg;
-
 private import TangoLayout = tango.text.convert.Layout;
 
 
@@ -59,23 +57,6 @@ version (DigitalMars) version (X86_64)
     version = DigitalMarsX86_64;
 }
 
-/*******************************************************************************
-
-    On Digital Mars x86-64 va_start() merely returns &__va_argsave.va and
-    va_end() does nothing so there is no need to do the cumbersome
-    va_start()/va_end() businness, instead
-    ---
-        va_list arglist = &__va_argsave.va;
-    ---
-    can simply be used to obtain the variadic argument list. Since va_list is an
-    alias for void* (why not a typedef... ?), even a cast isn't required. 
-    
-    Note: Of course it is always advisable to use standard routines but in this
-    case the code gets much easier to read and maintain when using the argument
-    list directly.
-    
-*******************************************************************************/
-
 version (DigitalMarsX86_64)
 {
     
@@ -84,7 +65,7 @@ version (DigitalMarsX86_64)
      * the vaArg template, which is instantiated in other modules as well.
      */
     
-    public import tango.core.Vararg: va_list, va_start, va_arg, va_end,
+    public import tango.core.Vararg: va_arg, va_list,
                                // implicitly referenced by the compiler... YEAH!
                                      __va_argsave_t;
 }
@@ -148,7 +129,7 @@ abstract class Layout ( T = char )
     
     static public T[] print ( ref T[] output, T[] formatStr, ... )
     {
-        return vprint(output, formatStr, _arguments, &__va_argsave.va);
+        return vprint(output, formatStr, _arguments, _argptr);
     }
     
     /***************************************************************************
@@ -200,7 +181,7 @@ abstract class Layout ( T = char )
 
     public typeof (this) format ( T[] fmt, ... )
     {
-        return this.vformat(fmt, _arguments, &__va_argsave.va);
+        return this.vformat(fmt, _arguments, _argptr);
     }
     
     /**************************************************************************
@@ -218,7 +199,7 @@ abstract class Layout ( T = char )
 
     public typeof (this) opCall ( ... )
     {
-        return this.vwrite(_arguments, &__va_argsave.va);
+        return this.vwrite(_arguments, _argptr);
     }
     
     /**************************************************************************
@@ -268,17 +249,16 @@ abstract class Layout ( T = char )
     
     public typeof (this) vwrite ( TypeInfo[] arguments, va_list argptr )
     {
-        scope va_list = new VaList(argptr);
-        
         foreach (ref argument; arguments)
         {
             if (argument is typeid (T[]))
             {
-                 this.append(*cast (T[]*) va_list.next(argument).ptr);
+                 this.append(va_arg!(T[])(argptr));
             }
             else if (argument is typeid (T))
             {
-                this.append((cast (T*) va_list.next(argument).ptr)[0 .. 1]);
+                T x = va_arg!(T)(argptr);
+                this.append((&x)[0..1]);
             }
             else
             {
@@ -371,7 +351,7 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
 
     T[] opCall ( ... )
     {
-        return this.vwrite(_arguments, &__va_argsave.va);
+        return this.vwrite(_arguments, _argptr);
     }
     
     /**************************************************************************
@@ -392,7 +372,7 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
 
     T[] format ( T[] fmt, ... )
     {
-        return this.vformat(fmt, _arguments, &__va_argsave.va);
+        return this.vformat(fmt, _arguments, _argptr);
     }
     
     /**************************************************************************
@@ -488,20 +468,7 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
 public R vaArgCall ( R = void, A ... ) ( R delegate ( A dg_args, TypeInfo[] arguments, va_list argptr ) dg,
                                          A dg_args )
 {
-    version (DigitalMarsX86_64)
-    {
-        va_list ap;
-
-        va_start(ap, __va_argsave);
-
-        scope(exit) va_end(ap);
-        
-        return dg(dg_args, _arguments, ap);
-    }
-    else
-    {
-        return dg(dg_args, _arguments, _argptr);
-    }
+    return dg(dg_args, _arguments, _argptr);
 }
 
 /******************************************************************************/
