@@ -261,8 +261,13 @@ class HttpResponse : HttpHeader
                     
                     return true;
                 }
-            
-            case status.NoContent, status.NotModified:
+
+            case status.NoContent:
+                super.set("Content-Length", "0");
+                // TODO: David, do we need to assert that the return value of set() == true?
+                return false;
+
+            case status.NotModified:
                 return false;
         }
     }
