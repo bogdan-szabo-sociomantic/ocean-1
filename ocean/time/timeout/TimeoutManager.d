@@ -213,15 +213,14 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
     static class ExpiryToClient : Map!(IExpiryRegistration, Expiry*)
     {
-        
-        /***************************************************************************
+        /***********************************************************************
 
             Constructor.
 
             Params:
                 n = expected number of elements in mapping
             
-        ***************************************************************************/
+        ***********************************************************************/
 
         public this ( size_t n )
         {
