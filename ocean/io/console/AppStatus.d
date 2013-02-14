@@ -262,11 +262,7 @@ public class AppStatus
   
     public void displayStaticLines ( )
     {
-        if ( this.old_terminal_size != Terminal.rows )
-        {
-            Stdout.endrow;
-            this.old_terminal_size = Terminal.rows;
-        }
+        this.checkHeight();
         
         foreach ( line; this.static_lines )
         {
@@ -589,6 +585,30 @@ public class AppStatus
         if ( buffer.length > Terminal.columns )
         {
             buffer.length = Terminal.columns;
+        }
+    }
+    
+    
+    /***************************************************************************
+
+        Check the height of the terminal. If the height has changed, reset the
+        cursor position to the end of the terminal. Then move the cursor up
+        by the number of static lines that are being printed
+
+    ***************************************************************************/
+    
+    private void checkHeight ( )
+    {
+        if ( this.old_terminal_size != Terminal.rows )
+        {
+            Stdout.endrow;
+            this.old_terminal_size = Terminal.rows;
+
+            foreach ( line; this.static_lines )
+            {
+                Stdout.clearline.cr.flush.up;
+            }
+            Stdout.clearline.cr.flush.up;
         }
     }
 }
