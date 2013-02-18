@@ -32,9 +32,9 @@ module ocean.core.Array;
 
 
 /*******************************************************************************
-    
+
     Imports
-    
+
 *******************************************************************************/
 
 private import tango.core.Traits;
@@ -52,7 +52,7 @@ private import tango.stdc.math: fabs;
     Concatenates a list of arrays into a destination array. The function results
     in at most a single memory allocation, if the destination array is too small
     to contain the concatenation results.
-    
+
     The destination array is passed as a reference, so its length can be
     modified in-place as required. This avoids any per-element memory
     allocation, which the normal ~ operator suffers from.
@@ -85,18 +85,18 @@ public D concat ( D, T ... ) ( ref D dest, T arrays )
     Appends a list of arrays to a destination array. The function results
     in at most a single memory allocation, as the destination array needs to be
     expanded to contain the concatenated list of arrays.
-    
+
     The destination array is passed as a reference, so its length can be
     modified in-place as required. This avoids any per-element memory
     allocation, which the normal ~ operator suffers from.
-    
+
     Template params:
         T = type of array element
 
     Params:
         dest = reference to the destination array
         arrays = variadic list of arrays to append
-    
+
     Returns:
         dest
 
@@ -111,7 +111,7 @@ public D concat ( D, T ... ) ( ref D dest, T arrays )
 public D append ( D, T ... ) ( ref D dest, T arrays )
 {
     size_t old_len = dest.length;
-    
+
     return concatT!("append", D, T)(dest, arrays, old_len);
 }
 
@@ -144,12 +144,12 @@ public D append ( D, T ... ) ( ref D dest, T arrays )
 public T[] copy ( T ) ( ref T[] dest, T[] src )
 {
     dest.length = src.length;
-    
+
     if (src.length)
     {
         dest[] = src[];
     }
-    
+
     return dest;
 }
 
@@ -158,17 +158,17 @@ public T[] copy ( T ) ( ref T[] dest, T[] src )
     Copies the contents of src to dest, increasing dest.length if required.
     Since dest.length will not be decreased, dest will contain tailing garbage
     if src.length < dest.length.
-        
+
     Template params:
         T = type of array element
-    
+
     Params:
         dest  = reference to the destination array
         array = array to copy; null has the same effect as an empty array
-    
+
     Returns:
         slice to copied elements in dest
-    
+
 *******************************************************************************/
 
 public T[] copyExtend ( T ) ( ref T[] dest, T[] src )
@@ -179,10 +179,10 @@ public T[] copyExtend ( T ) ( ref T[] dest, T[] src )
         {
             dest.length = src.length;
         }
-        
+
         dest[0 .. src.length] = src[];
     }
-    
+
     return dest[0 .. src.length];
 }
 
@@ -218,7 +218,7 @@ public T[][] appendCopy ( T ) ( ref T[][] dest, T[] src )
 {
     dest.length = dest.length + 1;
     dest[$ - 1].copy(src);
-    
+
     return dest;
 }
 
@@ -227,20 +227,20 @@ public T[][] appendCopy ( T ) ( ref T[][] dest, T[] src )
 
     Split the provided array wherever a pattern instance is found, and return
     the resultant segments. The pattern is excluded from each of the segments.
-    
+
     Note that the src content is not duplicated by this function, but is sliced
     instead.
 
     (Adapted from tango.text.Util : split, which isn't memory safe.)
-    
+
     Template params:
         T = type of array element
-    
+
     Params:
         src = source array to split
         pattern = pattern to split array by
         result = receives split array segments (slices into src)
-    
+
     Returns:
         result
 
@@ -249,7 +249,7 @@ public T[][] appendCopy ( T ) ( ref T[][] dest, T[] src )
 public T[][] split ( T ) ( T[] src, T[] pattern, ref T[][] result )
 {
     result.length = 0;
-    
+
     foreach ( segment; patterns(src, pattern) )
     {
         result ~= segment;
@@ -263,18 +263,18 @@ public T[][] split ( T ) ( T[] src, T[] pattern, ref T[][] result )
 
     Substitute all instances of match from source. Set replacement to null in
     order to remove instead of replace (or use the remove() function, below).
-    
+
     (Adapted from tango.text.Util : substitute, which isn't memory safe.)
-    
+
     Template params:
         T = type of array element
-    
+
     Params:
         src = source array to search
         match = pattern to match in source array
         replacement = pattern to replace matched sub-arrays
         result = receives array with replaced patterns
-    
+
     Returns:
         result
 
@@ -283,12 +283,12 @@ public T[][] split ( T ) ( T[] src, T[] pattern, ref T[][] result )
 public T[] substitute ( T ) ( T[] source, T[] match, T[] replacement, ref T[] result )
 {
     result.length = 0;
-    
+
     foreach ( s; patterns(source, match, replacement) )
     {
         result ~= s;
     }
-    
+
     return result;
 }
 
@@ -326,15 +326,15 @@ public bool pop ( T ) ( ref T[] array, out T popped )
 /*******************************************************************************
 
     Removes all instances of match from source.
-    
+
     Template params:
         T = type of array element
-    
+
     Params:
         src = source array to search
         match = pattern to remove from source array
         result = receives array with removed patterns
-    
+
     Returns:
         result
 
@@ -473,12 +473,12 @@ body
     {
         return array;
     }
-    
+
     auto shift_elems = array.length - index;
-    
+
     // adjust array length
     array.length = array.length + insert_elems;
-    
+
     // shift required elements one place to the right
     if ( shift_elems )
     {
@@ -487,7 +487,7 @@ body
         size_t num = T.sizeof * shift_elems;
         memmove(dst, src, num);
     }
-    
+
     return array;
 }
 
@@ -495,14 +495,14 @@ body
 /*******************************************************************************
 
     Sorts array and removes all value duplicates.
-    
+
     Template params:
         T    = type of array element
         sort = true: do array.sort first; false: array is already sorted
-    
+
     Params:
         array = array to clean from duplicate values
-    
+
     Returns:
         result
 
@@ -513,14 +513,14 @@ public T[] uniq ( T, bool sort = true ) ( T[] array )
     if (array.length)
     {
         size_t n = 0;
-        
+
         static if (sort)
         {
             array.sort;
         }
-        
+
         T item = array[n];
-        
+
         foreach (element; array)
         {
             if (element != item)
@@ -529,14 +529,14 @@ public T[] uniq ( T, bool sort = true ) ( T[] array )
                 item       = element;
             }
         }
-        
+
         return array[0 .. n + 1];
     }
     else
     {
         return array;
     }
-    
+
 }
 
 /*******************************************************************************
@@ -579,8 +579,8 @@ public T[] uniq ( T, bool sort = true ) ( T[] array )
     In:
         array.length must be at most ssize_t.max (int.max if size_t is uint or
         long.max if size_t is ulong). TODO: Remove this restriction by
-        rephrasing the implementation in bsearchCustom(). 
-    
+        rephrasing the implementation in bsearchCustom().
+
 *******************************************************************************/
 
 public bool bsearch ( T ) ( T[] array, T match, out size_t position )
@@ -600,18 +600,18 @@ body
     return bsearchCustom(array.length,
             delegate ssize_t ( size_t i )
             {
-                static if (is (T : size_t)) // will also be true if T is ssize_t 
+                static if (is (T : size_t)) // will also be true if T is ssize_t
                 {
                     // If T is unsigned, check if cast (ssize_t) (0 - 1) == -1.
                     // TODO: Is this behaviour guaranteed? If so, remove the
                     // check.
-                    
+
                     static if (T.min == 0)
                     {
                         static assert (cast (ssize_t) (T.min - cast (T) 1) == -1,
                                        "bsearch: 0 - 1 != -1 for type " ~ T.stringof);
                     }
-                    
+
                     return match - array[i];
                 }
                 else static if (is (T == class) || is (T == struct))
@@ -620,7 +620,7 @@ body
                 }
                 else
                 {
-                    return (match >= array[i])? (match > array[i]) : -1; 
+                    return (match >= array[i])? (match > array[i]) : -1;
                 }
             },
             position);
@@ -631,7 +631,7 @@ body
 
     Searches a sorted array for an element or an insert position for an element.
     The array is assumed to be pre-sorted according to cmp.
-    
+
     Params:
         array_length = length of array to search
         cmp       = comparison callback delegate, should return
@@ -661,12 +661,12 @@ body
 
     Returns:
         true if the element was found in the array
-    
+
     In:
         array_length must be at most ssize_t.max (int.max if size_t is uint or
         long.max if size_t is ulong). TODO: Remove this restriction by
-        rephrasing the implementation so that min/max cannot be less than 0. 
-    
+        rephrasing the implementation so that min/max cannot be less than 0.
+
 *******************************************************************************/
 
 public bool bsearchCustom ( size_t array_length, ssize_t delegate ( size_t i ) cmp, out size_t position )
@@ -696,9 +696,9 @@ body
 
     ssize_t min = 0;
     ssize_t max = array_length - 1;
-    
+
     ssize_t c = cmp(position = (min + max) / 2);
-    
+
     while ( min <= max && c )
     {
         if ( c < 0 ) // match < array[position]
@@ -709,12 +709,12 @@ body
         {
             min = position + 1;
         }
-        
+
         c = cmp(position = (min + max) / 2);
     }
-    
+
     position += c > 0;
-    
+
     return !c;
 }
 
@@ -722,10 +722,10 @@ body
 
     Creates a single element dynamic array that slices val. This will not
     allocate memory in contrast to the '[val]' expression.
-    
+
     Params:
         val = value to slice
-        
+
     Returns:
         single element dynamic array that slices val.
 
@@ -739,11 +739,11 @@ public T[] toArray ( T ) ( ref T val )
 /*******************************************************************************
 
     Shuffles the elements of array in-place.
-    
+
     Params:
         array = array with elements to shuffle
         rand  = random number generator, will be invoked array.length - 1 times
-    
+
     Returns:
         shuffled array
 
@@ -758,14 +758,14 @@ public T[] shuffle ( T ) ( T[] array, lazy double rand )
 /*******************************************************************************
 
     Shuffles the elements of array in-place.
-    
+
     Params:
         array     = array with elements to shuffle
         new_index = returns the new index for the array element whose index is
                     currently i. i is guaranteed to be in the range
                     [1 .. array.length - 1]; the returned index should be in the
                     range [0 .. i] and must be in range [0 .. array.length - 1].
-    
+
     Returns:
         shuffled array
 
@@ -780,22 +780,22 @@ public T[] shuffle ( T ) ( T[] array, size_t delegate ( size_t i ) new_index )
         array[i] = array[j];
         array[j] = tmp;
     }
-    
+
     return array;
 }
 
 /******************************************************************************
 
     Resets each elements of array to its initial value.
-    
+
     T.init must consist only of zero bytes.
-    
+
     Params:
         array = array to clear elements
-        
+
     Returns:
         array with cleared elements
-    
+
  ******************************************************************************/
 
 public T[] clear ( T ) ( T[] array )
@@ -807,16 +807,16 @@ in
 body
 {
     memset(array.ptr, 0, array.length * array[0].sizeof);
-    
+
     return array;
 }
 
 
 /******************************************************************************
-    
+
     Checks if T.init consists only of zero bytes so that a T[] array can be
     cleared by clear().
-    
+
     Returns:
         true if a T[] array can be cleared by clear() or false if not.
 
@@ -825,11 +825,11 @@ body
 bool isClearable ( T ) ( )
 {
     const size_t n = T.sizeof;
-    
+
     T init;
-    
+
     ubyte[n] zero_data;
-    
+
     return (cast (void*) &init)[0 .. n] == zero_data;
 }
 
@@ -838,12 +838,12 @@ bool isClearable ( T ) ( )
 
     Concatenates arrays, using dest[start .. $] as destination array.
     dest[start .. $].length must equal the sum of the lengths of arrays.
-    
+
     Params:
         dest   = destination array
         arrays = arrays to concatenate
         start  = start index on dest
-        
+
     Returns:
         dest
 
@@ -852,7 +852,7 @@ bool isClearable ( T ) ( )
 private T[] concat_ ( T ) ( T[] dest, T[][] arrays, size_t start = 0 )
 {
     T[] write_slice = dest[start .. $];
-    
+
     foreach ( array; arrays )
     {
         if (array)
@@ -861,23 +861,23 @@ private T[] concat_ ( T ) ( T[] dest, T[][] arrays, size_t start = 0 )
         }
         write_slice = write_slice[array.length .. $];
     }
-    
+
     assert (!write_slice.length);
-    
+
     return dest;
 }
 
 /*******************************************************************************
 
     Assigns elements to array.
-    
+
     This is a static array substitution for fixed type variadic functions
     to avoid the memory condition caused by using it.  A fixed type variadic
     function follows the pattern
     ---
         int f ( int[] list ... )
     ---
-    .  A call to that function like        
+    .  A call to that function like
     ---
         f(2, 3, 5, 7);
     ---
@@ -889,18 +889,18 @@ private T[] concat_ ( T ) ( T[] dest, T[][] arrays, size_t start = 0 )
     function of the run-time library which uses gc_malloc() to allocate the
     array buffer.
     @see tango.rt.compiler.dmd.rt.lifetime
-    
+
     Template params:
         func = function name for static assertion messages
-    
+
     Params:
         dest     = destination array, length must equal the number of elements
         elements = elements to append, each  parameter must be possible to
                    assign to an element of dest.
-    
+
     Returns:
         total length of elements.
-    
+
     TODO: Could be made public but must then not rely on elements to be arrays.
 
 *******************************************************************************/
@@ -913,17 +913,17 @@ in
 body
 {
     size_t total_length = 0;
-    
+
     foreach ( i, element; elements )
     {
         static assert (is (typeof (dest[i] = element)), func ~ ": cannot "
                            "assign element " ~ i.stringof ~ " of type " ~
                            typeof (element).stringof ~ "to  " ~ D.stringof);
-        
+
         dest[i] = element;
         total_length += element.length;
     }
-    
+
     return total_length;
 }
 
@@ -944,7 +944,7 @@ body
 
     Returns:
         dest
-    
+
     TODO: Could be made public but must then not rely on elements to be arrays.
 
 *******************************************************************************/
@@ -956,31 +956,31 @@ private D concatT ( char[] func, D, T ... ) ( ref D dest, T arrays, size_t start
         static if (is (typeof (dest[] = arrays[0][])))                      // one array
         {
             dest.length = start + arrays[0].length;
-            
+
             return dest[start .. $] = arrays[0][];
         }
         else                                                                // must be an array of arrays
         {
             static assert (is (typeof (dest.concat_(arrays[0]))), "cannot concatenate " ~ T[0].stringof ~ " to " ~ D.stringof);
-            
+
             size_t total_len = start;
-            
+
             foreach ( array; arrays[0] )
             {
                 total_len += array.length;
             }
-            
+
             dest.length = total_len;
-            
+
             return dest.concat_(arrays[0], start);
         }
     }
     else                                                                    // multiple arguments, must be arrays
     {
         D[T.length] list;
-        
+
         dest.length = start + toStaticArray(list, arrays);
-          
+
         return dest.concat_(list, start);
     }
 }
@@ -997,27 +997,27 @@ unittest
 {
     char[] str;
     assert (str.copy("Die Katze tritt die Treppe krumm.") == "Die Katze tritt die Treppe krumm.");
-    
+
     str.length = 0;
     assert (str.concat("Die ", "Katze ", "tritt ", "die ", "Treppe ", "krumm.") == "Die Katze tritt die Treppe krumm.");
-    
+
     char[] nothing = null;
-    
+
     str.length = 0;
     assert (str.concat("Die ", "", "Katze ", "tritt ", nothing, "die ", "Treppe ", "krumm.") == "Die Katze tritt die Treppe krumm.");
-    
+
     str.length = 0;
     str.append("Die Katze ");
     assert (str == "Die Katze ");
     str.append("tritt ", "die ");
     assert (str.append("Treppe ", "krumm.") == "Die Katze tritt die Treppe krumm.");
-    
+
     alias bsearch!(long) bs;
-    
+
     long[] arr = [1, 2, 3,  5, 8, 13, 21];
-    
+
     size_t n;
-    
+
     assert (bs(arr, 5, n));
 }
 
@@ -1030,7 +1030,7 @@ debug ( OceanUnitTest )
     {
         char[] dest;
         concat(dest, strings);
-        
+
         char[] concat_result;
         foreach ( str; strings )
         {

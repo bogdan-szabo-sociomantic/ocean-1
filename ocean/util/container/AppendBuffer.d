@@ -1,20 +1,20 @@
 /******************************************************************************
 
     Manages an array buffer for better incremental appending performance
-    
+
     Copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     Version:        May 2011: Initial release
-    
+
     Authors:        David Eckardt
-    
+
     Manages an array buffer for better performance when elements are
     incrementally appended to an array.
-    
+
     Note that, as with each dynamic array, changing the length invalidates
     existing slices to the array, potentially turning them into dangling
     references.
-    
+
  ******************************************************************************/
 
 module ocean.util.container.AppendBuffer;
@@ -32,7 +32,7 @@ private import tango.core.Exception: onOutOfMemoryError;
 debug private import ocean.util.log.Trace;
 
 /******************************************************************************
-    
+
     AppendBuffer Base interface.
 
  ******************************************************************************/
@@ -40,19 +40,19 @@ debug private import ocean.util.log.Trace;
 interface IAppendBufferBase
 {
     /**************************************************************************
-    
+
         Returns:
             number of elements in content
-    
+
      **************************************************************************/
-    
+
     size_t length ( );
 }
-    
+
 /******************************************************************************
-    
+
     Read-only AppendBuffer interface.
-    
+
     Note that there is no strict write protection to an IAppendBufferReader
     instance because it is still possible to modify the content an obtained
     slice refers to. However, this is not the intention of this interface and
@@ -64,17 +64,17 @@ interface IAppendBufferReader ( T ) : IAppendBufferBase
 {
     alias T ElementType;
     const element_size = T.sizeof;
-    
+
     /**************************************************************************
-    
+
         Checks if T is 'void' or a static array type.
-    
+
      **************************************************************************/
-    
+
     static if (!is (T == void))
     {
         /**********************************************************************
-        
+
             Unless T is 'void' opIndex() is declared and the
             static_array_element flag defined which tells whether T is a static
             array type or not.
@@ -85,92 +85,92 @@ interface IAppendBufferReader ( T ) : IAppendBufferBase
             int[4], R aliases int[].
             If T is 'void', static_array_element, R and opIndex are not
             declared/defined at all.
-        
+
          **********************************************************************/
-        
+
         static if (is (T U : U[]) && !is (T == U[]))
         {
             const static_array_element = true;
-            
+
             alias U[] R;
         }
         else
         {
             const static_array_element = false;
-            
+
             alias T R;
         }
-        
+
         /**********************************************************************
-        
+
             Returns the i-th element in content.
-            
+
             Params:
                 i = element index
-        
+
             Returns:
                 i-th element in content
-        
+
          **********************************************************************/
-        
+
         R opIndex ( size_t i );
     }
     else
     {
         const static_array_element = false;
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             the current content
-    
+
      **************************************************************************/
 
     T[] opSlice ( );
-    
+
     /**************************************************************************
-    
+
         Returns content[start .. end].
         start must be at most end and end must be at most the current content
         length.
-        
+
         Params:
             start = start index
             end   = end index (exclusive)
-        
+
         Returns:
             content[start .. end]
-    
+
      **************************************************************************/
 
     T[] opSlice ( size_t start, size_t end );
-    
+
     /**************************************************************************
-    
+
         Returns content[start .. length].
-        
+
         Params:
             start = start index
-        
+
         Returns:
             content[start .. length]
-    
+
      **************************************************************************/
 
     T[] tail ( size_t start );
 }
 
 /******************************************************************************
-     
+
     AppendBuffer class template
-     
+
     Template params:
         T          = array element type
         use_malloc = true:  use malloc()/realloc()/free() to (re/de)allocate
                             the content buffer
                      false: use new/dynamic array resizing/delete
- 
+
  ******************************************************************************/
 
 public template AppendBuffer ( T, bool use_malloc = false )
@@ -198,61 +198,61 @@ public template AppendBuffer ( T, bool use_malloc = false )
 public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferReader!(T)
 {
     /**********************************************************************
-    
+
         Constructor without buffer preallocation
-        
+
      **********************************************************************/
-    
+
     this ( )
     {
         this(0);
     }
-    
+
     /**************************************************************************
-    
+
         Constructor
-        
+
         Params:
             n = content length for buffer preallocation
             limited = true: enable size limitation, false: disable
-    
+
      **************************************************************************/
-    
+
     this ( size_t n, bool limited = false )
     {
         super(T.sizeof, n);
-        
+
         this.limited = limited;
     }
-    
+
     /**************************************************************************
-    
+
         Methods overloading array operations which deal with array elements.
         As these array operations are not available for 'void[]', they are not
         implemented if T is 'void' .
-    
+
      **************************************************************************/
-    
+
     static if (!is (T == void))
     {
         /**********************************************************************
-        
+
             Returns the i-th element in content.
-            
+
             If T is a static array type, a slice to the element is returned.
-            
+
             Params:
                 i = element index
-        
+
             Returns:
                 i-th element in content
-            
+
             Out:
-                If T is a static array type, the length of the returned slice is 
+                If T is a static array type, the length of the returned slice is
                 T.length.
-            
+
          **********************************************************************/
-    
+
         R opIndex ( size_t i )
         out (element)
         {
@@ -265,23 +265,23 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
         {
             return *cast (T*) this.index_(i);
         }
-        
+
         /**********************************************************************
-        
+
             Sets the i-th element in content.
-            
+
             Params:
                 i = element index
-        
+
             Returns:
                 element (or a slice to the element if T is a static array type).
-            
+
             Out:
-                If T is a static array type, the length of the returned slice is 
+                If T is a static array type, the length of the returned slice is
                 T.length.
-        
+
          **********************************************************************/
-    
+
         R opIndexAssign ( T val, size_t i )
         out (element)
         {
@@ -301,57 +301,57 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
                 return *cast (T*) this.index_(i) = val;
             }
         }
-        
+
         /**************************************************************************
-        
+
             Sets all elements in the current content to element.
-            
+
             Params:
                 element = element to set all elements to
-            
+
             Returns:
                 current content
-        
+
          **************************************************************************/
-        
+
         T[] opSliceAssign ( T element )
         {
             return this.opSlice()[] = element;
         }
-        
+
         /**************************************************************************
-        
+
             Copies chunk to the content, setting the content length to chunk.length.
-            
+
             Params:
                 chunk = chunk to copy to the content
-            
+
             Returns:
                 slice to chunk in the content
-        
+
          **************************************************************************/
-        
+
         T[] opSliceAssign ( T element, size_t start, size_t end )
         {
             return this.opSlice(start, end)[] = element;
         }
-        
+
         /**************************************************************************
-        
+
             Appends element to the content, extending content where required.
-            
+
             Params:
                 element = element to append to the content
-            
+
             Returns:
                 slice to element in the content
-        
+
          **************************************************************************/
-        
+
         T[] opCatAssign ( T element )
         {
             T[] dst = this.extend(1);
-            
+
             if (dst.length)
             {
                 static if (static_array_element)
@@ -363,131 +363,131 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
                     dst[0] = element;
                 }
             }
-            
+
             return this[];
         }
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             the current content
-    
+
      **************************************************************************/
 
     T[] opSlice ( )
     {
         return cast (T[]) this.slice_();
     }
-    
+
     /**************************************************************************
-    
+
         Returns content[start .. end].
         start must be at most end and end must be at most the current content
         length.
-        
+
         Params:
             start = start index
             end   = end index (exclusive)
-        
+
         Returns:
             content[start .. end]
-    
+
      **************************************************************************/
 
     T[] opSlice ( size_t start, size_t end )
     {
         return cast (T[]) this.slice_(start, end);
     }
-    
+
     /**************************************************************************
-    
+
         Returns content[start .. length].
-        
+
         Params:
             start = start index
-        
+
         Returns:
             content[start .. length]
-    
+
      **************************************************************************/
 
     T[] tail ( size_t start )
     {
         return this[start .. this.length];
     }
-    
+
     /**************************************************************************
-    
+
         Copies chunk to the content, setting the content length to chunk.length.
-        
+
         Params:
             chunk = chunk to copy to the content
-        
+
         Returns:
             slice to chunk in the content
-    
+
      **************************************************************************/
 
     T[] opSliceAssign ( T[] chunk )
     {
         return cast (T[]) this.copy_(chunk);
     }
-    
+
     /**************************************************************************
-    
+
         Copies chunk to content[start .. end].
         chunk.length must be end - start and end must be at most the current
         content length.
-        
+
         Params:
             chunk = chunk to copy to the content
-        
+
         Returns:
             slice to chunk in the content
-    
+
      **************************************************************************/
 
     T[] opSliceAssign ( T[] chunk, size_t start, size_t end )
     {
         return cast (T[]) this.copy_(chunk, start, end);
     }
-    
+
     /**************************************************************************
-    
+
         Appends chunk to the content, extending content where required.
-        
+
         Params:
             chunk = chunk to append to the content
-        
+
         Returns:
             slice to chunk in the content
-    
+
      **************************************************************************/
-    
+
     T[] opCatAssign ( T[] chunk )
     {
         T[] dst = this.extend(chunk.length);
-        
+
         dst[] = chunk[0 .. dst.length];
-        
+
         return this[];
     }
-    
+
     /**************************************************************************
-    
+
         Cuts the last n elements from the current content. If n is greater than
-        the current content length, all elements in the content are cut. 
-        
+        the current content length, all elements in the content are cut.
+
         Params:
             n = number of elements to cut from content, if available
-        
+
         Returns:
             last n elements cut from the current content, if n is at most the
             content length or all elements from the current content otherwise.
-    
+
      **************************************************************************/
-    
+
     T[] cut ( size_t n )
     out (elements)
     {
@@ -497,18 +497,18 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
     {
         size_t end   = this.length,
         start = (end >= n)? end - n : 0;
-        
+
         scope (success) this.length = start;
-        
+
         return this[start .. end];
     }
-    
+
     static if (!static_array_element)
     {
         /**********************************************************************
-        
+
             Cuts the last element from the current content.
-            
+
             TODO: Not available if T is a static array type because a reference
             to the removed element would be needed to be returned, but the
             referenced element is erased and may theoretically relocated or
@@ -517,15 +517,15 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
             Should this method be available if T is a static array type? It then
             would need to return 'void' or a struct with one member of type T.
             (Or we wait for migration to D2.)
-            
+
             Returns:
                 the element cut from the current content (unless T is void).
-                
+
             In:
-                The content must not be empty. 
-        
+                The content must not be empty.
+
          **********************************************************************/
-    
+
         T cut ( )
         in
         {
@@ -534,56 +534,56 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
         body
         {
             size_t n = this.length - 1;
-     
+
             scope (success) this.length = n;
-            
+
             static if (!is (T == void))
             {
                 return this[n];
             }
         }
     }
-    
+
     /**************************************************************************
-    
+
         Cuts the last n elements from the current content. If n is greater than
-        the current content length, all elements in the content are cut. 
-        
+        the current content length, all elements in the content are cut.
+
         Params:
             n = number of elements to cut from content, if available
-        
+
         Returns:
             last n elements cut from the current content, if n is at most the
             content length or all elements from the current content otherwise.
-    
+
      **************************************************************************/
 
     T[] dump ( )
     {
         scope (exit) this.length = 0;
-        
+
         return this[];
     }
-    
+
     /**************************************************************************
-    
+
         Concatenates chunks and appends them to the content, extending the
         content where required.
-        
+
         Params:
             chunks = chunks to concatenate and append to the content
-        
+
         Returns:
             slice to concatenated chunks in the content which may be shorter
             than the chunks to concatenate if the content would have needed to
             be extended but content length limitation is enabled.
-    
+
      **************************************************************************/
-    
+
     T[] append ( U ... ) ( U chunks )
     {
         size_t start = this.length;
-        
+
         Top: foreach (i, chunk; chunks)
         {
             static if (is (U[i] V : V[]) && is (V W : W[]))
@@ -600,74 +600,74 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
             else
             {
                 static assert (is (typeof (this.append_(chunk))), "cannot append " ~ U[i].stringof ~ " to " ~ (T[]).stringof);
-                
+
                 if (!this.append_(chunk)) break;
             }
         }
-        
+
         return this.tail(start);
     }
-    
+
     /**************************************************************************
-    
+
         Appends chunk to the content, extending the content where required.
-        
+
         Params:
             chunks = chunk to append to the content
-        
+
         Returns:
             true on success or false if the content would have needed to be
             extended but content length limitation is enabled.
-    
+
      **************************************************************************/
 
     private bool append_ ( T[] chunk )
     {
         return chunk.length? this.opCatAssign(chunk).length >= chunk.length : true;
     }
-    
+
     /**************************************************************************
-    
+
         Increases the content length by n elements.
-        
+
         Note that previously returned slices must not be used after this method
         has been invoked because the content buffer may be relocated, turning
         existing slices to it into dangling references.
-        
+
         Params:
             n = number of characters to extend content by
-        
+
         Returns:
             slice to the portion in content by which content has been extended
             (last n elements in content after extension)
-    
+
      **************************************************************************/
-    
+
     T[] extend ( size_t n )
     {
         return cast (T[]) this.extend_(n);
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             pointer to the content
-    
+
      **************************************************************************/
 
     T* ptr ( )
     {
         return cast (T*) this.index_(0);
     }
-    
+
     /**************************************************************************
-    
+
         Sets all elements in data to the initial value of the element type.
         data.length is guaranteed to be dividable by the element size.
-        
+
         Params:
             data = data to erase
-        
+
      **************************************************************************/
 
     protected void erase ( void[] data )
@@ -675,9 +675,9 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
         static if (static_array_element && is (T U : U[]) && is (typeof (T.init) == U))
         {
             // work around DMD bug 7752
-            
+
             const t_init = [U.init];
-            
+
             data[] = t_init;
         }
         else
@@ -690,7 +690,7 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
             {
                 alias T U;
             }
-            
+
             (cast (U[]) data)[] = U.init;
         }
     }
@@ -705,7 +705,7 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 private abstract class AppendBufferImpl: IAppendBufferBase
 {
     /**************************************************************************
-    
+
         Content buffer. Declared as void[], but newed as ubyte[]
         (see newContent()).
 
@@ -723,36 +723,36 @@ private abstract class AppendBufferImpl: IAppendBufferBase
      **************************************************************************/
 
     private void[] content;
-    
+
     /**************************************************************************
-    
-        Number of elements in content 
-    
+
+        Number of elements in content
+
      **************************************************************************/
 
     private size_t n = 0;
-    
+
     /**************************************************************************
-    
+
         Element size
-    
+
      **************************************************************************/
 
     private const size_t e;
-    
+
     /**************************************************************************
-    
+
         Limitation flag
-    
+
      **************************************************************************/
 
     private bool limited_ = false;
-    
+
     /**************************************************************************
-    
+
         Content base pointer and length which are ensured to be invariant when
         limitation is enabled unless the capacity is changed.
-    
+
      **************************************************************************/
 
     private struct LimitInvariants
@@ -760,21 +760,21 @@ private abstract class AppendBufferImpl: IAppendBufferBase
         private void* ptr = null;
         size_t        len;
     }
-    
+
     private LimitInvariants limit_invariants;
-    
+
     /**************************************************************************
-    
+
         Consistency checks for content length and number, limitation and content
         buffer location if limitation enabled.
-    
+
      **************************************************************************/
 
     invariant
     {
         assert (!(this.content.length % this.e));
         assert (this.n * this.e <= this.content.length);
-        
+
         with (this.limit_invariants) if (this.limited_)
         {
             assert (ptr is this.content.ptr);
@@ -785,15 +785,15 @@ private abstract class AppendBufferImpl: IAppendBufferBase
             assert (ptr is null);
         }
     }
-    
+
     /**************************************************************************
-    
+
         Constructor
-        
+
         Params:
             e = element size (non-zero)
             n = number of elements in content for preallocation (optional)
-    
+
      **************************************************************************/
 
     protected this ( size_t e, size_t n = 0 )
@@ -804,69 +804,69 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     body
     {
         this.e = e;
-        
+
         if (n)
         {
             this.content = this.newContent(e * n);
         }
     }
-    
+
     /**************************************************************************
-    
+
         Sets the number of elements in content to 0.
-        
+
         Returns:
             previous number of elements.
-        
+
      **************************************************************************/
-    
+
     public size_t clear ( )
     {
         scope (success) this.n = 0;
-        
+
         this.erase(this.content[0 .. this.n * this.e]);
-        
+
         return this.n;
     }
 
     /**************************************************************************
-    
+
         Enables or disables size limitation.
-        
+
         Params:
             limited_ = true: enable size limitation, false: disable
-            
+
         Returns:
             limited_
-        
+
      **************************************************************************/
 
     public bool limited ( bool limited_ )
     {
         scope (exit) this.setLimitInvariants();
-        
+
         return this.limited_ = limited_;
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             true if size limitation is enabled or false if disabled
-        
+
      **************************************************************************/
 
     public bool limited ( )
     {
         return this.limited_;
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             number of elements in content
-    
+
      **************************************************************************/
-    
+
     public size_t length ( )
     {
         return this.n;
@@ -878,12 +878,12 @@ private abstract class AppendBufferImpl: IAppendBufferBase
             size of currently allocated buffer in bytes.
 
      **************************************************************************/
-    
+
     public size_t dimension ( )
     {
         return this.content.length;
     }
-    
+
     /**************************************************************************
 
         Returns:
@@ -898,26 +898,26 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     }
 
     /**************************************************************************
-        
+
         Sets the number of elements in content (content length). If length is
         increased, spare elements will be appended. If length is decreased,
         elements will be removed at the end. If limitation is enabled, the
         new number of elements is truncated to capacity().
-        
+
         Note that, unless limitation is enabled, previously returned slices must
         not be used after this method has been invoked because the content
         buffer may be relocated, turning existing slices to it into dangling
         references.
-        
+
         Params:
             n = new number of elements in content
-        
+
         Returns:
             new number of elements, will be truncated to capacity() if
             limitation is enabled.
-    
+
      **************************************************************************/
-    
+
     public size_t length ( size_t n )
     out (n_new)
     {
@@ -933,9 +933,9 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     body
     {
         size_t len = n * this.e;
-        
+
         size_t old_len = this.content.length;
-        
+
         if (this.content.length < len)
         {
             if (this.limited_)
@@ -947,68 +947,68 @@ private abstract class AppendBufferImpl: IAppendBufferBase
                 this.setContentLength(this.content, len);
             }
         }
-        
+
         if (old_len < len)
         {
-            this.erase(this.content[old_len .. len]);   
+            this.erase(this.content[old_len .. len]);
         }
-        
+
         return this.n = len / this.e;
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             Actual content buffer length (number of elements). This value is
             always at least length().
-    
+
      **************************************************************************/
-    
+
     public size_t capacity ( )
     {
         return this.content.length / this.e;
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             the element size in bytes. The constructor guarantees it is > 0.
-    
+
      **************************************************************************/
-    
+
     public size_t element_size ( )
     {
         return this.e;
     }
-    
+
     /**************************************************************************
-        
+
         Sets the content buffer length, preserving the actual content and
         overriding/adjusting the limit if limitation is enabled.
         If the new buffer length is less than length(), the buffer length will
         be set to length() so that no element is removed.
-        
+
         Note that previously returned slices must not be used after this method
         has been invoked because the content buffer may be relocated, turning
         existing slices to it into dangling references.
-        
+
         Params:
             capacity = new content buffer length (number of elements).
-        
+
         Returns:
             New content buffer length (number of elements). This value is always
             at least length().
-        
+
      **************************************************************************/
-    
+
     public size_t capacity ( size_t capacity )
     {
         if (capacity > this.n)
         {
             this.setContentLength(this.content, capacity * this.e);
-            
+
             this.setLimitInvariants();
-            
+
             return capacity;
         }
         else
@@ -1016,70 +1016,70 @@ private abstract class AppendBufferImpl: IAppendBufferBase
             return this.n;
         }
     }
-    
+
     /**************************************************************************
-    
+
         Sets capacity() to length().
-        
+
         Note that previously returned slices must not be used after this method
         has been invoked because the content buffer may be relocated, turning
         existing slices to it into dangling references.
-        
+
         Returns:
             previous capacity().
-    
+
      **************************************************************************/
-    
+
     public size_t minimize ( )
     {
         scope (success)
         {
             this.setContentLength(this.content, this.n * this.e);
         }
-        
+
         return this.content.length / this.e;
     }
 
     /**************************************************************************
-    
+
         Sets all elements in data to the initial value of the element type.
         data.length is guaranteed to be dividable by the element size.
-        
+
         Params:
             data = data to erase
-        
+
      **************************************************************************/
 
     abstract protected void erase ( void[] data );
-    
+
     /**************************************************************************
-    
+
         Returns:
             current content
-        
+
      **************************************************************************/
 
     protected void[] slice_ ( )
     {
         return this.content[0 .. this.n * this.e];
     }
-    
+
     /**************************************************************************
-    
+
         Slices content. start and end index content elements with element size e
         (as passed to the constructor).
         start must be at most end and end must be at most the current number
         of elements in content.
-        
+
         Params:
             start = index of start element
             end   = index of end element (exclusive)
-        
+
         Returns:
             content[start * e .. end * e]
-    
+
      **************************************************************************/
-    
+
     protected void[] slice_ ( size_t start, size_t end )
     in
     {
@@ -1090,17 +1090,17 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     {
         return this.content[start * this.e .. end * this.e];
     }
-    
+
     /**************************************************************************
-    
+
         Returns a pointer to the i-th element in content.
-        
+
         Params:
             i = element index
-        
+
         Returns:
             pointer to the i-th element in content
-    
+
      **************************************************************************/
 
     protected void* index_ ( size_t i )
@@ -1112,19 +1112,19 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     {
         return this.content.ptr + i * this.e;
     }
-    
+
     /**************************************************************************
-    
+
         Copies chunk to the content, setting the current number of elements in
         content to the number of elements in chunk.
         chunk.length must be dividable by the element size.
-        
+
         Params:
             chunk = chunk to copy to the content
-        
+
         Returns:
             slice to chunk in content
-    
+
      **************************************************************************/
 
     protected void[] copy_ ( void[] src )
@@ -1146,26 +1146,26 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     body
     {
         this.n = 0;
-        
+
         void[] dst = this.extendBytes(src.length);
-        
+
         assert (dst.ptr is this.content.ptr);
-        
+
         return dst[] = src[0 .. dst.length];
     }
-    
+
     /**************************************************************************
-    
+
         Copies chunk to content[start * e .. end * e].
         chunk.length must be (end - start) * e and end must be at most the
         current number of elements in content.
-        
+
         Params:
             chunk = chunk to copy to the content
-        
+
         Returns:
             slice to chunk in the content
-    
+
      **************************************************************************/
 
     protected void[] copy_ ( void[] chunk, size_t start, size_t end )
@@ -1180,21 +1180,21 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     {
         return this.content[start * this.e .. end * this.e] = cast (ubyte[]) chunk[];
     }
-    
+
     /**************************************************************************
-    
+
         Extends content by n elements. If limitation is enabled, n will be
         truncated to the number of available elements.
-        
+
         Params:
             n = number of elements to extend content by
-        
+
         Returns:
             Slice to the portion in content by which content has been extended
             (last n elements in content after extension).
-    
+
      **************************************************************************/
-    
+
     protected void[] extend_ ( size_t n )
     out (slice)
     {
@@ -1211,19 +1211,19 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     {
         return this.extendBytes(n * this.e);
     }
-    
+
     /**************************************************************************
-    
+
         Extends content by extent bytes.
         extent must be dividable by the element size e.
-        
+
         Params:
             extent = number of bytes to extend content by
-        
+
         Returns:
             slice to the portion in content by which content has been extended
             (last extent bytes in content after extension)
-    
+
      **************************************************************************/
 
     protected void[] extendBytes ( size_t extent )
@@ -1234,7 +1234,7 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     out (slice)
     {
         assert (!(slice.length % this.e));
-        
+
         if (this.limited_)
         {
             assert (slice.length <= extent);
@@ -1248,7 +1248,7 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     {
         size_t oldlen = this.n * this.e,
                newlen = oldlen + extent;
-        
+
         if (this.content.length < newlen)
         {
             if (this.limited_)
@@ -1260,17 +1260,17 @@ private abstract class AppendBufferImpl: IAppendBufferBase
                 this.setContentLength(this.content, newlen);
             }
         }
-        
+
         this.n = newlen / this.e;
-        
+
         return this.content[oldlen .. newlen];
     }
-    
+
     /**************************************************************************
-    
+
         Called immediately when this instance is deleted.
         (Must be protected to prevent an invariant from failing.)
-    
+
      **************************************************************************/
 
     protected override void dispose ( )
@@ -1280,25 +1280,25 @@ private abstract class AppendBufferImpl: IAppendBufferBase
             this.deleteContent(this.content);
         }
     }
-    
+
     /**************************************************************************
-    
+
         Allocates a dynamic array of n bytes for the content.
-        
+
         Params:
             n = content array length
-        
+
         Returns:
-            a newly allocated dynamic array. 
-        
+            a newly allocated dynamic array.
+
         In:
             n must not be zero.
-        
+
         Out:
             The array length must be n.
-        
+
      **************************************************************************/
-    
+
     protected void[] newContent ( size_t n )
     in
     {
@@ -1312,22 +1312,22 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     {
         return new ubyte[n];
     }
-    
+
     /**************************************************************************
-    
+
         Sets the content array length to n.
-        
+
         Params:
             content_ = content array, previously allocated by newContent() or
                        modified by setContentLength()
             n        = new content array length, may be zero
-        
+
         Out:
             content_.length must be n. That means, if n is 0, content_ may be
-            null. 
-        
+            null.
+
      **************************************************************************/
-    
+
     protected void setContentLength ( ref void[] content_, size_t n )
     out
     {
@@ -1340,17 +1340,17 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     {
         content_.length = n;
     }
-    
+
     /**************************************************************************
-    
+
         Deallocates the content array.
-        
+
         Params:
             content_ = content array, previously allocated by newContent() or
                        modified by setContentLength()
-        
+
      **************************************************************************/
-    
+
     protected void deleteContent ( ref void[] content_ )
     in
     {
@@ -1361,13 +1361,13 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     {
         delete content_;
     }
-    
+
     /**************************************************************************
-    
+
         Readjusts limit_invariants.
-        
+
      **************************************************************************/
-    
+
     private void setLimitInvariants ( )
     {
         with (this.limit_invariants) if (this.limited_)
@@ -1391,35 +1391,35 @@ private abstract class AppendBufferImpl: IAppendBufferBase
 private abstract class MallocAppendBufferImpl: AppendBufferImpl
 {
     /**************************************************************************
-    
+
         Constructor
-        
+
         Params:
             e = element size (non-zero)
             n = number of elements in content for preallocation (optional)
-    
+
      **************************************************************************/
-    
+
     protected this ( size_t e, size_t n = 0 )
     {
         super(e, n);
     }
-    
+
     /**************************************************************************
-    
+
         Allocates a dynamic array of n bytes for the content.
-        
+
         Params:
             n = content array length
-        
+
         Returns:
-            a newly allocated dynamic array. 
-        
+            a newly allocated dynamic array.
+
         In:
             n must not be zero.
-        
+
      **************************************************************************/
-    
+
     protected override void[] newContent ( size_t n )
     in
     {
@@ -1429,93 +1429,93 @@ private abstract class MallocAppendBufferImpl: AppendBufferImpl
     {
         return this.newArray(n);
     }
-    
+
     /**************************************************************************
-        
+
         Sets the content array length to n.
-        
+
         Params:
             content_ = content array, previously allocated by newContent() or
                        modified by setContentLength()
             n        = new content array length, may be zero
-        
+
      **************************************************************************/
-    
+
     protected override void setContentLength ( ref void[] content_, size_t n )
     {
         content_ = this.arrayLength(content_, n);
     }
-    
+
     /**************************************************************************
-    
+
         Deallocates the content array.
-        
+
         Params:
             content_ = content array, previously allocated by newContent() or
                        modified by setContentLength()
-        
+
      **************************************************************************/
-    
+
     protected override void deleteContent ( ref void[] content_ )
     {
         this.deleteArray(content_.ptr);
         content = null;
     }
-    
+
     /**************************************************************************
-    
+
         Allocates a new dynamic array of n elements using malloc().
-        
+
         Template params:
             T = element type
-        
+
         Params:
             n = length of the new array
-            
+
         Returns:
             a new array or null if n is null
-        
+
      **************************************************************************/
-    
+
     static T[] newArray ( T = void ) ( size_t n )
     {
         return n? cast (T[]) newArray_(n * T.sizeof) : null;
     }
-    
+
     /**************************************************************************
-    
+
         Resizes array to length n using realloc() (or free() if n is 0).
         Has the same effect as newArray() if array is null.
-        
+
         Params:
             array = array to resize, previously allocated using newArray, or
                     null
             n     = new array length
-            
+
         Returns:
             the resized array or null if n is 0.
-        
+
      **************************************************************************/
-    
+
     static T[] arrayLength ( T = void ) ( T[] array, size_t n )
     {
         return cast (T[]) arrayLength_(array, n * T.sizeof);
     }
-    
+
     /**************************************************************************
-    
+
         Deallocates the dynamic array referred to by ptr using free(). Does
         nothing if ptr is null.
-        
+
         Params:
             ptr = .ptr property of the array to deallocate, previously allocated
                   by newArray and/or modified by arrayLength().
-            
+
         Returns:
             the resized array or null if n is 0.
-        
+
      **************************************************************************/
-    
+
     static void deleteArray ( void* ptr )
     {
         if (ptr)
@@ -1523,19 +1523,19 @@ private abstract class MallocAppendBufferImpl: AppendBufferImpl
             free(ptr);
         }
     }
-    
+
     /**************************************************************************
-    
+
         Allocates a new dynamic array of n bytes using malloc().
-        
+
         Params:
             n = length of the new array
-            
+
         Returns:
             a new array or null if n is null
-        
+
      **************************************************************************/
-    
+
     private static void[] newArray_ ( size_t n )
     in
     {
@@ -1544,7 +1544,7 @@ private abstract class MallocAppendBufferImpl: AppendBufferImpl
     body
     {
         void* ptr = malloc(n);
-        
+
         if (ptr)
         {
             return ptr[0 .. n];
@@ -1554,22 +1554,22 @@ private abstract class MallocAppendBufferImpl: AppendBufferImpl
             onOutOfMemoryError();
         }
     }
-    
+
     /**************************************************************************
-    
+
         Resizes array to length n using realloc() (or free() if n is 0).
         Has the same effect as newArray() if array is null.
-        
+
         Params:
             array = array to resize, previously allocated using newArray, or
                     null
             n     = new array length
-            
+
         Returns:
             the resized array or null if n is 0.
-        
+
      **************************************************************************/
-    
+
     private static void[] arrayLength_ ( void[] array, size_t n )
     {
         if (n != array.length)
@@ -1577,7 +1577,7 @@ private abstract class MallocAppendBufferImpl: AppendBufferImpl
             if (n)
             {
                 void* ptr = realloc(array.ptr, n);
-                
+
                 if (ptr)
                 {
                     array = ptr[0 .. n];
@@ -1593,7 +1593,7 @@ private abstract class MallocAppendBufferImpl: AppendBufferImpl
                 array = null;
             }
         }
-        
+
         return array;
     }
 }
@@ -1603,66 +1603,66 @@ private abstract class MallocAppendBufferImpl: AppendBufferImpl
 unittest
 {
     scope ab = new AppendBuffer!(dchar)(10);
-    
+
     assert (ab.length    == 0);
     assert (ab.capacity  == 10);
     assert (ab.dimension == 10 * dchar.sizeof);
-    
+
     ab[] = "Die Kotze"d;
-    
+
     assert (ab.length  == "Die Kotze"d.length);
     assert (ab[]       == "Die Kotze"d);
     assert (ab.capacity  == 10);
     assert (ab.dimension == 10 * dchar.sizeof);
-    
+
     ab[5] =  'a';
     assert (ab.length  == "Die Katze"d.length);
     assert (ab[]       == "Die Katze"d);
     assert (ab[4 .. 9] == "Katze"d);
     assert (ab.capacity  == 10);
     assert (ab.dimension == 10 * dchar.sizeof);
-    
+
     ab ~= ' ';
-    
+
     assert (ab[]      == "Die Katze "d);
     assert (ab.length == "Die Katze "d.length);
     assert (ab.capacity  == 10);
     assert (ab.dimension == 10 * dchar.sizeof);
 
     ab ~= "tritt"d;
-    
+
     assert (ab[]      == "Die Katze tritt"d);
     assert (ab.length == "Die Katze tritt"d.length);
     assert (ab.capacity  == "Die Katze tritt"d.length);
     assert (ab.dimension == "Die Katze tritt"d.length * dchar.sizeof);
 
     ab.append(" die"d, " Treppe"d, " krumm."d);
-    
+
     assert (ab[]      == "Die Katze tritt die Treppe krumm."d);
     assert (ab.length == "Die Katze tritt die Treppe krumm."d.length);
     assert (ab.capacity  == "Die Katze tritt die Treppe krumm."d.length);
     assert (ab.dimension == "Die Katze tritt die Treppe krumm."d.length * dchar.sizeof);
-    
+
     assert (ab.cut(4) == "umm."d);
-    
+
     assert (ab.length == "Die Katze tritt die Treppe kr"d.length);
     assert (ab.capacity  == "Die Katze tritt die Treppe krumm."d.length);
     assert (ab.dimension == "Die Katze tritt die Treppe krumm."d.length * dchar.sizeof);
-    
+
     assert (ab.cut() == 'r');
-    
+
     assert (ab.length == "Die Katze tritt die Treppe k"d.length);
     assert (ab.capacity  == "Die Katze tritt die Treppe krumm."d.length);
     assert (ab.dimension == "Die Katze tritt die Treppe krumm."d.length * dchar.sizeof);
-    
+
     ab.clear();
-    
+
     assert (!ab.length);
     assert (ab[] == ""d);
-    
+
     ab.extend(5);
     assert (ab.length == 5);
-    
+
     ab[] = '~';
     assert (ab[] == "~~~~~"d);
 }

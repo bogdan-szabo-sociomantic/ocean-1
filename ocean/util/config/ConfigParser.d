@@ -111,7 +111,7 @@ debug private import ocean.util.log.Trace;
 *******************************************************************************/
 
 class ConfigParser
-{   
+{
     /***************************************************************************
 
         Typeof this alias.
@@ -120,13 +120,13 @@ class ConfigParser
 
     public alias typeof(this) This;
 
-    
+
     /***************************************************************************
 
         Config Keys and Properties
 
     ***************************************************************************/
-    
+
     alias char[] String;
     private String[String][String] properties;
 
@@ -172,7 +172,7 @@ class ConfigParser
 
     bool multiline_first = true;
 
-    
+
     /***************************************************************************
 
          Constructor
@@ -182,7 +182,7 @@ class ConfigParser
     public this ( )
     { }
 
-    
+
     /***************************************************************************
 
          Constructor
@@ -196,7 +196,7 @@ class ConfigParser
     {
         this.parse(config);
     }
-    
+
 
     /***************************************************************************
 
@@ -208,7 +208,7 @@ class ConfigParser
     {
         char[][char[]]* vars;
 
-        
+
         /***********************************************************************
 
             Variable Iterator. Iterates over variables of a category
@@ -252,7 +252,7 @@ class ConfigParser
         return VarIterator(category in This.properties);
     }
 
-    
+
     /***************************************************************************
 
         Iterator. Iterates over categories of the config file
@@ -526,7 +526,7 @@ class ConfigParser
 
     public T getStrict ( T ) ( char[] category, char[] key )
     {
-        assertEx!(ConfigException)(exists(category, key), 
+        assertEx!(ConfigException)(exists(category, key),
                                    "Critial Error: No configuration key "
                                    "'" ~ category ~ ":" ~ key ~ "' found");
         try
