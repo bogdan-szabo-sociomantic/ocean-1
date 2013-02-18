@@ -1553,6 +1553,8 @@ private abstract class MallocAppendBufferImpl: AppendBufferImpl
         {
             onOutOfMemoryError();
         }
+
+        assert(0);
     }
 
     /**************************************************************************

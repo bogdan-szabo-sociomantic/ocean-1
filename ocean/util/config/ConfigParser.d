@@ -540,6 +540,8 @@ class ConfigParser
             ConfigException("Critial Error: Configuration key '" ~ category ~
             ":" ~ key ~ "' appears not to be of type '" ~ T.stringof ~ "'");
         }
+
+        assert(0);
     }
 
 
