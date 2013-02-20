@@ -230,11 +230,20 @@ public class XsltResult
     {
         this.cleanup();
 
-        char* c_allocated_string;
-        int length;
-        xsltSaveResultToString(&c_allocated_string, &length, xml, stylesheet.stylesheet);
+        // XSLT BUG: xsltSaveResultToString() segfaults if xml is null
+        if ( xml )
+        {
+            char* c_allocated_string;
+            int length;
 
-        this.str = c_allocated_string[0..length];
+            xsltSaveResultToString(&c_allocated_string, &length, xml, stylesheet.stylesheet);
+
+            this.str = c_allocated_string[0..length];
+        }
+        else
+        {
+            this.str = "";
+        }
     }
 
 
@@ -408,9 +417,26 @@ public class XsltProcessor
         scope ( exit ) source.length = source.length - 1;
 
         this.original_xml = xmlParseDoc(source.ptr);
+
         throwXmlErrors(this.exception);
+
+        if ( ! this.original_xml)
+        {
+            // Don't know if this can happen, but I don't trust libxslt
+            this.exception.msg = "libxslt bug: XSLT parse error";
+            throw this.exception;
+        }
+
         this.transformed_xml = xsltApplyStylesheet(stylesheet.stylesheet, this.original_xml, params ? params.c_params.ptr : null);
         throwXmlErrors(this.exception);
+
+        if ( ! this.transformed_xml )
+        {
+            // XSLT bug #1: this can happen without setting an XML error.
+            // XSLT bug #2: if it happens, xsltSaveResultToString will segfault!
+            this.exception.msg = "libxslt bug: XSLT transform error";
+            throw this.exception;
+        }
 
         result.set(this.transformed_xml, stylesheet);
 
