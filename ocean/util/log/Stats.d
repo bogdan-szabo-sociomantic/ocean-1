@@ -69,6 +69,13 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
     private alias T delegate ( ) ValueDg;
 
     private ValueDg dg;
+
+    /***************************************************************************
+
+        Timer which fires to write log output.
+
+    ***************************************************************************/
+
     
     private const TimerEvent timer;
 
