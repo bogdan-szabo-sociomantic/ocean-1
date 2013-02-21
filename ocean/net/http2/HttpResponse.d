@@ -261,6 +261,7 @@ class HttpResponse : HttpHeader
                     
                     return true;
                 }
+                return false;
 
             case status.NoContent:
                 super.set("Content-Length", "0");
