@@ -47,7 +47,7 @@ private import tango.util.log.LayoutDate;
     If it's registered as an ArgumentsExt, it adds the option --version to print
     the version information and exit.
 
-    If it's registered as a LogExt, it will log the version information unsing
+    If it's registered as a LogExt, it will log the version information using
     the logger with the name of this module.
 
 *******************************************************************************/
