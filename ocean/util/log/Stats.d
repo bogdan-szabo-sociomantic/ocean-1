@@ -81,7 +81,9 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
 
     /***************************************************************************
 
-        Constructor
+        Constructor. Registers an update timer with the provided epoll selector.
+        The timer first fires 5 seconds after construction, then periodically
+        as specified.
 
         Params:
             epoll    = epoll select dispatcher
@@ -90,6 +92,7 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
                 over-written
             max_file_size = size in bytes at which the log files will be rotated
             period   = period after which the values should be written
+            file_name = name of log file
 
     ***************************************************************************/
 
