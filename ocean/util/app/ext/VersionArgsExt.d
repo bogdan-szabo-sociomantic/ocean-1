@@ -217,12 +217,17 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
         If the configuration variable is present, it will override the current
         default_logging value.
+        Note that the logger is explicitly set to output all levels, to avoid
+        the situation where the root logger is configured to not output level
+        'info'.
 
     ***************************************************************************/
 
     public void postConfigureLoggers ( IApplication app, ConfigParser config,
             bool loose_config_parsing, bool use_insert_appender )
     {
+        this.ver_log.level = this.ver_log.Level.Info;
+
         this.default_logging = config.get("VERSION", "default_version_log",
                 this.default_logging);
 
