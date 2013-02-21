@@ -216,7 +216,9 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
         Add the default logger if default_logging is true.
 
         If the configuration variable is present, it will override the current
-        default_logging value.
+        default_logging value. If the value does not exist in the config file,
+        the value set in the ctor will be used.
+
         Note that the logger is explicitly set to output all levels, to avoid
         the situation where the root logger is configured to not output level
         'info'.
