@@ -233,7 +233,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
         if (this.default_logging)
         {
-            ver_log.add(new AppendFile(this.default_file, new LayoutDate));
+            this.ver_log.add(new AppendFile(this.default_file, new LayoutDate));
         }
     }
 
@@ -258,7 +258,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
             return;
         }
 
-        ver_log.info(getVersionString(app.name, this.ver));
+        this.ver_log.info(getVersionString(app.name, this.ver));
     }
 
 
