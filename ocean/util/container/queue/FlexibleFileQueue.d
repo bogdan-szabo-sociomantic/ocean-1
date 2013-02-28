@@ -723,24 +723,32 @@ public class FlexibleFileQueue : IByteQueue
 
     unittest
     {
-
-        for (ubyte size; size < ubyte.max; size++)
+        for ( int open_existing = 0; open_existing < 2; open_existing++ )
         {
-            auto queue = new FlexibleFileQueue("testfile", 4);
-
-            for ( ubyte i = 0; i < size; i++ )
+            for (ubyte size; size < ubyte.max; size++)
             {
-                assert( queue.push( cast(ubyte[])[i, ubyte.max-i, i, i*i] ), "push failed" );
-
+                auto queue = new FlexibleFileQueue("testfile", 4, cast(bool)open_existing);
+    
+                for ( ubyte i = 0; i < size; i++ )
+                {
+                    assert( queue.push( cast(ubyte[])[i, ubyte.max-i, i, i*i] ), "push failed" );
+    
+                }
+                
+                if ( cast(bool)open_existing )
+                {
+                    queue.enablePop(true);
+                }
+                
+                for ( ubyte i = 0; i < size; i++ )
+                {
+                    auto pop = queue.pop;
+                    assert( pop == cast(ubyte[])[i, ubyte.max-i, i, i*i], "pop failed "~pop.stringof );
+    
+                }
+    
+                queue.closeExternal();
             }
-            for ( ubyte i = 0; i < size; i++ )
-            {
-                auto pop = queue.pop;
-                assert( pop == cast(ubyte[])[i, ubyte.max-i, i, i*i], "pop failed "~pop.stringof );
-
-            }
-
-            Filesystem.remove("testfile");
         }
     }
 
