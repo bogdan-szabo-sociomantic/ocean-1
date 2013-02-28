@@ -6,9 +6,13 @@
 
     version:        January 2012: Initial release
 
-    authors:        Mathias Baumann
+    authors:        Mathias Baumann, Ben Palmer
 
-    TODO
+    The flexible file queue can be set to either open any existing files it
+    finds, or always delete existing files when it is created using the
+    open_existing parameter in the contructor. If the open_existing flag is 
+    set to true then the calling application MUST call enablePop(true) when it
+    is ready to process any records in the file queue.
 
     Note that the queue file is deleted in the following cases:
         1. Upon calling the clear() method.
@@ -72,7 +76,16 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private char[] path;
+    private const char[] path;
+    
+    /***************************************************************************
+
+        Path to the index file to write to if we want to be able to reopen
+        any saved data files
+
+    ***************************************************************************/
+    
+    private const char[] index_path;
 
     /***************************************************************************
 
@@ -80,7 +93,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private File file_out;
+    private const File file_out;
 
     /***************************************************************************
 
@@ -88,7 +101,15 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private File file_in;
+    private const File file_in;
+    
+    /***************************************************************************
+
+        External index file that is being read from
+
+    ***************************************************************************/
+    
+    private const File file_index;
 
     /***************************************************************************
 
@@ -96,7 +117,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private BufferedOutput ext_out;
+    private const BufferedOutput ext_out;
 
     /***************************************************************************
 
@@ -104,7 +125,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private BufferedInput ext_in;
+    private const BufferedInput ext_in;
 
     /***************************************************************************
 
@@ -129,7 +150,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private size_t size;
+    private const size_t size;
 
     /***************************************************************************
 
@@ -138,38 +159,81 @@ public class FlexibleFileQueue : IByteQueue
     ***************************************************************************/
 
     private bool files_open;
+    
+    /***************************************************************************
+
+        bool set if we want to reopen any saved data files if we restart the
+        application.
+
+    ***************************************************************************/
+
+    private const bool open_existing;
+    
+    /***************************************************************************
+
+        true if the items can be popped from the data files. Set to false in 
+        the contructor if we are not re opening any existing data files
+
+    ***************************************************************************/
+    
+    private bool enable_pop;
+    
+    /***************************************************************************
+
+        buffer used to read in the index file
+
+    ***************************************************************************/
+    
+    private void[] content;
 
     /***************************************************************************
 
         Constructor. Creates and opens the files and buffered inputs and
-        outputs. Marks the files as open.
+        outputs. Moves the file pointers to the correct position in the files 
+        and marks the files as open.
 
         Params:
             path  = path to the file that will be used to swap the queue
             size = size of file read buffer (== maximum item size)
+            open_existing = do we reopen any existing file queues
 
     ***************************************************************************/
 
-    public this ( char[] path, size_t size )
+    public this ( char[] path, size_t size, bool open_existing = false )
     {
         this.path  = path.dup;
-        this.size  = size;
+        this.index_path = path.dup ~ ".index";
+        this.size = size;
+        this.open_existing = open_existing;
+        this.enable_pop = !this.open_existing;
 
-        if ( Filesystem.exists(this.path) )
+        if ( this.open_existing && Filesystem.exists(this.path) && 
+            Filesystem.exists(this.index_path) )
         {
-            Filesystem.remove(this.path);
+            this.file_out = new File(this.path, File.WriteAppending);
+            this.file_index = new File(this.index_path, File.ReadWriteExisting);
+            this.readIndex();    
+        }
+        else
+        {
+            this.file_out = new File(this.path, File.WriteCreate);
+            if ( this.open_existing )
+            {
+                this.file_index = new File(this.index_path, File.ReadWriteCreate);
+            }
         }
 
-        this.file_out = new File(this.path, File.WriteCreate);
         this.file_in = new File(this.path, File.ReadExisting);
 
         this.ext_out = new BufferedOutput(this.file_out);
+        this.ext_out.seek(this.file_out.length);
         this.ext_in = new BufferedInput(this.file_in, this.size+Header.sizeof);
+        this.ext_in.seek(this.file_out.length - this.bytes_in_file);
 
         this.files_open = true;
     }
 
-
+    
     /***************************************************************************
 
         Pushes an item into the queue.
@@ -239,6 +303,11 @@ public class FlexibleFileQueue : IByteQueue
     {
         this.handleSliceBuffer();
 
+        if ( !this.enable_pop )
+        {
+            return null;
+        }
+        
         if ( this.bytes_in_file == 0 && this.files_open )
         {
             this.closeExternal();
@@ -246,7 +315,7 @@ public class FlexibleFileQueue : IByteQueue
         }
 
         if ( this.bytes_in_file > 0 ) try
-        {
+        {           
             try this.ext_out.flush();
             catch ( Exception e )
             {
@@ -275,6 +344,8 @@ public class FlexibleFileQueue : IByteQueue
             {
                 this.items_in_file -= 1;
                 this.bytes_in_file -= Header.sizeof + h.length;
+                
+                this.writeIndex();
             }
 
             return cast(ubyte[]) this.ext_in.slice(Header.sizeof + h.length,
@@ -334,7 +405,7 @@ public class FlexibleFileQueue : IByteQueue
         auto readable = this.ext_in.readable;
 
         if ( (bytes == 0 || bytes == File.Eof) &&
-             readable == 0)
+             readable == 0 )
         {
             this.closeExternal();
             return 0;
@@ -443,7 +514,26 @@ public class FlexibleFileQueue : IByteQueue
         this.slice_push_buffer.length = 0;
         this.closeExternal();
     }
+    
+    
+    /***************************************************************************
 
+        Enables or disables the pop from the file queue. 
+    
+        Params:
+            enable_pop = true to enable pop, false to disable pop
+
+    ***************************************************************************/
+
+    public void enablePop ( bool enable_pop )
+    {
+        this.enable_pop = enable_pop;
+        if ( this.enable_pop )
+        {
+            this.peek();
+        }
+    }
+    
 
     /***************************************************************************
 
@@ -465,7 +555,9 @@ public class FlexibleFileQueue : IByteQueue
 
     /***************************************************************************
 
-        Pushes item into file
+        Pushes item into file. If the file queue is set to re-open then flush
+        the write buffer after each push so that the files and index do not get
+        out of sync.
 
         Params:
             item = data to push
@@ -493,9 +585,16 @@ public class FlexibleFileQueue : IByteQueue
 
             this.ext_out.write(header);
             this.ext_out.write(item);
+            
+            if ( this.open_existing )
+            {
+                this.ext_out.flush();
+            }
 
             this.bytes_in_file += Header.sizeof + item.length;
             this.items_in_file += 1;
+            
+            this.writeIndex();
 
             return true;
         }
@@ -505,11 +604,63 @@ public class FlexibleFileQueue : IByteQueue
             return false;
         }
     }
+    
+    
+    /***************************************************************************
+
+        If the file queue is set to re-open, write the current index position
+        in the file to the index file.
+
+    ***************************************************************************/
+    
+    private void writeIndex ( )
+    {        
+        if ( this.open_existing )
+        {
+            this.file_index.seek(0);
+            this.file_index.write(cast(void[])(&this.bytes_in_file)
+                [0..this.bytes_in_file.sizeof]);
+            this.file_index.write(cast(void[])(&this.items_in_file)
+                [0..this.items_in_file.sizeof]);
+        }
+    }
+    
+    
+    /***************************************************************************
+
+        If the file queue is set to re-open, read the saved index in to memory.
+        Set the void array to the correct length to read the result, seek to
+        the start of the index file, then cast the results from void[] arrays
+        to size_t values.
+
+    ***************************************************************************/
+
+    private void readIndex ( )
+    {
+        if ( this.open_existing )
+        {
+            void[] content;      
+            content.length = this.bytes_in_file.sizeof + 
+                this.items_in_file.sizeof;
+            
+            this.file_index.seek(0);
+            
+            if ( this.file_index.read(content) == (this.bytes_in_file.sizeof + 
+                this.items_in_file.sizeof) )
+            {
+                this.bytes_in_file = 
+                    *cast(size_t*)content[0..this.bytes_in_file.sizeof].ptr;
+                this.items_in_file = 
+                    *cast(size_t*)content[this.bytes_in_file.sizeof..$].ptr;   
+            }
+        }   
+    }
 
 
     /***************************************************************************
 
-        Opens the files and associated buffers. Mark the files open.
+        Opens the files and associated buffers. Only open the index file if
+        this file queue is set to be able to reopen. Mark the files open.
 
     ***************************************************************************/
 
@@ -518,8 +669,13 @@ public class FlexibleFileQueue : IByteQueue
         this.file_out.open(this.path, File.WriteCreate);
         this.file_in.open(this.path, File.ReadExisting);
 
+        if ( this.open_existing )
+        {
+            this.file_index.open(this.index_path, File.WriteCreate);
+        }
+
         this.files_open = true;
-   }
+    }
 
 
     /***************************************************************************
@@ -530,7 +686,7 @@ public class FlexibleFileQueue : IByteQueue
 
     private void closeExternal ( )
     in
-    {
+    {        
         assert ( this.ext_in.readable() == 0,
                  "Still unread data in input buffer" );
 
@@ -546,12 +702,24 @@ public class FlexibleFileQueue : IByteQueue
         this.ext_out.clear();
         this.file_out.close();
         this.file_in.close();
-
-        Filesystem.remove(this.path);
+        
+        Filesystem.remove(this.path);       
+        
+        if ( this.open_existing )
+        {
+            this.file_index.close();
+            Filesystem.remove(this.index_path);
+        }
 
         this.files_open = false;
     }
 
+    
+    /***************************************************************************
+
+        Unit test
+
+    ***************************************************************************/
 
     unittest
     {
