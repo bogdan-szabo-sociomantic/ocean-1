@@ -72,7 +72,7 @@ get_rev()
 	then
 		git --git-dir $1/.git describe --tags --always --dirty='!'
 	else
-		echo "Unknown version control system" >&2
+		echo "Unknown version control system at $1" >&2
 		echo "For now only svn, git and git-svn are supported" >&2
 		exit 2
 	fi
