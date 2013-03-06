@@ -46,6 +46,10 @@ XFBUILD_DEFAULT_FLAGS = +c=dmd \
                         +x=tango \
                         +x=std
 
+OCEAN_LDFLAGS = -L-lminilzo \
+                        -L-ldl \
+                        -L-lebtree \
+                        -L-ldrizzle
 
 ### TARGETS ###
 
