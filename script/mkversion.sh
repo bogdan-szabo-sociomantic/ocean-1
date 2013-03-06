@@ -89,7 +89,7 @@ gc="$1"; shift
 sed -i "$tmp" \
 	-e "s/@MODULE@/$module/" \
 	-e "s/@GC@/$gc/" \
-	-e "s/@REVISION@/`get_rev .`/" \
+	-e "s/@REVISION@/`get_rev $(git rev-parse --show-toplevel)`/" \
 	-e "s/@DATE@/$date/" \
 	-e "s/@AUTHOR@/$author/" \
     -e "s/@DMD@/$dmd/"
