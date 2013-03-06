@@ -59,7 +59,7 @@ OCEAN_LDFLAGS = -L-lminilzo \
 # Updates the revision version information
 revision:
 	@echo Updating revision information …
-	@cd ${CURDIR} && echo \
+	@cd ${CURDIR} && \
         ${LIB_BASEDIR}/ocean/script/mkversion.sh \
             -L ${LIB_BASEDIR} \
             -t ${LIB_BASEDIR}/ocean/script/appVersion.d.tpl \
