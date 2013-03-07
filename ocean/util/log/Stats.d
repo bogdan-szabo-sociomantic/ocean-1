@@ -63,18 +63,26 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
     /***************************************************************************
 
         Delegate to get the values that are to be written
-        
+
     ***************************************************************************/
 
     private alias T delegate ( ) ValueDg;
 
     private ValueDg dg;
-    
+
+    /***************************************************************************
+
+        Timer which fires to write log output.
+
+    ***************************************************************************/
+
     private const TimerEvent timer;
 
     /***************************************************************************
 
-        Constructor
+        Constructor. Registers an update timer with the provided epoll selector.
+        The timer first fires 5 seconds after construction, then periodically
+        as specified.
 
         Params:
             epoll    = epoll select dispatcher
@@ -83,12 +91,14 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
                 over-written
             max_file_size = size in bytes at which the log files will be rotated
             period   = period after which the values should be written
+            file_name = name of log file
 
     ***************************************************************************/
 
-    public this ( EpollSelectDispatcher epoll, ValueDg dg, size_t file_count = 10,
-           size_t max_file_size = 10 * 1024 * 1024, time_t period = default_period,
-           char[] file_name = "log/stats.log" )
+    public this ( EpollSelectDispatcher epoll, ValueDg dg,
+        size_t file_count = default_file_count,
+        size_t max_file_size = default_max_file_size,
+        time_t period = default_period, char[] file_name = default_file_name )
     {
         this.dg     = dg;
         this.period = period;
@@ -96,7 +106,7 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
         this.timer = new TimerEvent(&this.write_);
         epoll.register(timer);
         timer.set(5, 0, period, 0);
-        
+
         super(file_count, max_file_size, file_name);
     }
 
@@ -132,35 +142,8 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
 
 *******************************************************************************/
 
-public class StatsLog ( T )
+public class StatsLog ( T ) : IStatsLog
 {
-    /***************************************************************************
-
-        Stats log update period (for use with timers, etc)
-
-    ***************************************************************************/
-
-    static public const time_t default_period = 30; // 30 seconds
-
-
-    /***************************************************************************
-
-        Logger instance
-
-    ***************************************************************************/
-
-    protected const Logger logger;
-
-
-    /***************************************************************************
-
-        Message formatter
-
-    ***************************************************************************/
-
-    private const StringLayout!() layout;
-
-    
     /***************************************************************************
 
         Constructor
@@ -173,22 +156,11 @@ public class StatsLog ( T )
 
     ***************************************************************************/
 
-    public this ( size_t file_count = 10, size_t max_file_size = 10 * 1024 * 1024,
-        char[] file_name = "log/stats.log" )
+    public this ( size_t file_count = default_file_count,
+        size_t max_file_size = default_max_file_size,
+        char[] file_name = default_file_name )
     {
-        this.logger = Log.lookup("Stats");
-        this.logger.clear();
-        this.logger.additive(false);
-
-        this.logger.add(new AppendSyslog(file_name, file_count,
-                                         max_file_size, "gzip {}", "gz", 4,
-                                         new LayoutStatsLog));
-
-        // Explcitly set the logger to output all levels, to avoid the situation
-        // where the root logger is configured to not output level 'info'.
-        this.logger.level = this.logger.Level.Trace;
-
-        this.layout = new StringLayout!();
+        super(file_count, max_file_size, file_name);
     }
 
 
@@ -206,7 +178,7 @@ public class StatsLog ( T )
 
     public this ( char[] file_name )
     {
-        this(10, 10 * 1024 * 1024, file_name);
+        this(default_file_count, default_max_file_size, file_name);
     }
 
 
@@ -337,6 +309,79 @@ public class StatsLog ( T )
             add_separator = true;
         }
     }
+}
+
+
+
+/*******************************************************************************
+
+    Templateless stats log base class. Contains no abstract methods, but
+    declared as abstract as it is useless on its own, without deriving.
+
+*******************************************************************************/
+
+public abstract class IStatsLog
+{
+    /***************************************************************************
+
+        Stats log default settings (used in ctor)
+
+    ***************************************************************************/
+
+    public const time_t default_period = 30; // 30 seconds
+    public const default_file_count = 10;
+    public const default_max_file_size = 10 * 1024 * 1024; // 10Mb
+    public const char[] default_file_name = "log/stats.log";
+
+
+    /***************************************************************************
+
+        Logger instance
+
+    ***************************************************************************/
+
+    protected const Logger logger;
+
+
+    /***************************************************************************
+
+        Message formatter
+
+    ***************************************************************************/
+
+    protected const StringLayout!() layout;
+
+    
+    /***************************************************************************
+
+        Constructor
+
+        Params:
+            file_count = maximum number of log files before old logs are
+                over-written
+            max_file_size = size in bytes at which the log files will be rotated
+            file_name = name of the file to write the stats to
+
+    ***************************************************************************/
+
+    public this ( size_t file_count = default_file_count,
+        size_t max_file_size = default_max_file_size,
+        char[] file_name = default_file_name )
+    {
+        this.logger = Log.lookup(file_name);
+        this.logger.clear();
+        this.logger.additive(false);
+
+        this.logger.add(new AppendSyslog(file_name, file_count,
+                                         max_file_size, "gzip {}", "gz", 4,
+                                         new LayoutStatsLog));
+
+        // Explcitly set the logger to output all levels, to avoid the situation
+        // where the root logger is configured to not output level 'info'.
+        this.logger.level = this.logger.Level.Trace;
+
+        this.layout = new StringLayout!();
+    }
 
 
     /***************************************************************************
@@ -353,7 +398,7 @@ public class StatsLog ( T )
 
     ***************************************************************************/
 
-    private void formatAssocArray ( A ) ( A[char[]] values, ref bool add_separator )
+    protected void formatAssocArray ( A ) ( A[char[]] values, ref bool add_separator )
     {
         foreach ( name, value; values )
         {
@@ -375,11 +420,8 @@ public class StatsLog ( T )
 
     ***************************************************************************/
 
-    private void formatValue ( V ) ( char[] name, V value, bool add_separator )
+    protected void formatValue ( V ) ( char[] name, V value, bool add_separator )
     {
-//        auto separator = add_separator ? " " : "";
-//        Layout!(char).print(this.format_buffer, "{}{}:{}", separator, name,
-//                            value);
         if (add_separator)
         {
             this.layout(' ');

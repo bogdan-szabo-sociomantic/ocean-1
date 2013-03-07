@@ -47,7 +47,7 @@ private import tango.util.log.LayoutDate;
     If it's registered as an ArgumentsExt, it adds the option --version to print
     the version information and exit.
 
-    If it's registered as a LogExt, it will log the version information unsing
+    If it's registered as a LogExt, it will log the version information using
     the logger with the name of this module.
 
 *******************************************************************************/
@@ -216,19 +216,26 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
         Add the default logger if default_logging is true.
 
         If the configuration variable is present, it will override the current
-        default_logging value.
+        default_logging value. If the value does not exist in the config file,
+        the value set in the ctor will be used.
+
+        Note that the logger is explicitly set to output all levels, to avoid
+        the situation where the root logger is configured to not output level
+        'info'.
 
     ***************************************************************************/
 
     public void postConfigureLoggers ( IApplication app, ConfigParser config,
             bool loose_config_parsing, bool use_insert_appender )
     {
+        this.ver_log.level = this.ver_log.Level.Info;
+
         this.default_logging = config.get("VERSION", "default_version_log",
                 this.default_logging);
 
         if (this.default_logging)
         {
-            ver_log.add(new AppendFile(this.default_file, new LayoutDate));
+            this.ver_log.add(new AppendFile(this.default_file, new LayoutDate));
         }
     }
 
@@ -253,7 +260,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
             return;
         }
 
-        ver_log.info(getVersionString(app.name, this.ver));
+        this.ver_log.info(getVersionString(app.name, this.ver));
     }
 
 
