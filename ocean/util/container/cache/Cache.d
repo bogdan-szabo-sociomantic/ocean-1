@@ -21,6 +21,18 @@
     values of the specified type.
     
     
+    Note that with variable value length anything stored in the cache is
+    invisible to the garbage collector because the internal value data type of
+    the cache is ubyte[]. So if you store references (objects, pointers, slices
+    to dynamic arrays) in the cache with variable value length, make sure your
+    application keeps a reference to it. Otherwise the object referenced to may
+    be garbage collected and attempting to use it after getting it from the
+    cache will make your program go to HELL.
+    
+    TODO: Extend the cache by making values visible to the GC by default and
+    provide GC hiding as an option.
+    
+    
     Cache.createRaw() and Cache.getOrCreateRaw() return a reference to a record
     value in the cache. Cache.getRaw() behaves like Cache.getOrCreateRaw() if
     the record was found in the cache or returns null otherwise.
@@ -136,8 +148,8 @@
             // (*val)[] ((*val).opSlice) now returns the value array buffer
             // which contains a copy of the content of str1.
             
-            // Resize the value array buffer to str2.length and copy the content
-            // of str2 into it.
+            // Use (*val)[] = str2 ((*val).opSliceAssign(x)) to resize the value
+            // array buffer to str2.length and copy the content of str2 into it.
             
             (*val)[] = str2;
         }
