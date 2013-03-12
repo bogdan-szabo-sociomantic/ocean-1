@@ -172,9 +172,14 @@ version ( DigitalMars )
             Allocates an instance of the specified type into the stack buffer
             this.buf.
 
+            The class T must have a constructor which accepts the tuple of
+            arguments specified by Args. Note that in the case where Args is of
+            length 0, T *must* have an explicitly declared ctor accepting no
+            arguments.
+
             Template params:
                 T = type of class to allocate
-                C = tuple of arguments to pass to T's constructor
+                Args = tuple of arguments to pass to T's constructor
 
             Params:
                 c_args = arguments to pass to T's constructor
@@ -190,7 +195,7 @@ version ( DigitalMars )
 
         ***********************************************************************/
 
-        public T allocate ( T : Object, C ... ) ( C c_args )
+        public T allocate ( T : Object, Args ... ) ( Args c_args )
         in
         {
             assert(this.p is null, "Already allocated an object");
