@@ -117,6 +117,15 @@ version ( DigitalMars )
 
     /***************************************************************************
 
+        Default size of stack buffer.
+
+    ***************************************************************************/
+
+    public const DefaultBufferSize = 1024;
+
+
+    /***************************************************************************
+
         Class template to reserve a certain number of bytes on the stack, and
         allow an object to later be allocated into that space.
 
@@ -128,7 +137,7 @@ version ( DigitalMars )
 
     ***************************************************************************/
 
-    public class StackAllocator ( size_t BufferSize = 4096 )
+    public class StackAllocator ( size_t BufferSize = DefaultBufferSize )
     {
         /***********************************************************************
 
@@ -236,7 +245,7 @@ version ( DigitalMars )
 
     ***************************************************************************/
 
-    public class StackAllocated ( T : Object, size_t BufferSize = 4096 )
+    public class StackAllocated ( T : Object, size_t BufferSize = DefaultBufferSize )
         : StackAllocator!(BufferSize)
     {
         /***********************************************************************
