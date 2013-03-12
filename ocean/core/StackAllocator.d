@@ -220,6 +220,66 @@ version ( DigitalMars )
             return t;
         }
     }
+
+
+    /***************************************************************************
+
+        Class template wrapping a stack allocator and an allocated instance of
+        the specified class.
+
+        The class can be safely newed on the stack (as scope), as it performs no
+        heap allocations internally.
+
+        Template params:
+            T = type of object to allocate using the stack allocator
+            BufferSize = number of bytes to reserve on the stack
+
+    ***************************************************************************/
+
+    public class StackAllocated ( T : Object, size_t BufferSize = 4096 )
+        : StackAllocator!(BufferSize)
+    {
+        /***********************************************************************
+
+            Instance of T.
+
+        ***********************************************************************/
+
+        private T instance;
+
+
+        /***********************************************************************
+
+            Gets the stack allocated instance of T. If the instance has not yet
+            been allocated, it is allocated at this point.
+
+            Template params:
+                T = type of class to allocate
+                Args = tuple of arguments to pass to T's constructor
+
+            Params:
+                c_args = arguments to pass to T's constructor
+
+            Returns:
+                reference to stack allocated T instance
+
+        ***********************************************************************/
+
+        public T opCall ( C : T = T, Args ... ) ( Args c_args )
+        out ( t )
+        {
+            assert(t !is null, "stack allocated instance is null");
+        }
+        body
+        {
+            if ( this.instance is null )
+            {
+                this.instance = super.allocate!(C)(c_args);
+            }
+
+            return this.instance;
+        }
+    }
 }
 else
 {
