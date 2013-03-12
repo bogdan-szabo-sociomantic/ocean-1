@@ -30,25 +30,113 @@ private import ocean.core.Traits: ContainsDynamicArray;
 
  ******************************************************************************/
 
-class StructDumper ( S )
+class StructDumper
 {
-    static assert (is (S == struct), "struct expected, not " ~ S.stringof);
-
-    /**************************************************************************
-
-        true if S contains a dynamic array.
-
-     **************************************************************************/
-    
-    const contains_dynamic_array = ContainsDynamicArray!(S);
-
     /**************************************************************************
 
         Set to true to only extend the internal buffer.
-
+    
      **************************************************************************/
     
     public bool extend_only = false;
+    
+    void[] opCall ( S ) ( ref void[] buffer, S s )
+    {
+        return this.dump(buffer, s, this.extend_only);
+    }
+
+    /**************************************************************************
+
+        Serializes the data in s.
+        
+        Params:
+            s = instance of S to serialize
+            
+        Returns:
+            the data serialized from s.
+    
+     **************************************************************************/
+    
+    static void[] dump ( S ) ( ref void[] buffer, S s, bool extend_only = false )
+    {
+        return DumpArrays.dump(s, resize(buffer, DumpArrays.length(s), extend_only));
+    }
+    
+    private static void[] resize ( ref void[] buffer, size_t len, bool extend_only = false )
+    out (buffer_out)
+    {
+        assert (buffer_out.ptr is buffer.ptr);
+        
+        if (extend_only)
+        {
+            assert (buffer_out.length <= buffer.length);
+        }
+        else
+        {
+            assert (buffer_out.length == buffer.length);
+        }
+    }
+    body
+    {
+        if (len != buffer.length)
+        {
+            if (buffer is null)
+            {
+                buffer = new ubyte[len];
+            }
+            else if (len > buffer.length || !extend_only)
+            {
+                buffer.length = len;
+            }
+        }
+        
+        return buffer[0 .. len];
+    }
+}
+
+class BufferedStructDumper : StructDumper
+{
+    /**********************************************************************
+
+        Internal data buffer of variable length.
+    
+     **********************************************************************/
+    
+    private void[] buffer;
+    
+    /**********************************************************************
+    
+        Actual valid data in the buffer.
+    
+     **********************************************************************/
+    
+    private void[] data_;
+    
+    /**********************************************************************
+    
+        Disposer.
+    
+     **********************************************************************/
+    
+    protected override void dispose ( )
+    {
+        if (this.buffer)
+        {
+            delete this.buffer;
+        }
+    }
+    
+    /**********************************************************************
+    
+        Makes sure that data_ always slices the head of buffer.
+    
+     **********************************************************************/
+    
+    invariant ( )
+    {
+        assert (this.data_.ptr    == this.buffer.ptr);
+        assert (this.data_.length <= this.buffer.length);
+    }
 
     /**************************************************************************
 
@@ -61,12 +149,11 @@ class StructDumper ( S )
     
     public this ( size_t n = 0 )
     {
-        static if (contains_dynamic_array)
-        {
-            this.array_buffer = new ubyte[n];
-            
-            this.data_ = this.array_buffer[0 .. 0];
-        }
+        this.buffer = new ubyte[n];
+        
+        // Set this.data_ so that the class invariant won't fail.
+        
+        this.data_ = this.buffer[0 .. 0];
     }
 
     /**************************************************************************
@@ -81,32 +168,9 @@ class StructDumper ( S )
 
      **************************************************************************/
     
-    void[] opCall ( S s )
+    public void[] opCall ( S ) ( S s )
     {
-        static if (contains_dynamic_array)
-        {
-            size_t len = this.length(s);
-            
-            if (len != this.array_buffer.length)
-            {
-                if (len > this.array_buffer.length || !this.extend_only)
-                {
-                    this.array_buffer.length = len;
-                }
-                
-                this.data_ = this.array_buffer[0 .. len];
-            }
-            
-            size_t used = DumpArrays.dump(s, this.data_).length;
-            
-            assert (used == this.data_.length);
-        }
-        else
-        {
-            this.s = s;
-        }
-        
-        return this[];
+        return this.data_ = super.opCall(this.buffer, s);
     }
 
     /**************************************************************************
@@ -120,14 +184,7 @@ class StructDumper ( S )
     
     void[] opSlice ( )
     {
-        static if (contains_dynamic_array)
-        {
-            return this.data_;
-        }
-        else
-        {
-            return (cast (void*) &this.s)[0 .. this.s.sizeof];
-        }
+        return this.data_;
     }
     
     /**************************************************************************
@@ -140,82 +197,11 @@ class StructDumper ( S )
     
     void minimize ( )
     {
-        static if (contains_dynamic_array)
+        if (this.buffer.length != this.data_.length)
         {
-            if (this.data_.length != this.array_buffer.length)
-            {
-                this.data_.length = this.array_buffer.length;
-            }
+            this.buffer.length = this.data_.length;
+            this.data_         = this.buffer;
         }
-    }
-    
-    /**************************************************************************
-
-        Calculates the length of the serialized data of the provided S instance.
-        
-        Params:
-            s = S instance to calculate the length of the serialized data for
-            
-        Returns:
-        the length of the serialized data of s.
-
-     **************************************************************************/
-    
-    alias DumpArrays.length!(S) length;
-    
-    static if (contains_dynamic_array)
-    {
-        /**********************************************************************
-
-            Internal data buffer of variable length.
-
-         **********************************************************************/
-        
-        private ubyte[] array_buffer;
-
-        /**********************************************************************
-
-            Actual valid data in the buffer.
-    
-         **********************************************************************/
-    
-        private void[] data_;
-
-        /**********************************************************************
-
-            Disposer.
-    
-         **********************************************************************/
-        
-        protected override void dispose ( )
-        {
-            if (this.array_buffer)
-            {
-                delete this.array_buffer;
-            }
-        }
-
-        /**********************************************************************
-
-            Makes sure that data_ always slices the head of array_buffer.
-    
-         **********************************************************************/
-        
-        invariant ( )
-        {
-            assert (this.data_.ptr    == this.array_buffer.ptr);
-            assert (this.data_.length <= this.array_buffer.length);
-        }
-    }
-    else
-    {
-        /**********************************************************************
-
-            Internal data buffer of fixed length.
-    
-         **********************************************************************/
-        
-        private S s;
     }
 }
 
@@ -270,16 +256,13 @@ struct DumpArrays
     
     size_t arraysLength ( S ) ( S s )
     {
-        static assert (ContainsDynamicArray!(S), S.stringof ~
-                       " contains no dynamic array - nothing to do");
-        
         size_t len = 0;
         
-        foreach (i, field; s.tupleof)
+        static if (ContainsDynamicArray!(S)) foreach (i, field; s.tupleof)
         {
             alias typeof (field) T;
             
-            static if (is (T == struct) && ContainsDynamicArray!(T))
+            static if (is (T == struct))
             {
                 // Recurse into struct field.
                 
@@ -473,12 +456,9 @@ struct DumpArrays
     
     void[] dumpArrays ( S ) ( ref S s, void[] data )
     {
-        static assert (ContainsDynamicArray!(S), S.stringof ~
-                       " contains no dynamic array - nothing to do");
-        
-        foreach (i, T; typeof (s.tupleof))
+        static if (ContainsDynamicArray!(S)) foreach (i, T; typeof (s.tupleof))
         {
-            static if (is (T == struct) && ContainsDynamicArray!(T))
+            static if (is (T == struct))
             {
                 // Recurse into struct field.
                 
