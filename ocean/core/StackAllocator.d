@@ -120,12 +120,15 @@ version ( DigitalMars )
         Class template to reserve a certain number of bytes on the stack, and
         allow an object to later be allocated into that space.
 
+        The class can be safely newed on the stack (as scope), as it performs no
+        heap allocations internally.
+
         Template params:
             BufferSize = number of bytes to reserve on the stack
 
     ***************************************************************************/
 
-    scope class StackAllocator ( size_t BufferSize = 4096 )
+    public class StackAllocator ( size_t BufferSize = 4096 )
     {
         /***********************************************************************
 
