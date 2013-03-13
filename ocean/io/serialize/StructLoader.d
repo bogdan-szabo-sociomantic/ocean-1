@@ -924,7 +924,7 @@ class StructLoader
          Params:
              data  = dynamic array data previously obtained by dump() from a S
                      instance
-             bytes = incremented by the number of bytes required by
+             n     = incremented by the number of bytes required by
                      sliceArrays()
              
          Returns:
