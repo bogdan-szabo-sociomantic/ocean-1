@@ -614,6 +614,8 @@ class StructLoader
              */
             
             pos += bytes;
+            
+            this.assertDataLongEnough!(T[])(data.length, pos, __FILE__, __LINE__);
         }
         
         static if (IsPrimitive!(T))
@@ -813,6 +815,8 @@ class StructLoader
              */
             
             pos += bytes;
+            
+            this.assertDataLongEnough!(T[])(data.length, pos, __FILE__, __LINE__);
             
             array = cast (T[]) data[len.sizeof .. pos];
         }
