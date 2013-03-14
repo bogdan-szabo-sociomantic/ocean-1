@@ -3,6 +3,17 @@
 Migration Instructions
 ======================
 
+These instructions should help developers to migrate from one version to
+another. The changes listed here are the steps you need to take to move from
+the previous version to the one being listed. For example, all the steps
+described in version **1.5** are the steps required to move from **1.8** to
+**1.5**.
+
+If you need to jump several versions at once, you should read all the steps
+from all the involved versions. For example, to jump from **1.2** to **1.5**,
+you need to first follow the steps in version **1.3**, then the steps in
+version **1.4** and finally the steps in version **1.5**.
+
 
 master
 ======
