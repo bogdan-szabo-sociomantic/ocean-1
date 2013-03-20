@@ -585,7 +585,7 @@ class StructLoader
     
     private size_t sliceArrayBytes ( T ) ( void[] data, ref size_t n )
     {
-        StructLoaderException.assertDataLongEnough!(T)(this.e, data.length, size_t.sizeof, __FILE__, __LINE__);
+        this.assertDataLongEnough!(T)(data.length, size_t.sizeof, __FILE__, __LINE__);
         
         /*
          * Obtain the array length from data, calculate the number of bytes of
@@ -596,7 +596,7 @@ class StructLoader
                bytes = len * T.sizeof,
                pos   = len.sizeof;
         
-        StructLoaderException.assertLengthInRange!(T)(this.e, len, this.max_length, __FILE__, __LINE__);
+        StructLoaderException.assertLengthInRange!(T[])(this.e, len, this.max_length, __FILE__, __LINE__);
         
         static if (is (T U == U[]))
         {
@@ -614,6 +614,8 @@ class StructLoader
              */
             
             pos += bytes;
+            
+            this.assertDataLongEnough!(T[])(data.length, pos, __FILE__, __LINE__);
         }
         
         static if (IsPrimitive!(T))
@@ -655,7 +657,7 @@ class StructLoader
         
         static if (is (T == struct)) for (size_t i = 0; i < len; i++)
         {
-            this.assertDataLongEnough!(T)(data.length, pos, __FILE__, __LINE__);
+            this.assertDataLongEnough!(T[])(data.length, pos, __FILE__, __LINE__);
             
             pos += this.sliceArraysBytes_!(T)(data[pos .. $], n);
         }
@@ -663,13 +665,13 @@ class StructLoader
         {
             static if (is (V[] == T)) for (size_t i = 0; i < len; i++)
             {
-                this.assertDataLongEnough!(T)(data.length, pos, __FILE__, __LINE__);
+                this.assertDataLongEnough!(T[])(data.length, pos, __FILE__, __LINE__);
                 
                 pos += this.sliceArrayBytes!(V)(data[pos .. $], n);
             }
             else static if (!IsPrimitive!(V)) for (size_t i = 0; i < len; i++)
             {
-                this.assertDataLongEnough!(T)(data.length, pos, __FILE__, __LINE__);
+                this.assertDataLongEnough!(T[])(data.length, pos, __FILE__, __LINE__);
                 
                 pos += this.sliceSubArraysBytes!(V)(T.length, data[pos .. $], n);
             }
@@ -782,7 +784,7 @@ class StructLoader
     }
     body
     {
-        this.assertDataLongEnough!(T)(data.length, size_t.sizeof, __FILE__, __LINE__);
+        this.assertDataLongEnough!(T[])(data.length, size_t.sizeof, __FILE__, __LINE__);
         
         /*
          * Obtain the array length from data, calculate the number of bytes of
@@ -793,7 +795,7 @@ class StructLoader
                bytes = len * T.sizeof,
                pos   = len.sizeof;
         
-        StructLoaderException.assertLengthInRange!(T)(this.e, len, this.max_length, __FILE__, __LINE__);
+        StructLoaderException.assertLengthInRange!(T[])(this.e, len, this.max_length, __FILE__, __LINE__);
         
         static if (is (T U == U[]))
         {
@@ -813,6 +815,8 @@ class StructLoader
              */
             
             pos += bytes;
+            
+            this.assertDataLongEnough!(T[])(data.length, pos, __FILE__, __LINE__);
             
             array = cast (T[]) data[len.sizeof .. pos];
         }
@@ -875,7 +879,7 @@ class StructLoader
         {
             foreach (ref element; array)
             {
-                this.assertDataLongEnough!(T)(data.length, pos, __FILE__, __LINE__);
+                this.assertDataLongEnough!(T[])(data.length, pos, __FILE__, __LINE__);
                 
                 pos += this.sliceArrays!(allow_branched_arrays)
                                         (element, data[pos .. $], get_slices_buffer);
@@ -885,7 +889,7 @@ class StructLoader
         {
             static if (is (V[] == T)) foreach (ref element; array)
             {
-                this.assertDataLongEnough!(T)(data.length, pos, __FILE__, __LINE__);
+                this.assertDataLongEnough!(T[])(data.length, pos, __FILE__, __LINE__);
                 
                 pos += this.sliceArray!(allow_branched_arrays)
                                        (element, data[pos .. $], get_slices_buffer);
@@ -894,7 +898,7 @@ class StructLoader
             {
                 for (size_t i = 0; i < array.length; i++)
                 {
-                    this.assertDataLongEnough!(T)(data.length, pos, __FILE__, __LINE__);
+                    this.assertDataLongEnough!(T[])(data.length, pos, __FILE__, __LINE__);
                     
                     pos += this.sliceSubArrays!(allow_branched_arrays)
                                                (array[i], data[pos .. $], get_slices_buffer);
@@ -920,7 +924,7 @@ class StructLoader
          Params:
              data  = dynamic array data previously obtained by dump() from a S
                      instance
-             bytes = incremented by the number of bytes required by
+             n     = incremented by the number of bytes required by
                      sliceArrays()
              
          Returns:
