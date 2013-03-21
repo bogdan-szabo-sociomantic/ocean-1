@@ -103,6 +103,14 @@ private class CurlProcess : EpollProcess
 
     private char[] timeout_buf;
 
+    /***************************************************************************
+
+        Buffer used for formatting the optional max-redirs argument
+
+    ***************************************************************************/
+
+    private char[] max_redirs_buf;
+
 
     /***************************************************************************
 
@@ -298,6 +306,15 @@ private class CurlProcess : EpollProcess
         if ( this.params.follow_redirects )
         {
             this.args ~= "-L";
+
+            if ( this.params.max_redirects != 0 )
+            {
+                this.args ~= "--max-redirs";
+                this.max_redirs_buf.length = 0;
+                Layout!(char).print(this.max_redirs_buf, "{}", this.params.max_redirects);
+
+                this.args ~= this.max_redirs_buf;
+            }
         }
 
         // extra info to header...

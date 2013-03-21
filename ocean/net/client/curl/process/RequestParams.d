@@ -190,6 +190,15 @@ public struct RequestParams
 
     /***************************************************************************
 
+        Maximum number of redirects to use (ignored unless following redirects)
+
+    ***************************************************************************/
+
+    public int max_redirects;
+
+
+    /***************************************************************************
+
         To be used when extra information is needed to be add to the header. 
 
     ***************************************************************************/

@@ -226,6 +226,31 @@ public template RequestBase ( )
 
     /***************************************************************************
 
+        Maximum number of redirects to use (ignored unless following redirects)
+        If this is not set, the curl default (50 redirects) will be used.
+
+        Params:
+            redirects = maximum number of redirection-followings allowed. Must
+                        be >= 0.
+
+        Returns:
+            this pointer for method chaining
+
+    ***************************************************************************/
+
+    public typeof(this) max_redirects ( int redirects )
+    {
+        // BUG in cURL: According to the curl manual, you can use -1 to have no
+        // limit on the number of redirections. However, the command line does
+        // not parse it!
+
+        assert(redirects >= 0);
+        this.params.max_redirects = redirects;
+        return this;
+    }
+
+    /***************************************************************************
+
         Adds extra information in the header
 
         Returns:

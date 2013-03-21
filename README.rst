@@ -46,7 +46,9 @@ Migration Instructions
 New Features
 ^^^^^^^^^^^^
 
-TODO
+``ocean.net.client.curl.process.CurlProcessMulti``
+  The maximum number of redirections to follow can now be specified with
+  ``max_redirects()``.
 
 
 1.0 (2013-03-12)
