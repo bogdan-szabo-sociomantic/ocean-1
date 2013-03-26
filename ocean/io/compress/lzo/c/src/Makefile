@@ -9,7 +9,7 @@ NAMESTEM  = minilzo
 STATICLIB = lib$(NAMESTEM).a
 SHAREDLIB = lib$(NAMESTEM).so
 
-ARCH := 32
+ARCH := 64
 
 OBJ       = minilzo.o lzo_crc.o
 
