@@ -9,7 +9,7 @@
 
     author:         Kris, Gavin Norman
 
-    A set of functions for converting integer values to strings.
+    A set of functions for converting strings to integer values.
 
     This module is adapted from tango.text.convert.Integer. The functions have
     been modified so that they do not throw exceptions, instead denoting errors
