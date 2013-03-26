@@ -170,6 +170,14 @@ public struct RequestParams
 
     public bool header_only;
 
+    /***************************************************************************
+
+        Flag set to true to download header and the body
+
+    ***************************************************************************/
+
+    public bool header_and_body;
+    
 
     /***************************************************************************
 
@@ -261,7 +269,18 @@ public struct RequestParams
         return this.header_only;
     }
 
+    /***************************************************************************
 
+        Returns:
+            true if want header and the body
+
+    ***************************************************************************/
+
+    public bool header_and_body_set ( )
+    {
+        return this.header_and_body;
+    }
+    
     /***************************************************************************
 
         Returns:

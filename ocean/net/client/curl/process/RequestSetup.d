@@ -188,19 +188,27 @@ public template RequestBase ( )
 
     /***************************************************************************
 
-        Sets this download to download header only
+        Sets this download to download the header and the body if the 
+        the include_body is set, otherwise only the header is downloaded
 
         Returns:
             this pointer for method chaining
 
     ***************************************************************************/
 
-    public typeof(this) header_only ( )
+    public typeof(this) header ( bool include_body )
     {
-        this.params.header_only = true;
+        if ( include_body )
+        {
+            this.params.header_and_body = true;
+        }
+        else
+        {
+            this.params.header_only = true;
+        }
         return this;
     }
-
+    
     /***************************************************************************
 
         Set this download to follow redirects (HTTP header 3XX response codes)

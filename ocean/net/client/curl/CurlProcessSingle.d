@@ -288,6 +288,12 @@ private class CurlProcess : EpollProcess
             this.args ~= "-I";
         }
 
+        // Header and body
+        if ( this.params.header_and_body_set )
+        {
+            this.args ~= "-i";
+        }
+
         // --location: follow redirects (3XX response codes)
         if ( this.params.follow_redirects )
         {
