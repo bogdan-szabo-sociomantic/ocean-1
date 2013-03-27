@@ -304,8 +304,9 @@ class ConfigParser
         [Example Category]
 
         ii. Comments
-        // comments always start with two slashes
-        ;  or a semi-colon
+        // comments always start with two slashes,
+        ;  a semi-colon
+        #  or a hash
 
         iii. Property
         key = value
@@ -412,9 +413,17 @@ class ConfigParser
 
         if ( this.value.length ) // ignore empty lines
         {
-            bool slash_comment = this.value.length >= 2 && this.value[0 .. 2] == "//";
+            bool slash_comment     = this.value.length >= 2 && this.value[0 .. 2] == "//";
+            bool hash_comment      = this.value[0] == '#';
             bool semicolon_comment = this.value[0] == ';';
-            if ( !slash_comment && !semicolon_comment ) // ignore comments
+
+            debug if ( hash_comment )
+            {
+                Trace.formatln("Warning: Line '{}' will be interpreted as "
+                               "comment!", this.value);
+            }
+
+            if ( !slash_comment && !semicolon_comment && !hash_comment ) // ignore comments
             {
                 int pos = locate(this.value, '['); // category present in line?
 
@@ -832,3 +841,48 @@ class ConfigParser
     }
 }
 
+
+
+/*******************************************************************************
+
+    Unittest
+
+*******************************************************************************/
+
+
+private import ocean.util.Unittest;
+
+unittest
+{
+    scope t = new Unittest(__FILE__, "ConfigParserTest");
+
+    scope Config = new ConfigParser();
+
+    with (t)
+    {
+        auto str =
+`
+[Section1]
+multiline = a
+# unittest comment
+b
+; comment with a different style in multiline
+c
+// and the ultimative comment
+d
+ `
+ ;
+
+        Config.parseString(str);
+
+        scope l = Config.getListStrict("Section1", "multiline");
+
+        assertLog(l.length == 4, "Multiline value has more elements than"
+                                 "expected", __LINE__);
+
+        assertLog(l[0] == "a" && l[1] == "b" && l[2] == "c" && l[3] == "d",
+                "Multiline value was not parsed as expected", __LINE__);
+
+        Config.resetParser();
+    }
+}

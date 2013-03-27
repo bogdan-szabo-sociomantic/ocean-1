@@ -43,6 +43,16 @@ Migration Instructions
   the include_body is set, the header and the message body will be downloaded,
   otherwise only the header.
 
+``ocean.util.config.ConfigParser``
+  The ``#`` character will from now on be interpreted as a comment. In debug
+  mode a warning will be outputted (though I assume this will be removed in later
+  versions)
+
+  To upgrade make sure that you are not using that character in a multiline
+  variable. You might did exactly that accidently already, so some configuration
+  values that were previously wrong might work now and can cause a changed
+  behavior.
+
 New Features
 ^^^^^^^^^^^^
 
