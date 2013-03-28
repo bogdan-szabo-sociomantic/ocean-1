@@ -1,7 +1,11 @@
+Changelog
+=========
 
-
-Migration Instructions
-======================
+This changelog usually ships with 2 sections, a **Migration Instructions**,
+which are the mandatory steps the users have to do to update to a new version,
+and the **New Features** which are optional new features available in the new
+version that users might find interesting. Even when using them is optional,
+usually is encouraged.
 
 These instructions should help developers to migrate from one version to
 another. The changes listed here are the steps you need to take to move from
@@ -14,9 +18,11 @@ from all the involved versions. For example, to jump from **1.2** to **1.5**,
 you need to first follow the steps in version **1.3**, then the steps in
 version **1.4** and finally the steps in version **1.5**.
 
-
 master
-======
+------
+
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
 
 ``ocean.io.serialize.StructDumper``
   This class is no longer a template, the ``opCall()`` and ``dump()`` methods
@@ -37,9 +43,14 @@ master
   the include_body is set, the header and the message body will be downloaded,
   otherwise only the header.
 
+New Features
+^^^^^^^^^^^^
+
+TODO
+
 
 1.0 (2013-03-12)
-================
+----------------
 
 * First stable branch
 
