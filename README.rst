@@ -31,10 +31,10 @@ master
   Note that the new ``BufferedStructDumper`` is the direct equivalent of the old
   ``StructDumper``. The new ``StructDumper`` is a simplified version without an
   internal buffer.
-  
+
 ``ocean.net.client.curl.process.CurlProcessMulti``
   The ``header_only()`` method is replaced by ``header(bool include_body)``. If
-  the include_body is set, the header and the message body will be downloaded, 
+  the include_body is set, the header and the message body will be downloaded,
   otherwise only the header.
 
 
