@@ -31,11 +31,29 @@ private import tango.core.Memory;
 
 /*******************************************************************************
 
+    C Malloc memory manager instance,
+    not scanned by the gc for pointers/references
+
+*******************************************************************************/
+
+const IMemManager noScanMallocMemManager;
+
+/*******************************************************************************
+
     C Malloc memory manager instance, scanned by the gc for pointers/references
 
 *******************************************************************************/
 
 const IMemManager mallocMemManager;
+
+/*******************************************************************************
+
+    GC memory manager instance,
+    not scanned by the gc for pointers/references
+
+*******************************************************************************/
+
+const IMemManager noScanGcMemManager;
 
 /*******************************************************************************
 
@@ -47,6 +65,8 @@ const IMemManager gcMemManager;
 
 static this ( )
 {
+    noScanMallocMemManager = new MallocMemManager!(false);
+    noScanGcMemManager     = new GCMemManager!(false);
     mallocMemManager       = new MallocMemManager!(true);
     gcMemManager           = new GCMemManager!(true);
 }
