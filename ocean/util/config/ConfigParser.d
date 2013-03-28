@@ -87,7 +87,7 @@ debug private import ocean.util.log.Trace;
         Config.set("category", "key", "new value");
 
         // Read a multi-line value
-        char[][] values = Config.getList("category", "key");
+        char[][] values = Config.getListStrict("category", "key");
 
     ---
 
