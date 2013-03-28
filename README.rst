@@ -10,7 +10,7 @@ usually is encouraged.
 These instructions should help developers to migrate from one version to
 another. The changes listed here are the steps you need to take to move from
 the previous version to the one being listed. For example, all the steps
-described in version **1.5** are the steps required to move from **1.8** to
+described in version **1.5** are the steps required to move from **1.4** to
 **1.5**.
 
 If you need to jump several versions at once, you should read all the steps
