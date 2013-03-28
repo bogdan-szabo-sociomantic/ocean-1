@@ -86,7 +86,7 @@ public interface IMemManager
     ***************************************************************************/
 
     public void destroy ( ubyte[] buffer );
-    
+
 
     /***************************************************************************
 
@@ -95,9 +95,9 @@ public interface IMemManager
         Note that it is up to the user of classes which implement this interface
         to ensure that the buffer passed was in fact allocated by the same
         instance.
-        
-        void Object.dispose() is called on explicit delete. This method is 
-        intended to be called from that method.        
+
+        void Object.dispose() is called on explicit delete. This method is
+        intended to be called from that method.
 
         Params:
             buffer = buffer to deallocate
@@ -105,12 +105,12 @@ public interface IMemManager
     ***************************************************************************/
 
     public void dispose ( ubyte[] buffer );
-    
+
 
     /***************************************************************************
 
         Destructor compatible deallocation
-              
+
         Note that it is up to the user of classes which implement this interface
         to ensure that the buffer passed was in fact allocated by the same
         instance.
@@ -154,7 +154,7 @@ private class GCMemManager : IMemManager
         return new ubyte[dimension];
     }
 
-    
+
     /***************************************************************************
 
         Explicit deallocation
@@ -192,15 +192,15 @@ private class GCMemManager : IMemManager
     /***************************************************************************
 
         Destructor compatible deallocation
-              
+
         Note that it is up to the user of classes which implement this interface
         to ensure that the buffer passed was in fact allocated by the same
         instance.
-        
+
         The destructor is always called when an object is collected or when it
         is explicitly deleted. This method is intended to be called from the
         destructor.
-        
+
         Params:
             buffer = buffer to cleanup
 
@@ -208,7 +208,7 @@ private class GCMemManager : IMemManager
 
     public void dtor ( ubyte[] buffer )
     {
-    }    
+    }
 }
 
 
@@ -276,20 +276,20 @@ private class MallocMemManager : IMemManager
     public void dispose ( ubyte[] buffer )
     {
     }
-    
+
 
     /***************************************************************************
 
         Destructor compatible deallocation
-              
+
         Note that it is up to the user of classes which implement this interface
         to ensure that the buffer passed was in fact allocated by the same
         instance.
-        
+
         The destructor is always called when an object is collected or when it
         is explicitly deleted. This method is intended to be called from the
         destructor.
-        
+
         Params:
             buffer = buffer to cleanup
 
