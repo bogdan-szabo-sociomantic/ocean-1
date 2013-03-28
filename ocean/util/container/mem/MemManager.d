@@ -27,9 +27,11 @@ private import tango.core.Exception : OutOfMemoryException;
 
 private import tango.stdc.stdlib : malloc, free;
 
+private import tango.core.Memory;
+
 /*******************************************************************************
 
-    C Malloc memory manager instance
+    C Malloc memory manager instance, scanned by the gc for pointers/references
 
 *******************************************************************************/
 
@@ -37,7 +39,7 @@ const IMemManager mallocMemManager;
 
 /*******************************************************************************
 
-    GC memory manager instance
+    GC memory manager instance, scanned by the gc for pointers/references
 
 *******************************************************************************/
 
@@ -45,8 +47,8 @@ const IMemManager gcMemManager;
 
 static this ( )
 {
-    mallocMemManager = new MallocMemManager;
-    gcMemManager = new GCMemManager;
+    mallocMemManager       = new MallocMemManager!(true);
+    gcMemManager           = new GCMemManager!(true);
 }
 
 /*******************************************************************************
@@ -133,9 +135,13 @@ public interface IMemManager
 
     Memory manager implementation using the D garbage collector.
 
+    Template Parameters:
+        gc_aware  = whether the gc should scan the allocated memory for
+                    pointers or references
+
 *******************************************************************************/
 
-private class GCMemManager : IMemManager
+private class GCMemManager ( bool gc_aware ) : IMemManager
 {
     /***************************************************************************
 
@@ -151,7 +157,14 @@ private class GCMemManager : IMemManager
 
     public ubyte[] create ( size_t dimension )
     {
-        return new ubyte[dimension];
+        static if ( gc_aware )
+        {
+            return cast(ubyte[]) new void[dimension];
+        }
+        else
+        {
+            return new ubyte[dimension];
+        }
     }
 
 
@@ -217,9 +230,13 @@ private class GCMemManager : IMemManager
 
     Memory manager implementation using malloc and free.
 
+    Template Parameters:
+        gc_aware  = whether the gc should scan the allocated memory for
+                    pointers or references
+
 *******************************************************************************/
 
-private class MallocMemManager : IMemManager
+private class MallocMemManager ( bool gc_aware ) : IMemManager
 {
     /***************************************************************************
 
@@ -237,6 +254,11 @@ private class MallocMemManager : IMemManager
     {
         auto ptr = cast(ubyte*)malloc(dimension);
         assertEx(ptr !is null, new OutOfMemoryException(__FILE__, __LINE__));
+
+        static if ( gc_aware )
+        {
+            GC.addRange(ptr, dimension);
+        }
 
         return ptr[0..dimension];
     }
@@ -259,6 +281,11 @@ private class MallocMemManager : IMemManager
     {
         if ( buffer.ptr !is null )
         {
+            static if ( gc_aware )
+            {
+                GC.removeRange(buffer.ptr);
+            }
+
             free(buffer.ptr);
         }
     }
@@ -299,6 +326,11 @@ private class MallocMemManager : IMemManager
     {
         if ( buffer.ptr !is null )
         {
+            static if ( gc_aware )
+            {
+                GC.removeRange(buffer.ptr);
+            }
+
             free(buffer.ptr);
         }
     }
