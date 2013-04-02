@@ -30,6 +30,23 @@
           were used in the suspend/resume calls. It uses the FirstNames
           functions to print pointers as names.
 
+          You can use -debug=MessageFiberDump to enable a function called
+          'dumpFibers' which can be called from within gdb using
+          'call dumpFibers()'. The performance impact should be relatively low.
+          It will output a list on STDERR listing all fibers and some
+          informations about their state.
+
+          Example output:
+
+      Tomsen: State: TERM; Token: GroupRequest; LastSuspend: 1364929361 (157s ago); Addr: 7ff6c9ec8f00; Suspender: core.input.TrackingLoglineSource.FiberGroupRetry!(GetRange).FiberGroupRetry
+      Marine: State: TERM; Token:     io_ready; LastSuspend: 1364929357 (161s ago); Addr: 7ff6c9eef100; Suspender: swarm.core.protocol.FiberSelectReader.FiberSelectReader
+      Robert: State: TERM; Token:     io_ready; LastSuspend: 1364929357 (161s ago); Addr: 7ff6c9f94a00; Suspender: swarm.core.protocol.FiberSelectReader.FiberSelectReader
+      Batman: State: HOLD; Token:     io_ready; LastSuspend: 1364929357 (161s ago); Addr: 7ff6c9f94300; Suspender: swarm.core.protocol.FiberSelectReader.FiberSelectReader
+       David: State: TERM; Token:  event_fired; LastSuspend: 1364929357 (161s ago); Addr: 7ff6c9fc7c00; Suspender: ocean.io.select.event.FiberSelectEvent.FiberSelectEvent
+       Gavin: State: HOLD; Token:     io_ready; LastSuspend: 1364929357 (161s ago); Addr: 7ff6c9fc7500; Suspender: swarm.core.protocol.FiberSelectReader.FiberSelectReader
+    Superman: State: HOLD; Token:  DrizzleData; LastSuspend: 1364929515 (3s ago); Addr: 7ff6cad40800; Suspender: ocean.db.drizzle.Connection.Connection
+       Gavin: State: HOLD; Token:  DrizzleData; LastSuspend: 1364929515 (3s ago); Addr: 7ff6cad40600; Suspender: ocean.db.drizzle.Connection.Connection
+
  ******************************************************************************/
 
 module ocean.core.MessageFiber;
@@ -50,14 +67,97 @@ private import ocean.io.digest.Fnv1;
 
 debug ( MessageFiber )
 {
-    private import ocean.util.log.Trace;
+    debug = MessageFiberToken;
+}
+
+debug ( MessageFiberDump )
+{
+    private import tango.time.Clock;
+    private import tango.core.Array;
+    private import tango.core.Memory;
+    debug = MessageFiberToken;
+}
+
+debug ( MessageFiberToken )
+{
     private import ocean.io.digest.FirstName;
+    private import ocean.util.log.Trace;
+}
+
+
+/******************************************************************************
+
+    Dump information about fibers to STDERR
+
+ ******************************************************************************/
+
+debug ( MessageFiberDump ) extern(C) void dumpFibers()
+{
+    char[][] state_str = [ "HOLD" ,"EXEC" ,"TERM" ];
+
+    void* wpFiber = MessageFiber.last_fiber;
+
+    while ( wpFiber !is null )
+    {
+        auto fiber = cast(MessageFiber) GC.weakPointerGet(wpFiber);
+
+        if ( fiber !is null )
+        {
+            Trace.formatln("{,12}: State: {}; Token: {,12}; LastSuspend: {} ({}s ago); "
+                "Addr: {}; Suspender: {}",
+                FirstName(fiber), state_str[fiber.fiber.state],
+                fiber.last.str, fiber.time,
+                fiber.time > 0 ? Clock.now().unix().seconds() - fiber.time : 0,
+                cast(void*) fiber,
+                fiber.suspender);
+
+            wpFiber= fiber.prev_fiber;
+        }
+    }
 }
 
 /******************************************************************************/
 
 class MessageFiber
 {
+    debug ( MessageFiberDump )
+    {
+        /**********************************************************************
+
+            Most recent token
+
+        **********************************************************************/
+
+        private Token last;
+
+        /**********************************************************************
+
+            Last time suspend was called
+
+        **********************************************************************/
+
+        private size_t time;
+
+        /**********************************************************************
+
+            Name of the suspender, taken from the identifier parameter
+            Empty string if identifier wasn't given.
+
+        **********************************************************************/
+
+        private char[] suspender;
+
+        /**********************************************************************
+
+            List of weakpointers to all fibers
+
+        **********************************************************************/
+
+        static private void* last_fiber;
+
+        private void* next_fiber, prev_fiber;
+    }
+
     /**************************************************************************
 
         Token struct passed to suspend() and resume() methods in order to ensure
@@ -88,7 +188,7 @@ class MessageFiber
 
         ***********************************************************************/
 
-        private debug (MessageFiber) char[] str;
+        private debug (MessageFiberToken) char[] str;
 
         /***********************************************************************
 
@@ -114,7 +214,7 @@ class MessageFiber
         {
             Token token;
             token.hash = Fnv1a64(s);
-            debug (MessageFiber) token.str = s;
+            debug (MessageFiberToken) token.str = s;
             return token;
         }
     }
@@ -243,6 +343,8 @@ class MessageFiber
         this.e_killed = new KilledException;
         this.e_resume = new ResumeException;
         this.msg.num = 0;
+
+        debug(MessageFiberDump) addToList();
     }
 
     /**************************************************************************
@@ -261,6 +363,65 @@ class MessageFiber
         this.e_killed = new KilledException;
         this.e_resume = new ResumeException;
         this.msg.num = 0;
+
+        debug(MessageFiberDump) addToList();
+    }
+
+    /**************************************************************************
+
+        Destructor
+
+        Removes the Fiber from the linked list and destroys its weak pointer
+
+     **************************************************************************/
+
+    debug(MessageFiberDump) ~this ( )
+    {
+        auto next = cast(MessageFiber) GC.weakPointerGet(next_fiber);
+        auto prev = cast(MessageFiber) GC.weakPointerGet(prev_fiber);
+        void* me;
+
+        if ( next !is null )
+        {
+            if ( MessageFiber.last_fiber == next.prev_fiber )
+            {
+                MessageFiber.last_fiber = next_fiber;
+            }
+
+            me = next.prev_fiber;
+            next.prev_fiber = prev_fiber;
+        }
+
+        if ( prev !is null )
+        {
+            me = prev.next_fiber;
+            prev.next_fiber = next_fiber;
+        }
+
+        GC.weakPointerDestroy(me);
+    }
+
+    /**************************************************************************
+
+        Adds this fiber to the linked list of Fibers
+
+     **************************************************************************/
+
+    debug(MessageFiberDump) void addToList ( )
+    {
+        auto me = GC.weakPointerCreate(this);
+
+        if ( last_fiber !is null )
+        {
+            auto l = cast(MessageFiber) GC.weakPointerGet(MessageFiber.last_fiber);
+
+            assert ( l !is null );
+
+            l.next_fiber = me;
+            prev_fiber = last_fiber;
+        }
+
+        last_fiber = me;
     }
 
     /**************************************************************************
@@ -358,6 +519,13 @@ class MessageFiber
 
             debug (MessageFiber) Trace.formatln("--FIBER {} SUSPENDED -- ({}:{})",
                 FirstName(this), token.str, FirstName(identifier));
+
+            debug ( MessageFiberDump )
+            {
+                this.last = token;
+                this.time = Clock.now().unix().seconds();
+                this.suspender = identifier !is null ? identifier.classinfo.name : "";
+            }
 
             this.suspend_();
 
