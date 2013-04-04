@@ -48,7 +48,7 @@ do
 	t)  template="$OPTARG";;
 	d)  date="$OPTARG";;
         h)  print_usage ; exit 0;;
-        \?) echo >&2; print_usage >&2; exit 1;;
+        \?) echo >&2; print_usage >&2; exit 2;;
     esac
 done
 shift `expr $OPTIND - 1`
@@ -65,7 +65,7 @@ get_rev()
 	else
 		echo "Unknown version control system at $1" >&2
 		echo "Only git is supported" >&2
-		exit 2
+		exit 1
 	fi
 }
 
