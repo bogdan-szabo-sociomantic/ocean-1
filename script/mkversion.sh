@@ -72,7 +72,14 @@ get_rev()
 		echo "$0: $1 is not a git repository! Aborting..." >&2
 		exit 1
 	}
-	$git describe --tags --always --dirty='!'
+	branch=`$git describe --exact-match 2> /dev/null`
+	test -z "$branch" &&
+		branch=`$git rev-parse --abbrev-ref HEAD`
+	test "$branch" = HEAD &&
+		branch=DETACHED
+	printf $branch-`$git rev-parse --short HEAD`
+	test -n "`$git status --porcelain -uno`" &&
+		printf '!'
 	cd - > /dev/null
 }
 
