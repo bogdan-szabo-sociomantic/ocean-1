@@ -57,16 +57,23 @@ shift `expr $OPTIND - 1`
 test -z "$template" && template="$lib_dir/ocean/script/appVersion.d.tpl"
 test -z "$date" && date="`$date_cmd`"
 
+# Check if git is installed
+git=`which git`
+test -z "$git" && {
+	echo "$0: Can't find git command! Aborting..." >&2
+	exit 1
+}
+
 get_rev()
 {
-	if git --git-dir $1/.git describe --dirty --tags --always > /dev/null 2>&1
-	then
-		git --git-dir $1/.git describe --tags --always --dirty='!'
-	else
-		echo "Unknown version control system at $1" >&2
-		echo "Only git is supported" >&2
+	# Check if we are pointing to the right directory
+	cd "$1"
+	$git rev-parse --git-dir > /dev/null || {
+		echo "$0: $1 is not a git repository! Aborting..." >&2
 		exit 1
-	fi
+	}
+	$git describe --tags --always --dirty='!'
+	cd - > /dev/null
 }
 
 tmp=`mktemp mkversion.XXXXXXXXXX`
@@ -80,7 +87,7 @@ gc="$1"; shift
 sed -i "$tmp" \
 	-e "s/@MODULE@/$module/" \
 	-e "s/@GC@/$gc/" \
-	-e "s/@REVISION@/`get_rev $(git rev-parse --show-toplevel)`/" \
+	-e "s/@REVISION@/`get_rev .`/" \
 	-e "s/@DATE@/$date/" \
 	-e "s/@AUTHOR@/$author/" \
     -e "s/@DMD@/$dmd/"
