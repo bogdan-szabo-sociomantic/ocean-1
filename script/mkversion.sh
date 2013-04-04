@@ -79,7 +79,7 @@ get_rev()
 		branch=DETACHED
 	printf $branch-`$git rev-parse --short HEAD`
 	test -n "`$git status --porcelain -uno`" &&
-		printf '!'
+		printf '*'
 	cd - > /dev/null
 }
 
