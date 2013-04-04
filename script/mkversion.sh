@@ -2,7 +2,7 @@
 
 # Defaults
 rev_file=src/main/Version.d
-lib_dir=../
+lib_dir=..
 author="`id -un`"
 dmd="`dmd | head -1`"
 
