@@ -13,53 +13,53 @@
 
     ---
 
-import ocean.io.Stdout;
-import ocean.net.client.curl.CurlProcessMulti;
-import ocean.io.select.EpollSelectDispatcher;
-import ocean.core.ContextUnion;
-import ocean.net.client.curl.process.NotificationInfo;
+    import ocean.io.Stdout;
+    import ocean.net.client.curl.CurlProcessMulti;
+    import ocean.io.select.EpollSelectDispatcher;
+    import ocean.core.ContextUnion;
+    import ocean.net.client.curl.process.NotificationInfo;
 
-void main()
-{
-        char[] rec_data;
-        char[] err_data;
-        bool ok,err;
-        
-        void rec ( ContextUnion context, char[] url, ubyte[] data )
-        {
-            rec_data ~= cast( char[] ) data;
-            Stdout.formatln("{}",rec_data);
-        }
-        void not ( NotificationInfo info )
-        {
-            ok = info.succeeded ( );
-        }
-        void error ( ContextUnion context, char[] url, ubyte[] data )
-        {
-            err_data ~= cast(char[])data;
-            err = true;
-        }     
-        
-        // Create epoll selector instance.
-        auto epoll = new EpollSelectDispatcher;
-    
-        // Create a curl downloads instance which can process a maximum of 10
-        // requests in parallel.
-        const max_processes = 10;
-        auto curl = new CurlQueued(epoll, max_processes, size_t.max);
-    
-        // Initialise some downloads, one with authorization.
-        
-        curl.assign( curl.get("http://www.google.com",    &rec, &error, &not) );
-        curl.assign( curl.get("http://www.wikipedia.org", &rec, &error, &not) );
-        curl.assign( curl.get(
-            "http://www.zalando.de/var/export/display_zalando_de.csv",
-            &rec, &error, &not)
-            .authenticate("zalando-user", "dewE23#f4") );
-    
-        // Handle arriving data.
-        epoll.eventLoop;
-}
+    void main()
+    {
+            char[] rec_data;
+            char[] err_data;
+            bool ok,err;
+
+            void rec ( ContextUnion context, char[] url, ubyte[] data )
+            {
+                rec_data ~= cast( char[] ) data;
+                Stdout.formatln("{}",rec_data);
+            }
+            void not ( NotificationInfo info )
+            {
+                ok = info.succeeded ( );
+            }
+            void error ( ContextUnion context, char[] url, ubyte[] data )
+            {
+                err_data ~= cast(char[])data;
+                err = true;
+            }
+
+            // Create epoll selector instance.
+            auto epoll = new EpollSelectDispatcher;
+
+            // Create a curl downloads instance which can process a maximum of
+            // 10 requests in parallel.
+            const max_processes = 10;
+            auto curl = new CurlQueued(epoll, max_processes, size_t.max);
+
+            // Initialise some downloads, one with authorization.
+
+            curl.assign( curl.get("http://www.google.com",   &rec,&error,&not));
+            curl.assign( curl.get("http://www.wikipedia.org",&rec,&error,&not));
+            curl.assign( curl.get(
+                "http://www.zalando.de/var/export/display_zalando_de.csv",
+                &rec, &error, &not)
+                .authenticate("zalando-user", "dewE23#f4") );
+
+            // Handle arriving data.
+            epoll.eventLoop;
+    }
 
     ---
 
@@ -138,8 +138,8 @@ public class Curl
 
     /***************************************************************************
 
-        Curl process which request with a url. Class derived in order to allow 
-        it to be used in a Pool. The pool (in the outer class) needs to be 
+        Curl process which request with a url. Class derived in order to allow
+        it to be used in a Pool. The pool (in the outer class) needs to be
         notified when a request has finished, so that it can be recycled.
 
     ***************************************************************************/
@@ -256,7 +256,7 @@ public class Curl
         Struct describing a request with no data to send.
 
     ***************************************************************************/
-    
+
     private struct BaseRequest
     {
         mixin RequestBase; //contains the base functionality
@@ -272,7 +272,7 @@ public class Curl
     private struct DataRequest
     {
         mixin RequestBase; //contains the base functionality
-        mixin RequestData; //contains the data method        
+        mixin RequestData; //contains the data method
     }
 
 
@@ -305,7 +305,7 @@ public class Curl
 
     /***************************************************************************
 
-        The old version of this class had a method called download whith the 
+        The old version of this class had a method called download whith the
         same functionality and arguments as get. This alias exist only for
         backwards compatibility.
 
@@ -366,7 +366,7 @@ public class Curl
             BaseRequest struct to be passed to assign
 
     ***************************************************************************/
-    
+
     public DataRequest post (char[] url, CurlReceiveDg receive_dg,
             CurlReceiveDg error_dg, CurlNotificationDg finished_dg, char[] data)
     {
@@ -397,7 +397,7 @@ public class Curl
             BaseRequest struct to be passed to assign
 
     ***************************************************************************/
-    
+
     public DataRequest put (char[] url, CurlReceiveDg receive_dg,
             CurlReceiveDg error_dg, CurlNotificationDg finished_dg, char[] data)
     {
@@ -408,7 +408,7 @@ public class Curl
 
     /***************************************************************************
 
-        Assigns a new request as described by a BaseRequest or DataRequest 
+        Assigns a new request as described by a BaseRequest or DataRequest
         struct.
 
         This method accepts either a struct, or a pointer to such a struct.
@@ -417,7 +417,7 @@ public class Curl
             setup = a struct or pointer to a struct describing a new request
 
         Returns:
-            true if the request was started, or false if all processes are 
+            true if the request was started, or false if all processes are
             busy or suspended.
 
     ***************************************************************************/
@@ -579,7 +579,7 @@ public class CurlQueued : Curl
 
     /***************************************************************************
 
-        Assigns a new request as described by a BaseRequest or DataRequest 
+        Assigns a new request as described by a BaseRequest or DataRequest
         struct.
 
         This method accepts either a struct, or a pointer to such a struct.
@@ -588,7 +588,7 @@ public class CurlQueued : Curl
             setup = a struct or pointer to a struct describing a new request
 
         Returns:
-            true if the request was started, or false if all processes are 
+            true if the request was started, or false if all processes are
             busy or suspended.
 
     ***************************************************************************/
@@ -604,11 +604,11 @@ public class CurlQueued : Curl
             {
                 return false;
             }
-            
+
             StructSerializer!().dump(&setup.params, target);
 
             auto notification_dg = setup.params.notification_dg.get();
-            
+
             notification_dg(NotificationInfo(NotificationInfo.Type.Queued,
                         setup.params.context.get(), setup.params.url));
 

@@ -8,7 +8,7 @@
 
     authors:        Gavin Norman, Hans Bjerkander
 
-    Contains different templates for different http requests. Combinations of 
+    Contains different templates for different http requests. Combinations of
     this templates creates a struct that can be used as a request.
 
 *******************************************************************************/
@@ -38,12 +38,12 @@ public template RequestBase ( )
         Invariant to make sure that this object only can be created with opcall
 
     ***************************************************************************/
-       
+
     invariant ( )
     {
-        assert(this.params.url && this.params.req_command, 
+        assert(this.params.url && this.params.req_command,
             "Invalid request object -- command not set");
-    }    
+    }
 
     /***************************************************************************
 
@@ -51,9 +51,9 @@ public template RequestBase ( )
         parameters use methods in the templates.
 
     ***************************************************************************/
-    
-    private RequestParams params;    
-    
+
+    private RequestParams params;
+
     /***************************************************************************
 
         Sets the download context from a Context instance.
@@ -188,7 +188,7 @@ public template RequestBase ( )
 
     /***************************************************************************
 
-        Sets this download to download the header and the body if the 
+        Sets this download to download the header and the body if the
         the include_body is set, otherwise only the header is downloaded
 
         Returns:
@@ -208,7 +208,8 @@ public template RequestBase ( )
         }
         return this;
     }
-    
+
+
     /***************************************************************************
 
         Set this download to follow redirects (HTTP header 3XX response codes)
@@ -264,7 +265,7 @@ public template RequestBase ( )
         {
             this.params.extra_header_params ~= header;
         }
-        return this;   
+        return this;
     }
 
 
@@ -276,7 +277,7 @@ public template RequestBase ( )
             this pointer for method chaining
 
     ***************************************************************************/
-    
+
     public typeof(this) addForm ( char[] form )
     {
         if ( form.length )
@@ -301,8 +302,8 @@ public template RequestBase ( )
                 are sent (when a request is queued / started / finished)
             data = the data that will be "posted"
 
-    ***************************************************************************/    
-    
+    ***************************************************************************/
+
     public static typeof(*this) opCall ( char[] url, CurlReceiveDg receive_dg,
             CurlReceiveDg error_dg, CurlNotificationDg notification_dg ,
             char[] cmd)
@@ -312,11 +313,11 @@ public template RequestBase ( )
         req.params.url = url;
         req.params.receive_dg.set      ( receive_dg );
         req.params.error_dg.set        ( error_dg   );
-        req.params.notification_dg.set ( notification_dg );       
+        req.params.notification_dg.set ( notification_dg );
         req.params.req_command = cmd;
 
         return req;
-    }   
+    }
 }
 
 /*******************************************************************************
@@ -330,7 +331,10 @@ public template RequestData ( )
 
     /***************************************************************************
 
-        Adds status code to standard output? Default yes
+        Set the data, which will be sent with the request
+
+        Args:
+            data = the data to be sent with the request
 
         Returns:
             this pointer for method chaining
@@ -340,6 +344,7 @@ public template RequestData ( )
     public typeof(this) setRequestData ( char[] data )
     {
         this.params.req_data = data;
-        return this;   
+        return this;
     }
 }
+
