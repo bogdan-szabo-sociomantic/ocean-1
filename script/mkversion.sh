@@ -59,21 +59,12 @@ test -z "$date" && date="`$date_cmd`"
 
 get_rev()
 {
-	# Check which type of repository we are using
-	if svn info $1 > /dev/null 2>&1
-	then
-		echo -n r
-		svnversion $1
-	elif git --git-dir $1/.git svn info > /dev/null 2>&1
-	then
-		echo -n r
-		git --git-dir $1/.git svn info | grep '^Revision: ' | cut -b11-
-	elif git --git-dir $1/.git describe --dirty --tags --always > /dev/null 2>&1
+	if git --git-dir $1/.git describe --dirty --tags --always > /dev/null 2>&1
 	then
 		git --git-dir $1/.git describe --tags --always --dirty='!'
 	else
 		echo "Unknown version control system at $1" >&2
-		echo "For now only svn, git and git-svn are supported" >&2
+		echo "Only git is supported" >&2
 		exit 2
 	fi
 }
