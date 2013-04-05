@@ -90,7 +90,7 @@ class EmailSender
 
                 }
                 stdin.write("\nMime-Version: 1.0");
-                stdin.write("\nContent-Type: text/html\n");
+                stdin.write("\nContent-Type: text/html; charset=UTF-8\n");
                 stdin.write(msg_body);
                 stdin.close();
                 result = process.wait;
