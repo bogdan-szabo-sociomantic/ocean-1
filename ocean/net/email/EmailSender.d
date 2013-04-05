@@ -71,12 +71,12 @@ class EmailSender
         char[] subject, char[] msg_body, char[] mail_id = null )
     {
         Process.Result result;
-        
+
         with (this.process)
         {
             try
             {
-                execute;           
+                execute;
                 stdin.write("From: ");
                 stdin.write(sender);
                 stdin.write("\nTo: ");
@@ -87,7 +87,7 @@ class EmailSender
                 {
                     stdin.write("\nIn-Reply-To: ");
                     stdin.write(mail_id);
-                    
+
                 }
                 stdin.write("\nMime-Version: 1.0");
                 stdin.write("\nContent-Type: text/html\n");
