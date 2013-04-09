@@ -180,11 +180,27 @@ public template RequestBase ( )
 
     ***************************************************************************/
 
-    public typeof(this) ssl_insecure ( )
+    public typeof(this) sslInsecure ( )
     {
         this.params.ssl_insecure = true;
         return this;
     }
+
+
+    /***************************************************************************
+
+        Sets this download to allow "insecure" SSL connections and transfers.
+
+        Returns:
+            this pointer for method chaining
+
+        Deprecated: v1.1
+            Renamed to sslInsecure.
+
+    ***************************************************************************/
+
+    deprecated alias sslInsecure ssl_insecure;
+
 
     /***************************************************************************
 
@@ -219,11 +235,26 @@ public template RequestBase ( )
 
     ***************************************************************************/
 
-    public typeof(this) follow_redirects ( )
+    public typeof(this) followRedirects ( )
     {
         this.params.follow_redirects = true;
         return this;
     }
+
+
+    /***************************************************************************
+
+        Set this download to follow redirects (HTTP header 3XX response codes)
+
+        Returns:
+            this pointer for method chaining
+
+        Deprecated: v1.1
+            Renamed to followRedirects.
+    ***************************************************************************/
+
+    deprecated alias followRedirects follow_redirects;
+
 
     /***************************************************************************
 

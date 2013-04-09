@@ -1,11 +1,12 @@
 Changelog
 =========
 
-This changelog usually ships with 2 sections, a **Migration Instructions**,
+This changelog usually ships with 3 sections, a **Migration Instructions**,
 which are the mandatory steps the users have to do to update to a new version,
-and the **New Features** which are optional new features available in the new
-version that users might find interesting. Even when using them is optional,
-usually is encouraged.
+**Deprecated** which contains deprecated functions which is recommended not to
+use but will not break any old code and the **New Features** which are optional
+new features available in the new version that users might find interesting.
+Even when using them is optional, usually is encouraged.
 
 These instructions should help developers to migrate from one version to
 another. The changes listed here are the steps you need to take to move from
@@ -38,7 +39,7 @@ Migration Instructions
   ``StructDumper``. The new ``StructDumper`` is a simplified version without an
   internal buffer.
 
-``ocean.net.client.curl.process.CurlProcessMulti``
+``ocean.net.client.curl.CurlProcessMulti``
   The ``header_only()`` method is replaced by ``header(bool include_body)``. If
   the include_body is set, the header and the message body will be downloaded,
   otherwise only the header.
@@ -52,6 +53,20 @@ Migration Instructions
   variable. You might did exactly that accidently already, so some configuration
   values that were previously wrong might work now and can cause a changed
   behavior.
+
+Deprecated
+^^^^^^^^^^
+
+``ocean.net.client.curl.CurlProcessMulti``
+  The names of two methods in the structs returned by the request methods of
+  ``CurlProcessMulti`` have changed, as follows:
+
+  ==================== ===================
+  Old name             New name
+  ==================== ===================
+  ``ssl_insecure``     ``sslInsecure``
+  ``follow_redirects`` ``followRedirects``
+  ==================== ===================
 
 New Features
 ^^^^^^^^^^^^
