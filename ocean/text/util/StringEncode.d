@@ -1,30 +1,30 @@
 /*******************************************************************************
 
-	Character encoding conversion.
+    Character encoding conversion.
 
-	copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
+    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
 
-	version:        Apr 2010: Initial release
+    version:        Apr 2010: Initial release
 
-	authors:        David Eckardt
-					Gavin Norman
+    authors:        David Eckardt
+                    Gavin Norman
 
-	Character encoding conversion using the C iconv library
-	(ocean.text.util.c.Iconv).
+    Character encoding conversion using the C iconv library
+    (ocean.text.util.c.Iconv).
 
-	Usage:
-		This module can be used by creating an instance of the StringEncode
-		class with the template parameters of the desired character encoding
-		conversion:
+    Usage:
+        This module can be used by creating an instance of the StringEncode
+        class with the template parameters of the desired character encoding
+        conversion:
 
-			auto string_enc = new StringEncode!("ISO-8859-1", "UTF-8");
+            auto string_enc = new StringEncode!("ISO-8859-1", "UTF-8");
 
-		The conversion function is called as follows:
-		
-			char[] input = "A string to be converted";
-			char[] output; // The buffer which is written into
+        The conversion function is called as follows:
 
-			string_enc.convert(input, output);
+            char[] input = "A string to be converted";
+            char[] output; // The buffer which is written into
+
+            string_enc.convert(input, output);
 
 *******************************************************************************/
 
@@ -34,7 +34,7 @@ module ocean.text.util.StringEncode;
 
 /*******************************************************************************
 
-	Imports
+    Imports
 
 *******************************************************************************/
 
@@ -46,7 +46,7 @@ private import ocean.core.Exception : IconvException;
 
 debug
 {
-	private import tango.util.log.Trace;
+    private import tango.util.log.Trace;
 }
 
 
@@ -61,11 +61,11 @@ interface StringEncoder
     /***************************************************************************
 
         Converts a string from one encoding to another.
-        
+
         Params:
             input = string to convert
             output = converted string
-    
+
     ***************************************************************************/
 
     public void convert ( char[] input, ref char[] output );
@@ -75,21 +75,21 @@ interface StringEncoder
 
 /*******************************************************************************
 
-	StringEncode class
-	The template parameters are the character encoding types for the input
-	and output of the converter.
+    StringEncode class
+    The template parameters are the character encoding types for the input
+    and output of the converter.
 
 *******************************************************************************/
 
 public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 {
-	/***************************************************************************
+    /***************************************************************************
 
-		The conversion descriptor which iconv uses internally
+        The conversion descriptor which iconv uses internally
 
-	***************************************************************************/
+    ***************************************************************************/
 
-	private ConversionDescriptor cd;
+    private ConversionDescriptor cd;
 
 
     /***************************************************************************
@@ -110,15 +110,15 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 
     /***************************************************************************
 
-		Constructor.
-		Initialises iconv with the desired character encoding conversion types,
-		and sets default values for the public bool properties above.
-	
-	***************************************************************************/
+        Constructor.
+        Initialises iconv with the desired character encoding conversion types,
+        and sets default values for the public bool properties above.
 
-	public this ( )
-	{
-		this.cd = iconv_open(tocode.ptr, fromcode.ptr);
+    ***************************************************************************/
+
+    public this ( )
+    {
+        this.cd = iconv_open(tocode.ptr, fromcode.ptr);
 
         this.exception_InvalidMbSeq = new IconvException.InvalidMbSeq;
 
@@ -132,7 +132,7 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 
         Destructor.
         Simply closes down the C iconv library.
-    
+
     ***************************************************************************/
 
     private ~this ( )
@@ -144,7 +144,7 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 
         Dispose.
         Deletes unneeded objects
-    
+
     ***************************************************************************/
 
     public void dispose ( )
@@ -153,29 +153,29 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 
         delete this.exception_IncompleteMbSeq;
 
-        delete this.exception_Generic; 
+        delete this.exception_Generic;
     }
 
     /***************************************************************************
 
-		Converts a string in one encoding type to another (as specified by the 
-		class' template parameters).
+        Converts a string in one encoding type to another (as specified by the
+        class' template parameters).
 
-		Makes a guess at the required size of output buffer, simply setting it
-		to the same size as the input buffer. Then repeatedly tries converting
-		the input and increasing the size of the output buffer until the
-		conversion succeeds.
+        Makes a guess at the required size of output buffer, simply setting it
+        to the same size as the input buffer. Then repeatedly tries converting
+        the input and increasing the size of the output buffer until the
+        conversion succeeds.
 
-		To avoid repeated memory allocation, if you need to call this function
-		many times, it's best to always pass the same output buffer.
+        To avoid repeated memory allocation, if you need to call this function
+        many times, it's best to always pass the same output buffer.
 
-		Params:
-			input = the array of characters to be converted.
-			output = array of characters which will be filled with the results
-			         of the conversion. The output array is resized to fit the
+        Params:
+            input = the array of characters to be converted.
+            output = array of characters which will be filled with the results
+                     of the conversion. The output array is resized to fit the
                      results.
 
-	***************************************************************************/
+    ***************************************************************************/
 
     public void convert ( char[] input, ref char[] output )
     {
@@ -259,7 +259,7 @@ public class StringEncoderSequence ( Encoders... )
 
         Static constructor - ensures that all template types implement the
         Encoder interface.
-    
+
     ***************************************************************************/
 
     static this ( )
@@ -274,16 +274,16 @@ public class StringEncoderSequence ( Encoders... )
     /***************************************************************************
 
         Array of encoders.
-    
+
     ***************************************************************************/
-    
+
     private StringEncoder[] encoders;
 
 
     /***************************************************************************
 
         Constructor. News an instance of each of the template types.
-    
+
     ***************************************************************************/
 
     public this ( )
@@ -315,14 +315,14 @@ public class StringEncoderSequence ( Encoders... )
         Runs the encoders in sequence until one succeeds.
 
         This method is aliased with opCall.
-        
+
         Params:
             input = text to convert
             output = converted text
 
         Returns:
             converted text, or "" if all encoders failed.
-    
+
     ***************************************************************************/
 
     public char[] convert ( char[] input, ref char[] output )
@@ -360,15 +360,15 @@ public class StringEncoderSequence ( Encoders... )
     /***************************************************************************
 
         Attempts to convert the given text with the given encoder.
-        
+
         Params:
             encoder = encoder to use
             input = text to convert
             output = converted text
-    
+
         Returns:
             true if the text was converted successfully
-    
+
     ***************************************************************************/
 
     private bool convert ( StringEncoder encoder, char[] input, ref char[] output )

@@ -1,13 +1,13 @@
 /******************************************************************************
-    
+
     Interface for a class that obtains the current UNIX wall clock time in µs.
 
     Copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
 
     Version:        November 2011: Initial release
-                    
+
     Author:         David Eckardt
-    
+
  ******************************************************************************/
 
 module ocean.time.model.IMicrosecondsClock;
@@ -16,7 +16,7 @@ module ocean.time.model.IMicrosecondsClock;
 
 /*******************************************************************************
 
-    Imports    
+    Imports
 
 *******************************************************************************/
 
@@ -35,10 +35,10 @@ private import tango.time.Time;
 interface IMicrosecondsClock
 {
     /**************************************************************************
-        
+
         Returns:
             the current UNIX wall clock time in µs.
-        
+
      **************************************************************************/
 
     ulong now_us ( );
@@ -74,7 +74,7 @@ interface IAdvancedMicrosecondsClock : IMicrosecondsClock
      **************************************************************************/
 
     time_t now_sec ( );
-    
+
 
     /**************************************************************************
 
@@ -82,13 +82,13 @@ interface IAdvancedMicrosecondsClock : IMicrosecondsClock
 
         Params:
             local = true: return local time, false: return GMT.
-        
+
         Returns:
             the current time as tm struct.
-            
+
         Out:
             DST can be enabled with local time only.
-        
+
      **************************************************************************/
 
     tm now_tm ( bool local = false );

@@ -2,11 +2,11 @@
 
     Converts values into a metric representation with a scaled mantissa and a
     decimal exponent unit prefix character.
-    
+
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     version:        August 2010: Initial release
-    
+
     authors:        David Eckardt
 
  ******************************************************************************/
@@ -59,15 +59,15 @@ public struct MetricPrefix
     /**************************************************************************
 
         Scaled mantissa; set by bin()/dec()
-    
+
     **************************************************************************/
 
     float scaled = 0.;
-    
+
     /**************************************************************************
 
         Metric decimal power unit prefix; set by bin()/dec()
-    
+
     **************************************************************************/
 
     dchar prefix = ' ';
@@ -78,10 +78,10 @@ public struct MetricPrefix
         1024.
         Example: For n == 12345678 this.scaled about 11.78 and this.prefix is
         'M'.
-        
+
         Params:
             n = number to convert
-            
+
         Returns:
             this instance
 
@@ -92,9 +92,9 @@ public struct MetricPrefix
     typeof (this) bin ( T : float ) ( T n )
     {
         this.scaled = n;
-        
+
         int i;
-        
+
         static if (is (T : long))
         {
             for (i = 0; (n > 0x400) && (i < BinaryPrefixes.length); i++)
@@ -107,11 +107,11 @@ public struct MetricPrefix
             frexpf(n, &i);
             i /= 10;
         }
-        
+
         this.scaled = ldexpf(this.scaled, i * -10);
-        
+
         this.prefix = BinaryPrefixes[i];
-        
+
         return this;
     }
 
@@ -141,9 +141,9 @@ public struct MetricPrefix
     body
     {
         this.scaled = n;
-        
+
         int i = 4;
-        
+
         if (n != 0)
         {
             if (n > 1)
@@ -193,7 +193,7 @@ public struct MetricPrefix
 
         import ocean.text.util.MetricPrefix;
         import ocean.util.log.Trace;
-    
+
         // Number to split by binary prefix.
         const number = 2876873683;
 

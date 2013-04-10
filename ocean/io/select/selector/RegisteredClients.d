@@ -256,7 +256,7 @@ public final class ClientSet : IRegisteredClients
     {
         return this.clients.bucket_info.length;
     }
-    
+
     /***************************************************************************
 
         foreach operator over registered clients.

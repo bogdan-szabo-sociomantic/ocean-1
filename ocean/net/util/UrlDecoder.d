@@ -1,19 +1,19 @@
 /******************************************************************************
 
     UTF-8 URL decoder
-    
+
     copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-    
+
     version:        January 2012: Initial release
-    
+
     authors:        Gavin Norman, David Eckardt
-    
+
     Uses the glib 2.0, use
-    
+
         -Lglib-2.0
-        
+
     as linking parameter.
-    
+
  ******************************************************************************/
 
 module ocean.net.util.UrlDecoder;
@@ -21,7 +21,7 @@ module ocean.net.util.UrlDecoder;
 /******************************************************************************
 
     Imports and library function declarations
-    
+
  ******************************************************************************/
 
 private import ocean.text.util.SplitIterator: ChrSplitIterator;
@@ -31,138 +31,138 @@ private import tango.stdc.string: memmove;
 extern (C) private
 {
     /**************************************************************************
-    
+
         Determines the numeric value of a character as a hexidecimal digit.
-        
+
         @see http://developer.gnome.org/glib/stable/glib-String-Utility-Functions.html#g-ascii-xdigit-value
-        
+
         Params:
             c = an ASCII character.
 
         Returns:
             If c is a hex digit its numeric value. Otherwise, -1.
-        
+
      **************************************************************************/
-    
+
     int   g_ascii_xdigit_value(int c);
-    
+
     /**************************************************************************
-    
+
         Converts a single character to UTF-8.
-        
+
         @see http://developer.gnome.org/glib/stable/glib-Unicode-Manipulation.html#g-unichar-to-utf8
-        
+
         Params:
             c      = a Unicode character code
             outbuf = output buffer, must have at least 6 bytes of space.
                      If NULL, the length will be computed and returned and
                      nothing will be written to outbuf.
-        
+
         Returns:
             number of bytes written
-            
+
      **************************************************************************/
-    
+
     int g_unichar_to_utf8(dchar c, char* outbuf);
 }
 
 /******************************************************************************
 
     UrlDecoder class
-    
+
     Memory friendly, suitable for stack-allocated 'scope' instances.
-    
+
  ******************************************************************************/
 
 class UrlDecoder
 {
     /**************************************************************************
-    
+
         Source string, may be changed at any time except during decoding
         'foreach' iteration.
-        
+
      **************************************************************************/
-    
+
     public char[] source;
-    
+
     /**************************************************************************
-    
+
         Constructor
-        
-        Params: 
+
+        Params:
             source_in = source string
-        
+
      **************************************************************************/
-    
+
     public this ( char[] source_in = null )
     {
         this.source = source_in;
     }
-    
+
     /***************************************************************************
-        
-        Decodes this.source in an 'foreach' iteration over decoded chunks. 
-        
+
+        Decodes this.source in an 'foreach' iteration over decoded chunks.
+
         Checks whether the passed source string contains any characters encoded
         according to the RFC 2396 escape format. (A '%' character followed by
         two hexadecimal digits.)
 
         The non-standard 4-digit unicode encoding scheme is also supported ("%u"
         followed by four hex digits). Such characters are converted to UTF-8.
-        
+
     **************************************************************************/
-    
+
     public int opApply ( int delegate ( ref char[] chunk ) dg )
     {
         int callDg ( char[] str )
         {
             return dg(str);
         }
-        
+
         scope iterate_markers = new ChrSplitIterator('%');
-        
+
         iterate_markers.include_remaining = false;
-        
+
         size_t first_marker = iterate_markers.reset(this.source).locateDelim();
-        
+
         if (first_marker < this.source.length)
         {
             int result = callDg(this.source[0 .. first_marker]);
-            
+
             if (!result) foreach (ref pos, between; iterate_markers.reset(this.source[first_marker .. $]))
             {
                 result = dg(between);
-                
+
                 if (result) break;
-                
+
                 char[] remaining = iterate_markers.remaining;
-                
+
                 char[6] decoded_buf;
                 size_t read_pos = 0;
-                
+
                 char[] decoded = decoded_buf.decodeCharacter(remaining, read_pos);
-                
+
                 if (decoded.length)
                 {
                     assert (read_pos);
-                    
+
                     char[] original = this.source[0 .. read_pos];
-                    
+
                     result = callDg(this.copyDecoded(decoded, original)?
                                         decoded : original);
-                    
+
                     pos += read_pos;
                 }
                 else                                           // decoding error
                 {
                     assert (!read_pos);
-                    
+
                     result = callDg("%");
                 }
-                
+
                 if (result) break;
             }
-            
+
             return result? result : callDg(iterate_markers.remaining);
         }
         else
@@ -170,7 +170,7 @@ class UrlDecoder
             return dg(this.source);
         }
     }
-    
+
     /***************************************************************************
 
         Extracts a single character from the specified position in the passed
@@ -191,12 +191,12 @@ class UrlDecoder
             source = character string to decode a character from; may be
                      empty or null which will result in failure
             pos    = position in source
-        
+
         Returns:
             a slice to the UTF-8 representation of the decoded character in dst
             on success or an empty string on failure. The returned string is
             guaranteed to slice dst from dst[0].
-        
+
     ***************************************************************************/
 
     public static char[] decodeCharacter ( char[6] dst, char[] source, ref size_t pos )
@@ -212,74 +212,74 @@ class UrlDecoder
     body
     {
         auto src = source[pos .. $];
-        
+
         size_t read    = 0,
                written = 0;
-        
+
         if (src.length) switch (src[0])
         {
             default:
                 if (src.length >= 2)
                 {
                     written = hex2(src[0], src[1], dst[0]);
-                    
+
                     if (written)
                     {
                         read = 2;
                     }
                 }
                 break;
-                
+
             case 'u':
                 if (src.length >= 5)
                 {
                     written = hex4(src[1 .. 5], dst).length;
-                    
+
                     if (written)
                     {
                         read = 5;
                     }
                 }
                 break;
-                
+
             case '%':
                 read  = 1;
                 written = 1;
                 dst[0] = src[0];
         }
-        
+
         pos += read;
-        
+
         return dst[0 .. written];
     }
-    
+
     /***************************************************************************
 
         Decodes '%' encoded characters in str, replacing them in-place.
-        
+
         Checks whether the passed source string contains any characters encoded
         according to the RFC 2396 escape format. (A '%' character followed by
         two hexadecimal digits.)
 
         The non-standard 4-digit unicode encoding scheme is also supported ("%u"
         followed by four hex digits). Such characters are converted to UTF-8.
-        
+
         Note that the original content in str is overwritten with the decoded
         content. The resulting content is at most as long as the original. The
         returned string slices the valid content in str. str itself may contain
         tailing junk.
-        
+
         Params:
             str = string to decode
-            
+
         Returns:
             the decoded str content (slices str from the beginning)
-        
+
         Out:
             The returned array slices str from the beginning.
-        
+
     ***************************************************************************/
-   
+
     public static char[] decode ( char[] str )
     out (str_out)
     {
@@ -288,27 +288,27 @@ class UrlDecoder
     body
     {
         size_t pos = 0;
-        
+
         if (str.length)
         {
             scope iterator = new ChrSplitIterator('%');
-            
+
             // Skip the beginning of str before the first '%'.
-            
+
             foreach (chunk; iterator.reset(str))
             {
                 pos = chunk.length;
                 break;
             }
-            
+
             bool had_percent = false;
-            
+
             foreach (chunk; iterator)
             {
                 size_t read, written = 0;
-                
+
                 char[] c = chunk;
-                
+
                 if (chunk.length)
                 {
                     if (chunk[0] == 'u')
@@ -319,7 +319,7 @@ class UrlDecoder
                         // since g_unichar_to_utf8() produces UTF-8 sequence of 6
                         // bytes maximum, the UTF-8 sequence won't be longer than
                         // the original "%u####" sequence.
-                        
+
                         read = 5;
                         if (chunk.length >= read)
                         {
@@ -330,7 +330,7 @@ class UrlDecoder
                     {
                         // Assume two hex digits follow which denote the character
                         // value; replace str[pos] with the corresponding character.
-                        
+
                         read = 2;
                         if (chunk.length >= read)
                         {
@@ -349,15 +349,15 @@ class UrlDecoder
                         str[pos++] = '%';
                         had_percent = true;
                     }
-                    
+
                     continue;
                 }
-                
+
                 assert (written <= read);
-                
+
                 // written = 0 => error: Pass through the erroneous sequence,
                 // prepending the '%' that was skipped by the iterator.
-                
+
                 if (!written)
                 {
                     if (had_percent)
@@ -370,56 +370,56 @@ class UrlDecoder
                         written = 1;
                         had_percent = true;
                     }
-                    
+
                     read = 0;
                 }
-                
+
                 pos += written;
-                
+
                 // Move the rest of chunk to the front.
-                
+
                 if (chunk.length > read)
                 {
                     char[] between = chunk[read .. $];
-                    
+
                     memmove(&str[pos], &between[0], between.length);
-                    
+
                     pos += between.length;
                 }
-                
+
                 had_percent = false;
             }
         }
-        
+
         return str[0 .. pos];
     }
-    
+
     /***************************************************************************
 
         Creates a character c with the value specified by the 2-digit ASCII
         hexadecimal number whose digits are hi and lo. For example, if
-        hi = 'E' or 'e' and lo = '9', c will be 0xE9. 
-        
+        hi = 'E' or 'e' and lo = '9', c will be 0xE9.
+
         Params:
             hi = most significant hexadecimal digit (ASCII)
             lo = least significant hexadecimal digit (ASCII)
             c  = output character
-        
+
         Returns:
             true on success or false if hi or lo or both are not a hexadecimal
             digit.
-        
+
      ***************************************************************************/
-    
+
     static bool hex2 ( char hi, char lo, out char c )
     {
         int xhi = g_ascii_xdigit_value(hi),
             xlo = g_ascii_xdigit_value(lo);
-        
+
         if (xhi >= 0 && xlo >= 0)
         {
             c = ((cast (char) xhi) << 4) | (cast (char) xlo);
-            
+
             return true;
         }
         else
@@ -427,31 +427,31 @@ class UrlDecoder
             return false;
         }
     }
-    
+
     /***************************************************************************
 
         Converts hex, which is expected to contain a 4-digit ASCII hexadecimal
         number, into its corresponding UTF-8 character sequence.
-        
+
         Params:
             hex      = character code in hexadeximal representation (ASCII)
             utf8_buf = destination buffer for the UTF-8 sequence of the
                        character; the length must be at least 6; may contain
                        tailing junk if the sequence is actually shorter
-        
+
         Returns:
             the UTF-8 sequence (slices the valid data in utf8_buf) on success or
             an empty string on failure.
-        
+
         In:
             - hex.length must be 4,
             - utf8_buf.length must at least be 6.
-        
+
         Out:
             The returned string slices utf8_buf from the beginning.
-        
+
     ***************************************************************************/
-    
+
     static char[] hex4 ( char[] hex, char[] utf8_buf )
     in
     {
@@ -468,61 +468,61 @@ class UrlDecoder
             hilo = g_ascii_xdigit_value(hex[1]),
             lohi = g_ascii_xdigit_value(hex[2]),
             lolo = g_ascii_xdigit_value(hex[3]);
-        
+
         size_t n = 0;
-        
+
         if (hihi >= 0 && hilo >= 0 && lohi >= 0 && lolo >= 0)
         {
             dchar c = ((cast (dchar) hihi) << 0xC) |
-                      ((cast (dchar) hilo) << 0x8) | 
-                      ((cast (dchar) lohi) << 0x4) | 
+                      ((cast (dchar) hilo) << 0x8) |
+                      ((cast (dchar) lohi) << 0x4) |
                       ((cast (dchar) lolo));
-            
+
             n = cast (size_t) g_unichar_to_utf8(c, utf8_buf.ptr);
         }
-        
+
         return utf8_buf[0 .. n];
     }
-    
+
     /**************************************************************************
-        
+
         To be overridden as an option, called by opApply().
-        
+
         Determines whether each decoded character should be passed as 'foreach'
         iteration variable string in its decoded or its original (encoded) form.
         This can be used in cases where the decoding of only certain characters
         is desired.
-        
+
         By default always the decoded form is selected.
-        
+
         Params:
             decoded  = decoded form of the character
             original = original (encoded) form
-        
+
         Returns:
             true to use the decoded or false to use the original (encoded) form.
-            
+
      **************************************************************************/
-    
+
     protected bool copyDecoded ( char[] decoded, char[] original )
     {
         return true;
     }
-    
+
     /**************************************************************************/
-    
+
     unittest
     {
         scope decoder = new typeof (this)("%Die %uKatze %u221E%u221E tritt die Treppe %% krumm. %u2207%"),
               decoded = new char[0];
-        
+
         foreach (chunk; decoder)
         {
             decoded ~= chunk;
         }
-        
+
         assert (decoded == "%Die %uKatze ∞∞ tritt die Treppe % krumm. ∇%");
-        
+
         assert (decode("%Die %uKatze %u221E%u221E tritt die Treppe %% krumm. %u2207".dup) ==
                        "%Die %uKatze ∞∞ tritt die Treppe % krumm. ∇");
     }

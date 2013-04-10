@@ -3,13 +3,13 @@
     Simple serializer for reading / writing generic data from / to IOStreams
 
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     version:        October 2010: Initial release
-    
+
     authors:        Gavin Norman
 
     Usage example, writing:
-    
+
     ---
 
         private import ocean.io.serialize.SimpleSerializer;
@@ -80,43 +80,43 @@ static:
 
         If data is a pointer to a struct or union, it is dereferenced
         automatically.
-    
+
         Template params:
             T = type of data to write
-    
+
         Params:
             output = output stream to write to
             data = data to write
-        
+
         Returns:
             number of bytes transmitted
-        
+
         Throws:
             IOException on End Of Flow condition
-        
+
     ***************************************************************************/
-    
+
     public size_t write ( T ) ( OutputStream output, T data )
     {
         return transmit(output, data);
     }
 
     /***************************************************************************
-    
+
         Writes data to output, consuming the data buffer content to its
         entirety.
-    
+
         Params:
             output = stream to write to
             data = pointer to data buffer
             bytes = length of data in bytes
-        
+
         Returns:
             number of bytes transmitted
-        
+
         Throws:
             IOException on End Of Flow condition
-        
+
     ***************************************************************************/
 
     public size_t writeData ( OutputStream output, void* data, size_t bytes )
@@ -125,92 +125,92 @@ static:
     }
 
     /***************************************************************************
-    
+
         Writes data to output, consuming the data buffer content to its
         entirety.
-    
+
         Params:
             output = stream to write to
             data = data buffer
-        
+
         Returns:
             number of bytes transmitted
-        
+
         Throws:
             IOException on End Of Flow condition
-        
+
     ***************************************************************************/
 
     public size_t writeData ( OutputStream output, void[] data )
     {
         return transmitData(output, data);
     }
-    
+
     /***************************************************************************
-    
+
         Reads something from an input stream. Single elements are read straight
         from the input stream, while array types have their length read,
         followed by each element.
 
         If data is a pointer to a struct or union, it is dereferenced
         automatically.
-    
+
         Template params:
             T = type of data to read
-    
+
         Params:
             input = input stream to read from
             data = data to read
-        
+
         Returns:
             number of bytes transmitted
-        
+
         Throws:
             IOException on End Of Flow condition
-        
+
     ***************************************************************************/
-    
+
     public size_t read ( T ) ( InputStream input, ref T data )
     {
         return transmit(input, data);
     }
 
     /***************************************************************************
-    
+
         Reads data from input, populating the data buffer to its entirety.
-    
+
         Params:
             input = stream to read from
             data = pointer to data buffer
             bytes = length of data in bytes
-        
+
         Returns:
             number of bytes transmitted
-        
+
         Throws:
             IOException on End Of Flow condition
-        
+
     ***************************************************************************/
 
     public size_t readData ( InputStream input, void* data, size_t bytes )
     {
         return transmitData(input, data[0..bytes]);
     }
-    
+
     /***************************************************************************
-    
+
         Reads data from input, populating the data buffer to its entirety.
-    
+
         Params:
             input = stream to read from
             data = data buffer
-        
+
         Returns:
             number of bytes transmitted
-        
+
         Throws:
             IOException on End Of Flow condition
-        
+
     ***************************************************************************/
 
     public size_t readData ( InputStream input, void[] data )
@@ -292,24 +292,24 @@ static:
     }
 
     /***************************************************************************
-    
+
         Reads/writes data from/to an io stream, populating/consuming
         data[0 .. bytes].
-    
+
         Template params:
             Stream = type of stream; must be either InputStream or OutputStream
-    
+
         Params:
             stream = stream to read from / write to
             data   = pointer to data buffer
             bytes  = data buffer length (bytes)
-        
+
         Returns:
             number of bytes transmitted
-        
+
         Throws:
             IOException on End Of Flow condition
-        
+
     ***************************************************************************/
 
     public size_t transmitData ( Stream : IOStream ) ( Stream stream, void* data,
@@ -319,40 +319,40 @@ static:
     }
 
     /***************************************************************************
-    
+
         Reads/writes data from/to an io stream, populating/consuming data to its
         entirety.
 
         Template params:
             Stream = type of stream; must be either InputStream or OutputStream
-    
+
         Params:
             stream = stream to read from / write to
             data = pointer to data buffer
             bytes = length of data in bytes
-        
+
         Returns:
             number of bytes transmitted
-        
+
         Throws:
             IOException on End Of Flow condition
-        
+
     ***************************************************************************/
-    
+
     public size_t transmitData ( Stream : IOStream ) ( Stream stream, void[] data )
     {
         static assert ( !(is(Stream : InputStream) && is(Stream : OutputStream)),
                         "stream is '" ~ Stream.stringof ~  "; please cast it "
                         "either to InputStream or OutputStream" );
-        
+
         size_t transmitted = 0;
-        
+
         while (transmitted < data.length)
         {
             static if ( is(Stream : OutputStream) )
             {
                 size_t ret = stream.write(data[transmitted .. $]);
-                
+
                 const act = "writing";
             }
             else
@@ -360,33 +360,33 @@ static:
                 static assert ( is(Stream : InputStream),
                                 "stream must be either InputStream or OutputStream, "
                                 "not '" ~ Stream.stringof ~ '\'' );
-                
+
                 size_t ret = stream.read(data[transmitted .. $]);
-                
+
                 const act = "reading";
-                
+
             }
 
             assertEx!(IOException)(ret != stream.Eof, "end of flow while " ~ act);
-            
+
             transmitted += ret;
         }
-        
+
         return transmitted;
     }
-    
+
     /***************************************************************************
-    
+
         Reads/writes the content of array from/to stream, populating array to
         its entirety.
-    
+
         Params:
             stream = stream to read from/write to
             array = array to transmit
-        
+
         Returns:
             number of bytes transmitted
-        
+
         Throws:
             IOException on End Of Flow condition
 

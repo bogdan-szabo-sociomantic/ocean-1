@@ -3,16 +3,16 @@
     Base class for registrable client objects for the SelectDispatcher
 
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     version:        July 2010: Initial release
-    
+
     authors:        David Eckardt
-    
+
     Contains the three things that the SelectDispatcher needs:
         1. the I/O device instance
         2. the I/O events to register the device for
         3. the event handler to invocate when an event occured for the device
-        
+
     In addition a subclass may override finalize(). When handle() returns false
     or throws an Exception, the ISelectClient instance is unregistered from the
     SelectDispatcher and finalize() is invoked.
@@ -80,7 +80,7 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable
         Error,
         Timeout
     }
-    
+
     /**************************************************************************
 
         I/O device instance
@@ -90,20 +90,20 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable
         IConduit are distinct from each other. However, in most application
         cases the provided instance will originally implement both ISelectable
         and IConduit (as, for example, tango.io.device.Device and
-        tango.net.device.Socket). 
+        tango.net.device.Socket).
 
      **************************************************************************/
 
     public abstract Handle fileHandle ( );
-    
+
     /**************************************************************************
 
         Events to register the conduit for.
-        
+
      **************************************************************************/
-    
+
     public abstract Event events ( );
-    
+
     /**************************************************************************
 
         Connection time out in microseconds. Effective only when used with an
@@ -113,20 +113,20 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable
      **************************************************************************/
 
     public ulong timeout_us = 0;
-    
+
     /**************************************************************************
 
         Timeout expiry registration instance
-    
+
      **************************************************************************/
 
     private IExpiryRegistration expiry_registration_;
-    
+
     /**************************************************************************
 
         The "my conduit is registered with epoll with my events and me as
         attachment" flag, set by registered() and cleared by unregistered().
-        
+
         Notes:
             1. The system can automatically unregister the conduit when its
                file descriptor is closed; when this happens this flag is true by
@@ -137,33 +137,33 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable
                conduit registration and has is_registered_ = true. For the other
                instances is_registered_ is false although their conduit is in
                fact registered with epoll.
-    
+
      **************************************************************************/
 
     private bool is_registered_;
-    
+
     /**************************************************************************
 
         Sets the timeout manager expiry registration.
-        
+
         Params:
             expiry_registration_ = timeout manager expiry registration
-            
+
         Returns:
             timeout manager expiry registration
-    
+
      **************************************************************************/
 
     public IExpiryRegistration expiry_registration ( IExpiryRegistration expiry_registration_ )
     {
         return this.expiry_registration_ = expiry_registration_;
     }
-    
+
     /***************************************************************************
 
         Returns:
             true if this client has timed out or false otherwise.
-    
+
     ***************************************************************************/
 
     public bool timed_out ( )
@@ -175,15 +175,15 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable
     /**************************************************************************
 
         I/O event handler
-        
+
         Params:
              event   = identifier of I/O event that just occured on the device
-             
+
         Returns:
             true if the handler should be called again on next event occurrence
             or false if this instance should be unregistered from the
             SelectDispatcher.
-    
+
      **************************************************************************/
 
     abstract public bool handle ( Event event );
@@ -201,14 +201,14 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable
 
         Finalize method, called after this instance has been unregistered from
         the Dispatcher. Intended to be overridden by a subclass if required.
-        
+
         Params:
             status = status why this method is called
-        
+
      **************************************************************************/
-    
+
     public void finalize ( FinalizeStatus status ) { }
-    
+
     /**************************************************************************
 
         Error reporting method, called when an Exception is caught from
@@ -222,7 +222,7 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable
         Params:
             exception: Exception thrown by handle()
             event:     Seletor event while exception was caught
-        
+
      **************************************************************************/
 
     final public void error ( Exception exception, Event event = Event.None )
@@ -240,25 +240,25 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable
     }
 
     protected void error_ ( Exception exception, Event event ) { }
-    
-    
+
+
     /**************************************************************************
-    
+
         Obtains the current error code of the underlying I/O device.
-        
+
         To be overridden by a subclass for I/O devices that support querying a
         device specific error status (e.g. sockets with getsockopt()).
-        
+
         Returns:
             the current error code of the underlying I/O device.
-        
+
      **************************************************************************/
-    
+
     public int error_code ( )
     {
         return 0;
     }
-    
+
     /**************************************************************************
 
         Register method, called after this client is registered with the
@@ -274,7 +274,7 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable
     body
     {
         this.is_registered_ = true;
-        
+
         try if (this.expiry_registration_ !is null)
         {
             this.expiry_registration_.register(this.timeout_us);
@@ -284,7 +284,7 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable
             this.registered_();
         }
     }
-    
+
     /**************************************************************************
 
         Unregister method, called after this client is unregistered from the
@@ -300,7 +300,7 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable
     body
     {
         this.is_registered_ = false;
-        
+
         try if (this.expiry_registration_ !is null)
         {
             this.expiry_registration_.unregister();
@@ -310,9 +310,9 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable
             this.unregistered_();
         }
     }
-    
+
     /**************************************************************************
-        
+
         Returns true if this.conduit is currently registered for this.events
         with this as attachment. Returns false if this.conduit is not registered
         with epoll or, when multiple instances of this class share the same
@@ -322,13 +322,13 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable
         unexpectedly unregistered the conduit file descriptor as it happens when
         the file descriptor is closed (e.g. on error). However, the returned
         value cannot be true by mistake.
-        
+
         Returns:
             true if this.conduit is currently registered for this.events with
             this as attachment or false otherwise.
 
      **************************************************************************/
-    
+
     public bool is_registered ( )
     {
         return this.is_registered_;
@@ -339,7 +339,7 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable
         Called by registered(); may be overridden by a subclass.
 
      **************************************************************************/
-    
+
     protected void registered_ ( ) { }
 
     /**************************************************************************
@@ -437,10 +437,10 @@ abstract class IAdvancedSelectClient : ISelectClient
     interface IFinalizer
     {
         alias IAdvancedSelectClient.FinalizeStatus FinalizeStatus;
-        
+
         void finalize ( FinalizeStatus status );
     }
-    
+
     /**************************************************************************/
 
     interface IErrorReporter
@@ -460,61 +460,61 @@ abstract class IAdvancedSelectClient : ISelectClient
         Interface instances
 
      **************************************************************************/
-    
+
     private IFinalizer       finalizer_        = null;
     private IErrorReporter   error_reporter_   = null;
     private ITimeoutReporter timeout_reporter_ = null;
-    
+
     /**************************************************************************
 
         Sets the Finalizer. May be set to null to disable finalizing.
-        
+
         Params:
             finalizer_ = IFinalizer instance
-    
+
      **************************************************************************/
-    
+
     public void finalizer ( IFinalizer finalizer_ )
     {
         this.finalizer_ = finalizer_;
     }
-    
+
     /**************************************************************************
 
         Sets the TimeoutReporter. May be set to null to disable timeout
         reporting.
-    
+
         Params:
             timeout_reporter_ = ITimeoutReporter instance
-    
+
      **************************************************************************/
-    
+
     public void timeout_reporter ( ITimeoutReporter timeout_reporter_ )
     {
         this.timeout_reporter_ = timeout_reporter_;
     }
-    
+
     /**************************************************************************
-    
+
         Sets the Error Reporter. May be set to null to disable error reporting.
-        
+
         Params:
             error_reporter_ = IErrorReporter instance
-    
+
      **************************************************************************/
-    
+
     public void error_reporter ( IErrorReporter error_reporter_ )
     {
         this.error_reporter_ = error_reporter_;
     }
-    
+
     /**************************************************************************
 
         Finalize method, called after this instance has been unregistered from
         the Dispatcher.
-    
+
      **************************************************************************/
-    
+
     public override void finalize ( FinalizeStatus status )
     {
         if (this.finalizer_ !is null)
@@ -527,13 +527,13 @@ abstract class IAdvancedSelectClient : ISelectClient
 
         Error reporting method, called when an Exception is caught from
         super.handle().
-        
+
         Params:
             exception: Exception thrown by handle()
             event:     Selector event while exception was caught
-        
+
      **************************************************************************/
-    
+
     override protected void error_ ( Exception exception, Event event )
     {
         if (this.error_reporter_)
@@ -541,14 +541,14 @@ abstract class IAdvancedSelectClient : ISelectClient
             this.error_reporter_.error(exception, event);
         }
     }
-    
+
     /**************************************************************************
 
         Timeout method, called after this a timeout has occurred in the
         SelectDispatcher.
-    
+
      **************************************************************************/
-    
+
     override public void timeout ( )
     {
         if (this.timeout_reporter_)

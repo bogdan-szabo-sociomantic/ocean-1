@@ -59,12 +59,12 @@ version (DigitalMars) version (X86_64)
 
 version (DigitalMarsX86_64)
 {
-    
+
     /*
      * va_list/_start/_arg/_end must be public imported because they are used in
      * the vaArg template, which is instantiated in other modules as well.
      */
-    
+
     public import tango.core.Vararg: va_arg, va_list,
                                // implicitly referenced by the compiler... YEAH!
                                      __va_argsave_t;
@@ -73,42 +73,42 @@ else static assert (false, "only Digital Mars x86-64 supported");
 
 /*******************************************************************************
 
-    
+
 
 *******************************************************************************/
 
 abstract class Layout ( T = char )
 {
     /**************************************************************************
-    
+
         Layout formatter instance
-    
+
      **************************************************************************/
-    
+
     private const TangoLayout.Layout!(T) layout;
-    
+
     /**************************************************************************
-    
+
         Constructor
-    
+
      **************************************************************************/
-    
+
     protected this ( )
     {
         this.layout = new TangoLayout.Layout!(T);
     }
-    
+
     /**************************************************************************
-    
+
         Disposer
-    
+
      **************************************************************************/
-    
+
     protected override void dispose ( )
     {
         delete this.layout;
     }
-    
+
     /***************************************************************************
 
         Outputs a formatted string into the provided buffer.
@@ -126,12 +126,12 @@ abstract class Layout ( T = char )
             resulting string (output)
 
      ***************************************************************************/
-    
+
     static public T[] print ( ref T[] output, T[] formatStr, ... )
     {
         return vprint(output, formatStr, _arguments, _argptr);
     }
-    
+
     /***************************************************************************
 
         Outputs a formatted string into the provided buffer.
@@ -159,64 +159,64 @@ abstract class Layout ( T = char )
                 return cast (uint) .append(output, s).length;
             },
             arguments, argptr, formatStr);
-        
+
         return output;
     }
-    
+
     /**************************************************************************
-    
+
         Appends the variable arguments to the content, formatted according to
         fmt, if any. If no variable arguments are given, simply appends fmt to
-        the content. 
-        
+        the content.
+
         Params:
             fmt = format specifier or string to write if no variable arguments
                   are given.
             ... = values to format or nothing to simply append fmt.
-            
+
         Returns:
             this instance
-    
+
      **************************************************************************/
 
     public typeof (this) format ( T[] fmt, ... )
     {
         return this.vformat(fmt, _arguments, _argptr);
     }
-    
+
     /**************************************************************************
-    
+
         Appends all given variable arguments in the order of appearance,
-        formatted using the default format for each argument. 
-        
+        formatted using the default format for each argument.
+
         Params:
             ... = values to format
-            
+
         Returns:
             this instance
-    
+
      **************************************************************************/
 
     public typeof (this) opCall ( ... )
     {
         return this.vwrite(_arguments, _argptr);
     }
-    
+
     /**************************************************************************
-    
+
         Appends the variable arguments to the content, formatted according to
         fmt, if any. If no variable arguments are given, simply appends fmt to
         the content.
-        
+
         Params:
             fmt       = format specifier or string to write if arguments is
                         empty
             arguments = type ids of arguments which argptr points to
             argptr    = pointer to variable argument data
-            
+
         Returns:
             this instance
-    
+
      **************************************************************************/
 
     public typeof (this) vformat ( T[] fmt, TypeInfo[] arguments, va_list argptr )
@@ -229,24 +229,24 @@ abstract class Layout ( T = char )
         {
             this.append(fmt);
         }
-        
+
         return this;
     }
-    
+
     /**************************************************************************
-    
+
         Formats all given variable arguments in the order of appearance, using
-        the default format for each argument. 
-        
+        the default format for each argument.
+
         Params:
             arguments = type ids of arguments which argptr points to
             argptr    = pointer to variable argument data
-            
+
         Returns:
             this instance
-    
+
      **************************************************************************/
-    
+
     public typeof (this) vwrite ( TypeInfo[] arguments, va_list argptr )
     {
         foreach (ref argument; arguments)
@@ -265,22 +265,22 @@ abstract class Layout ( T = char )
                 this.vformat("{}", (&argument)[0 .. 1], argptr);
             }
         }
-        
+
         return this;
     }
-    
+
     /**************************************************************************
-    
+
         Output appender, called repeatedly when there is string data to append.
-        
+
         Params:
             chunk = string data to append or write
-            
+
          Returns:
              number of elements appended/written
-    
+
      **************************************************************************/
-    
+
     abstract protected uint append ( T[] chunk );
 }
 
@@ -295,9 +295,9 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
     /***************************************************************************
 
         Buffer appending layout formatter
-    
+
     ***************************************************************************/
-    
+
     class AppendLayout : Layout!(T)
     {
         protected uint append ( T[] chunk )
@@ -305,118 +305,118 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
             return cast (uint) this.outer.append(chunk).length;
         }
     }
-    
+
     private const Layout!(T) layout;
-    
+
     /***************************************************************************
 
         Constructor
-        
+
         Params:
             n = initial buffer length
-    
+
     ***************************************************************************/
 
     public this ( size_t n = 0 )
     {
         super(n);
-        
+
         this.layout = this.new AppendLayout;
     }
-    
+
     /***************************************************************************
 
         Disposer
-    
+
     ***************************************************************************/
-    
+
     protected override void dispose ( )
     {
         super.dispose();
         delete this.layout;
     }
-    
+
     /**************************************************************************
-    
+
         Appends all given variable arguments in the order of appearance,
-        formatted using the default format for each argument. 
-        
+        formatted using the default format for each argument.
+
         Params:
             ... = values to format
-            
+
         Returns:
             this instance
-    
+
      **************************************************************************/
 
     T[] opCall ( ... )
     {
         return this.vwrite(_arguments, _argptr);
     }
-    
+
     /**************************************************************************
-    
+
         Appends the variable arguments to the content, formatted according to
         fmt, if any. If no variable arguments are given, simply appends fmt to
-        the content. 
-        
+        the content.
+
         Params:
             fmt = format specifier or string to write if no variable arguments
                   are given.
             ... = values to format or nothing to simply append fmt.
-            
+
         Returns:
             this instance
-    
+
      **************************************************************************/
 
     T[] format ( T[] fmt, ... )
     {
         return this.vformat(fmt, _arguments, _argptr);
     }
-    
+
     /**************************************************************************
-    
+
         Appends the variable arguments to the content, formatted according to
         fmt, if any. If no variable arguments are given, simply appends fmt to
         the content.
-        
+
         Params:
             fmt       = format specifier or string to write if arguments is
                         empty
             arguments = type ids of arguments which argptr points to
             argptr    = pointer to variable argument data
-            
+
         Returns:
             this instance
-    
+
      **************************************************************************/
-    
+
     T[] vformat ( T[] fmt, TypeInfo[] arguments, va_list argptr )
     {
         this.layout.vformat(fmt, arguments, argptr);
-            
+
         return this[];
     }
-    
+
     /**************************************************************************
-    
+
         Formats all given variable arguments in the order of appearance, using
-        the default format for each argument. 
-        
+        the default format for each argument.
+
         Params:
             arguments = type ids of arguments which argptr points to
             argptr    = pointer to variable argument data
-            
+
         Returns:
             this instance
-    
+
      **************************************************************************/
-    
+
     T[] vwrite ( TypeInfo[] arguments, va_list argptr )
     {
         this.layout.vwrite(arguments, argptr);
-        
+
         return this[];
     }
 }
@@ -427,42 +427,42 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
 
     Calls dg with _arguments and _argptr, calling va_start()/va_end() if
     required for the current platform and compiler. dg must use va_arg() from
-    tango.core.Vararg to iterate over argptr. 
-    
+    tango.core.Vararg to iterate over argptr.
+
     dg must comply to
-    
+
         R delegate ( A dg_args, TypeInfo[] arguments, va_list argptr )
-        
+
     where R is the return type and dg_args
-    
+
     Basic usage:
     ---
-    
+
         void f ( ... )
         {
             mixin vaArgCall!();
-            
+
             vaArgCall(
                 (TypeInfo[] arguments, va_list argptr)
                 {
-                    // use va_args(argptr) to access the arguments 
+                    // use va_args(argptr) to access the arguments
                 }
             );
         }
-    
+
     ---
-    
+
     Template params:
         R = dg return type
         A = types of additional arguments for dg
-    
+
     Params:
         dg      = callback delegate
         dg_args = additional arguments for dg
-    
+
     Returns:
         passes through the return value of dg.
-    
+
 *******************************************************************************/
 
 public R vaArgCall ( R = void, A ... ) ( R delegate ( A dg_args, TypeInfo[] arguments, va_list argptr ) dg,
@@ -476,7 +476,7 @@ public R vaArgCall ( R = void, A ... ) ( R delegate ( A dg_args, TypeInfo[] argu
 unittest
 {
     char[] str;
-    
+
     assert (Layout!(char).print(str, "{}, {}{}", "Hello", "World", '!') == "Hello, World!");
     assert (str == "Hello, World!");
 }

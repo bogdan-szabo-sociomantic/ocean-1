@@ -11,7 +11,7 @@
     Asynchronous fetching of content from one or more urls.
 
     See:
-    
+
         http://curl.haxx.se/libcurl/c/libcurl-multi.html
 
     Usage example:
@@ -73,25 +73,25 @@ debug private import tango.util.log.Trace;
 
     A single curl_easy request suitable for storing in an ObjectPool and
     registering with a curl multi-stack as part of an asynchronous request.
-    
+
 *******************************************************************************/
 
 pragma(msg, "LibCurlMulti is deprecated, use CurlProcessMulti instead");
 deprecated class CurlConnection : LibCurl, Resettable
 {
     /***************************************************************************
-    
+
         Handle of curl multi which this request is registered to
-            
+
     ***************************************************************************/
 
     private CURLM curlm;
 
 
     /***************************************************************************
-    
+
         Sets up this curl request and adds it to the specified multi-stack.
-        
+
         The request is not actually activated at this point, it is simply
         registered in the multi stack.
 
@@ -116,7 +116,7 @@ deprecated class CurlConnection : LibCurl, Resettable
         came.
 
         Removes the request from the multi stack it's registered with.
-    
+
     ***************************************************************************/
 
     void reset ( )
@@ -140,9 +140,9 @@ deprecated class CurlConnection : LibCurl, Resettable
 deprecated class LibCurlMulti
 {
     /***************************************************************************
-    
+
         Pool of curl_easy requests
-            
+
     ***************************************************************************/
 
     private alias ObjectPool!(CurlConnection) ConnectionPool;
@@ -151,11 +151,11 @@ deprecated class LibCurlMulti
 
 
     /***************************************************************************
-    
+
         CurlM status code
-            
+
     ***************************************************************************/
-    
+
     alias           CURLMcode                    CurlMCode;
 
 
@@ -171,7 +171,7 @@ deprecated class LibCurlMulti
     /***************************************************************************
 
         Timeout (in milliseconds) for asynchronous transfer (select).
-    
+
     ***************************************************************************/
 
     private long timeout_ms;
@@ -180,7 +180,7 @@ deprecated class LibCurlMulti
     /***************************************************************************
 
         Default maximum number of parallel requests
-    
+
     ***************************************************************************/
 
     public const DEFAULT_MAX_CONNECTIONS = 20;
@@ -293,14 +293,14 @@ deprecated class LibCurlMulti
 
     /***************************************************************************
 
-		Checks whether the given url has already been requested.        
+        Checks whether the given url has already been requested.
 
         Params:
             url = url to check
 
         Returns:
             true if the request has already been added to the connection pool
-            
+
     ***************************************************************************/
 
     public bool isRequested ( char[] url )
@@ -320,7 +320,7 @@ deprecated class LibCurlMulti
 
         Sets all registered curl requests going. The method does not return
         until all requests have been processed.
-    
+
     ***************************************************************************/
 
     public void eventLoop ( )
@@ -351,11 +351,11 @@ deprecated class LibCurlMulti
         this.clear();
     }
 
-    
+
     /***************************************************************************
 
         Sets the error callback delegate.
-        
+
         Params:
             error_dg = delegate to be called on a select timeout or an error
                 code returned from lib curl
@@ -371,10 +371,10 @@ deprecated class LibCurlMulti
     /***************************************************************************
 
         Sets the timeout value for all requests registered in the future.
-    
+
         Params:
             timeout_ms = milliseconds timeout
-    
+
     ***************************************************************************/
 
     public void setTimeout ( long timeout_ms )
@@ -394,13 +394,13 @@ deprecated class LibCurlMulti
     {
         return this.conn_pool.num_busy();
     }
-    
+
 
     /***************************************************************************
 
         Returns:
             number of requests which could yet be added to the multi-stack
-    
+
     ***************************************************************************/
 
     public size_t getNumFreeRequests ( )
@@ -410,10 +410,10 @@ deprecated class LibCurlMulti
 
 
     /***************************************************************************
-    
+
         Closes all active connections. They are returned to the object pool of
         connections, and can be reused.
-        
+
     ***************************************************************************/
 
     public void clear ( )
@@ -429,12 +429,12 @@ deprecated class LibCurlMulti
 
         Sets up a select() wait until one of the registered requests has more
         I/O which needs processing.
-    
+
         Returns:
             curl return code
-    
+
     ***************************************************************************/
-    
+
     private CurlMCode sleepUntilMoreIO ( )
     {
         fd_set read_fd_set, write_fd_set, exc_fd_set;
@@ -470,18 +470,18 @@ deprecated class LibCurlMulti
 
 
     /***************************************************************************
-    
+
         Set LibCurlM Option
-            
+
         Params:
             option = libcurl option to set
             l      = parameter long value
-        
+
         Returns:
             0 on success or Curl error code on failure
-        
+
      **************************************************************************/
-    
+
     private CurlMCode setOption ( CURLMoption option, long l )
     {
         return curl_multi_setopt(this.curlm, option, l);
@@ -489,19 +489,19 @@ deprecated class LibCurlMulti
 
 
     /***************************************************************************
-        
+
         Set LibCurlM Option
-            
+
         Params:
             option = libcurl option to set
             p      = parameter value pointer
-            
+
         Returns:
             0 on success or Curl error code on failure
-        
+
      **************************************************************************/
 
-    private CurlMCode setOption ( CURLMoption option, void* p ) 
+    private CurlMCode setOption ( CURLMoption option, void* p )
     {
         return curl_multi_setopt(this.curlm, option, p);
     }
@@ -511,32 +511,32 @@ deprecated class LibCurlMulti
 
         Called when a select timeout occurs. Calls the error delegate and resets
         all connections.
-    
+
     ***************************************************************************/
-    
+
     private void timeout ( )
     {
         debug Trace.formatln("{} select timeout", typeof(this).stringof);
-    
+
         if ( this.error_dg )
         {
             this.error_dg(ErrorCode.SelectTimeout);
         }
-    
+
         // Return all requests to the pool
         this.clear();
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Called when a lib curl error occurs. Calls the error delegate.
-    
+
         Params:
             err_code = code of error which occurred
-    
+
     ***************************************************************************/
-    
+
     private void error ( CurlMCode err_code )
     {
         debug Trace.formatln("{} error: {}", typeof(this).stringof, err_code);

@@ -223,7 +223,7 @@ public void maskSignals ( int[] signals, void delegate ( ) dg )
         {
             sigset_t pending;
             sigpending(&pending);
-    
+
             foreach ( signal; signals )
             {
                 if ( sigismember(&pending, signal) )

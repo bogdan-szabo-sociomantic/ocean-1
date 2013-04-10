@@ -9,7 +9,7 @@
     authors:        Don Clugston, Gavin Norman, Ben Palmer
 
     Does a deep equality comparison of one type to another.
-    
+
     'Deep' meaning:
         * The _contents_ of dynamic arrays are compared
         * Types are recursed, allowing multi-dimensional arrays to be compared
@@ -32,7 +32,7 @@ private template needsSpecialCompare(T)
     {
         // T is an array. Strip off all of the [] to get
         // the ultimate element type.
-        
+
         enum
         {
             needsSpecialCompare = needsSpecialCompare!(typeof(T[0]))
@@ -86,7 +86,7 @@ public bool deepEquals(T)(T a, T b)
         return a == b  || ( a != a && b != b);
     }
     else static if ( is ( T == struct) )
-    {   
+    {
         //pragma(msg, "Comparing struct: " ~ T.stringof);
 
         foreach(i, U; typeof(a.tupleof) )
@@ -103,7 +103,7 @@ public bool deepEquals(T)(T a, T b)
                     return false;
                 }
             }
-            else 
+            else
             {
                 //pragma(msg, "\t not a special case: " ~ typeof(a.tupleof[i]).stringof);
 
@@ -117,14 +117,14 @@ public bool deepEquals(T)(T a, T b)
     }
     else static if ( is(T V : V[]) )
     {
-        // T is an array.        
+        // T is an array.
         // If it is one of the special cases, we need to
         // do an element-by-element compare.
 
         static if ( needsSpecialCompare!(V) )
         {
             //pragma(msg, "Comparing element-by-element of array " ~ T.stringof);
-            
+
             // Compare element-by-element.
 
             if (a.length != b.length)

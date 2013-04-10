@@ -48,41 +48,41 @@ debug ( EpollTiming ) private import tango.time.StopWatch;
 public class FiberSocketConnection ( bool IPv6 = false ) : IFiberSocketConnection
 {
     /**************************************************************************
-    
+
         Alias of the address struct type.
-        
+
      **************************************************************************/
-    
+
     alias .InetAddress!(IPv6) InetAddress;
-    
+
     /**************************************************************************
-    
+
         Alias of the binary address type, sockaddr_in for IPv4 (IPv6 = false)
         or sockaddr_in6 for IPv6 (IPv6 = true).
-        
+
      **************************************************************************/
-    
+
     alias InetAddress.Addr InAddr;
-    
+
     /**************************************************************************
-    
+
         Socket
-        
+
      **************************************************************************/
-    
+
     alias AddressIPSocket!(IPv6) IPSocket;
-    
+
     protected const IPSocket socket;
 
     /**************************************************************************
-    
+
         Constructor.
-        
+
         Params:
             socket = IPSocket instance to use internally
             fiber = fiber to be suspended when socket connection does not
                 immediately succeed or fail
-        
+
      **************************************************************************/
 
     public this ( IPSocket socket, SelectFiber fiber )
@@ -91,20 +91,20 @@ public class FiberSocketConnection ( bool IPv6 = false ) : IFiberSocketConnectio
 
         super(this.socket, fiber);
     }
-    
+
     /**************************************************************************
-    
+
         Constructor.
-        
+
         warning_e and socket_error may be the same object.
-        
+
         Params:
             socket       = IPSocket instance to use internally
             fiber        = fiber to be suspended when socket connection does not
                            immediately succeed or fail
             warning_e    = exception to be thrown when the remote hung up
             socket_error = exception to be thrown on socket error
-        
+
      **************************************************************************/
 
     public this ( IPSocket socket, SelectFiber fiber,
@@ -112,74 +112,74 @@ public class FiberSocketConnection ( bool IPv6 = false ) : IFiberSocketConnectio
     {
         super(this.socket = socket, fiber, warning_e, socket_error);
     }
-    
+
     /**************************************************************************
-    
+
         Attempts to connect to the remote host, suspending the fiber if
         establishing the connection does not immediately succeed or fail. If a
         connection to the same address and port is already established, the
         Already flag is set in the return value. If a connection to a different
         address and port is already established, this connection is closed and a
         new connection is opened.
-        
+
         Params:
             address = remote IP address
             port    = remote TCP port
             force   = false: don't call connect() if currently connected to the
-                      same address and port; true: always call connect() 
+                      same address and port; true: always call connect()
         Returns:
             ConnectionStatus.Connected if the connection was newly established
             or ConnectionStatus.Connected | ConnectionStatus.Already if the
             connection was already established.
-            
+
         Throws:
-            - SocketError (IOException) on fatal I/O error, 
+            - SocketError (IOException) on fatal I/O error,
             - IOWarning if the remote hung up.
-        
+
      **************************************************************************/
-    
+
     public ConnectionStatus connect ( char[] address, ushort port, bool force = false )
     {
         if (!this.sameAddress(address, port))
         {
             this.disconnect();
         }
-        
+
         return this.connect_(!this.socket.connect(address, port), force);
     }
 
     /***************************************************************************
 
         Ditto.
-    
+
         Params:
             address = remote address
             force   = false: don't call connect() if currently connected to the
-                      same address and port; true: always call connect() 
-        
+                      same address and port; true: always call connect()
+
         Returns:
             see connect() above.
-        
+
     ***************************************************************************/
-    
+
     public ConnectionStatus connect ( InAddr address, bool force = false )
     {
         if (this.in_addr != address)
         {
             this.disconnect();
         }
-        
+
         return this.connect_(!this.socket.connect(address), force);
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             the remote address of the connected socket, or the last attempted
             connection, or an empty address if no connection has been attempted
-        
+
      **************************************************************************/
-    
+
     public InAddr in_addr ( )
     {
         return this.connected_? this.socket.in_addr : InetAddress!(IPv6).addr_init;
@@ -190,77 +190,77 @@ public class FiberSocketConnection ( bool IPv6 = false ) : IFiberSocketConnectio
         Returns:
             the remote IP address of the connected socket, or the last attempted
             connection, or "" if no connection has been attempted
-    
+
     ***************************************************************************/
-    
+
     protected char[] address_ ( )
     {
         return this.socket.address;
     }
-    
+
     /***************************************************************************
-    
+
         Returns:
             the remote TCP port of the connected socket, or the last attempted
             connection, or ushort.init if no connection has been attempted
-    
+
     ***************************************************************************/
-    
+
     protected ushort port_ ( )
     {
         return this.socket.port;
     }
-    
+
     /***************************************************************************
-    
+
         Compares ip_address_str and port with the current address and port.
-        
+
         Params:
             ip_address_str = string with the IP address to compare with the
                              current address
             port           = port to compare with the current
-        
+
         Returns:
             true if ip_address_str and port are the same as the current or false
             if not.
-            
+
         Throws:
             SocketError if ip_address_str does not contain a valid IP address.
-        
+
      ***************************************************************************/
-    
+
     public bool sameAddress ( InAddr addr )
     {
         return addr == this.socket.in_addr;
     }
-    
+
     /***************************************************************************
-    
+
         Compares ip_address_str and port with the current address and port.
-        
+
         Params:
             ip_address_str = string with the IP address to compare with the
                              current address
             port           = port to compare with the current
-        
+
         Returns:
             true if ip_address_str and port are the same as the current or false
             if not.
-            
+
         Throws:
             SocketError if ip_address_str does not contain a valid IP address.
-        
+
     ***************************************************************************/
-    
+
     public bool sameAddress ( char[] ip_address_str, ushort port )
     {
         InetAddress address;
-        
+
         this.socket_error.assertEx(address.inet_pton(ip_address_str) == 1,
                                    "invalid IP address", __FILE__, __LINE__);
-        
+
         address.port = port;
-            
+
         return this.sameAddress(address.addr);
     }
 }
@@ -268,55 +268,55 @@ public class FiberSocketConnection ( bool IPv6 = false ) : IFiberSocketConnectio
 public class IFiberSocketConnection : IFiberSelectProtocol
 {
     /**************************************************************************
-    
+
         This alias for chainable methods
-        
+
      **************************************************************************/
 
     public alias typeof (this) This;
 
     /**************************************************************************
-    
+
         Connection status as returned by connect() and disconnect().
-        
+
      **************************************************************************/
-    
+
     public enum ConnectionStatus : uint
     {
         Disconnected = 0,
         Connected    = 1 << 0,
         Already      = 1 << 1
     }
-    
+
     /**************************************************************************
-    
+
         Socket
-        
+
      **************************************************************************/
 
     protected const IIPSocket socket;
-    
+
     /**************************************************************************
-    
+
         Socket error exception
-        
+
      **************************************************************************/
-    
+
     private const SocketError socket_error;
-    
+
     /**************************************************************************
-    
+
         Current connection status
-    
+
      **************************************************************************/
-    
+
     protected bool connected_ = false;
-    
+
     /**************************************************************************
-    
+
         Count of the number of times transmit() has been invoked since the call
         to super.transmitLoop.
-    
+
      **************************************************************************/
 
     private uint transmit_calls;
@@ -339,122 +339,122 @@ public class IFiberSocketConnection : IFiberSelectProtocol
     }
 
     /**************************************************************************
-    
+
         Constructor.
-        
+
         warning_e and socket_error may be the same object.
-        
+
         Params:
             socket       = IPSocket instance to use internally
             fiber        = fiber to be suspended when socket connection does not
                            immediately succeed or fail
             warning_e    = exception to be thrown when the remote hung up
             socket_error = exception to be thrown on socket error
-        
+
      **************************************************************************/
 
     protected this ( IIPSocket socket, SelectFiber fiber,
                      IOWarning warning_e, SocketError socket_error )
     {
         this.socket = socket;
-        
+
         this.socket_error = socket_error;
-        
+
         super(socket, Event.EPOLLOUT, fiber, warning_e, socket_error);
     }
-    
+
     /**************************************************************************
-    
+
         Constructor.
-        
+
         Params:
             socket       = IPSocket instance to use internally
             fiber        = fiber to be suspended when socket connection does not
                            immediately succeed or fail
-        
+
      **************************************************************************/
 
     protected this ( IIPSocket socket, SelectFiber fiber )
     {
         this(socket, fiber, new IOWarning(socket), new SocketError(socket));
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             true if the socket is currently connected or false if not.
-        
+
      **************************************************************************/
-    
+
     public bool connected ( )
     {
         return this.connected_;
     }
-    
+
     /***************************************************************************
 
         Returns:
             the IP address of the connected socket, or the last attempted
             connection, or "" if no connection has been attempted
-    
+
      ***************************************************************************/
-    
+
     public char[] address ( )
     {
         return this.connected_? this.address_ : "";
     }
-    
+
     /***************************************************************************
-    
+
         Returns:
             the TCP port of the connected socket, or the last attempted
             connection, or ushort.init if no connection has been attempted
-    
+
      ***************************************************************************/
-    
+
     public ushort port ( )
     {
         return this.connected_? this.port_ : ushort.init;
     }
-    
+
     /**************************************************************************
-    
+
         Attempts to connect to the remote host, suspending the fiber if
         establishing the connection does not immediately succeed or fail. If a
         connection to the same address and port is already established, the
         Already flag is set in the return value. If a connection to a different
         address and port is already established, this connection is closed and a
         new connection is opened.
-        
+
         Params:
             address = remote IP address
             port    = remote TCP port
             force   = false: don't call connect() if currently connected to the
-                      same address and port; true: always call connect() 
-        
+                      same address and port; true: always call connect()
+
         Returns:
             ConnectionStatus.Connected if the connection was newly established
             or ConnectionStatus.Connected | ConnectionStatus.Already if the
             connection was already established.
-            
+
         Throws:
-            - SocketError (IOException) on fatal I/O error, 
+            - SocketError (IOException) on fatal I/O error,
             - IOWarning if the remote hung up.
-        
+
      **************************************************************************/
 
     abstract public ConnectionStatus connect ( char[] address, ushort port, bool force = false );
-    
+
     /**************************************************************************
-    
+
         Disconnects from provided address (if connected).
-        
-        Params: 
+
+        Params:
             force = false: disconnect only if connected; true: force disconnect
-        
+
         Returns:
             the connection status before disconnecting.
-    
+
      **************************************************************************/
 
     public ConnectionStatus disconnect ( bool force = false )
@@ -477,12 +477,12 @@ public class IFiberSocketConnection : IFiberSelectProtocol
                                     Disconnected :
                                     Already | Disconnected;
     }
-    
+
     /**************************************************************************
-        
+
         Establishes a non-blocking socket connection according to the POSIX
         specification for connect():
-        
+
             "If the connection cannot be established immediately and O_NONBLOCK
             is set for the file descriptor for the socket, connect() shall fail
             and set errno to [EINPROGRESS], but the connection request shall not
@@ -491,51 +491,51 @@ public class IFiberSocketConnection : IFiberSelectProtocol
             When the connection has been established asynchronously, select()
             and poll() shall indicate that the file descriptor for the socket is
             ready for writing."
-        
+
         Calls connect_syscall, which should forward to connect() to establish a
         connection. If connect_syscall returns false, errno is evaluated to
         obtain the connection status.
         If it is EINPROGRESS (or EINTR, see below) the fiber is suspended so
         that this method returns when the socket is ready for writing or throws
         when a connection error was detected.
-        
+
         Params:
             connect_syscall = should call connect() and return true if connect()
                               returns 0 or false otherwise
-                              
+
             force           = false: don't call connect_syscall if currently
                               connected to the same address and port; true:
-                              always call connect_syscall 
-        
+                              always call connect_syscall
+
         Returns:
             - ConnectionStatus.Connected if the connection was newly
               established, either because connect_syscall returned true or after
               the socket became ready for writing,
             - ConnectionStatus.Connected | ConnectionStatus.Already if connect()
               failed with EISCONN.
-            
+
         Throws:
             - SocketError (IOException) if connect_syscall fails with an error
               other than EINPROGRESS/EINTR or EISCONN or if a socket error was
               detected,
             - IOWarning if the remote hung up.
-        
+
         Out:
             The socket is connected, the returned status is never Disconnected.
-        
+
         Note: The POSIX specification says about connect() failing with EINTR:
-        
+
             "If connect() is interrupted by a signal that is caught while
             blocked waiting to establish a connection, connect() shall fail and
             set errno to EINTR, but the connection request shall not be aborted,
             and the connection shall be established asynchronously."
-        
+
         It remains unclear whether a nonblocking connect() can also fail with
         EINTR or not. Assuming that, if it is possible, it has the same meaning
         as for blocking connect(), we handle EINTR in the same way as
         EINPROGRESS. TODO: Remove handling of EINTR or this note when this is
         clarified.
-        
+
      **************************************************************************/
 
     protected ConnectionStatus connect_ ( lazy bool connect_syscall, bool force )
@@ -556,7 +556,7 @@ public class IFiberSocketConnection : IFiberSelectProtocol
 
             this.initSocket();
         }
-        
+
         if (!this.connected_ || force)
         {
             debug ( EpollTiming )
@@ -583,20 +583,20 @@ public class IFiberSocketConnection : IFiberSelectProtocol
             else
             {
                 int errnum = .errno;
-                
+
                 debug ( ISelectClient )
                 {
                     char[0x100] buffer;
                     Trace.formatln("[{}:{}]: {}",
                         this.address_, this.port_, this.socket_error.strerror(buffer, errnum));
                 }
-                
+
                 switch (errnum)
                 {
                     case EISCONN:
                         this.connected_ = true;
                         return ConnectionStatus.Already;
-    
+
                     case EINTR, // TODO: Might never be reported, see note above.
                          EINPROGRESS,
                          EALREADY:
@@ -604,10 +604,10 @@ public class IFiberSocketConnection : IFiberSelectProtocol
                          {
                              Trace.formatln("[{}:{}]: waiting for the socket to become writable",
                                  this.address_, this.port_);
-                             
+
                              scope (failure) Trace.formatln("[{}:{}]: error while waiting for the socket to become writable",
                                                             this.address_, this.port_);
-                             
+
                              scope (success) Trace.formatln("[{}:{}]: socket has become writable",
                                                             this.address_, this.port_);
                          }
@@ -615,7 +615,7 @@ public class IFiberSocketConnection : IFiberSelectProtocol
                         this.transmitLoop();
                         this.connected_ = true;
                         return ConnectionStatus.Connected;
-    
+
                     default:
                         throw this.socket_error.setSock(errnum,
                             "error establishing connection", __FILE__, __LINE__);
@@ -633,21 +633,21 @@ public class IFiberSocketConnection : IFiberSelectProtocol
         Returns:
             the IP address of the connected socket, or the last attempted
             connection, or "" if no connection has been attempted
-    
+
      ***************************************************************************/
-    
+
     abstract protected char[] address_ ( );
-    
+
     /***************************************************************************
-    
+
         Returns:
             the TCP port of the connected socket, or the last attempted
             connection, or ushort.init if no connection has been attempted
-    
+
      ***************************************************************************/
-    
+
     abstract protected ushort port_ ( );
-    
+
     /***************************************************************************
 
         Called just before the socket is connected. The base class

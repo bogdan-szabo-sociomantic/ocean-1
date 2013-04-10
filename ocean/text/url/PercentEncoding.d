@@ -145,7 +145,7 @@ deprecated public char[] encode ( char[] src, ref char[] dst, ref char[] working
         src = string to decode
         dst = receives decoded string
         working = working buffer
-    
+
     Returns:
         decoded string (slice to dst)
 

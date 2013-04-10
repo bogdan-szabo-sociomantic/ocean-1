@@ -1,13 +1,13 @@
 /******************************************************************************
 
-    LZO1X-1 (Mini LZO) compressor/uncompressor 
+    LZO1X-1 (Mini LZO) compressor/uncompressor
 
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     version:        July 2010: Initial release
-    
+
     authors:        David Eckardt
-            
+
  ******************************************************************************/
 
 module ocean.io.compress.Lzo;
@@ -36,22 +36,22 @@ private import ocean.core.Exception: CompressException, assertEx;
 class Lzo
 {
     alias LzoCrc.crc32 crc32;
-    
+
     /**************************************************************************
 
         Working memory buffer for lzo1x_1_compress()
-    
+
      **************************************************************************/
 
     private void[] workmem;
-    
+
     /**************************************************************************
 
         Static constructor
-        
+
         Throws:
             CompressException if the library pouts
-        
+
      **************************************************************************/
 
     static this ( )
@@ -62,29 +62,29 @@ class Lzo
     /**************************************************************************
 
         Constructor
-    
+
      **************************************************************************/
 
     public this ( )
     {
         this.workmem = new ubyte[Lzo1x1WorkmemSize];
     }
-    
+
     /**************************************************************************
 
         Compresses src data. dst must have a length of at least
         maxCompressedLength(src.length).
-        
+
         Params:
             src = data to compress
             dst = compressed data destination buffer
-        
+
         Returns:
             length of compressed data in dst
 
         Throws:
             CompressionException on error
-        
+
      **************************************************************************/
 
     size_t compress ( void[] src, void[] dst )
@@ -95,96 +95,96 @@ class Lzo
     body
     {
         size_t len;
-        
+
         this.checkStatus(lzo1x_1_compress(cast (ubyte*) src.ptr, src.length, cast (ubyte*) dst.ptr, &len, this.workmem.ptr));
-        
+
         return len;
     }
-        
+
     /**************************************************************************
 
         Uncompresses src data. dst must have at least the length of the
         uncompressed data, which must be memorized at compression time.
-        
+
         Note: dst overflow checking is NOT done!
-        
+
         Params:
             src = data to uncompress
             dst = uncompressed data destination buffer
-        
+
         Returns:
             length of uncompressed data in dst
-        
+
         Throws:
             CompressionException on error
-            
+
      **************************************************************************/
 
     size_t uncompress ( void[] src, void[] dst )
     {
         size_t len;
-        
+
         this.checkStatus(lzo1x_decompress(cast (ubyte*) src.ptr, src.length, cast (ubyte*) dst.ptr, &len));
-        
+
         return len;
     }
-    
+
     /**************************************************************************
 
         Uncompresses src data, checking for dst not to overflow.
-        
+
         Params:
             src = data to uncompress
             dst = uncompressed data destination buffer
-        
+
         Returns:
             length of uncompressed data in dst
-        
+
         Throws:
             CompressionException on error
-        
+
      **************************************************************************/
 
     size_t decompressSafe ( void[] src, void[] dst )
     {
         size_t len;
-        
+
         this.checkStatus(lzo1x_decompress_safe(cast (ubyte*) src.ptr, src.length, cast (ubyte*) dst.ptr, &len));
-        
+
         return len;
     }
-    
+
     /******************************************************************************
 
         Calculates the maximum compressed length of data which has a length of
         uncompressed_length.
-        
+
         Note: Surprisingly, this is more than uncompressed_length but that's the
               worst case for completely uncompressable data.
-    
+
         Parameters:
             uncompressed_length = length of data to compressed
-            
+
         Returns:
             maximum compressed length of data
-    
+
      ******************************************************************************/
 
     static size_t maxCompressedLength ( size_t uncompressed_length )
     {
         return lzo1x_max_compressed_length(uncompressed_length);
     }
-    
+
     /**************************************************************************
-    
+
         Checks if status indicates an error.
-        
+
         Params:
             status = LZO library function return status
-            
+
         Throws:
             resulting 32-bit CRC value
-    
+
      **************************************************************************/
 
     static void checkStatus ( LzoStatus status )
@@ -193,40 +193,40 @@ class Lzo
         {
             case LzoStatus.Error:
                 throw new CompressException(typeof (this).stringof ~ ": Error");
-                
+
             case LzoStatus.OutOfMemory:
                 throw new CompressException(typeof (this).stringof ~ ": Out Of Memory");
-                
+
             case LzoStatus.NotCompressible:
                 throw new CompressException(typeof (this).stringof ~ ": Not Compressible");
-                
+
             case LzoStatus.InputOverrun:
                 throw new CompressException(typeof (this).stringof ~ ": Input Overrun");
-                
+
             case LzoStatus.OutputOverrun:
                 throw new CompressException(typeof (this).stringof ~ ": Output Overrun");
-                
+
             case LzoStatus.LookBehindOverrun:
                 throw new CompressException(typeof (this).stringof ~ ": Look Behind Overrun");
-                
+
             case LzoStatus.EofNotFound:
                 throw new CompressException(typeof (this).stringof ~ ": Eof Not Found");
-                
+
             case LzoStatus.InputNotConsumed:
                 throw new CompressException(typeof (this).stringof ~ ": Input Not Consumed");
-                
+
             case LzoStatus.NotYetImplemented:
                 throw new CompressException(typeof (this).stringof ~ ": Not Yet Implemented");
-                
+
             default:
                 return;
         }
     }
-    
+
     /**************************************************************************
-    
+
         Destructor
-    
+
      **************************************************************************/
 
     void dispose ( )
@@ -238,10 +238,10 @@ class Lzo
 /******************************************************************************
 
     Unit test
-    
+
     Add -debug=GcDisabled to the compiler command line to disable the garbage
     collector.
-    
+
     Note: The unit test requires a file named "lzotest.dat" in the current
     working directory at runtime. This file provides the data to be compressed
     for testing and performance measurement.
@@ -252,7 +252,7 @@ debug (OceanUnitTest) private:
 
 // Uncomment the next line to see UnitTest output
 // debug = Verbose;
-    
+
 import ocean.util.log.Trace;
 import tango.io.device.File;
 import tango.time.StopWatch;
@@ -266,13 +266,13 @@ import tango.stdc.signal: signal, SIGINT;
 /******************************************************************************
 
     Rounds x to the nearest integer value
-    
+
     Params:
         x = value to round
-        
+
     Returns:
         nearest integer value of x
-    
+
  ******************************************************************************/
 
 extern (C) int lrintf ( float x );
@@ -286,21 +286,21 @@ extern (C) int lrintf ( float x );
 struct Terminator
 {
     static:
-        
+
     /**************************************************************************
-    
+
         Termination flag
-    
+
      **************************************************************************/
-    
+
     bool terminated = false;
-    
+
     /**************************************************************************
-    
+
         Signal handler; raises the termination flag
-    
+
      **************************************************************************/
-    
+
     extern (C) void terminate ( int code )
     {
         this.terminated = true;
@@ -314,59 +314,59 @@ unittest
         pragma (msg, "LZO unittest: garbage collector disabled");
         gc_disable();
     }
-    
+
     StopWatch swatch;
-    
+
     MetricPrefix pre_comp_sz, pre_uncomp_sz,
                  pre_comp_tm, pre_uncomp_tm, pre_crc_tm;
-    
+
     debug (Verbose) Trace.formatln("LZO unittest: loading test data from file \"lzotest.dat\"");
-    
+
     File file;
-    
+
     try file = new File("lzotest.dat");
     catch (Exception e)
     return;
-    
+
     scope data         = new void[file.length];
     scope uncompressed = new void[file.length];
     scope compressed   = new void[Lzo.maxCompressedLength(data.length)];
     scope lzo          = new Lzo;
-    
+
     file.read(data);
-    
+
     file.close();
-    
+
     Trace.formatln("LZO unittest: loaded {} bytes of test data, compressing...", data.length);
-    
+
     swatch.start();
-    
+
     compressed.length = lzo.compress(data, compressed);
-    
+
     ulong compr_us = swatch.microsec;
-    
+
     size_t uncompr_len = lzo.uncompress(compressed, uncompressed);
-    
+
     ulong uncomp_us = swatch.microsec;
-    
+
     uint crc32_data = lzo.crc32(data);
-    
+
     ulong crc_us = swatch.microsec;
-    
+
     assert (uncompr_len == data.length,            "uncompressed data length mismatch");
     assert (uncompressed == data,                  "uncompressed data mismatch");
     assert (lzo.crc32(uncompressed) == crc32_data, "uncompressed data CRC-32 mismatch");
-    
+
     crc_us    -= uncomp_us;
     uncomp_us -= compr_us;
-    
+
     pre_comp_sz.bin(compressed.length);
     pre_uncomp_sz.bin(uncompressed.length);
-    
+
     pre_comp_tm.dec(compr_us, -2);
     pre_uncomp_tm.dec(uncomp_us, -2);
     pre_crc_tm.dec(crc_us, -2);
-    
+
     Trace.formatln("LZO unittest results:\n\t"
                    "uncompressed length: {} {}B\t({} bytes)\n\t"
                    "compressed length:   {} {}B\t({} bytes)\n\t"
@@ -385,19 +385,19 @@ unittest
                    pre_uncomp_tm.scaled, pre_uncomp_tm.prefix, uncomp_us,
                    pre_crc_tm.scaled, pre_crc_tm.prefix, crc_us,
                    crc32_data);
-    
+
     auto prev_sigint_handler = signal(SIGINT, &Terminator.terminate);
-    
+
     scope (exit) signal(SIGINT, prev_sigint_handler);
-    
+
     while (!Terminator.terminated)
     {
         compressed.length = Lzo.maxCompressedLength(data.length);
-        
+
         compressed.length =  lzo.compress(data, compressed);
-        
+
         lzo.uncompress(compressed, uncompressed);
     }
-    
+
     Trace.formatln("\n\nLZO unittest finished\n");
 }

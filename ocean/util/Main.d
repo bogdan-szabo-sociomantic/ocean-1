@@ -308,7 +308,7 @@ deprecated public class Main
     static public ProcessArgsResult processArgsConfig (
             char[][] cl_args, Arguments args, VersionInfo version_info,
             char[] description,
-            void delegate ( char[] app_name, char[] config_file ) init_config_dg, 
+            void delegate ( char[] app_name, char[] config_file ) init_config_dg,
             bool use_insert_appender = false )
     in
     {
@@ -452,7 +452,7 @@ deprecated public class Main
             Arguments args, VersionInfo version_info, char[] description )
     {
         Unittest.check();
-        
+
         auto app_name = cl_args[0];
 
         auto args_ok = parseArgs(cl_args, args);

@@ -396,7 +396,7 @@ public template EnumBase ( T ... )
 
     private alias typeof(this) This;
 
-	static private This inst;
+    static private This inst;
 
 
     /***************************************************************************
@@ -406,14 +406,14 @@ public template EnumBase ( T ... )
 
     ***************************************************************************/
 
-	static public This opCall ( )
-	{
-		if ( !inst )
-		{
-			inst = new This;
-		}
-		return inst;
-	}
+    static public This opCall ( )
+    {
+        if ( !inst )
+        {
+            inst = new This;
+        }
+        return inst;
+    }
 
 
     /***************************************************************************

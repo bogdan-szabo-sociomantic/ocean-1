@@ -43,23 +43,23 @@ public bool isKeyword ( char[] string )
         "char",         "class",        "const",        "continue",
         "creal",        "dchar",        "debug",        "default",
         "delegate",     "delete",       "deprecated",   "do",
-        "double",       "else",         "enum",         "export", 
-        "extern",       "false",        "final",        "finally", 
-        "float",        "for",          "foreach",      "foreach_reverse", 
-        "function",     "goto",         "idouble",      "if", 
-        "ifloat",       "import",       "in",           "inout", 
-        "int",          "interface",    "invariant",    "ireal", 
-        "is",           "lazy",         "long",         "macro", 
-        "mixin",        "module",       "new",          "null", 
-        "out",          "override",     "package",      "pragma", 
-        "private",      "protected",    "public",       "real", 
-        "ref",          "return",       "scope",        "short", 
-        "static",       "struct",       "super",        "switch", 
-        "synchronized", "template",     "this",         "throw", 
-        "true",         "try",          "typedef",      "typeid", 
-        "typeof",       "ubyte",        "ucent",        "uint", 
-        "ulong",        "union",        "unittest",     "ushort", 
-        "version",      "void",         "volatile",     "wchar", 
+        "double",       "else",         "enum",         "export",
+        "extern",       "false",        "final",        "finally",
+        "float",        "for",          "foreach",      "foreach_reverse",
+        "function",     "goto",         "idouble",      "if",
+        "ifloat",       "import",       "in",           "inout",
+        "int",          "interface",    "invariant",    "ireal",
+        "is",           "lazy",         "long",         "macro",
+        "mixin",        "module",       "new",          "null",
+        "out",          "override",     "package",      "pragma",
+        "private",      "protected",    "public",       "real",
+        "ref",          "return",       "scope",        "short",
+        "static",       "struct",       "super",        "switch",
+        "synchronized", "template",     "this",         "throw",
+        "true",         "try",          "typedef",      "typeid",
+        "typeof",       "ubyte",        "ucent",        "uint",
+        "ulong",        "union",        "unittest",     "ushort",
+        "version",      "void",         "volatile",     "wchar",
         "while",        "with"
     ];
 
@@ -190,7 +190,7 @@ public template FieldType ( T, size_t i )
     {
         static assert(false, "FieldType!(" ~ T.stringof ~ "): type is not a struct / class");
     }
-    
+
     alias typeof (T.tupleof)[i] FieldType;
 }
 
@@ -482,17 +482,17 @@ public template StripTypedef ( T )
     Tells whether the types in T are or contain dynamic arrays, recursing into
     the member types of structs and union, the element types of dynamic and
     static arrays and typedefs.
-    
+
     Reference types other than dynamic arrays (classes, pointers, functions,
     delegates and associative arrays) are ignored and not recursed into.
-    
+
     Template parameter:
         T = types to check
-    
+
     Evaluates to:
         true if any type in T is a or contains dynamic arrays or false if not
-        or T is empty. 
-    
+        or T is empty.
+
  ******************************************************************************/
 
 template ContainsDynamicArray ( T ... )
@@ -502,13 +502,13 @@ template ContainsDynamicArray ( T ... )
         static if (is (T[0] Base == typedef))
         {
             // Recurse into typedef.
-            
+
             const ContainsDynamicArray = ContainsDynamicArray!(Base, T[1 .. $]);
         }
         else static if (is (T[0] == struct) || is (T[0] == union))
         {
             // Recurse into struct/union members.
-            
+
             const ContainsDynamicArray = ContainsDynamicArray!(typeof (T[0].tupleof)) ||
                                          ContainsDynamicArray!(T[1 .. $]);
         }
@@ -523,7 +523,7 @@ template ContainsDynamicArray ( T ... )
                 else
                 {
                     // Static array, recurse into base type.
-                    
+
                     const ContainsDynamicArray = ContainsDynamicArray!(Element) ||
                                                  ContainsDynamicArray!(T[1 .. $]);
                 }
@@ -531,7 +531,7 @@ template ContainsDynamicArray ( T ... )
             else
             {
                 // Skip non-dynamic or static array type.
-                
+
                 const ContainsDynamicArray = ContainsDynamicArray!(T[1 .. $]);
             }
         }

@@ -164,14 +164,14 @@ public struct HttpResponse
 
     public Code.BaseType code ( )
     {
-		// Avoid errors if it didn't receive anything at all
-		if ( this.response[0] < '0' || this.response[0] > '9' ||
-			this.response[1] < '0' || this.response[1] > '9' ||
-			this.response[2] < '0' || this.response[2] > '9' )
-		{
-			return Code.Invalid;
-		}
-		
+        // Avoid errors if it didn't receive anything at all
+        if ( this.response[0] < '0' || this.response[0] > '9' ||
+            this.response[1] < '0' || this.response[1] > '9' ||
+            this.response[2] < '0' || this.response[2] > '9' )
+        {
+            return Code.Invalid;
+        }
+
         int integer = Integer.toLong(this.response);
         if ( Code.description(integer) !is null )
         {

@@ -8,7 +8,7 @@
 
     authors:        Mathias Baumann
 
-    Note that the instance should be filled before usage, 
+    Note that the instance should be filled before usage,
     using the .parse function
 
 *******************************************************************************/

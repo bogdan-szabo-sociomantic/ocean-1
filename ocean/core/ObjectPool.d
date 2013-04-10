@@ -762,32 +762,32 @@ class Pool ( T ) : PoolCore
 
         Iterator classes, each one provides 'foreach' iteration over a subset
         if the items in the pool:
-        
+
          - AllItemsIterator iterates over all items in the pool,
          - BusyItemsIterator iterates over the items that are busy on
            instantiation,
          - IdleItemsIteratoriterates over the items that are idle on
            instantiation.
-        
+
         Usage Example:
-        
+
         During iteration all Pool methods may be called except the limit setter.
         However, as indicated, the list of items iterated over is not updated to
         changes made by get(), recycle() and clear().
 
         ---
             import $(TITLE);
-            
+
             void main ( )
             {
                 class MyClass { uint object_pool_index; }
-                
+
                 auto pool = new Pool!(MyClass);
-                        
+
                 // use pool
-                
+
                 scope busy_items = pool.new BusyItemsIterator;
-                
+
                 foreach (busy_item; busy_items)
                 {
                     // busy_item now iterates over the items in the pool that
@@ -795,11 +795,11 @@ class Pool ( T ) : PoolCore
                 }
             }
         ---
-        
+
         Note that, if the pool items are structs, 'ref' iteration is required to
         make the modification of the items iterated over permanent. For objects
         'ref' should not be used.
-        
+
     ***************************************************************************/
 
     mixin ItemIterators!(T);
@@ -1387,7 +1387,7 @@ abstract class PoolCore : IObjectPoolInfo
                     static if (is (T == class))
                     {
                         assert (item.obj !is null);
-                        
+
                         T item_out = cast (T) item.obj;
 
                         ret = dg(item_out);
@@ -1395,7 +1395,7 @@ abstract class PoolCore : IObjectPoolInfo
                     else
                     {
                         assert (item.ptr !is null);
-                        
+
                         ret = dg(*cast (T*) item.ptr);
                     }
 

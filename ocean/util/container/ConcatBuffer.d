@@ -91,7 +91,7 @@ public class ConcatBuffer ( T )
 
     private T[] buffer;
 
-    
+
     /***************************************************************************
 
         Current write position in the buffer.
@@ -100,11 +100,11 @@ public class ConcatBuffer ( T )
 
     private size_t write_pos;
 
- 
+
     /***************************************************************************
 
         Constructor.
-        
+
         Params:
             len = initial buffer length
 
@@ -146,8 +146,8 @@ public class ConcatBuffer ( T )
             in-place slice to the reserved data in the buffer
 
     ***************************************************************************/
-    
-    public T[] add ( size_t length ) 
+
+    public T[] add ( size_t length )
     {
         if ( this.write_pos + length > this.buffer.length )
         {
@@ -162,7 +162,7 @@ public class ConcatBuffer ( T )
 
         return this.buffer[start .. end];
     }
-    
+
 
     /***************************************************************************
 
@@ -398,14 +398,14 @@ public class SliceBuffer ( T ) : ConcatBuffer!(T)
     public int opApply ( int delegate ( ref size_t, ref T[] ) dg )
     {
         int res;
-    
+
         foreach ( i, slice; this.slices )
         {
             res = dg(i, slice);
-    
+
             if ( res ) break;
         }
-    
+
         return res;
     }
 }

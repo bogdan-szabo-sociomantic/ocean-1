@@ -1,14 +1,14 @@
 /*******************************************************************************
 
     InsertConsole
-    
+
     An appender for the tango logger which writes the output _above_ the
     current cursor position, breaking the line automatically
 
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-     
+
     version:        Initial release: November 2011
-     
+
     author:         Mathias Baumann
 
 *******************************************************************************/
@@ -42,7 +42,7 @@ debug private import tango.core.Thread;
 
     An appender for the tango logger which writes the output _above_ the
     current cursor position, breaking the line automatically
-    
+
     This was copied from tango.util.log.AppendConsole and modified
 
 *******************************************************************************/
@@ -54,9 +54,9 @@ public class InsertConsole: Appender
     private OutputStream stream_;
 
     private char[] buffer;
-   
+
     /***********************************************************************
-     
+
      Create with the given layout
 
      ***********************************************************************/
@@ -136,32 +136,32 @@ public class InsertConsole: Appender
                   while (pos + content.length > buffer.length)
                   {
                       buffer[pos .. $] = cast(char[]) content[0 .. buffer.length - pos];
-    
+
                       written += stream_.write(CSI);
                       written += stream_.write(LINE_UP);
-    
+
                       written += stream_.write(CSI);
                       written += stream_.write(SCROLL_UP);
-    
+
                       written += stream_.write(CSI);
                       written += stream_.write(INSERT_LINE);
-    
+
                       written += stream_.write(buffer);
-                      
+
                       stream_.write(Eol);
                       stream_.flush;
                       buffer[] = '\0';
                       content = content[buffer.length - pos .. $];
-    
+
                       pos = 0;
                   }
-    
+
                   if (content.length > 0)
                   {
                       buffer[pos .. pos + content.length] = cast(char[]) content[];
                       pos += content.length;
                   }
-    
+
                   return written;
               } );
 

@@ -2,7 +2,7 @@
 
     Epoll-based event scheduler.
 
-    copyright:  Copyright (c) 2011 sociomantic labs. 
+    copyright:  Copyright (c) 2011 sociomantic labs.
                 All rights reserved.
 
     version:    August 2011 : Initial release
@@ -272,7 +272,7 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
     public this ( EpollSelectDispatcher epoll, uint max_events = 0 )
     {
         this.epoll = epoll;
-        
+
         this.events = new Pool!(Event);
 
         if ( max_events )
@@ -341,7 +341,7 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
 
 
     /***************************************************************************
-    
+
         Disables the timer event and unregisters it from epoll.
 
     ***************************************************************************/

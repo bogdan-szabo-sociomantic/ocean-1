@@ -12,10 +12,10 @@
     (http://curl.haxx.se/libcurl/c/curl_multi_socket_action.html).
 
     Link with:
-    
+
     ---
-    
-        -L/usr/lib/libcurl.so    
+
+        -L/usr/lib/libcurl.so
         -L-lgblib-2.0
 
     ---
@@ -23,9 +23,9 @@
     Usage example:
 
     ---
-    
+
         TODO
-    
+
     ---
 
 *******************************************************************************/
@@ -187,14 +187,14 @@ deprecated public class LibCurlEpoll
     private struct CurlRequest
     {
         /***********************************************************************
-        
+
             Url being downloaded.
-        
+
         ***********************************************************************/
-        
+
         public char[] url;
-        
-        
+
+
         /***********************************************************************
 
             Delegate called when transfer begins. (The callback is stored as a
@@ -209,24 +209,24 @@ deprecated public class LibCurlEpoll
 
 
         /***********************************************************************
-        
+
             Delegate which receives data. (The callback is stored as a byte
             array as the struct serializer doesn't currently support serializing
-            delegates.) 
-        
+            delegates.)
+
         ***********************************************************************/
-        
+
         public alias void delegate ( void* context, size_t connection, char[] url, char[] data ) Receiver;
-        
+
         private ubyte[Receiver.sizeof] receiver_;
-        
-        
+
+
         /***********************************************************************
-        
+
             Delegate called when transfer finishes. (The callback is stored as a
             byte array as the struct serializer doesn't currently support
-            serializing delegates.) 
-        
+            serializing delegates.)
+
         ***********************************************************************/
 
         public alias void delegate ( void* context, size_t connection, char[] url, int http_response, CURLcode result ) Finalizer;
@@ -239,14 +239,14 @@ deprecated public class LibCurlEpoll
             User-specified request context.
 
         ***********************************************************************/
-        
+
         private ubyte[(void*).sizeof] context_;
-        
-        
+
+
         /***********************************************************************
-        
+
             Initializer getter & setter.
-    
+
         ***********************************************************************/
 
         public void initializer ( Initializer initializer_ )
@@ -258,14 +258,14 @@ deprecated public class LibCurlEpoll
         {
             return *(cast(Initializer*)this.initializer_.ptr);
         }
-    
-    
+
+
         /***********************************************************************
-        
+
             Receiver getter & setter.
-        
+
         ***********************************************************************/
-        
+
         public void receiver ( Receiver receiver_ )
         {
             this.receiver_[]  = (cast(ubyte*)&receiver_)[0 .. receiver_.sizeof];
@@ -275,29 +275,29 @@ deprecated public class LibCurlEpoll
         {
             return *(cast(Receiver*)this.receiver_.ptr);
         }
-        
-        
+
+
         /***********************************************************************
-        
+
             Finalizer getter & setter.
-        
+
         ***********************************************************************/
-        
+
         public void finalizer ( Finalizer finalizer_ )
         {
             this.finalizer_[] = (cast(ubyte*)&finalizer_)[0 .. finalizer_.sizeof];
         }
-        
+
         public Finalizer finalizer ( )
         {
             return *(cast(Finalizer*)this.finalizer_.ptr);
         }
-        
-        
+
+
         /***********************************************************************
-        
+
             Context getter & setter.
-        
+
         ***********************************************************************/
 
         public void context ( void* context_ )
@@ -331,30 +331,30 @@ deprecated public class LibCurlEpoll
     private class CurlConnection : ISelectClient, IConnection, ISelectable
     {
         /***********************************************************************
-    
+
             Curl easy handle.
-    
+
         ***********************************************************************/
-    
+
         public CURL easy;
-    
-    
+
+
         /***********************************************************************
-    
+
             File descriptor of the socket handling this connection. This is set
             by the outer class' curl socket callback function.
 
         ***********************************************************************/
-    
+
         public curl_socket_t fd;
-    
-        
+
+
         /***********************************************************************
-    
+
             Code for action which connection is waiting on (read / write).
-    
+
         ***********************************************************************/
-    
+
         public int action;
 
 
@@ -369,35 +369,35 @@ deprecated public class LibCurlEpoll
 
 
         /***********************************************************************
-    
+
             Event which is registered with the epoll selector and fired when this
             connection is ready to start processing the next request (popped from
             the queue in LibCurlEpoll).
-    
+
         ***********************************************************************/
-    
+
         private SelectEvent conn_ready;
-    
+
 
         /***********************************************************************
-    
+
             Url currently being processed. (Copied, and with a \0 appended, for C
             compatibility.)
-    
+
         ***********************************************************************/
-    
+
         private char[] url;
-    
-    
+
+
         /***********************************************************************
-    
+
             Delegate to be called when this request receives data.
-    
+
         ***********************************************************************/
-    
+
         private CurlRequest.Receiver receiver;
-    
-    
+
+
         /***********************************************************************
 
             Delegate to be called when this request has finished. Called both in
@@ -418,11 +418,11 @@ deprecated public class LibCurlEpoll
 
 
         /***********************************************************************
-        
+
             Flag set to true when the finalizer has been called for the current
             connection. The flag is reset when a new connection begins (in the
             download() method).
-        
+
             This flag is needed because both the epoll error callback and the
             curl socket callback invoke the connection's finalize() method. As
             the socket callback is invoked (via a call to
@@ -433,7 +433,7 @@ deprecated public class LibCurlEpoll
             connection. Thus finalization can be requested twice for a single
             connection in a single select cycle. This is rare, but fatal without
             this flag.
-        
+
         ***********************************************************************/
 
         private bool finalized;
@@ -610,7 +610,7 @@ deprecated public class LibCurlEpoll
 
             ISelectClient method. Called when a connection or handling error
             occurs for this connection.
-            
+
             Params:
                 e = exception whic occurred
                 ev = event which fired
@@ -621,8 +621,8 @@ deprecated public class LibCurlEpoll
         {
             this.finalize();
         }
-    
-    
+
+
         /***********************************************************************
 
             ITimeoutClient method. Returns a debug identifier for message
@@ -641,8 +641,8 @@ deprecated public class LibCurlEpoll
             // rewrite to format into a re-used buffer
             return super.id() ~ " " ~ id_str ~ ": " ~ this.url;
         }
-    
-    
+
+
         /***********************************************************************
 
             IRequestHandler method. Called when this connection is finalized.
@@ -922,7 +922,7 @@ deprecated public class LibCurlEpoll
 
 
         /***********************************************************************
-        
+
             Curl callbacks.
 
         ***********************************************************************/
@@ -968,56 +968,56 @@ deprecated public class LibCurlEpoll
 
 
     /***************************************************************************
-    
+
         Libcurl multi handle -- the global connection manager object.
-    
+
     ***************************************************************************/
-    
+
     private CURLM multi;
-    
-    
+
+
     /***************************************************************************
-    
+
         String used for deserializing queued requests. This buffer is only used
         by the CurlConnection class, which accesses this member as a kind of
         global buffer to be shared by all connections.
-    
+
     ***************************************************************************/
-    
+
     private ubyte[] deserialize_buf;
-    
-    
+
+
     /***************************************************************************
-    
+
         Associative array mapping from a curl easy handle to a curl connection
         object. Used for fast lookup. Created in constructor and never modified.
-    
+
     ***************************************************************************/
-    
+
     private CurlConnection[CURL] connection_lookup;
-    
-    
+
+
     /***************************************************************************
-    
+
         Queue of requests. When a download is requested it is always pushed to
         the queue. The queue then notifies any waiting connections.
-    
+
     ***************************************************************************/
-    
+
     private NotifyingQueue!(CurlRequest) queue;
-    
-    
+
+
     /***************************************************************************
-    
+
         Timer event -- registered as libcurl demands.
-    
+
     ***************************************************************************/
-    
+
     private TimerEvent timer;
-    
-    
+
+
     /***************************************************************************
-    
+
         Flag telling whether the timer event should be unregistered. Used by the
         timer's callback (timer_cb), and passed straight into the select
         dispatcher. The default is to unregister the timer once it has fired,
@@ -1025,38 +1025,38 @@ deprecated public class LibCurlEpoll
         reuqets that a new timer be set. So we have to allow the case where the
         timer has fired but should *not* be unregistered (it should stay
         registered in the selector with an update time value).
-    
+
     ***************************************************************************/
-    
+
     private bool unregister_timer;
-    
-    
+
+
     /***************************************************************************
-    
+
         Epoll selector -- passed as a reference from outside.
-    
+
      ***************************************************************************/
-    
+
     private EpollSelectDispatcher epoll;
-    
-    
+
+
     /***************************************************************************
-    
+
         Count of the number of active curl connections. Updated by calls to
         curl_multi_socket_action.
-    
+
      ***************************************************************************/
-    
+
     private int still_running;
 
 
     /***************************************************************************
-    
+
         List of curl connections, created in the constructor and re-used. The
         length of this array is set once and never changed.
-    
+
     ***************************************************************************/
-    
+
     private CurlConnection[] conns;
 
 
@@ -1080,21 +1080,21 @@ deprecated public class LibCurlEpoll
 
 
     /***************************************************************************
-    
+
         Constructor.
-    
+
         Params:
             epoll = epoll selector to use for libcurl event management
             num_connections = maximum number of parallel curl downloads
-    
+
     ***************************************************************************/
-    
+
     public this ( EpollSelectDispatcher epoll, uint num_connections )
     {
         this.epoll = epoll;
-    
+
         this.queue = new NotifyingQueue!(CurlRequest)(1024 * 1024);
-    
+
         this.timer = new TimerEvent(&this.timer_cb);
 
         this.timeout = 60; // default timeout = 1 minute
@@ -1105,7 +1105,7 @@ deprecated public class LibCurlEpoll
         curl_multi_setopt(this.multi, CURLMoption.SOCKETDATA, cast(void*)this);
         curl_multi_setopt(this.multi, CURLMoption.TIMERFUNCTION, &curl_timer_cb);
         curl_multi_setopt(this.multi, CURLMoption.TIMERDATA, cast(void*)this);
-    
+
         // Create connections and register as waiting for requests.
         conns.length = num_connections;
         foreach ( ref conn; this.conns )
@@ -1116,8 +1116,8 @@ deprecated public class LibCurlEpoll
         }
         this.connection_lookup.rehash;
     }
-    
-    
+
+
     /***************************************************************************
 
         Requests the download of a url. The download will be started straight
@@ -1260,7 +1260,7 @@ deprecated public class LibCurlEpoll
 
 
     /***************************************************************************
-    
+
         Timer callback -- called from the epoll selector when the timer expires.
         Informs libcurl that the timeout it requested has expired.
 
@@ -1271,7 +1271,7 @@ deprecated public class LibCurlEpoll
             in which case we return true.)
 
     ***************************************************************************/
-    
+
     private bool timer_cb ( )
     {
         this.unregister_timer = true;
@@ -1280,34 +1280,34 @@ deprecated public class LibCurlEpoll
 
         return !this.unregister_timer;
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Unregisters a curl connection from the epoll selector.
-    
+
         Params:
             conn = connection to unregister
-    
+
     ***************************************************************************/
-    
+
     private void unregisterConnection ( CurlConnection conn )
     {
         conn.finished();
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Registers a curl connection with the epoll selector.
-    
+
         Params:
             socket_fd = socket to register
             easy_handle = curl easy handle to register socket for
             action = socket action to wait on
 
     ***************************************************************************/
-    
+
     private void registerConnection ( curl_socket_t socket_fd, CURL easy_handle, int action )
     in
     {
@@ -1319,16 +1319,16 @@ deprecated public class LibCurlEpoll
         if ( conn !is null )
         {
             this.modifyConnectionRegistration(*conn, socket_fd, easy_handle, action);
-    
+
             curl_multi_assign(this.multi, socket_fd, cast(void*)*conn);
         }
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Modifies the registration of a curl connection in the epoll selector.
-    
+
         Params:
             conn = connection to modify
             socket_fd = socket to modify epoll registration of
@@ -1384,28 +1384,28 @@ deprecated public class LibCurlEpoll
 
 
     /***************************************************************************
-    
+
         Curl callbacks.
-    
+
     ***************************************************************************/
-    
+
     static extern ( C )
     {
         /***********************************************************************
-    
+
             Timer callback. Called by curl to indicate that it requires a timer
             event to be registered.
-    
+
             Params:
                 multi = curl multi handle
                 timeout_ms = timeout (in ms) to set
                 g = global curl manager reference
-    
+
             Returns:
                 always 0 (obligatory)
-    
+
         ***********************************************************************/
-    
+
         private int curl_timer_cb ( CURLM multi, int timeout_ms, LibCurlEpoll g )
         {
             try // try-catch to prevent exceptions being thrown into libcurl
@@ -1419,7 +1419,7 @@ deprecated public class LibCurlEpoll
                     {
                         timeout_ms = 1;
                     }
-                    
+
                     g.timer.set(timeout_ms / 1000, timeout_ms % 1000);
                     g.epoll.register(g.timer);
                     g.unregister_timer = false;
@@ -1429,11 +1429,11 @@ deprecated public class LibCurlEpoll
             {
                 OceanException.Warn("Exception caught in curl timer_cb: {}", e.msg);
             }
-    
+
             return 0; // obligatory
         }
-    
-    
+
+
         /***********************************************************************
 
             Socket callback. Called by curl to indicate that a socket it is
@@ -1451,7 +1451,7 @@ deprecated public class LibCurlEpoll
                 always 0 (obligatory)
 
         ***********************************************************************/
-    
+
         private int curl_socket_cb ( CURL easy_handle, curl_socket_t socket_fd, int action, LibCurlEpoll g, CurlConnection conn )
         {
             debug const char[][] actionstr = ["none", "IN", "OUT", "INOUT", "REMOVE"];
@@ -1488,7 +1488,7 @@ deprecated public class LibCurlEpoll
                     {
                         assert(easy_handle == conn.easy);
                         assert(socket_fd == conn.fd);
-                        
+
                         g.modifyConnectionRegistration(conn, socket_fd, easy_handle, action);
                     }
                 }
@@ -1506,7 +1506,7 @@ deprecated public class LibCurlEpoll
 
 // TODO: check curl return codes
 
-/* Die if we get a bad CURLMcode somewhere */ 
+/* Die if we get a bad CURLMcode somewhere */
 /*static void mcode_or_die(const char *where, CURLMcode code)
 {
 if ( CURLM_OK != code ) {
@@ -1523,11 +1523,11 @@ switch (code) {
     break;
 case     CURLM_BAD_SOCKET:         s="CURLM_BAD_SOCKET";
   fprintf(MSG_OUT, "ERROR: %s returns %s\n", where, s);
-   ignore this error  
+   ignore this error
   return;
 }
 fprintf(MSG_OUT, "ERROR: %s returns %s\n", where, s);
 exit(code);
 }
 }
-*/ 
+*/

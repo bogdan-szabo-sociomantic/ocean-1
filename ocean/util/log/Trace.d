@@ -1,19 +1,19 @@
 /*******************************************************************************
 
-    Tango's Trace method has a different interface than the old one 
-    and doesn't allow output of text without a newline. 
-    
+    Tango's Trace method has a different interface than the old one
+    and doesn't allow output of text without a newline.
+
     This file offers a replacement Trace instance with the same interface
     as the old one, but thread-safe.
-    
-    copyright:      Copyright (c) 2009-2011 sociomantic labs. 
+
+    copyright:      Copyright (c) 2009-2011 sociomantic labs.
                     All rights reserved
-    
+
     version:        June 2011: initial release
-    
+
     authors:        Mathias L. Baumann
                     Gavin Norman
-    
+
 *******************************************************************************/
 
 module ocean.util.log.Trace;
@@ -156,11 +156,11 @@ private class SyncPrint
                     version (DigitalMarsX64)
                     {
                         va_list ap;
-            
+
                         va_start(ap, __va_argsave);
-            
+
                         scope(exit) va_end(ap);
-            
+
                         convert (&sink, _arguments, ap, fmt);
                     }
                     else
@@ -182,11 +182,11 @@ private class SyncPrint
                     version (DigitalMarsX64)
                     {
                         va_list ap;
-            
+
                         va_start(ap, __va_argsave);
-            
+
                         scope(exit) va_end(ap);
-            
+
                         convert (&sink, _arguments, ap, fmt);
                     }
                     else
@@ -194,7 +194,7 @@ private class SyncPrint
                 output.write(Eol);
                 if (flushLines) output.flush;
             }
-            
+
             return this;
         }
 

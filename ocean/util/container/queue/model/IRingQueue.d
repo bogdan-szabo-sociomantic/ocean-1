@@ -35,33 +35,33 @@ private import ocean.util.container.mem.MemManager;
 public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
 {
     /***************************************************************************
-    
+
         Data array -- the actual queue where the items are stored.
-    
+
     ***************************************************************************/
-    
+
     protected ubyte[] data;
-    
-    
+
+
     /***************************************************************************
-    
+
         Read & write positions (indices into the data array).
-    
+
     ***************************************************************************/
-    
+
     protected size_t write_to = 0;
-    
+
     protected size_t read_from = 0;
-    
-    
+
+
     /***************************************************************************
 
         Number of items in the queue.
-    
+
     ***************************************************************************/
-    
+
     protected uint items = 0;
-    
+
 
     /***************************************************************************
 
@@ -112,101 +112,101 @@ public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
         this.data = this.mem_manager.create(dimension);
     }
 
-        
+
     /***************************************************************************
-    
+
         Called for explicit deletes
-    
+
     ***************************************************************************/
 
     override public void dispose ( )
-    { 
+    {
         this.mem_manager.dispose(this.data);
-    }    
-        
-    
+    }
+
+
     /***************************************************************************
-    
+
         Called for explicit deletes and on collection
-    
+
     ***************************************************************************/
 
     public ~this ( )
-    { 
+    {
         this.mem_manager.dtor(this.data);
-    } 
-    
+    }
+
 
     /***************************************************************************
-    
+
         Returns:
             the number of items in the queue
-    
+
     ***************************************************************************/
-    
+
     uint length ( )
     {
         return this.items;
     }
-    
-    
+
+
     /***************************************************************************
 
         Tells whether the queue is empty.
-    
+
         Returns:
             true if the queue is empty
-    
+
     ***************************************************************************/
-    
+
     public bool is_empty ( )
     {
         return this.items == 0;
     }
-    
+
 
     /***************************************************************************
-    
+
         Returns:
             number of bytes free in queue
-    
+
     ***************************************************************************/
-    
+
     public ulong free_space ( )
     {
-        return this.data.length - this.used_space; 
+        return this.data.length - this.used_space;
     }
-    
-    
-    /***************************************************************************
-    
-        Returns:
-            number of bytes stored in queue
-    
-    ***************************************************************************/
-    
-    abstract ulong used_space ( );
-    
+
 
     /***************************************************************************
-    
+
+        Returns:
+            number of bytes stored in queue
+
+    ***************************************************************************/
+
+    abstract ulong used_space ( );
+
+
+    /***************************************************************************
+
         Returns:
             total number of bytes used by queue (used space + free space)
-    
+
     ***************************************************************************/
-    
+
     public ulong total_space ( )
     {
         return this.data.length;
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Removes all items from the queue.
-    
+
     ***************************************************************************/
-    
+
     final void clear ( )
     {
         this.write_to   = 0;
@@ -214,14 +214,14 @@ public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
         this.items      = 0;
         this.clear_();
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Invoked by clear(), may be overridden by a subclass
-    
+
     ***************************************************************************/
 
-    protected void clear_ ( ) { } 
+    protected void clear_ ( ) { }
 }
 

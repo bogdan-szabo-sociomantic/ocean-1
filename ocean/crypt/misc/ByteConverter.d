@@ -12,16 +12,16 @@ module ocean.crypt.misc.ByteConverter;
 struct ByteConverter
 {
     private static char[] hexits = "0123456789abcdef";
-    
+
     /** Conversions between little endian integrals and bytes */
     struct LittleEndian
     {
         /**
          * Converts the supplied array to integral type T
-         * 
+         *
          * Params:
          *     x_ = The supplied array of bytes (ubytes, bytes, chars, whatever)
-         * 
+         *
          * Returns:
          *     A integral of type T created with the supplied bytes placed
          *     in the specified byte order.
@@ -29,16 +29,16 @@ struct ByteConverter
         static T to(T)(void[] x_)
         {
             ubyte[] x = cast(ubyte[])x_;
-            
+
             T result = ((x[0] & 0xff)       |
                        ((x[1] & 0xff) << 8));
-                       
+
             static if (T.sizeof >= int.sizeof)
             {
                 result |= ((x[2] & 0xff) << 16) |
                           ((x[3] & 0xff) << 24);
             }
-            
+
             static if (T.sizeof >= long.sizeof)
             {
                 result |= (cast(T)(x[4] & 0xff) << 32) |
@@ -46,16 +46,16 @@ struct ByteConverter
                           (cast(T)(x[6] & 0xff) << 48) |
                           (cast(T)(x[7] & 0xff) << 56);
             }
-            
+
             return result;
         }
-        
+
         /**
          * Converts the supplied integral to an array of unsigned bytes.
-         * 
+         *
          * Params:
          *     input = Integral to convert to bytes
-         * 
+         *
          * Returns:
          *     Integral input of type T split into its respective bytes
          *     with the bytes placed in the specified byte order.
@@ -63,16 +63,16 @@ struct ByteConverter
         static ubyte[] from(T)(T input)
         {
             ubyte[] output = new ubyte[T.sizeof];
-            
+
             output[0] = cast(ubyte)(input);
             output[1] = cast(ubyte)(input >> 8);
-            
+
             static if (T.sizeof >= int.sizeof)
             {
                 output[2] = cast(ubyte)(input >> 16);
                 output[3] = cast(ubyte)(input >> 24);
             }
-            
+
             static if (T.sizeof >= long.sizeof)
             {
                 output[4] = cast(ubyte)(input >> 32);
@@ -80,19 +80,19 @@ struct ByteConverter
                 output[6] = cast(ubyte)(input >> 48);
                 output[7] = cast(ubyte)(input >> 56);
             }
-            
+
             return output;
         }
     }
-    
+
     /** Conversions between big endian integrals and bytes */
     struct BigEndian
     {
-        
+
         static T to(T)(void[] x_)
         {
             ubyte[] x = cast(ubyte[])x_;
-            
+
             static if (is(T == ushort) || is(T == short))
             {
                 return cast(T) (((x[0] & 0xff) << 8) |
@@ -117,11 +117,11 @@ struct ByteConverter
                                  (x[7] & 0xff));
             }
         }
-        
+
         static ubyte[] from(T)(T input)
         {
             ubyte[] output = new ubyte[T.sizeof];
-            
+
             static if (T.sizeof == long.sizeof)
             {
                 output[0] = cast(ubyte)(input >> 56);
@@ -145,7 +145,7 @@ struct ByteConverter
                 output[0] = cast(ubyte)(input >> 8);
                 output[1] = cast(ubyte)(input);
             }
-            
+
             return output;
         }
     }
@@ -154,17 +154,17 @@ struct ByteConverter
     {
         ubyte[] input = cast(ubyte[])input_;
         char[] output = new char[input.length<<1];
-        
+
         int i = 0;
         foreach (ubyte j; input)
-        { 
+        {
             output[i++] = hexits[j>>4];
             output[i++] = hexits[j&0xf];
         }
-        
-        return cast(char[])output;    
+
+        return cast(char[])output;
     }
-    
+
     /** Play nice with D2's idea of const. */
     version (D_Version2)
     {
@@ -173,32 +173,32 @@ struct ByteConverter
             return hexEncode(cast(ubyte[])input_);
         }
     }
-    
+
     static ubyte[] hexDecode(char[] input)
     {
         char[] inputAsLower = stringToLower(input);
         ubyte[] output = new ubyte[input.length>>1];
-        
+
         static ubyte[char] hexitIndex;
         for (int i = 0; i < hexits.length; i++)
             hexitIndex[hexits[i]] = i;
-            
+
         for (int i = 0, j = 0; i < output.length; i++)
         {
             output[i] = hexitIndex[inputAsLower[j++]] << 4;
-            output[i] |= hexitIndex[inputAsLower[j++]]; 
+            output[i] |= hexitIndex[inputAsLower[j++]];
         }
-        
+
         return output;
     }
-    
+
     private static char[] stringToLower(char[] input)
     {
         char[] output = new char[input.length];
-        
-        foreach (int i, char c; input) 
+
+        foreach (int i, char c; input)
             output[i] = ((c >= 'A' && c <= 'Z') ? c+32 : c);
-            
+
         return cast(char[])output;
     }
 }

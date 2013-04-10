@@ -247,7 +247,7 @@ private bool convert ( T ) ( T[] digits, out ulong value, out uint eaten,
     and an optional radix prefix. If the radix value matches
     an optional prefix, or the radix is zero, the prefix will
     be consumed and assigned. Where the radix is non zero and
-    does not match an explicit prefix, the latter will remain 
+    does not match an explicit prefix, the latter will remain
     unconsumed. Otherwise, radix will default to 10.
 
     Returns the number of characters consumed.
@@ -298,10 +298,10 @@ private uint trim ( T ) ( T[] digits, ref bool negative, ref uint radix )
                        r = 8;
                        break;
 
-                  default: 
+                  default:
                         --p;
                        break;
-                  } 
+                  }
 
        // default the radix to 10
        if (r is 0)

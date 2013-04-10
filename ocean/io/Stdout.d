@@ -320,22 +320,22 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
         return on ? this.csiSeq!(Terminal.BOLD) : this.csiSeq!(Terminal.NON_BOLD);
     }
 
-    
+
     /***************************************************************************
 
         Move the current cursor position to the last row of the terminal. This
         method adapts to changes in the size of the terminal.
 
     ***************************************************************************/
-    
+
     public typeof(this) endrow ( )
     {
         auto layout = Layout!(char).instance;
         this.sink.write(layout("{}{};1H", Terminal.CSI, Terminal.rows));
         return this;
     }
-    
-    
+
+
     /***************************************************************************
 
         Carriage return (sends cursor back to the start of the line).
@@ -343,8 +343,8 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
     ***************************************************************************/
 
     public alias csiSeq!("0" ~ Terminal.HORIZONTAL_MOVE_CURSOR) cr;
-    
-    
+
+
     /***************************************************************************
 
         Move the cursor up a line
@@ -352,7 +352,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
     ***************************************************************************/
 
     public alias csiSeq!("1" ~ Terminal.CURSOR_UP)      up;
-    
+
 
     /***************************************************************************
 

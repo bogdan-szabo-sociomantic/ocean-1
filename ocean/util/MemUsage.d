@@ -104,7 +104,7 @@ version ( CDGC )
         body
         {
             this.dg = dg;
-    
+
             size_t free;
             GC.usage(this.used, free);
         }

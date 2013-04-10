@@ -189,7 +189,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
         We just need to provide an "empty" implementation to satisfy the
         interface. The version information is display through the displayVersion
-        method and will be called from the ArgumentsExt class. 
+        method and will be called from the ArgumentsExt class.
 
     ***************************************************************************/
 

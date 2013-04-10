@@ -3,49 +3,49 @@
     Utility functions to configure tango loggers from a config file.
 
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
-    version:        
-    
+
+    version:
+
     authors:        Mathias Baumann
-    
+
     Configures tango loggers, uses the AppendSyslog class to provide logfile
     rotation.
-    
+
     In the config file, a logger can be configured using the following syntax:
-    
+
         ; Which logger to configure. In this case LoggerName is being configured.
         ; A whole hierachy can be specified like LOG.MyApp.ThatOutput.X
         ; And each level can be configured.
         [LOG.LoggerName]
 
-        ; Whether to output to the terminal 
-        console   = true 
+        ; Whether to output to the terminal
+        console   = true
 
         ; File to output to, no output to file if not given
-        file      = log/logger_name.log 
+        file      = log/logger_name.log
 
         ; Whether to propagate the options down in the hierachy
-        propagate = false 
+        propagate = false
 
         ; The verbosity level, corresponse to the tango logger levels
-        level     = info 
+        level     = info
 
         ; Is this logger additive? That is, should we walk ancestors
         ; looking for more appenders?
-        additive  = true 
+        additive  = true
 
     See the class Config for further options and documentation.
-    
+
     There are global logger configuration options as well:
-    
+
         ; Global options are in the section [LOG]
         [LOG]
-        
+
         ; Maximum amount of files that will exist.
         file_count    = 10
 
         ; Maximum size of one file in bytes till it will be rotated
-        ; 
+        ;
         max_file_size = 500000
 
         ; files equal or higher this value will be compressed
@@ -94,57 +94,57 @@ debug private import ocean.util.log.Trace;
 
 /*******************************************************************************
 
-    Configuration class for loggers 
+    Configuration class for loggers
 
 *******************************************************************************/
 
 class Config
 {
     /***************************************************************************
-    
+
         Level of the logger
-    
+
     ***************************************************************************/
 
     public char[] level;
-    
+
     /***************************************************************************
-    
-        Whether to use console output or not 
-    
+
+        Whether to use console output or not
+
     ***************************************************************************/
 
     public SetInfo!(bool) console;
-    
+
     /***************************************************************************
-    
+
         Whether to use file output and if, which file path
-    
+
     ***************************************************************************/
 
     public SetInfo!(char[]) file;
-    
+
     /***************************************************************************
-    
+
         Whether to propagate that level to the children
-    
+
     ***************************************************************************/
 
     public bool propagate;
-    
+
     /***************************************************************************
-    
+
         Whether this logger should be additive or not
-    
+
     ***************************************************************************/
-    
+
     bool additive;
-        
+
     /***************************************************************************
-    
+
         Buffer size of the buffer output, overwrites the global setting
         given in MetaConfig
-    
+
     ***************************************************************************/
 
     public size_t buffer_size = 0;
@@ -159,36 +159,36 @@ class Config
 class MetaConfig
 {
     /***************************************************************************
-    
+
         How many files should be created
-    
+
     ***************************************************************************/
-        
+
     size_t file_count    = 10;
-    
+
     /***************************************************************************
-    
+
         Maximum size of one log file
-    
+
     ***************************************************************************/
 
     size_t max_file_size = 500 * 1024 * 1024;
 
     /***************************************************************************
-    
+
         Index of the first file that should be compressed
-        
+
         E.g. 4 means, start compressing with the fourth file
-    
+
     ***************************************************************************/
 
     size_t start_compress = 4;
 
     /***************************************************************************
-    
-        Tango buffer size, if 0, internal stack based buffer of 2048 will be 
+
+        Tango buffer size, if 0, internal stack based buffer of 2048 will be
         used.
-    
+
     ***************************************************************************/
 
     size_t buffer_size   = 0;
@@ -199,7 +199,7 @@ class MetaConfig
     Convenience alias for iterating over Config classes
 
 *******************************************************************************/
-    
+
 alias ClassIterator!(Config) ConfigIterator;
 
 /*******************************************************************************
@@ -207,7 +207,7 @@ alias ClassIterator!(Config) ConfigIterator;
     Clear any default appenders at startup
 
 *******************************************************************************/
-    
+
 static this ( )
 {
     Log.root.clear();
@@ -216,28 +216,28 @@ static this ( )
 /*******************************************************************************
 
     Sets up logging configuration.
-    
+
     Params:
-        config   = an instance of an class iterator for Config 
+        config   = an instance of an class iterator for Config
         m_config = an instance of the MetaConfig class
         use_insert_appender = whether to use the insert appender which
                               doesn't support newlines in the output msg
 
 *******************************************************************************/
-    
-public void configureLoggers ( Source = ConfigParser ) 
-                             ( ClassIterator!(Config, Source) config, 
+
+public void configureLoggers ( Source = ConfigParser )
+                             ( ClassIterator!(Config, Source) config,
                                MetaConfig m_config, bool loose = false,
                                bool use_insert_appender = false )
 {
     enable_loose_parsing(loose);
-    
+
     foreach (name, settings; config)
     {
         bool console_enabled = false;
         Logger log;
-        
-        if ( name == "Root" ) 
+
+        if ( name == "Root" )
         {
             log = Log.root;
             console_enabled = settings.console(true);
@@ -264,16 +264,16 @@ public void configureLoggers ( Source = ConfigParser )
         // (unless we have been specifically asked to be additive)
         log.additive = settings.additive ||
                        !(settings.console.set || settings.file.set);
-        
+
         if ( settings.file.set )
         {
-            log.add(new AppendSyslog(settings.file(), 
+            log.add(new AppendSyslog(settings.file(),
                                      m_config.file_count,
                                      m_config.max_file_size,
                                      "gzip {}", "gz", m_config.start_compress,
                                      new LayoutDate));
         }
-                                   
+
         if ( console_enabled )
         {
             if ( use_insert_appender )
@@ -285,7 +285,7 @@ public void configureLoggers ( Source = ConfigParser )
                 log.add(new AppendConsole(new SimpleLayout));
             }
         }
-        
+
         with (settings) if ( level.length > 0 ) switch ( level )
         {
             case "Trace":
@@ -296,31 +296,31 @@ public void configureLoggers ( Source = ConfigParser )
             case "DEBUG":
                 log.level(Level.Trace, propagate);
                 break;
-                
+
             case "Info":
             case "info":
             case "INFO":
                 log.level(Level.Info, propagate);
                 break;
-                
+
             case "Warn":
             case "warn":
             case "WARN":
                 log.level(Level.Warn, propagate);
                 break;
-                
+
             case "Error":
             case "error":
             case "ERROR":
                 log.level(Level.Error, propagate);
                 break;
-                
+
             case "Fatal":
             case "fatal":
             case "FATAL":
                 log.level(Level.Info, propagate);
                 break;
-                
+
             case "None":
             case "none":
             case "NONE":

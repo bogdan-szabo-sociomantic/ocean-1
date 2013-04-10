@@ -8,18 +8,18 @@
     version:        May 2011: Initial release
 
     authors:        Gavin Norman, David Eckardt
-    
+
     To use the timeout manager, create a TimeoutManager subclass capable of
     these two things:
         1. It implements setTimeout() to set a timer that expires at the wall
            clock time that is passed to setTimeout() as argument.
         2. When the timer is expired, it calls checkTimeouts().
-    
+
     Objects that can time out, the so-called timeout clients, must implement
     ITimeoutClient. For each client create an ExpiryRegistration instance and
     pass the object to the ExpiryRegistration constructor.
     Call ExpiryRegistration.register() to set a timeout for the corresponding
-    client. When checkTimeouts() is called, it calls the timeout() method of 
+    client. When checkTimeouts() is called, it calls the timeout() method of
     each timed out client.
 
 
@@ -72,52 +72,52 @@ class TimeoutManager : TimeoutManagerBase
     /***************************************************************************
 
         Expiry registration class for an object that can time out.
-    
+
     ***************************************************************************/
-    
+
     public class ExpiryRegistration : ExpiryRegistrationBase
     {
         /***********************************************************************
-    
+
             Constructor
-            
+
             Params:
                 client = object that can time out
-        
+
         ***********************************************************************/
-    
+
         public this ( ITimeoutClient client )
         {
             super(this.outer.new TimeoutManagerInternal);
             super.client = client;
         }
-        
+
         /***********************************************************************
 
             Identifier string for debugging.
-        
+
         ***********************************************************************/
-        
+
         debug public override char[] id ( )
         {
             return super.client.id;
         }
     }
-    
+
     /***************************************************************************
-    
+
         Creates a new expiry registration instance, associates client with it
         and registers client with this timeout manager.
         The returned object should be reused. The client will remain associated
         to the expiry registration after it has been unregistered from the
         timeout manager.
-        
+
         Params:
             client = client to register
-            
+
         Returns:
             new expiry registration object with client associated to.
-        
+
     ***************************************************************************/
 
     public IExpiryRegistration getRegistration ( ITimeoutClient client )
@@ -137,8 +137,8 @@ abstract class TimeoutManagerBase : ITimeoutManager
 {
     /***************************************************************************
 
-        Enables IExpiryRegistration to access TimeoutManager internals. 
-    
+        Enables IExpiryRegistration to access TimeoutManager internals.
+
     ***************************************************************************/
 
     protected class TimeoutManagerInternal : ExpiryRegistrationBase.ITimeoutManagerInternal
@@ -146,45 +146,45 @@ abstract class TimeoutManagerBase : ITimeoutManager
         /***********************************************************************
 
             Registers registration and sets the timeout for its client.
-            
+
             Params:
                 registration = IExpiryRegistration instance to register
                 timeout_us   = timeout in microseconds from now
-                
-            Returns:    
+
+            Returns:
                 expiry token: required for unregister(); the "key" member is the
                 wall clock time of expiration as UNIX time in microseconds.
-        
+
         ***********************************************************************/
 
         Expiry* register ( IExpiryRegistration registration, ulong timeout_us )
         {
             return this.outer.register(registration, timeout_us);
         }
-        
+
         /***********************************************************************
 
             Unregisters IExpiryRegistration instance corresponding to expiry.
-            
+
             Params:
                 expiry = expiry token returned by register() when registering
                          the IExpiryRegistration instance to unregister
-            
+
             In:
                 Must not be called from within timeout().
-            
+
         ***********************************************************************/
 
         void unregister ( ref Expiry expiry )
         {
             this.outer.unregister(expiry);
         }
-        
+
         /***********************************************************************
 
             Returns:
                 the current wall clock time as UNIX time in microseconds.
-        
+
         ***********************************************************************/
 
         ulong now ( )
@@ -192,7 +192,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
             return this.outer.now();
         }
     }
-    
+
     /***************************************************************************
 
         EBTree storing expiry time of registred clients in terms of microseconds
@@ -219,21 +219,21 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
             Params:
                 n = expected number of elements in mapping
-            
+
         ***********************************************************************/
 
         public this ( size_t n )
         {
             super(n);
         }
-        
+
         protected hash_t toHash ( Expiry* expiry )
         {
             return StandardHash.fnv1aT(expiry);
         }
     }
 
-    
+
     private ExpiryToClient expiry_to_client;
 
     /***************************************************************************
@@ -259,27 +259,27 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
 
     /***************************************************************************
-        
+
         Tells the wall clock time time when the next client will expire.
-        
+
         Returns:
             the wall clock time when the next client will expire as UNIX time
             in microseconds or ulong.max if no client is currently registered.
-    
+
     ***************************************************************************/
-    
+
     public ulong next_expiration_us ( )
     {
         Expiry* expiry = this.expiry_tree.first;
-        
+
         ulong us = expiry? expiry.key : ulong.max;
-        
+
         debug ( TimeoutManager ) if (!this.next_expiration_us_called_from_internal)
         {
             this.next_expiration_us_called_from_internal = false;
-            
+
             Stderr("next expiration: ");
-            
+
             if (us < us.max)
             {
                 this.printTime(us);
@@ -289,38 +289,38 @@ abstract class TimeoutManagerBase : ITimeoutManager
                 Stderr("∞\n").flush();
             }
         }
-        
+
         return us;
     }
-    
+
     /***************************************************************************
-        
+
         Tells the time left until the next client will expire.
-        
+
         Returns:
             the time left until next client will expire in microseconds or
             ulong.max if no client is currently registered. 0 indicates that
             there are timed out clients that have not yet been notified and
             unregistered.
-    
+
     ***************************************************************************/
 
     public ulong us_left ( )
     {
         Expiry* expiry = this.expiry_tree.first;
-        
+
         if (expiry)
         {
             ulong next_expiration_us = expiry.key,
                   now                = this.now;
-            
+
             debug ( TimeoutManager )
             {
                 ulong us = next_expiration_us > now? next_expiration_us - now : 0;
-                
+
                 this.printTime(now, false);
                 Stderr(": ")(us)(" µs left\n").flush();
-                
+
                 return us;
             }
             else
@@ -333,89 +333,89 @@ abstract class TimeoutManagerBase : ITimeoutManager
             return ulong.max;
         }
     }
-    
+
     /***************************************************************************
 
         Returns:
             the number of registered clients.
-    
+
     ***************************************************************************/
 
     public size_t pending ( )
     {
         return this.expiry_tree.length;
     }
-    
+
     /***************************************************************************
-        
+
         Returns the current wall clock time. Calls gettimeofday() each time by
         default; may be overridden to use a more efficient implementation, e.g.
         using the IntervalClock.
-        
+
         Returns:
             the current wall clock time as UNIX time value in microseconds.
 
     ***************************************************************************/
-    
+
     public final ulong now ( )
     {
         return MicrosecondsClock.now_us_static;
     }
-    
+
     /***************************************************************************
-    
+
         Checks for timed out clients. For any timed out client its timeout()
         method is called, then it is unregistered, finally dg() is called with
         it as argument.
-        
+
         This method should be called when the timeout set by setTimeout() has
         expired.
-        
+
         If dg returns false to cancel, the clients iterated over so far are
         removed. To remove the remaining clients, call this method again.
-        
+
         Params:
             dg = optional callback delegate that will be called with each timed
                  out client and must return true to continue or false to cancel.
-        
+
         Returns:
             the number of expired clients.
-        
+
     ***************************************************************************/
-    
+
     public uint checkTimeouts ( bool delegate ( ITimeoutClient client ) dg = null )
     {
         return this.checkTimeouts(this.now, dg);
     }
-    
+
     public uint checkTimeouts ( ulong now, bool delegate ( ITimeoutClient client ) dg = null )
     {
         debug ( TimeoutManager )
         {
             this.printTime(now, false);
             Stderr(" --------------------- checkTimeouts\n");
-            
+
             this.next_expiration_us_called_from_internal = true;
         }
 
         ulong previously_next = this.next_expiration_us;
 
         this.expired_registrations.clear();
-        
+
         // We first build up a list of all expired registrations, in order to
         // avoid the situation of the timeout() delegates potentially modifying
         // the tree while iterating over it.
-        
+
         version (all)
         {
             scope expiries = this.expiry_tree.new PartIterator(now);
-            
+
             foreach_reverse (ref expiry; expiries)
             {
                 IExpiryRegistration registration = *this.expiry_to_client.get(&expiry);
 
                 debug ( TimeoutManager ) Stderr('\t')(registration.id)(" timed out\n");
-    
+
                 this.expired_registrations ~= registration;
             }
         }
@@ -427,7 +427,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
             this.expired_registrations ~= registration;
         }
-        
+
         debug ( TimeoutManager ) Stderr.flush();
 
         // All expired registrations are removed from the expiry tree. They are
@@ -463,17 +463,17 @@ abstract class TimeoutManagerBase : ITimeoutManager
     /***************************************************************************
 
         Registers registration and sets the timeout for its client.
-        
+
         Params:
             registration = IExpiryRegistration instance to register
             timeout_us   = timeout in microseconds from now
-            
-        Returns:    
+
+        Returns:
             expiry token: required for unregister(); the "key" member is the
             wall clock time of expiration as UNIX time in microseconds.
-    
+
     ***************************************************************************/
-    
+
     protected Expiry* register ( IExpiryRegistration registration, ulong timeout_us )
     out (expiry)
     {
@@ -482,17 +482,17 @@ abstract class TimeoutManagerBase : ITimeoutManager
     body
     {
         ulong now = this.now;
-        
+
         ulong t = now + timeout_us;
-              
+
         debug ( TimeoutManager ) this.next_expiration_us_called_from_internal = true;
-        
+
         ulong previously_next = this.next_expiration_us;
-        
+
         Expiry* expiry = this.expiry_tree.add(t);
-        
+
         *this.expiry_to_client.put(expiry) = registration;
-        
+
         debug ( TimeoutManager )
         {
             Stderr("----------- ");
@@ -517,27 +517,27 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
         return expiry;
     }
-    
+
     /***************************************************************************
-    
+
         Unregisters the IExpiryRegistration instance corresponding to expiry.
-        
+
         Params:
             expiry = expiry token returned by register() when registering the
                      IExpiryRegistration instance to unregister
-        
+
         Throws:
             Exception if no IExpiryRegistration instance corresponding to expiry
             is currently registered.
-        
+
     ***************************************************************************/
-    
+
     protected void unregister ( ref Expiry expiry )
     {
         debug ( TimeoutManager ) this.next_expiration_us_called_from_internal = true;
 
         ulong previously_next = this.next_expiration_us;
-        
+
         debug ulong t = expiry.key;
 
         try try
@@ -553,7 +553,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
             debug ( TimeoutManager )
             {
                 size_t n = this.expiry_tree.length;
-                
+
                 Stderr("----------- ");
                 this.printTime(now, false);
                 Stderr(" unregistered ");
@@ -566,46 +566,46 @@ abstract class TimeoutManagerBase : ITimeoutManager
                 }
                 Stderr('\n');
             }
-            
+
             this.setTimeout_(previously_next);
         }
     }
 
     /***************************************************************************
-    
+
         Called when the overall timeout needs to be set or changed.
-        
+
         Params:
             next_expiration_us = wall clock time when the first client times
                                     out so that checkTimeouts() must be called.
-        
+
     ***************************************************************************/
 
     protected void setTimeout ( ulong next_expiration_us ) { }
-    
+
     /***************************************************************************
-    
+
         Called when the last client has been unregistered so that the timer may
         be disabled.
-        
+
     ***************************************************************************/
 
     protected void stopTimeout ( ) { }
-    
+
     /***************************************************************************
 
         Calls setTimeout() or stopTimeout() if required.
-        
+
         Params:
             previously_next = next expiration time before a client was
                                  registered/unregistered
-        
+
     ***************************************************************************/
 
     private void setTimeout_ ( ulong previously_next )
     {
         Expiry* expiry = this.expiry_tree.first;
-        
+
         if (expiry)
         {
             ulong next_now = expiry.key;
@@ -620,46 +620,46 @@ abstract class TimeoutManagerBase : ITimeoutManager
             this.stopTimeout();
         }
     }
-    
+
     /***************************************************************************
 
         TODO: Remove debugging output.
-        
+
     ***************************************************************************/
 
     debug ( TimeoutManager ):
-    
+
     bool next_expiration_us_called_from_internal;
-    
+
     /***************************************************************************
 
         Prints the current wall clock time.
-        
+
     ***************************************************************************/
 
     void printTime ( bool nl = true )
     {
         this.printTime(this.now, nl);
     }
-    
+
     /***************************************************************************
 
         Prints t.
-        
+
         Params:
             t = wall clock time as UNIX time in microseconds.
-        
+
     ***************************************************************************/
 
     static void printTime ( ulong t, bool nl = true )
     {
         time_t s  = cast (time_t) (t / 1_000_000);
         uint   us = cast (uint)   (t % 1_000_000);
-        
+
         char* str = ctime(&s);
-        
+
         Stderr(str[0 .. strlen(str) - 1])('.')(us);
-        
+
         if (nl) Stderr('\n').flush();
     }
 }

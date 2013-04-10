@@ -8,7 +8,7 @@
     version:        May 2011: Initial release
 
     authors:        Gavin Norman, David Eckardt
-    
+
     Objects that can time out, the so-called timeout clients, must implement
     ITimeoutClient. For each client create an ExpiryRegistration instance and
     pass the object to the ExpiryRegistration constructor.
@@ -17,7 +17,7 @@
     timed out.
     To disable the timeout for a client that has not timed out yet, call
     ExpiryRegistration.unregister() .
-    
+
     Initially the object returned by TimerEventTimeoutManager.select_client
     must be registered to an epoll select dispatcher.
 
@@ -58,7 +58,7 @@ class TimerEventTimeoutManager : TimeoutManager
     /***************************************************************************
 
         TimerEvent for absolute real-time that calls checkTimeouts() when fired.
-    
+
     ***************************************************************************/
 
     private class TimerEvent : ITimerEvent
@@ -66,7 +66,7 @@ class TimerEventTimeoutManager : TimeoutManager
         /***********************************************************************
 
             Constructor
-        
+
         ***********************************************************************/
 
         this ( )
@@ -74,24 +74,24 @@ class TimerEventTimeoutManager : TimeoutManager
             super(true); // use real-time
             super.absolute = true; // use absolute time
         }
-        
+
         /***********************************************************************
 
             Called when the timer event fires; notifies and unregisters the
             timed out clients.
-            
+
             Params:
                 n = expiration counter (unused, mandatory)
-        
+
             Returns:
                 true to stay registered in the epoll select dispatcher.
-        
+
         ***********************************************************************/
 
         protected bool handle_ ( ulong n )
         {
             debug ( TimeoutManager ) Stderr("******** " ~ typeof (this.outer).stringof ~ " expired\n").flush();
-            
+
             this.outer.checkTimeouts();
             return true;
         }
@@ -100,68 +100,68 @@ class TimerEventTimeoutManager : TimeoutManager
     /***************************************************************************
 
         TimerEvent instance
-    
+
     ***************************************************************************/
 
     private const TimerEvent event;
-    
+
     /***************************************************************************
 
         Constructor
-    
+
     ***************************************************************************/
 
     public this ( )
     {
         this.event = this.new TimerEvent;
     }
-    
+
     /**************************************************************************
-    
+
         Called immediately when this instance is deleted.
         (Must be protected to prevent an invariant from failing.)
-    
+
      **************************************************************************/
 
     protected override void dispose ( )
     {
         delete this.event;
     }
-    
+
     /***************************************************************************
 
         Returns:
             the timer event instance to register in an epoll select dispatcher.
-    
+
     ***************************************************************************/
 
     public ISelectClient select_client ( )
     {
         return this.event;
     }
-    
+
     /***************************************************************************
-    
+
         Enables or changes the timer event time.
-    
+
         Params:
             next_expiration_us = wall clock time when the next client will time
                                  out as UNIX time in microseconds.
-    
+
     ***************************************************************************/
 
     protected override void setTimeout ( ulong next_expiration_us )
     {
         timespec ts = timespec(cast (time_t) (next_expiration_us / 1_000_000),
                                cast (uint)   (next_expiration_us % 1_000_000) * 1000);
-        
+
         this.event.set(ts);
     }
-    
+
     /***************************************************************************
-    
+
         Disables the timer event.
-    
+
     ***************************************************************************/
 
     protected override void stopTimeout ( )

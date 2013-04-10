@@ -31,7 +31,7 @@ debug private import tango.io.Stdout;
 
     The EBTree import and aliases should be in the TimeoutManager module and are
     here only to work around DMD's flaw of supporting mutual module imports.
-    
+
     TODO: Move to the TimeoutManager module when DMD is fixed.
 
 *******************************************************************************/
@@ -55,7 +55,7 @@ abstract class ExpiryRegistrationBase : IExpiryRegistration
     /***************************************************************************
 
         Enables access of TimeoutManager internals.
-    
+
     ***************************************************************************/
 
     interface ITimeoutManagerInternal
@@ -63,90 +63,90 @@ abstract class ExpiryRegistrationBase : IExpiryRegistration
         /***********************************************************************
 
             Registers registration and sets the timeout.
-            
+
             Params:
                 registration = IExpiryRegistration instance to register
                 timeout_us   = timeout in microseconds from now
-                
-            Returns:    
+
+            Returns:
                 expiry token: required for unregister(); "key" member reflects
                 the expiration wall clock time.
-        
+
         ***********************************************************************/
-    
+
         Expiry* register ( IExpiryRegistration registration, ulong timeout_us );
-        
+
         /***********************************************************************
-    
+
             Unregisters IExpiryRegistration instance corresponding to expiry.
-            
+
             Params:
                 expiry = expiry token returned by register() when registering
                          the IExpiryRegistration instance to unregister
-            
+
             In:
                 Must not be called from within timeout().
-            
+
         ***********************************************************************/
-    
+
         void unregister ( ref Expiry expiry );
-        
+
         /***********************************************************************
-    
+
             Returns:
                 the current wall clock time as UNIX time in microseconds.
-        
+
         ***********************************************************************/
-    
+
         ulong now ( );
     }
-    
+
     /***************************************************************************
 
         Timeout client: Object that times out after register() has been called
         when the time interval passed to register() has expired.
-        
+
         The client instance is set by a subclass. The subclass must make sure
         that a client instance is set before it calls register(). It may reset
         the client instance to null after it has called unregister() (even if
         unregister() throws an exception).
-        
+
     ***************************************************************************/
-    
+
     protected ITimeoutClient client = null;
-    
+
     /***************************************************************************
 
         Reference to an expiry time item in the registry; this is the key
         returned from register() and passed to unregister().
         The expiry item is null if and only if the client is registered with the
-        timeout manager. 
-        
+        timeout manager.
+
     ***************************************************************************/
-    
+
     private Expiry* expiry = null;
-    
+
     /***************************************************************************
 
         Object providing access to a timeout manager instance to
         register/unregister a client with that timeout manager.
-    
+
     ***************************************************************************/
 
     private const ITimeoutManagerInternal mgr;
-    
+
     /***************************************************************************
 
         "Timed out" flag: set by timeout() and cleared by register().
-    
+
     ***************************************************************************/
 
     private bool timed_out_ = false;
-    
+
     /***************************************************************************
-    
+
         Makes sure we have a client while registered.
-    
+
     ***************************************************************************/
 
     invariant ( )
@@ -155,44 +155,44 @@ abstract class ExpiryRegistrationBase : IExpiryRegistration
     }
 
     /***************************************************************************
-    
+
         Constructor
-        
+
         Params:
             mgr = object providing access to a timeout manager instance to
                   register/unregister a client with that timeout manager.
-    
+
     ***************************************************************************/
 
     protected this ( ITimeoutManagerInternal mgr )
     {
         this.mgr = mgr;
     }
-    
+
     /***************************************************************************
 
         Unregisters the current client.
         If a client is currently not registered, nothing is done.
-        
+
         The subclass may reset the client instance to null after it has called
         this method (even if it throws an exception).
-        
+
         Returns:
             true on success or false if no client was registered.
-        
+
         In:
             Must not be called from within timeout().
-        
+
     ***************************************************************************/
-    
+
     public bool unregister ( )
     {
         if (this.expiry) try
         {
             debug ( TimeoutManager ) Stderr("*** unregister ")(this.id)('\n').flush();
-            
+
             this.mgr.unregister(*this.expiry);
-            
+
             return true;
         }
         finally
@@ -204,20 +204,20 @@ abstract class ExpiryRegistrationBase : IExpiryRegistration
             return false;
         }
     }
-    
+
     /***************************************************************************
 
         Returns:
             the client timeout wall clock time as UNIX time in microseconds, if
             a client is currently registered, or ulong.max otherwise.
-        
+
     ***************************************************************************/
 
     public ulong expires ( )
     {
         return this.expiry? this.expiry.key : ulong.max;
     }
-    
+
     /***************************************************************************
 
         Returns:
@@ -225,7 +225,7 @@ abstract class ExpiryRegistrationBase : IExpiryRegistration
             is currently registered, or long.max otherwise. A negative value
             indicates that the client has timed out but was not yet
             unregistered.
-        
+
     ***************************************************************************/
 
     public long us_left ( )
@@ -237,19 +237,19 @@ abstract class ExpiryRegistrationBase : IExpiryRegistration
     {
         return this.expiry? this.expiry.key - this.mgr.now : long.max;
     }
-    
+
     /***************************************************************************
 
         Invokes the timeout() method of the client.
-        
+
         Should only be called from inside the timeout manager.
-        
+
         Returns:
             current client which has been notified that it has timed out.
-        
+
         In:
             A client must be registered.
-        
+
     ***************************************************************************/
 
     public ITimeoutClient timeout ( )
@@ -260,58 +260,58 @@ abstract class ExpiryRegistrationBase : IExpiryRegistration
     body
     {
         debug ( TimeoutManager ) Stderr("*** timeout for ")(this.id)('\n').flush();
-        
+
         this.timed_out_ = true;
-        
+
         this.client.timeout();
-        
+
         return this.client;
     }
-    
+
     /***************************************************************************
 
         Returns:
             true if the client has timed out or false otherwise.
-    
+
     ***************************************************************************/
 
     public bool timed_out ( )
     {
         return this.timed_out_;
     }
-    
+
     /***************************************************************************
 
         Returns:
             true if the client is registered or false otherwise
-    
+
     ***************************************************************************/
-    
+
     public bool registered ( )
     {
         return this.expiry !is null;
     }
-    
+
     /***************************************************************************
 
         Sets the timeout for the client and registers it with the timeout
         manager. On timeout the client will automatically be unregistered.
         The client must not already be registered.
-        
+
         The subclass must make sure that a client instance is set before it
         calls this method. It may reset the client instance to null after it has
         called unregister() (even if unregister() throws an exception).
-        
+
         Params:
             timeout_us = timeout in microseconds from now. 0 is ignored.
-            
+
         Returns:
             true if registered or false if timeout_us is 0.
-            
+
         In:
             - this.client must not be null.
             - The client must not already be registered.
-    
+
     ***************************************************************************/
 
     public bool register ( ulong timeout_us )
@@ -323,31 +323,31 @@ abstract class ExpiryRegistrationBase : IExpiryRegistration
     body
     {
         debug ( TimeoutManager ) Stderr("*** register ")(this.id)(": ");
-        
+
         this.timed_out_ = false;
-        
+
         if (timeout_us)
         {
             debug ( TimeoutManager ) Stderr(timeout_us)(" µs\n").flush();
-            
+
             this.expiry = this.mgr.register(this, timeout_us);
-            
+
             return true;
         }
         else
         {
             debug ( TimeoutManager ) Stderr("no timeout\n").flush();
-            
+
             return false;
         }
     }
-    
+
     /***************************************************************************
 
         Identifier string for debugging.
-    
+
     ***************************************************************************/
-    
+
     debug protected char[] id ( )
     {
         return (this.client !is null)? this.client.id : typeof (this).stringof;

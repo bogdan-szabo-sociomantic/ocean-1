@@ -3,11 +3,11 @@
     Periodic console tracer
 
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     version:        December 2010: Initial release
-    
+
     authors:        Gavin Norman
-    
+
     Periodic console tracer - writes messages to the console limited to a
     specified update interval. This can be used to safely limit the number of
     writes to the console. The write is done using either tango.util.log.Trace
@@ -36,11 +36,11 @@
     ---
 
     A local instance of the PeriodicTracer struct may be useful in situations
-    where two or more separate periodic outputs are required each with a 
+    where two or more separate periodic outputs are required each with a
     different update interval.
 
     Usage example with a local instance:
-    
+
     ---
 
         private import ocean.util.log.PeriodicTrace;
@@ -114,58 +114,58 @@ static this ( )
 struct PeriodicTracer
 {
     /***************************************************************************
-    
+
         Minimum time between updates (microsec)
-    
+
     ***************************************************************************/
-    
+
     public ulong interval = 100_000; // defaults to 1/10 of a second
-    
-    
+
+
     /***************************************************************************
-    
+
         Toggles between static display (true) and line-by-line display (false)
-    
+
     ***************************************************************************/
-    
+
     public bool static_display;
 
 
     /***************************************************************************
-    
+
         Timer, shared by all instances of this struct (there's only one time!)
-    
+
     ***************************************************************************/
-    
+
     static public StopWatch timer;
-    
-    
-    /***************************************************************************
-    
-        Time of last update
-    
-    ***************************************************************************/
-    
-    private ulong last_update_time;
-    
-    
-    /***************************************************************************
-    
-        Time retrieved by the most recent call to timeToUpdate()
-    
-    ***************************************************************************/
-    
-    private ulong now;
-    
+
 
     /***************************************************************************
-    
+
+        Time of last update
+
+    ***************************************************************************/
+
+    private ulong last_update_time;
+
+
+    /***************************************************************************
+
+        Time retrieved by the most recent call to timeToUpdate()
+
+    ***************************************************************************/
+
+    private ulong now;
+
+
+    /***************************************************************************
+
         Buffer for string formatting.
-    
+
     ***************************************************************************/
 
     private char[] formatted;
-    
+
 
     /***************************************************************************
 
@@ -221,20 +221,20 @@ struct PeriodicTracer
 
 
     /***************************************************************************
-    
+
         Checks if it's time to update the display.
-        
+
         Note: this method is public so that using classes can determine whether
         they need to perform any internal update before calling display().
-        
+
         TODO: this would be better done with a lazy char[] version of format(),
         which only calls the lazy delegate if it *is* time to update.
 
         Returns:
             true if the display update interval has passed
-    
+
     ***************************************************************************/
-    
+
     public bool timeToUpdate ( )
     {
         this.now = timer.microsec();
@@ -247,34 +247,34 @@ struct PeriodicTracer
         Outputs a formatted string to the console if the update interval has
         passed. The display is either static or adds a newline depending on the
         this.static_display member.
-    
+
         Params:
             fmt = format string (same format as tanog.util.log.Trace)
             args = argument pointers
             types = argument types
-    
+
         Returns:
             this instance for method chaining
-    
+
     ***************************************************************************/
-    
+
     private typeof(this) format ( char[] fmt, va_list args, TypeInfo[] types )
     {
         if ( this.timeToUpdate() )
         {
             this.last_update_time = this.now;
-    
+
             this.formatted.length = 0;
             uint sink ( char[] s )
             {
                 this.formatted ~= s;
                 return s.length;
             }
-    
+
             Layout!(char).instance()(&sink, types, args, fmt);
-    
+
             if ( this.static_display )
-            {    
+            {
                 StaticTrace.format("{}", this.formatted).flush;
             }
             else
@@ -282,17 +282,17 @@ struct PeriodicTracer
                 Trace.formatln("{}", this.formatted).flush;
             }
         }
-    
+
         return this;
     }
 
 
     /***************************************************************************
-    
+
         Static constructor, starts the shared timer.
-    
+
     ***************************************************************************/
-    
+
     static this ( )
     {
         timer.start();

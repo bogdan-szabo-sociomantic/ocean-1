@@ -1,13 +1,13 @@
 /******************************************************************************
 
     HTTP request message parser
-    
+
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-    
+
     version:        May 2011: Initial release
-    
+
     author:         David Eckardt
-    
+
     Before parsing an HTTP request message, the names of all header fields whose
     values will be required must be added, except the General-Header and
     Request-Header fields specified in RFC 2616 section 4.5 and 5.3,
@@ -18,22 +18,22 @@
     message does not contain a header line whose name matches the corresponding
     key.
     Specification of General-Header fields:
-    
+
         @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.5
-        
+
     Specification of Request-Header fields:
-        
+
         @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.3
-    
+
     Specification of Entity-Header fields:
-        
+
         @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7.1
-    
+
     For the definition of the categories the standard request message header
     fields are of
-    
+
         @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5
-    
+
  ******************************************************************************/
 
 module ocean.net.http2.HttpRequest;
@@ -41,7 +41,7 @@ module ocean.net.http2.HttpRequest;
 /******************************************************************************
 
     Imports
-    
+
  ******************************************************************************/
 
 private import ocean.net.http2.message.HttpHeader;
@@ -64,264 +64,264 @@ private import ocean.net.http2.time.HttpTimeParser;
 class HttpRequest : HttpHeader
 {
     /**************************************************************************
-    
+
         Maximum accepted request URI length
-        
+
      **************************************************************************/
 
     public uint max_uri_length = 0x4000;
-    
+
     /**************************************************************************
-    
+
         Requested HTTP method
-        
+
      **************************************************************************/
 
     public HttpMethod method;
-    
+
     /**************************************************************************
-    
+
         URI parser
-        
+
      **************************************************************************/
-    
+
     public const Uri uri;
-    
+
     /**************************************************************************
-    
+
         Message header parser instance to get header parse results and set
         limitations.
-        
+
      **************************************************************************/
-    
+
     public const IHttpHeaderParser header;
-    
+
     /**************************************************************************
-    
+
         Request message body
-        
+
      **************************************************************************/
 
     private char[] msg_body_;
-    
+
     /**************************************************************************
-    
+
         Request message body position counter
-        
+
      **************************************************************************/
 
     private size_t msg_body_pos;
-    
+
     /**************************************************************************
-    
+
         Message header parser
-        
+
      **************************************************************************/
 
     private const HttpHeaderParser parser;
-    
+
     /**************************************************************************
-    
+
         Tells whether the end of the message header has been reached and we are
         receiving the message body, if any
-        
+
      **************************************************************************/
-    
+
     private bool header_complete;
-    
+
     /**************************************************************************
-    
+
         Reusable exception instances
-        
+
      **************************************************************************/
 
     package const HttpException               http_exception;
     private const HeaderParameterException    header_param_exception;
-    
+
     /**************************************************************************
-    
+
         Constructor
-        
+
         If the server supports HTTP methods that expect a request message body
         (such as POST or PUT), set add_entity_headers to true to add the
         standard Entity header fields. (The standard General-Header and
         Request-Header fields are added automatically.)
-        
+
         Note that a non-zero value for msg_body_prealloc_length is senseful only
         when requests with message body (POST, PUT etc.) are supported by this
         server.
-        
+
         Params:
             add_entity_headers       = set to true to add the standard Entity
                                        header fields as well
             msg_body_prealloc_length = expected message body length for
                                        preallocation;
-        
+
      **************************************************************************/
 
     public this ( bool add_entity_headers = false, size_t msg_body_prealloc_length = 0 )
     {
         super(HeaderFieldNames.Request.NameList,
               add_entity_headers? HeaderFieldNames.Entity.NameList : null);
-        
+
         this.header = this.parser = new HttpHeaderParser;
-        
+
         this.uri = new Uri;
-        
+
         this.msg_body_ = new char[msg_body_prealloc_length];
-        
+
         this.http_exception         = new HttpException;
         this.header_param_exception = new HeaderParameterException;
-        
+
         this.reset();
     }
-    
+
     /**************************************************************************
-    
+
         ditto
-        
+
      **************************************************************************/
-    
+
     public this ( size_t msg_body_prealloc_length )
     {
         this(false, msg_body_prealloc_length);
     }
-    
+
     /**************************************************************************
-    
+
         Disposer
-        
+
      **************************************************************************/
-    
+
     protected override void dispose ( )
     {
         super.dispose();
-        
+
         delete this.parser;
         delete this.uri;
         delete this.msg_body_;
         delete this.http_exception;
         delete this.header_param_exception;
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             slice to the method name in the message header start line if the
             start line has already been parsed or null otherwise
-        
+
      **************************************************************************/
 
     public char[] method_name ( )
     {
         return this.parser.start_line_tokens[0];
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             URI instance which is set to the requested URI if the start line has
             already been parsed
-        
+
      **************************************************************************/
 
     public char[] uri_string ( )
     {
         return this.parser.start_line_tokens[1];
     }
-    
+
     /**************************************************************************
-    
+
         Obtains the request message body (which may be empty). It may be
         incomplete if parse() did not yet reach the end of the request message
         or null if parse() did not yet reach the end of the request message
         header.
-    
+
         Returns:
             request message body parsed so far or null if parse() did not yet
             reach the end of the request message header
-        
+
      **************************************************************************/
 
     public char[] msg_body ( )
     {
         return this.msg_body_;
     }
-    
+
     /**************************************************************************
-    
+
         Obtains the integer value of the request header field corresponding to
         header_field_name. The header field value is expected to represent an
         unsigned integer number in decimal representation.
-        
+
         Params:
             header_field_name = request header field name (case-insensitive;
                                 must be one of the message header field values
                                 of interest passed on instantiation)
-        
+
         Returns:
             integer value of the request header field
-            
+
         Throws:
             HeaderParameterException if
                 - the field is missing in the header or
                 - the field does not contain an unsigned integer value in
                   decimal representation.
-        
+
      **************************************************************************/
 
     public uint getUint ( T = uint ) ( char[] header_field_name )
     {
         uint n;
-        
+
         bool is_set,
              ok = super.getUint!(T)(header_field_name, n, is_set);
-        
+
         this.header_param_exception.assertEx!(__FILE__, __LINE__)(is_set, header_field_name, "header parameter missing");
         this.header_param_exception.assertEx!(__FILE__, __LINE__)(ok,     header_field_name, "decimal unsigned integer number expected");
-        
+
         return n;
     }
-    
+
     /**************************************************************************
-    
+
         Overriding wrapper.
-    
+
      **************************************************************************/
-    
+
     bool getUint ( T = uint ) ( char[] key, ref T n, out bool is_set )
     {
         return super.getUint!(T)(key, n, is_set);
     }
-    
+
     /**************************************************************************
 
         Overriding wrapper.
 
      **************************************************************************/
-    
+
     bool getUint ( T = uint ) ( char[] key, ref T n )
     {
         return super.getUint!(T)(key, n);
     }
-    
+
     /**************************************************************************
-    
+
         Parses content which is expected to be either the start of a HTTP
         message or a HTTP message fragment that continues the content passed on
         the last call to this method.
         If this method is called again after having finished, it will reset the
         status first and start parsing a new request message.
-        
+
         Params:
             content         = content to parse
             msg_body_length = callback returning the message body length; will
                               be called at most once after the message header
                               has been parsed.
-        
+
         Returns:
             number of elements consumed from content.
-        
+
         Throws:
             HttpParseException
                 - on parse error: if
@@ -330,29 +330,29 @@ class HttpRequest : HttpHeader
                 - on limit excess: if
                     * the header size in bytes exceeds the requested limit or
                     * the number of header lines in exceeds the requested limit.
-            
+
             HttpException if
                 - the HTTP method is unknown or
                 - the HTTP version identifier is unknown or
                 - the URI is missing or
                 - the URI length exceeds the requested max_uri_length.
-            
+
             Note that msg_body_length() may throw a HttpException, especially if
                 - the announced message body length exceeds an allowed limit or
                 - the announced message body length cannot be determined because
                   header parameters are missing.
-            
+
      **************************************************************************/
 
     public size_t parse ( char[] content, lazy size_t msg_body_length )
     {
         size_t consumed;
-        
+
         if (this.finished)
         {
             this.reset();
         }
-        
+
         if (this.header_complete)
         {
             consumed = this.appendMsgBody(content);
@@ -360,94 +360,94 @@ class HttpRequest : HttpHeader
         else
         {
             char[] msg_body_start = this.parser.parse(content);
-            
+
             consumed = content.length - msg_body_start.length;
-            
+
             if (msg_body_start !is null)
             {
                 this.header_complete = true;
-                
+
                 this.setRequestLine();
-                
+
                 foreach (element; this.parser.header_elements)
                 {
                     this.set(element.key, element.val);
                 }
-                
+
                 this.msg_body_.length = msg_body_length();
-                
+
                 consumed += this.appendMsgBody(msg_body_start);
             }
         }
-        
+
         assert (consumed == content.length || this.finished);
-        
+
         return consumed;
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             true if parse() has finished parsing the message or false otherwise
-        
+
      **************************************************************************/
 
     public bool finished ( )
     {
         return this.header_complete && this.msg_body_pos >= this.msg_body_.length;
     }
-    
+
     /**************************************************************************
-    
+
         Appends chunk to the message body as long as the message body length
         does not exceed the length reported to parse() by the msg_body_length
         parameter.
-        
+
         Params:
             chunk = chunk to append to the message body
-        
+
         Returns:
             number of elements appended
-        
+
      **************************************************************************/
 
     private size_t appendMsgBody ( char[] chunk )
     {
         size_t len = min(chunk.length, this.msg_body_.length - this.msg_body_pos),
                end = this.msg_body_pos + len;
-        
+
         this.msg_body_[this.msg_body_pos .. end] = chunk[0 .. len];
-        
+
         this.msg_body_pos = end;
-        
+
         return len;
     }
-    
+
     /**************************************************************************
-    
+
         Obtains the request line parameters.
-        
+
         Throws:
             HttpException if
                 - the HTTP method is unknown or
                 - the HTTP version identifier is unknown or
                 - the URI is missing or
                 - the URI length exceeds the requested max_uri_length.
-        
+
      **************************************************************************/
 
     private void setRequestLine ( )
     {
-        this.method = HttpMethodNames[this.method_name]; 
-        
+        this.method = HttpMethodNames[this.method_name];
+
         this.http_exception.assertEx!(__FILE__, __LINE__)(this.method, StatusCode.BadRequest, "invalid HTTP method");
-        
+
         this.http_version_ = HttpVersionIds[this.parser.start_line_tokens[2]];
-        
+
         if (!this.http_version_)
         {
-            this.http_version_ = this.http_version_.v1_0; 
-            
+            this.http_version_ = this.http_version_.v1_0;
+
             if (HttpVersionIds.validSyntax(this.parser.start_line_tokens[2]))
             {
                 throw this.http_exception!(__FILE__, __LINE__)(StatusCode.VersionNotSupported);
@@ -457,17 +457,17 @@ class HttpRequest : HttpHeader
                 throw this.http_exception!(__FILE__, __LINE__)(StatusCode.BadRequest, "invalid HTTP version");
             }
         }
-        
+
         this.http_exception.assertEx!(__FILE__, __LINE__)(this.parser.start_line_tokens[1].length,StatusCode.BadRequest, "no uri in request");
         this.http_exception.assertEx!(__FILE__, __LINE__)(this.parser.start_line_tokens[1].length <= this.max_uri_length, StatusCode.RequestURITooLarge);
-        
+
         this.uri.parse(this.parser.start_line_tokens[1]);
     }
-    
+
     /**************************************************************************
-    
+
         Resets the state
-        
+
      **************************************************************************/
 
     public override void reset ( )
@@ -478,17 +478,17 @@ class HttpRequest : HttpHeader
         this.header_complete = false;
         this.uri.reset();
         this.parser.reset();
-        
+
         super.reset();
     }
-    
+
     /**************************************************************************
-    
+
         Returns the minimum of a and b.
-        
+
         Returns:
             minimum of a and b
-        
+
      **************************************************************************/
 
     static size_t min ( size_t a, size_t b )
@@ -564,7 +564,7 @@ unittest
         "At vero eos et accusam et justo duo dolores et ea rebum. Stet clita "
         "kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit "
         "amet.";
-    
+
     const char[] content =
         "GET /dir?query=Hello%20World!&abc=def&ghi HTTP/1.1\r\n"
         "Host: www.example.org:12345\r\n"
@@ -578,30 +578,30 @@ unittest
         "Cache-Control: max-age=0\r\n"
         "\r\n" ~
         lorem_ipsum;
-    
+
     const parts = 3;
-    
+
     /*
      * content will be split into parts parts where the length of each part is
      * content.length / parts + d with d a random number in the range
      * [-(content.length / parts) / 3, +(content.length / parts) / 3].
      */
-    
+
     static size_t random_chunk_length ( )
     {
         const c = content.length * (2.f / (parts * 3));
-        
+
         static assert (c >= 3, "too many parts");
-        
+
         return cast (size_t) (c + cast (float) drand48() * c);
     }
-    
+
     scope request = new HttpRequest;
-    
+
     request.addCustomHeaders("Keep-Alive");
-    
+
     srand48(time(null));
-    
+
     version (OceanPerformanceTest)
     {
         const n = 1000_000;
@@ -610,27 +610,27 @@ unittest
     {
         const n = 10;
     }
-    
+
     version (OceanPerformanceTest)
     {
         gc_disable();
-        
+
         scope (exit) gc_enable();
     }
-    
+
     for (uint i = 0; i < n; i++)
     {
         {
             size_t len = request.min(random_chunk_length(), content.length),
                    ret = request.parse(content[0 .. len], lorem_ipsum.length);
-            
+
             for (size_t pos = len; !request.finished; pos += len)
             {
                 len = request.min(random_chunk_length() + pos, content.length - pos);
                 ret = request.parse(content[pos .. pos + len], lorem_ipsum.length);
             }
         }
-        
+
         assert (request.method_name           == "GET");
         assert (request.method                == request.method.Get);
         assert (request.uri_string            == "/dir?query=Hello%20World!&abc=def&ghi");
@@ -642,13 +642,13 @@ unittest
         assert (request["Accept-Charset"]     == "UTF-8,*");
         assert (request.getUint("keep-alive") == 115);
         assert (request["connection"]         == "keep-alive");
-        
+
         assert (request.msg_body              == lorem_ipsum, ">" ~ request.msg_body ~ "<");
-        
-        version (OceanPerformanceTest) 
+
+        version (OceanPerformanceTest)
         {
             uint j = i + 1;
-            
+
             if (!(j % 10_000))
             {
                 Stderr(HttpRequest.stringof)(' ')(j)("\n").flush();

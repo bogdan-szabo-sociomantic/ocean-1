@@ -2,11 +2,11 @@
 
     Deserializer, to be used with the StructSerializer, which loads the members
     of a struct from a json string.
-    
+
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     version:        October 2010: Initial release
-    
+
     authors:        Gavin Norman
 
     Deserializer, to be used with the StructSerializer in
@@ -39,16 +39,16 @@
                                 "ids":
                                  [
                                      {
-                                         "name":"hello", 
+                                         "name":"hello",
                                          "id":23
-                                     }, 
+                                     },
                                      {
-                                         "name":"hi", 
+                                         "name":"hi",
                                          "id":17
                                      }
-                                 ], 
-                                 "name":"monty", 
-                                 "count":112, 
+                                 ],
+                                 "name":"monty",
+                                 "count":112,
                                  "money":123.456
                             }
                         }`;
@@ -99,7 +99,7 @@ debug private import tango.util.log.Trace;
 /*******************************************************************************
 
     Json struct deserializer
-    
+
     Template params:
         Char = character type of input string
 
@@ -115,7 +115,7 @@ class JsonStructDeserializer ( Char )
         Json parser - simply a wrapper around the parser in
         tango.text.json.JsonParser, which throws JsonExceptions instead of just
         plain Exceptions.
-    
+
     ***************************************************************************/
 
     class Parser
@@ -123,25 +123,25 @@ class JsonStructDeserializer ( Char )
         /***********************************************************************
 
             Json parser alias
-        
+
         ***********************************************************************/
 
         private alias JsonParser!(Char) JP;
 
-        
+
         /***********************************************************************
 
             Json parser instance
-        
+
         ***********************************************************************/
 
         private JP parser;
-    
+
 
         /***********************************************************************
 
             Json token alias
-        
+
         ***********************************************************************/
 
         public alias JP.Token Token;
@@ -150,7 +150,7 @@ class JsonStructDeserializer ( Char )
         /***********************************************************************
 
             Constructor
-        
+
         ***********************************************************************/
 
         public this ( )
@@ -158,23 +158,23 @@ class JsonStructDeserializer ( Char )
             this.parser = new JP();
         }
 
-        
+
         /***********************************************************************
 
             Destructor
-        
+
         ***********************************************************************/
 
         ~this ( )
         {
             delete this.parser;
         }
-        
+
 
         /***********************************************************************
 
             Next
-        
+
         ***********************************************************************/
 
         public bool next ( )
@@ -186,7 +186,7 @@ class JsonStructDeserializer ( Char )
         /***********************************************************************
 
             Type
-        
+
         ***********************************************************************/
 
         public Token type ( )
@@ -198,19 +198,19 @@ class JsonStructDeserializer ( Char )
         /***********************************************************************
 
             Value
-        
+
         ***********************************************************************/
 
         public Char[] value ( )
         {
             return this.rethrow(&this.parser.value);
         }
-        
-        
+
+
         /***********************************************************************
 
             Reset
-        
+
         ***********************************************************************/
 
         public void reset ( Char[] json )
@@ -223,14 +223,14 @@ class JsonStructDeserializer ( Char )
 
             Executes the passed delegate, and rethrows any exceptions caught
             within as JsonExceptions.
-            
+
             Template params:
                 R = return type of delegate
                 T = tuple of delegate's arguments
-            
+
             Params:
                 dg = delegate to execute
-                
+
             Returns:
                 delegate's return value
 
@@ -257,7 +257,7 @@ class JsonStructDeserializer ( Char )
     /***************************************************************************
 
         Json parser instance
-    
+
     ***************************************************************************/
 
     private Parser parser;
@@ -266,7 +266,7 @@ class JsonStructDeserializer ( Char )
     /***************************************************************************
 
         Constructor. Creates json parser.
-    
+
     ***************************************************************************/
 
     public this ( )
@@ -278,7 +278,7 @@ class JsonStructDeserializer ( Char )
     /***************************************************************************
 
         Destructor. Deletes json parser.
-    
+
     ***************************************************************************/
 
     void dispose ( )
@@ -292,11 +292,11 @@ class JsonStructDeserializer ( Char )
         Called at the start of struct deserialization - checks that the json
         string opens with a {, then the name of the top-level object (the struct
         being deserialized), then another {.
-        
+
         Params:
             json = string to deserialize json data from
             name = name of top-level object
-    
+
     ***************************************************************************/
 
     public void open ( Char[] json, Char[] name )
@@ -315,7 +315,7 @@ class JsonStructDeserializer ( Char )
         Called at the end of struct deserialization - checks that the json
         string closes with two {'s - one to close the top-level object, and one
         to close the json string.
-        
+
     ***************************************************************************/
 
     public void close ( )
@@ -350,7 +350,7 @@ class JsonStructDeserializer ( Char )
             if (!this.checkName(name, false))
             {
                 output = output.init;
-                
+
                 return;
             }
         }
@@ -387,12 +387,12 @@ class JsonStructDeserializer ( Char )
 
         Template params:
             T = type of struct to deserialize
-    
+
         Params:
             output = struct to deserialize into
             name = expected name of the struct
             deserialize_struct = delegate to perform the deserialization
-        
+
     ***************************************************************************/
 
     public void deserializeStruct ( T ) ( ref T output, Char[] name, void delegate ( ) deserialize_struct )
@@ -409,27 +409,27 @@ class JsonStructDeserializer ( Char )
     /***************************************************************************
 
         Reads a named array from the json string.
-    
+
         Checks that the json string contains the array's name, then an opening
         [, then deserializes its contents one element at a time until the
         closing ] is encountered.
-    
+
         Multi-dimensional arrays are deserialized as arrays of json objects,
         where each sub-object has two values:
-        
+
             * index = integer value giving index in array
             * elements = sub-array of elements
-        
+
         In this way, arrays of arbitrary dimension can be recursively
         deserialized.
-    
+
         Template params:
             T = element type of array to deserialize
-    
+
         Params:
             output = array to deserialize into
             name = expected name of the array
-        
+
         Throws:
             throws a JsonException if the array elements are not ordered
             correctly
@@ -497,23 +497,23 @@ class JsonStructDeserializer ( Char )
     /***************************************************************************
 
         Reads a named array of fixed length from the json string.
-    
+
         Checks that the json string contains the array's name, then an opening
         [, then deserializes its contents one element at a time until the array
         is full. Then the closing ] is expected.
-    
+
         Multi-dimensional arrays are deserialized as arrays of json objects,
         where each sub-object has two values:
-        
+
             * index = integer value giving index in array
             * elements = sub-array of elements
-        
+
         In this way, arrays of arbitrary dimension can be recursively
         deserialized.
-    
+
         Template params:
             T = element type of array to deserialize
-    
+
         Params:
             output = array to deserialize into
             name = expected name of the array
@@ -521,7 +521,7 @@ class JsonStructDeserializer ( Char )
         Throws:
             throws a JsonException if the array elements are not ordered
             correctly
-        
+
     ***************************************************************************/
 
     public void deserializeStaticArray ( T ) ( T[] output, Char[] name )
@@ -585,15 +585,15 @@ class JsonStructDeserializer ( Char )
 
         Each element is deserialized by checking for its opening {,
         deserializing its contents, then checking for its closing }.
-    
+
         Template params:
             T = element type of array to deserialize
-    
+
         Params:
             output = array to deserialize into
             name = expected name of the array
             deserialize_element = delegate to deserialize a single array element
-        
+
     ***************************************************************************/
 
     public void deserializeStructArray ( T ) ( ref T[] output, Char[] name, void delegate ( ref T ) deserialize_element )
@@ -641,7 +641,7 @@ class JsonStructDeserializer ( Char )
         dest[] = src[];
     }
 
-    
+
     /***************************************************************************
 
         Checks whether an expected token is next in the json string. If the
@@ -652,7 +652,7 @@ class JsonStructDeserializer ( Char )
 
         Throws:
             throws a JsonException if the expected token is not found
-        
+
     ***************************************************************************/
 
     private void checkToken ( Parser.Token token )
@@ -698,10 +698,10 @@ class JsonStructDeserializer ( Char )
             {
                 return false;
             }
-        }        
-        
+        }
+
         this.parser.next();
-        
+
         return true;
     }
 }

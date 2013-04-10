@@ -21,18 +21,18 @@ import tango.stdc.posix.unistd;
 *******************************************************************************/
 
 class RefuseRootExt : IArgumentsExtExtension
-{  
+{
     /***************************************************************************
 
         Order doesn't matter, so return default -> 0
 
     ***************************************************************************/
-      
+
     int order ()
     {
         return 0;
     }
-    
+
     /***************************************************************************
 
         Function executed when command line arguments are set up (before
@@ -68,7 +68,7 @@ class RefuseRootExt : IArgumentsExtExtension
     char[] validateArgs ( IApplication app, Arguments args )
     {
         if ( getuid() == 0 && !args.exists("asroot"))
-        {        
+        {
             return "Won't run as root! (use --asroot if you really need to do this)";
         }
         else
@@ -82,7 +82,7 @@ class RefuseRootExt : IArgumentsExtExtension
 
         Function executed after (successfully) validating the command line
         arguments.
-    
+
         Exists to satisfy the interface.
 
         Params:

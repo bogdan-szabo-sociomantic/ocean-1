@@ -25,11 +25,11 @@
     removed and is then split into words. Ngrams are then derived from each word
     in turn.
 
-	It uses the class NGramAnalysis to store the results of a parsing, and
-	objects of that class can be retrieved from the NGramParser and compared.
+    It uses the class NGramAnalysis to store the results of a parsing, and
+    objects of that class can be retrieved from the NGramParser and compared.
 
-	Optionally, a list of stopwords can be set. The ngram parser will not parse
-	any words in the stopwords list.
+    Optionally, a list of stopwords can be set. The ngram parser will not parse
+    any words in the stopwords list.
 
     --
 
@@ -78,19 +78,19 @@
         // ngrams with the highest number will be returned first.
         uint max_number_ngrams   = 200;
 
-		// Parsing trigrams
-		uint ngram_size = 3;
+        // Parsing trigrams
+        uint ngram_size = 3;
 
         alias NGramParser!(dchar) Parser;
-		scope ngrams = new Parser.NGrams;
-		Parser.parseText(ngrams, ngram_size, text);
+        scope ngrams = new Parser.NGrams;
+        Parser.parseText(ngrams, ngram_size, text);
 
         foreach (ngram, freq; ngrams.getHighest(max_number_ngrams))
         {
             Trace.formatln("{} {}", ngram, occurrence);
         }
 
-	---
+    ---
 
 *******************************************************************************/
 
@@ -100,7 +100,7 @@ module      ocean.text.ling.ngram.NGramParser;
 
 /*******************************************************************************
 
-	Imports
+    Imports
 
 *******************************************************************************/
 
@@ -124,7 +124,7 @@ private import tango.text.UnicodeData;
 
 debug
 {
-	private import tango.util.log.Trace;
+    private import tango.util.log.Trace;
 }
 
 
@@ -208,18 +208,18 @@ public class NGramParser
     }
 
 
-	/***************************************************************************
+    /***************************************************************************
 
-	    Parses a text, and fills the passed ngrams set with the discovered
-	    ngrams.
+        Parses a text, and fills the passed ngrams set with the discovered
+        ngrams.
 
-	    Params:
-	        out_ngrams = ngrams set to be filled
-	        ngram_length = character length of ngrams
-	        text = text to parse
+        Params:
+            out_ngrams = ngrams set to be filled
+            ngram_length = character length of ngrams
+            text = text to parse
             words = list of arrays used to split the text into words
 
-	***************************************************************************/
+    ***************************************************************************/
 
     public void parseText ( NGramSet out_ngrams, uint ngram_length, dchar[] text )
     {
@@ -227,21 +227,21 @@ public class NGramParser
     }
 
 
-	/***************************************************************************
+    /***************************************************************************
 
-	    Parses a list of texts, and fills the passed ngrams set with the
+        Parses a list of texts, and fills the passed ngrams set with the
         discovered ngrams.
 
-	    Params:
-	        out_ngrams = ngrams set to be filled
-	        ngram_length = character length of ngrams
-	        texts = texts to parse
+        Params:
+            out_ngrams = ngrams set to be filled
+            ngram_length = character length of ngrams
+            texts = texts to parse
 
         Throws:
             asserts that the passed texts have been normalized (see the
             normalizeText methods)
 
-	***************************************************************************/
+    ***************************************************************************/
 
     public void parseText ( NGramSet out_ngrams, uint ngram_length, dchar[][] texts )
     in
@@ -673,7 +673,7 @@ public class NGramParser
             ngram_length = character length of ngrams
             texts = array of texts to process
 
-	***************************************************************************/
+    ***************************************************************************/
 
     private void getNGrams ( NGramSet ngrams, uint ngram_length, dchar[][] texts )
     {
@@ -700,7 +700,7 @@ public class NGramParser
         if ( text.length >= ngram_length )
         {
             uint i;
-        	uint max_steps = (text.length - ngram_length) + 1;
+            uint max_steps = (text.length - ngram_length) + 1;
 
             do
             {
@@ -743,40 +743,40 @@ public class NGramParser
 
 debug ( OceanUnitTest )
 {
-	import tango.core.Array;
-	import tango.util.log.Trace;
+    import tango.core.Array;
+    import tango.util.log.Trace;
 
-	unittest
-	{
+    unittest
+    {
         Trace.formatln("Running ocean.text.ling.ngram.NGramParser unittest");
 
-		const char[] text = "hello this is a test text";
-		const uint ngram_size = 3; // trigrams
+        const char[] text = "hello this is a test text";
+        const uint ngram_size = 3; // trigrams
 
-		scope ngrams = new NGramSet();
+        scope ngrams = new NGramSet();
         dchar[] normalized, normalized2, working;
         NGramParser.normalizeText(text, normalized, working);
         NGramParser.parseText(ngrams, ngram_size, normalized);
 
-		// Check that all the ngrams found actually exist in the source text
-		dchar[] unicode_text = Utf.toString32(text);
-		foreach ( dchar[] ngram, uint freq; ngrams )
-		{
-			const size_t NotFound = text.length;
-			assert(unicode_text.find(ngram) != NotFound, "NGramParser unittest: Error, ngram not found in source text.");
-		}
+        // Check that all the ngrams found actually exist in the source text
+        dchar[] unicode_text = Utf.toString32(text);
+        foreach ( dchar[] ngram, uint freq; ngrams )
+        {
+            const size_t NotFound = text.length;
+            assert(unicode_text.find(ngram) != NotFound, "NGramParser unittest: Error, ngram not found in source text.");
+        }
 
-		// Check that the source text is an exact match of itself
-		assert(ngrams.distance(ngrams) == 0.0, "NGramParser unittest: Error, ngram set does not match itself.");
+        // Check that the source text is an exact match of itself
+        assert(ngrams.distance(ngrams) == 0.0, "NGramParser unittest: Error, ngram set does not match itself.");
 
-		// Check that a text with no ngrams in common is completely different
-		const char[] text2 = "hail not too big";
-		scope ngrams2 = new NGramSet();
+        // Check that a text with no ngrams in common is completely different
+        const char[] text2 = "hail not too big";
+        scope ngrams2 = new NGramSet();
         NGramParser.normalizeText(text, normalized2, working);
-		NGramParser.parseText(ngrams, ngram_size, normalized2);
-		assert(ngrams.distance(ngrams2) == 1.0, "NGramParser unittest: Error, ngram set comparison against a totally different ngram set didn't return total difference.");
+        NGramParser.parseText(ngrams, ngram_size, normalized2);
+        assert(ngrams.distance(ngrams2) == 1.0, "NGramParser unittest: Error, ngram set comparison against a totally different ngram set didn't return total difference.");
 
-		Trace.formatln("\nDone unittest\n");
-	}
+        Trace.formatln("\nDone unittest\n");
+    }
 }
 

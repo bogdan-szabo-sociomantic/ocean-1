@@ -1,13 +1,13 @@
 /*******************************************************************************
 
     Declaration of and wrappers for the addrinfo address lookup API.
-    
+
     copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-    
+
     version:        August 2012: Initial release
-    
+
     authors:        David Eckardt
-    
+
 *******************************************************************************/
 
 module ocean.sys.socket.AddrInfo;
@@ -45,58 +45,58 @@ struct addrinfo
         getaddrinfo() flags.
 
     ***************************************************************************/
-    
+
     enum Flags
     {
         None = 0,
-        AI_PASSIVE                  = 1 << 0, /// Socket address is intended for `bind'.  
-        AI_CANONNAME                = 1 << 1, /// Request for canonical name.  
-        AI_NUMERICHOST              = 1 << 2, /// Don't use name resolution.  
-        AI_V4MAPPED                 = 1 << 3, /// IPv4 mapped addresses are acceptable.  
-        AI_ALL                      = 1 << 4, /// Return IPv4 mapped and IPv6 addresses.  
+        AI_PASSIVE                  = 1 << 0, /// Socket address is intended for `bind'.
+        AI_CANONNAME                = 1 << 1, /// Request for canonical name.
+        AI_NUMERICHOST              = 1 << 2, /// Don't use name resolution.
+        AI_V4MAPPED                 = 1 << 3, /// IPv4 mapped addresses are acceptable.
+        AI_ALL                      = 1 << 4, /// Return IPv4 mapped and IPv6 addresses.
         AI_ADDRCONFIG               = 1 << 5, /// Use configuration of this host to choose returned address type.
         AI_IDN                      = 1 << 6, /// IDN encode input (assuming it is encoded in the current locale's character set) before looking it up.
-        AI_CANONIDN                 = 1 << 7, /// Translate canonical name from IDN format. 
+        AI_CANONIDN                 = 1 << 7, /// Translate canonical name from IDN format.
         AI_IDN_ALLOW_UNASSIGNED     = 1 << 8, /// Don't reject unassigned Unicode code points.
         AI_IDN_USE_STD3_ASCII_RULES = 1 << 9  /// Validate strings according to STD3 rules.
 
     }
-    
+
     /***************************************************************************
 
         Error codes returned by getaddrinfo() (not passed via errno).
-    
+
     ***************************************************************************/
-    
+
     enum ErrorCode
     {
         Success = 0,
-        EAI_BADFLAGS    = -1,     /// Invalid value for `ai_flags' field.  
-        EAI_NONAME      = -2,     /// NAME or SERVICE is unknown.  
-        EAI_AGAIN       = -3,     /// Temporary failure in name resolution.  
-        EAI_FAIL        = -4,     /// Non-recoverable failure in name res.  
-        EAI_FAMILY      = -6,     /// `ai_family' not supported.  
-        EAI_SOCKTYPE    = -7,     /// `ai_socktype' not supported.  
-        EAI_SERVICE     = -8,     /// SERVICE not supported for `ai_socktype'.  
-        EAI_MEMORY      = -10,    /// Memory allocation failure.  
-        EAI_SYSTEM      = -11,    /// System error returned in `errno'.  
-        EAI_OVERFLOW    = -12,    /// Argument buffer overflow.  
-        EAI_NODATA      = -5,     /// No address associated with NAME.  
-        EAI_ADDRFAMILY  = -9,     /// Address family for NAME not supported.  
-        EAI_INPROGRESS  = -100,   /// Processing request in progress.  
-        EAI_CANCELED    = -101,   /// Request canceled.  
-        EAI_NOTCANCELED = -102,   /// Request not canceled.  
-        EAI_ALLDONE     = -103,   /// All requests done.  
-        EAI_INTR        = -104,   /// Interrupted by a signal.  
-        EAI_IDN_ENCODE  = -105,   /// IDN encoding failed.  
+        EAI_BADFLAGS    = -1,     /// Invalid value for `ai_flags' field.
+        EAI_NONAME      = -2,     /// NAME or SERVICE is unknown.
+        EAI_AGAIN       = -3,     /// Temporary failure in name resolution.
+        EAI_FAIL        = -4,     /// Non-recoverable failure in name res.
+        EAI_FAMILY      = -6,     /// `ai_family' not supported.
+        EAI_SOCKTYPE    = -7,     /// `ai_socktype' not supported.
+        EAI_SERVICE     = -8,     /// SERVICE not supported for `ai_socktype'.
+        EAI_MEMORY      = -10,    /// Memory allocation failure.
+        EAI_SYSTEM      = -11,    /// System error returned in `errno'.
+        EAI_OVERFLOW    = -12,    /// Argument buffer overflow.
+        EAI_NODATA      = -5,     /// No address associated with NAME.
+        EAI_ADDRFAMILY  = -9,     /// Address family for NAME not supported.
+        EAI_INPROGRESS  = -100,   /// Processing request in progress.
+        EAI_CANCELED    = -101,   /// Request canceled.
+        EAI_NOTCANCELED = -102,   /// Request not canceled.
+        EAI_ALLDONE     = -103,   /// All requests done.
+        EAI_INTR        = -104,   /// Interrupted by a signal.
+        EAI_IDN_ENCODE  = -105,   /// IDN encoding failed.
     }
-    
+
     /***************************************************************************
 
         Data fields.
-    
+
     ***************************************************************************/
-    
+
     Flags           ai_flags;
     int             ai_family,
                     ai_socktype,
@@ -105,54 +105,54 @@ struct addrinfo
     sockaddr*       ai_addr;
     char*           ai_canonname;
     typeof (this)   ai_next;
-    
+
     alias .INET6_ADDRSTRLEN INET6_ADDRSTRLEN;
     alias .INET_ADDRSTRLEN  INET_ADDRSTRLEN;
-    
+
     /***************************************************************************
 
         Obtains the current IP address in standard notation.
-        
+
         Params:
             dst = destination buffer
-            
+
         Returns:
             a slice to the resulting IP address string in dst on success or null
             on error. On error errno is set appropriately.
-        
+
         Errors:
             EAFNOSUPPORT: The address family is not supported (AF_INET/IPv4 or
                           AF_INET6/IPv6).
-            
+
         In:
             - this.ai_addr must not be null: this instance should have been
               obtained by getaddrinfo() or manually initialised.
             - dst.length must be at least the required address length for the
               address family, INET_ADDRSTRLEN for IPv4 or INET6_ADDRSTRLEN for
               IPv6.
-        
+
         Out:
             If the resulting slice is not null, it slices dst from the
             beginning.
-        
+
     ***************************************************************************/
-    
+
     char[] ipAddress ( char[] dst )
     in
     {
         assert (this.ai_addr !is null);
-        
+
         switch (this.ai_family)
         {
             case AF_INET:
                 assert (dst.length >= INET_ADDRSTRLEN,
                         "dst.length expected to be at least " ~ INET_ADDRSTRLEN.stringof);
                 break;
-                
+
             case AF_INET6:
                 assert (dst.length >= INET6_ADDRSTRLEN,
                         "dst.length expected to be at least " ~ INET6_ADDRSTRLEN.stringof);
-            
+
             default: // will fail with EAFNOSUPPORT anyway
         }
     }
@@ -163,44 +163,44 @@ struct addrinfo
     body
     {
         void* addr;
-        
+
         switch (this.ai_family)
         {
             case AF_INET:
-                addr = &(*cast (sockaddr_in*) this.ai_addr).sin_addr; 
+                addr = &(*cast (sockaddr_in*) this.ai_addr).sin_addr;
                 break;
-                
+
             case AF_INET6:
                 addr = &(*cast (sockaddr_in6*) this.ai_addr).sin6_addr;
                 break;
-            
+
             default:
                 .errno = EAFNOSUPPORT; // inet_ntop() would do the same
                 return null;
         }
 
         char* address_p = .inet_ntop(this.ai_family, addr, dst.ptr, dst.length);
-        
+
         return address_p? address_p[0 .. strlen(address_p)] : null;
     }
-    
+
     /**************************************************************************
-    
+
         Obtains the current port number.
-        
+
         Returns:
             the current port number.
-        
+
         Errors:
             EAFNOSUPPORT: The address family is not supported (AF_INET/IPv4 or
                           AF_INET6/IPv6).
-            
+
         In:
             this.ai_addr must not be null: this instance should have been
             obtained by getaddrinfo() or manually initialised.
-    
+
      **************************************************************************/
-    
+
     ushort port ( )
     in
     {
@@ -209,53 +209,53 @@ struct addrinfo
     body
     {
         .errno = 0;
-        
+
         switch (this.ai_family)
         {
             case AF_INET:
                 return .ntohs((cast (sockaddr_in*) this.ai_addr).sin_port);
-                
+
             case AF_INET6:
                 return .ntohs((cast (sockaddr_in6*) this.ai_addr).sin6_port);
-            
+
             default:
                 .errno = EAFNOSUPPORT;
                 return 0;
         }
     }
-    
+
     /**************************************************************************
-    
+
         Obtains the current canonical name.
-        
+
         Returns:
             the current canonical name or null.
-    
+
      **************************************************************************/
-    
+
     char[] canonname ( )
     {
         return this.ai_canonname? this.ai_canonname[0 .. strlen(this.ai_canonname)] : null;
     }
-    
+
     /**************************************************************************
-    
+
         'foreach' iteration over the linked list of instances of this struct;
         starting with this instance.
-        
+
         Do not change any of the pointer struct members.
-    
+
      **************************************************************************/
-    
+
     int opApply ( int delegate ( ref typeof (*this) info ) dg )
     {
         int result = 0;
-        
+
         for (typeof (this) info = this; info && !result; info = info.ai_next)
         {
             result = dg(*info);
         }
-            
+
         return result;
     }
 }
@@ -265,17 +265,17 @@ extern (C)
     /**************************************************************************
 
         Obtains the error message for errcode.
-        
+
         Params:
             errcode = error code returned by getaddrinfo()
-            
+
         Returns:
             the error message for errcode.
-    
+
      **************************************************************************/
-    
+
     public char* gai_strerror(addrinfo.ErrorCode errcode);
-    
+
     /**************************************************************************
 
         Given node and service, which identify an Internet host and  a  service,
@@ -452,7 +452,7 @@ extern (C)
                (check output to make sure it  is  a  STD3  conforming  hostname)
                flags respectively to be used in the IDNA handling.
 
-    
+
         getaddrinfo()  returns 0 if it succeeds, or one of the following nonzero
         error codes:
 
@@ -506,20 +506,20 @@ extern (C)
 
         The  gai_strerror()  function  translates  these  error codes to a human
         readable string, suitable for error reporting.
-        
+
      **************************************************************************/
-    
+
     private addrinfo.ErrorCode getaddrinfo(char* node, char* service,
                                            addrinfo* hints, addrinfo** res);
-    
+
     private void freeaddrinfo(addrinfo* res);
 
 }
 
 /******************************************************************************
 
-    Wraps getaddrinfo()/freeaddrinfo() and manages an addrinfo instance. 
-    
+    Wraps getaddrinfo()/freeaddrinfo() and manages an addrinfo instance.
+
  ******************************************************************************/
 
 class AddrInfo : AddrInfoC
@@ -529,7 +529,7 @@ class AddrInfo : AddrInfoC
         String nul-termination buffers.
 
      **************************************************************************/
-    
+
     private char[] node, service;
 
     /**************************************************************************
@@ -537,7 +537,7 @@ class AddrInfo : AddrInfoC
         Disposer.
 
      **************************************************************************/
-    
+
     protected override void dispose ( )
     {
         if (this.node)      delete this.node;
@@ -550,27 +550,27 @@ class AddrInfo : AddrInfoC
             the current address info as most recently obtained.
 
      **************************************************************************/
-    
+
     public addrinfo* info ( )
     {
         return this.info_;
     }
 
     /**************************************************************************
-        
+
         Gets the address info for a TCP/IP node and/or service.
-        
+
         Params:
             node    = node name (may be null)
             service = service name (may be null)
             ipv6    = false: get the IPv4, true: get the IPv6 address
             flags   = getaddrinfo() flags
-        
+
         Returns:
             0 on success or an error code on failure, see addrinfo.ErrorCode.
 
      **************************************************************************/
-    
+
     public ErrorCode getTcpIp ( char[] node, char[] service, bool ipv6,
                                 addrinfo.Flags flags = addrinfo.Flags.None )
     {
@@ -579,9 +579,9 @@ class AddrInfo : AddrInfoC
     }
 
     /**************************************************************************
-        
+
         Gets the address info for an IP node and/or service.
-        
+
         Params:
             node     = node name (may be null)
             service  = service name (may be null)
@@ -589,12 +589,12 @@ class AddrInfo : AddrInfoC
             type     = socket type (0 for any type)
             protocol = socket protocol (0 for any protocol)
             flags    = getaddrinfo() flags
-        
+
         Returns:
             0 on success or an error code on failure, see addrinfo.ErrorCode.
 
      **************************************************************************/
-    
+
     public ErrorCode getIp ( char[] node, char[] service,
                              bool ipv6, int type, int protocol,
                              addrinfo.Flags flags = addrinfo.Flags.None )
@@ -602,11 +602,11 @@ class AddrInfo : AddrInfoC
         return super.getIp(this.node.toCstr(node), this.service.toCstr(service),
                            ipv6, type, protocol, flags);
     }
-    
+
     /**************************************************************************
-        
+
         Gets the address info for a node and/or service.
-        
+
         Params:
             node     = node name (may be null)
             service  = service name (may be null)
@@ -614,12 +614,12 @@ class AddrInfo : AddrInfoC
             type     = socket type (0 for any type)
             protocol = socket protocol (0 for any protocol)
             flags    = getaddrinfo() flags
-        
+
         Returns:
             0 on success or an error code on failure, see addrinfo.ErrorCode.
 
      **************************************************************************/
-    
+
     public ErrorCode get ( char[] node, char[] service,
                            int family, int type, int protocol,
                            addrinfo.Flags flags = addrinfo.Flags.None )
@@ -627,41 +627,41 @@ class AddrInfo : AddrInfoC
         return super.get(this.node.toCstr(node), this.service.toCstr(service),
                          family, type, protocol, flags);
     }
-    
+
     /**************************************************************************
-        
+
         Gets the address info for a node and/or service.
-        
+
         Params:
             node    = node name (may be null)
             service = service name (may be null)
             hints   = addrinfo instance specifying the socket family, type,
-                      protocol and flags or null to get all available addresses 
-        
+                      protocol and flags or null to get all available addresses
+
         Returns:
             0 on success or an error code on failure, see addrinfo.ErrorCode.
 
      **************************************************************************/
-    
+
     public ErrorCode get ( char[] node, char[] service, addrinfo* hints = null )
     {
         return super.get(this.node.toCstr(node), this.service.toCstr(service),
                          hints);
     }
-    
+
     /**************************************************************************
-        
+
         Appends a nul-terminator to src, storing the result in dst.
-        
+
         Params:
             dst = destination string buffer
             src = string to nul-terminate
-            
+
         Returns:
             dst.ptr or null if src is empty.
 
      **************************************************************************/
-    
+
     private static char* toCstr ( ref char[] dst, char[] src )
     {
         return src.length? dst.concat(src, "\0").ptr : null;
@@ -681,31 +681,31 @@ class AddrInfoC
 {
     alias addrinfo.Flags     Flags;
     alias addrinfo.ErrorCode ErrorCode;
-    
+
     /**************************************************************************
 
         addrinfo instance.
 
      **************************************************************************/
-    
+
     private addrinfo* info_ = null;
-    
+
     /**************************************************************************
 
         IP address conversion buffer
 
      **************************************************************************/
-    
+
     static assert (INET6_ADDRSTRLEN > INET_ADDRSTRLEN);
-    
+
     char[INET6_ADDRSTRLEN] ip_address_buf;
-    
+
     /**************************************************************************
 
         Destructor.
 
      **************************************************************************/
-    
+
     ~this ( )
     {
         if (this.info_)
@@ -715,20 +715,20 @@ class AddrInfoC
     }
 
     /**************************************************************************
-        
+
         Gets the address info for a TCP/IP node and/or service.
-        
+
         Params:
             node    = node name (may be null)
             service = service name (may be null)
             ipv6    = false: get the IPv4, true: get the IPv6 address
             flags   = getaddrinfo() flags
-        
+
         Returns:
             0 on success or an error code on failure, see addrinfo.ErrorCode.
 
      **************************************************************************/
-    
+
     public ErrorCode getTcpIp ( char* node, char* service, bool ipv6,
                                 addrinfo.Flags flags = addrinfo.Flags.None )
     {
@@ -736,9 +736,9 @@ class AddrInfoC
     }
 
     /**************************************************************************
-        
+
         Gets the address info for an IP node and/or service.
-        
+
         Params:
             node     = node name (may be null)
             service  = service name (may be null)
@@ -746,24 +746,24 @@ class AddrInfoC
             type     = socket type (0 for any type)
             protocol = socket protocol (0 for any protocol)
             flags    = getaddrinfo() flags
-        
+
         Returns:
             0 on success or an error code on failure, see addrinfo.ErrorCode.
 
      **************************************************************************/
-    
+
     public ErrorCode getIp ( char* node, char* service,
                              bool ipv6, int type, int protocol,
                              addrinfo.Flags flags = addrinfo.Flags.None )
     {
         return this.get(node, service, ipv6? AF_INET6 : AF_INET, type, protocol);
     }
-    
-    
+
+
     /**************************************************************************
-        
+
         Gets the address info for a node and/or service.
-        
+
         Params:
             node     = node name (may be null)
             service  = service name (may be null)
@@ -771,48 +771,48 @@ class AddrInfoC
             type     = socket type (0 for any type)
             protocol = socket protocol (0 for any protocol)
             flags    = getaddrinfo() flags
-        
+
         Returns:
             0 on success or an error code on failure, see addrinfo.ErrorCode.
 
      **************************************************************************/
-    
+
     public ErrorCode get ( char* node, char* service,
                            int family, int type, int protocol,
                            addrinfo.Flags flags = addrinfo.Flags.None )
     {
         auto hints = addrinfo(flags, family, type, protocol);
-        
+
         return this.get(node, service, &hints);
     }
-    
+
     /**************************************************************************
-        
+
         Gets the address info for a node and/or service.
-        
+
         Params:
             node    = node name (may be null)
             service = service name (may be null)
             hints   = addrinfo instance specifying the socket family, type,
-                      protocol and flags or null to get all available addresses 
-        
+                      protocol and flags or null to get all available addresses
+
         Returns:
             0 on success or an error code on failure, see addrinfo.ErrorCode.
 
      **************************************************************************/
-    
+
     public ErrorCode get ( char* node, char* service, addrinfo* hints = null )
     {
         if (this.info_)
         {
             freeaddrinfo(this.info_);
-            
+
             this.info_ = null;
         }
-        
+
         return .getaddrinfo(node, service, hints, &this.info_);
     }
-    
+
     /**************************************************************************
 
         Returns:
@@ -820,75 +820,75 @@ class AddrInfoC
             last get() failed or get() has not been called yet.
 
      **************************************************************************/
-    
+
     public addrinfo* info ( )
     {
         return this.info_;
     }
-    
+
     /***************************************************************************
 
         Obtains the current IP address in standard notation.
-        
+
         Params:
             dst = destination buffer
-            
+
         Returns:
             a slice to the resulting IP address string in dst on success or null
             either on error or if the last get() failed or get() has not been
             called yet; errno is then 0. On success a nul-terminator follows the
             sliced string so its .ptr is a C string. On error errno is set
             appropriately.
-        
+
         Errors:
             EAFNOSUPPORT: The address family is not supported (AF_INET/IPv4 or
                           AF_INET6/IPv6).
-        
+
     ***************************************************************************/
 
     public char[] ip_address ( )
     {
         .errno = 0;
-        
+
         return this.info_? this.info_.ipAddress(this.ip_address_buf) : null;
     }
-    
+
     /***************************************************************************
 
         Returns:
             the current port or 0 if the last get() failed or get() has not been
             called yet.
-        
+
     ***************************************************************************/
-    
+
     public ushort port ( )
     {
         return this.info_? this.info_.port : 0;
     }
-    
+
     /***************************************************************************
 
         Returns:
             the official host name or null if the last get() failed or get() has
             not been called yet with Flags.AI_CANONNAME set. On success a
             nul-terminator follows the sliced string so its .ptr is a C string.
-            
+
     ***************************************************************************/
-    
+
     public char[] canonname ( )
     {
         return this.info_? this.info_.canonname : null;
     }
-    
+
     /***************************************************************************
 
         Returns:
             the official host name as a nul-terminated C string or null if the
             last get() failed or get() has not been called yet with
             Flags.AI_CANONNAME set.
-            
+
     ***************************************************************************/
-    
+
     public char* canonname_c ( )
     {
         return this.info_? this.info_.ai_canonname : null;

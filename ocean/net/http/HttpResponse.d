@@ -478,7 +478,7 @@ struct HttpResponse
 
         Returns GMT formatted date/time stamp
 
-		Method formats the current wall clock time (GMT) as HTTP compliant time
+        Method formats the current wall clock time (GMT) as HTTP compliant time
         stamp (asctime).
 
         Returns:

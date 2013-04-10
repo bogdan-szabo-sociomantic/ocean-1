@@ -120,9 +120,9 @@ public class FiberSelectEvent : IFiberSelectClient
     }
 
     /***************************************************************************
-    
+
         Required by ISelectable interface.
-    
+
         Returns:
             file descriptor used to manage custom event
 

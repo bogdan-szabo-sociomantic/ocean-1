@@ -227,7 +227,7 @@ private class CurlProcess : EpollProcess
 
         auto notification_dg = this.params.notification_dg.get();
         notification_dg(NotificationInfo(NotificationInfo.Type.Finished,
-            this.params.context.get(), this.params.url, status, 
+            this.params.context.get(), this.params.url, status,
             this.http_response.code));
     }
 
@@ -256,7 +256,7 @@ private class CurlProcess : EpollProcess
         this.args ~= "-s"; // silent -- nothing sent to stderr
         this.args ~= "-S"; // show errors
         this.args ~= "-w";
-        this.args ~= "%{http_code}"; 
+        this.args ~= "%{http_code}";
             // output HTTP status as last 3 bytes of stdout stream
 
         // Switch off the URL globbing parser, so that URLs can contain {}[]
@@ -326,7 +326,7 @@ private class CurlProcess : EpollProcess
                 this.args ~= head;
             }
         }
-        
+
         if ( this.params.form_params.length )
         {
             foreach ( form; this.params.form_params )
@@ -347,16 +347,16 @@ private class CurlProcess : EpollProcess
         {
             this.args ~= "-d";
             this.args ~= this.params.req_data;
-            
+
         }
 
         // Url
         this.args ~= this.params.url;
 
-        debug ( CurlProcess ) 
+        debug ( CurlProcess )
             Stdout.formatln("Starting curl process with parameters: {}",
                 this.args);
-        
+
         super.start(this.args);
     }
 }

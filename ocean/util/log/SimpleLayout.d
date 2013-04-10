@@ -26,37 +26,37 @@ private import  Integer = tango.text.convert.Integer;
 
         A simple layout, prefixing each message with the log level and
         the name of the logger.
-        
+
         Example:
         ------
         import ocean.util.log.SimpleLayout;
         import tango.util.log.Log;
         import tango.util.log.AppendConsole;
-        
-        
+
+
         Log.root.clear;
         Log.root.add(new AppendConsole(new SimpleLayout));
-                
+
         auto logger = Log.lookup("Example");
-        
-        logger.trace("Trace example");        
+
+        logger.trace("Trace example");
         logger.error("Error example");
         logger.fatal("Fatal example");
         -----
-        
+
         Produced output:
         -----
         Trace [Example] - Trace example
         Error [Example] - Error example
         Fatal [Example] - Fatal example
         ----
-       
+
 *******************************************************************************/
 
 public class SimpleLayout : Appender.Layout
 {
         /***********************************************************************
-                
+
                 Subclasses should implement this method to perform the
                 formatting of the actual message content.
 
@@ -65,11 +65,11 @@ public class SimpleLayout : Appender.Layout
         void format (LogEvent event, size_t delegate(void[]) dg)
         {
                 char[] level = event.levelName;
-          
+
                 // format date according to ISO-8601 (lightweight formatter)
                 char[20] tmp = void;
                 char[256] tmp2 = void;
-                dg (layout (tmp2, "%0 [%1] - ", 
+                dg (layout (tmp2, "%0 [%1] - ",
                             level,
                             event.name
                             ));

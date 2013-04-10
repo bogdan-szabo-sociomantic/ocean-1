@@ -119,7 +119,7 @@ public abstract class ISelectEvent : IAdvancedSelectClient
     {
         return this.event_fd.fileHandle;
     }
-    
+
     /***************************************************************************
 
         Called from the select dispatcher when the event fires. Calls the
@@ -140,7 +140,7 @@ public abstract class ISelectEvent : IAdvancedSelectClient
     in
     {
         assert (event == event.EPOLLIN);
-        
+
         assert(this.handler !is null);
     }
     body
@@ -208,7 +208,7 @@ public class SelectEvent : ISelectEvent
     /***************************************************************************
 
         Event handler delegate.
-    
+
     ***************************************************************************/
 
     private const Handler handler;
@@ -282,7 +282,7 @@ public class CountingSelectEvent : ISelectEvent
     /***************************************************************************
 
         Event handler delegate.
-    
+
     ***************************************************************************/
 
     private const Handler handler;

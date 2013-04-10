@@ -6,9 +6,9 @@
         copyright:      Copyright (c) 2004 Kris Bell. All rights reserved
 
         license:        BSD style: $(LICENSE)
-      
+
         version:        Initial release: May 2004
-        
+
         author:         Kris & Mathias Baumann
 
 *******************************************************************************/
@@ -27,7 +27,7 @@ private import  Integer = tango.text.convert.Integer;
 /*******************************************************************************
 
         A layout with ISO-8601 date information prefixed to each message
-       
+
 *******************************************************************************/
 
 public class LayoutStatsLog : Appender.Layout
@@ -35,10 +35,10 @@ public class LayoutStatsLog : Appender.Layout
         private bool localTime;
 
         /***********************************************************************
-        
-                Ctor with indicator for local vs UTC time. Default is 
+
+                Ctor with indicator for local vs UTC time. Default is
                 local time.
-                        
+
         ***********************************************************************/
 
         this (bool localTime = true)
@@ -47,7 +47,7 @@ public class LayoutStatsLog : Appender.Layout
         }
 
         /***********************************************************************
-                
+
                 Subclasses should implement this method to perform the
                 formatting of the actual message content.
 
@@ -56,15 +56,15 @@ public class LayoutStatsLog : Appender.Layout
         void format (LogEvent event, size_t delegate(void[]) dg)
         {
                 char[] level = event.levelName;
-                
+
                 // convert time to field values
                 auto tm = event.time;
                 auto dt = (localTime) ? WallClock.toDate(tm) : Clock.toDate(tm);
-                                
+
                 // format date according to ISO-8601 (lightweight formatter)
                 char[20] tmp = void;
                 char[256] tmp2 = void;
-                dg (layout (tmp2, "%0-%1-%2 %3:%4:%5,%6 ", 
+                dg (layout (tmp2, "%0-%1-%2 %3:%4:%5,%6 ",
                             convert (tmp[0..4],   dt.date.year),
                             convert (tmp[4..6],   dt.date.month),
                             convert (tmp[6..8],   dt.date.day),

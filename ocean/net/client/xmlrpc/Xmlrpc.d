@@ -16,9 +16,9 @@
 
     alias x.Value Value;
     Value v;
-    
+
     char[] error_str;
-    
+
     int i1 = 300, i2 = 288;
     v = x.call ( "sample.sumAndDifference","(ii)", i1 ,i2 );
     if ( v == null )
@@ -26,12 +26,12 @@
         Stdout.formatln("{}", x.getFaultString(error_str));
         return 1;
     }
-        
+
     int sum, diff;
     char[] string_value;
     char[] sum_name = "sum", diff_name="difference";
-    
-    
+
+
     void structRec (char[] key, Value v)
     {
         if ( key == "sum" )
@@ -62,15 +62,15 @@
             x.freeValue(v);
         }
     }
-    
+
     if ( !x.parseStructValue(v, &structRec) )
     {
         Stdout.formatln("{}", x.getFaultString(error_str));
         return 1;
     }
-    
-    Stdout.formatln("{0}+{1}={2}, {0}-{1}={3}", i1, i2, sum, diff );    
-    
+
+    Stdout.formatln("{0}+{1}={2}, {0}-{1}={3}", i1, i2, sum, diff );
+
     TODO:
         it would be nice if parse
 
@@ -222,8 +222,8 @@ public class Xmlrpc
             }
             else static if ( is(typeof(a) == bool) )
             {
-                c_bools[i] = cast(int) a; 
-            }            
+                c_bools[i] = cast(int) a;
+            }
         }
         scope ( exit )
         {
@@ -269,8 +269,8 @@ public class Xmlrpc
 
         Important, if a parameter is char[], remember to free it when done with
         it since the GC will not do it for you.
-    
-        For some reason, decompose wont work with structs( it should according 
+
+        For some reason, decompose wont work with structs( it should according
         the manual). Use parseStructValue instead.
 
         Params:
@@ -288,11 +288,11 @@ public class Xmlrpc
         char*[T.length] c_strings;
         ubyte*[T.length] c_ubytes;
         size_t[T.length] l_ubytes;
-        int[T.length] c_bools;        
-        
+        int[T.length] c_bools;
+
         foreach ( i, a; args )
         {
-            static assert ( Type!(T[0]).length, T[i].stringof ~ " is not supported");      
+            static assert ( Type!(T[0]).length, T[i].stringof ~ " is not supported");
         }
         auto format = Format!(T);
 
@@ -311,7 +311,7 @@ public class Xmlrpc
             else static if ( is(typeof(a) == bool) )
             {
                 args[i] = cast(bool) c_bools[i];
-            }                       
+            }
         }
 
         if ( this.faultOccurred ) return false;
@@ -423,7 +423,7 @@ public class Xmlrpc
         xmlrpc_DECREF(arr);
         return true;
     }
-    
+
 
     /***************************************************************************
 
@@ -436,13 +436,13 @@ public class Xmlrpc
             true if array is empty
 
     ***************************************************************************/
-    
+
     public bool isArrayEmpty ( Value arr )
     {
         return xmlrpc_array_size(&this.env, arr) == 0;
     }
-    
-    
+
+
 
 
     /***************************************************************************
@@ -451,7 +451,7 @@ public class Xmlrpc
 
         Params:
             str = the error will be saved here
-    
+
         Returns:
             the parameter
 
@@ -514,7 +514,7 @@ public class Xmlrpc
         else static if ( is(T == bool) )
         {
             const char[] Arg = Addr!(addr) ~ "c_bools[" ~ i.stringof ~ "]";
-        }             
+        }
         else
         {
             const char[] Arg = Addr!(addr) ~ "args[" ~ i.stringof ~ "]";
@@ -591,7 +591,7 @@ public class Xmlrpc
 
     /***************************************************************************
 
-        Returns if the value of pos vp is a struct member name. Could have 
+        Returns if the value of pos vp is a struct member name. Could have
         potential use if decompose_value starts to work with structs.
         0, "{s:i}" => true
         1, "{s:i}" => false
@@ -633,7 +633,7 @@ public class Xmlrpc
         Creates a format string
 
     ***************************************************************************/
-    
+
     private template Format(T ...)
     {
         static if ( T.length == 1 )
@@ -644,28 +644,28 @@ public class Xmlrpc
         {
             const char[] Format = "("~FormatHelper!(T)~")";
         }
-    }    
-        
-    
+    }
+
+
     private template FormatHelper(T ...)
     {
         static if ( T.length == 0 )
         {
             const char[] FormatHelper = "";
-        }       
-        else 
+        }
+        else
         {
             const char[] FormatHelper = Type!(T[0]) ~ FormatHelper!(T[1 .. $]);
         }
-    }    
-    
+    }
+
 
     /***************************************************************************
 
         Converts a type to a xmlrpc type string for creating a format string
 
-    ***************************************************************************/    
-    
+    ***************************************************************************/
+
     private template Type ( T )
     {
         static if ( is( T == char[] ) )
@@ -675,7 +675,7 @@ public class Xmlrpc
         else static if ( is( T == time_t) )
         {
             const char[] Type = "t";
-        }        
+        }
         else static if ( is( T == int) )
         {
             const char[] Type = "i";
@@ -691,13 +691,13 @@ public class Xmlrpc
         else static if ( is( T == ubyte[] ) )
         {
             const char[] Type = "6";
-        }        
+        }
         else
         {
             static assert(false, T.stringof ~ " is not supported");
-        }        
+        }
     }
-     
+
 
     /***************************************************************************
 

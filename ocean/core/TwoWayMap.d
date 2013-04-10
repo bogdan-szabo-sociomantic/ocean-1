@@ -16,7 +16,7 @@
     Note that the two mapped types may not be the same. (ie TwoWayMap!(int, int)
     is not possible.)
 
-	TODO: if remove() or clear() methods are required, use ArrayMap instead of
+    TODO: if remove() or clear() methods are required, use ArrayMap instead of
     associative array. (Another advantage would be that the copy array flag
     could be used.)
 
@@ -170,7 +170,7 @@ struct TwoWayMap ( A, B, bool Indexed = false )
         Use -debug=TwoWayMapFullConsistencyCheck to check that the indices of
         mapped items are consistent, too (this check may significantly impact
         performance).
-        
+
     ***************************************************************************/
 
     invariant
@@ -216,7 +216,7 @@ struct TwoWayMap ( A, B, bool Indexed = false )
             this.updateIndices();
         }
     }
-    
+
     public void opAssign ( A[B] assoc_array )
     {
         this.keys_list.length = 0;
@@ -335,7 +335,7 @@ struct TwoWayMap ( A, B, bool Indexed = false )
         Returns:
             item of type A corresponding to specified item of type B, or null if
             no mapping exists
-    
+
     ***************************************************************************/
 
     public A* opIn_r ( B b )
@@ -348,10 +348,10 @@ struct TwoWayMap ( A, B, bool Indexed = false )
 
         opIn_r operator - performs a lookup of an item B in the map
         corresponding to an item A.
-    
+
         Params:
             a = item to look up
-    
+
         Returns:
             item of type B corresponding to specified item of type A, or null if
             no mapping exists
@@ -390,13 +390,13 @@ struct TwoWayMap ( A, B, bool Indexed = false )
 
         opIndex operator - performs a lookup of an item B in the map
         corresponding to an item A.
-    
+
         Params:
             a = item to look up
-    
+
         Throws:
             as per the normal opIndex operator over an associative array
-    
+
         Returns:
             item of type B corresponding to specified item of type A
 
@@ -412,7 +412,7 @@ struct TwoWayMap ( A, B, bool Indexed = false )
 
         Returns:
             number of items in the map
-    
+
     ***************************************************************************/
 
     public size_t length ( )
@@ -485,7 +485,7 @@ struct TwoWayMap ( A, B, bool Indexed = false )
             {
                 auto index = this.indexOf(a);
                 assert(index);
-    
+
                 res = dg(*index, a, b);
             }
             return res;
@@ -529,9 +529,9 @@ struct TwoWayMap ( A, B, bool Indexed = false )
         Returns:
             pointer to the index of an element of type B in this.values_list,
             or null if the element is not in the map
-    
+
     ***************************************************************************/
-    
+
     static if ( Indexed )
     {
         public size_t* indexOf ( B b )

@@ -42,7 +42,7 @@ module ocean.db.tokyocabinet.TokyoCabinetH;
 
  ******************************************************************************/
 
-protected   import 	ocean.core.Exception: TokyoCabinetException;
+protected   import  ocean.core.Exception: TokyoCabinetException;
 
 private     import  ocean.db.tokyocabinet.model.ITokyoCabinet;
 
@@ -55,7 +55,7 @@ private     import  ocean.db.tokyocabinet.c.tchdb:
                         tchdbout,   tchdbrnum,     tchdbvsiz,     tchdbfsiz,
                         tchdbecode, tchdberrmsg,   tchdbpath,     tchdbvanish;
 
-private     import ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
+private     import  ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
 
 private     import  ocean.text.util.StringC;
 
@@ -113,7 +113,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 
         Asynchronous put request flag; Effective on put() call;
 
-		Disabled by default
+        Disabled by default
 
      **************************************************************************/
 
@@ -170,7 +170,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 
     /***************************************************************************
 
-    	Name of databse file, stored for outputting in error messages
+        Name of databse file, stored for outputting in error messages
 
     ***************************************************************************/
 
@@ -248,7 +248,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     public void open ( char[] dbfile )
     {
         debug Trace.formatln(typeof (this).stringof ~ " opened {}", dbfile).flush();
-    	this.db_name = dbfile;
+        this.db_name = dbfile;
         return this.openNonBlocking(dbfile, OpenStyle.WriteCreate);
     }
 
@@ -282,7 +282,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 
     public void open ( char[] dbfile, OpenStyle style )
     {
-    	super.tokyoAssert(tchdbtune(super.db,
+        super.tokyoAssert(tchdbtune(super.db,
                                     this.tune.bnum,
                                     this.tune.apow,
                                     this.tune.fpow,
@@ -301,16 +301,16 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 
     public void close ()
     {
-    	scope ( failure )
-    	{
+        scope ( failure )
+        {
             debug Trace.formatln(typeof (this).stringof ~ " error closing {}", this.db_name).flush();
-    	}
-    	scope ( success )
-    	{
+        }
+        scope ( success )
+        {
             debug Trace.formatln(typeof (this).stringof ~ " closed {}", this.db_name).flush();
-    	}
+        }
 
-    	if (super.db)
+        if (super.db)
         {
             super.tokyoAssert(tchdbclose(super.db), "close error");
         }
@@ -509,7 +509,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
         {
             value = (cast (char*) cvalue)[0 .. length].dup;
 
-            free(cvalue);  														// allocated by tchdbget()
+            free(cvalue);                                                          // allocated by tchdbget()
 
             return true;
         }
@@ -539,7 +539,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 
         if (cvalue)
         {
-            scope (exit) free(cvalue);  										// allocated by tchdbget()
+            scope (exit) free(cvalue);                                          // allocated by tchdbget()
 
             return (cast (char*) cvalue)[0 .. length].dup;
         }
@@ -682,41 +682,41 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 
     /**************************************************************************
 
-	    Tells whether a database file is open.
+        Tells whether a database file is open.
 
-	    Returns:
-	    	true if a db file is open, false otherwise
+        Returns:
+            true if a db file is open, false otherwise
 
-	***************************************************************************/
+    ***************************************************************************/
 
     public bool isOpen ( )
     {
-    	return this.path() != "";
+        return this.path() != "";
     }
 
 
     /**************************************************************************
 
-	    Gets the path of the currently open database file.
+        Gets the path of the currently open database file.
 
-	    Returns:
-	    	path of open db file, or an empty string if no db file is open.
+        Returns:
+            path of open db file, or an empty string if no db file is open.
 
-	***************************************************************************/
+    ***************************************************************************/
 
     public char[] path ( )
     {
-    	char* path = tchdbpath(super.db);
-    	if ( path )
-    	{
-    		char* end = path;
-    		while ( *end != '\0' )
-    		{
-    			end++;
-    		}
-    		return path[0..end - path];
-    	}
-    	return "";
+        char* path = tchdbpath(super.db);
+        if ( path )
+        {
+            char* end = path;
+            while ( *end != '\0' )
+            {
+                end++;
+            }
+            return path[0..end - path];
+        }
+        return "";
     }
 
     /**************************************************************************
@@ -737,20 +737,20 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 
     /**************************************************************************
 
-	    Retrieves the Tokyo Cabinet error message string for errcode.
+        Retrieves the Tokyo Cabinet error message string for errcode.
 
-	    Params:
-	        errcode = Tokyo Cabinet error code
+        Params:
+            errcode = Tokyo Cabinet error code
 
-	    Returns:
-	        Tokyo Cabinet error message string for errcode
+        Returns:
+            Tokyo Cabinet error message string for errcode
 
-	***************************************************************************/
+    ***************************************************************************/
 
     protected char[] getTokyoErrMsg ( TCERRCODE errcode )
-	{
-	    return StringC.toDString(tchdberrmsg(errcode));
-	}
+    {
+        return StringC.toDString(tchdberrmsg(errcode));
+    }
 
 
 

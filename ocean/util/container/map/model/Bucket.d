@@ -67,41 +67,41 @@ public struct Bucket ( size_t V, K = hash_t )
         /**********************************************************************
 
             Key = bucket element key type
-        
+
          **********************************************************************/
-        
+
         public alias K Key;
-        
+
         /**********************************************************************
-        
+
             Element key
-        
+
          **********************************************************************/
-        
+
         public Key key;
-        
+
         /**********************************************************************
-    
+
             Element value, may be a dummy of zero size if no value is stored.
-    
+
          **********************************************************************/
-        
+
         public alias ubyte[V] Val;
-        
+
         public Val val;
-        
+
         /**********************************************************************
-        
+
             Next and previous element. For the first/last bucket element
             next/prev is null, respectively.
-        
+
          **********************************************************************/
-        
+
         private typeof (this) next = null;
-        
+
         debug (HostingArrayMapBucket) private Bucket!(V, K)* bucket;
     }
-    
+
     /**************************************************************************
 
         First bucket element
@@ -109,21 +109,21 @@ public struct Bucket ( size_t V, K = hash_t )
      **************************************************************************/
 
     private Element* first = null;
-    
+
     /**************************************************************************
 
         Tells whether there is at least one element in this bucket.
-        
+
         Returns:
             false if the bucket is empty or true otherwise.
-    
+
      **************************************************************************/
-    
+
     public bool has_element ( )
     {
         return this.first !is null;
     }
-    
+
     /**************************************************************************
 
         Looks up the element whose key equals key.
@@ -155,7 +155,7 @@ public struct Bucket ( size_t V, K = hash_t )
                 return element;
             }
         }
-        
+
         return null;
     }
 
@@ -163,20 +163,20 @@ public struct Bucket ( size_t V, K = hash_t )
     /**************************************************************************
 
         'foreach' iteration over elements in this bucket.
-        
+
         TODO: Add support for removing the current element during iteration.
-        
+
      **************************************************************************/
 
     public int opApply ( int delegate ( ref Element element ) dg )
     {
         int result = 0;
-        
+
         for (Element* element = this.first; element && !result; element = element.next)
         {
             result = dg(*element);
         }
-        
+
         return result;
     }
 
@@ -194,10 +194,10 @@ public struct Bucket ( size_t V, K = hash_t )
 
         Returns:
             pointer to inserted element
-        
+
         Out:
             The returned pointer is never null.
-        
+
      **************************************************************************/
 
     public Element* add ( Element.Key key, lazy Element* new_element )
@@ -216,8 +216,8 @@ public struct Bucket ( size_t V, K = hash_t )
 
         return element;
     }
-    
-    
+
+
     /**************************************************************************
 
         Adds an element to the bucket.
@@ -241,67 +241,67 @@ public struct Bucket ( size_t V, K = hash_t )
     {
         element.next = this.first;
         this.first   = element;
-        
+
         return element;
     }
-    
+
     /**************************************************************************
 
         Looks up the element corresponding to key in this bucket and removes it,
         if found.
-    
+
         The removed element must be recycled by the owner of the bucket.
-    
+
         Params:
             key = key of the element to remove
-    
+
         Returns:
             removed element or null if not found.
-    
+
      **************************************************************************/
-    
+
     public Element* remove ( K key )
     out (removed)
     {
         if (removed !is null)
         {
             assert (removed.next is null, "remove: forgot to clear removed.next");
-            
+
             debug (HostingArrayMapBucket) if (removed)
             {
                 assert (removed.bucket is this,
                         "element to remove is not from this bucket");
-                
+
                 removed.bucket = null;
             }
         }
     }
     body
-    { 
+    {
         if (this.first !is null)
         {
             if (this.first.key == key)
             {
                 Element* removed = this.first;
-                
+
                 this.first   = this.first.next;
                 removed.next = null;
-                
+
                 return removed;
             }
             else
             {
                 Element* element = this.first.next;
-                
+
                 for (Element* prev = this.first; element;)
                 {
                     if (element.key == key)
                     {
                         Element* removed = element;
-                        
+
                         prev.next    = element.next;
                         removed.next = null;
-                        
+
                         return removed;
                     }
                     else
@@ -312,7 +312,7 @@ public struct Bucket ( size_t V, K = hash_t )
                 }
             }
         }
-        
+
         return null;
     }
 }

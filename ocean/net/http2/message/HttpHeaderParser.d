@@ -1,19 +1,19 @@
 /******************************************************************************
 
     HTTP message header parser
-    
+
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-    
+
     version:        May 2011: Initial release
-    
+
     author:         David Eckardt
-    
+
     Link with
-    
+
         -L-lglib-2.0
-        
+
     .
-    
+
  ******************************************************************************/
 
 module ocean.net.http2.message.HttpHeaderParser;
@@ -35,7 +35,7 @@ static if (is (size_t == uint))
 else
 {
     static assert (is (size_t == ulong), "expected size_t to be uint or ulong, not \"" ~ size_t.stringof ~ '"');
-    
+
     alias long ssize_t;
 }
 
@@ -45,18 +45,18 @@ else
     first occurrence of the string needle. If haystack[0 .. haystack_len]
     contains a NUL byte, the search will stop there.
     If haystack_len is -1, haystack is assumed to be a NUL-terminated string and
-    needle is searched in the whole haystack string. 
-    
+    needle is searched in the whole haystack string.
+
     This is a GLib function.
-    
+
     @see http://developer.gnome.org/glib/stable/glib-String-Utility-Functions.html#g-strstr-len
-    
+
     Params:
         haystack     = haystack.ptr for haystack_len >= 0 or a pointer to a
                        NUL-terminated string if haystack_len = -1
         haystack_len = haystack.length or -1 if haystack is NUL-terminated
         needle       = the string to search for (NUL-terminated)
-        
+
     Returns:
         a pointer to the found occurrence, or null if not found.
 
@@ -75,97 +75,97 @@ interface IHttpHeaderParser
     /**************************************************************************
 
         Heander element
-    
+
      **************************************************************************/
-    
+
     struct HeaderElement
     {
         char[] key, val;
     }
 
     /**************************************************************************
-    
+
         Obtains a list of HeaderElement instances referring to the header lines
         parsed so far. The key member of each element references the slice of
         the corresponding header line before the first ':', the val member the
         slice after the first ':'. Leading and tailing white space is trimmed
         off both key and val.
-        
+
         Returns:
             list of HeaderElement instances referring to the header lines parsed
             so far
-    
+
      **************************************************************************/
-    
+
     HeaderElement[] header_elements ( );
-    
+
     /**************************************************************************
-    
+
         Returns:
             list of the the header lines parsed so far
-    
+
      **************************************************************************/
-    
+
     char[][] header_lines ( );
-    
+
     /**************************************************************************
-    
+
         Returns:
             limit for the number of HTTP message header lines
-    
+
      **************************************************************************/
 
     uint header_lines_limit ( );
-    
+
     /**************************************************************************
-    
+
         Sets the limit for the number of HTTP message header lines.
-        
+
         Note: A buffer size is set to n elements so use a realistic value (not
               uint.max for example).
-        
+
         Params:
             n = limit for the number of HTTP message header lines
-    
+
         Returns:
            limit for the number of HTTP message header lines
-    
+
      **************************************************************************/
 
     uint header_lines_limit ( uint n );
-    
+
     /**************************************************************************
-    
+
         Returns:
             limit for the number of HTTP message header lines
-    
+
      **************************************************************************/
 
     uint header_length_limit ( );
-    
+
     /**************************************************************************
-    
+
         Sets the HTTP message header size limit. This will reset the parse
         state and clear the content.
-        
+
         Note: A buffer size is set to n elements so use a realistic value (not
               uint.max for example).
-        
+
         Params:
             n = HTTP message header size limit
-    
+
         Returns:
             HTTP message header size limit
-    
+
      **************************************************************************/
-    
+
     uint header_length_limit ( uint n );
 }
 
 /******************************************************************************
 
     HttpHeaderParser class
-    
+
  ******************************************************************************/
 
 class HttpHeaderParser : IHttpHeaderParser
@@ -182,43 +182,43 @@ class HttpHeaderParser : IHttpHeaderParser
     /**************************************************************************
 
         Default values for header size limitation
-    
+
      **************************************************************************/
-    
+
     const uint DefaultSizeLimit  = 0x4000,
                DefaultLinesLimit = 0x40;
-    
+
     /**************************************************************************
 
-        Header lines split iterator 
-    
+        Header lines split iterator
+
      **************************************************************************/
-    
+
     private static scope class SplitHeaderLines : ISplitIterator
     {
         /**************************************************************************
-    
+
             End-of-header-line token
-        
+
          **************************************************************************/
-        
+
         const EndOfHeaderLine = "\r\n";
-    
+
         /**************************************************************************
-        
+
             Locates the first occurrence of the current delimiter string in str,
             starting from str[start].
-            
+
             Params:
                  str     = string to scan for delimiter
                  start   = search start index
-                 
+
             Returns:
                  index of first occurrence of the current delimiter string in str or
                  str.length if not found
-                              
+
          **************************************************************************/
-        
+
         public size_t locateDelim ( char[] str, size_t start = 0 )
         in
         {
@@ -227,24 +227,24 @@ class HttpHeaderParser : IHttpHeaderParser
         body
         {
             char* item = g_strstr_len(str.ptr + start, str.length - start, this.EndOfHeaderLine.ptr);
-            
+
             return item? item - str.ptr : str.length;
         }
-        
+
         /**************************************************************************
-        
+
             Skips the delimiter which str starts with.
             Note that the result is correct only if str really starts with a
             delimiter.
-            
+
             Params:
                 str = string starting with delimiter
-                
+
             Returns:
                 index of the first character after the starting delimiter in str
-                              
+
          **************************************************************************/
-    
+
         protected size_t skipDelim ( char[] str )
         in
         {
@@ -255,89 +255,89 @@ class HttpHeaderParser : IHttpHeaderParser
             return this.EndOfHeaderLine.length;
         }
     }
-    
+
     /**************************************************************************
 
          HTTP message header content buffer.
          content.length determines the header length limit.
-    
+
      **************************************************************************/
 
     private char[] content;
-    
+
     /**************************************************************************
 
          Length of actual data in content.
-    
+
      **************************************************************************/
-    
+
     private size_t content_length;
-    
+
     /**************************************************************************
 
         Position (index) in the content up to which the content has already been
         parsed
-    
+
      **************************************************************************/
 
     private size_t pos       = 0;
-    
+
     /**************************************************************************
 
         false after reset() and before the start line is complete
-    
+
      **************************************************************************/
 
     private bool have_start_line = false;
-    
+
     /**************************************************************************
 
         Number of header lines parsed so far, excluding the start line
-    
+
      **************************************************************************/
 
     private size_t n_header_lines = 0;
-    
+
     /**************************************************************************
 
         Header lines, excluding the start line; elements slice this.content.
-    
+
      **************************************************************************/
 
     private char[][] header_lines_;
-    
+
     /**************************************************************************
 
         Header elements
-        
+
         "key" references the slice of the corresponding header line before the
         first ':' and "val" after the first ':'. Leading and tailing white space
         is trimmed off both key and val.
-    
+
      **************************************************************************/
 
     private const HeaderElement[] header_elements_;
-    
+
     /**************************************************************************
 
         Reusable exception instance
-    
+
      **************************************************************************/
 
     private const HttpParseException exception;
-    
+
     /**************************************************************************
 
         Indicates that the header is complete
-    
+
      **************************************************************************/
 
     private bool finished = false;
-    
+
     /**************************************************************************
 
         Counter consistency check
-    
+
      **************************************************************************/
 
     invariant
@@ -345,32 +345,32 @@ class HttpHeaderParser : IHttpHeaderParser
         assert (this.pos <= this.content_length);
         assert (this.header_elements_.length == this.header_lines_.length);
         assert (this.n_header_lines <= this.header_lines_.length);
-        
+
         assert (this.content_length <= this.content.length);
     }
-    
+
     /**************************************************************************
 
         Constructor
-    
+
      **************************************************************************/
 
     public this ( )
     {
         this(this.DefaultSizeLimit, this.DefaultLinesLimit);
     }
-    
+
     /**************************************************************************
 
         Constructor
-        
+
         Note: Each a buffer with size_limit and lines_limit elements is
               allocated so use realistic values (not uint.max for example).
-        
+
         Params:
             size_limit  = HTTP message header size limit
             lines_limit = limit for the number of HTTP message header lines
-        
+
      **************************************************************************/
 
     public this ( uint size_limit, uint lines_limit )
@@ -380,88 +380,88 @@ class HttpHeaderParser : IHttpHeaderParser
         this.header_lines_    = new char[][lines_limit];
         this.header_elements_ = new HeaderElement[lines_limit];
     }
-    
+
     /**************************************************************************
-    
+
         Called immediately when this instance is deleted.
         (Must be protected to prevent an invariant from failing.)
-    
+
      **************************************************************************/
 
     protected override void dispose ( )
     {
         this.start_line_tokens[] = null;
-        
+
         delete this.exception;
         delete this.content;
         delete this.header_lines_;
         delete this.header_elements_;
     }
-    
+
     /**************************************************************************
 
         Start line tokens; slice the internal content buffer
-    
+
      **************************************************************************/
 
     public char[][3] start_line_tokens;
-    
+
     /**************************************************************************
-        
+
         Obtains a list of HeaderElement instances referring to the header lines
         parsed so far. The key member of each element references the slice of
         the corresponding header line before the first ':', the val member the
         slice after the first ':'. Leading and tailing white space is trimmed
         off both key and val.
-        
+
         Returns:
             list of HeaderElement instances referring to the header lines parsed
             so far
-    
+
      **************************************************************************/
 
     public HeaderElement[] header_elements ( )
     {
         return this.header_elements_[0 .. this.n_header_lines];
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             list of the the header lines parsed so far
-    
+
      **************************************************************************/
 
     public char[][] header_lines ( )
     {
         return this.header_lines_[0 .. this.n_header_lines];
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             limit for the number of HTTP message header lines
-    
+
      **************************************************************************/
 
     public uint header_lines_limit ( )
     {
         return this.header_lines_.length;
     }
-    
+
     /**************************************************************************
-    
+
         Sets the limit for the number of HTTP message header lines.
-        
+
         Note: A buffer size is set to n elements so use a realistic value (not
               uint.max for example).
-        
+
         Params:
             n = limit for the number of HTTP message header lines
-    
+
         Returns:
            limit for the number of HTTP message header lines
-    
+
      **************************************************************************/
 
     public uint header_lines_limit ( uint n )
@@ -470,71 +470,71 @@ class HttpHeaderParser : IHttpHeaderParser
         {
             this.n_header_lines = n;
         }
-        
+
         return this.header_lines_.length = n;
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             HTTP message header size limit
-    
+
      **************************************************************************/
 
     public uint header_length_limit ( )
     {
         return this.content.length;
     }
-    
+
     /**************************************************************************
-    
+
         Sets the HTTP message header size limit. This will reset the parse
         state and clear the content.
-        
+
         Note: A buffer size is set to n elements so use a realistic value (not
               uint.max for example).
-        
+
         Params:
             n = HTTP message header size limit
-    
+
         Returns:
             HTTP message header size limit
-    
+
      **************************************************************************/
-    
+
     public uint header_length_limit ( uint n )
     {
         this.reset();
-        
+
         return this.content.length = n;
     }
-    
+
     /**************************************************************************
-    
+
         Resets the parse state and clears the content.
-        
+
         Returns:
             this instance
-    
+
      **************************************************************************/
-    
+
     typeof (this) reset ( )
     {
         this.start_line_tokens[] = null;
-        
+
         this.pos            = 0;
         this.content_length = 0;
-        
+
         this.n_header_lines = 0;
-        
+
         this.have_start_line = false;
         this.finished        = false;
-        
+
         return this;
     }
-    
+
     /**************************************************************************
-    
+
         Parses content which is expected to be either the start of a HTTP
         message or a HTTP message fragment that continues the content passed on
         the last call to this method. Appends the slice of content which is part
@@ -544,17 +544,17 @@ class HttpHeaderParser : IHttpHeaderParser
         by a non-null return value, reset() must be called before calling this
         method again.
         Leading empty header lines are tolerated and ignored:
-        
+
             "In the interest of robustness, servers SHOULD ignore any empty
             line(s) received where a Request-Line is expected."
-            
+
             @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.1
-        
+
         Returns:
             A slice of content after the end-of-header token (which may be an
             empty string) or null if content does not contain the end-of-header
             token.
-        
+
         Throws:
             HttpParseException
                 - on parse error: if
@@ -563,10 +563,10 @@ class HttpHeaderParser : IHttpHeaderParser
                 - on limit excess: if
                     * the header size in bytes exceeds the requested limit or
                     * the number of header lines in exceeds the requested limit.
-            
+
             Assert()s that this method is not called after the end of header had
             been reacched.
-            
+
      **************************************************************************/
 
     public char[] parse ( char[] content )
@@ -577,17 +577,17 @@ class HttpHeaderParser : IHttpHeaderParser
     body
     {
         char[] msg_body_start = null;
-        
+
         scope split_header = new SplitHeaderLines;
-        
+
         split_header.include_remaining = false;
-        
+
         char[] content_remaining = this.appendContent(content);
-        
+
         foreach (header_line; split_header.reset(this.content[this.pos .. this.content_length]))
         {
             char[] remaining = split_header.remaining;
-            
+
             if (header_line.length)
             {
                 if (this.have_start_line)
@@ -597,16 +597,16 @@ class HttpHeaderParser : IHttpHeaderParser
                 else
                 {
                     this.parseStartLine(header_line);
-                    
+
                     this.have_start_line = true;
                 }
-                
+
                 this.pos = this.content_length - remaining.length;
             }
             else
             {
                 this.finished = this.have_start_line;                           // Ignore empty leading header lines
-                
+
                 if (this.finished)
                 {
                     msg_body_start = remaining.length? remaining : content_remaining;
@@ -614,29 +614,29 @@ class HttpHeaderParser : IHttpHeaderParser
                 }
             }
         }
-        
+
         return msg_body_start;
     }
-    
+
     alias parse opCall;
-    
+
     /**************************************************************************
-    
+
         Appends content to this.content.
-        
+
         Params:
             content = content fragment to append
-        
+
         Returns:
             current content from the current parse position to the end of the
             newly appended fragment
-        
+
         Throws:
             HttpParseException if the header size in bytes exceeds the requested
             limit.
-            
+
      **************************************************************************/
-    
+
     private char[] appendContent ( char[] chunk )
     in
     {
@@ -650,7 +650,7 @@ class HttpHeaderParser : IHttpHeaderParser
     {
         size_t max_len  = this.content.length - this.content_length,
                consumed = chunk.length;
-        
+
         if (consumed > max_len)
         {
             /*
@@ -658,107 +658,107 @@ class HttpHeaderParser : IHttpHeaderParser
              * start of the message body: Look for the end-of-header token in
              * chunk[0 .. max_len]. If not found, the header is really too long.
              */
-            
+
             const end_of_header = "\r\n\r\n";
-            
+
             char* header_end = g_strstr_len(chunk.ptr, max_len, end_of_header.ptr);
-            
+
             this.exception.assertEx!(__FILE__, __LINE__)
                                     (header_end !is null, "request header too long: ", this.start_line_tokens[1]);
-            
+
             consumed = (header_end - chunk.ptr) + end_of_header.length;
-            
+
             assert (chunk[consumed - end_of_header.length .. consumed] == end_of_header);
         }
-        
+
         // Append chunk to this.content.
-        
+
         size_t end = this.content_length + consumed;
-        
+
         this.content[this.content_length .. end] = chunk[0 .. consumed];
-        
+
         this.content_length = end;
-        
+
         /*
          * Return the tail of chunk that was not appended. This tail is empty
          * unless chunk exceeded the header length limit and the end-of-header
          * token was found in chunk.
          */
-        
+
         return chunk[consumed .. $];
     }
-    
+
     /**************************************************************************
-    
+
         Parses header_line which is expected to be a regular HTTP message header
         line (not the start line or the empty message header termination line).
-        
+
         Params:
             header_line = regular message header line
-        
+
         Returns:
             HeaderElement instance referring to the parsed line
-        
+
         Throws:
             HttpParseException
                 - if the number of header lines exceeds the requested limit or
                 - on parse error: if the header_line does not contain a ':'.
-            
+
      **************************************************************************/
 
     private void parseRegularHeaderLine ( char[] header_line )
     {
-        
+
         this.exception.assertEx!(__FILE__, __LINE__)(this.n_header_lines <= this.header_lines_.length,
                                                      "too many request header lines");
-        
+
         scope split_tokens = new ChrSplitIterator(':');
-        
+
         split_tokens.collapse          = true;
         split_tokens.include_remaining = false;
 
-        
+
         foreach (field_name; split_tokens.reset(header_line))
         {
             this.header_elements_[this.n_header_lines] = HeaderElement(ChrSplitIterator.trim(field_name),
                                                                        ChrSplitIterator.trim(split_tokens.remaining));
-            
+
             break;
         }
-        
+
         this.exception.assertEx!(__FILE__, __LINE__)(split_tokens.n, "invalid header line (no ':')");
-        
+
         this.header_lines_[this.n_header_lines++] = header_line;
     }
-    
+
     /**************************************************************************
-    
+
         Parses start_line which is expected to be the HTTP message header start
         line (not a regular header line or the empty message header termination
         line).
-        
+
         Params:
             header_line = regular message header line
-            
+
         Throws:
             HttpParseException on parse error: if the number of start line
             tokens is different from 3.
-            
+
      **************************************************************************/
 
     private void parseStartLine ( char[] start_line )
     {
         scope split_tokens = new ChrSplitIterator(' ');
-        
+
         split_tokens.collapse          = true;
         split_tokens.include_remaining = true;
-        
+
         uint i = 0;
-        
+
         foreach (token; split_tokens.reset(start_line))
         {
             i = split_tokens.n;
-            
+
             this.start_line_tokens[i - 1] = token;
 
             /*
@@ -776,7 +776,7 @@ class HttpHeaderParser : IHttpHeaderParser
                 break;
             }
         }
-        
+
         this.exception.assertEx!(__FILE__, __LINE__)(i == this.start_line_tokens.length,
                                                      "invalid start line (too few tokens)");
     }
@@ -795,18 +795,18 @@ version (OceanPerformanceTest)
 
 unittest
 {
-    
+
     {
         scope parser = new HttpHeaderParser;
-        
+
         const content = "POST / HTTP/1.1\r\n"      // 17
                         "Content-Length: 12\r\n"   // 37
                         "\r\n"                     // 39
                         "Hello World!";
 
-        
+
         parser.header_length_limit = 39;
-        
+
         try
         {
             parser.parse(content);
@@ -815,11 +815,11 @@ unittest
         {
             assert (false);
         }
-        
+
         parser.reset();
-        
+
         parser.header_length_limit = 38;
-        
+
         try
         {
             parser.parse(content);
@@ -881,7 +881,7 @@ unittest
         "At vero eos et accusam et justo duo dolores et ea rebum. Stet clita "
         "kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit "
         "amet.";
-    
+
     const char[] content =
         "POST /dir?query=Hello%20World!&abc=def&ghi HTTP/1.1\r\n"
         "Host: www.example.org:12345\r\n"
@@ -895,28 +895,28 @@ unittest
         "Cache-Control: max-age=0\r\n"
         "\r\n" ~
         lorem_ipsum;
-    
+
     const parts = 10;
-    
+
     /*
      * content will be split into parts parts where the length of each part is
      * content.length / parts + d with d a random number in the range
      * [-(content.length / parts) / 3, +(content.length / parts) / 3].
      */
-    
+
     static size_t random_chunk_length ( )
     {
         const c = content.length * (2.f / (parts * 3));
-        
+
         static assert (c >= 3, "too many parts");
-        
+
         return cast (size_t) (c + cast (float) drand48() * c);
     }
-    
+
     srand48(time(null));
-    
+
     scope parser = new HttpHeaderParser;
-    
+
     version (OceanPerformanceTest)
     {
         const n = 1000_000;
@@ -925,29 +925,29 @@ unittest
     {
         const n = 10;
     }
-    
+
     version (OceanPerformanceTest)
     {
         gc_disable();
-        
+
         scope (exit) gc_enable();
     }
-    
+
     for (uint i = 0; i < n; i++)
     {
         parser.reset();
-        
+
         {
             size_t next = random_chunk_length();
-            
+
             char[] msg_body_start = parser.parse(content[0 .. next]);
-            
+
             while (msg_body_start is null)
             {
                 size_t pos = next;
-                
+
                 next = pos + random_chunk_length();
-                
+
                 if (next < content.length)
                 {
                     msg_body_start = parser.parse(content[pos .. next]);
@@ -955,21 +955,21 @@ unittest
                 else
                 {
                     msg_body_start = parser.parse(content[pos .. content.length]);
-                    
+
                     assert (msg_body_start !is null);
                     assert (msg_body_start.length <= content.length);
                     assert (msg_body_start == content[content.length - msg_body_start.length .. content.length]);
                 }
             }
         }
-        
+
         assert (parser.start_line_tokens[0]  == "POST");
         assert (parser.start_line_tokens[1]  == "/dir?query=Hello%20World!&abc=def&ghi");
         assert (parser.start_line_tokens[2]  == "HTTP/1.1");
-        
+
         {
             auto elements = parser.header_elements;
-            
+
             with (elements[0]) assert (key == "Host"            && val == "www.example.org:12345");
             with (elements[1]) assert (key == "User-Agent"      && val == "Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.17) Gecko/20110422 Ubuntu/9.10 (karmic) Firefox/3.6.17");
             with (elements[2]) assert (key == "Accept"          && val == "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
@@ -979,13 +979,13 @@ unittest
             with (elements[6]) assert (key == "Keep-Alive"      && val == "115");
             with (elements[7]) assert (key == "Connection"      && val == "keep-alive");
             with (elements[8]) assert (key == "Cache-Control"   && val == "max-age=0");
-            
+
             assert (elements.length == 9);
         }
-        
+
         {
             auto lines = parser.header_lines;
-            
+
             assert (lines[0] == "Host: www.example.org:12345");
             assert (lines[1] == "User-Agent: Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.17) Gecko/20110422 Ubuntu/9.10 (karmic) Firefox/3.6.17");
             assert (lines[2] == "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
@@ -995,14 +995,14 @@ unittest
             assert (lines[6] == "Keep-Alive: 115");
             assert (lines[7] == "Connection: keep-alive");
             assert (lines[8] == "Cache-Control: max-age=0");
-            
+
             assert (lines.length == 9);
         }
-        
-        version (OceanPerformanceTest) 
+
+        version (OceanPerformanceTest)
         {
             uint j = i + 1;
-            
+
             if (!(j % 10_000))
             {
                 Stderr(HttpHeaderParser.stringof)(' ')(j)("\n").flush();

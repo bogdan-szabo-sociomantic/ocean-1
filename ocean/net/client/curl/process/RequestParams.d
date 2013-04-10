@@ -177,7 +177,7 @@ public struct RequestParams
     ***************************************************************************/
 
     public bool header_and_body;
-    
+
 
     /***************************************************************************
 
@@ -199,7 +199,7 @@ public struct RequestParams
 
     /***************************************************************************
 
-        To be used when extra information is needed to be add to the header. 
+        To be used when extra information is needed to be add to the header.
 
     ***************************************************************************/
 
@@ -213,7 +213,7 @@ public struct RequestParams
     ***************************************************************************/
 
     public char[][] form_params;
-    
+
 
     /***************************************************************************
 
@@ -289,7 +289,7 @@ public struct RequestParams
     {
         return this.header_and_body;
     }
-    
+
     /***************************************************************************
 
         Returns:

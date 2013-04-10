@@ -28,15 +28,15 @@ private import  tango.util.log.Log;
 /*******************************************************************************
 
         A layout with only the message
-       
+
 *******************************************************************************/
 
 public class MessageOnlyLayout : Appender.Layout
 {
     /***************************************************************************
-    
+
         Constructor
-                    
+
     ***************************************************************************/
 
     this ( )
@@ -44,7 +44,7 @@ public class MessageOnlyLayout : Appender.Layout
     }
 
     /***************************************************************************
-            
+
         Subclasses should implement this method to perform the
         formatting of the actual message content.
 

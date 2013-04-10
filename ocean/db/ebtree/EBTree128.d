@@ -1,13 +1,13 @@
 /*******************************************************************************
 
     Elastic binary tree class
-    
+
     copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-    
+
     version:        April 2012: Initial release
-    
+
     authors:        Gavin Norman, Mathias Baumann, David Eckardt
-    
+
     Fast 128-bit value binary tree class based on the ebtree library from
     HAProxy.
 
@@ -16,7 +16,7 @@
 
     (The library can be found pre-compiled in ocean.db.ebtree.c.lib, or can be
     built by running 'make' inside ocean.db.ebtree.c.src.)
-    
+
     TODO: move this whole package out of ocean.db and into ocean.util.container.
 
 *******************************************************************************/
@@ -41,9 +41,9 @@ private import ocean.db.ebtree.c.ebtree: eb_node, eb_root;
 /*******************************************************************************
 
     EBTree64 class template.
-    
+
     Template params:
-        signed = false: use the 'ucent' surrogate as key type, true: 'cent'. 
+        signed = false: use the 'ucent' surrogate as key type, true: 'cent'.
 
 *******************************************************************************/
 
@@ -51,43 +51,43 @@ class EBTree128 ( bool signed = false ) : IEBTree
 {
     /**************************************************************************
 
-        false if the 'ucent' surrogate is the key type or true if 'cent'. 
-    
+        false if the 'ucent' surrogate is the key type or true if 'cent'.
+
      **************************************************************************/
-    
+
     public const signed_key = signed;
-    
+
     /**************************************************************************
 
         Key struct, acts as a 'ucent'/'cent' surrogate, using two 64-bit integer
         values as a combined 128-bit key.
-    
+
      **************************************************************************/
-    
+
     struct Key
     {
         /**********************************************************************
-    
-            false if 'uint' is the type of hi (below) or true if it is 'int'. 
-        
+
+            false if 'uint' is the type of hi (below) or true if it is 'int'.
+
          **********************************************************************/
-        
+
         public const is_signed = signed;
-        
+
         /**********************************************************************
-    
+
             lo: Carries the lower 64 bits of the key.
-        
+
          **********************************************************************/
-    
+
         public ulong lo;
-        
+
         /**********************************************************************
 
             hi: Carries the higher 64 bits of the key.
-        
+
          **********************************************************************/
-        
+
         static if (signed)
         {
             public long hi;
@@ -96,21 +96,21 @@ class EBTree128 ( bool signed = false ) : IEBTree
         {
             public ulong hi;
         }
-        
+
         /**********************************************************************
 
             Compares this instance with other.
-            
+
             Params:
                 other = instance to compare with this
-            
+
             Returns:
                 a value less than 0 if this < other,
                 a value greater than 0 if this > other
                 or 0 if this == other.
-    
+
          **********************************************************************/
-        
+
         public int opCmp ( typeof (this) other )
         {
             static if (signed)
@@ -123,20 +123,20 @@ class EBTree128 ( bool signed = false ) : IEBTree
             }
         }
     }
-    
+
     /**********************************************************************
-    
+
         Obtains the key of this node.
-        
+
         Returns:
             key
-    
+
      **********************************************************************/
-    
+
     private static Key getKey ( eb128_node* node_ )
     {
         Key result;
-        
+
         static if (signed)
         {
             eb128i_node_getkey_264(node_, &result.lo, &result.hi);
@@ -145,78 +145,78 @@ class EBTree128 ( bool signed = false ) : IEBTree
         {
             eb128_node_getkey_264(node_, &result.lo, &result.hi);
         }
-        
+
         return result;
     }
-    
+
     /**************************************************************************
-    
+
         Node struct, Node instances are stored in the ebtree.
-    
+
      **************************************************************************/
-    
+
     mixin Node!(eb128_node, Key, getKey,
                 eb128_next, eb128_prev, eb128_prev_unique, eb128_next_unique,
                 eb128_delete);
-    
+
     mixin Iterators!(Node);
-    
+
     /**************************************************************************
 
         Node pool interface type alias
-    
+
      **************************************************************************/
-    
+
     public alias .INodePool!(Node) INodePool;
-    
+
     /**************************************************************************
-    
+
         Node pool instance
-    
+
      **************************************************************************/
-    
+
     private const INodePool node_pool;
-    
+
     /**************************************************************************
-    
+
         Constructor
-    
+
      **************************************************************************/
-    
+
     public this ( )
     {
         this(new NodePool!(Node));
     }
-    
+
     /**************************************************************************
-    
+
         Constructor
-        
+
         Params:
             node_pool = node pool instance to use
-    
+
      **************************************************************************/
-    
+
     public this ( INodePool node_pool )
     {
         this.node_pool = node_pool;
     }
-    
+
     mixin KeylessMethods!(Node, eb128_first, eb128_last);
-    
+
     /***************************************************************************
-    
+
         Adds a new node to the tree, automatically inserting it in the correct
         location to keep the tree sorted.
-    
+
         Params:
             key = key of node to add
-    
+
         Returns:
             pointer to the newly added node
-    
+
     ***************************************************************************/
-    
+
     public Node* add ( Key key )
     out (node_out)
     {
@@ -225,23 +225,23 @@ class EBTree128 ( bool signed = false ) : IEBTree
     body
     {
         scope (success) ++this;
-        
+
         return this.add_(this.node_pool.get(), key);
     }
-    
+
     /***************************************************************************
-    
+
         Sets the key of node to key, keeping the tree sorted.
-    
+
         Params:
             node = node to update key
-            key  = new key for node 
-    
+            key  = new key for node
+
         Returns:
             updated node
-    
+
     ***************************************************************************/
-    
+
     public Node* update ( ref Node node, Key key )
     out (node_out)
     {
@@ -251,7 +251,7 @@ class EBTree128 ( bool signed = false ) : IEBTree
     {
         return (node.key != key)? this.add_(node.remove(), key) : &node;
     }
-    
+
     /***************************************************************************
 
         Searches the tree for the first node whose key is <= the specified key,
@@ -315,32 +315,32 @@ class EBTree128 ( bool signed = false ) : IEBTree
             return this.ebCall!(eb128_lookup_264)(key.lo, key.hi);
         }
     }
-    
+
     /***************************************************************************
-    
+
         Minimizes the memory usage of the node pool.
-    
+
     ***************************************************************************/
-    
+
     public void minimize ( )
     {
         this.node_pool.minimize();
     }
-    
+
     /***************************************************************************
-    
+
         Adds node to the tree, automatically inserting it in the correct
         location to keep the tree sorted.
-    
+
         Params:
             node = node to add
             key  = key for node
-    
+
         Returns:
             node
-    
+
     ***************************************************************************/
-    
+
     private Node* add_ ( Node* node, Key key )
     in
     {
@@ -355,13 +355,13 @@ class EBTree128 ( bool signed = false ) : IEBTree
         static if (signed)
         {
             eb128i_node_setkey_264(&node.node_, key.lo, key.hi);
-            
+
             return this.ebCall!(eb128i_insert)(&node.node_);
         }
         else
         {
             eb128_node_setkey_264(&node.node_, key.lo, key.hi);
-            
+
             return this.ebCall!(eb128_insert)(&node.node_);
         }
     }
@@ -376,7 +376,7 @@ struct eb128_node
      * sort of transparent union here to reduce the indirection level, but the fact
      * is, the end user is not meant to manipulate internals, so this is pointless.
      */
-    
+
     private eb_node node; /* the tree node, must be at the beginning */
     private ubyte[0x10] key_;
 }
@@ -444,13 +444,13 @@ eb128_node* eb128i_insert(eb_root* root, eb128_node* neww);
 
     Tells whether a is less than b. a and b are uint128_t values composed from
     alo and ahi or blo and bhi, respectively.
-    
+
     Params:
         alo = value of the lower 64 bits of a
         ahi = value of the higher 64 bits of a
         blo = value of the lower 64 bits of b
         ahi = value of the higher 64 bits of b
-    
+
     Returns:
         true if a < b or false otherwise.
 
@@ -462,13 +462,13 @@ bool eb128_less_264 ( ulong alo, ulong ahi, ulong blo, ulong bhi );
 
     Tells whether a is less than or equal to b. a and b are uint128_t values
     composed from alo and ahi or blo and bhi, respectively.
-    
+
     Params:
         alo = value of the lower 64 bits of a
         ahi = value of the higher 64 bits of a
         blo = value of the lower 64 bits of b
         ahi = value of the higher 64 bits of b
-    
+
     Returns:
         true if a <= b or false otherwise.
 
@@ -480,13 +480,13 @@ bool eb128_less_or_equal_264 ( ulong alo, ulong ahi, ulong blo, ulong bhi );
 
     Tells whether a is equal to b. a and b are uint128_t values
     composed from alo and ahi or blo and bhi, respectively.
-    
+
     Params:
         alo = value of the lower 64 bits of a
         ahi = value of the higher 64 bits of a
         blo = value of the lower 64 bits of b
         ahi = value of the higher 64 bits of b
-    
+
     Returns:
         true if a == b or false otherwise.
 
@@ -498,13 +498,13 @@ bool eb128_equal_264 ( ulong alo, ulong ahi, ulong blo, ulong bhi );
 
     Tells whether a is greater than or equal to b. a and b are uint128_t values
     composed from alo and ahi or blo and bhi, respectively.
-    
+
     Params:
         alo = value of the lower 64 bits of a
         ahi = value of the higher 64 bits of a
         blo = value of the lower 64 bits of b
         ahi = value of the higher 64 bits of b
-    
+
     Returns:
         true if a >= b or false otherwise.
 
@@ -516,13 +516,13 @@ bool eb128_greater_or_equal_264 ( ulong alo, ulong ahi, ulong blo, ulong bhi );
 
     Tells whether a is greater than b. a and b are uint128_t values
     composed from alo and ahi or blo and bhi, respectively.
-    
+
     Params:
         alo = value of the lower 64 bits of a
         ahi = value of the higher 64 bits of a
         blo = value of the lower 64 bits of b
         ahi = value of the higher 64 bits of b
-    
+
     Returns:
         true if a <= b or false otherwise.
 
@@ -534,13 +534,13 @@ bool eb128_greater_264 ( ulong alo, ulong ahi, ulong blo, ulong bhi );
 
     Compares a and b in a qsort callback/D opCmp fashion. a and b are uint128_t
     values composed from alo and ahi or blo and bhi, respectively.
-    
+
     Params:
         alo = value of the lower 64 bits of a
         ahi = value of the higher 64 bits of a
         blo = value of the lower 64 bits of b
         ahi = value of the higher 64 bits of b
-    
+
     Returns:
         a value less than 0 if a < b,
         a value greater than 0 if a > b
@@ -554,13 +554,13 @@ int  eb128_cmp_264 ( ulong alo, ulong ahi, ulong blo, ulong bhi );
 
     Tells whether a is less than b. a and b are int128_t values composed from
     alo and ahi or blo and bhi, respectively.
-    
+
     Params:
         alo = value of the lower 64 bits of a
         ahi = value of the higher 64 bits of a
         blo = value of the lower 64 bits of b
         ahi = value of the higher 64 bits of b
-    
+
     Returns:
         true if a < b or false otherwise.
 
@@ -572,13 +572,13 @@ bool eb128i_less_264 ( ulong alo, long  ahi, ulong blo, long  bhi );
 
     Tells whether a is less than or equal to b. a and b are int128_t values
     composed from alo and ahi or blo and bhi, respectively.
-    
+
     Params:
         alo = value of the lower 64 bits of a
         ahi = value of the higher 64 bits of a
         blo = value of the lower 64 bits of b
         ahi = value of the higher 64 bits of b
-    
+
     Returns:
         true if a <= b or false otherwise.
 
@@ -590,13 +590,13 @@ bool eb128i_less_or_equal_264 ( ulong alo, long  ahi, ulong blo, long  bhi );
 
     Tells whether a is equal to b. a and b are int128_t values composed from
     alo and ahi or blo and bhi, respectively.
-    
+
     Params:
         alo = value of the lower 64 bits of a
         ahi = value of the higher 64 bits of a
         blo = value of the lower 64 bits of b
         ahi = value of the higher 64 bits of b
-    
+
     Returns:
         true if a == b or false otherwise.
 
@@ -608,13 +608,13 @@ bool eb128i_equal_264 ( ulong alo, long  ahi, ulong blo, long  bhi );
 
     Tells whether a is greater or equal to than b. a and b are int128_t values
     composed from alo and ahi or blo and bhi, respectively.
-    
+
     Params:
         alo = value of the lower 64 bits of a
         ahi = value of the higher 64 bits of a
         blo = value of the lower 64 bits of b
         ahi = value of the higher 64 bits of b
-    
+
     Returns:
         true if a >= b or false otherwise.
 
@@ -626,13 +626,13 @@ bool eb128i_greater_or_equal_264 ( ulong alo, long  ahi, ulong blo, long  bhi );
 
     Tells whether a is greater than b. a and b are int128_t values composed from
     alo and ahi or blo and bhi, respectively.
-    
+
     Params:
         alo = value of the lower 64 bits of a
         ahi = value of the higher 64 bits of a
         blo = value of the lower 64 bits of b
         ahi = value of the higher 64 bits of b
-    
+
     Returns:
         true if a > b or false otherwise.
 
@@ -644,13 +644,13 @@ bool eb128i_greater_264 ( ulong alo, long  ahi, ulong blo, long  bhi);
 
     Compares a and b in a qsort callback/D opCmp fashion. a and b are int128_t
     values composed from alo and ahi or blo and bhi, respectively.
-    
+
     Params:
         alo = value of the lower 64 bits of a
         ahi = value of the higher 64 bits of a
         blo = value of the lower 64 bits of b
         ahi = value of the higher 64 bits of b
-    
+
     Returns:
         a value less than 0 if a < b,
         a value greater than 0 if a > b
@@ -663,12 +663,12 @@ int  eb128i_cmp_264 ( ulong alo, long  ahi, ulong blo, long  bhi );
 /******************************************************************************
 
     Sets node->key to an uint128_t value composed from lo and hi.
-    
+
     Params:
         node = node to set the key
         lo   = value of the lower 64 value bits of node->key
         hi   = value of the higher 64 value bits of node->key
-    
+
     Returns:
         node
 
@@ -679,12 +679,12 @@ eb128_node* eb128_node_setkey_264 ( eb128_node* node, ulong lo, ulong hi );
 /******************************************************************************
 
     Sets node->key to an int128_t value composed from lo and hi.
-    
+
     Params:
         node = node to set the key
         lo   = value of the lower 64 value bits of node->key
         hi   = value of the higher 64 value bits of node->key
-    
+
     Returns:
         node
 
@@ -696,7 +696,7 @@ eb128_node* eb128i_node_setkey_264 ( eb128_node* node, long lo, ulong hi );
 
     Obtains node->key,and decomposes it into two uint64_t values. This assumes
     that the key was originally unsigned, e.g. set by eb128_node_setkey_264().
-    
+
     Params:
         node = node to obtain the key
         lo   = output of the value of the lower 64 value bits of node->key
@@ -711,7 +711,7 @@ void eb128_node_getkey_264 ( eb128_node* node, ulong* lo, ulong* hi );
     Obtains node->key,and decomposes it into an int64_t and an uint64_t value.
     This assumes that the key was originally signed, e.g. set by
     eb128i_node_setkey_264().
-    
+
     Params:
         node = node to obtain the key
         lo   = output of the value of the lower 64 value bits of node->key

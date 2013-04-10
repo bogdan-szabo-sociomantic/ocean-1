@@ -78,7 +78,7 @@ struct CmdPath
 
     public char[] set ( char[] exepath )
     {
-    	scope path = new FilePath(exepath);
+        scope path = new FilePath(exepath);
 
         path.set(PathUtil.normalize(path.folder));
 

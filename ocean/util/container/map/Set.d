@@ -74,7 +74,7 @@ debug ( UnittestVerbose )
 
     StandardKeyHashingSet class template. Manages a set of K's with fast lookup
     using a standard way of hash calculation:
-    
+
     - If K is a primitive type (integer, floating point, character), the hash
       value is calculated from the raw key data using the FNV1a hash function.
     - If K is a dynamic or static array of a  primitive type, the hash value is
@@ -93,7 +93,7 @@ public class StandardHashingSet ( K ) : Set!(K)
     /***************************************************************************
 
         Constructor.
-    
+
         Params:
             n = expected number of elements in mapping
             load_factor = ratio of n to the number of internal buckets. The
@@ -103,20 +103,20 @@ public class StandardHashingSet ( K ) : Set!(K)
                 than 0. The load factor is basically a trade-off between memory
                 usage (number of buckets) and search time (number of elements
                 per bucket).
-    
+
     ***************************************************************************/
-    
+
     public this ( size_t n, float load_factor = 0.75 )
     {
         super(n, load_factor);
     }
-    
+
     /***************************************************************************
 
         Mixin of the toHash() method which is declared abstract in BucketSet.
-    
+
     ***************************************************************************/
-    
+
     mixin StandardHash.toHash!(K);
 }
 
@@ -131,7 +131,7 @@ public class StandardHashingSet ( K ) : Set!(K)
 public abstract class Set ( K ) : BucketSet!(0, K)
 {
     private alias .MapIterator!(void, K) SetIterator;
-    
+
     /***************************************************************************
 
         Constructor, sets the number of buckets to n * load_factor
@@ -204,11 +204,11 @@ public abstract class Set ( K ) : BucketSet!(0, K)
     {
         return this.remove_(key) !is null;
     }
-    
+
     /***************************************************************************
 
         'foreach' iteration over the keys in the map.
-        
+
         Notes:
         - During iteration it is forbidden to call clear() or redistribute() or
           remove map elements. If elements are added, the iteration may or may

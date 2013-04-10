@@ -6,10 +6,10 @@
 
     author:         Gavin Norman
 
-	Html entity en/decoder.
+    Html entity en/decoder.
 
     Example usage:
-    
+
     ---
 
         import ocean.text.entities.HtmlEntityCodec;
@@ -17,13 +17,13 @@
         scope entity_codec = new HtmlEntityCodec;
 
         char[] test = "hello & world © &szlig;&nbsp;&amp;#x230;'";
-        
+
         if ( entity_codec.containsUnencoded(test) )
         {
             char[] encoded;
             entity_codec.encode(test, encoded);
         }
-    
+
     ---
 
 *******************************************************************************/
@@ -34,7 +34,7 @@ module ocean.text.entities.HtmlEntityCodec;
 
 /*******************************************************************************
 
-	Imports
+    Imports
 
 *******************************************************************************/
 
@@ -48,7 +48,7 @@ private import ocean.text.util.StringReplace;
 
 /*******************************************************************************
 
-	Class to en/decode html entities.
+    Class to en/decode html entities.
 
 *******************************************************************************/
 

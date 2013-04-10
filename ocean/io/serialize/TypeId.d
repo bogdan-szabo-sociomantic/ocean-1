@@ -2,11 +2,11 @@
 
     Templates to generate a a hash or a string that describes the binary layout
     of a value type, fully recursing into aggregates.
-    
+
     copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-    
+
     version:        October 2012: Initial release
-    
+
     authors:        David Eckardt
 
     The data layout identifier hash is the 64-bit Fnv1a hash value of a string
@@ -14,38 +14,38 @@
     and types of each field in order of appearance, recursing into structs,
     unions and function/delegate parameter lists and using the base type of
     enums and typedefs.
-    
+
     Example:
-    
+
     ---
         struct S
         {
             typedef int Spam;
-            
+
             struct T
             {
                 enum Eggs : ushort
                 {
                     Ham = 7
                 }
-                
+
                 Eggs eggs;                              // at offset 0
-                
+
                 char[] str;                             // at offset 8
             }
-            
+
             Spam x;                                     // at offset 0
-            
+
             T[][5] y;                                   // at offset 8
-            
+
             Spam delegate ( T ) dg;                     // at offset 88
-            
+
             T*[float function(Spam, T.Eggs)] a;         // at offset 104
         }
-        
-        
+
+
         const id = TypeId!(S);
-        
+
         // id is now "struct{
         //               "0LUint"
         //               "8LU"
@@ -64,15 +64,15 @@
         //                   "8LUchar[]"
         //               "}*[floatfunction(intushort)]
         //           "}".
-        
+
         const hash = TypeHash!(S);
-        
+
         // hash is now 0x3ff282c0d315761b, the 64-bit Fnv1a hash of id .
     ---
-    
+
     The type identifier of a non-aggregate type is the .stringof of that type
     (or its base if it is a typedef or enum).
-    
+
  ******************************************************************************/
 
 module ocean.io.serialize.TypeId;
@@ -300,7 +300,7 @@ template TupleHash ( ulong hash, T ... )
 template CheckedBaseType ( T )
 {
     alias BaseType!(T) CheckedBaseType;
-    
+
     static assert (!(is (CheckedBaseType == class) ||
                      is (CheckedBaseType == interface)), TypeErrorMsg!(T, CheckedBaseType));
 }
@@ -316,7 +316,7 @@ template BaseType ( T )
 {
     static if (is (T Base == typedef) || is (T Base == enum))
     {
-        alias BaseType!(Base) BaseType; 
+        alias BaseType!(Base) BaseType;
     }
     else
     {

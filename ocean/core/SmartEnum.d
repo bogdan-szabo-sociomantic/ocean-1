@@ -38,7 +38,7 @@
     The mixin template takes as parameters the name of the class to be generated
     and a variadic list of SmartEnumValue structs, specifying the names and
     values of the enum's members.
-    
+
     The SmartEnumValue struct is also a template, which takes as parameter the
     base type of the enum, which must be an integral type (see
     http://www.digitalmars.com/d/1.0/enum.html).
@@ -86,7 +86,7 @@
 
     ---
 
-    
+
     2. AutoSmartEnum
     ----------------------------------------------------------------------------
 
@@ -95,7 +95,7 @@
     numbered, starting at 0.
 
     Usage example:
-    
+
     ---
 
         import ocean.core.SmartEnum;
@@ -226,20 +226,20 @@ private template SmartEnumCore ( BaseType )
 
     public alias code opIn_r;
 
-    
+
     /***************************************************************************
 
         Gets the description of a code.
-    
+
         Params:
             code = code to look up
-    
+
         Returns:
             code's description
-    
+
         Throws:
             if code is not in the map
-    
+
     ***************************************************************************/
 
     static public char[] opIndex ( BaseType code )
@@ -253,18 +253,18 @@ private template SmartEnumCore ( BaseType )
     /***************************************************************************
 
         Gets the code of a description.
-    
+
         Params:
             description = description to look up
-    
+
         Returns:
             description's code
-    
+
         Throws:
             if description is not in the map
-    
+
     ***************************************************************************/
-    
+
     static public BaseType opIndex ( char[] description )
     {
         auto code = description in map;
@@ -337,7 +337,7 @@ private template SmartEnumCore ( BaseType )
 
         Looks up a description in the enum by the index of its code. (ie gets
         the description of the nth code in the enum).
-    
+
         Params:
             index = index of code to get description for
 
@@ -461,7 +461,7 @@ private template EnumValuesList ( T ... )
         T = variadic list of one or more SmartEnumValues
 
     Generates output of the form:
-    
+
     ---
         enum
         {
@@ -482,12 +482,12 @@ private template DeclareEnum ( T ... )
 /*******************************************************************************
 
     Template to mixin a series of TwoWayMap value initialisations.
-    
+
     Template params:
         T = variadic list of one or more SmartEnumValues
-    
+
     Generates output of the form:
-    
+
     ---
         map["first"]=1;
         map["second"]=2;
@@ -513,12 +513,12 @@ private template InitialiseMap ( T ... )
 
     Template to mixin a static constructor which initialises and rehashes a
     TwoWayMap.
-    
+
     Template params:
         T = variadic list of one or more SmartEnumValues
 
     Generates output of the form:
-    
+
     ---
         static this ( )
         {
@@ -563,7 +563,7 @@ private template MaxValue ( T ... )
 /*******************************************************************************
 
     Template to find the minimum code from a list of SmartEnumValues.
-    
+
     Template params:
         T = variadic list of one or more SmartEnumValues
 
@@ -586,7 +586,7 @@ private template MinValue ( T ... )
 
     Template to find the length of the longest description in a list of
     SmartEnumValues.
-    
+
     Template params:
         T = variadic list of one or more SmartEnumValues
 
@@ -609,7 +609,7 @@ private template LongestName ( T ... )
 
     Template to find the length of the shortest description in a list of
     SmartEnumValues.
-    
+
     Template params:
         T = variadic list of one or more SmartEnumValues
 
@@ -687,9 +687,9 @@ private template MixinCore ( T ... )
     Template params:
         Name = name of class
         T = variadic list of one or more SmartEnumValues
-    
+
     Generates output of the form:
-    
+
     ---
         class EnumName : ISmartEnum
         {
@@ -731,7 +731,7 @@ private template CreateCodes ( BaseType, uint i, Strings ... )
 {
     static if ( Strings.length == 1 )
     {
-        alias Tuple!(SmartEnumValue!(BaseType)(Strings[0], i)) CreateCodes; 
+        alias Tuple!(SmartEnumValue!(BaseType)(Strings[0], i)) CreateCodes;
     }
     else
     {

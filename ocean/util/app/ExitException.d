@@ -15,7 +15,7 @@ module ocean.util.app.ExitException;
 /*******************************************************************************
 
     Exception to raise to safely exit the program.
-    
+
     Should usually be used via Application.exit().
 
 *******************************************************************************/

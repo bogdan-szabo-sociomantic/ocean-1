@@ -3,11 +3,11 @@
     Static console tracer
 
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     version:        November 2010: Initial release
-    
+
     authors:        Gavin Norman
-    
+
     Static console tracer - moves the cursor back to its original position after
     printing the required text.
 
@@ -95,7 +95,7 @@ public class StaticSyncPrint
     /***************************************************************************
 
         Buffer used for string formatting.
-    
+
     ***************************************************************************/
 
     private char[] formatted;
@@ -103,44 +103,44 @@ public class StaticSyncPrint
     /***************************************************************************
 
         Find Fruct to find the \n's
-    
+
     ***************************************************************************/
 
     private auto finder = find("\n");
-    
+
     /***************************************************************************
 
         Outputstream to use.
-    
+
     ***************************************************************************/
 
     private OutputStream output;
-        
+
     /***************************************************************************
 
         C'tor
-    
+
         Params:
             output = Outputstream to use.
-    
+
     ***************************************************************************/
 
     public this ( OutputStream output )
     {
         this.output = output;
     }
-    
+
     /***************************************************************************
 
         Outputs a thread-synchronized string to the console.
-        
+
         Params:
             fmt = format string (same format as tanog.util.log.Trace)
             ... = variadic list of values referenced in format string
 
         Returns:
             this instance for method chaining
-    
+
     ***************************************************************************/
 
     synchronized public typeof(this) format ( char[] fmt, ... )
@@ -151,7 +151,7 @@ public class StaticSyncPrint
             formatted ~= s;
             return s.length;
         }
-        
+
         version (DigitalMarsX64)
         {
             va_list ap;
@@ -164,10 +164,10 @@ public class StaticSyncPrint
         }
         else
             Layout!(char).instance()(&sink, _arguments, _argptr, fmt);
-        
+
         size_t lines = 0;
         char[] nl = "";
-        
+
         foreach ( token; this.finder.tokens(this.formatted) )
         {
             with ( this.output )
@@ -176,11 +176,11 @@ public class StaticSyncPrint
                 write(token);
                 write(Terminal.CSI);
                 write(Terminal.ERASE_REST_OF_LINE);
-                flush();                
+                flush();
             }
-            
+
             nl = "\n";
-            
+
             lines++;
         }
 
@@ -198,13 +198,13 @@ public class StaticSyncPrint
         {
             formatted.length = 0;
             Layout!(char).instance()(&sink, "{}", lines - 1);
-            
+
             write(CSI);
             write(formatted);
             write(LINE_UP);
             flush();
         }
-        
+
         return this;
     }
 

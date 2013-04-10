@@ -337,7 +337,7 @@ debug ( OceanUnittest )
                 csv.parse(array, &this.rowDg);
             }
 
-            void test_inc ( HeadingsCSV csv, char[] str, char[][] included_headings, 
+            void test_inc ( HeadingsCSV csv, char[] str, char[][] included_headings,
                 HeadingsCSV.Field[][] expected )
             {
                 this.expected = expected;

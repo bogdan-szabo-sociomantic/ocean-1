@@ -61,29 +61,29 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
      **************************************************************************/
 
     protected alias .SelectFiber            SelectFiber;
-    
+
     public alias .IOWarning IOWarning;
     public alias .IOError   IOError;
 
     /**************************************************************************
 
-        I/O device 
+        I/O device
 
      **************************************************************************/
-    
+
     protected const ISelectable conduit;
 
     /**************************************************************************
 
-        Events to register the I/O device for. 
+        Events to register the I/O device for.
 
      **************************************************************************/
-    
+
     protected const Event events_;
 
     /**************************************************************************
 
-        IOWarning exception instance 
+        IOWarning exception instance
 
      **************************************************************************/
 
@@ -91,16 +91,16 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
 
     /**************************************************************************
 
-        IOError exception instance 
+        IOError exception instance
 
      **************************************************************************/
 
     protected const IOError error_e;
-    
+
     /**************************************************************************
 
         Events reported to handle()
-    
+
      **************************************************************************/
 
     private Event events_reported;
@@ -108,27 +108,27 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
     /**************************************************************************
 
         Constructor
-        
+
         Params:
             conduit   = I/O device
             events    = the epoll events to register the device for
             fiber     = fiber to use to suspend and resume operation
-    
+
      **************************************************************************/
 
     protected this ( ISelectable conduit, Event events, SelectFiber fiber )
     {
         this(conduit, events, fiber, new IOWarning(conduit), new IOError(conduit));
     }
-    
+
     /**************************************************************************
 
         Constructor
-        
+
         Note: If distinguishing between warnings and errors is not desired or
-              required, pass the same object for warning_e and error_e. 
-        
-        
+              required, pass the same object for warning_e and error_e.
+
+
         Params:
             conduit   = I/O device
             events    = the epoll events to register the device for
@@ -136,7 +136,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
             warning_e = Exception instance to throw for warnings
             error_e   = Exception instance to throw on errors and to query
                         device specific error codes if possible
-    
+
      **************************************************************************/
 
     protected this ( ISelectable conduit, Event events, SelectFiber fiber,
@@ -155,80 +155,80 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
         this.warning_e = warning_e;
         this.error_e   = error_e;
     }
-    
+
     /**************************************************************************
 
         Constructor
-        
+
         Uses the conduit, fiber and exceptions from the other instance. This is
         useful when instances of several subclasses share the same conduit and
         fiber.
-        
+
         Params:
             other  = other instance of this class
             events    = the epoll events to register the device for
-    
+
      **************************************************************************/
-    
+
     protected this ( typeof (this) other, Event events )
     {
         this(other.conduit, events, other.fiber, other.warning_e, other.error_e);
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             the I/O device file handle.
-    
+
      **************************************************************************/
-    
+
     public Handle fileHandle ( )
     {
         return this.conduit.fileHandle();
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             the events to register the I/O device for.
-    
+
      **************************************************************************/
 
     public Event events ( )
     {
         return this.events_;
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             current socket error code, if available, or 0 otherwise.
-    
+
      **************************************************************************/
-    
+
     public override int error_code ( )
     {
         return this.error_e.error_code;
     }
-    
+
     /**************************************************************************
 
         Resumes the fiber coroutine and handle the events reported for the
         conduit. The fiber must be suspended (HOLD state).
-        
+
         Note that the fiber coroutine keeps going after this method has finished
         if there is another instance of this class which shares the fiber with
         this instance and is invoked in the coroutine after this instance has
         done its job.
-        
+
         Returns:
             false if the fiber is finished or true if it keeps going
-        
+
         Throws:
             IOException on I/O error
-        
+
      **************************************************************************/
-    
+
     final protected bool handle ( Event events )
     in
     {
@@ -270,13 +270,13 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
     {
         // The reported events are reset at this point to avoid using the events
         // set by a previous run of this method.
-        
+
         try for (bool more = this.transmit(this.events_reported = this.events_reported.init);
                       more;
                       more = this.transmit(this.events_reported))
         {
             super.fiber.register(this);
-            
+
             // Calling suspend() triggers an epoll wait, which will in turn call
             // handle_() (above) when an event fires for this client. handle_()
             // sets this.events_reported to the event reported by epoll.

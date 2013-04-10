@@ -4,8 +4,8 @@ import ocean.io.digest.Fnv1;
 
 
 static class FirstName
-{    
-    static private char[][] names = 
+{
+    static private char[][] names =
             ["Sarah",
             "David",
             "Gavin",
@@ -45,8 +45,8 @@ static class FirstName
             "Spiderman",
             "Storm",
             "Walter",
-            "Fawfzi"];    
-    
+            "Fawfzi"];
+
     static char[] opCall ( T ) ( T value )
     {
         return names[Fnv1a64(value) % names.length];

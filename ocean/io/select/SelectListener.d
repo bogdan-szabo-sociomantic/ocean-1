@@ -1,6 +1,6 @@
 /******************************************************************************
 
-    Server socket listener using multiplexed non-blocking socket I/O 
+    Server socket listener using multiplexed non-blocking socket I/O
 
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
 
@@ -14,15 +14,15 @@
     from the pool and assigns the incoming connection to the handler's socket.
 
     Usage example:
-    
+
     ---
-        
+
         import tango.io.select.EpollSelector;
         import ocean.io.select.SelectDispatcher;
-        
+
         import ocean.io.select.SelectListener;
         import ocean.io.select.model.IConnectionHandler;
-        
+
         class MyConnectionHandler : IConnectionHandler
         {
             this ( SelectDispatcher dispatcher, FinalizeDg finalize_dg,         // for IConnectionHandler constructor
@@ -33,25 +33,25 @@
                 // ...
             }
         }
-        
+
         void main ( )
         {
             char[] address = "localhost";
             ushort port    = 4711;
-        
+
             int x = 4;
             char[] str = "Hello World!";
-            
+
             scope dispatcher = new SelectDispatcher(new EpollSelector,
-                                                    EpollSelector.DefaultSize,  
+                                                    EpollSelector.DefaultSize,
                                                     EpollSelector.DefaultMaxEvents);
-            
+
             scope listener = new SelectListener!(MyConnectionHandler,
                                                  int, char[])                   // types of additional MyConnectionHandler
                                                 (address, port, dispatcher,     // constructor arguments x and str
                                                  x, str);
         }
-    
+
     ---
 
     TODO: suggest moving this module to: ocean.io.select.server, along with
@@ -92,7 +92,7 @@ debug private import ocean.util.log.Trace;
 /******************************************************************************
 
     SelectListener base class
-    
+
     Contains all base functionality which is not related to the particular
     IConnectionHandler subclass used in SelectListener.
 
@@ -108,15 +108,15 @@ abstract class ISelectListener : ISelectClient
      **************************************************************************/
 
     private const AddressIPSocket!() socket;
-    
+
     /**************************************************************************
 
         Termination flag; true prevents accepting new connections
-    
+
      **************************************************************************/
-    
+
     private bool terminated = false;
-    
+
     /**************************************************************************
 
         Exception instance thrown in case of socket errors.
@@ -124,13 +124,13 @@ abstract class ISelectListener : ISelectClient
      **************************************************************************/
 
     private const SocketError e;
-    
+
     /**************************************************************************
-    
+
         Constructor
-        
+
         Creates the server socket and registers it for incoming connections.
-        
+
         Params:
             address    = server address
             port       = server port
@@ -147,20 +147,20 @@ abstract class ISelectListener : ISelectClient
     protected this ( char[] address, ushort port, int backlog = 32 )
     {
         this();
-        
+
         this.e.assertExSock(!this.socket.bind(address, port),
                             "error binding socket", __FILE__, __LINE__);
-        
+
         this.e.assertExSock(!this.socket.listen(backlog),
                             "error listening on socket", __FILE__, __LINE__);
     }
-    
+
     /**************************************************************************
-    
+
         Constructor
-        
+
         Creates the server socket and registers it for incoming connections.
-        
+
         Params:
             port       = server port
             backlog    = (see ctor above)
@@ -173,7 +173,7 @@ abstract class ISelectListener : ISelectClient
 
         this.e.assertExSock(!this.socket.bind(port),
                             "error binding socket", __FILE__, __LINE__);
-        
+
         this.e.assertExSock(!this.socket.listen(backlog),
                             "error listening on socket", __FILE__, __LINE__);
     }
@@ -187,9 +187,9 @@ abstract class ISelectListener : ISelectClient
     private this ( )
     {
         this.socket = new AddressIPSocket!();
-        
+
         this.e = new SocketError(this.socket);
-        
+
         this.e.assertEx(this.socket.tcpSocket(true) >= 0,
                         "error creating socket", __FILE__, __LINE__);
 
@@ -203,10 +203,10 @@ abstract class ISelectListener : ISelectClient
     /**************************************************************************
 
         Implements ISelectClient abstract method.
-    
+
         Returns:
             events to register the conduit for.
-    
+
      **************************************************************************/
 
     public Event events ( )
@@ -217,7 +217,7 @@ abstract class ISelectListener : ISelectClient
     /**************************************************************************
 
         Implements ISelectClient abstract method.
-    
+
         Returns:
             conduit's OS file handle (fd)
 
@@ -229,14 +229,14 @@ abstract class ISelectListener : ISelectClient
     }
 
     /**************************************************************************
-    
+
         I/O event handler
-    
+
         Called from SelectDispatcher during event loop.
-    
+
         Params:
              event = identifier of I/O event that just occured on the device
-    
+
         Returns:
             true if the handler should be called again on next event occurrence
             or false if this instance should be unregistered from the
@@ -268,25 +268,25 @@ abstract class ISelectListener : ISelectClient
 
         return !this.terminated;
     }
-    
+
     /**************************************************************************
-    
+
         Closes the server socket and sets this instance to terminated mode.
-        
-        TODO: Make it possible to reopen the server socket and resume operation? 
-        
+
+        TODO: Make it possible to reopen the server socket and resume operation?
+
         Returns:
             true if this instance was already in to terminated mode or false
             otherwise
-    
+
      **************************************************************************/
-    
+
     final bool terminate ( )
     {
         scope (exit) if (!this.terminated)
         {
             this.terminated = true;
-            
+
             try
             {
                 this.e.assertEx!(true)(!this.socket.shutdown(),
@@ -297,70 +297,70 @@ abstract class ISelectListener : ISelectClient
                 this.socket.close();
             }
         }
-        
+
         return this.terminated;
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             information interface to the connections pool
-    
+
      **************************************************************************/
-    
+
     abstract IPoolInfo poolInfo ( );
-    
+
     /**************************************************************************
-        
+
         Sets the limit of the number of connections. 0 disables the limitation.
-        
+
         Notes:
             - If limit is set to something other than 0, limit connection
               handler objects will be created (so set it to a realistic value).
             - If not 0, limit must be at least the number of currently busy
               connections.
-        
+
         Returns:
             connection limit
-        
+
      **************************************************************************/
-    
+
     abstract uint connection_limit ( uint limit ) ;
-    
+
     /**************************************************************************
-    
+
         Returns:
             the limit of the number of connections or 0 if limitation is
             disabled.
-        
+
      **************************************************************************/
-    
+
     public uint connection_limit ( )
     {
         auto n = this.poolInfo.limit;
-        
+
         return (n == n.max)? 0 : n;
     }
-    
+
     /**************************************************************************
 
         Closes all connections and terminates the listener.
-    
+
      **************************************************************************/
-    
+
     abstract public void shutdown ( );
-    
+
     /**************************************************************************
-    
+
         Obtains a connection handler instance from the pool.
-        
+
         Returns:
             connection handler
-    
+
      **************************************************************************/
-    
+
     abstract protected IConnectionHandler getConnectionHandler ( );
-    
+
     /**************************************************************************
 
         Accepts the next pending incoming client connection and assigns it to
@@ -376,7 +376,7 @@ abstract class ISelectListener : ISelectClient
         try
         {
             handler.assign(this.socket);
-            
+
             handler.handleConnection();
         }
         catch (Exception e)
@@ -398,11 +398,11 @@ abstract class ISelectListener : ISelectClient
     }
 
     /**************************************************************************
-    
+
         Accepts the next pending incoming client connection and closes it.
-        
+
      **************************************************************************/
-    
+
     private void declineConnection ( )
     {
         if (.close(.accept(this.socket.fileHandle, null, null))) // returns non-zero on failure
@@ -415,10 +415,10 @@ abstract class ISelectListener : ISelectClient
 /******************************************************************************
 
     SelectListener class template
-    
+
     The additional T constructor argument parameters must appear after those for
     the mandatory IConnectionHandler constructor.
-    
+
     Template params:
         T    = connection handler class
         Args = additional constructor arguments for T
@@ -432,83 +432,83 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
     /**************************************************************************
 
         ObjectPool of connection handlers
-    
+
      **************************************************************************/
-    
+
     private const AutoCtorPool!(T, IConnectionHandler.FinalizeDg, Args) receiver_pool;
 
     /**************************************************************************
 
         Constructor
-        
+
         Creates the server socket and registers it for incoming connections.
-        
+
         Params:
             address    = server address
             port       = listening port
             dispatcher = SelectDispatcher instance to use
             args       = additional T constructor arguments, might be empty
             backlog    = (see ISelectListener ctor)
-        
+
      **************************************************************************/
-    
+
     public this ( char[] address, ushort port, Args args, int backlog = 32 )
     {
         super(address, port, backlog);
-        
+
         this.receiver_pool = this.receiver_pool.newPool(&this.returnToPool, args);
     }
-    
+
     /**************************************************************************
 
         Constructor
-        
+
         Creates the server socket and registers it for incoming connections.
-        
+
         Params:
             port       = listening port
             dispatcher = SelectDispatcher instance to use
             args       = additional T constructor arguments, might be empty
             backlog    = (see ISelectListener ctor)
-        
+
      **************************************************************************/
-    
+
     public this ( ushort port, Args args, int backlog = 32 )
     {
         super(port, backlog);
 
         this.receiver_pool = this.receiver_pool.newPool(&this.returnToPool, args);
     }
-    
+
     /**************************************************************************
-    
+
         Obtains a connection handler instance from the pool.
-        
+
         Returns:
             connection handler
-    
+
      **************************************************************************/
-    
+
     protected IConnectionHandler getConnectionHandler ( )
     {
         return this.receiver_pool.get();
     }
 
     /**************************************************************************
-    
+
         Sets the limit of the number of connections. 0 disables the limitation.
-        
+
         Notes:
             - If limit is set to something other than 0, limit connection
               handler objects will be created (so set it to a realistic value).
             - If not 0, limit must be at least the number of currently busy
               connections.
-        
+
         Returns:
             limit
-        
+
      **************************************************************************/
-    
+
     public uint connection_limit ( uint limit )
     in
     {
@@ -525,39 +525,39 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
         {
             this.receiver_pool.limited = false;
         }
-        
+
         return limit;
     }
-    
+
     /**************************************************************************
-        
+
         (Overriding wrapper to fix method matching.)
-        
+
         Returns:
             new limit of number of connections or 0 if unlimited.
-    
+
      **************************************************************************/
-    
+
     public override uint connection_limit ( )
     {
         return super.connection_limit;
     }
-    
+
     /**************************************************************************
-    
+
         Minimizes the connection pool to n connections by deleting idle
         connection objects. If more than n connections are currently busy,
         all idle connections are deleted.
-        
+
         Params:
             n = minimum number of connection objects to keep in the pool.
-            
+
         Returns:
             the number of connection object in the pool after minimizing, which
-            is the greater of n and the number of currently busy connections. 
-    
+            is the greater of n and the number of currently busy connections.
+
      **************************************************************************/
-    
+
     public uint minimize ( uint n = 0 )
     out (still_existent)
     {
@@ -572,25 +572,25 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
         return this.receiver_pool.setLimit((n > busy)? n : busy);
     }
-    
+
     /**************************************************************************
 
         Returns:
             information interface to the connections pool
 
      **************************************************************************/
-    
+
     public IPoolInfo poolInfo ( )
     {
         return this.receiver_pool;
     }
-    
+
     /**************************************************************************
 
         Closes all connections and terminates the listener.
 
      **************************************************************************/
-    
+
     public void shutdown ( )
     {
         scope busy_connections = this.receiver_pool.new BusyItemsIterator;
@@ -599,17 +599,17 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
             /* FIXME: calling finalize here will cause errors in any connection
              * handlers which are currently selected in epoll, as they will
              * subsequently attempt to finalize themselves again.
-             * 
+             *
              * In practice this is of little import however, as the whole server
              * is being shut down. It may be nice to find a clean way to avoid
              * this though.
              */
             busy_connection.finalize();
         }
-        
+
         super.terminate();
     }
-    
+
     /**************************************************************************
 
         Called as the finalizer of class T. Returns connection into the object
@@ -619,7 +619,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
             connection = connection hander instance to return into pool
 
      **************************************************************************/
-    
+
     private void returnToPool ( IConnectionHandler connection )
     in
     {
@@ -629,7 +629,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
     body
     {
         debug ( ConnectionHandler ) Trace.formatln("[{}]: Returning to pool", connection.connection_id);
-        
+
         this.receiver_pool.recycle(cast (T) connection);
     }
 }

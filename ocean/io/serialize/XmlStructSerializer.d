@@ -2,11 +2,11 @@
 
     Serializer, to be used with the StructSerializer, which dumps a struct into
     an xmlstring.
-    
+
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     version:        October 2010: Initial release
-    
+
     authors:        Gavin Norman
 
     Serializer, to be used with the StructSerializer in
@@ -15,7 +15,7 @@
 
 
     Usage example (in conjunction with ocean.io.serialize.StructSerializer):
-    
+
     ---
 
         // Example struct to serialize into xml
@@ -99,7 +99,7 @@ private import Float = tango.text.convert.Float;
 /*******************************************************************************
 
     Xml struct serializer
-    
+
     Template params:
         Char = character type of output string
 
@@ -112,7 +112,7 @@ class XmlStructSerializer ( Char )
     /***************************************************************************
 
         Internal string buffers
-    
+
     ***************************************************************************/
 
     private Char[] element_name, buf;
@@ -121,16 +121,16 @@ class XmlStructSerializer ( Char )
     /***************************************************************************
 
         Convenience method to serialize a struct.
-    
+
         Template params:
             T = type of struct to serialize
-        
+
         Params:
             output = string to serialize xml data to
             item = struct to serialize
-    
+
     ***************************************************************************/
-    
+
     void serialize ( T ) ( ref Char[] output, ref T item )
     {
         output.length = 0;
@@ -146,7 +146,7 @@ class XmlStructSerializer ( Char )
         Params:
             output = string to serialize xml data to
             name = name of top-level object
-    
+
     ***************************************************************************/
 
     void open ( ref Char[] output, Char[] name )
@@ -159,7 +159,7 @@ class XmlStructSerializer ( Char )
 
         Called at the end of struct serialization - closes the xml string with
         a close tag for the top-level object
-    
+
         Params:
             output = string to serialize xml data to
             name = name of top-level object
@@ -178,12 +178,12 @@ class XmlStructSerializer ( Char )
 
         Template params:
             T = type of item
-        
+
         Params:
             output = string to serialize xml data to
             item = item to append
             name = name of item
-    
+
     ***************************************************************************/
 
     void serialize ( T ) ( ref Char[] output, ref T item, Char[] name )
@@ -218,7 +218,7 @@ class XmlStructSerializer ( Char )
     /***************************************************************************
 
         Appends a struct to the xml string (as a named object)
-    
+
         Params:
             output = string to serialize xml data to
             name = name of struct item
@@ -231,20 +231,20 @@ class XmlStructSerializer ( Char )
     void serializeStruct ( ref Char[] output, Char[] name, void delegate ( ) serialize_struct )
     {
         openEntity(output, name);
-        
+
         serialize_struct();
 
         closeEntity(output, name);
     }
 
-    
+
     /***************************************************************************
 
         Appends a named array to the xml string
 
         Template params:
             T = base type of array
-    
+
         Params:
             output = string to serialize xml data to
             array = array to append
@@ -285,15 +285,15 @@ class XmlStructSerializer ( Char )
         }
     }
 
-    
+
     /***************************************************************************
 
         Appends a named array of structs to the xml string, as an array of
         indexed objects.
-    
+
         Template params:
             T = base type of array
-    
+
         Params:
             output = string to serialize xml data to
             array = array to append
@@ -324,32 +324,32 @@ class XmlStructSerializer ( Char )
     /***************************************************************************
 
         Appends the open tag for a named element to the xml string
-        
+
         Params:
             output = string to serialize xml data to
             name = name of entity
-    
+
     ***************************************************************************/
-    
+
     private void openEntity ( ref Char[] output, Char[] name )
     {
         output.append("<", name, ">");
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Appends the close tage for a named element to the xml string. Anything
         after the first space in the element name is discarded. (This makes it
         easy to pass the same string to openEntity and closeEntity, and have
         xml parameters stripped out in the close tag.)
-        
+
         Params:
             output = string to serialize xml data to
             name = name of entity
-    
+
     ***************************************************************************/
-    
+
     private void closeEntity ( ref Char[] output, Char[] name )
     {
         auto space = name.find(' ');

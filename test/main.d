@@ -1,23 +1,23 @@
 /*******************************************************************************
 
-    UnitTest main 
-    
+    UnitTest main
+
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     version:        July 2010: Initial release
-    
+
     authors:        Gavin Norman, David Eckardt
-    				Thomas Nicolai, Lars Kirchhoff, 
+                    Thomas Nicolai, Lars Kirchhoff,
                     Mathias Baumann
-    
+
  ******************************************************************************/
 
 module ocean.test.main;
 
 /*******************************************************************************
- 	
- 	Imports
- 	
+
+     Imports
+
  ******************************************************************************/
 
 private import ocean.core.Array,
@@ -50,23 +50,23 @@ private import ocean.crypt.HMAC;
 
 
 /*******************************************************************************
-	
-	Default memory buffer allocation
-	
-	This memory buffer is set to simulate a high memory usage within a 
-	program. It is needed to identify Garbage Collector activity which 
-	degrades performance.
-	The allocation needs to be done in the unittest scope because main 
-	is executed after all unitests have been executed successfully.
-	
+
+    Default memory buffer allocation
+
+    This memory buffer is set to simulate a high memory usage within a
+    program. It is needed to identify Garbage Collector activity which
+    degrades performance.
+    The allocation needs to be done in the unittest scope because main
+    is executed after all unitests have been executed successfully.
+
  ******************************************************************************/
 
-unittest 
+unittest
 {
-	// 200 million bytes of memory is allocated to ensure that any performance
-	// checks in unittests are operating under a normal / stressed condition.
-	static char[] dummy;
-	dummy.length = 200_000_000;
+    // 200 million bytes of memory is allocated to ensure that any performance
+    // checks in unittests are operating under a normal / stressed condition.
+    static char[] dummy;
+    dummy.length = 200_000_000;
 }
 
 

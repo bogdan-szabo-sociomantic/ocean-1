@@ -1,14 +1,14 @@
 /******************************************************************************
-    
+
     Iterating JSON parser
-    
-    copyright:      Copyright (c) 2010 sociomantic labs. 
+
+    copyright:      Copyright (c) 2010 sociomantic labs.
                     All rights reserved.
-    
+
     version:        September 2010: initial release
-    
+
     authors:        David Eckardt, Gavin Norman
-    
+
     Extends Tango's JsonParser by iteration and token classification facilities.
 
     Includes methods to extract the values of named entities.
@@ -57,16 +57,16 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
     /**************************************************************************
 
         Import the Token enum into this namespace
-    
+
      **************************************************************************/
 
     public alias typeof (super).Token Token;
-    
+
     /**************************************************************************
 
         TokenClass enum
         "Other" is for tokens that stand for themselves
-    
+
      **************************************************************************/
 
     public enum TokenClass
@@ -75,21 +75,21 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
         ValueType,
         Container,
     }
-    
+
     /**************************************************************************
 
         Token type descriptions
-    
+
      **************************************************************************/
 
-    public const char[][Token.max + 1] type_description = 
+    public const char[][Token.max + 1] type_description =
     [
         Token.Empty:        "Empty",
         Token.Name:         "Name",
         Token.String:       "String",
         Token.Number:       "Number",
         Token.BeginObject:  "BeginObject",
-        Token.EndObject:    "EndObject", 
+        Token.EndObject:    "EndObject",
         Token.BeginArray:   "BeginArray",
         Token.EndArray:     "EndArray",
         Token.True:         "True",
@@ -100,150 +100,150 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
         Token.NegInfinity:  "-Inf"
     ];
 
-    
+
     /**************************************************************************
 
         Token to TokenClass association
-    
+
      **************************************************************************/
 
     public const TokenClass[Token.max + 1] token_classes =
     [
         Token.Empty:       TokenClass.Other,
-        Token.Name:        TokenClass.Other, 
-        Token.String:      TokenClass.ValueType, 
+        Token.Name:        TokenClass.Other,
+        Token.String:      TokenClass.ValueType,
         Token.Number:      TokenClass.ValueType,
-        Token.True:        TokenClass.ValueType, 
-        Token.False:       TokenClass.ValueType, 
+        Token.True:        TokenClass.ValueType,
+        Token.False:       TokenClass.ValueType,
         Token.Null:        TokenClass.ValueType,
         Token.NaN:         TokenClass.ValueType,
         Token.Infinity:    TokenClass.ValueType,
         Token.NegInfinity: TokenClass.ValueType,
-        Token.BeginObject: TokenClass.Container, 
-        Token.BeginArray:  TokenClass.Container, 
+        Token.BeginObject: TokenClass.Container,
+        Token.BeginArray:  TokenClass.Container,
         Token.EndObject:   TokenClass.Container,
         Token.EndArray:    TokenClass.Container
     ];
-    
+
     /**************************************************************************
 
         Token nesting difference values
-    
+
      **************************************************************************/
 
     public const int[Token.max + 1] nestings =
     [
-        Token.BeginObject: +1, 
-        Token.BeginArray:  +1, 
+        Token.BeginObject: +1,
+        Token.BeginArray:  +1,
         Token.EndObject:   -1,
         Token.EndArray:    -1
     ];
-    
+
     /**************************************************************************
-    
+
         Returns the nesting level difference caused by the current token.
-        
+
         Returns:
             +1 if the current token is BeginObject or BeginArray,
             -1 if the current token is EndObject or EndArray,
              0 otherwise
-    
+
      **************************************************************************/
 
     public int nesting ( )
     {
         return this.nestings[super.type];
     }
-    
+
     /**************************************************************************
 
         Returns:
             the token class to which the current token (super.type()) belongs to
-    
+
      **************************************************************************/
 
     public TokenClass token_class ( )
     {
         return this.token_classes[super.type];
     }
-    
+
     /**************************************************************************
 
         Steps to the next token in the current JSON content.
-        
-        Returns:    
+
+        Returns:
             type of next token or Token.Empty if there is no next one
-    
+
      **************************************************************************/
 
     public Token nextType ( )
     {
         return super.next()? super.type : Token.Empty;
     }
-    
+
     /**************************************************************************
 
         Resets the instance and sets the input content (convenience wrapper for
         super.reset()).
-        
+
         Params:
             content = new JSON input content to parse
-        
-        Returns:    
+
+        Returns:
             this instance
-    
+
      **************************************************************************/
 
     public typeof (this) opCall ( char[] content )
     {
         super.reset(content);
-        
+
         return this;
     }
-    
+
     /**************************************************************************
 
         'foreach' iteration over type/value pairs in the current content
-    
+
      **************************************************************************/
 
     public int opApply ( int delegate ( ref Token type, ref char[] value ) dg )
     {
         int result = 0;
-        
+
         do
         {
             Token  type  = super.type;
             char[] value = super.value;
-            
+
             result = dg(type, value);
         }
         while (!result && super.next());
-            
+
         return result;
     }
 
-    
+
     /**************************************************************************
 
         'foreach' iteration over type/name/value triples in the current content.
-        
+
         For unnamed members name will be null.
-        
+
      **************************************************************************/
 
     public int opApply ( int delegate ( ref Token type, ref char[] name, ref char[] value ) dg )
     {
         int result = 0;
-        
+
         char[] name = null;
-        
+
         do
         {
             Token type = super.type;
-            
+
             char[] value = super.value;
-            
+
             if (type == Token.Name)
             {
                 name = value;
@@ -255,65 +255,65 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
             }
         }
         while (!result && super.next());
-        
+
         return result;
     }
-    
+
     /**************************************************************************
 
         Skips the current member so that the next member is reached by a next()
         call or in the next 'foreach' iteration cycle.
         That is,
-            - if the current token denotes an object or array beginning, 
+            - if the current token denotes an object or array beginning,
               to the corresponding object/array end token,
             - if the current token is a name, steps over the name,
             - if the current member is a value, does nothing.
-        
+
         Returns:
             0 on success or, if the contend ends before the skip destination
             was reached,
             - the object nesting level if an object was skipped,
             - the array nesting level if an array was skipped,
-            - 1 if a name was skipped and the contend ends just after that name. 
-        
+            - 1 if a name was skipped and the contend ends just after that name.
+
      **************************************************************************/
 
     public uint skip ( )
     {
         Token start_type, end_type;
-        
+
         switch (start_type = super.type)
         {
             case Token.BeginObject:
-                end_type = Token.EndObject; 
+                end_type = Token.EndObject;
                 break;
-                
+
             case Token.BeginArray:
                 end_type = Token.EndArray;
                 break;
-            
+
             case Token.Name:
                 return !super.next();
                                                                                 // fall through
             default:
                 return 0;
         }
-              
+
         uint nesting = 1;
-        
+
         for (bool more = super.next(); more; more = super.next())
         {
             Token type = super.type;
-            
+
             nesting += type == start_type;
             nesting -= type == end_type;
-            
+
             if (!nesting) break;
         }
-        
+
         return nesting;
     }
-    
+
     /**************************************************************************
 
         Iterates over the json string looking for the named object and
@@ -328,7 +328,7 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
 
         Returns:
             true if named object found
- 
+
      **************************************************************************/
 
     public bool nextNamedObject ( char[] name )
@@ -365,20 +365,20 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
 
         Iterates over the json string looking for the named element and
         returning the value of the following element.
-    
+
         Note that the search takes place from the current iteration position,
         and all iterations are cumulative. The iteration position is reset using
         the 'reset' method (in super).
-    
+
         Params:
             name = name to search for
             found = output value, set to true if named value was found
-    
+
         Returns:
             value of element after the named element
-    
+
      **************************************************************************/
-    
+
     public char[] nextNamed ( char[] name, out bool found )
     {
         return this.nextNamedValue(name, found, ( Token token ) { return true; });
@@ -394,14 +394,14 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
         Note that the search takes place from the current iteration position,
         and all iterations are cumulative. The iteration position is reset using
         the 'reset' method (in super).
-    
+
         Params:
             name = name to search for
             found = output value, set to true if named value was found
-    
+
         Returns:
             boolean value of element after the named element
-    
+
      **************************************************************************/
 
     public bool nextNamedBool ( char[] name, out bool found )
@@ -415,18 +415,18 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
         Iterates over the json string looking for the named element and
         returning the value of the following element if it is a string. If the
         value is not a string the search continues.
-    
+
         Note that the search takes place from the current iteration position,
         and all iterations are cumulative. The iteration position is reset using
         the 'reset' method (in super).
-    
+
         Params:
             name = name to search for
             found = output value, set to true if named value was found
-    
+
         Returns:
             value of element after the named element
-    
+
      **************************************************************************/
 
     public char[] nextNamedString ( char[] name, out bool found )
@@ -434,30 +434,30 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
         return this.nextNamedValue(name, found, ( Token token ) { return token == Token.String; });
     }
 
-    
+
     /**************************************************************************
 
         Iterates over the json string looking for the named element and
         returning the value of the following element if it is a number. If the
         value is not a number the search continues.
-    
+
         Note that the search takes place from the current iteration position,
         and all iterations are cumulative. The iteration position is reset using
         the 'reset' method (in super).
 
         Template params:
             T = numerical type to return
-    
+
         Params:
             name = name to search for
             found = output value, set to true if named value was found
-    
+
         Returns:
             numerical value of element after the named element
 
         Throws:
             if the value is not valid number
-    
+
      **************************************************************************/
 
     public T nextNamedNumber ( T ) ( char[] name, out bool found )
@@ -499,21 +499,21 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
         Iterates over the json string looking for the named element and
         returning the value of the following element if its type matches the
         requirements of the passed delegate.
-    
+
         Note that the search takes place from the current iteration position,
         and all iterations are cumulative. The iteration position is reset using
         the 'reset' method (in super).
-    
+
         Params:
             name = name to search for
             found = output value, set to true if named value was found
             type_match_dg = delegate which receives the type of the element
                 following a correctly named value, and decides whether this is
                 the value to be returned
-    
+
         Returns:
             value of element after the named element
-    
+
      **************************************************************************/
 
     private char[] nextNamedValue ( char[] name, out bool found,

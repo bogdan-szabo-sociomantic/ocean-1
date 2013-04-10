@@ -1,11 +1,11 @@
 /*******************************************************************************
 
     Functions to create json strings.
-    
+
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     version:        October 2010: Initial release
-    
+
     authors:        Gavin Norman
 
     Notes:
@@ -14,14 +14,14 @@
            tango.text.json.Json for a decoder)
 
         2. The json encoder in this module works in a fairly different way to
-           the tango equivalent, as it allows a json string to be opened and 
+           the tango equivalent, as it allows a json string to be opened and
            elements to be appended gradually. (The tango version expects all
            elements to be added at once.)
 
         3. The class uses an internal string buffer for number -> string
            conversion. If thread-safety is not required, a single global
            (static) instance of the class can be accessed via the opCall method.
-           
+
         4. An automatic json struct serializer exists in
            ocean.io.serialize.JsonStructSerializer
 
@@ -74,7 +74,7 @@ interface Jsonizable
         Char = character type of output array
 
     Simple usage example:
-    
+
     ---
 
         char[] json;
@@ -87,7 +87,7 @@ interface Jsonizable
         Jsonize().append(json, "a string", "hello");
 
         Jsonize().close(json);
-        
+
         Trace.formatln("JSON = {}", json);
 
     ---
@@ -103,9 +103,9 @@ interface Jsonizable
 
         char[][] urls = ["http://www.google.com", "http://www.sociomantic.com"];
         Jsonize().appendArray(json, "urls", urls);
-        
+
         Jsonize().close(json);
-        
+
         Trace.formatln("JSON = {}", json);
 
     ---
@@ -121,7 +121,7 @@ interface Jsonizable
         {
             uint id;
             char[] name;
-            
+
             public void jsonize ( Char ) ( ref Char[] json )
             {
                 Jsonize().append(json, this.id);
@@ -136,7 +136,7 @@ interface Jsonizable
         Jsonize().append(json, "my object", an_object);
 
         Jsonize().close(json);
-        
+
         Trace.formatln("JSON = {}", json);
 
     ---
@@ -165,7 +165,7 @@ interface Jsonizable
         with ( Jsonizer!(char) )
         {
             open(json);
-    
+
             append(json, "record", a_record, ( ref char[] json, ref Record record ) {
                 append(json, "id", record.id, ( ref char[] json, ref Id id ) {
                     append(json, "id", id.id);
@@ -174,7 +174,7 @@ interface Jsonizable
                 append(json, "name", record.name);
                 append(json, "total", record.total);
             });
-    
+
             close(json);
         }
 
@@ -189,7 +189,7 @@ class Jsonizer ( Char )
     /***************************************************************************
 
         String buffer, used for number -> string conversions
-    
+
     ***************************************************************************/
 
     private Char[] value;
@@ -199,11 +199,11 @@ class Jsonizer ( Char )
 
         Opens a json string by appending a { to it, and optionally opens a named
         top-level object.
-        
+
         Params:
             json = json string to append to
             name = name of top-level object
-    
+
     ***************************************************************************/
 
     public void open ( ref Char[] json, Char[] name = "" )
@@ -223,14 +223,14 @@ class Jsonizer ( Char )
 
         Closes a json string by appending a } to it. If a named top-level object
         was appened by open(), an extra } is appended here to close it.
-    
+
         Params:
             json = json string to append to
             name = name of top-level object
 
         Throws:
             asserts that json string is open
-    
+
     ***************************************************************************/
 
     public void close ( ref Char[] json, Char[] name = "" )
@@ -259,12 +259,12 @@ class Jsonizer ( Char )
 
         Template params:
             T = type of object to add
-        
+
         Params:
             json = json string to append to
             name = name of item
             item = item to append
-    
+
         Throws:
             asserts that json string is open and that the type of the object is
             supported
@@ -304,18 +304,18 @@ class Jsonizer ( Char )
     /***************************************************************************
 
         Appends a named object to a json string.
-        
+
         Appends the object's name and the opening and closing braces to the
         json string, so the delegate only needs to write the object's internals.
-    
+
         Params:
             json = json string to append to
             name = name of object
             jsonize = delegate to jsonize the object
-    
+
         Throws:
             asserts that json string is open
-    
+
     ***************************************************************************/
 
     public void addObject ( ref Char[] json, Char[] name, void delegate ( ) jsonize )
@@ -334,23 +334,23 @@ class Jsonizer ( Char )
     /***************************************************************************
 
         Appends a named array to a json string.
-    
+
         Arrays of integers, floats, strings and Jsonizable objects can be
         appended.
-    
+
         Template params:
             T = type of array element to append
-        
+
         Params:
             json = json string to append to
             name = name of array
             array = array to append
-    
+
         Throws:
             asserts that json string is open
-    
+
     ***************************************************************************/
-    
+
     public void addArray ( T ) ( ref Char[] json, Char[] name, T[] array )
     in
     {
@@ -371,21 +371,21 @@ class Jsonizer ( Char )
 
         Appends a named array of objects to a json string, with a delegate to do
         the actual writing of each element to the string.
-    
+
         Each element in the array is wrapped with {}, as an (unnamed) object.
-    
+
         Template params:
             T = type of array element to append
-    
+
         Params:
             json = json string to append to
             name = name of array
             array = array to append
             jsonize = delegate to jsonize the passed objects
-    
+
         Throws:
             asserts that json string is open
-    
+
     ***************************************************************************/
 
     public void addObjectArray ( T ) ( ref Char[] json, Char[] name, T[] array, void delegate ( ref T ) jsonize )
@@ -409,21 +409,21 @@ class Jsonizer ( Char )
     /***************************************************************************
 
         Appends a named array to a json string.
-        
+
         The array is not passed directly, rather the number of items in the
         array plus a delegate to write items by index are given.
-    
+
         Params:
             json = json string to append to
             name = name of array
             count = number of elements in the array
             get_element = delegate to get an indexed element
-    
+
         Throws:
             asserts that json string is open
-    
+
     ***************************************************************************/
-    
+
     public void addArrayIndexed ( T ) ( ref Char[] json, Char[] name, size_t count, T delegate ( size_t index ) get_element )
     in
     {
@@ -443,23 +443,23 @@ class Jsonizer ( Char )
     /***************************************************************************
 
         Appends a named array of objects to a json string.
-        
+
         The array is not passed directly, rather the number of items in the
         array plus a delegate to write items by index are given.
-        
+
         Each element in the array is wrapped with {}, as an (unnamed) object.
-    
+
         Params:
             json = json string to append to
             name = name of array
             count = number of elements in the array
             append_element = delegate to append an element to the json string
-    
+
         Throws:
             asserts that json string is open
-    
+
     ***************************************************************************/
-    
+
     public void addObjectArrayIndexed ( ref Char[] json, Char[] name, size_t count, void delegate ( size_t index ) append_element )
     in
     {
@@ -481,15 +481,15 @@ class Jsonizer ( Char )
     /***************************************************************************
 
         Opens a sub-structure.
-        
+
         Params:
             json = json string to append to
             opener = string to open with
             name = optional name of sub-structure
-    
+
         Throws:
             asserts that json string is open
-    
+
     ***************************************************************************/
 
     private void openSub ( ref Char[] json, Char[] opener, Char[] name = "" )
@@ -513,14 +513,14 @@ class Jsonizer ( Char )
     /***************************************************************************
 
         Closes a sub-structure.
-        
+
         Params:
             json = json string to append to
             closer = string to close with
-    
+
         Throws:
             asserts that json string is open
-    
+
     ***************************************************************************/
 
     private void closeSub ( ref Char[] json, Char[] closer, Char[] opener )
@@ -542,23 +542,23 @@ class Jsonizer ( Char )
         }
     }
 
-    
+
     /***************************************************************************
 
         Appends an unnamed item to a json string. Used by the appendArray
         methods.
-        
+
         Template params:
             T = type of object to add
 
         Params:
             json = json string to append to
             item = item to append
-    
+
         Throws:
             asserts that json string is open and that the type of the object is
             supported
-    
+
     ***************************************************************************/
 
     private void addUnnamed ( T ) ( ref Char[] json, T item )
@@ -595,7 +595,7 @@ class Jsonizer ( Char )
 
         Returns:
             true if the passed json string is open
-    
+
     ***************************************************************************/
 
     private bool isOpen ( Char[] json )
@@ -608,43 +608,43 @@ class Jsonizer ( Char )
     /***************************************************************************
 
         Converts an integer to a string, using the internal 'value' member.
-    
+
         Template params:
             T = type of value
-        
+
         Params:
             n = value to convert
-    
+
         Returns:
             string conversion of n
-    
+
     ***************************************************************************/
-    
+
     private Char[] intToString ( T ) ( T n )
     {
         value.length = 20;
         value = Integer.format(value, n);
         return value;
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Converts a float to a string, using the internal 'value' member.
 
         Note: NaN values are serialized as 0.0
 
         Template params:
             T = type of value
-        
+
         Params:
             n = value to convert
-    
+
         Returns:
             string conversion of n
-    
+
     ***************************************************************************/
-    
+
     private Char[] floatToString ( T ) ( T n )
     {
         if ( isNaN(n) )
@@ -661,50 +661,50 @@ class Jsonizer ( Char )
 
         Returns:
             global static instance of this class
-    
+
     ***************************************************************************/
-    
+
     public static Jsonizer!(Char) opCall ( )
     {
         return getStaticInstance();
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Static destructor. Deletes the shared instance.
-    
+
     ***************************************************************************/
-    
+
     static ~this ( )
     {
         delete static_instance;
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Static global instance
-    
+
     ***************************************************************************/
-    
+
     private static Jsonizer!(Char) static_instance;
-    
-    
+
+
     /***************************************************************************
-    
+
         Returns:
             gloab lstatic instance, created if necessary
-    
+
     ***************************************************************************/
-    
+
     private static Jsonizer!(Char) getStaticInstance ( )
     {
         if ( !static_instance )
         {
             static_instance = new Jsonizer!(Char);
         }
-    
+
         return static_instance;
     }
 }

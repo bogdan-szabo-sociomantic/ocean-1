@@ -42,22 +42,22 @@ debug private import ocean.util.log.Trace;
 abstract class IAdvancedTimeoutSelectClient : IAdvancedSelectClient
 {
     /**************************************************************************
-    
+
         Instance of expiry registration struct -- used to register this client
         with a timeout / expiry registry, and to keep track of this client's
         timeout values.
-    
+
      **************************************************************************/
-    
+
     public ExpiryRegistration expiry_registration;
-    
+
     /**************************************************************************
-    
+
         Constructor
-        
+
         Params:
             conduit_     = I/O device instance
-    
+
      **************************************************************************/
 
     protected this ( ISelectable conduit_ )
@@ -66,27 +66,27 @@ abstract class IAdvancedTimeoutSelectClient : IAdvancedSelectClient
     }
 
     /***************************************************************************
-    
+
         Sets the timeout in ms.
-    
+
         The timeout represents the time before which the select client should be
         completed. (This is not that same as a socket timeout, where the timout
         value represents the maximum time before which the socket should have
         seen activity.) If the client has not finished within the specified
         time, its tomeout() method is called and it is unregistered from the
         select dispatcher.
-    
+
         Note: this method accepts timeout values as an int, as this is what the
         epoll_wait function (called in tango.io.selector.EpollSelector) expects.
-    
+
         Params:
             ms = new timeout in ms (< 0 means timeout is disabled)
-    
+
         Returns:
             this instance
-    
+
      **************************************************************************/
-    
+
     override public typeof(this) setTimeout ( int ms )
     {
         if ( ms >= 0 )
@@ -97,7 +97,7 @@ abstract class IAdvancedTimeoutSelectClient : IAdvancedSelectClient
         {
             this.expiry_registration.disableTimeout();
         }
-    
+
         return this;
     }
 }

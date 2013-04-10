@@ -21,7 +21,7 @@
         import ocean.io.Retry;
 
         // Create retry object.
-    	auto retry = new Retry;
+        auto retry = new Retry;
 
         // Code to execute / retry.
         void doSomething ( )
@@ -33,11 +33,11 @@
         const max_retries = 10;
 
         // Execute / retry code block
-		retry(max_retries, doSomething());
+        retry(max_retries, doSomething());
 
     ---
 
-	Example using a custom delegate to determine success:
+    Example using a custom delegate to determine success:
 
     ---
 

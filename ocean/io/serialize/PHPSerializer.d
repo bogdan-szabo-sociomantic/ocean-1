@@ -2,20 +2,20 @@
 
     Serializer, to be used with the StructSerializer, which converts a struct
     so that a php client can read it
-    
+
     copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-    
+
     version:        August 2012: Initial release
-    
+
     authors:        Mathias Baumann
-    
+
     Serializer, to be used with the StructSerializer in
     ocean.io.serialize.StructSerializer, which dumps a struct to a string.
-    
+
     Usage example (in conjunction with ocean.io.serialize.StructSerializer):
-    
+
     ---
-    
+
         // Example struct to serialize
         struct Data
         {
@@ -24,26 +24,26 @@
                 char[] name;
                 hash_t id;
             }
-    
+
             Id[] ids;
             char[] name;
             uint count;
             float money;
         }
-    
+
         // Set up some data in a struct
         Data data;
         test.ids = [Data.Id("hi", 23), Data.Id("hello", 17)];
-    
+
         // Create serializer object
         scope ser = new PHPStructSerializer!(char)();
-        
+
         // output buffer
         ubyte[] output;
-    
+
         // Dump struct to buffer via serializer
         ser.serialize(output, data);
-    
+
     ---
 
 *******************************************************************************/
@@ -80,77 +80,77 @@ debug private import ocean.util.log.Trace;
 public class PHPSerializer
 {
     /***************************************************************************
-    
+
         Convenience method to serialize a struct.
-    
+
         Template params:
             T = type of struct to serialize
-        
+
         Params:
             output = string to serialize struct data to
             item = struct to serialize
-    
+
     ***************************************************************************/
-    
+
     public void serialize ( T ) ( ref ubyte[] output, ref T item )
     {
         StructSerializer!(true).serialize(&item, this, output);
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Called at the start of struct serialization - outputs the name of the
         top-level object.
-    
+
         Params:
             output = string to serialize struct data to
             name = name of top-level object
-    
+
     ***************************************************************************/
-    
+
     public void open ( ref ubyte[] output, char[] name )
     {
 
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Called at the end of struct serialization
-    
+
         Params:
             output = string to serialize struct data to
             name = name of top-level object
-    
+
     ***************************************************************************/
-    
+
     public void close ( ref ubyte[] output, char[] name )
     {
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Appends a named item to the output buffer.
         Usually item is taken as it is without any conversion.
 
         Ulongs are converted using the DPD algorithym which is a compression
         algorithym for BCD
-        
+
         Note: the main method to use from the outside is the first serialize()
         method above. This method is for the use of the StructSerializer.
 
         Template params:
             T = type of item
-        
+
         Params:
             output = string to serialize struct data to
             item = item to append
             name = name of item
-    
+
     ***************************************************************************/
-    
+
     public void serialize ( T ) ( ref ubyte[] output, ref T item, char[] name )
     {
         static assert ( ! is(T == union) );
@@ -173,7 +173,7 @@ public class PHPSerializer
 
         Enum that represents the bits as they are described in the DPD paper,
         see http://web.archive.org/web/20070824053303/http://home.hetnet.nl/mr_1/81/jhm.bonten/computers/bitsandbytes/wordsizes/ibmpde.htm#dense
-    
+
     ***************************************************************************/
 
     private enum Bits
@@ -411,15 +411,15 @@ public class PHPSerializer
     }
 
     /***************************************************************************
-    
+
         Called before a sub-struct is serialized.
-    
+
         Params:
             output = string to serialize struct data to
             name = name of struct item
-    
+
     ***************************************************************************/
-    
+
     public void openStruct ( ref ubyte[] output, char[] name )
     {
 
@@ -427,23 +427,23 @@ public class PHPSerializer
 
 
     /***************************************************************************
-    
+
         Called after a sub-struct is serialized.
-    
+
         Params:
             output = string to serialize struct data to
             name = name of struct item
-    
+
     ***************************************************************************/
 
     public void closeStruct ( ref ubyte[] output, char[] name )
     {
 
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Appends a named array to the output buffer.
         The length of the array is written as uint, so arrays longer
         than uint.max can't be used.
@@ -451,14 +451,14 @@ public class PHPSerializer
 
         Template params:
             T = base type of array
-    
+
         Params:
             output = string to serialize struct data to
             array = array to append
             name = name of array item
-    
+
     ***************************************************************************/
-    
+
     public void serializeArray ( T ) ( ref ubyte[] output, char[] name, T[] array )
     {
         assert ( array.length <= uint.max, "Array length doesn't fit into uint");
@@ -467,15 +467,15 @@ public class PHPSerializer
         output ~= (cast(ubyte*)&len)[0 .. uint.sizeof];
         output ~= (cast(ubyte*)array.ptr)[0 .. len];
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Called before a struct array is serialized.
-    
+
         Template params:
             T = base type of array
-    
+
         Params:
             output = string to serialize struct data to
             name = name of struct item
@@ -490,17 +490,17 @@ public class PHPSerializer
 
 
     /***************************************************************************
-    
+
         Called after a struct array is serialized.
-    
+
         Template params:
             T = base type of array
-    
+
         Params:
             output = string to serialize struct data to
             name = name of struct item
             array = array to append
-    
+
     ***************************************************************************/
 
     public void closeStructArray ( T ) ( ref ubyte[] output, char[] name, T[] array )

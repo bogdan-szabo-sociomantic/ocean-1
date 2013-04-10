@@ -861,7 +861,7 @@ version (none) debug ( OceanUnitTest )
 
             if ( x == 50_000 )
             {
-            	auto mem_now = GC.stats.poolsize;
+                auto mem_now = GC.stats.poolsize;
 
                 Trace("finished 50000 calls: alloc mem {} b", mem_now);
 

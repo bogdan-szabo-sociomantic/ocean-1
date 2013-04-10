@@ -6,9 +6,9 @@
 
     version:        Jan 2010: Initial release
 
-    License:   	    MIT
+    License:           MIT
 
-    authors:        Thomas Dixon, Mathias L. Baumann    
+    authors:        Thomas Dixon, Mathias L. Baumann
 
     Usage example:
 
@@ -40,7 +40,7 @@ module ocean.crypt.HMAC;
 
 /*******************************************************************************
 
-	Imports
+    Imports
 
 *******************************************************************************/
 
@@ -62,11 +62,11 @@ debug
 
 /*******************************************************************************
 
-	Implementation of Keyed-Hash Message Authentication Code (HMAC)
- 
-	Conforms: RFC 2104 
- 	References: http://www.faqs.org/rfcs/rfc2104.html
-  
+    Implementation of Keyed-Hash Message Authentication Code (HMAC)
+
+    Conforms: RFC 2104
+     References: http://www.faqs.org/rfcs/rfc2104.html
+
 *******************************************************************************/
 
 public class HMAC
@@ -101,11 +101,11 @@ public class HMAC
 
     /***************************************************************************
 
-    	Constructor. Creates a new instance of an HMAC object
+        Constructor. Creates a new instance of an HMAC object
 
-    	Params:
-    		hash = the hash algorithm to use (i.E. new Sha1(); )
-    		key = the key to initialize with
+        Params:
+            hash = the hash algorithm to use (i.E. new Sha1(); )
+            key = the key to initialize with
 
     ***************************************************************************/
 
@@ -121,13 +121,13 @@ public class HMAC
 
     /***************************************************************************
 
-	    Initializes the HMAC object
+        Initializes the HMAC object
 
-	    Params:
-	    	k 	   = the key to initialize from
-			buffer = buffer to use
+        Params:
+            k        = the key to initialize from
+            buffer = buffer to use
 
-	***************************************************************************/
+    ***************************************************************************/
 
     public void init ( ubyte[] k, ubyte[] buffer )
     {
@@ -160,71 +160,71 @@ public class HMAC
 
     /***************************************************************************
 
-	    Add more data to process
-	    
-	    Params:
-	    	input = the data
+        Add more data to process
+
+        Params:
+            input = the data
 
         Throws:
             if the instance has not been initialized (with the init() method).
 
-	***************************************************************************/
-    
+    ***************************************************************************/
+
     public void update ( ubyte[] input )
     {
         if (!this.initialized)
             throw new HMACException(this.name()~": HMAC not initialized.");
-            
+
         this.hash.update(input);
     }
-    
-    
+
+
     /***************************************************************************
-    
-	    Returns the name of the algorithm 
-	    
-	    Returns:
-	        Returns the name of the algorithm
-	    
-	***************************************************************************/
+
+        Returns the name of the algorithm
+
+        Returns:
+            Returns the name of the algorithm
+
+    ***************************************************************************/
 
     public char[] name()
     {
         return "HMAC-" ~ this.hash.toString;
     }
 
-    
+
     /***************************************************************************
-    
-	    Resets the state 
-	    
-	***************************************************************************/
+
+        Resets the state
+
+    ***************************************************************************/
 
     public void reset()
-    {    
+    {
         this.hash.reset();
         this.hash.update(this.ipad);
     }
-    
-    
+
+
     /***************************************************************************
-	    
-	    Returns the blocksize 
-	    
-	***************************************************************************/
-    
+
+        Returns the blocksize
+
+    ***************************************************************************/
+
     public uint blockSize()
     {
         return this.hash.blockSize;
     }
 
-    
+
     /***************************************************************************
-    
-	    Returns the size in bytes of the digest 
-	    
-	***************************************************************************/
-    
+
+        Returns the size in bytes of the digest
+
+    ***************************************************************************/
+
     public uint macSize()
     {
         return this.hash.digestSize;
@@ -232,20 +232,20 @@ public class HMAC
 
 
     /***************************************************************************
-    
-	    Computes the digest and returns it 
-	    
+
+        Computes the digest and returns it
+
         Params:
             buffer = buffer to use
 
-	***************************************************************************/
-    
+    ***************************************************************************/
+
     public ubyte[] digest ( ubyte[] buffer )
-    {   
+    {
         ubyte[] t = this.hash.binaryDigest(buffer)[0 .. this.hash.digestSize()];
         this.hash.update(this.opad);
         this.hash.update(t);
-        
+
         if (buffer.length < t.length)
         {
             buffer = null;
@@ -254,36 +254,36 @@ public class HMAC
         {
             buffer = buffer[t.length .. $];
         }
-        
+
         ubyte[] r = this.hash.binaryDigest(buffer)[0 .. this.hash.digestSize()];
-        
+
         this.reset();
-        
+
         return r;
     }
-    
-    
+
+
     /***************************************************************************
-    
-	    Computes the digest and returns it as hex 
-	            
+
+        Computes the digest and returns it as hex
+
         Params:
             buffer = optional buffer to use
 
-	***************************************************************************/
-    
+    ***************************************************************************/
+
     public char[] hexDigest ( ubyte[] buffer )
     {
         return ByteConverter.hexEncode(this.digest(buffer));
-    }    
-  
+    }
+
 
     /***************************************************************************
 
-    	UnitTest
+        UnitTest
 
     ***************************************************************************/
-    	
+
     debug unittest
     {
         static char[][] test_keys = [
@@ -295,7 +295,7 @@ public class HMAC
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"~
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         ];
-        
+
         static char[][] test_inputs = [
             "4869205468657265",
             "7768617420646f2079612077616e7420666f72206e6f7468696e673f",
@@ -303,11 +303,11 @@ public class HMAC
             "54657374205573696e67204c6172676572205468616e20426c6f63"~
             "6b2d53697a65204b6579202d2048617368204b6579204669727374"
         ];
-        
+
         static int[] test_repeat = [
             1, 1, 50, 1
         ];
-        
+
         static char[][] test_results = [
             "b617318655057264e28bc0b6fb378c8ef146be00",
             "effcdf6ae5eb2fa2d27416d5f184df9c259a7c79",

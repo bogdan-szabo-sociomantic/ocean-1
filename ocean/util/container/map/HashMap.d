@@ -46,9 +46,9 @@
         // Look up a mapping and obtain a pointer to the value if found or null
         // if not found;
         int* val = hash in map;
-        
+
         bool exists = val !is null;
-        
+
         // Remove a mapping
         map.remove(hash);
 
@@ -60,10 +60,10 @@
 
         // Add a mapping
         char[]* val2 = map2.put(hash);
-        
+
         (*val2).length = "hello".length;
         (*val2)[]      = "hello";
-        
+
         // Mapping from hash_t -> struct
         struct MyStruct
         {
@@ -74,15 +74,15 @@
         auto map3 = new HashMap!(MyStruct);
 
         // Add a mapping, put() never returns null
-        
+
         with (*map3.put(hash))
         {
             x = 12;
             y = 23.23;
         }
-        
+
     ---
-    
+
 *******************************************************************************/
 
 module ocean.util.container.map.HashMap;
@@ -136,25 +136,25 @@ public class HashMap ( V ) : Map!(V, hash_t)
     {
         super(n, load_factor);
     }
-    
+
     /***************************************************************************
-    
+
         Calculates the hash value from key. Uses the identity since key is
         expected to be a suitable hash value.
-        
+
         Params:
             key = key to hash
-            
+
         Returns:
             the hash value that corresponds to key, which is key itself.
-    
+
     ***************************************************************************/
-    
+
     public hash_t toHash ( hash_t key )
     {
         return key;
     }
-    
+
     /***************************************************************************
 
         HashMap unittest.
@@ -199,7 +199,7 @@ public class HashMap ( V ) : Map!(V, hash_t)
             assert(((key in map) !is null) == should_exist);
 
             auto e = map.put(key);
-            
+
             *e = V.init;
 
             debug ( UnittestVerbose )
@@ -209,13 +209,13 @@ public class HashMap ( V ) : Map!(V, hash_t)
             }
 
             assert((key in map) !is null);
-            
+
             static if (is (V U : U[]) && !is (V == V[]))
             {
                 // work around DMD bug 7752
-                
+
                 V v_init;
-                
+
                 assert(*map.get(key) == v_init);
             }
             else static if ( is ( V == class ) )
@@ -226,7 +226,7 @@ public class HashMap ( V ) : Map!(V, hash_t)
             {
                 assert(*map.get(key) == V.init, "Value does not equal previously set value");
             }
-            
+
             assert(lengthIs(len + (should_exist ? 0 : 1)));
         }
 
@@ -266,37 +266,37 @@ public class HashMap ( V ) : Map!(V, hash_t)
         }
 
         uint[hash_t] expected_keys;
-        
+
         void checkContent ( )
         {
             foreach (key, val; map)
             {
                 uint* n = key in expected_keys;
-                
+
                 assert (n !is null);
-                
+
                 assert (!*n, "duplicate key");
-                
+
                 (*n)++;
             }
-            
+
             foreach (n; expected_keys)
             {
                 assert (n == 1);
             }
         }
-        
+
         put(4711, false);   // put
         put(4711, true);    // double put
         put(23, false);     // put
         put(12, false);     // put
-        
+
         expected_keys[4711] = 0;
         expected_keys[23]   = 0;
         expected_keys[12]   = 0;
-        
+
         checkContent();
-        
+
         remove(23, true);   // remove
         remove(23, false);  // double remove
 
@@ -306,35 +306,35 @@ public class HashMap ( V ) : Map!(V, hash_t)
         expected_keys.remove(23);
 
         checkContent();
-        
+
         put(23, false);     // put
         put(23, true);      // double put
 
         expected_keys[4711] = 0;
         expected_keys[12]   = 0;
-        expected_keys[23]   = 0;            
-        
+        expected_keys[23]   = 0;
+
         checkContent();
-        
+
         clear();
-        
+
         foreach (key, val; map)
         {
             assert (false);
         }
-        
+
         put(4711, false);   // put
         put(11, false);     // put
         put(11, true);      // double put
         put(12, false);     // put
-        
+
         expected_keys[4711] = 0;
         expected_keys[12]   = 0;
         expected_keys[11]   = 0;
-        expected_keys.remove(23);            
-        
+        expected_keys.remove(23);
+
         checkContent();
-        
+
         remove(23, false);  // remove
         put(23, false);     // put
         put(23, true);      // double put
@@ -343,16 +343,16 @@ public class HashMap ( V ) : Map!(V, hash_t)
         expected_keys[12]   = 0;
         expected_keys[11]   = 0;
         expected_keys[23]   = 0;
-        
+
         checkContent();
-        
+
         clear();
 
         foreach (key, val; map)
         {
             assert (false);
         }
-        
+
 //            foreach (i, bucket; map.buckets)
 //            {
 //                Stdout.formatln("Bucket {,2}: {,2} elements:", i, bucket.length);
@@ -363,6 +363,6 @@ public class HashMap ( V ) : Map!(V, hash_t)
 //                }
 //            }
     }
-    
-    
+
+
 }

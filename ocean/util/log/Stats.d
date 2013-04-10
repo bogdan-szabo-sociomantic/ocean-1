@@ -351,7 +351,7 @@ public abstract class IStatsLog
 
     protected const StringLayout!() layout;
 
-    
+
     /***************************************************************************
 
         Constructor
@@ -426,7 +426,7 @@ public abstract class IStatsLog
         {
             this.layout(' ');
         }
-        
+
         this.layout(name, ':', value);
     }
 }

@@ -3,9 +3,9 @@
     Simple zlib / gzip stream decompressor.
 
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-    
+
     version:        June 2011: Initial release
-    
+
     authors:        Gavin Norman
 
     Decompresses a stream of data which is received in one or more chunks. The

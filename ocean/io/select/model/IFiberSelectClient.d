@@ -4,11 +4,11 @@
     SelectDispatcher
 
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     version:        June 2011: Initial release
-    
+
     authors:        David Eckardt
-    
+
     Contains the five things that the fiber based SelectDispatcher needs:
         1. the I/O device instance,
         2. the I/O events to register the device for,
@@ -47,11 +47,11 @@ abstract class IFiberSelectClient : IAdvancedSelectClient
     /**************************************************************************
 
         Type alias for subclass constructors
-    
+
      **************************************************************************/
 
     public alias .SelectFiber SelectFiber;
-    
+
     /**************************************************************************
 
         Fiber instance
@@ -88,45 +88,45 @@ abstract class IFiberSelectClient : IAdvancedSelectClient
     public bool io_error;
 
     /**************************************************************************
-    
+
         Constructor
-    
+
         Params:
             conduit = I/O device instance
             fiber   = fiber to resume on finalize() or kill on error()
-    
+
      **************************************************************************/
-    
+
     protected this ( SelectFiber fiber )
     {
         this.fiber = fiber;
     }
 
     /**************************************************************************
-    
+
         Finalize method, called after this instance has been unregistered from
         the Dispatcher; resumes the fiber and calls the super-class' finalize()
         method (which calls a finalizer delegate, if one has been set).
-        
+
         The fiber must be waiting or finished as it is ought to be when in
         Dispatcher context.
-        
+
         Params:
             status = status why this method is called
-        
+
      **************************************************************************/
-    
+
     public override void finalize ( FinalizeStatus status )
     {
         assert (!this.fiber.running);
-        
+
         try
         {
             if (this.fiber.waiting)
             {
                 this.fiber.kill();
             }
-    
+
             this.fiber.clear();
             super.finalize(status);
         }
@@ -137,20 +137,20 @@ abstract class IFiberSelectClient : IAdvancedSelectClient
     }
 
     /**************************************************************************
-    
+
         Error reporting method, called when either an Exception is caught from
         handle() or an error event is reported; kills the fiber.
-        
+
         Params:
             exception = Exception thrown by handle()
             event     = Selector event while exception was caught
-        
+
      **************************************************************************/
 
     protected override void error_ ( Exception e, Event event )
     {
         this.io_error = cast(IOException)e !is null;
-        
+
         if (this.fiber.waiting)
         {
             this.fiber.kill(__FILE__, __LINE__);

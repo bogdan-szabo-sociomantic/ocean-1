@@ -10,7 +10,7 @@
     Serielizes/Deserielizes a map and saves/loads it to/from a file.
     Uses SimpleSerielizer to read/write a map from/to a buffered file.
 
-    The function load_0 only exist to give backwards compabaility to files of 
+    The function load_0 only exist to give backwards compabaility to files of
     version 0.
 
 *******************************************************************************/
@@ -368,23 +368,23 @@ body
     {
         throw new Exception("Magic Marker mismatch in file " ~ file_path);
     }
-    
+
     if ( fh_actual.versionNumber != fh_expected.versionNumber )
     {
         if ( fh_actual.versionNumber < 2 )
         {
             FileHeader!(K,V,1) fh1;
-            
+
             // files with version<2 use 4 byte hashes
             buffered.seek(-4, IOStream.Anchor.Current);
-            
+
             if ( fh1.hash != (fh_actual.hash & 0xFFFFFFFF) )
             {
                 throw new Exception("Structs " ~ K.stringof ~ ", " ~
                                     V.stringof ~ " in file " ~ file_path ~
                                     " differ from our structs, aborting!");
             }
-            
+
             if ( fh_actual.versionNumber == 0 )
             {
                 load_0(map,file, buffered, putter);
@@ -413,7 +413,7 @@ body
 
     for ( ulong i=0; i < nr_rec;i++ )
     {
-     
+
         if ( buffered.readable < V.sizeof + K.sizeof )
         {
             buffered.compress();
@@ -421,7 +421,7 @@ body
         }
 
         SimpleSerializer.read!(K)(buffered, key);
-        SimpleSerializer.read!(V)(buffered, value);               
+        SimpleSerializer.read!(V)(buffered, value);
         putter(key, value);
     }
 }

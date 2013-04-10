@@ -9,7 +9,7 @@
 
     author:         David Eckardt
 
-      
+
 *******************************************************************************/
 
 module ocean.net.util.UrlEncoder;
@@ -26,15 +26,15 @@ private import tango.stdc.ctype: isgraph;
 
     Converts non-unreserved characters. Unreserved characters are the ASCII
     alphanumeric characters and
-    
+
         -._~
-        
+
     .
-    
+
     @see http://tools.ietf.org/html/rfc3986#section-2.3
-    
+
     Special cases:
-    
+
     - The whitespace character 0x20 is encoded as "%20" (not "+").
     - Characters below 0x20 and above 0x7E are encoded straight away, regardless
       of any encoding or codepage. For example, the UTF-8 encoded string
@@ -42,21 +42,21 @@ private import tango.stdc.ctype: isgraph;
       [0x4D, 0xC3, 0xBC, 0x6E, 0x7A, 0x73, 0x74, 0x72, 0x61, 0xC3, 0x9F, 0x65]
        ...M  .........Ã¼  ....n ...z  ...s  ...t  ...r  ...a  .........ÃŸ  ...e
       , is encoded as "M%C3%BCnzstra%C3%9Fe".
-      
+
     UrlEncoder class
-    
+
     Memory friendly, suitable for stack-allocated 'scope' instances.
-    
+
  ******************************************************************************/
 
 class EncodeNonUnreserved : PercentEncoder
 {
     /**************************************************************************
-    
+
         Character map, true for unreserved characters.
-        
+
      **************************************************************************/
-    
+
     const bool[char.max + 1] unreserved =
     [
         'A': true, 'B': true, 'C': true, 'D': true, 'E': true, 'F': true,
@@ -72,34 +72,34 @@ class EncodeNonUnreserved : PercentEncoder
         '0': true, '1': true, '2': true, '3': true, '4': true, '5': true,
         '6': true, '7': true, '8': true, '9': true,
         '-': true, '_': true, '.': true, '~': true
-    ];    
-    
+    ];
+
     /**************************************************************************
-    
+
         Constructor
-        
-        Params: 
+
+        Params:
             source_in = source string
-        
+
      **************************************************************************/
-    
+
     public this ( char[] source_in = null )
     {
         super(source_in);
     }
-    
+
     /**************************************************************************
-    
+
         Tells whether c should be converted.
-        
+
         Params:
             c = character in question
-            
+
         Returns:
             true if c should be converted or false otherwise.
-        
+
      **************************************************************************/
-    
+
     protected bool encode ( char c )
     {
         return !this.unreserved[c];
@@ -116,31 +116,31 @@ class EncodeNonUnreserved : PercentEncoder
 class EncodeExceptAsciiGraph : PercentEncoder
 {
     /**************************************************************************
-    
+
         Constructor
-        
-        Params: 
+
+        Params:
             source_in = source string
-        
+
      **************************************************************************/
-    
+
     public this ( char[] source_in = null )
     {
         super(source_in);
     }
-    
+
     /**************************************************************************
-    
+
         Tells whether c should be converted.
-        
+
         Params:
             c = character in question
-            
+
         Returns:
             true if c should be converted or false otherwise.
-        
+
      **************************************************************************/
-    
+
     protected bool encode ( char c )
     {
         return !.isgraph(c);
@@ -156,88 +156,88 @@ class EncodeExceptAsciiGraph : PercentEncoder
 class PercentEncoder
 {
     /**************************************************************************
-    
+
         Source string, may be changed at any time except during encoding
         'foreach' iteration.
-        
+
      **************************************************************************/
-    
+
     public char[] source;
-    
+
     /**************************************************************************
-    
+
         Constructor
-        
-        Params: 
+
+        Params:
             source_in = source string
-        
+
      **************************************************************************/
-    
+
     public this ( char[] source_in = null )
     {
         this.source = source_in;
     }
-    
+
     /**************************************************************************
-        
+
         Encodes this.source in an 'foreach' iteration over encoded chunks.
         Each chunk is guaranteed not to be empty.
-        
+
      **************************************************************************/
-    
+
     public int opApply ( int delegate ( ref char[] chunk ) dg )
     {
         int result = 0;
-        
+
         int callDg ( char[] chunk )
         {
             return result = dg(chunk);
         }
-        
+
         size_t  start = 0;
         char[3] hex;
-        
+
         hex[0] = '%';
-        
+
         foreach (i, c; this.source)
         {
             if (this.encode(c))
             {
                 assert (start <= i);
-                
+
                 if (start < i)
                 {
                     if (callDg(this.source[start .. i])) return result;
                 }
-                
+
                 const hex_digits = "0123456789ABCDEF";
-                
+
                 hex[1] = hex_digits [(c >> 4) & 0xF];
                 hex[2] = hex_digits [c & 0xF];
-                
+
                 if (callDg(hex)) return result;
-                
+
                 start = i + 1;
             }
         }
-        
+
         assert (start <= this.source.length);
-        
+
         return (start < this.source.length)?
                 callDg(this.source[start .. $]) : result;
     }
-    
+
     /******************************************************************************
 
         Encodes all characters except the ASCII graphic, that is, encodes ASCII
         whitespace and control characters and non-ASCII characters.
-    
+
      ******************************************************************************/
-    
+
     protected abstract bool encode ( char c );
-    
+
     /**************************************************************************/
-    
+
     unittest
     {
         static void checkRange ( char first, char last )
@@ -248,22 +248,22 @@ class PercentEncoder
                         "'" ~ c ~ "' is supposed to be unreserved");
             }
         }
-        
+
         checkRange('A', 'Z');
         checkRange('a', 'z');
         checkRange('0', '9');
-        
+
         foreach (c; "-_.~")
         {
             assert (EncodeNonUnreserved.unreserved[c],
                     "'" ~ c ~ "' is supposed to be unreserved");
         }
-        
+
         scope encoder = new EncodeNonUnreserved("For example, the octet "
         "corresponding to the tilde (\"~\") character is often encoded as "
         "\"%7E\" by older URI processing implementations; the \"%7E\" can be "
         "replaced by \"~\" without chänging its interpretation.");
-        
+
         const char[][] chunks =
         [
             "For", "%20", "example", "%2C", "%20", "the", "%20", "octet", "%20",
@@ -277,9 +277,9 @@ class PercentEncoder
             "%20", "ch", "%C3", "%A4", "nging", "%20", "its", "%20",
             "interpretation."
         ];
-        
+
         size_t i = 0;
-        
+
         foreach (chunk; encoder)
         {
             assert (i < chunks.length);

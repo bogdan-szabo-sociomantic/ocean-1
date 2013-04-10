@@ -445,7 +445,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
             super.write_to = 0;
         }
 
-		super.data[super.write_to .. super.write_to + header.length] = header[];
+        super.data[super.write_to .. super.write_to + header.length] = header[];
         this.seek(super.write_to + header.length);
 
         super.write_to += this.pushSize(size);

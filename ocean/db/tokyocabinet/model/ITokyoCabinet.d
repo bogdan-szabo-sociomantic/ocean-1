@@ -12,7 +12,7 @@
 
  ******************************************************************************/
 
-module 			ocean.db.tokyocabinet.model.ITokyoCabinet;
+module ocean.db.tokyocabinet.model.ITokyoCabinet;
 
 /******************************************************************************
 
@@ -20,11 +20,11 @@ module 			ocean.db.tokyocabinet.model.ITokyoCabinet;
 
  ******************************************************************************/
 
-private	        import  ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
-private		    import	ocean.text.util.StringC;
-private 		import  tango.stdc.stdlib: free;
+private import ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
+private import ocean.text.util.StringC;
+private import tango.stdc.stdlib: free;
 
-debug private 		import  tango.util.log.Trace;
+debug private import tango.util.log.Trace;
 
 /******************************************************************************
 
@@ -158,123 +158,123 @@ abstract class ITokyoCabinet ( TCDB, alias tcdbforeach )
         this.tokyoAssertStrict(put_func(this.db, key.ptr, key.length, value.ptr, value.length),
               ignore_errcodes);
     }
-	/**************************************************************************
+    /**************************************************************************
 
-	    If p is null, retrieves the current Tokyo Cabinet error code and
-	    throws an exception (even if the error code equals TCESUCCESS).
+        If p is null, retrieves the current Tokyo Cabinet error code and
+        throws an exception (even if the error code equals TCESUCCESS).
 
-	    Params:
-	        p       = not null assertion pointer
-	        context = error context description string for message
+        Params:
+            p       = not null assertion pointer
+            context = error context description string for message
 
-	***************************************************************************/
+    ***************************************************************************/
 
-	protected void tokyoAssert ( void* p, char[] context = "Error" )
-	{
-	    this.tokyoAssertStrict(!!p, context);
-	}
-
-
-
-	/**************************************************************************
-
-	    If ok == false, retrieves the current Tokyo Cabinet error code and
-	    throws an exception if the error code is different from TCESUCCESS.
-
-	    Params:
-	        ok      = assert condition
-	        context = error context description string for message
-
-	***************************************************************************/
-
-	protected void tokyoAssert ( bool ok, char[] context = "Error" )
-	{
-	    this.tokyoAssert(ok, [], context);
-	}
+    protected void tokyoAssert ( void* p, char[] context = "Error" )
+    {
+        this.tokyoAssertStrict(!!p, context);
+    }
 
 
 
-	/**************************************************************************
+    /**************************************************************************
 
-	    If ok == false, retrieves the current Tokyo Cabinet error code and
-	    throws an exception (even if the error code equals TCESUCCESS).
+        If ok == false, retrieves the current Tokyo Cabinet error code and
+        throws an exception if the error code is different from TCESUCCESS.
 
-	    Params:
-	        ok      = assert condition
-	        context = error context description string for message
+        Params:
+            ok      = assert condition
+            context = error context description string for message
 
-	***************************************************************************/
+    ***************************************************************************/
 
-	protected void tokyoAssertStrict ( bool ok, char[] context = "Error" )
-	{
-	    this.tokyoAssertStrict(ok, [], context);
-	}
-
-
-
-	/**************************************************************************
-
-	    If ok == false, retrieves the current Tokyo Cabinet error code and
-	    throws an exception if the error code is different from TCESUCCESS and
-	    all error codes in ignore_codes.
-
-	    Params:
-	        ok           = assert condition
-	        ignore_codes = do not throw an exception on these codes
-	        context      = error context description string for message
-
-	***************************************************************************/
-
-	protected void tokyoAssert ( bool ok, TCERRCODE[] ignore_codes, char[] context = "Error" )
-	{
-	    this.tokyoAssertStrict(ok, ignore_codes ~ TCERRCODE.TCESUCCESS, context);
-	}
+    protected void tokyoAssert ( bool ok, char[] context = "Error" )
+    {
+        this.tokyoAssert(ok, [], context);
+    }
 
 
 
-	/**************************************************************************
+    /**************************************************************************
 
-	    Retrieves the current Tokyo Cabinet error message string.
+        If ok == false, retrieves the current Tokyo Cabinet error code and
+        throws an exception (even if the error code equals TCESUCCESS).
 
-	    Returns:
-	        current Tokyo Cabinet error message string
+        Params:
+            ok      = assert condition
+            context = error context description string for message
 
-	***************************************************************************/
+    ***************************************************************************/
 
-	abstract protected char[] getTokyoErrMsg ( );
-
-
-
-	/**************************************************************************
-
-	    Retrieves the Tokyo Cabinet error message string for errcode.
-
-	    Params:
-	        errcode = Tokyo Cabinet error code
-
-	    Returns:
-	        Tokyo Cabinet error message string for errcode
-
-	***************************************************************************/
-
-	abstract protected char[] getTokyoErrMsg ( TCERRCODE errcode );
+    protected void tokyoAssertStrict ( bool ok, char[] context = "Error" )
+    {
+        this.tokyoAssertStrict(ok, [], context);
+    }
 
 
 
-	/**************************************************************************
+    /**************************************************************************
 
-	    If ok == false, retrieves the current Tokyo Cabinet error code and
-	    throws an exception if the error code is different from  all error codes
-	    in ignore_codes (even if it equals TCESUCCESS).
+        If ok == false, retrieves the current Tokyo Cabinet error code and
+        throws an exception if the error code is different from TCESUCCESS and
+        all error codes in ignore_codes.
 
-	    Params:
-	        ok           = assert condition
-	        ignore_codes = do not throw an exception on these codes
-	        context      = error context description string for message
+        Params:
+            ok           = assert condition
+            ignore_codes = do not throw an exception on these codes
+            context      = error context description string for message
 
-	***************************************************************************/
+    ***************************************************************************/
 
-	abstract protected void tokyoAssertStrict ( bool ok, TCERRCODE[] ignore_codes, char[] context = "Error" );
+    protected void tokyoAssert ( bool ok, TCERRCODE[] ignore_codes, char[] context = "Error" )
+    {
+        this.tokyoAssertStrict(ok, ignore_codes ~ TCERRCODE.TCESUCCESS, context);
+    }
+
+
+
+    /**************************************************************************
+
+        Retrieves the current Tokyo Cabinet error message string.
+
+        Returns:
+            current Tokyo Cabinet error message string
+
+    ***************************************************************************/
+
+    abstract protected char[] getTokyoErrMsg ( );
+
+
+
+    /**************************************************************************
+
+        Retrieves the Tokyo Cabinet error message string for errcode.
+
+        Params:
+            errcode = Tokyo Cabinet error code
+
+        Returns:
+            Tokyo Cabinet error message string for errcode
+
+    ***************************************************************************/
+
+    abstract protected char[] getTokyoErrMsg ( TCERRCODE errcode );
+
+
+
+    /**************************************************************************
+
+        If ok == false, retrieves the current Tokyo Cabinet error code and
+        throws an exception if the error code is different from  all error codes
+        in ignore_codes (even if it equals TCESUCCESS).
+
+        Params:
+            ok           = assert condition
+            ignore_codes = do not throw an exception on these codes
+            context      = error context description string for message
+
+    ***************************************************************************/
+
+    abstract protected void tokyoAssertStrict ( bool ok, TCERRCODE[] ignore_codes, char[] context = "Error" );
 }
 
 /******************************************************************************

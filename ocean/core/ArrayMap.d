@@ -1486,7 +1486,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
         FIXME: Not reentrant/thread-safe with put() -- may cause wrong values
         in v_map.
 
-		TODO: instead of copying the array, mabye swapping it is enough?
+        TODO: instead of copying the array, mabye swapping it is enough?
 
         Returns:
             true on success, false on failure

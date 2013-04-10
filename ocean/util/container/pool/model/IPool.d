@@ -57,30 +57,30 @@ private import ocean.core.Array: copy;
 public abstract class IPool : IPoolInfo, ILimitable
 {
     /***************************************************************************
-    
+
         Pool item union. The list of pool items is an array of Item; the
         subclass specifies which member is actually used.
-    
+
     ***************************************************************************/
 
     protected union Item
     {
         /***********************************************************************
-    
+
             Object to store class instances in the pool
-    
+
         ***********************************************************************/
-    
+
         Object obj;
-    
+
         /***********************************************************************
-    
+
             Pointer to store struct instances in the pool
-    
+
         ***********************************************************************/
-    
+
         void* ptr;
-    
+
         /***********************************************************************
 
             Creates an instance of this type from an object.
@@ -93,12 +93,12 @@ public abstract class IPool : IPoolInfo, ILimitable
         static typeof (*this) from ( Object obj )
         {
             typeof (*this) item;
-    
+
             item.obj = obj;
-    
+
             return item;
         }
-    
+
         /***********************************************************************
 
             Creates an instance of this type from a pointer.
@@ -111,9 +111,9 @@ public abstract class IPool : IPoolInfo, ILimitable
         static typeof (*this) from ( void* ptr )
         {
             typeof (*this) item;
-    
+
             item.ptr = ptr;
-    
+
             return item;
         }
     }

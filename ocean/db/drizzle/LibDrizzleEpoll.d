@@ -10,13 +10,13 @@
 
     LibDrizpleEpoll uses the c library libdrizzle to communicate with
     mysql and drizzle servers.
-    
+
     It uses an internal queue to store all queries which are not yet sent.
     The size of that queue depends on how many queries you plan to send
     simultaneously and how long they are, as well as how many connections
     you plan to use. One query needs roughly 10 bytes + the length
-    of the query string.  
-    
+    of the query string.
+
     Usage Example:
 
     ---
@@ -32,12 +32,12 @@
                 foreach (row; result)
                 {
                     Stdout.format("Row: ");
-                    
+
                     foreach (field; row)
                     {
                         Stdout.format("\t{}", field);
                     }
-        
+
                     Stdout.formatln("");
                 }
             }
@@ -49,21 +49,21 @@
                 }
             }
         }
-    
+
         auto epoll   = new EpollSelectDispatcher;
-    
-        auto drizzle = new LibDrizzleEpoll(epoll, "mysql.host.tld", 
+
+        auto drizzle = new LibDrizzleEpoll(epoll, "mysql.host.tld",
                                            "username", "password",
                                            "database", 1024);
-    
+
         bool added = drizzle.query("SELECT 'this', 'is', 'an', 'example', 'query'",
                                    &resultHandler);
-    
+
         if ( added == false )
         {
             Stdout.formatln("Couldn't add query, queue full"); // also calling the callback
         }
-    
+
         epoll.eventLoop;
     }
     ---
@@ -161,7 +161,7 @@ class LibDrizzleEpoll
         {
         }
     }
-    
+
     /***************************************************************************
 
         Host, username, password and port for the connections, prepared as
@@ -199,10 +199,10 @@ class LibDrizzleEpoll
     ***************************************************************************/
 
     private size_t num_connections;
-    
+
     /***************************************************************************
 
-        Array of connections 
+        Array of connections
 
     ***************************************************************************/
 
@@ -224,7 +224,7 @@ class LibDrizzleEpoll
     package char[] timezone_query;
 
     QueueFullException queue_full_exc;
-    
+
     /***************************************************************************
 
         Constructor. Creates a new LibDrizzleEpoll instance
@@ -241,14 +241,14 @@ class LibDrizzleEpoll
     ***************************************************************************/
 
     this ( EpollSelectDispatcher epoll, char[] host,
-           char[] username, char[] password, char[] database, 
+           char[] username, char[] password, char[] database,
            size_t bytes, size_t connections = 1 )
     {
         this(epoll, host, 3306, username, password, database,
              new FlexibleByteRingQueue(bytes), connections);
-    }   
-    
-    
+    }
+
+
     /***************************************************************************
 
         Constructor. Creates a new LibDrizzleEpoll instance
@@ -266,14 +266,14 @@ class LibDrizzleEpoll
     ***************************************************************************/
 
     this ( EpollSelectDispatcher epoll, char[] host, in_port_t port,
-           char[] username, char[] password, char[] database, 
+           char[] username, char[] password, char[] database,
            size_t bytes, size_t connections = 1 )
-    {     
-        this(epoll, host, port, username, password, database, 
+    {
+        this(epoll, host, port, username, password, database,
              new FlexibleByteRingQueue(bytes), connections);
     }
-    
-    
+
+
     /***************************************************************************
 
         Constructor. Creates a new LibDrizzleEpoll instance
@@ -290,13 +290,13 @@ class LibDrizzleEpoll
     ***************************************************************************/
 
     this ( EpollSelectDispatcher epoll, char[] host,
-           char[] username, char[] password, char[] database, 
+           char[] username, char[] password, char[] database,
             IByteQueue queue, size_t connections = 1 )
     {
-        this(epoll, host, 3306, username, password, database,  
+        this(epoll, host, 3306, username, password, database,
              queue, connections);
     }
-    
+
     /***************************************************************************
 
         Constructor. Creates a new LibDrizzleEpoll instance
@@ -308,7 +308,7 @@ class LibDrizzleEpoll
         Params:
             epoll       = EpollSelectDispatcher instance to use
             host        = Address of the server to connect to
-            port        = Port of the Server to connect to            
+            port        = Port of the Server to connect to
             username    = Username to use for logging in
             password    = Password to use for logging in
             database    = Database to use
@@ -316,8 +316,8 @@ class LibDrizzleEpoll
             connections = Amount of connections to use
 
     ***************************************************************************/
- 
-    this ( EpollSelectDispatcher epoll, char[] host, in_port_t port, 
+
+    this ( EpollSelectDispatcher epoll, char[] host, in_port_t port,
            char[] username, char[] password, char[] database, IByteQueue queue,
            size_t connections = 10 )
     in
@@ -327,7 +327,7 @@ class LibDrizzleEpoll
     body
     {
         this.epoll         = epoll;
-        
+
         this.host     = toStringz(host);
         this.username = toStringz(username);
         this.password = toStringz(password);
@@ -338,7 +338,7 @@ class LibDrizzleEpoll
         setupTimezone();
 
         this.connections = new NotifyingQueue!(DrizzleRequest)(queue);
-        
+
         if (null == drizzle_create(&this.drizzle))
         {
             throw new Exception("Could not initialize libdrizzle instance!");
@@ -346,13 +346,13 @@ class LibDrizzleEpoll
 
         drizzle_add_options(&this.drizzle, drizzle_options_t.DRIZZLE_NON_BLOCKING);
         drizzle_set_event_watch_fn(&this.drizzle, &drizzleCallback, cast(void*) this);
-      
+
         this.queue_full_exc = new QueueFullException;
-        
+
         for (uint i = 0; i < connections; ++i)
         {
             this.connections.ready(&(new Connection(this)).notify);
-        }        
+        }
     }
 
     /***************************************************************************
@@ -361,7 +361,7 @@ class LibDrizzleEpoll
 
         DO NOT TOUCH: this is fixed to GMT 00:00 and it is not intended to be
                       modified. Ever.
-    
+
     ***************************************************************************/
 
     private void setupTimezone ( )
@@ -372,79 +372,79 @@ class LibDrizzleEpoll
     /***************************************************************************
 
         Number of requests stored in the queue
-    
+
     ***************************************************************************/
 
     final public size_t requests ( )
     {
         return this.connections.length;
     }
-        
+
     /***************************************************************************
-    
+
         Returns how many handlers are waiting for data
-    
+
     ***************************************************************************/
-        
+
     final public size_t waitingHandlers ( )
     {
         return this.connections.waiting;
     }
-                   
+
     /***************************************************************************
-    
+
         Returns how many handlers exist
-    
+
     ***************************************************************************/
-        
+
     final public size_t existingHandlers ( )
     {
         return this.num_connections;
     }
-        
+
     /***************************************************************************
 
         Used size in the queue
 
         Returns:
-            how much of the queue is used up. 
+            how much of the queue is used up.
             Return value ranges are [0..1]
-    
+
     ***************************************************************************/
 
     final public float queueUse ( )
     {
-        with (this.connections) 
+        with (this.connections)
         {
             return cast(float) used_space / cast(float) total_space;
         }
     }
-    
+
     /***************************************************************************
 
         Adds a new query to the internal queue.
-        
+
         The QueryCallback is defined in Connection.d and
         must have the following signature:
-        
-            void delegate ( ContextUnion context, 
-                            Result result, 
+
+            void delegate ( ContextUnion context,
+                            Result result,
                             Exception exception )
 
         CallbackParams:
             context   = An arbitrary context object set by the user
-            result    = Result Object providing functions and iterators to 
+            result    = Result Object providing functions and iterators to
                         access the result. Will be null in case of an error.
-            exception = null on success, else the exception that was thrown. 
-                        If it was a drizzle/sql error the exception is of type 
-                        DrizzleException and contains the failed query along 
+            exception = null on success, else the exception that was thrown.
+                        If it was a drizzle/sql error the exception is of type
+                        DrizzleException and contains the failed query along
                         with a message of what went wrong.
-                        (Though, drizzle provides rather rudimentary 
+                        (Though, drizzle provides rather rudimentary
                          error descriptions)
-                
-        Note however that drizzle provides rather rudimentary 
+
+        Note however that drizzle provides rather rudimentary
         error descriptions.
-        
+
         Params:
             query = query to send
             cb    = callback to call on success or error
@@ -456,31 +456,31 @@ class LibDrizzleEpoll
 
     ***************************************************************************/
 
-    public bool query ( char[] query, QueryCallback cb, 
+    public bool query ( char[] query, QueryCallback cb,
                         ContextUnion rc = ContextUnion.init )
     {
         DrizzleRequest req;
-        
+
         req.query = query;
         req.callback[] = (cast(ubyte*)&cb)[0 .. cb.sizeof];
         req.context[] =  (cast(ubyte*)&rc)[0 .. rc.sizeof];
 
         auto added = connections.push(req);
-        
+
         if ( added == false )
         {
-            cb(rc, null, queue_full_exc.reset(query, 
-                                        drizzle_return_t.DRIZZLE_RETURN_INTERNAL_ERROR, 
+            cb(rc, null, queue_full_exc.reset(query,
+                                        drizzle_return_t.DRIZZLE_RETURN_INTERNAL_ERROR,
                                         "Queue full", null));
         }
-        
+
         return added;
     }
-    
+
     /***************************************************************************
 
         Returns whether the query would fit on the queue
-        
+
         Params:
             query = query to test
 
@@ -488,8 +488,8 @@ class LibDrizzleEpoll
 
     public bool mayQuery ( char[] query )
     {
-        return connections.willFit(query.length + 
-                                   ContextUnion.sizeof + 
+        return connections.willFit(query.length +
+                                   ContextUnion.sizeof +
                                    QueryCallback.sizeof);
     }
 
@@ -499,18 +499,18 @@ class LibDrizzleEpoll
         given connection.
 
         Params:
-            con     = connection that has changed the events it is interested in. 
+            con     = connection that has changed the events it is interested in.
                       Use drizzle_con_fd() to get the file descriptor.
             action  = A bit mask of POLLIN | POLLOUT, specifying if the connection
                       is waiting for read or write events.
-            context = Application context pointer registered 
+            context = Application context pointer registered
                       with drizzle_set_event_watch_fn(). In our case this is
                       the LibDrizzleEpoll instance.
 
     ***************************************************************************/
-    
-    static private extern (C) drizzle_return_t drizzleCallback ( drizzle_con_st* con, 
-                                                                 short action, 
+
+    static private extern (C) drizzle_return_t drizzleCallback ( drizzle_con_st* con,
+                                                                 short action,
                                                                  void* context)
     {
         auto connection = cast(Connection) drizzle_con_context(con);
@@ -520,42 +520,42 @@ class LibDrizzleEpoll
 
         events |= action;
         debug ( Drizzle ) Trace.formatln("Epoll.register for action {}", action);
-        
+
         connection.setEvents(events);
         connection.fd = cast(ISelectClient.ISelectable.Handle) drizzle_con_fd(con);
 
-        try 
+        try
         {
             instance.epoll.register(connection);
         }
         catch (Exception e)
         {
-            debug (Drizzle) Trace.formatln("DrizzleCallbackException: {}", 
+            debug (Drizzle) Trace.formatln("DrizzleCallbackException: {}",
                                            e.msg);
-            
+
             connection.callbackError(e);
-            
+
             return drizzle_return_t.DRIZZLE_RETURN_COULD_NOT_CONNECT;
         }
 
         return drizzle_return_t.DRIZZLE_RETURN_OK;
     }
-    
+
     /***************************************************************************
 
         suspend the processing of the queue
-    
+
     ***************************************************************************/
 
     public void suspend ( )
     {
         this.connections.suspend();
     }
-    
+
     /***************************************************************************
 
         resume the processing of the queue
-    
+
     ***************************************************************************/
 
     public void resume ( )

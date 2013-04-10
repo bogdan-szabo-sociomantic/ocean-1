@@ -1,15 +1,15 @@
 /******************************************************************************
 
     HTTP status codes and reason phrases
-    
+
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-    
+
     version:        May 2011: Initial release
-    
+
     author:         David Eckardt
-    
+
     @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
-    
+
  ******************************************************************************/
 
 module ocean.net.http2.consts.StatusCodes;
@@ -40,17 +40,17 @@ struct StatusPhrases
 {
     struct HttpStatusPhrase
     {
-        HttpResponseCode status_code; 
-        char[]           reason_phrase;  
+        HttpResponseCode status_code;
+        char[]           reason_phrase;
     }
-    
+
     /**************************************************************************
-    
+
         The officially recommended reason phrases for the status codes
-        
+
         @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html#sec6.1.1
-        
-     **************************************************************************/             
+
+     **************************************************************************/
 
     const HttpStatusPhrase[] StatusReasonPhrases =
     [
@@ -95,40 +95,40 @@ struct StatusPhrases
         HttpStatusPhrase(HttpResponseCode.GatewayTimeout,               "Gateway Timeout"),
         HttpStatusPhrase(HttpResponseCode.VersionNotSupported,          "version Not supported")
     ];
-    
+
     /**************************************************************************
-    
+
         HTTP status phrases by status code
-        
-     **************************************************************************/             
+
+     **************************************************************************/
 
     private static char[][HttpResponseCode] reason_phrases;
-    
+
     /**************************************************************************
-    
+
         Obtains the HTTP status phrase for status_code
-        
+
         Params:
             status_code = HTTP status code
-            
+
         Returns:
             HTTP status phrase for status_code
-            
+
         Throws:
             behaves like indexing an associative array
-        
-     **************************************************************************/             
+
+     **************************************************************************/
 
     static char[] opIndex ( HttpResponseCode status_code )
     {
         return this.reason_phrases[status_code];
     }
-    
+
     /**************************************************************************
-    
-        Static constructor; populates reason_phrases 
-        
-     **************************************************************************/             
+
+        Static constructor; populates reason_phrases
+
+     **************************************************************************/
 
     static this ( )
     {
@@ -136,7 +136,7 @@ struct StatusPhrases
         {
             this.reason_phrases[srp.status_code] = srp.reason_phrase;
         }
-        
+
         this.reason_phrases.rehash;
     }
 }

@@ -10,9 +10,9 @@
     authors:        Gavin Norman
 
     Usage:
-    
+
     ---
-    
+
         import ocean.text.util.DigitGrouping;
 
         // Number to convert
@@ -186,7 +186,7 @@ public class DigitGrouping
                 right = num_as_string.length;
                 comma = false;
             }
-            
+
             char[] digits = num_as_string[left..right];
             if ( comma )
             {
@@ -256,7 +256,7 @@ public class BitGrouping
                     }
                 }
             }
-    
+
             splitBinaryPrefix(num, &format);
         }
 

@@ -330,44 +330,44 @@ class JsonException : Exception
 
 /******************************************************************************
 
-	IconvException
+    IconvException
 
 *******************************************************************************/
 
 class IconvException : Exception
 {
-	const MSG = "Iconv: Error";
+    const MSG = "Iconv: Error";
 
-	this ( char[] msg = MSG ) { super(msg); }
-	this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+    this ( char[] msg = MSG ) { super(msg); }
+    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
 
-	static mixin ExceptionOpCalls!(typeof (this));
+    static mixin ExceptionOpCalls!(typeof (this));
 
-	/**************************************************************************
+    /**************************************************************************
 
-		Invalid Multibyte Sequence
+        Invalid Multibyte Sequence
 
-	 **************************************************************************/
+     **************************************************************************/
 
-	static class InvalidMbSeq :  IconvException
-	{
-		const msg = "Iconv: Invalid Multibyte Sequence";
+    static class InvalidMbSeq :  IconvException
+    {
+        const msg = "Iconv: Invalid Multibyte Sequence";
 
-		this ( ) { super(this.msg); }
-	}
+        this ( ) { super(this.msg); }
+    }
 
-	/**************************************************************************
+    /**************************************************************************
 
-		Incomplete Multibyte Sequence
+        Incomplete Multibyte Sequence
 
-	 **************************************************************************/
+     **************************************************************************/
 
-	static class IncompleteMbSeq :  IconvException
-	{
-		const msg = "Iconv: Incomplete Multibyte Sequence";
+    static class IncompleteMbSeq :  IconvException
+    {
+        const msg = "Iconv: Incomplete Multibyte Sequence";
 
-		this ( ) { super(this.msg); }
-	}
+        this ( ) { super(this.msg); }
+    }
 }
 
 /******************************************************************************

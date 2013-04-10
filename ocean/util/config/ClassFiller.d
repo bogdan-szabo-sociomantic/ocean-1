@@ -8,40 +8,40 @@
 
     authors:        Mathias Baumann
 
-    Provides functions that use a given source (by default the global Config 
-    instance) to fill the member variables of a provided or newly 
+    Provides functions that use a given source (by default the global Config
+    instance) to fill the member variables of a provided or newly
     created instance of a given class.
-    
+
     The provided class can use certain wrappers to mark variables as
     required or to get the information whether the variable was set from
     the source or left untouched.
-    
+
     Usage Example:
     -------
     import Class = ocean.util.config.ClassFiller;
     import ocean.util.Config;
     import ocean.util.log.Trace;
-    
+
     class ConfigParameters
     {
         int number;
         Required!(char[]) required_string;
-        SetInfo!(char[]) was_this_set; 
+        SetInfo!(char[]) was_this_set;
     }
-    
+
     void main ( char[][] argv )
     {
         Config.parse(argv[1]);
-        
-        try 
+
+        try
         {
             auto conf = Class.fill!(ConfigParameters)("EXAMPLE_GROUP");
-            
+
             Stdout.formatln("Number: {}", conf.number);
             Stdout.formatln("Required: {}", conf.required_string);
             if ( conf.was_this_set.set )
             {
-                Stdout.formatln("It was set! And the value is {}", 
+                Stdout.formatln("It was set! And the value is {}",
                 was_this_set());
             }
         }
@@ -51,7 +51,7 @@
         }
     }
     -------
-    
+
     Use debug=Config to get a printout of all the configuration options
 
 *******************************************************************************/
@@ -68,12 +68,12 @@ module ocean.util.config.ClassFiller;
 public  import ocean.core.Exception: ConfigException, assertEx;
 
 private import ocean.core.Traits;
-               
+
 private import tango.core.Exception;
 
 private import tango.core.Traits;
 
-private import ocean.util.Config; 
+private import ocean.util.Config;
 
 private import ocean.util.config.ConfigParser;
 
@@ -84,9 +84,9 @@ private import tango.core.Traits : DynamicArrayType;
 
 /*******************************************************************************
 
-    Whether loose parsing is enabled or not. 
+    Whether loose parsing is enabled or not.
     Loose parsing means, that variables that have no effect are allowed.
-    
+
     States
         false = variables that have no effect cause an exception
         true  = variables that have no effect cause a stderr warning message
@@ -180,12 +180,12 @@ struct Required ( T )
         Returns the value that is wrapped
 
     ***************************************************************************/
-    
+
     public BaseType!(T) opCast ( )
     {
         return Value(this.value);
     }
-    
+
     /***************************************************************************
 
         Sets the wrapped value to val
@@ -201,8 +201,8 @@ struct Required ( T )
     public BaseType!(T) opAssign ( BaseType!(T) val )
     {
         return value = val;
-    }   
-    
+    }
+
     /***************************************************************************
 
         Checks whether the checked value was found, throws if not
@@ -213,11 +213,11 @@ struct Required ( T )
     {
         if ( !found )
         {
-            throw new ConfigException("Mandatory variable " ~ group ~ 
+            throw new ConfigException("Mandatory variable " ~ group ~
                                       "." ~ name ~
                                       " not set", __FILE__, __LINE__);
         }
-        
+
         static if ( !is (BaseType!(T) == T) )
         {
             this.value.check(found, group, name);
@@ -252,7 +252,7 @@ struct MinMax ( T, T min, T max, T init = T.init )
     ***************************************************************************/
 
     private T value = init;
-   
+
     /***************************************************************************
 
         Sets the wrapped value to val
@@ -285,12 +285,12 @@ struct MinMax ( T, T min, T max, T init = T.init )
     public BaseType!(T) opAssign ( BaseType!(T) val )
     {
         return value = val;
-    }                  
+    }
 
      /***************************************************************************
 
-        Checks whether the configuration value is bigger than the smallest 
-        allowed value and smaller than the biggest allowed value. 
+        Checks whether the configuration value is bigger than the smallest
+        allowed value and smaller than the biggest allowed value.
         If not, an exception is thrown
 
         Params:
@@ -301,24 +301,24 @@ struct MinMax ( T, T min, T max, T init = T.init )
     ***************************************************************************/
 
     private void check ( bool found, char[] group, char[] name )
-    {              
+    {
         if ( Value(this.value) < min )
         {
             throw new ConfigException(
                                 "Configuration key " ~ group ~ "." ~ name ~ " is smaller "
                                 "than allowed minimum of " ~ ctfe_i2a(min),
                                 __FILE__, __LINE__);
-        }            
-  
-         
+        }
+
+
         if ( Value(this.value) > max )
         {
             throw new ConfigException(
                                 "Configuration key " ~ group ~ "." ~ name ~
                                 " is bigger than allowed maximum of " ~ ctfe_i2a(max),
                                 __FILE__, __LINE__);
-        }    
-        
+        }
+
         static if ( !is (BaseType!(T) == T) )
         {
             this.value.check(found, group, name);
@@ -344,7 +344,7 @@ struct MinMax ( T, T min, T max, T init = T.init )
 *******************************************************************************/
 
 struct Min ( T, T min, T init = T.init )
-{        
+{
     /***************************************************************************
 
         The value of the configuration setting
@@ -369,7 +369,7 @@ struct Min ( T, T min, T init = T.init )
     {
         return value = val;
     }
-     
+
     /***************************************************************************
 
         Sets the wrapped value to val
@@ -385,11 +385,11 @@ struct Min ( T, T min, T init = T.init )
     public BaseType!(T) opCall ( )
     {
         return Value(this.value);
-    }    
-            
+    }
+
      /***************************************************************************
 
-        Checks whether the configuration value is bigger than the smallest 
+        Checks whether the configuration value is bigger than the smallest
         allowed value. If not, an exception is thrown
 
         Params:
@@ -407,8 +407,8 @@ struct Min ( T, T min, T init = T.init )
                     "Configuration key " ~ group ~ "." ~ name ~ " is smaller "
                     "than allowed minimum of " ~ ctfe_i2a(min),
                     __FILE__, __LINE__);
-        }            
-                
+        }
+
         static if ( !is (BaseType!(T) == T) )
         {
             this.value.check(found, group, name);
@@ -476,8 +476,8 @@ struct Max ( T, T max )
     public BaseType!(T) opCall ( )
     {
         return Value(this.value);
-    }  
-    
+    }
+
      /***************************************************************************
 
         Checks whether the configuration value is smaller than the biggest
@@ -518,7 +518,7 @@ struct Max ( T, T max )
 *******************************************************************************/
 
 struct SetInfo ( T )
-{    
+{
     /***************************************************************************
 
         The value of the configuration setting
@@ -551,7 +551,7 @@ struct SetInfo ( T )
         {
             return Value(this.value);
         }
-        
+
         return def;
     }
 
@@ -571,7 +571,7 @@ struct SetInfo ( T )
     {
         return value = val;
     }
-    
+
      /***************************************************************************
 
         Sets the set attribute according to whether the variable appeared in
@@ -587,7 +587,7 @@ struct SetInfo ( T )
     private void check ( bool found, char[] group, char[] name )
     {
         this.set = found;
-                
+
         static if ( !is (BaseType!(T) == T) )
         {
             this.value.check(found, group, name);
@@ -634,11 +634,11 @@ public template IsSupported ( T )
 
 /*******************************************************************************
 
-    Set whether loose parsing is enabled or not. 
+    Set whether loose parsing is enabled or not.
     Loose parsing means, that variables that have no effect are allowed.
-    
+
     Initial value is false.
-    
+
     Params:
         state =
             default: true
@@ -717,18 +717,18 @@ public T fill ( T : Object, Source = ConfigParser )
     {
         reference = new T;
     }
-    
-    static if ( is(Source : ConfigParser)) if ( config is null ) 
+
+    static if ( is(Source : ConfigParser)) if ( config is null )
     {
         config = Config;
     }
-    
+
     foreach ( var; config.iterateCategory(group) )
     {
-        if ( !hasField(reference, var) ) 
+        if ( !hasField(reference, var) )
         {
             auto msg = "Invalid configuration key " ~ group ~ "." ~ var;
-            
+
             if ( !loose_parsing )
             {
                 throw new ConfigException(msg, __FILE__, __LINE__);
@@ -736,7 +736,7 @@ public T fill ( T : Object, Source = ConfigParser )
             else Trace.formatln("#### WARNING: {}", msg);
         }
     }
-    
+
     readFields!(T)(group, reference, config);
 
     return reference;
@@ -746,13 +746,13 @@ public T fill ( T : Object, Source = ConfigParser )
 
     Checks whether T or any of its super classes contain
     a variable called field
-    
+
     Params:
         reference = reference of the object that will be checked
         field     = name of the field to check for
-        
+
     Returns:
-        true when T or any parent class has a member named the same as the 
+        true when T or any parent class has a member named the same as the
         value of field,
         else false
 
@@ -763,17 +763,17 @@ private bool hasField ( T : Object ) ( T reference, char[] field )
     foreach ( si, unused; reference.tupleof )
     {
         auto key = reference.tupleof[si].stringof["reference.".length .. $];
-                
+
         if ( key == field ) return true;
-    }   
-    
+    }
+
     bool was_found = true;
-    
+
     // Recurse into super any classes
     static if ( is(T S == super ) )
     {
         was_found = false;
-        
+
         foreach ( G; S ) static if ( !is(G == Object) )
         {
             if ( hasField!(G)(cast(G) reference, field))
@@ -783,7 +783,7 @@ private bool hasField ( T : Object ) ( T reference, char[] field )
             }
         }
     }
-    
+
     return was_found;
 }
 
@@ -806,11 +806,11 @@ struct ClassIterator ( T, Source = ConfigParser )
 
     public int opApply ( int delegate ( ref char[] name, ref T x ) dg )
     {
-        static if ( is(Source : ConfigParser)) if ( config is null ) 
+        static if ( is(Source : ConfigParser)) if ( config is null )
         {
             config = Config;
         }
-            
+
         int result = 0;
 
         if ( config !is null ) foreach ( key; config )
@@ -834,10 +834,10 @@ struct ClassIterator ( T, Source = ConfigParser )
 
 /***************************************************************************
 
-    Creates an iterator that iterates over groups that start with 
+    Creates an iterator that iterates over groups that start with
     a common string, filling an instance of the passed class type from
-    the variables of each matching group and calling the delegate.    
-    
+    the variables of each matching group and calling the delegate.
+
     Config file for the example below:
     -------
     [Example.FirstGroup]
@@ -845,65 +845,65 @@ struct ClassIterator ( T, Source = ConfigParser )
     required_string = SET
     was_this_set = "there, I set it!"
     limited = 20
-    
+
     [Example.SecondGroup]
     number = 2
     required_string = SET_AGAIN
-    
+
     [Example.ThirdGroup]
     number = 3
     required_string = SET
     was_this_set = "arrr"
     limited = 40
     -------
-    
+
     Usage Example:
     -------
     import Class = ocean.util.config.ClassFiller;
     import ocean.util.Config;
     import ocean.util.log.Trace;
-    
+
     class ConfigParameters
     {
         int number;
         Required!(char[]) required_string;
-        SetInfo!(char[]) was_this_set; 
+        SetInfo!(char[]) was_this_set;
         Required!(MinMax!(size_t, 1, 30)) limited;
     }
-    
+
     void main ( char[][] argv )
     {
         Config.parse(argv[1]);
-        
+
         auto iter = Class.iterate!(ConfigParameters)("Example");
-            
-        foreach ( name, conf; iter ) try 
-        {          
+
+        foreach ( name, conf; iter ) try
+        {
             // Outputs FirstGroup/SecondGroup/ThirdGroup
-            Stdout.formatln("Group: {}", name); 
+            Stdout.formatln("Group: {}", name);
             Stdout.formatln("Number: {}", conf.number);
             Stdout.formatln("Required: {}", conf.required_string());
             if ( conf.was_this_set.set )
             {
-                Stdout.formatln("It was set! And the value is {}", 
+                Stdout.formatln("It was set! And the value is {}",
                 was_this_set());
             }
             // If limited was not set, an exception will be thrown
-            // If limited was set but is outside of the specified 
+            // If limited was set but is outside of the specified
             // range [1 .. 30], an exception will be thrown as well
             Stdout.formatln("Limited: {}", conf.limited());
         }
         catch ( Exception e )
         {
             Stdout.formatln("Required parameter wasn't set: {}", e.msg);
-        }        
+        }
     }
     -------
-    
+
     TemplateParams:
         T = type of the class to fill
         Source = source to use (defaults to ConfigParser)
-        
+
     Params:
         root = start of the group name
         config = instance of the source to use (defaults to Config)
@@ -913,7 +913,7 @@ struct ClassIterator ( T, Source = ConfigParser )
 
 ***************************************************************************/
 
-public ClassIterator!(T) iterate ( T, Source = ConfigParser ) 
+public ClassIterator!(T) iterate ( T, Source = ConfigParser )
                                  ( char[] root, Source config = null )
 {
     return ClassIterator!(T, Source)(config, root);
@@ -931,28 +931,28 @@ public ClassIterator!(T) iterate ( T, Source = ConfigParser )
         property converted to T
 
 *******************************************************************************/
-        
-protected void readFields ( T, Source ) 
+
+protected void readFields ( T, Source )
                           ( char[] group, T reference, Source config )
 {
-    static if ( is(Source : ConfigParser)) if ( config is null ) 
+    static if ( is(Source : ConfigParser)) if ( config is null )
     {
         config = Config;
     }
-    
+
     assert ( config !is null, "Source is null :(");
-    
+
     foreach ( si, field; reference.tupleof )
     {
         alias BaseType!(typeof(field)) Type;
         debug bool found = false;
 
-        static assert ( IsSupported!(Type), 
-                        "ClassFiller.readFields: Type " 
+        static assert ( IsSupported!(Type),
+                        "ClassFiller.readFields: Type "
                         ~ Type.stringof ~ " is not supported" );
-        
+
         auto key = reference.tupleof[si].stringof["reference.".length .. $];
-                
+
         if ( config.exists(group, key) )
         {
             static if ( is(Type U : U[]) && is(U V: V[]) )
@@ -988,7 +988,7 @@ protected void readFields ( T, Source )
             }
         }
     }
-    
+
     // Recurse into super any classes
     static if ( is(T S == super ) )
     {

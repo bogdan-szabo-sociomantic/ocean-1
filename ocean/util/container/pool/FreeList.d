@@ -56,7 +56,7 @@ private import tango.core.Traits;
 
 private template ItemType_ ( T )
 {
-    static if ( isReferenceType!(StripTypedef!(T)) || 
+    static if ( isReferenceType!(StripTypedef!(T)) ||
                 isDynamicArrayType!(StripTypedef!(T)) ||
                 isAssocArrayType!(StripTypedef!(T)) )
     {

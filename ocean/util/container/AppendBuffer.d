@@ -1331,8 +1331,8 @@ private abstract class AppendBufferImpl: IAppendBufferBase
     protected void setContentLength ( ref void[] content_, size_t n )
     out
     {
-		// FIXME assert commented out as it was failing when trying to connect
-		// to a MySql server using drizzle probably due to a compiler bug
+        // FIXME assert commented out as it was failing when trying to connect
+        // to a MySql server using drizzle probably due to a compiler bug
         //assert (content_.length == n,
         //        typeof (this).stringof ~ ".setContentLength: content length mismatch");
     }

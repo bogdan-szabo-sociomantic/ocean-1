@@ -94,14 +94,14 @@ class StringReplace ( bool wide_char = false )
     private size_t[] items;
 
     private Char[] replacement;
-    
+
     /**************************************************************************
 
-        A re-usable buffer to use with the Layout formatter in the 
+        A re-usable buffer to use with the Layout formatter in the
         replacePatternLayout method.
 
      **************************************************************************/
-    
+
     private char[] buf;
 
     /**************************************************************************
@@ -147,11 +147,11 @@ class StringReplace ( bool wide_char = false )
         return this.replace(content, pattern, replacement, false);
     }
 
-    
+
     /**************************************************************************
 
         The method will accept any aribtary replacement pattern and will pass it
-        through the Layout formatter.  The resulting string will replace 
+        through the Layout formatter.  The resulting string will replace
         any occurrance of the target pattern. The content length is decreased or
         increased where appropriate.
 
@@ -164,7 +164,7 @@ class StringReplace ( bool wide_char = false )
              the number of occurrences
 
      **************************************************************************/
-    
+
     public size_t replacePatternLayout(T) ( ref Char[] content, Char[] pattern,
             T replacement )
     {

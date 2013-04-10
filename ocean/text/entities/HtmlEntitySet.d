@@ -6,7 +6,7 @@
 
     author:         David Eckardt, Gavin Norman
 
-	Html entities. Built on the basis of the xml entities.
+    Html entities. Built on the basis of the xml entities.
 
 *******************************************************************************/
 
@@ -15,7 +15,7 @@ module ocean.text.entities.HtmlEntitySet;
 
 /*******************************************************************************
 
-	Imports
+    Imports
 
 *******************************************************************************/
 
@@ -27,7 +27,7 @@ private import ocean.text.entities.XmlEntitySet;
 
 /*******************************************************************************
 
-	Html entity set class - extends XmlEntitySet
+    Html entity set class - extends XmlEntitySet
 
 *******************************************************************************/
 
@@ -35,31 +35,31 @@ public class HtmlEntitySet : XmlEntitySet
 {
     /***************************************************************************
 
-	    This alias.
-	
-	***************************************************************************/
+        This alias.
 
-	public alias typeof(this) This;
+    ***************************************************************************/
+
+    public alias typeof(this) This;
 
 
     /***************************************************************************
 
-	    ISO 8859-1 (Latin 1) character entities. Uses the basic xml entities,
-	    plus the ISO8859_1_extra entities defined below.
+        ISO 8859-1 (Latin 1) character entities. Uses the basic xml entities,
+        plus the ISO8859_1_extra entities defined below.
 
-	***************************************************************************/
+    ***************************************************************************/
 
-	protected static const Entity[] ISO8859_1 = xml_entities ~ ISO8859_1_extra;
+    protected static const Entity[] ISO8859_1 = xml_entities ~ ISO8859_1_extra;
 
 
-	/***************************************************************************
+    /***************************************************************************
 
-	    All html entities. Union of ISO 8859-1 (Latin 1) and -15 (Latin 9)
-	    character entities.
+        All html entities. Union of ISO 8859-1 (Latin 1) and -15 (Latin 9)
+        character entities.
 
-	***************************************************************************/
+    ***************************************************************************/
 
-	public static const Entity[] html_entities = ISO8859_1 ~ ISO8859_15_extra;
+    public static const Entity[] html_entities = ISO8859_1 ~ ISO8859_15_extra;
 
 
     /***************************************************************************
@@ -69,7 +69,7 @@ public class HtmlEntitySet : XmlEntitySet
 
     ***************************************************************************/
 
-	protected static const Entity[] ISO8859_1_extra = 
+    protected static const Entity[] ISO8859_1_extra =
     [
         {"nbsp",   0x00A0}, // ' '
         {"iexcl",  0x00A1}, // '¡'
@@ -174,10 +174,10 @@ public class HtmlEntitySet : XmlEntitySet
 
         Extra characters of ISO 8859-15 (Latin 9) which are not in ISO 8859-1
         (Latin 1)
-    
+
     ***************************************************************************/
 
-	protected static const Entity[] ISO8859_15_extra =
+    protected static const Entity[] ISO8859_15_extra =
     [
         {"OElig",  0x0152}, // 'Œ'
         {"OElig",  0x0153}, // 'œ'
@@ -191,13 +191,13 @@ public class HtmlEntitySet : XmlEntitySet
 
     /***************************************************************************
 
-	    Returns the list of entities.
-	
-	***************************************************************************/
+        Returns the list of entities.
 
-	public Entity[] entities ( )
-	{
-		return This.html_entities;
-	}
+    ***************************************************************************/
+
+    public Entity[] entities ( )
+    {
+        return This.html_entities;
+    }
 }
 

@@ -8,7 +8,7 @@
 
     Helper class useful for producing apache bench style output about value
     distributions. For example:
-    
+
     ---
 
         Time distribution of 10000 requests:

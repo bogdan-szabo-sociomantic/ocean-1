@@ -85,7 +85,7 @@ deprecated class LibCurl
 
     ****************************************************************************/
 
-    alias 			CURLcode 					CurlCode;
+    alias             CURLcode                     CurlCode;
 
     /***************************************************************************
 
@@ -93,7 +93,7 @@ deprecated class LibCurl
 
     ****************************************************************************/
 
-    alias 			size_t delegate ( char[], char[] )	ReadDg;
+    alias             size_t delegate ( char[], char[] )    ReadDg;
 
     /***************************************************************************
 
@@ -101,7 +101,7 @@ deprecated class LibCurl
 
     ****************************************************************************/
 
-	protected CURL						curl;
+    protected CURL                        curl;
 
     /***************************************************************************
 
@@ -133,8 +133,8 @@ deprecated class LibCurl
 
     ****************************************************************************/
 
-    private			static const uint			DEFAULT_TIME_OUT = 360;
-    private         static const size_t     	DEFAULT_MAX_FILE_SIZE = 1_024_000;
+    private            static const uint            DEFAULT_TIME_OUT = 360;
+    private         static const size_t         DEFAULT_MAX_FILE_SIZE = 1_024_000;
 
     /***************************************************************************
 
@@ -142,8 +142,8 @@ deprecated class LibCurl
 
      ***************************************************************************/
 
-	private    		char[CURL_ERROR_SIZE + 1]	error_msg;
-	private        	int                         errorCode;
+    private            char[CURL_ERROR_SIZE + 1]    error_msg;
+    private            int                         errorCode;
 
     /***************************************************************************
 
@@ -163,24 +163,24 @@ deprecated class LibCurl
 
      **************************************************************************/
 
-	public this ( )
+    public this ( )
     {
-		this.curl = curl_easy_init();
+        this.curl = curl_easy_init();
 
-		assertEx!(CurlException)(this.curl, typeof(this).stringof ~ ".this - Error on curl_easy_init!");
+        assertEx!(CurlException)(this.curl, typeof(this).stringof ~ ".this - Error on curl_easy_init!");
 
-		this.setOption(CURLoption.ERRORBUFFER, this.error_msg.ptr);
-		this.setOption(CURLoption.WRITEHEADER, cast(void*)this);
-		this.setOption(CURLoption.HEADERFUNCTION, &headerCallback);
-		this.setOption(CURLoption.WRITEFUNCTION, &writeCallback);
-		this.setOption(CURLoption.FOLLOWLOCATION, 1);
-		this.setOption(CURLoption.FAILONERROR, 1);
-		this.setOption(CURLoption.SSL_VERIFYHOST, 0);
-		this.setOption(CURLoption.SSL_VERIFYPEER, 0);
-		this.setOption(CURLoption.NOSIGNAL, 1); // disable signals for thread safety
+        this.setOption(CURLoption.ERRORBUFFER, this.error_msg.ptr);
+        this.setOption(CURLoption.WRITEHEADER, cast(void*)this);
+        this.setOption(CURLoption.HEADERFUNCTION, &headerCallback);
+        this.setOption(CURLoption.WRITEFUNCTION, &writeCallback);
+        this.setOption(CURLoption.FOLLOWLOCATION, 1);
+        this.setOption(CURLoption.FAILONERROR, 1);
+        this.setOption(CURLoption.SSL_VERIFYHOST, 0);
+        this.setOption(CURLoption.SSL_VERIFYPEER, 0);
+        this.setOption(CURLoption.NOSIGNAL, 1); // disable signals for thread safety
 
-		this.setTimeout(this.DEFAULT_TIME_OUT);
-	}
+        this.setTimeout(this.DEFAULT_TIME_OUT);
+    }
 
     /***************************************************************************
 
@@ -327,9 +327,9 @@ deprecated class LibCurl
 
      **************************************************************************/
 
-	public CurlCode read ( char[] url, ref char[] content )
-	{
-	    content.length = 0;
+    public CurlCode read ( char[] url, ref char[] content )
+    {
+        content.length = 0;
 
         size_t append_content ( char[] url, char[] received )
         {
@@ -339,7 +339,7 @@ deprecated class LibCurl
         }
 
         return this.read(url, &append_content);
-	}
+    }
 
     /***************************************************************************
 
@@ -380,7 +380,7 @@ deprecated class LibCurl
 
     public void encode ( ref char[] str )
     {
-    	char* cvalue = curl_easy_escape(this.curl, str.ptr, str.length);
+        char* cvalue = curl_easy_escape(this.curl, str.ptr, str.length);
 
         str.copy(StringC.toDString(cvalue));
 
@@ -434,14 +434,14 @@ deprecated class LibCurl
 
      **************************************************************************/
 
-	public CurlCode setOptionT ( CURLoption option, T ) ( T value )
-	{
+    public CurlCode setOptionT ( CURLoption option, T ) ( T value )
+    {
         static assert (is (T : int) || is (T : void*) || is (T : char[]),
                        typeof (this).stringof ~ ": cURL option must be "
                        "integer, pointer or string, not '" ~ T.stringof ~ '\'');
 
         return this.setOption(option, value);
-	}
+    }
 
     /***************************************************************************
 
@@ -555,11 +555,11 @@ deprecated class LibCurl
 
      **************************************************************************/
 
-	private CurlCode setOption ( CURLoption option, char[] str )
+    private CurlCode setOption ( CURLoption option, char[] str )
     {
         this.option_buffer.concat(str, "\0");
-		return curl_easy_setopt(this.curl, option, this.option_buffer.ptr);
-	}
+        return curl_easy_setopt(this.curl, option, this.option_buffer.ptr);
+    }
 
     /***************************************************************************
 
@@ -574,10 +574,10 @@ deprecated class LibCurl
 
      **************************************************************************/
 
-	private CurlCode setOption ( CURLoption option, void* p )
+    private CurlCode setOption ( CURLoption option, void* p )
     {
-		return curl_easy_setopt(this.curl, option, p);
-	}
+        return curl_easy_setopt(this.curl, option, p);
+    }
 
     /***************************************************************************
 
@@ -592,10 +592,10 @@ deprecated class LibCurl
 
      **************************************************************************/
 
-	private CurlCode setOption ( CURLoption option, int value )
+    private CurlCode setOption ( CURLoption option, int value )
     {
-		return curl_easy_setopt(this.curl, option, value);
-	}
+        return curl_easy_setopt(this.curl, option, value);
+    }
 
 
     extern (C) static
@@ -605,7 +605,7 @@ deprecated class LibCurl
             Message Write Callback Method
 
             Interface follows fwrite syntax:
-            	http://www.manpagez.com/man/3/fwrite/
+                http://www.manpagez.com/man/3/fwrite/
 
             The loop-through custom pointer is supplied to libcurl as argument
             for the CURLoption.WRITEDATA option. The read() method of thi class
@@ -623,7 +623,7 @@ deprecated class LibCurl
 
         ***********************************************************************/
 
-    	private size_t writeCallback ( void* ptr, size_t size, size_t nmemb, void* obj )
+        private size_t writeCallback ( void* ptr, size_t size, size_t nmemb, void* obj )
         {
             if (!ptr || !obj) return 0;
 
@@ -632,7 +632,7 @@ deprecated class LibCurl
             char[] content = (cast (char*) ptr)[0 .. size * nmemb];
 
             return curlobj.receivedContent(content);
-    	}
+        }
 
 
 
@@ -641,7 +641,7 @@ deprecated class LibCurl
             Header Write Callback Method
 
             Interface follows fwrite syntax:
-            	http://www.manpagez.com/man/3/fwrite/
+                http://www.manpagez.com/man/3/fwrite/
 
             Params:
                 ptr = data pointer

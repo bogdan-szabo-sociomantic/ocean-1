@@ -1,15 +1,15 @@
 /*******************************************************************************
 
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     version:        November 2010: Initial release
-    
+
     authors:        Gavin Norman
 
     Xslt (Extensible Stylesheet Language Transformations) - enables
     transformation of xml documents into other formats (including differently
     structured xml documents) using a stylsheet language.
-    
+
     See http://en.wikipedia.org/wiki/XSLT
 
     This module uses the C library libxslt internally, which requires linking
@@ -47,7 +47,7 @@ debug private import tango.util.log.Trace;
 /*******************************************************************************
 
     Checks the libxml error status and throws an exception if an error occurred.
-    
+
     Params:
         exception = exception instance to throw
 
@@ -186,7 +186,7 @@ public class XsltResult
     /***************************************************************************
 
         Slice of the C-allocated result string.
-    
+
     ***************************************************************************/
 
     private char[] str;
@@ -330,11 +330,11 @@ public class XsltProcessor
 
     private xmlDocPtr original_xml;
 
-    
+
     /***************************************************************************
 
         Xml structure of transformed text.
-    
+
     ***************************************************************************/
 
     private xmlDocPtr transformed_xml;
@@ -343,7 +343,7 @@ public class XsltProcessor
     /***************************************************************************
 
         Flag set to true when the xml parser has been initialised.
-    
+
     ***************************************************************************/
 
     private bool xml_parser_initialised;
@@ -352,7 +352,7 @@ public class XsltProcessor
     /***************************************************************************
 
         Reusable xml exception
-    
+
     ***************************************************************************/
 
     private XmlException exception;
@@ -368,12 +368,12 @@ public class XsltProcessor
     {
         this.exception = new XmlException("");
     }
-    
+
 
     /***************************************************************************
 
         Destructor. Frees objects allocated by the C libraries.
-    
+
     ***************************************************************************/
 
     ~this ( )
@@ -381,7 +381,7 @@ public class XsltProcessor
         this.cleanupParser();
     }
 
-    
+
     /***************************************************************************
 
         Transforms a source xml text via the xslt transformation rules given in
@@ -447,11 +447,11 @@ public class XsltProcessor
 
     public alias transform opCall;
 
-    
+
     /***************************************************************************
 
         Initialises the xml parser with the settings required for xslt.
-    
+
     ***************************************************************************/
 
     private void initParser ( )
@@ -461,7 +461,7 @@ public class XsltProcessor
             xmlInitParser();
             xmlSubstituteEntitiesDefault(1);
             xmlLoadExtDtdDefaultValue = 1;
-    
+
             this.xml_parser_initialised = true;
         }
     }
@@ -470,7 +470,7 @@ public class XsltProcessor
     /***************************************************************************
 
         Cleans up all resources used by the xml parser & xlst.
-    
+
     ***************************************************************************/
 
     private void cleanupParser ( )

@@ -53,7 +53,7 @@ class LzoChunkCompressor
     /***************************************************************************
 
         Chunk decompressor.
-    
+
     ***************************************************************************/
 
     public class Decompressor
@@ -61,7 +61,7 @@ class LzoChunkCompressor
         /***********************************************************************
 
             Aliases for the lzo header & chunk.
-        
+
         ***********************************************************************/
 
         public alias LzoHeader!(DecompressLenghtInline) Header;
@@ -71,7 +71,7 @@ class LzoChunkCompressor
         /***********************************************************************
 
             Lzo chunk instance, used to do the decompression.
-        
+
         ***********************************************************************/
 
         private Chunk chunk;
@@ -80,7 +80,7 @@ class LzoChunkCompressor
         /***********************************************************************
 
             Constructor.
-        
+
         ***********************************************************************/
 
         public this ( )
@@ -92,13 +92,13 @@ class LzoChunkCompressor
         /***********************************************************************
 
             Decompresses provided data.
-            
+
             Params:
                 source = data to decompress
 
             Returns:
                 decompressed data (a slice into the outer class' results buffer)
-        
+
         ***********************************************************************/
 
         public char[] decompress ( char[] source )
@@ -114,10 +114,10 @@ class LzoChunkCompressor
 
             Params:
                 source = data to check
-    
+
             Returns:
                 true if data is an lzo start chunk
-        
+
         ***********************************************************************/
 
         public bool isStartChunk ( char[] array )
@@ -139,7 +139,7 @@ class LzoChunkCompressor
     /***************************************************************************
 
         Chunk compressor.
-    
+
     ***************************************************************************/
 
     public class Compressor
@@ -147,7 +147,7 @@ class LzoChunkCompressor
         /***********************************************************************
 
             Aliases for the lzo header & chunk.
-        
+
         ***********************************************************************/
 
         public alias LzoHeader!(CompressLenghtInline) Header;
@@ -157,7 +157,7 @@ class LzoChunkCompressor
         /***********************************************************************
 
             Lzo chunk instance, used to do the compression.
-        
+
         ***********************************************************************/
 
         private Chunk chunk;
@@ -166,7 +166,7 @@ class LzoChunkCompressor
         /***********************************************************************
 
             Constructor.
-        
+
         ***********************************************************************/
 
         public this ( )
@@ -178,10 +178,10 @@ class LzoChunkCompressor
         /***********************************************************************
 
             Compresses provided data.
-            
+
             Params:
                 source = data to compress
-    
+
             Returns:
                 compressed data (a slice into the outer class' results buffer)
 
@@ -197,13 +197,13 @@ class LzoChunkCompressor
         /***********************************************************************
 
             Tells whether the provided data is an lzo start chunk.
-    
+
             Params:
                 source = data to check
-    
+
             Returns:
                 true if data is an lzo start chunk
-        
+
         ***********************************************************************/
 
         public bool isStartChunk ( char[] array )
@@ -225,7 +225,7 @@ class LzoChunkCompressor
     /***************************************************************************
 
         Chunk de/compressor instances.
-    
+
     ***************************************************************************/
 
     public Decompressor decompressor;
@@ -235,7 +235,7 @@ class LzoChunkCompressor
     /***************************************************************************
 
         Internal lzo object.
-    
+
     ***************************************************************************/
 
     private Lzo lzo;
@@ -244,7 +244,7 @@ class LzoChunkCompressor
     /***************************************************************************
 
         Internal de/compression results buffer.
-    
+
     ***************************************************************************/
 
     private char[] result;
@@ -253,7 +253,7 @@ class LzoChunkCompressor
     /***************************************************************************
 
         Constructor.
-    
+
     ***************************************************************************/
 
     public this ( )
@@ -268,7 +268,7 @@ class LzoChunkCompressor
     /***************************************************************************
 
         Destructor.
-    
+
     ***************************************************************************/
 
     ~this ( )

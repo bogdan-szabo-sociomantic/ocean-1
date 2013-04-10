@@ -46,33 +46,33 @@ class DropPrivilegesExt : IConfigExtExtension
     static class Config
     {
         /***********************************************************************
-    
+
             User to run as, mandatory setting
-    
+
         ***********************************************************************/
-               
+
         ClassFiller.Required!(char[]) user;
-        
+
         /***********************************************************************
-    
+
             Group to run as, mandatory setting
-    
+
         ***********************************************************************/
-                       
+
         ClassFiller.Required!(char[]) group;
     }
-    
-    
+
+
     /***************************************************************************
 
         Extension order. This extension uses -5_000 because it should be
         called pretty early, but after the ConfigExt extension.
 
     ***************************************************************************/
-   
+
     public int order ( )
     {
-        return -5000; 
+        return -5000;
     }
 
 
@@ -87,17 +87,17 @@ class DropPrivilegesExt : IConfigExtExtension
     ***************************************************************************/
 
     void processConfig ( IApplication app, ConfigParser config )
-    {     
+    {
         auto conf = ClassFiller.fill!(Config)("PERMISSIONS", config);
-        
+
         if ( conf.group() == "root" ) throw new Exception("Group can not be root!");
         if ( conf.user()  == "root" ) throw new Exception("User can not be root!");
-        
+
         setGroup(conf.group());
         setUser(conf.user());
     }
 
-    
+
     /***************************************************************************
 
         Change user permissions to usr
@@ -110,15 +110,15 @@ class DropPrivilegesExt : IConfigExtExtension
     private void setUser ( char[] usr )
     {
         passwd* result;
-        passwd passwd_buf;        
-        char[50] user_buf;           
+        passwd passwd_buf;
+        char[50] user_buf;
         char[2048] buf;
-        
+
         auto cuser = toStringz(usr, user_buf);
-                
-        auto res = getpwnam_r(cuser, &passwd_buf, 
+
+        auto res = getpwnam_r(cuser, &passwd_buf,
                               buf.ptr, buf.length, &result);
-        
+
         if ( result == null )
         {
             if ( res == 0 )
@@ -128,26 +128,26 @@ class DropPrivilegesExt : IConfigExtExtension
             else
             {
                 char* err = strerror(res);
-                
-                throw new Exception("Error while getting user " ~ usr ~ 
+
+                throw new Exception("Error while getting user " ~ usr ~
                                     ": " ~ fromStringz(err));
             }
-        }    
-        
+        }
+
         if ( result.pw_uid == geteuid() ) return;
-        
+
         res = setuid(result.pw_uid);
-        
+
         if ( res != 0 )
         {
             char* err = strerror(errno());
-            
-            throw new Exception("Failed to set process user id to " ~ usr 
+
+            throw new Exception("Failed to set process user id to " ~ usr
                                 ~ ": " ~ fromStringz(err));
         }
-    }    
-    
-    
+    }
+
+
     /***************************************************************************
 
         Change group permissions to grp
@@ -156,18 +156,18 @@ class DropPrivilegesExt : IConfigExtExtension
             grp = Group to become
 
     ***************************************************************************/
-    
+
     private void setGroup ( char[] grp )
     {
         group* result;
         group group_buf;
         char[50] grp_buf;
-        char[2048] buf;   
-             
+        char[2048] buf;
+
         auto cgroup = toStringz(grp, grp_buf);
-        
+
         auto res = getgrnam_r(cgroup, &group_buf, buf.ptr, buf.length, &result);
-                            
+
         if ( result == null )
         {
             if ( res == 0 )
@@ -177,25 +177,25 @@ class DropPrivilegesExt : IConfigExtExtension
             else
             {
                 char* err = strerror(res);
-                
-                throw new Exception("Error while getting group " ~ grp ~ 
+
+                throw new Exception("Error while getting group " ~ grp ~
                                     ": " ~ fromStringz(err));
             }
         }
-        
+
         if ( result.gr_gid == getegid() ) return;
-        
+
         res = setgid(result.gr_gid);
-        
+
         if ( res != 0 )
         {
             char* err = strerror(errno());
-            
-            throw new Exception("Failed to set process user group to " ~ grp 
+
+            throw new Exception("Failed to set process user group to " ~ grp
                                 ~ ": " ~ fromStringz(err));
         }
     }
-    
+
     /***************************************************************************
 
         Function executed before the configuration files are parsed.

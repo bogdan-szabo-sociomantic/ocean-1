@@ -14,7 +14,7 @@
     struct. The fields are parsed according to the type of the equivalent struct
     member.
 
-    Note that the struct members are read according to their *order*, so the 
+    Note that the struct members are read according to their *order*, so the
     order of members in the struct must match the order of fields in the query
     result. The name of the struct members is irrelevant, though it's usually
     helpful if they match the names of the query result's fields.
@@ -38,7 +38,7 @@
                 Record record;
 
                 parser.parseRow(record, row);
-                
+
                 // record will now be filled
             }
         }
@@ -80,7 +80,7 @@
                 Record record;
 
                 parser.parseRow(record, row);
-                
+
                 // record will now be filled
             }
         }
@@ -366,7 +366,7 @@ public scope class RecordParser ( R )
             }
 
             scope parser = new RecordParser!(Test);
-            
+
             char[] output;
             parser.formatFieldNames(output, "a.");
 
@@ -409,7 +409,7 @@ public scope class RecordParser ( R )
             }
 
             scope parser = new RecordParser!(Test);
-            
+
             char[] output;
             parser.formatFieldNames(output, ["a.", "b."]);
 

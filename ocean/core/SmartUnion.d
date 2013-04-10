@@ -8,34 +8,34 @@
     version:        April 2010: Initial release
 
     authors:        David Eckardt
-    
+
     Usage:
     ---
         import $(TITLE);
-        
+
         union MyUnion
         {
             int    x;
             char[] y;
         }
-        
+
         void main ( )
         {
             SmartUnion!(MyUnion) u;
-            
+
             u.Active a;             // u.Active is defined as
                                     // enum u.Active {none, x, y}
             a = u.active;           // a is now a.none
-            
+
             int b = u.x;            // error, u.x has not yet been set
             u.x   = 35;
-            
+
             a = u.active;           // a is now a.x
-            
+
             char[] c = u.y          // error, u.y is not the active member
         }
     ---
-    
+
  ******************************************************************************/
 
 module ocean.core.SmartUnion;
@@ -59,24 +59,24 @@ public import ocean.core.Traits : FieldName;
 struct SmartUnion ( U )
 {
     static assert (is (U == union), "SmartUnion: need a union, not \"" ~ U.stringof ~ '"');
-    
+
     /**************************************************************************
 
         Holds the actual union U instance and Active enumerator value. To reduce
         the risk of a name collision, this member is named "_".
-                
+
      **************************************************************************/
 
     private SmartUnionIntern!(U) _;
-    
+
     /**************************************************************************
 
         Active enumerator type alias
-        
+
         Note: There is a member named "_".
-        
+
      **************************************************************************/
-    
+
     alias _.Active Active;
 
     /**************************************************************************
@@ -84,17 +84,17 @@ struct SmartUnion ( U )
         Returns:
             Active enumerator value of the currently active member or 0
             (Active.none) if no member has yet been set.
-                
+
      **************************************************************************/
 
     Active active ( ) { return this._.active; }
-    
+
     /**************************************************************************
 
         Member getter/setter method definitions string mixin
-                
+
      **************************************************************************/
-    
+
 //    pragma (msg, _.AllMethods!("_"));
     mixin (_.AllMethods!("_"));
 }
@@ -112,26 +112,26 @@ private struct SmartUnionIntern ( U )
     /**************************************************************************
 
         U instance
-        
+
      **************************************************************************/
-    
+
     U u;
 
     /**************************************************************************
 
         Number of members in U
-    
+
      **************************************************************************/
 
     const N = U.tupleof.length;
-    
+
     /**************************************************************************
 
         Evaluates to a ',' separated list of the names of the members of U.
 
         Template params:
             i   = U member start index
-        
+
         Evaluates to:
             a ',' separated list of the names of the members of U
 
@@ -152,7 +152,7 @@ private struct SmartUnionIntern ( U )
     /**************************************************************************
 
         Active enumerator definition string mixin
-        
+
      **************************************************************************/
 
 //    pragma(msg,"enum Active{none" ~ MemberList!() ~ "}");
@@ -161,11 +161,11 @@ private struct SmartUnionIntern ( U )
     /**************************************************************************
 
         Memorizes which member is currently active (initially none which is 0)
-        
+
      **************************************************************************/
 
     Active active;
-    
+
     /**************************************************************************
 
         Evaluates to code defining a getter, a setter and a static opCall()
@@ -190,7 +190,7 @@ private struct SmartUnionIntern ( U )
         ---
             // Getter for my_smart_union.u.y. Returns:
             //     my_smart_union.u.y
-            
+
             char[] y()
             in
             {
@@ -201,12 +201,12 @@ private struct SmartUnionIntern ( U )
             {
                 return my_smart_union.u.y;
             }
-            
+
             // Setter for my_smart_union.u.y. Params:
             //     y = new value for y
             // Returns:
             //     y
-            
+
             char[] y(char[] y)
             {
                 my_smart_union.active = my_smart_union.active.y;
@@ -233,7 +233,7 @@ private struct SmartUnionIntern ( U )
     template Methods ( char[] u_pre, uint i )
     {
         const member = FieldName!(i, U);
-        
+
         const member_access = u_pre ~ ".u." ~ member;
 
         const type = "typeof(" ~ member_access ~ ")";
@@ -252,19 +252,19 @@ private struct SmartUnionIntern ( U )
 
         const all = get ~ '\n' ~ set ~ '\n' ~ ini;
     }
-    
+
     /**************************************************************************
 
         Evaluates to code defining a getter and setter method for each U member.
-        
+
         Template params:
             u_pre = prefix for U instance "u"
             pre   = method definition code prefix, code will be appended to pre
             i     = U instance "u" member start index
-        
+
         Evaluates to:
             code defining a getter and setter method for each U member
-        
+
      **************************************************************************/
 
     template AllMethods ( char[] u_pre, char[] pre = "", uint i = 0 )

@@ -1,14 +1,14 @@
 /*******************************************************************************
 
     SafeFork
-    
-    copyright:      Copyright (c) 2009-2011 sociomantic labs. 
+
+    copyright:      Copyright (c) 2009-2011 sociomantic labs.
                     All rights reserved
-    
+
     version:        June 2011: initial release
-    
+
     authors:        Mathias L. Baumann
-        
+
     Offers some wrappers for the usage of fork to call expensive blocking
     functions without interrupting the main process and without the need to
     synchronize.
@@ -73,9 +73,9 @@ private extern (C)
       P_PID,        /* Wait for specified process.  */
       P_PGID        /* Wait for members of process group.  */
     };
-    
+
     int waitid(idtype_t, id_t, siginfo_t*, int);
-    
+
     const WEXITED = 0x00000004;
     const WNOWAIT = 0x01000000;
 }
@@ -85,46 +85,46 @@ private extern (C)
 /*******************************************************************************
 
     SafeFork
-    
+
     Offers some wrappers for the usage of fork to call expensive blocking
     functions without interrupting the main process and without the need to
     synchronize.
-    
+
     Usage Example:
     -----
     private import ocean.sys.SafeFork;
     private import ocean.util.log.Trace;
-    
+
     void main ( )
     {
         auto dont_block = new SafeFork(&blocking_function);
-        
+
         dont_block.call(); // call blocking_function
-        
+
         if ( !dont_block.call() )
         {
             Trace("blocking function is currently running and not done yet!");
         }
-        
+
         while ( dont_block.isRunning() )
         {
             Trace("blocking function is still running!");
         }
-        
+
         if ( !dont_block.call() )
         {
             Trace("blocking function is currently running and not done yet!");
         }
-        
-        dont_block.call(true); // wait for a unfinished fork and then call 
+
+        dont_block.call(true); // wait for a unfinished fork and then call
                                // blocking_function without forking
     }
     -----
-    
+
 *******************************************************************************/
 
 public class SafeFork
-{  
+{
     /***************************************************************************
 
         Exception, reusable
@@ -132,7 +132,7 @@ public class SafeFork
     ***************************************************************************/
 
     private const ReusableException exception;
- 
+
     /***************************************************************************
 
         Pid of the forked child
@@ -140,7 +140,7 @@ public class SafeFork
     ***************************************************************************/
 
     private int child_pid = 0;
-     
+
     /***************************************************************************
 
         Delegate to call
@@ -148,11 +148,11 @@ public class SafeFork
     ***************************************************************************/
 
     private const void delegate () dg;
-       
+
     /***************************************************************************
 
         Constructor
-        
+
         Params:
             dg = delegate to call
 
@@ -161,19 +161,19 @@ public class SafeFork
     public this ( void delegate () dg )
     {
         this.dg = dg;
-        
+
         this.exception = new ReusableException;
     }
-           
+
     /***************************************************************************
 
         Find out whether the fork is still running or not
-        
+
         Returns:
             true if the fork is still running, else false
 
     ***************************************************************************/
-    
+
     public bool isRunning ( )
     {
         return this.child_pid == 0
@@ -235,7 +235,7 @@ public class SafeFork
                     Stdout.formatln("Fork took {}s",
                         (cast(float)sw.microsec) / 1_000_000.0f);
                 }
-                
+
                 if ( this.child_pid < 0 )
                 {
                     throw this.exception("Failed to fork", __FILE__, __LINE__);

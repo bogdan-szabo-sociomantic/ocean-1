@@ -643,14 +643,14 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
     protected abstract scope class IItemsIterator
     {
         protected Item[] iteration_items;
-    
+
         /***********************************************************************
-    
+
             Constructor
-    
+
             Params:
                 iteration_items = items to be iterated over (sliced)
-    
+
         ***********************************************************************/
 
         protected this ( Item[] iteration_items )
@@ -659,29 +659,29 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
         }
 
         /***********************************************************************
-    
+
             'foreach' iteration over items[start .. end]
-    
+
         ***********************************************************************/
-    
+
         public int opApply ( int delegate ( ref T item ) dg )
         {
             int ret = 0;
-    
+
             foreach ( ref item; this.iteration_items )
             {
                 static if (is (T == class))
                 {
                     assert (item.obj !is null);
-                    
+
                     T item_out = cast (T) item.obj;
-    
+
                     ret = dg(item_out);
                 }
                 else
                 {
                     assert (item.ptr !is null);
-                    
+
                     ret = dg(*cast (T*) item.ptr);
                 }
 
@@ -690,16 +690,16 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
                     break;
                 }
             }
-    
+
             return ret;
         }
 
         /***********************************************************************
-    
+
             'foreach' iteration over items[start .. end], with index (0-based)
-    
+
         ***********************************************************************/
-    
+
         public int opApply ( int delegate ( ref size_t i, ref T item ) dg )
         {
             int ret = 0;
@@ -714,7 +714,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
                 }
                 i++;
             }
-    
+
             return ret;
         }
     }

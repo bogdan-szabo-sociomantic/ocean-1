@@ -14,7 +14,7 @@
     targeted at the caller.  This provides an alternative to the use of a signal
     handler or sigwaitinfo(2), and has the advantage that the file descriptor may
     be monitored by select(2), poll(2), and epoll(7).
- 
+
     The mask argument specifies the set of signals that the caller wishes to
     accept via the file descriptor.  This argument is a signal set whose contents
     can be initialized using the macros described in sigsetops(3).  Normally, the
@@ -23,28 +23,28 @@
     default dispositions.  It is not possible to receive SIGKILL or SIGSTOP
     signals via a signalfd file descriptor; these signals are silently ignored if
     specified in mask.
- 
+
     If the fd argument is -1, then the call creates a new file descriptor and
     associates the signal set specified in mask with that descriptor.  If fd is
     not -1, then it must specify a valid existing signalfd file descriptor, and
     mask is used to replace the signal set associated with that descriptor.
- 
+
     Starting with Linux 2.6.27, the following values may be bitwise ORed in flags
     to change the behaviour of signalfd():
- 
+
     SFD_NONBLOCK  Set the O_NONBLOCK file status flag on the new open file
                   description.  Using this flag saves extra calls to fcntl(2) to
                   achieve the same result.
- 
+
     SFD_CLOEXEC   Set the close-on-exec (FD_CLOEXEC) flag on the new file
                   descriptor.  See the description of the O_CLOEXEC flag in
                   open(2) for reasons why this may be useful.
- 
+
     In Linux up to version 2.6.26, the flags argument is unused, and must be
     specified as zero.
- 
+
     signalfd() returns a file descriptor that supports the following operations:
- 
+
     read(2)
            If one or more of the signals specified in mask is pending for the
            process, then the buffer supplied to read(2) is used to return one or
@@ -53,24 +53,24 @@
            will fit in the supplied buffer.  The buffer must be at least
            sizeof(struct signalfd_siginfo) bytes.  The return value of the read(2)
            is the total number of bytes read.
- 
+
            As a consequence of the read(2), the signals are consumed, so that they
            are no longer pending for the process (i.e., will not be caught by
            signal handlers, and cannot be accepted using sigwaitinfo(2)).
- 
+
            If none of the signals in mask is pending for the process, then the
            read(2) either blocks until one of the signals in mask is generated for
            the process, or fails with the error EAGAIN if the file descriptor has
            been made nonblocking.
- 
+
     poll(2), select(2) (and similar)
            The file descriptor is readable (the select(2) readfds argument; the
            poll(2) POLLIN flag) if one or more of the signals in mask is pending
            for the process.
- 
+
            The signalfd file descriptor also supports the other file-descriptor
            multiplexing APIs: pselect(2), ppoll(2), and epoll(7).
- 
+
     close(2)
            When the file descriptor is no longer required it should be closed.
            When all file descriptors associated with the same signalfd object have
@@ -117,21 +117,21 @@ debug private import ocean.io.Stdout;
 extern ( C )
 {
     /***************************************************************************
-    
+
         Definition of external functions required to manage signal events.
-    
+
     ***************************************************************************/
-    
+
     private int signalfd ( int fd, sigset_t* mask, int flags );
-    
-    
-    
+
+
+
     /***************************************************************************
-    
+
         Struct used by signal notification.
-    
+
     ***************************************************************************/
-    
+
     public struct signalfd_siginfo
     {
         uint ssi_signo;    /* Signal number */
@@ -153,7 +153,7 @@ extern ( C )
                               (for hardware-generated signals) */
         ubyte[48] pad;     /* Pad size to 128 bytes (allow for
                               additional fields in the future) */
-    
+
         static assert(signalfd_siginfo.sizeof == 128);
     }
 }

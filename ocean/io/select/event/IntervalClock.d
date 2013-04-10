@@ -15,13 +15,13 @@
 
         import ocean.io.select.event.IntervalClock;
         import ocean.io.select.EpollSelectDispatcher;
-        
+
         scope dispatcher = new EpollSelectDispatcher;
-        
+
         scope clock = new IntervalClock;
-        
+
         clock.interval_ms = 100;
-        
+
         dispatcher.register(clock).eventLoop();
 
         // At this point, the first call to clock.now() will query the system
@@ -80,45 +80,45 @@ private import tango.time.Time;
 public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
 {
     public alias MicrosecondsClock.us us;
-    
+
     /**************************************************************************
 
         Timer update interval_. All now*() methods will keep returning the same
         value during this amount of time.
-        
+
         If set to zero, that is, all member values are 0, the system time is
         queried on every call of any of the now*() methods.
-        
+
         Default: 1 s.
-    
+
      **************************************************************************/
 
     private timeval interval_ = timeval(1);
-    
+
     /**************************************************************************
 
         true: now() should obtain the system time.
         false: now() should return the same value as it did last time.
-        
+
         Set by handle_() and, if interval_ is not zero, cleared by
         now_timeval(), which is called by all other now*() methods.
-    
+
      **************************************************************************/
 
     private bool expired = true;
-    
+
     /**************************************************************************
 
         System time value most recently obtained by now().
-    
+
      **************************************************************************/
 
     private timeval t;
-    
+
     /**************************************************************************
-    
+
         Constructor
-    
+
      **************************************************************************/
 
     this ( )
@@ -126,19 +126,19 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
         super(true);
         super.absolute = true;
     }
-    
+
     /**************************************************************************
-    
+
         Sets the interval.
-        
+
         Params:
             interval_ = new interval
-        
+
         Returns:
             interval_
-    
+
      **************************************************************************/
-    
+
     timeval interval ( timeval interval_ )
     {
         this.expired = true;
@@ -146,23 +146,23 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
     }
 
     /**************************************************************************
-    
+
         Returns:
             current interval
-    
+
      **************************************************************************/
 
     timeval interval ( )
     {
         return this.interval_;
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             a time value between the current system time t and
             t + this.interval_.
-    
+
      **************************************************************************/
 
     public timeval now_timeval ( )
@@ -170,43 +170,43 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
         if (this.expired)
         {
             this.t = MicrosecondsClock.now;
-            
+
             ulong interval_us = this.us(this.interval_),
                   t_us        = this.us(this.t);
-            
+
             /*
              * If this.interval_ is not zero, set the expired flag to false and
              * schedule next expiration. Otherwise leave the expired flag true
-             * and do not schedule. 
+             * and do not schedule.
              */
-            
+
             with (this.interval_) if (tv_sec || tv_usec)
             {
                 // Truncate the time to the interval resolution.
-                
+
                 t_us /= interval_us;
                 t_us *= interval_us;
-                
+
                 ulong next_us = t_us + interval_us;
-                
+
                 this.expired = false;
-                
+
                 super.set(timespec(cast (uint) (next_us / 1_000_000),
                                    cast (uint) (next_us % 1_000_000) * 1_000));
             }
-            
+
             with (this.t)
             {
                 tv_sec  = cast (uint) (t_us / 1_000_000);
                 tv_usec = cast (uint) (t_us % 1_000_000);
             }
         }
-        
+
         return this.t;
     }
 
     /**************************************************************************
-    
+
         Returns:
             the time now in seconds
 
@@ -218,7 +218,7 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
     }
 
     /**************************************************************************
-    
+
         Returns:
             the time now in microseconds
 
@@ -230,18 +230,18 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
     }
 
     /**************************************************************************
-    
+
         Gets the current time as tm struct.
-    
+
         Params:
             local = true: return local time, false: return GMT.
-        
+
         Returns:
             the current time as tm struct.
-            
+
         Out:
             DST can be enabled with local time only.
-        
+
      **************************************************************************/
 
     public tm now_tm ( bool local = false )
@@ -250,7 +250,7 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
     }
 
     /**************************************************************************
-    
+
         Gets the current time as tm struct, and the microseconds within the
         current second as an out parameter.
 
@@ -271,13 +271,13 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
         with (this.now_timeval)
         {
             us = tv_usec;
-            
+
             return this.toTm(tv_sec);
         }
     }
-    
+
     /**************************************************************************
-    
+
         Gets the current time in terms of the year, months, days, hours, minutes
         and seconds.
 
@@ -285,40 +285,40 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
             DateTime struct containing everything.
 
      **************************************************************************/
-    
+
     public DateTime now_DateTime ( )
     {
         with (this.now_timeval) with (this.toTm(tv_sec))
         {
             DateTime dt;
-            
+
             dt.date.day   = tm_mday;
             dt.date.year  = tm_year + 1900;
             dt.date.month = tm_mon  + 1;
             dt.date.dow   = tm_wday;
             dt.date.doy   = tm_yday + 1;
-            
+
             dt.time.hours   = tm_hour;
             dt.time.minutes = tm_min;
             dt.time.seconds = tm_sec;
             dt.time.millis  = tv_usec / 1000;
-            
+
             return dt;
         }
     }
-    
+
     /**************************************************************************
-    
+
         Sets the time interval in seconds.
-        
+
         To get the time interval in seconds use interval_.tv_sec.
-       
+
         Params:
             s = new time interval in seconds
-            
+
         Returns:
             s
-    
+
      **************************************************************************/
 
     public time_t interval_s ( time_t s )
@@ -326,12 +326,12 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
         this.interval_.tv_usec = 0;
         return this.interval_.tv_sec = s;
     }
-    
+
     /**************************************************************************
-    
+
         Returns:
             the time interval in milliseconds
-    
+
      **************************************************************************/
 
     public ulong interval_ms ( )
@@ -341,34 +341,34 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
             return (tv_sec * 1000UL) + (tv_usec / 1000UL);
         }
     }
-    
+
     /**************************************************************************
-    
+
         Sets the time interval in milliseconds.
-        
+
         Params:
             ms = new time interval_ in seconds
-            
+
         Returns:
             ms
-    
+
      **************************************************************************/
 
     public uint interval_ms ( uint ms )
-    {   
+    {
         with (div(ms, 1000))
         {
             this.interval_.tv_sec  = quot;
             this.interval_.tv_usec = rem * 1_000;
         }
-        
+
         return ms;
     }
-    
+
     /**************************************************************************
-    
+
         Timer event handler
-    
+
      **************************************************************************/
 
     protected bool handle_ ( ulong n )
@@ -376,22 +376,22 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
         this.expired = true;
         return true;
     }
-    
+
     /**************************************************************************
-    
+
         Converts t to a tm struct value, split into year, months, days, hours,
         minutes and seconds.
-    
+
         Params:
             t     = UNIX time in seconds
             local = true: return local time, false: return GMT.
-        
+
         Returns:
             the t as tm struct.
-            
+
         Out:
             DST can be enabled with local time only.
-    
+
      **************************************************************************/
 
     public static tm toTm ( time_t t, bool local = false )
@@ -402,7 +402,7 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
     body
     {
         tm datetime;
-        
+
         (local? &localtime_r : &gmtime_r)(&t, &datetime);                       // actually one should check the return value
                                                                                 // of localtime_r() gmtime_r() but in this
         return datetime;                                                        // usage they should never fail ;)

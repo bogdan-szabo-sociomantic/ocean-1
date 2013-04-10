@@ -29,32 +29,32 @@ struct EscapeChars
     /**************************************************************************
 
         Tokens string consisting of the default special characters to escape
-    
+
      **************************************************************************/
 
     const Tokens = `"'\`;
-    
+
     /**************************************************************************
 
         List of special characters to escape
-    
+
      **************************************************************************/
-    
+
     private char[] tokens;
 
     /**************************************************************************
 
         List of occurrences
-    
+
      **************************************************************************/
-    
+
     private size_t[] occurrences;
-    
+
     /**************************************************************************
 
         Escapes each occurrence of an element of Tokens in str by inserting
         the escape pattern escape into str before the occurrence.
-        
+
         Params:
             str    = string with characters to escape; changed in-place
             escape = escape pattern to prepend to each token occurrence
@@ -63,7 +63,7 @@ struct EscapeChars
 
         Returns:
             resulting string
-        
+
      **************************************************************************/
 
     public char[] opCall ( ref char[] str, char[] escape = `\`,
@@ -72,55 +72,55 @@ struct EscapeChars
         if (tokens.length)
         {
             this.copyTokens(tokens);
-            
+
             str ~= '\0';                                                        // append a 0 to the end, as it is stripped in the scope(exit)
-    
+
             scope (exit)
             {
                 assert (str.length);
                 assert (!str[$ - 1]);
                 str.length = str.length - 1;
             }
-            
+
             size_t end = str.length - 1;
-            
+
             this.occurrences.length = 0;
-            
+
             for (size_t pos = strcspn(str.ptr, tokens.ptr); pos < end;)
             {
                 this.occurrences ~= pos;
-    
+
                 pos += strcspn(str.ptr + ++pos, tokens.ptr);
             }
-            
+
             str.length = str.length + (this.occurrences.length * escape.length);
-            
+
             str[$ - 1] = '\0';                                                  // append a 0 to the end, as it is stripped in the scope(exit)
-            
+
             foreach_reverse (i, occurrence; this.occurrences)
             {
                 char* src = str.ptr + occurrence;
                 char* dst = src + ((i + 1) * escape.length);
-                
+
                 memmove(dst, src, end - occurrence);
                 memcpy(dst - escape.length, escape.ptr, escape.length);
-                
+
                 end = occurrence;
             }
         }
-        
+
         return str;
     }
-    
+
     /**************************************************************************
 
         Copies tok to this.tokens and appends a NUL terminator.
-        
+
         Params:
             tokens = list of character tokens
-        
+
      **************************************************************************/
-    
+
     private void copyTokens ( char[] tokens )
     in
     {

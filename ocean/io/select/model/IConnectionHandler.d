@@ -21,7 +21,7 @@ module ocean.io.select.model.IConnectionHandler;
 *******************************************************************************/
 
 private import ocean.io.select.EpollSelectDispatcher;
-    
+
 private import ocean.io.select.model.ISelectClient : IAdvancedSelectClient;
 
 private import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
@@ -61,9 +61,9 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IErrorReporter
     public alias .AddressIPSocket!() AddressIPSocket;
 
     public alias .EpollSelectDispatcher EpollSelectDispatcher;
-    
+
     protected alias IAdvancedSelectClient.Event Event;
-    
+
     /***************************************************************************
 
         Client connection socket, exposed to subclasses downcast to Conduit.
@@ -71,16 +71,16 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IErrorReporter
     ***************************************************************************/
 
     protected const AddressIPSocket socket;
-    
+
     /***************************************************************************
 
         SocketError instance to throw on error and query the current socket
         error status.
 
     ***************************************************************************/
-    
+
     protected const SocketError socket_error;
-    
+
     /***************************************************************************
 
         Alias for a finalizer delegate, which can be specified externally and is
@@ -94,7 +94,7 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IErrorReporter
 
         Finalizer delegate which can be specified externally and is called when
         the connection is shut down.
-    
+
     ***************************************************************************/
 
     private FinalizeDg finalize_dg_ = null;
@@ -103,7 +103,7 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IErrorReporter
 
         Alias for an error delegate, which can be specified externally and is
         called when a connection error occurs.
-    
+
     ***************************************************************************/
 
     public alias void delegate ( Exception exception, Event event ) ErrorDg;
@@ -118,11 +118,11 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IErrorReporter
     private ErrorDg error_dg_ = null;
 
     /***************************************************************************
-    
+
         Instance id number in debug builds.
-    
+
     ***************************************************************************/
-    
+
     debug
     {
         static private uint connection_count;
@@ -132,22 +132,22 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IErrorReporter
     /***************************************************************************
 
         Constructor
-        
+
         Params:
             error_dg_    = optional user-specified error handler, called when a
                            connection error occurs
 
      ***************************************************************************/
-    
+
     protected this ( ErrorDg error_dg_ = null )
     {
         this(null, error_dg_);
     }
-    
+
     /***************************************************************************
 
         Constructor
-        
+
         Params:
             finalize_dg_ = optional user-specified finalizer, called when the
                            connection is shut down
@@ -162,56 +162,56 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IErrorReporter
         this.error_dg_ = error_dg_;
 
         this.socket = new AddressIPSocket;
-        
+
         this.socket_error = new SocketError(this.socket);
-        
+
         debug this.connection_id = connection_count++;
     }
-    
+
     /**************************************************************************
-    
+
         Called immediately when this instance is deleted.
         (Must be protected to prevent an invariant from failing.)
-    
+
      **************************************************************************/
 
     protected override void dispose ( )
     {
         this.finalize_dg_ = null;
         this.error_dg_    = null;
-        
+
         delete this.socket;
     }
-    
+
     /***************************************************************************
 
         Sets the finalizer callback delegate which is called when the
         connection is shut down. Setting to null disables the finalizer.
-        
+
         Params:
             finalize_dg_ = finalizer callback delegate
-        
+
         Returns:
             finalize_dg_
-        
+
     ***************************************************************************/
 
     public FinalizeDg finalize_dg ( FinalizeDg finalize_dg_ )
     {
         return this.finalize_dg_ = finalize_dg_;
     }
-    
+
     /***************************************************************************
 
         Sets the error handler callback delegate which is called when a
         connection error occurs. Setting to null disables the error handler.
-        
+
         Params:
             error_dg_ = error callback delegate
-        
+
         Returns:
             error_dg_
-        
+
     ***************************************************************************/
 
     public ErrorDg error_dg ( ErrorDg error_dg_ )
@@ -231,18 +231,18 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IErrorReporter
     {
         return this.socket.fileHandle >= 0;
     }
-    
+
     /***************************************************************************
-        
+
         Accepts a pending connection from listening_socket and assigns it to the
         socket of this instance.
-        
+
         Params:
             listening_socket = the listening server socket for which a client
                                connection is pending
-    
+
     ***************************************************************************/
-    
+
     public void assign ( ISelectable listening_socket )
     in
     {
@@ -257,9 +257,9 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IErrorReporter
             this.error(this.socket_error.setSock("error accepting connection", __FILE__, __LINE__));
         }
     }
-    
+
     /***************************************************************************
-        
+
         Called by the select listener right after the client connection has been
         assigned.
         If ths method throws an exception, error() and finalize() will be called
@@ -268,36 +268,36 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IErrorReporter
     ***************************************************************************/
 
     public abstract void handleConnection ( );
-    
+
     /***************************************************************************
 
         Must be called by the subclass when finished handling the connection.
         Will be automatically called by the select listener if assign() or
         handleConnection() throws an exception.
-        
+
         The closure of the socket after handling a connection is quite
         sensitive. If a connection has actually been assigned, the socket must
         be shut down *unless* an I/O error has been reported for the socket
         because then it will already have been shut down automatically. The
         abstract io_error() method is used to determine whether the an I/O error
         was reported for the socket or not.
-        
+
     ***************************************************************************/
-    
+
     public void finalize ( )
     {
         if ( this.connected )
         {
             debug ( ConnectionHandler ) Trace.formatln("[{}]: Closing connection", this.connection_id);
-            
+
             if (this.io_error) if (this.socket.shutdown())
             {
                 this.error(this.socket_error.setSock("error closing connection", __FILE__, __LINE__));
             }
-            
+
             this.socket.close();
         }
-        
+
         if ( this.finalize_dg_ ) try
         {
             this.finalize_dg_(this);
@@ -307,7 +307,7 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IErrorReporter
             this.error(e);
         }
     }
-    
+
     /***************************************************************************
 
         IAdvancedSelectClient.IErrorReporter interface method. Called when a
@@ -338,17 +338,17 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IErrorReporter
             this.error_dg_(exception, event);
         }
     }
-    
+
     /***************************************************************************
 
         Tells whether an I/O error has been reported for the socket since the
         last assign() call.
-        
+
         Returns:
             true if an I/O error has been reported for the socket or false
             otherwise.
-        
+
     ***************************************************************************/
-    
-    protected abstract bool io_error ( ); 
+
+    protected abstract bool io_error ( );
 }

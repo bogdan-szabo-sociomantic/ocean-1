@@ -87,25 +87,25 @@ public class HashSet : Set!(hash_t)
     {
         super(n, load_factor);
     }
-    
+
     /***************************************************************************
-    
+
         Calculates the hash value from key. Uses the identity since key is
         expected to be a suitable hash value.
-        
+
         Params:
             key = key to hash
-            
+
         Returns:
             the hash value that corresponds to key, which is key itself.
-    
+
     ***************************************************************************/
-    
+
     public hash_t toHash ( hash_t key )
     {
         return key;
     }
-    
+
     /***************************************************************************
 
         HashSet unittest.

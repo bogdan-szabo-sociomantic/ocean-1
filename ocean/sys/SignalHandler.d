@@ -23,28 +23,28 @@
     ensure that another class / struct performs its required shutdown behaviour,
     even when the program is interrupted.
 
-	SignalHandler usage example:
+    SignalHandler usage example:
 
-	---
+    ---
 
-	private import ocean.sys.SignalHandler;
+    private import ocean.sys.SignalHandler;
 
-	class MyClass
-	{
-		public this ( )
-		{
-			SignalHandler.register(SignalHandler.Signals.SIGALRM, &this.alarm);
+    class MyClass
+    {
+        public this ( )
+        {
+            SignalHandler.register(SignalHandler.Signals.SIGALRM, &this.alarm);
             SignalHandler.register(SignalHandler.Signals.AppTermination, &this.terminate);
-		}
+        }
 
-		public bool alarm ( int code )
-		{
-			// required alarm behaviour for this class
+        public bool alarm ( int code )
+        {
+            // required alarm behaviour for this class
 
             return false; // don't call default handler
-		}
+        }
 
-	    public bool terminate ( int code )
+        public bool terminate ( int code )
         {
             // required shutdown behaviour for this class
 
@@ -80,7 +80,7 @@ version (Posix) private import tango.stdc.posix.signal: SIGALRM, SIGBUS,  SIGCHL
 
 debug
 {
-	private import tango.util.log.Trace;
+    private import tango.util.log.Trace;
 }
 
 
@@ -232,8 +232,8 @@ class SignalHandler
 
      **************************************************************************/
 
-   	void register ( T ) ( int[] codes, T handler )
-   	{
+       void register ( T ) ( int[] codes, T handler )
+       {
        static if(!is( T == DgHandler ) && !is( T == FnHandler))
        {
            static assert(false,"register template only usable for DgHandler or FnHandler!");
@@ -490,7 +490,7 @@ class SignalHandler
         }
     }
 
-	/**************************************************************************
+    /**************************************************************************
 
         Returns the codes for which signal handlers are registered.
 

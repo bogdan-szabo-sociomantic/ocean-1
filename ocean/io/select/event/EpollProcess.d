@@ -3,9 +3,9 @@
     Posix process with epoll integration of output streams (stdout & stderr).
 
     copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-    
+
     version:        January 2012: Initial release
-    
+
     authors:        Gavin Norman
 
     Usage example:
@@ -285,26 +285,26 @@ public abstract class EpollProcess
             Stream buffer. Receives data from stream.
 
         ***********************************************************************/
-    
+
         private ubyte[1024] buf;
 
 
         /***********************************************************************
 
             Events to register for
-    
+
         ***********************************************************************/
-    
+
         public Event events ( )
         {
             return Event.EPOLLIN;
         }
 
-		protected override void error_ ( Exception exception, Event event )
-		{
+        protected override void error_ ( Exception exception, Event event )
+        {
             Trace.formatln("EPOLL error {} at {} {} event = {}", exception.msg, exception.file, exception.line, event);
-		}
-    
+        }
+
 
 
         /***********************************************************************
@@ -330,11 +330,11 @@ public abstract class EpollProcess
              * simultaneously. If this happens, just deal with the
              * Read. We will be called again with the Hangup.
              */
-            
-            size_t received = ( event & event.EPOLLIN ) ? 
+
+            size_t received = ( event & event.EPOLLIN ) ?
                     this.stream.read(this.buf) : 0;
 
-                    
+
             if ( received > 0 && received != InputStream.Eof )
             {
                 this.handle_(this.buf[0..received]);
@@ -357,7 +357,7 @@ public abstract class EpollProcess
                 the stream being read from
 
         ***********************************************************************/
-    
+
         abstract protected InputStream stream ( );
 
 
@@ -397,7 +397,7 @@ public abstract class EpollProcess
 
         /***********************************************************************
 
-            ISelectClient finalizer. Called from the epoll selector when a 
+            ISelectClient finalizer. Called from the epoll selector when a
             client finishes (due to being unregistered or an error).
 
             Calls the outer class' finalize() method.
@@ -464,7 +464,7 @@ public abstract class EpollProcess
 
         /***********************************************************************
 
-            ISelectClient finalizer. Called from the epoll selector when a 
+            ISelectClient finalizer. Called from the epoll selector when a
             client finishes (due to being unregistered or an error).
 
             Calls the outer class' finalize() method.

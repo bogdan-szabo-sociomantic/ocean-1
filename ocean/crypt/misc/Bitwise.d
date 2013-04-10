@@ -11,44 +11,44 @@ module ocean.crypt.misc.Bitwise;
 /** Common bitwise operations */
 struct Bitwise
 {
-    
+
     static uint rotateLeft(uint x, int y)
     {
         return (x << y) | (x >> (32-y));
     }
-    
+
     static uint rotateLeft(uint x, uint y)
     {
         return (x << y) | (x >> (32u-y));
     }
-    
+
     static ulong rotateLeft(ulong x, int y)
     {
         return (x << y) | (x >> (64-y));
     }
-    
+
     static ulong rotateLeft(ulong x, uint y)
     {
         return (x << y) | (x >> (64u-y));
     }
-    
+
     static uint rotateRight(uint x, int y)
     {
-        return (x >> y) | (x << (32-y));  
+        return (x >> y) | (x << (32-y));
     }
-    
+
     static uint rotateRight(uint x, uint y)
     {
-        return (x >> y) | (x << (32u-y));    
+        return (x >> y) | (x << (32u-y));
     }
-    
+
     static ulong rotateRight(ulong x, int y)
     {
-        return (x >> y) | (x << (64-y));    
+        return (x >> y) | (x << (64-y));
     }
-    
+
     static ulong rotateRight(ulong x, uint y)
     {
-        return (x >> y) | (x << (64u-y));    
+        return (x >> y) | (x << (64u-y));
     }
 }

@@ -2,7 +2,7 @@
 
     Counts how often a certain type of logger has been used
 
-    copyright:      Copyright (c) 2009-2011 sociomantic labs. 
+    copyright:      Copyright (c) 2009-2011 sociomantic labs.
                     All rights reserved
 
     version:        June 2011: initial release
@@ -24,7 +24,7 @@ private import tango.util.log.Log;
 public class CounterAppender : Appender
 {
         private Mask mask_;
-        
+
         /***********************************************************************
 
                 Arraymap containing the counters
@@ -32,7 +32,7 @@ public class CounterAppender : Appender
         ***********************************************************************/
 
         private static size_t[char[]] counter;
-        
+
         /***********************************************************************
 
 
@@ -75,15 +75,15 @@ public class CounterAppender : Appender
         {
               counter[event.name]++;
         }
-           
+
         /***********************************************************************
 
             Returns the value of the counter of the given logger.
             Resets the value before returning it.
-            
+
             Params:
                 name = name of the logger
-                
+
             Returns:
                 the value of the counter
 
@@ -92,24 +92,24 @@ public class CounterAppender : Appender
         static public size_t opIndex ( char[] name )
         {
             auto v = name in counter;
-            
+
             if ( v is null ) return 0;
-            
+
             auto ret = *v;
-            
+
             *v = 0;
-            
+
             return ret;
         }
-           
+
         /***********************************************************************
 
             Returns the value of the counter of the given logger
-            
+
             Params:
                 name = name of the logger
                 reset = whether to reset the counter
-                
+
             Returns:
                 the value of the counter
 
@@ -118,14 +118,14 @@ public class CounterAppender : Appender
         static public size_t get ( char[] name, bool reset = true )
         {
             auto v = name in counter;
-            
+
             if ( v is null ) return 0;
-            
+
             auto ret = *v;
-            
+
             if ( reset ) *v = 0;
-            
+
             return ret;
         }
-        
+
 }

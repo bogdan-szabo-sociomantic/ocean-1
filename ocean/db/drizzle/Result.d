@@ -11,7 +11,7 @@
 
     Link with:
         -L-ldrizzle
-        
+
 *******************************************************************************/
 
 module ocean.db.drizzle.Result;
@@ -79,7 +79,7 @@ private static bool more ( drizzle_return_t code )
 
 /*******************************************************************************
 
-    Result class. Provides functions and iterators to access the result data 
+    Result class. Provides functions and iterators to access the result data
 
 *******************************************************************************/
 
@@ -111,7 +111,7 @@ class Result
 
     /***************************************************************************
 
-        Drizzle result instance 
+        Drizzle result instance
 
     ***************************************************************************/
 
@@ -129,7 +129,7 @@ class Result
 
     /***************************************************************************
 
-        Pointer to drizzle connection instance 
+        Pointer to drizzle connection instance
 
     ***************************************************************************/
 
@@ -139,14 +139,14 @@ class Result
 
         Resizable buffer. Will be resized to fit the required length.
         Only used when fields are > 1024 bytes
-    
+
     ***********************************************************************/
-    
+
     private char[] dynamicBuffer;
 
     /***************************************************************************
 
-        Row struct for iterating over the fields of a row. 
+        Row struct for iterating over the fields of a row.
 
     ***************************************************************************/
 
@@ -154,7 +154,7 @@ class Result
     {
         /***********************************************************************
 
-            Reference to the outer Result instance 
+            Reference to the outer Result instance
 
         ***********************************************************************/
 
@@ -219,10 +219,10 @@ class Result
 
             Field Iterator.
 
-            Reads the fields directly from the socket buffer and thus rarely 
-            needs any additional buffer. 
-            
-            For cases when fields are incomplete it uses an internal 
+            Reads the fields directly from the socket buffer and thus rarely
+            needs any additional buffer.
+
+            For cases when fields are incomplete it uses an internal
             stack-buffer (1024 bytes) which should be sufficient for
             most cases.
 
@@ -230,7 +230,7 @@ class Result
             set your own buffer using setBuffer to the according size.
 
             If a field is larger than 1024 bytes the library will dynamically
-            allocate the needed buffer or uses (and adjusts) the one set 
+            allocate the needed buffer or uses (and adjusts) the one set
             by setBuffer.
 
             Params:
@@ -258,7 +258,7 @@ class Result
                     do fieldPtr = drizzle_field_read(&this.result.result, &offset,
                                                      &fieldLen, &totalLen, &returnCode);
                     while (more(returnCode));
-                    
+
                     if (returnCode == drizzle_return_t.DRIZZLE_RETURN_ROW_END)
                     {
                         return false;
@@ -304,12 +304,12 @@ class Result
                                      fieldPtr[0..fieldLen];
 
                 try if (result == 0) result = dg(field);
-                catch (Exception e) 
+                catch (Exception e)
                 {
                     exc = e;
                     result = 1;
                 }
-            } 
+            }
 
 
             this.processed = true;
@@ -336,7 +336,7 @@ class Result
         int              result = 0;
 
         ushort real_columns = drizzle_result_column_count(&this.result);
-       
+
         if (real_columns > 0)
         {
             do returnCode = drizzle_column_skip(&this.result);
@@ -433,7 +433,7 @@ class Result
     /***************************************************************************
 
         Resets the result object, making it ready for the next use.
-        
+
         Should only be called if no errors happenend
 
     ***************************************************************************/

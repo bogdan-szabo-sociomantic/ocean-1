@@ -150,19 +150,19 @@ public class Table
 
     public alias FormatOutput!(char) Output;
 
-    
+
     /***************************************************************************
 
         Row
-    
+
     ***************************************************************************/
-    
+
     public class Row
     {
         /***********************************************************************
 
             Cell
-        
+
         ***********************************************************************/
 
         public struct Cell
@@ -179,7 +179,7 @@ public class Table
             /*******************************************************************
 
                 Static opCall method to create a cell containing a string.
-                
+
                 Params:
                     string = string to put in cell
 
@@ -199,13 +199,13 @@ public class Table
             /*******************************************************************
 
                 Static opCall method to create a cell containing an integer.
-                
+
                 Params:
                     integer = integer to put in cell
-    
+
                 Returns:
                     new cell struct
-    
+
             *******************************************************************/
 
             static public Cell Integer ( ulong integer )
@@ -219,13 +219,13 @@ public class Table
             /*******************************************************************
 
                 Static opCall method to create a cell containing a float.
-                
+
                 Params:
                     floating = float to put in cell
-    
+
                 Returns:
                     new cell struct
-    
+
             *******************************************************************/
 
             static public Cell Float ( double floating )
@@ -240,10 +240,10 @@ public class Table
 
                 Static opCall method to create a cell merged with the one to the
                 right.
-                
+
                 Returns:
                     new cell struct
-    
+
             *******************************************************************/
 
             static public Cell Merged ( )
@@ -257,10 +257,10 @@ public class Table
             /*******************************************************************
 
                 Static opCall method to create an empty cell.
-                
+
                 Returns:
                     new cell struct
-    
+
             *******************************************************************/
 
             static public Cell Empty ( )
@@ -325,10 +325,10 @@ public class Table
             /*******************************************************************
 
                 Sets the cell to contain an integer.
-    
+
                 Params:
                     num = integer to set
-    
+
             *******************************************************************/
 
             public void setInteger ( ulong num )
@@ -341,10 +341,10 @@ public class Table
             /*******************************************************************
 
                 Sets the cell to contain a float.
-    
+
                 Params:
                     num = float to set
-    
+
             *******************************************************************/
 
             public void setFloat ( double num )
@@ -357,7 +357,7 @@ public class Table
             /*******************************************************************
 
                 Sets the cell to contain nothing.
-    
+
             *******************************************************************/
 
             public void setEmpty ( )
@@ -514,21 +514,21 @@ public class Table
         ***********************************************************************/
 
         public Cell[] cells;
-    
+
 
         /***********************************************************************
 
             Returns:
                 the number of cells in this row
-    
+
         ***********************************************************************/
 
         public size_t length ( )
         {
             return this.cells.length;
         }
-    
-    
+
+
         /***********************************************************************
 
             Sets the number of cells in this row.
@@ -542,7 +542,7 @@ public class Table
         {
             this.cells.length = width;
         }
-    
+
 
         /***********************************************************************
 
@@ -559,20 +559,20 @@ public class Table
         public Cell* opIndex ( size_t col )
         {
             Cell* c;
-    
+
             if ( col < this.cells.length )
             {
                 return &this.cells[col];
             }
-    
+
             return c;
         }
-    
+
 
         /***********************************************************************
 
             foreach iterator over the cells in this row.
-    
+
         ***********************************************************************/
 
         public int opApply ( int delegate ( ref Cell cell ) dg )
@@ -583,10 +583,10 @@ public class Table
                 res = dg(cell);
                 if ( !res ) break;
             }
-    
+
             return res;
         }
-    
+
 
         /***********************************************************************
 
@@ -602,10 +602,10 @@ public class Table
                 res = dg(i, cell);
                 if ( res ) break;
             }
-    
+
             return res;
         }
-    
+
 
         /***********************************************************************
 
@@ -629,7 +629,7 @@ public class Table
                 this.cells[i] = cell;
             }
         }
-    
+
 
         /***********************************************************************
 
@@ -639,7 +639,7 @@ public class Table
             Params:
                 empty_cells_at_left = number of empty cells to leave at the left
                     of the row (all others will be dividers)
-    
+
         ***********************************************************************/
 
         public void setDivider ( size_t empty_cells_at_left = 0 )
@@ -676,10 +676,10 @@ public class Table
         public void display ( Output output, size_t[] column_widths, ref char[] content_buf, ref char[] spacing_buf )
         {
             assert(column_widths.length == this.length);
-    
+
             uint merged;
             size_t merged_width;
-    
+
             foreach ( i, cell; this.cells )
             {
                 if ( cell.type == Cell.Type.Merged )
@@ -690,12 +690,12 @@ public class Table
                 else
                 {
                     cell.display(output, merged_width + column_widths[i], content_buf,  spacing_buf);
-    
+
                     merged = 0;
                     merged_width = 0;
                 }
             }
-    
+
             output.formatln("");
         }
     }
@@ -722,7 +722,7 @@ public class Table
 
     /***************************************************************************
 
-        Number of characters in each column (auto calculated by the 
+        Number of characters in each column (auto calculated by the
         calculateColumnWidths() method)
 
     ***************************************************************************/
@@ -733,7 +733,7 @@ public class Table
     /***************************************************************************
 
         List of table rows
-    
+
     ***************************************************************************/
 
     private Row[] rows;
@@ -772,16 +772,16 @@ public class Table
 
     private MergeInfo[] merged;
 
-    
+
     /***************************************************************************
 
         Constructor.
-        
+
         Note: if you create a Table with this default constructor, you must call
         init() when you're ready to use it.
 
     ***************************************************************************/
-    
+
     public this ( )
     {
     }
@@ -839,10 +839,10 @@ public class Table
     /***************************************************************************
 
         Gets the current row in the table.
-    
+
         Returns:
             reference to the table's current row
-    
+
     ***************************************************************************/
 
     public Row currentRow ( )

@@ -19,8 +19,8 @@
     which takes a type as its parameter. This implements a thin wrapper around
     the basic Cache, allowing the transparent storage of (no-op) serialized
     values of the specified type.
-    
-    
+
+
     Note that with variable value length anything stored in the cache is
     invisible to the garbage collector because the internal value data type of
     the cache is ubyte[]. So if you store references (objects, pointers, slices
@@ -28,11 +28,11 @@
     application keeps a reference to it. Otherwise the object referenced to may
     be garbage collected and attempting to use it after getting it from the
     cache will make your program go to HELL.
-    
+
     TODO: Extend the cache by making values visible to the GC by default and
     provide GC hiding as an option.
-    
-    
+
+
     Cache.createRaw() and Cache.getOrCreateRaw() return a reference to a record
     value in the cache. Cache.getRaw() behaves like Cache.getOrCreateRaw() if
     the record was found in the cache or returns null otherwise.
@@ -49,134 +49,134 @@
 
         // Add an item using createRaw(). createRaw() returns a void[] array
         // with length 3 which references the value in the cache.
-        
+
         hash_t key = 0x12345678;
-        
+
         char[3] val = "abc";
-        
-        cache.createRaw(key)[] = val[]; 
+
+        cache.createRaw(key)[] = val[];
 
         // Obtain an item using getRaw(). If found, getRaw() returns a value
         // slice just like createRaw() or null if not found.
-        
+
         char[] val_got = cache.getRaw(key);
-        
+
         if (val_got !is null)
         {
             // val_got contains the value that corresponds to key.
             // The value in the cache can be modified in-place by setting array
             // elements or copying to the whole array:
-        
+
             (cast(char[])val_got)[2] = '!'; // Set the third value byte to '!'.
-            
+
             (cast(char[])val_got)[] = "def"; // Set the value to "def".
         }
         else
         {
             // not found :(
         }
-        
+
     ---
-    
+
     For variable length arrays it is a pointer to the Cache.Value struct which
     encapsulates the value, which is void[], providing access to the value via
     operator overloading:
-    
+
         - opAssign sets the value array instance to an input array slice
           (overwriting the previous array instance),
         - opSliceAssign treats the value array as an allocated buffer and copies
           the content of the an input array slice into the value array,
         - opSlice returns the value array.
-    
+
     opSliceAssign reuses an existing buffer and is therefore memory-friendly as
     long as opAssign is not used with the same value instance.
-    
+
     Rule of thumb: For each cache instance with variable value size use either
     opAssign or opSliceAssign with the values, never both.
-    
+
     Usage Example 1: Store string slices in a cache using Value.opAssign.
-    
+
     ---
-    
+
         auto cache = new Cache!()(100);
-        
+
         char[] str1 = "Hello World",
                str2 = "Eggs and Spam";
-        
+
         {
             auto val = cache.createRaw(4711);
-            
+
             // Store a slice to str1 in the array using (*val).opAssign.
-            
+
             *val = str1;
         }
-        
+
         {
             auto val = cache.getRaw(4711);
-            
+
             // (*val)[] ((*val).opSlice) now returns a slice to str1.
-            
+
             // Replace this value with a slice to str2 using (*val).opAssign.
-            
+
             *val = str2;
         }
-        
+
     ---
-    
+
     Usage Example 2: Store copies of strings in a cache using
                      Value.opSliceAssign.
-    
+
     ---
-    
+
         auto cache = new Cache!()(100);
-        
+
         char[] str1 = "Hello World",
                str2 = "Eggs and Spam";
-        
+
         {
             auto val = cache.createRaw(4711);
-            
+
             // Allocate a value array buffer with str1.length and copy the
             // content of str1 into that value buffer.
-            
+
             (*val)[] = str1;
         }
-        
+
         {
             auto val = cache.getRaw(4711);
-            
+
             // (*val)[] ((*val).opSlice) now returns the value array buffer
             // which contains a copy of the content of str1.
-            
+
             // Use (*val)[] = str2 ((*val).opSliceAssign(x)) to resize the value
             // array buffer to str2.length and copy the content of str2 into it.
-            
+
             (*val)[] = str2;
         }
-        
+
     ---
-    
+
     For special situations it is possible to obtain a pointer to the value
     array. One such situation is when the value array needs to be modified by
     an external function which doesn't know about the cache.
-    
+
     ---
-        
+
         void setValue ( ref void[] value )
         {
             value = "Hello World!";
         }
-        
+
         auto cache = new Cache!()(100);
-        
+
         auto val = cache.createRaw(4711);
-        
+
         void[]* val_array = cast (void[]*) (*s);
-        
+
         setValue(*val_array);
-        
+
     ---
-    
+
     Link with:
         -Llibebtree.a
 
@@ -241,27 +241,27 @@ template CacheBase ( bool TrackCreateTimes = false )
 class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!(TrackCreateTimes)
 {
     public const is_dynamic = !ValueSize;
-    
+
     /***************************************************************************
 
         Types concerning the values stored in cache.
-        
+
         Value is the type stored in the cache.
-        
+
         ValueRef is the type of a reference to a value as it is returned by
         createRaw(), getRaw() and getOrCreateRaw().
-        
+
         For values of fixed size (not dynamic, ValueSize != 0) createRaw() and
         getOrCreateRaw() return a dynamic array which slices to the value in the
         cache and therefore has always a length of ValueSize. getRaw() returns
         either such a slice or null.
-        
+
         For values of dynamic size createRaw() and getOrCreateRaw() return a
         pointer to a Value struct instance while getRaw() returns either a
         pointer or null. The Value struct wraps a dynamic array and provides
         access via struct methods.
         Please see the usage examples at the top of this module.
-        
+
     ***************************************************************************/
 
     static if ( is_dynamic )
@@ -274,43 +274,43 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
                 external array, depending on whether it is assigned by
                 opSliceAssign() (allocates or reuses a buffer) or opSlice()
                 (slices an external array).
-                
+
             *******************************************************************/
-            
+
             private void[] array;
-            
+
             /*******************************************************************
 
                 Sets the value array instance to val.
-                
-                Params: 
+
+                Params:
                     val = new value array instance
-                    
+
                 Returns:
                     val.
-                
+
             *******************************************************************/
-            
+
             public void[] opAssign ( void[] val )
             {
                 return this.array = val;
             }
-            
+
             /*******************************************************************
 
                 Allocates a buffer for the value array and copies the content of
                 val into the value array. If the value array already exists (is
                 not null), it is resized and reused.
-                
-                Params: 
+
+                Params:
                     val = value content to copy to the value array of this
                           instance
-                    
+
                 Returns:
                     the value array of this instance.
-                
+
             *******************************************************************/
-            
+
             public void[] opSliceAssign ( void[] val )
             {
                 if (this.array is null)
@@ -321,39 +321,39 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
                 {
                     this.array.length = val.length;
                 }
-                
+
                 return this.array[] = val[];
             }
-            
+
             /*******************************************************************
 
                 Returns:
                     the value array.
-                
+
             *******************************************************************/
-            
+
             public void[] opSlice ( )
             {
                 return this.array;
             }
-            
+
             /*******************************************************************
-                
+
                 Obtains a pointer to the value array instance.
                 Should only be used in special situations where it would be
                 unreasonably difficult to use the other access methods.
-                
+
                 Returns:
                     a pointer to the value array instance.
-                
+
             *******************************************************************/
-            
+
             public void[]* opCast ( )
             {
                 return &this.array;
             }
         }
-        
+
         private alias Value* ValueRef;
     }
     else
@@ -377,17 +377,17 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
         {
             time_t create_time;
         }
-        
+
         /***********************************************************************
 
             Copies value to this.value.
-            
+
             Params:
                 value = value to copy
-                
+
             Returns:
                 this.value
-    
+
         ***********************************************************************/
 
         ValueRef setValue ( Value value )
@@ -402,18 +402,18 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
                 return this.value[] = value[];
             }
         }
-        
+
         /***********************************************************************
 
             Copies the src value to dst.
-            
+
             Params:
                 dst = destination value buffer (will be resized as required)
                 src = source value
-                
+
             Returns:
                 dst
-    
+
         ***********************************************************************/
 
         static if ( is_dynamic )
@@ -440,19 +440,19 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
 
 
     /***************************************************************************
-    
+
         Constructor.
-    
+
         Params:
             max_items = maximum number of items in the cache, set once, cannot
                 be changed
-    
+
     ***************************************************************************/
-    
+
     public this ( size_t max_items )
     {
         super(max_items);
-        
+
         this.items = new CacheItem[max_items];
     }
 
@@ -462,25 +462,25 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
         Disposer.
 
     ***************************************************************************/
-    
+
     protected override void dispose ( )
     {
         super.dispose();
-        
+
         delete this.items;
     }
-    
+
     /***************************************************************************
 
         Puts an item into the cache. If the cache is full, the oldest item is
         replaced with the new item. (In the case where several items are equally
         old, the choice of which one to be replaced is made arbitrarily.)
-        
+
         This method is deprecated because for values of variable length it
         always overwrites the value array instance, thus providing no way of
         reusing allocated value array buffers and provoking a memory leak
         condition in this case.
-        
+
         Params:
             key = item key
             value = data to store in cache
@@ -496,46 +496,46 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
     {
         return this.putRaw(key, Value(value));
     }
-    
+
     deprecated public bool putRaw ( hash_t key, Value value_in )
     {
         bool existed;
-        
+
         time_t access_time;
-        
+
         with (*this.getOrAdd(key, existed, access_time))
         {
             setValue(value_in);
-            
+
             static if ( TrackCreateTimes )
             {
                 create_time = access_time;
             }
         }
-        
+
         return existed;
     }
-    
+
     /***************************************************************************
 
         Creates an item in the cache and sets its create time. If the cache is
         full, the oldest item is replaced with the new item. (In the case where
         several items are equally old, the choice of which one to be replaced is
         made arbitrarily.)
-        
+
         Params:
             key = item key
 
         Returns:
             a reference to the value of the created item. If an old item was
             replaced, this reference refers to the old value.
-        
+
         Out:
             The returned reference is never null; for values of fixed size the
             slice length is ValueSize.
-        
+
     ***************************************************************************/
-    
+
     public ValueRef createRaw ( hash_t key )
     out (val)
     {
@@ -543,7 +543,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
         {
             assert (val !is null);
         }
-        else 
+        else
         {
             assert (val.length == ValueSize);
         }
@@ -551,25 +551,25 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
     body
     {
         bool existed;
-        
+
         time_t access_time;
-        
+
         with (*this.getOrAdd(key, existed, access_time))
         {
             static if ( TrackCreateTimes )
             {
                 create_time = access_time;
             }
-            
+
             return value_ref;
         }
     }
-    
+
     /***************************************************************************
 
         Gets an item from the cache. If the item was found in the cache, its
         access time is updated.
-    
+
         Note that, if you change the value referenced by the returned reference,
         the create time will not be updated.
 
@@ -578,10 +578,10 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
 
         Returns:
             a reference to item value or null if no such item was found.
-        
+
         Out:
             For values of fixed size the slice length is ValueSize unless the
-            returned reference is null. 
+            returned reference is null.
 
     ***************************************************************************/
 
@@ -599,27 +599,27 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
     body
     {
         time_t access_time;
-        
+
         CacheItem* item = this.get__(key, access_time);
-        
+
         return (item !is null)? item.value_ref : null;
     }
-    
+
     /***************************************************************************
 
         Gets an item from the cache or creates it if not already existing. If
         the item was found in the cache, its access time is updated, otherwise
         its create time is set.
-        
+
         Note that the create time is set only if an item is created, not if it
         already existed and you change the value referenced by the returned
         reference.
-        
+
         Params:
             key         = key to lookup
             existed     = true:  the item already existed,
                           false: the item was created
-        
+
         Returns:
             a reference to the value of the obtained or created item. If an old
             item was replaced, this reference refers to the old value.
@@ -627,9 +627,9 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
         Out:
             The returned reference is never null; for values of fixed size the
             slice length is ValueSize.
-        
+
     ***************************************************************************/
-    
+
     public ValueRef getOrCreateRaw ( hash_t key, out bool existed )
     out (val)
     {
@@ -637,7 +637,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
         {
             assert (val !is null);
         }
-        else 
+        else
         {
             assert (val.length == ValueSize);
         }
@@ -645,25 +645,25 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
     body
     {
         time_t access_time;
-        
+
         with (*this.getOrAdd(key, existed, access_time))
         {
             static if ( TrackCreateTimes ) if (!existed)
             {
                 create_time = access_time;
             }
-            
+
             return value_ref;
         }
     }
-    
+
     /***************************************************************************
 
         Checks whether an item exists in the cache and returns its create time.
 
         Params:
             key = key to lookup
-    
+
         Returns:
             item's create time, or 0 if the item doesn't exist
 
@@ -674,23 +674,23 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
         public time_t createTime ( hash_t key )
         {
             TimeToIndex.Node** node = key in this;
-            
+
             return node? this.items[(*node).key.lo].create_time : 0;
         }
     }
-    
+
     /***************************************************************************
-    
+
         Obtains the key of the cache item corresponding to index.
-        
+
         Params:
-            index = cache item index, guaranteed to be below length 
-        
+            index = cache item index, guaranteed to be below length
+
         Returns:
             cache item key
-        
+
     ***************************************************************************/
-    
+
     protected hash_t keyByIndex ( size_t index )
     in
     {
@@ -700,25 +700,25 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
     {
         return this.items[index].key;
     }
-    
+
     /***************************************************************************
-    
+
         Copies the cache item with index src to dst, overwriting the previous
         content of the cache item with index dst.
         Unlike all other situations where indices are used, src is always valid
         although it may be (and actually is) equal to length. However, src is
         still guaranteed to be less than max_length so it is safe to use src for
         indexing.
-        
+
         Params:
-            dst = destination cache item index, guaranteed to be below length 
-            src = source cache item index, guaranteed to be below max_length 
-        
+            dst = destination cache item index, guaranteed to be below length
+            src = source cache item index, guaranteed to be below max_length
+
         Returns:
             the key of the copied cache item.
-        
+
     ***************************************************************************/
-    
+
     protected hash_t copyLast ( size_t dst, size_t src )
     in
     {
@@ -727,47 +727,47 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
     }
     body
     {
-        /* 
+        /*
          * src_item: last item in elements to be copied to the item to
          *           remove.
          */
-        
+
         CacheItem src_item = this.items[src];
-        
+
         /*
          * Copy the last item to the item to remove. dst_node.index
          * is the index of the element to remove in this.items.
          */
-        
+
         with (this.items[dst])
         {
             setValue(src_item.value);
             return key = src_item.key;
         }
     }
-    
+
     /***************************************************************************
-    
+
         Obtains the cache item that corresponds to node and updates the access
         time.
         If realtime is enabled, time is expected to be equal to or
         greater than the time stored in node. If disabled and the access time is
         less, the node will not be updated and null returned.
-        
-        
+
+
         Params:
             node = time-to-index tree node
             time = access time
-        
+
         Returns:
             the cache item or a null if realtime is disabled and the access time
             is less than the access time in the node.
-    
+
         Out:
             If realtime is enabled, the returned pointer is never null.
-    
+
     ***************************************************************************/
-    
+
     protected CacheItem* access ( ref TimeToIndex.Node node, out time_t access_time )
     out (item)
     {
@@ -777,68 +777,68 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
     {
         return this.getItem(this.accessIndex(node, access_time));
     }
-    
+
     /***************************************************************************
-    
+
         Obtains the cache item that corresponds to node and updates the access
         time.
         If realtime is enabled and key could be found, time is expected to be at
         least the time value stored in node. If disabled and access_time is
         less, the result is the same as if key could not be found.
-        
-        
+
+
         Params:
             node = time-to-index tree node
             time = access time
-        
+
         Returns:
             the corresponding cache item or null if key could not be found or
             realtime is disabled and the access time is less than the access
             time in the cache element.
-    
+
     ***************************************************************************/
-    
+
     protected CacheItem* get__ ( hash_t key, out time_t access_time )
     {
         return this.getItem(this.get_(key, access_time));
     }
-    
+
     /***************************************************************************
-    
+
         Obtains the cache item that corresponds to index. Returns null if index
         is length or greater.
-        
+
         Params:
             index = cache item index
-        
+
         Returns:
             the corresponding cache item or null if index is length or greater.
-    
+
     ***************************************************************************/
-    
+
     private CacheItem* getItem ( size_t index )
     {
         return (index < this.length)? &this.items[index] : null;
     }
-    
+
     /***************************************************************************
 
         Gets an item from the cache or creates it if not already existing. If
         the item was found in the cache, its access time is updated.
-        
+
         Params:
             key         = key to lookup
             existed     = true:  the item already existed,
                           false: the item was created
-        
+
         Returns:
-            a pointer to the obtained or created item. 
+            a pointer to the obtained or created item.
 
         Out:
             The returned pointer is never null.
-        
+
     ***************************************************************************/
-    
+
     private CacheItem* getOrAdd ( hash_t key, out bool existed, out time_t access_time )
     out (item)
     {
@@ -847,12 +847,12 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
     body
     {
         CacheItem* item = this.get__(key, access_time);
-        
+
         existed = item !is null;
-        
+
         return existed? item : this.add(key, access_time);
     }
-    
+
     /***************************************************************************
 
         Adds an item to the cache. If the cache is full, the oldest item will be
@@ -861,13 +861,13 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
         Params:
             key         = key of item
             access_time = access time (also the create time)
-        
+
         Returns:
             the added cache item.
 
         Out:
             The returned pointer is never null.
-            
+
     ***************************************************************************/
 
     protected CacheItem* add ( hash_t key, out time_t access_time )
@@ -878,53 +878,53 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
     body
     {
         // Add key->item mapping
-        
+
         CacheItem* cache_item = &this.items[this.register(key, access_time)];
-        
+
         // Set the key in chosen element of items array.
-        
+
         cache_item.key = key;
-        
+
         return cache_item;
     }
-    
+
     debug (CacheTimes)
     {
         /**********************************************************************
 
             String nul-termination buffer
-            
+
         ***********************************************************************/
 
         private char[] nt_buffer;
-        
+
         /**********************************************************************
 
             Writes the access times and the number of records with that time to
             a file, appending to that file.
-            
+
         ***********************************************************************/
 
         void dumpTimes ( char[] filename, time_t now )
         {
             FILE* f = fopen(this.nt_buffer.concat(filename, "\0").ptr, "a");
-            
+
             if (f)
             {
                 scope (exit) fclose(f);
-                
+
                 char[26] buf;
-                
+
                 fprintf(f, "> %10u %s", now, ctime_r(&now, buf.ptr));
-                
+
                 TimeToIndex.Mapping mapping = this.time_to_index.firstMapping;
-                
+
                 if (mapping)
                 {
                     time_t t = mapping.key;
-                    
+
                     uint n = 0;
-                    
+
                     foreach (time_t u; this.time_to_index)
                     {
                         if (t == u)
@@ -951,7 +951,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
 /*******************************************************************************
 
     Typed cache class template. Stores items of a particular type.
-    
+
     Template params:
         T = type of item to store in cache
         TrackCreateTimes = if true, each cache item is stored with its create
@@ -962,67 +962,67 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
 class Cache ( T, bool TrackCreateTimes = false ) : Cache!(T.sizeof, TrackCreateTimes)
 {
     /***************************************************************************
-    
+
         Constructor.
-    
+
         Params:
             max_items = maximum number of items in the cache, set once, cannot
                 be changed
-    
+
     ***************************************************************************/
-    
+
     public this ( size_t max_items )
     {
         super(max_items);
     }
-    
+
     /***************************************************************************
-    
+
         Puts an item into the cache. If the cache is full, the oldest item is
         replaced with the new item. (In the case where several items are equally
         old, the choice of which one to be replaced is made arbitrarily.)
-    
+
         Params:
             key   = item key
             value = item to store in cache
-    
+
         Returns:
             true if a record was updated / overwritten, false if a new record
             was added
-    
+
     ***************************************************************************/
-    
+
     public bool put ( hash_t key, T value )
     {
         bool existed;
-        
+
         T* dst = this.getOrCreate(key, existed);
-        
+
         if (dst)
         {
             *dst = value;
         }
-        
+
         return existed;
     }
-    
+
     /***************************************************************************
-    
+
         Creates a cache item and sets the create time. If the cache is full, the
         oldest item is replaced with the new item. (In the case where several
         items are equally old, the choice of which one to be replaced is made
         arbitrarily.)
-    
+
         Params:
             key   = item key
             value = item to store in cache
-    
+
         Returns:
             true if a record was updated / overwritten, false if a new record
             was added
-    
+
     ***************************************************************************/
-    
+
     public T* create ( hash_t key )
     out (val)
     {
@@ -1032,49 +1032,49 @@ class Cache ( T, bool TrackCreateTimes = false ) : Cache!(T.sizeof, TrackCreateT
     {
         return cast (T*) this.createRaw(key)[0 .. T.sizeof].ptr;
     }
-    
+
     /***************************************************************************
-    
+
         Gets an item from the cache. A pointer to the item is returned, if
         found. If the item exists in the cache, its update time is updated.
-    
+
         Note that, if the item already existed and you change the value pointed
         to by the returned pointer, the create time will not be updated.
-         
+
         Params:
             key = key to lookup
-    
+
         Returns:
             pointer to item value, may be null if key not found
-        
+
      ***************************************************************************/
-    
+
     public T* get ( hash_t key )
     {
         return cast (T*) this.getRaw(key);
     }
-    
-    
+
+
     /***************************************************************************
-    
+
         Gets an item from the cache or creates it if not already existing. If
         the item exists in the cache, its update time is updated, otherwise its
         create time is set.
-        
+
         Note that the create time is set only if an item is created, not if it
         already existed and you change the value referenced by the returned
         pointer.
-         
+
         Params:
             key         = key to lookup
             existed     = true:  the item already existed,
                           false: the item was created
-        
+
         Returns:
             pointer to item value
-        
+
     ***************************************************************************/
-    
+
     public T* getOrCreate ( hash_t key, out bool existed )
     out (val)
     {
@@ -1104,7 +1104,7 @@ extern (C) int getpid();
 unittest
 {
     srand48(time(null)+getpid());
-    
+
     static ulong ulrand ( )
     {
         return (cast (ulong) mrand48() << 0x20) | cast (uint) mrand48();
@@ -1114,14 +1114,14 @@ unittest
 
     // ---------------------------------------------------------------------
     // Test of static sized cache
-    
+
     version (all)
     {{
         const n_records  = 33,
               capacity   = 22,
               n_overflow = 7;
-       
-        static assert (n_records >= capacity, 
+
+        static assert (n_records >= capacity,
                        "Number of records smaller than capacity!");
 
         struct Record
@@ -1129,41 +1129,41 @@ unittest
             hash_t key; // random number
             int    val; // counter
         }
-        
+
         // Initialise the list of records.
-        
+
         Record[n_records] records;
-        
+
         foreach (i, ref record; records)
         {
             record = Record(ulrand(), i);
         }
-        
+
         // Populate the cache to the limit.
-        
+
         time_t t = 0;
-        
+
         scope cache = new class Cache!(int)
         {
             this ( ) {super(capacity);}
-            
+
             override time_t now ( ) {return ++t;}
         };
-        
-        assert (capacity == cache.max_length, 
+
+        assert (capacity == cache.max_length,
                 "Max length of cache does not equal configured capacity!");
 
         foreach (record; records[0 .. cache.max_length])
         {
             cache.put(record.key, record.val);
         }
-        
+
         // Shuffle records and count how many of the first n_overflow of the
         // shuffled records are in the cache. If either all or none of these are
         // in the cache, shuffle and try again.
-        
+
         uint n_existing;
-       
+
         do
         {
             n_existing = 0;
@@ -1173,28 +1173,28 @@ unittest
             }
         }
         while (!n_existing || n_existing == n_overflow)
-       
+
         assert (n_existing > 0 && n_existing < n_overflow, "n_existing has unexpected value");
 
         // Get the shuffled records from the cache and verify them. Record the
         // keys of the first n_overflow existing records which will get the
         // least (oldest) access time by cache.getItem() and therefore be the
-        // first records to be removed on a cache overflow. 
-        
+        // first records to be removed on a cache overflow.
+
         hash_t[n_overflow] oldest_keys;
-        
+
         {
             uint i = 0;
-            
+
             foreach (record; records)
             {
                 int* v = cache.get(record.key);
-                
+
                 if (record.val < cache.max_length)
                 {
                     assert (v !is null);
                     assert (*v == record.val);
-                    
+
                     if (i < n_overflow)
                     {
                         oldest_keys[i++] = record.key;
@@ -1208,69 +1208,69 @@ unittest
 
             assert (i == n_overflow);
         }
-        
+
         assert (t == cache.max_length * 2);
-        
+
         // Put the first n_overflow shuffled records so that the cache will
         // overflow.
         // Existing records should be updated to a new value. To enable
         // verification of the update, change the values to 4711 + i.
-        
+
         foreach (i, ref record; records[0 .. n_overflow])
         {
             record.val = 4711 + i;
-            
+
             cache.put(record.key, record.val);
         }
-        
+
         assert (t == cache.max_length * 2 + n_overflow);
-        
+
         // Verify the records.
-        
+
         foreach (i, record; records[0 .. n_overflow])
         {
             int* v = cache.get(record.key);
-            
+
             assert (v !is null);
             assert (*v == 4711 + i);
         }
-        
+
         assert (t == cache.max_length * 2 + n_overflow * 2);
-        
+
         // oldest_keys[n_existing .. $] should have been removed from the
         // cache due to cache overflow.
-        
+
         foreach (key; oldest_keys[n_existing .. $])
         {
             int* v = cache.get(key);
-            
+
             assert (v is null);
         }
-        
+
         // cache.get should not have evaluated the lazy ++t.
-        
+
         assert (t == cache.max_length * 2 + n_overflow * 2);
-        
+
         // Verify that all other records still exist in the cache.
-        
+
         {
             uint n = 0;
-            
+
             foreach (record; records[n_overflow .. $])
             {
                 int* v = cache.get(record.key);
-                
+
                 if (v !is null)
                 {
                     assert (*v == record.val);
-                    
+
                     n++;
                 }
             }
-            
+
             assert (n == cache.max_length - n_overflow);
         }
-        
+
         assert (t == cache.max_length * 3 + n_overflow);
     }}
     else
@@ -1279,136 +1279,136 @@ unittest
         {
             int x;
         }
-        
+
         scope static_cache = new Cache!(Data)(2);
-        
+
         with (static_cache)
         {
             assert(length == 0);
-        
+
             {
                 bool replaced = put(1, time, Data(23));
-                
+
                 assert(!replaced);
-                
+
                 assert(length == 1);
                 assert(exists(1));
-                
+
                 Data* item = get(1, time);
                 assert(item);
                 assert(item.x == 23);
             }
-            
+
             {
                 bool replaced = put(2, time + 1, Data(24));
-                
+
                 assert(!replaced);
-                
+
                 assert(length == 2);
                 assert(exists(2));
-                
+
                 Data* item = get(2, time + 1);
                 assert(item);
-                assert(item.x == 24); 
+                assert(item.x == 24);
             }
-            
+
             {
                 bool replaced = put(2, time + 1, Data(25));
-                
+
                 assert(replaced);
-                
+
                 assert(length == 2);
                 assert(exists(2));
-                
+
                 Data* item = get(2, time + 1);
                 assert(item);
                 assert(item.x == 25);
             }
-        
+
             {
                 bool replaced = put(3, time + 2, Data(26));
-                
+
                 assert(!replaced);
-                
+
                 assert(length == 2);
                 assert(!exists(1));
                 assert(exists(2));
                 assert(exists(3));
-                
+
                 Data* item = get(3, time + 2);
                 assert(item);
                 assert(item.x == 26);
             }
-            
+
             {
                 bool replaced = put(4, time + 3, Data(27));
-                
+
                 assert(!replaced);
-                
+
                 assert(length == 2);
                 assert(!exists(1));
                 assert(!exists(2));
                 assert(exists(3));
                 assert(exists(4));
-                
+
                 Data* item = get(4, time + 3);
                 assert(item);
                 assert(item.x == 27);
             }
-            
+
             clear();
             assert(length == 0);
-        
+
             {
                 bool replaced = put(1, time, Data(23));
-                
+
                 assert(!replaced);
-                
+
                 assert(length == 1);
                 assert(exists(1));
-                
+
                 Data* item = get(1, time);
                 assert(item);
                 assert(item.x == 23);
             }
-            
+
             {
                 bool replaced = put(2, time + 1, Data(24));
-                
+
                 assert(!replaced);
-                
+
                 assert(length == 2);
                 assert(exists(2));
-                
+
                 Data* item = get(2, time + 1);
                 assert(item);
                 assert(item.x == 24);
             }
-            
+
             remove(1);
             assert(length == 1);
             assert(!exists(1));
             assert(exists(2));
         }
     }
-    
+
     // ---------------------------------------------------------------------
     // Test of dynamic sized cache
-    
+
     {
         ubyte[] data1 = cast(ubyte[])"hello world";
         ubyte[] data2 = cast(ubyte[])"goodbye world";
         ubyte[] data3 = cast(ubyte[])"hallo welt";
-    
-        scope dynamic_cache = new class Cache!()      
+
+        scope dynamic_cache = new class Cache!()
         {
             this ( ) {super(2);}
-                                       
+
             time_t now_sec ( ) {return ++time;}
         };
-        
+
         assert(dynamic_cache.length == 0);
-    
+
         version (all)
         {
             *dynamic_cache.createRaw(1) = data1;
@@ -1417,7 +1417,7 @@ unittest
                 assert(val !is null);
                 assert((*val)[] == data1);
             }
-        
+
             *dynamic_cache.createRaw(2) = data2;
             {
                 auto val = dynamic_cache.getRaw(1);
@@ -1429,7 +1429,7 @@ unittest
                 assert(val !is null);
                 assert((*val)[] == data2);
             }
-            
+
             *dynamic_cache.createRaw(3) = data3;
             assert(dynamic_cache.getRaw(1) is null);
             {
@@ -1442,10 +1442,10 @@ unittest
                 assert(val !is null);
                 assert((*val)[] == data3);
             }
-            
+
             dynamic_cache.clear;
             assert(dynamic_cache.length == 0);
-        
+
             *dynamic_cache.createRaw(1) = data1;
             assert(dynamic_cache.length == 1);
             {
@@ -1453,7 +1453,7 @@ unittest
                 assert(val !is null);
                 assert((*val)[] == data1);
             }
-        
+
             *dynamic_cache.createRaw(2) = data2;
             assert(dynamic_cache.length == 2);
             {
@@ -1461,7 +1461,7 @@ unittest
                 assert(val !is null);
                 assert((*val)[] == data2);
             }
-        
+
             dynamic_cache.remove(1);
             assert(dynamic_cache.length == 1);
             assert(dynamic_cache.getRaw(1) is null);
@@ -1476,33 +1476,33 @@ unittest
             dynamic_cache.putRaw(1, data1);
             assert(dynamic_cache.exists(1));
             assert((*dynamic_cache.getRaw(1))[] == data1);
-        
+
             dynamic_cache.putRaw(2, data2);
             assert(dynamic_cache.exists(1));
             assert(dynamic_cache.exists(2));
             assert((*dynamic_cache.getRaw(1))[] == data1);
             assert((*dynamic_cache.getRaw(2))[] == data2);
-        
+
             dynamic_cache.putRaw(3, data3);
             assert(!dynamic_cache.exists(1));
             assert(dynamic_cache.exists(2));
             assert(dynamic_cache.exists(3));
             assert((*dynamic_cache.getRaw(2))[] == data2);
             assert((*dynamic_cache.getRaw(3))[] == data3);
-        
+
             dynamic_cache.clear;
             assert(dynamic_cache.length == 0);
-        
+
             dynamic_cache.putRaw(1, data1);
             assert(dynamic_cache.length == 1);
             assert(dynamic_cache.exists(1));
             assert((*dynamic_cache.getRaw(1))[] == data1);
-        
+
             dynamic_cache.putRaw(2, data2);
             assert(dynamic_cache.length == 2);
             assert(dynamic_cache.exists(2));
             assert((*dynamic_cache.getRaw(2))[] == data2);
-        
+
             dynamic_cache.remove(1);
             assert(dynamic_cache.length == 1);
             assert(!dynamic_cache.exists(1));
