@@ -41,8 +41,8 @@ private import tango.stdc.time : time_t;
 
         date key: value, key: value
 
-    The date part is not written by this class. Instead we rely on the logger
-    layout in ocean.util.log.LayoutStatsLog.
+    (The date part of the output is handled by the logger layout in
+    ocean.util.log.LayoutStatsLog.)
 
     Template Params:
         T = a struct which contains the values that should be written to the
