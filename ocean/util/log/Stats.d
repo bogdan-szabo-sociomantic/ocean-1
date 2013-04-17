@@ -82,7 +82,9 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
 
         Constructor. Registers an update timer with the provided epoll selector.
         The timer first fires 5 seconds after construction, then periodically
-        as specified.
+        as specified. Each time the timer fires, it calls the user-provided
+        delegate, dg, which should return a struct of type T containing the
+        values to be written to the next line in the log.
 
         Params:
             epoll    = epoll select dispatcher
