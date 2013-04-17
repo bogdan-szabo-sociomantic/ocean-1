@@ -39,7 +39,7 @@ private import tango.stdc.time : time_t;
     Periodically writes values of a struct to a logger using a timer event
     registered with epoll. Uses the statslog format which is:
 
-        date key: value, key: value
+        date key:value, key:value
 
     (The date part of the output is handled by the logger layout in
     ocean.util.log.LayoutStatsLog.)
