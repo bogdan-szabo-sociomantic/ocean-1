@@ -48,6 +48,59 @@ private import tango.stdc.time : time_t;
         T = a struct which contains the values that should be written to the
             file, the tuple of the struct's members is iterated and each printed
 
+    Usage example:
+
+    ---
+
+        import ocean.io.select.EpollSelectDispatcher;
+        import ocean.util.log.Stats;
+
+        class MyLogger
+        {
+            // Epoll instance used for logging timer.
+            private const EpollSelectDispatcher epoll;
+
+            // Struct whose fields define the values to write to each line of
+            // the stats log file.
+            private struct Stats
+            {
+                bool b = true;
+                int x = 23;
+                float y = 23.23;
+                char[] s = "hello";
+            }
+
+            // Periodic logger instance
+            private alias PeriodicStatsLog!(Stats) Logger;
+            private const Logger logger;
+
+            public this ( EpollSelectDispatcher epoll )
+            {
+                this.epoll = epoll;
+                this.logger = new Logger(epoll, &this.getStats);
+            }
+
+            // Delegate which is passed to the logger's ctor and is called
+            // periodically, and returns a struct with the values to be written
+            // to the next line in the log file.
+            private Stats getStats ( )
+            {
+                Stats s;
+
+                // Set values of s
+
+                return s;
+            }
+        }
+
+        auto epoll = new EpollSelectDispatcher;
+        auto stats = new MyLogger(epoll);
+
+        // Set everything going (including the stats logging timer).
+        epoll.eventLoop();
+
+    ---
+
 *******************************************************************************/
 
 public class PeriodicStatsLog ( T ) : StatsLog!(T)
