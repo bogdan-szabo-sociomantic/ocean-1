@@ -69,13 +69,13 @@ struct HeaderFieldNames
     struct Request
     {
         char[] Accept,              AcceptCharset,      AcceptEncoding,
-               AcceptLanguage,      Authorization,      Expect,
-               From,                Host,               IfMatch,
-               IfModifiedSince,     IfNoneMatch,        IfRange,
-               IfUnmodifiedSince,   MaxForwards,        ProxyAuthorization,
-               Range,               Referer,            TE,
-               UserAgent;
-
+               AcceptLanguage,      Authorization,      Cookie,
+               Expect,              From,               Host,
+               IfMatch,             IfModifiedSince,    IfNoneMatch,
+               IfRange,             IfUnmodifiedSince,  MaxForwards,
+               ProxyAuthorization,  Range,              Referer,
+               TE,                  UserAgent;
+        
         alias HeaderFieldNames.RequestNames    Names;
         alias HeaderFieldNames.RequestNameList NameList;
     }
@@ -88,13 +88,13 @@ struct HeaderFieldNames
 
     const Request RequestNames =
     {
-        "Accept",               "Accept-Charset",   "Accept-Encoding",
-        "Accept-Language",      "Authorization",    "Expect",
-        "From",                 "Host",             "If-Match",
-        "If-Modified-Since",    "If-None-Match",    "If-Range",
-        "If-Unmodified-Since",  "Max-Forwards",     "Proxy-Authorization",
-        "Range",                "Referer",          "TE",
-        "User-Agent"
+        "Accept",              "Accept-Charset",      "Accept-Encoding",
+        "Accept-Language",     "Authorization",       "Cookie",
+        "Expect",              "From",                "Host",
+        "If-Match",            "If-Modified-Since",   "If-None-Match",
+        "If-Range",            "If-Unmodified-Since", "Max-Forwards",
+        "Proxy-Authorization", "Range",               "Referer",
+        "TE",                  "User-Agent"
     };
 
     /**************************************************************************
@@ -122,12 +122,11 @@ struct HeaderFieldNames
         char[] AcceptRanges,        Age,                ETag,
                Location,            ProxyAuthenticate,  RetryAfter,
                Server,              Vary,               WwwAuthenticate,
-
                Allow,               ContentEncoding,    ContentLanguage,
                ContentLength,       ContentLocation,    ContentMD5,
                ContentRange,        ContentType,        Expires,
-               LastModified;
-
+               LastModified,        SetCookie;
+        
         alias HeaderFieldNames.ResponseNames    Names;
         alias HeaderFieldNames.ResponseNameList NameList;
     }
@@ -143,11 +142,9 @@ struct HeaderFieldNames
         "Accept-Ranges",        "Age",              "ETag",
         "Location",             "Proxy-Authenticate","Retry-After",
         "Server",               "Vary",             "WWW-Authenticate",
-
-        "Allow",                "Content-Encoding", "Content-Language",
         "Content-Length",       "Content-Location", "Content-MD5",
         "Content-Range",        "Content-Type",     "Expires",
-        "Last-Modified"
+        "Last-Modified",        "Set-Cookie"
     };
 
     /**************************************************************************

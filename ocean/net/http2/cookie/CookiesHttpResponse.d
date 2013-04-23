@@ -26,6 +26,7 @@ module ocean.net.http2.cookie.CookiesHttpResponse;
 
 private import ocean.net.http2.HttpResponse;
 private import ocean.net.http2.cookie.HttpCookieGenerator;
+private import ocean.net.http2.consts.HeaderFieldNames;
 
 /******************************************************************************/
 
@@ -60,8 +61,8 @@ class CookiesHttpResponse : HttpResponse
     body
     {
         this.cookies = cookies.dup; // No .dup caused segfaults, apparently the
-                                    // array is then sliced.
-        super.addKey("Set-Cookie");
+                                    // array is then sliced. 
+        super.addKey(HeaderFieldNames.ResponseNames.SetCookie);
     }
 
     /**************************************************************************
