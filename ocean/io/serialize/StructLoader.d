@@ -216,10 +216,8 @@ class StructLoader
             size_t slices_len = 0,
                    data_len   = this.sliceArraysBytes!(S)(src, slices_len);
 
-            StructLoaderException.assertEx(this.e, src.length >= data_len + slices_len,
-                                           "data buffer too short to store branched array instances",
-                                           __FILE__, __LINE__);
-
+            StructLoaderException.assertEx!(S, "data buffer too short to store branched array instances")
+                                           (this.e, src.length >= data_len + slices_len, __FILE__, __LINE__);
             size_t pos = data_len;
 
             GetBufferDg get_slice_buffer = ( size_t n )
