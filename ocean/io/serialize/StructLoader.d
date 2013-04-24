@@ -159,6 +159,12 @@ class StructLoader
         slices. data must have been obtained by StructSerializer.dump!(S)().
 
         If S contains dynamic arrays, the content of src is modified in-place.
+    /***************************************************************************
+
+        Loads the S instance represented by data by setting the dynamic array
+        slices. data must have been obtained by StructSerializer.dump!(S)().
+
+        If S contains dynamic arrays, the content of src is modified in-place.
 
         allow_branched_arrays = true is useful to adjust the slices after a
         buffer previously created by loadCopy() is copied or relocated.
@@ -218,29 +224,19 @@ class StructLoader
 
             StructLoaderException.assertEx!(S, "data buffer too short to store branched array instances")
                                            (this.e, src.length >= data_len + slices_len, __FILE__, __LINE__);
-            size_t pos = data_len;
 
-            GetBufferDg get_slice_buffer = ( size_t n )
-            {
-                size_t start = pos;
-                pos += n;
-                return src[start .. pos];
-            };
+            void[] slices_buffer = src[data_len .. data_len + slices_len];
+            
+            src = src[0 .. data_len];
         }
         else
         {
-            const size_t slices_len = 0;
-
-            const GetBufferDg get_slice_buffer = null;
+            const void[] slices_buffer = null;
         }
 
-        size_t used = this.sliceArrays!(allow_branched_arrays, S)
-                                       (*cast (S*) src[0 .. src.length].ptr,
-                                        src[S.sizeof .. $ - slices_len], get_slice_buffer) + slices_len;
-
-        return src[0 .. used];
+        return this.setSlices_!(S, allow_branched_arrays)(src, slices_buffer);
     }
-
+    
     /***************************************************************************
 
         Copies src to dst and loads the S instance represented by dst. src must
@@ -369,21 +365,6 @@ class StructLoader
                data_len   = this.sliceArraysBytes!(S)(src, slices_len);
 
         /*
-         * Delegate to be called back when a buffer for a branched array
-         * instance is required. Returns unique slices of length n to somewhere
-         * in dst[data_len .. data_len + slices_len].
-         */
-
-        size_t pos = data_len;
-
-        GetBufferDg get_slice_buffer = ( size_t n )
-        {
-            size_t start = pos;
-            pos += n;
-            return dst[start .. pos];
-        };
-
-        /*
          * Resize dst and copy src[0 .. data_len] to dst[0 .. data_len].
          */
 
@@ -396,14 +377,7 @@ class StructLoader
          * buffers for the dynamic array instances.
          */
 
-        size_t used = this.sliceArrays!(true, S)
-                                       (*cast (S*) actual_dst[0 .. S.sizeof].ptr,
-                                        actual_dst[S.sizeof .. data_len], get_slice_buffer);
-
-        assert (S.sizeof + used == data_len);
-        assert (pos == data_len + slices_len);
-
-        return dst[0 .. pos];
+        return this.setSlices_!(S, true)(actual_dst[0 .. data_len], actual_dst[data_len .. $]);
     }
 
     /***************************************************************************
@@ -481,22 +455,7 @@ class StructLoader
         src = src[0 .. this.sliceArraysBytes!(S)(src, slices_len)];
 
         /*
-         * Delegate to be called back when a buffer for a branched array
-         * instance is required. Returns unique slices of length n to somewhere
-         * in dst[data_len .. data_len + slices_len].
-         */
-
-        size_t pos = 0;
-
-        GetBufferDg get_slice_buffer = ( size_t n )
-        {
-            size_t start = pos;
-            pos += n;
-            return slices_buffer[start .. pos];
-        };
-
-        /*
-         * Resize dst and copy src[0 .. data_len] to dst[0 .. data_len].
+         * Resize slices_buffer.
          */
 
         if (slices_buffer is null && !slices_len)
@@ -511,21 +470,7 @@ class StructLoader
             }
         }
 
-        /*
-         * Adjust the dynamic array instances in dst to slice the data in the
-         * tail of dst, dst[S.sizeof .. data_len]. If S contains branched
-         * arrays of non-zero length, call get_slice_buffer() to obtain memory
-         * buffers for the dynamic array instances.
-         */
-
-        size_t used = this.sliceArrays!(true, S)
-                                       (*cast (S*) src[0 .. S.sizeof].ptr,
-                                        src[S.sizeof .. $], get_slice_buffer);
-
-        assert (S.sizeof + used == src.length);
-        assert (pos == slices_len);
-
-        return src;
+        return this.setSlices_!(S, true)(src, slices_buffer);
     }
 
     /***************************************************************************
@@ -558,6 +503,76 @@ class StructLoader
         this.assertDataLongEnough!(S)(data.length, S.sizeof, __FILE__, __LINE__);
 
         return S.sizeof + this.sliceArraysBytes_!(S)(data[S.sizeof .. $], bytes);
+    }
+
+    /***************************************************************************
+
+        Loads the S instance represented by src. If allow_branched_arrays is
+        true, slices of branched arrays are stored in slices_buffer. If false,
+        S must not have branched arrays; this is checked at compile-time.
+        slices_buffer is expected to have the required length which can be
+        calculated using sliceArraysBytes().
+
+        Template params:
+            S                     = struct type
+            allow_branched_arrays = true: allow branched arrays; src must be
+                                    long enough to store the branched array
+                                    instances. If false, a static assertion
+                                    makes sure that S does not contain branched
+                                    arrays.
+
+         Params:
+             src           = data of a serialized S instance
+             slices_buffer = buffer to store slices of branched arrays, not used
+                             if allow_branched_arrays is false
+
+         Returns:
+             a slice to the valid content in src.
+
+         Throws:
+             StructLoaderException if
+              - src is too short
+              - or the length of a dynamic array is greater than max_length or
+              - slices_buffer is too short.
+
+     **************************************************************************/
+    
+    private void[] setSlices_ ( S, bool allow_branched_arrays = false ) ( void[] src, void[] slices_buffer )
+    out (data)
+    {
+        assert (data.ptr    is src.ptr);
+        assert (data.length <= src.length);
+    }
+    body
+    {
+        static if (allow_branched_arrays)
+        {
+            size_t pos = 0;
+
+            GetBufferDg get_slice_buffer = ( size_t n )
+            {
+                size_t start = pos;
+                pos += n;
+                return slices_buffer[0 .. pos];
+            };
+        }
+        else
+        {
+            const GetBufferDg get_slice_buffer = null;
+        }
+
+        /*
+         * Adjust the dynamic array instances in src to slice the data in the
+         * tail of src, src[S.sizeof .. $]. If S contains branched
+         * arrays of non-zero length, call get_slice_buffer() to obtain memory
+         * buffers for the dynamic array instances.
+         */
+
+        size_t used = this.sliceArrays!(allow_branched_arrays, S)
+                                       (*cast (S*) src[0 .. src.length].ptr,
+                                        src[S.sizeof .. $], get_slice_buffer);
+        
+        return src[0 .. used];
     }
 
     /***************************************************************************
