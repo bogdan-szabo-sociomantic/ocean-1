@@ -270,7 +270,7 @@ public template RequestBase ( )
 
     ***************************************************************************/
 
-    public typeof(this) max_redirects ( int redirects )
+    public typeof(this) maxRedirects ( int redirects )
     {
         // BUG in cURL: According to the curl manual, you can use -1 to have no
         // limit on the number of redirections. However, the command line does
@@ -299,6 +299,21 @@ public template RequestBase ( )
         return this;
     }
 
+    /***************************************************************************
+
+        Specify the user agent string (used for spoofing)
+
+        Returns:
+            this pointer for method chaining
+
+    ***************************************************************************/
+
+    public typeof(this) userAgent ( char[] agent )
+    {
+        this.params.user_agent_string = agent;
+
+        return this;
+    }
 
     /***************************************************************************
 

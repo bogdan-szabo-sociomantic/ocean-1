@@ -336,6 +336,14 @@ private class CurlProcess : EpollProcess
             }
         }
 
+        // User agent spoofing
+        if (this.params.user_agent_string.length)
+        {
+            this.args ~= "-A";
+            this.args ~= this.params.user_agent_string;
+        }
+
+
         //request command
         if (this.params.req_command)
         {
