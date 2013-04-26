@@ -275,8 +275,12 @@ public class AppStatus
 
         foreach_reverse ( line; this.static_lines )
         {
-            this.checkLength(line);
-            Stdout.format(line).clearline.cr.flush.up;
+            if ( line.length )
+            {
+                this.checkLength(line);
+                Stdout.format(line);
+            }
+            Stdout.clearline.cr.flush.up;
         }
 
         this.printHeadingLine();
