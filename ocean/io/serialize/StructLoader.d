@@ -159,6 +159,75 @@ class StructLoader
         slices. data must have been obtained by StructSerializer.dump!(S)().
 
         If S contains dynamic arrays, the content of src is modified in-place.
+        
+        If S contains branched dynamic arrays, the length of src is set so that
+        the slices of the branched arrays can be stored at the end of src.
+
+        Notes:
+            1. After this method has returned, do not change src.length to a
+               value other than 0, unless you set the content of src to zero
+               bytes *before* changing the size:
+               ---
+                   {
+                       S* s = load!(S)(data);
+
+                       // do something with s...
+                   }
+
+                   (cast (ubyte[]) data)[] = 0; // clear data
+
+                   data.length = 1234;          // resize data
+               ---
+               Of course the obtained instance gets invalid when src is cleared
+               and should be reset to null *before* clearing src if it is in the
+               same scope. (If you don't do that, src may be relocated in
+               memory, turning all dynamic arrays into dangling, segfault prone
+               references!)
+            2. The members of the obtained instance may be written to as long as
+               the length of arrays is not changed.
+            3. It is safe to use "cast (S*) src.ptr" to obtain the S instance.
+            4. It is safe (however pointless) to load the same buffer twice.
+            5. When copying the content of src or doing src.dup, run this method
+               on the newly created copy. (If you don't do that, the dynamic
+               arrays of the copy will reference the original!) Make sure that
+               the original remains unchanged until this method has returned.
+
+        Template params:
+            S                     = struct type
+            allow_branched_arrays = true: allow branced arrays; src must be long
+                                    enough to store the branched array
+                                    instances. If false, a static assertion
+                                    makes sure that S does not contain branched
+                                    arrays.
+
+         Params:
+             src = data of a serialized S instance. The length will be modified
+                   only if S contains branched arrays.
+
+         Returns:
+             a slice to the valid content in src.
+
+         Throws:
+             StructLoaderException if
+              - src is too short
+              - or the length of a dynamic array is greater than max_length.
+
+     **************************************************************************/
+
+    public S* loadExtend ( S, bool allow_branched_arrays = false ) ( ref void[] src )
+    out (s)
+    {
+        assert (s is src.ptr);
+    }
+    body
+    {
+        size_t slices_len = 0,
+               data_len   = this.sliceArraysBytes!(S)(src, slices_len);
+        src.length = data_len + slices_len;
+
+        return cast (S*) this.setSlices!(S, allow_branched_arrays)(src).ptr;
+    }
+
     /***************************************************************************
 
         Loads the S instance represented by data by setting the dynamic array
@@ -553,7 +622,7 @@ class StructLoader
             {
                 size_t start = pos;
                 pos += n;
-                return slices_buffer[0 .. pos];
+                return slices_buffer[start .. pos];
             };
         }
         else
@@ -568,11 +637,11 @@ class StructLoader
          * buffers for the dynamic array instances.
          */
 
-        size_t used = this.sliceArrays!(allow_branched_arrays, S)
-                                       (*cast (S*) src[0 .. src.length].ptr,
-                                        src[S.sizeof .. $], get_slice_buffer);
+        size_t arrays_length = this.sliceArrays!(allow_branched_arrays, S)
+                                                 (*cast (S*) src[0 .. src.length].ptr,
+                                                 src[S.sizeof .. $], get_slice_buffer);
         
-        return src[0 .. used];
+        return src[0 .. arrays_length + S.sizeof];
     }
 
     /***************************************************************************
