@@ -122,7 +122,7 @@ template MapIterator ( V, K = hash_t )
 
         static if (is (V == void))
         {
-            return dg(key);
+            return dg(element.key);
         }
         else static if (v_is_static_array)
         {
@@ -137,11 +137,11 @@ template MapIterator ( V, K = hash_t )
                         "during iteration");
             }
 
-            return dg(key, val);
+            return dg(element.key, val);
         }
         else
         {
-            return dg(key, *cast (V*) element.val.ptr);
+            return dg(element.key, *cast (V*) element.val.ptr);
         }
     }
 }
