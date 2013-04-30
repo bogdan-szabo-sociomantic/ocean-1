@@ -22,6 +22,17 @@ version **1.4** and finally the steps in version **1.5**.
 master
 ------
 
+New Features
+^^^^^^^^^^^^
+
+``ocean.io.serialize.StructLoader``
+  The new ``StructLoader.loadExtend()`` method simplifies deserialization of
+  data of a struct with branched arrays. It automatically sets the length of the
+  given input buffer as required to store the branched array instances.
+  Note that the benefit of ``StructLoader.loadExtend()`` over
+  ``StructLoader.load()`` is only significant for structs with branched arrays.
+
+
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
