@@ -214,7 +214,7 @@ class StructLoader
 
      **************************************************************************/
 
-    public S* loadExtend ( S, bool allow_branched_arrays = false ) ( ref void[] src )
+    public S* loadExtend ( S ) ( ref void[] src )
     out (s)
     {
         assert (s is src.ptr);
@@ -225,7 +225,7 @@ class StructLoader
                data_len   = this.sliceArraysBytes!(S)(src, slices_len);
         src.length = data_len + slices_len;
 
-        return cast (S*) this.setSlices!(S, allow_branched_arrays)(src).ptr;
+        return cast (S*) this.setSlices!(S, true)(src).ptr;
     }
 
     /***************************************************************************
