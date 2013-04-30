@@ -164,7 +164,9 @@ class StructLoader
         the slices of the branched arrays can be stored at the end of src.
 
         Notes:
-            1. After this method has returned, do not change src.length to a
+            1. If S doesn't contain branched arrays, load() can be used as well
+               and is recommended because it doesn't resize the data buffer.
+            2. After this method has returned, do not change src.length to a
                value other than 0, unless you set the content of src to zero
                bytes *before* changing the size:
                ---
@@ -183,9 +185,8 @@ class StructLoader
                same scope. (If you don't do that, src may be relocated in
                memory, turning all dynamic arrays into dangling, segfault prone
                references!)
-            2. The members of the obtained instance may be written to as long as
+            3. The members of the obtained instance may be written to as long as
                the length of arrays is not changed.
-            3. It is safe to use "cast (S*) src.ptr" to obtain the S instance.
             4. It is safe (however pointless) to load the same buffer twice.
             5. When copying the content of src or doing src.dup, run this method
                on the newly created copy. (If you don't do that, the dynamic
@@ -193,16 +194,11 @@ class StructLoader
                the original remains unchanged until this method has returned.
 
         Template params:
-            S                     = struct type
-            allow_branched_arrays = true: allow branced arrays; src must be long
-                                    enough to store the branched array
-                                    instances. If false, a static assertion
-                                    makes sure that S does not contain branched
-                                    arrays.
+            S = struct type
 
          Params:
              src = data of a serialized S instance. The length will be modified
-                   only if S contains branched arrays.
+                   as required.
 
          Returns:
              a slice to the valid content in src.
