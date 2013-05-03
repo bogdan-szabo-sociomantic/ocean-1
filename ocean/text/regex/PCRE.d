@@ -49,7 +49,7 @@
 
 *******************************************************************************/
 
-module  ocean.text.PCRE;
+module  ocean.text.regex.PCRE;
 
 public  import ocean.core.Exception: PCREException;
 

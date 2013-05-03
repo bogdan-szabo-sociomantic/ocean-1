@@ -1,4 +1,4 @@
-module c.pcre;
+module ocean.text.regex.c.pcre;
 
 /**
  * Perl-Compatible Regular Expressions
