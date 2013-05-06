@@ -42,6 +42,10 @@ Migration Instructions
 ``ocean.net.client.curl.CurlProcessMulti``
   The ``max_redirects()`` method is renamed as ``maxRedirects``
 
+``ocean.text.util.StringC``
+  The ``StringC.toCstring()`` methods take their string parameter now  as a 
+  ``ref char[]`` instead of just ``char[]``. The methods might modify the string
+  by appending a null terminating character to its end.
 
 1.1 (2013-04-09)
 ----------------

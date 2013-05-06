@@ -36,6 +36,11 @@
 
 module ocean.text.util.StringC;
 
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
 
 private import  tango.stdc.string: strlen, wcslen;
 private import  tango.stdc.stddef: wchar_t;
@@ -62,8 +67,9 @@ class StringC
 
     /**************************************************************************
 
-        Converts str to a C string, that is, a null terminator is appended if
-        not present.
+        Converts str to a C string, that is, if a null terminator is not
+        present then it is appended to original string. A pointer to the string
+        is returned.
 
         Params:
             str = input string
@@ -73,19 +79,19 @@ class StringC
 
      ***************************************************************************/
 
-    public static char* toCstring ( char[] str )
+    public static char* toCstring (ref char[] str)
     {
-        bool term = str.length? !!str[$ - 1] : true;
+        if (str.length && !!str[$ - 1])
+            str ~= StringC.Term;
 
-        return (term ? str ~ this.Term : str).ptr;
+        return str.ptr;
     }
-
-
 
     /**************************************************************************
 
-        Converts str to a C string, that is, a null terminator is appended if
-        not present.
+        Converts str to a C string, that is, if a null terminator is not
+        present then it is appended to original string. A pointer to the string
+        is returned.
 
         Params:
             str = input string
@@ -95,14 +101,13 @@ class StringC
 
     ***************************************************************************/
 
-    public static Wchar* toCstring ( Wchar[] str )
+    public static Wchar* toCstring (ref Wchar[] str)
     {
-        bool term = str.length? !!str[$ - 1] : true;
+        if (str.length && !!str[$ - 1])
+            str ~= StringC.Wterm;
 
-        return (term ? str ~ this.Wterm : str).ptr;
+        return str.ptr;
     }
-
-
 
     /**************************************************************************
 
