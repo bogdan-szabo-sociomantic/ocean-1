@@ -211,7 +211,18 @@ public struct Bucket ( size_t V, K = hash_t )
 
         if (!element)
         {
-            (element = this.add(new_element)).key = key;
+            element = this.add(new_element);
+
+            static if (is(K Base : Base[]) && !is(K == Base[]))
+            {
+                // K is a static array
+
+                element.key[] = key;
+            }
+            else
+            {
+                element.key = key;
+            }
         }
 
         return element;
