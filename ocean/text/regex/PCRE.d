@@ -45,6 +45,7 @@ private import ocean.text.convert.Layout;
 private import ocean.text.util.StringC;
 private import ocean.text.regex.c.pcre;
 
+private import tango.stdc.stdlib : free;
 
 
 /*******************************************************************************
@@ -155,6 +156,7 @@ class PCRE
         char* errmsg;
         int error;
         pcre* re;
+        scope (exit) free(re);
 
         this.buffer_char.copy(pattern);
         if ((re = pcre_compile( StringC.toCstring(this.buffer_char),
@@ -228,6 +230,7 @@ class PCRE
         int   error, count, num_matches, start_offset, ovector_length;
         char* errmsg, stringptr;
         pcre* re;
+        scope (exit) free(re);
 
         int*  ovector;
 
