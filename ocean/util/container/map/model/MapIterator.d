@@ -101,9 +101,26 @@ template MapIterator ( V, K = hash_t )
 
         Invokes dg with the key and, unless V is 'void', the value of element.
 
+        Do not modify the key in-place.
+
         If K or V (or both) are a static array, a dynamic array slice is passed
-        to dg and an assertion makes sure that dg didn't attempt to change the
-        array length.
+        to dg. Do not do a 'ref' iteration over static array keys or values.
+        To obtain a pointer to the static array key or value currently iterating
+        over, use the .ptr of the iteration variable.
+
+        Example: Consider a map that stores char[5] values with hash_t keys.
+
+        ---
+            foreach (ref key, val; map)
+            {
+                // typeof(key) is hash_t. A pointer to the key can be obtained
+                // using &key.
+
+                // typeof(val) is char[], val is a dynamic array slice
+                // referencing the value in the map. A pointer to the value can
+                // be obtained using val.ptr.
+            }
+        ---
 
         Params:
             dg      = iteration delegate
