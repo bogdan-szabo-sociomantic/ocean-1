@@ -39,7 +39,6 @@ module  ocean.text.regex.PCRE;
     Imports
 
 *******************************************************************************/
-public  import ocean.core.Exception: PCREException;
 
 private import ocean.core.Array : copy;
 private import ocean.text.convert.Layout;
@@ -58,6 +57,45 @@ class PCRE
 {
     /***************************************************************************
 
+        Represents a PCRE Exception.
+        The class is re-uusable exception where the error message can be
+        reset and the same instance can be re-thrown.
+
+    ***************************************************************************/
+
+    public static class PcreException : Exception
+    {
+        /***********************************************************************
+
+            Constructor.
+            Just calls the super Exception constructor with initial error
+            message.
+
+        ***********************************************************************/
+
+        public this()
+        {
+            super("Error message not yet set");
+        }
+
+        /***********************************************************************
+
+            Sets the error message.
+
+            Params:
+                new_msg = the new exception message to be used
+
+        ***********************************************************************/
+
+        private void setMsg(char[] new_msg)
+        {
+            super.msg.length = 0;
+            Layout!(char).print(super.msg, "{}", new_msg);
+        }
+    }
+
+    /***************************************************************************
+
         A reusable char buffer
 
     ***************************************************************************/
@@ -72,6 +110,26 @@ class PCRE
 
     protected int[] buffer_int;
 
+    /***************************************************************************
+
+        A re-usable exception instance
+
+    ***************************************************************************/
+
+    protected PcreException exception;
+
+
+    /***************************************************************************
+
+        constructor
+        Initializes the re-usable exception.
+
+    ***************************************************************************/
+
+    public this()
+    {
+        this.exception = new PcreException();
+    }
 
     /***************************************************************************
 
@@ -101,15 +159,24 @@ class PCRE
         this.buffer_char.copy(pattern);
         if ((re = pcre_compile( StringC.toCstring(this.buffer_char),
                 (icase ? PCRE_CASELESS : 0), &errmsg, &error, null)) == null)
-            PCREException("Couldn't compile regular expression: " ~ StringC.toDString(errmsg) ~ " on pattern: " ~ pattern);
-
+        {
+            this.buffer_char.length = 0;
+            Layout!(char).print(this.buffer_char, "Couldn't compile regular "
+                "expression: {} - on pattern: {}", StringC.toDString(errmsg),
+                pattern);
+            this.exception.setMsg(this.buffer_char);
+            throw this.exception;
+        }
 
         this.buffer_char.copy(string);
         if ((error = pcre_exec(re, null, StringC.toCstring(this.buffer_char),
                 string.length, 0, 0, null, 0)) >= 0)
             return true;
         else if (error != PCRE_ERROR_NOMATCH)
-            PCREException("Error on executing regular expression!");
+        {
+            this.exception.setMsg("Error on executing regular expression!");
+            throw this.exception;
+        }
 
         return false;
     }
@@ -167,10 +234,20 @@ class PCRE
         this.buffer_char.copy(pattern);
         if ((re = pcre_compile(StringC.toCstring(this.buffer_char),
                 (icase ? PCRE_CASELESS : 0), &errmsg, &error, null)) == null)
-            PCREException("Couldn't compile regular expression: " ~ StringC.toDString(errmsg) ~ " on pattern: " ~ pattern);
+        {
+            this.buffer_char.length = 0;
+            Layout!(char).print(this.buffer_char, "Couldn't compile regular "
+                "expression: {} - on pattern: {}", StringC.toDString(errmsg),
+                pattern);
+            this.exception.setMsg(this.buffer_char);
+            throw this.exception;
+        }
 
         if ( pcre_fullinfo(re, null, PCRE_INFO_CAPTURECOUNT, &ovector_length) < 0 )
-            PCREException("Internal pcre_fullinfo() error");
+        {
+            this.exception.setMsg("Internal pcre_fullinfo() error");
+            throw this.exception;
+        }
 
         ovector_length = (ovector_length + 1) * 3;
         this.buffer_int.length = ovector_length;
@@ -199,7 +276,10 @@ class PCRE
                 matches ~= match_item;
             }
             else if (count != PCRE_ERROR_NOMATCH)
-                PCREException("Error on executing regular expression!");
+            {
+                this.exception.setMsg("Error on executing regular expression!");
+                throw this.exception;
+            }
 
             start_offset = cast(int) ovector[1];
         }
