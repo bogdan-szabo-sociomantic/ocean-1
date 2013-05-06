@@ -41,9 +41,11 @@ module  ocean.text.regex.PCRE;
 *******************************************************************************/
 public  import ocean.core.Exception: PCREException;
 
+private import ocean.core.Array : copy;
+private import ocean.text.convert.Layout;
+private import ocean.text.util.StringC;
 private import ocean.text.regex.c.pcre;
 
-private import tango.stdc.stringz : toDString = fromStringz, toCString = toStringz;
 
 
 /*******************************************************************************
@@ -54,6 +56,23 @@ private import tango.stdc.stringz : toDString = fromStringz, toCString = toStrin
 
 class PCRE
 {
+    /***************************************************************************
+
+        A reusable char buffer
+
+    ***************************************************************************/
+
+    protected char[] buffer_char;
+
+    /***************************************************************************
+
+        A reusable int buffer
+
+    ***************************************************************************/
+
+    protected int[] buffer_int;
+
+
     /***************************************************************************
 
         Perform a regular expression match
@@ -79,10 +98,15 @@ class PCRE
         int error;
         pcre* re;
 
-        if ((re = pcre_compile(toCString(pattern), (icase ? PCRE_CASELESS : 0), &errmsg, &error, null)) == null)
-            PCREException("Couldn't compile regular expression: " ~ toDString(errmsg) ~ " on pattern: " ~ pattern);
+        this.buffer_char.copy(pattern);
+        if ((re = pcre_compile( StringC.toCstring(this.buffer_char),
+                (icase ? PCRE_CASELESS : 0), &errmsg, &error, null)) == null)
+            PCREException("Couldn't compile regular expression: " ~ StringC.toDString(errmsg) ~ " on pattern: " ~ pattern);
 
-        if ( (error = pcre_exec(re, null, toCString(string), string.length, 0, 0, null, 0)) >= 0)
+
+        this.buffer_char.copy(string);
+        if ((error = pcre_exec(re, null, StringC.toCstring(this.buffer_char),
+                string.length, 0, 0, null, 0)) >= 0)
             return true;
         else if (error != PCRE_ERROR_NOMATCH)
             PCREException("Error on executing regular expression!");
@@ -95,6 +119,12 @@ class PCRE
     /***************************************************************************
 
         Perform a global regular expression match
+
+        FIXME:
+            THe method wasn't recently tested for functionality correctness or
+            for effecient memory usage (due to absence of a test example).
+            The user should test both the functionality and memory usage of the
+            method before using it.
 
         Usage:
 
@@ -133,21 +163,24 @@ class PCRE
         pcre* re;
 
         int*  ovector;
-        int[] x;
 
-        if ((re = pcre_compile(toCString(pattern), (icase ? PCRE_CASELESS : 0), &errmsg, &error, null)) == null)
-            PCREException("Couldn't compile regular expression: " ~ toDString(errmsg) ~ " on pattern: " ~ pattern);
+        this.buffer_char.copy(pattern);
+        if ((re = pcre_compile(StringC.toCstring(this.buffer_char),
+                (icase ? PCRE_CASELESS : 0), &errmsg, &error, null)) == null)
+            PCREException("Couldn't compile regular expression: " ~ StringC.toDString(errmsg) ~ " on pattern: " ~ pattern);
 
         if ( pcre_fullinfo(re, null, PCRE_INFO_CAPTURECOUNT, &ovector_length) < 0 )
             PCREException("Internal pcre_fullinfo() error");
 
         ovector_length = (ovector_length + 1) * 3;
-        x.length = ovector_length;
-        ovector = x.ptr;
+        this.buffer_int.length = ovector_length;
+        ovector = this.buffer_int.ptr;
 
         do
         {
-            count = pcre_exec(re, null, toCString(string), string.length, start_offset, 0, ovector, ovector_length);
+            this.buffer_char.copy(string);
+            count = pcre_exec(re, null, StringC.toCstring(this.buffer_char),
+                string.length, start_offset, 0, ovector, ovector_length);
 
             if ( count > 0 )
             {
@@ -157,8 +190,9 @@ class PCRE
 
                 for ( int i = 0; i < count; i++ )
                 {
-                    pcre_get_substring(toCString(string), ovector, count, i, &stringptr);
-                    match_item ~= toDString(stringptr).dup;
+                    pcre_get_substring(StringC.toCstring(this.buffer_char),
+                        ovector, count, i, &stringptr);
+                    match_item ~= StringC.toDString(stringptr).dup;
                     pcre_free_substring(stringptr);
                 }
 
