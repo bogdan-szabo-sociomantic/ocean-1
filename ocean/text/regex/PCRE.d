@@ -60,14 +60,6 @@ class PCRE
 {
 
     /**
-     * Only use methods static
-     *
-     */
-    public this () {}
-
-
-
-    /**
      * Perform a regular expression match
      *
      * ---
