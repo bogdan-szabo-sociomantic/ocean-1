@@ -31,14 +31,6 @@
             else
                 Stdout("no match");
 
-        --
-
-        TODO:
-
-            Implement preg_replace()
-            Implement preg_split()
-
-
         Related:
 
         http://regexpal.com/
@@ -196,45 +188,4 @@ class PCRE
 
         return num_matches;
     }
-
-
-
-    /**
-     * Search and replace a regular expression match
-     *
-     * Params:
-     *     pattern  =
-     *     replacement =
-     *     subject   =
-     *     limit =
-     *     count =
-     *
-     * Returns:
-     *     array of strings or null on error
-     */
-    public char[] preg_replace ( char[][] pattern, char[][] replacement, char[] subject, int limit = 10, int count = 10 )
-    {
-        return null;
-    }
-
-
-
-    /**
-     * Split string by regular expression match
-     *
-     * Params:
-     *     string  =
-     *     pattern =
-     *     icase   =
-     *
-     * Returns:
-     *     array of strings or null on error
-     */
-    public char[][] preg_split ( char[] pattern, char[] subject, int limit, int flags )
-    {
-        return null;
-    }
-
-
-
 }
