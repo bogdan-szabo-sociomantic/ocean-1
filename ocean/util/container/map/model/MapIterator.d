@@ -44,10 +44,14 @@ template MapIterator ( V, K = hash_t )
 
     static if (is (K Kelement : Kelement[]) && !is (K == Kelement[]))
     {
+        const k_is_static_array = true;
+
         alias Kelement[] Kref;
     }
     else
     {
+        const k_is_static_array = false;
+
         alias K Kref;
     }
 
@@ -112,17 +116,28 @@ template MapIterator ( V, K = hash_t )
 
     int iterate ( Dg dg, ref Element element )
     {
-        Kref key = element.key;
+        static if (k_is_static_array)
+        {
+            Kref key = element.key;
+
+            Kref* key_ptr = &key;
+        }
+        else
+        {
+            K* key = &element.key;
+
+            alias key key_ptr;
+        }
 
         scope (success)
         {
-            assert (key == element.key,
+            assert (*key_ptr == element.key,
                     "attempted to change the key during iteration");
         }
 
         static if (is (V == void))
         {
-            return dg(element.key);
+            return dg(*key_ptr);
         }
         else static if (v_is_static_array)
         {
@@ -137,11 +152,11 @@ template MapIterator ( V, K = hash_t )
                         "during iteration");
             }
 
-            return dg(element.key, val);
+            return dg(*key_ptr, val);
         }
         else
         {
-            return dg(element.key, *cast (V*) element.val.ptr);
+            return dg(*key_ptr, *cast (V*) element.val.ptr);
         }
     }
 }
