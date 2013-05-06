@@ -11,16 +11,7 @@
         This module provides bindings for the libpcre library. This is just a
         first draft and needs further extension.
 
-        Be aware that you have to pass the D parser the path to the
-        libpcre library. If you use DSSS you have to add the buildfalgs option
-        to your dsss.conf e.g.
-
-        buildflags=-L/usr/lib/libpcre.so
-
-        You'll need to ensure that the libpcre.so is located under the /usr/lib
-        directory.
-
-        --
+        Requires linking with libpcre
 
         Usage example:
 
@@ -43,6 +34,11 @@
 
 module  ocean.text.regex.PCRE;
 
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
 public  import ocean.core.Exception: PCREException;
 
 private import ocean.text.regex.c.pcre;
@@ -58,27 +54,25 @@ private import tango.stdc.stringz : toDString = fromStringz, toCString = toStrin
 
 class PCRE
 {
+    /***************************************************************************
 
-    /**
-     * Perform a regular expression match
-     *
-     * ---
-     * Usage:
-     *
-     *      auto regex = new PCRE;
-     *
-     *      bool match = regex.preg_match("Hello World!", "^Hello");
-     *
-     * ---
-     *
-     * Params:
-     *     string  = input string (subject)
-     *     pattern = pattern to search for, as a string
-     *     icase   = case sensitive matching
-     *
-     * Returns:
-     *     true, if matches or false if no match
-     */
+        Perform a regular expression match
+
+
+        Usage:
+            auto regex = new PCRE;
+            bool match = regex.preg_match("Hello World!", "^Hello");
+
+        Params:
+            string  = input string (subject)
+            pattern = pattern to search for, as a string
+            icase   = case sensitive matching
+
+        Returns:
+            true, if matches or false if no match
+
+    ***************************************************************************/
+
     public bool preg_match ( char[] string, char[] pattern, bool icase = false )
     {
         char* errmsg;
@@ -98,41 +92,40 @@ class PCRE
 
 
 
-    /**
-     * Perform a global regular expression match
-     *
-     * ---
-     *
-     * Usage:
-     *
-     *      char[][][] matches;
-     *
-     *      auto regex = new PCRE;
-     *
-     *      char[] preg = "Hello";
-     *      char[] subj = "Hello World Hello Word";
-     *
-     *      int i = regex.preg_match_all(subj, preg, matches);
-     *
-     *      foreach ( match; matches )
-     *      {
-     *          foreach ( element; match )
-     *              Stdout.format("{}", element);
-     *
-     *          Stdout.newline();
-     *      }
-     *
-     * ---
-     *
-     * Params:
-     *     string  = input string (subject)
-     *     pattern = pattern to search for, as a string
-     *     matches = array to store matches into
-     *     icase   = case sensitive matching
-     *
-     * Returns:
-     *     zero, or number of matches
-     */
+    /***************************************************************************
+
+        Perform a global regular expression match
+
+        Usage:
+
+            char[][][] matches;
+
+            auto regex = new PCRE;
+
+            char[] preg = "Hello";
+            char[] subj = "Hello World Hello Word";
+
+            int i = regex.preg_match_all(subj, preg, matches);
+
+            foreach ( match; matches )
+            {
+                foreach ( element; match )
+                    Stdout.format("{}", element);
+
+                Stdout.newline();
+            }
+
+        Params:
+            string  = input string (subject)
+            pattern = pattern to search for, as a string
+            matches = array to store matches into
+            icase   = case sensitive matching
+
+        Returns:
+            zero, or number of matches
+
+    ***************************************************************************/
+
     public int preg_match_all ( char[] string, char[] pattern, inout char[][][] matches, bool icase = false )
     {
         int   error, count, num_matches, start_offset, ovector_length;
