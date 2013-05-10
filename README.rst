@@ -32,6 +32,9 @@ New Features
   Note that the benefit of ``StructLoader.loadExtend()`` over
   ``StructLoader.load()`` is only significant for structs with branched arrays.
 
+``ocean.net.client.curl.process.CurlProcessMulti``
+  The user agent string can now be specified with
+  ``userAgent()``.
 
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -39,12 +42,6 @@ Migration Instructions
 ``ocean.net.client.curl.CurlProcessMulti``
   The ``max_redirects()`` method is renamed as ``maxRedirects``
 
-New Features
-^^^^^^^^^^^^
-
-``ocean.net.client.curl.process.CurlProcessMulti``
-  The user agent string can now be specified with
-  ``userAgent()``.
 
 1.1 (2013-04-09)
 ----------------
