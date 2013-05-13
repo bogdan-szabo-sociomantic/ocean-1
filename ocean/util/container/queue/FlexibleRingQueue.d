@@ -85,7 +85,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     ***************************************************************************/
 
-    invariant
+    invariant ( )
     {
         debug scope ( failure ) Trace.formatln(typeof(this).stringof ~ ".invariant failed with items = {}, read_from = {}, write_to = {}",
                 super.items, super.read_from, super.write_to);

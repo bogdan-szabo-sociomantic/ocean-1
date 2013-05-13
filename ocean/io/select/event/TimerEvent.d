@@ -39,8 +39,8 @@ private import ocean.text.convert.Layout;
 /// <sys/timerfd.h>
 
 const TFD_TIMER_ABSTIME = 1,
-      TFD_CLOEXEC       = 02000000,
-      TFD_NONBLOCK      =    04000;
+      TFD_CLOEXEC       = 0x80000, // octal 02000000
+      TFD_NONBLOCK      = 0x800;   // octal 04000
 
 /// <linux/time.h>
 

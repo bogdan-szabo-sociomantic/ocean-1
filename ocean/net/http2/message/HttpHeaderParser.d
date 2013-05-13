@@ -340,7 +340,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    invariant
+    invariant ( )
     {
         assert (this.pos <= this.content_length);
         assert (this.header_elements_.length == this.header_lines_.length);

@@ -173,7 +173,7 @@ struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    invariant
+    invariant ( )
     {
         assert(this.a_to_b.length == this.b_to_a.length);
 

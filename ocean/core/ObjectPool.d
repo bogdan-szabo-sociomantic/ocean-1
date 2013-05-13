@@ -948,7 +948,7 @@ abstract class PoolCore : IObjectPoolInfo
 
     /*************************************************************************/
 
-    invariant
+    invariant ( )
     {
         assert (this.num_busy_ <= this.items.length);
     }

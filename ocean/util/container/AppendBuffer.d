@@ -770,7 +770,7 @@ private abstract class AppendBufferImpl: IAppendBufferBase
 
      **************************************************************************/
 
-    invariant
+    invariant ( )
     {
         assert (!(this.content.length % this.e));
         assert (this.n * this.e <= this.content.length);

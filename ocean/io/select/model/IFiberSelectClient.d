@@ -73,7 +73,7 @@ abstract class IFiberSelectClient : IAdvancedSelectClient
 
      **************************************************************************/
 
-    invariant
+    invariant ( )
     {
         assert(this.fiber !is null, typeof(this).stringof ~ " fiber is null");
     }

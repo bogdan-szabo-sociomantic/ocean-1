@@ -162,7 +162,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
     /*************************************************************************/
 
-    invariant
+    invariant ()
     {
         assert (this.num_busy_ <= this.items.length);
     }
