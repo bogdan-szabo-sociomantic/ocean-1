@@ -705,7 +705,7 @@ struct Url
                  && isHex(src[2]) && isHex(src[3]) && isHex(src[4]) && isHex(src[5]) )
             {
                 dchar unicode_char =
-                    (toInt(src[2]) * 16 * 16 * 16) + (toInt(src[3]) * 16 * 16) + (toInt(src[4]) * 16) + toInt(src[5]);
+                    (hexToInt(src[2]) * 16 * 16 * 16) + (hexToInt(src[3]) * 16 * 16) + (hexToInt(src[4]) * 16) + hexToInt(src[5]);
 
                 auto written_chars = Utf.encode(dst, unicode_char);
 
@@ -715,12 +715,79 @@ struct Url
             // Standard case: '%EF'
             else if ( isHex(src[1]) && isHex(src[2]) )
             {
-                dchar unicode_char = (toInt(src[1]) * 16) + toInt(src[2]);
+                // According to the spec, this must be UTF8.
+                // But we need to preserve backwards compatibility with
+                // the old front-end, which incorrectly treated it as a
+                // UTF32 character in the range 00..FF,
+                // forming some strange beast I'll call "UTF latin1".
+                // We treat it as latin1 only if it could not possibly be UTF8.
 
-                auto written_chars = Utf.encode(dst, unicode_char);
+                // Convert the first byte (includes the UTF8 length)
 
-                produced = written_chars.length;
-                consumed = 3; // (%XX == 3 characters)
+                int firstbyte = (hexToInt(src[1]) * 16) + hexToInt(src[2]);
+
+                // Count the number of bytes in this code point
+
+                int num_bytes = 1;
+
+                if ((firstbyte & 0xE0) == 0xC0)
+                {
+                    num_bytes = 2;
+                }
+                if ((firstbyte & 0xF0) == 0xE0)
+                {
+                    num_bytes = 3;
+                }
+                if ((firstbyte & 0xF8) == 0xF0)
+                {
+                    num_bytes = 4;
+                }
+
+                if ( num_bytes > 1 && src.length >= num_bytes * 3 )
+                {
+                    // Copy the initial byte to the destination
+
+                    dst[0] = firstbyte;
+
+                    // Check each continuation byte to make sure it is well-formed
+
+                    for (int x = 1; x < num_bytes; ++x)
+                    {
+                        // Continuation bytes are always 0b10xxxx
+
+                        if ( isHexPercent( src[ x * 3..$]) &&
+                             0x8 == (hexToInt( src[ x * 3 + 1] ) & 0xC) )
+                        {
+                            // Valid continuation byte, copy it
+
+                            dst[x] = (hexToInt(src[x * 3 + 1]) * 16) + hexToInt(src[x * 3 + 2]);
+                        }
+                        else
+                        {
+                            // failed, treat as latin1
+                            num_bytes = 1;
+                            break;
+                        }
+                    }
+                }
+
+                if ( num_bytes > 1 )
+                {
+                    produced = num_bytes;
+                }
+                else
+                {
+                    // Fall back to latin1, overwriting everything we wrote
+                    // to the dst buffer
+
+                    dchar unicode_char = firstbyte;
+
+                    auto written_chars = Utf.encode(dst, unicode_char);
+
+                    produced = written_chars.length;
+                }
+
+                consumed = num_bytes * 3;  // (%XX == 3 characters)
             }
         }
 
@@ -754,6 +821,22 @@ struct Url
         return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
     }
 
+    /***************************************************************************
+
+        Tells if a string begins with a percent-encode character
+
+        Params:
+            s = string to check
+
+        Returns:
+            true if s begins with %XY where X and Y are hex digits
+
+    ***************************************************************************/
+
+    private static bool isHexPercent( char [] s )
+    {
+        return s.length > 3 && s[0] == '%' && isHex(s[1]) && isHex(s[2]);
+    }
 
     /***************************************************************************
 
@@ -767,7 +850,7 @@ struct Url
 
     ***************************************************************************/
 
-    private static int toInt ( char c )
+    private static int hexToInt ( char c )
     in
     {
         assert(isHex(c), "Url.decodeCharacter - invalid hex character");
@@ -785,6 +868,29 @@ struct Url
     }
 }
 
+/*******************************************************************************
+
+    Unittests for percent encoding
+
+********************************************************************************/
+
+unittest
+{
+    char [8] dst;
+    size_t consumed;
+    size_t produced;
+    Url.decodeCharacter("%C4%87def", 0, dst, consumed, produced);
+    assert(consumed == 6);
+    assert(produced == 2);
+    assert(dst[0..  2] == x"C487");
+
+    // "UTF latin1" character
+    Url.decodeCharacter("%CA%C4def", 0, dst, consumed, produced);
+    assert(consumed == 3);
+    assert(produced == 2);
+    assert(dst[0] == 0xC3);
+    assert(dst[0..  2] == x"C38A");
+}
 
 
 /*******************************************************************************

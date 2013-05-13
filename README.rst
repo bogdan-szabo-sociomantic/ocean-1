@@ -62,6 +62,13 @@ New Features
   The user agent string can now be specified with
   ``userAgent()``.
 
+``ocean.net.http.Url``
+  The handling of 2-digit percent-encoding in URLs was completely wrong.
+  It now follows the spec for UTF8 percent-encoding.
+  Unfortunately the front-end was relying on the wrong behaviour, so ocean
+  remains backwards compatible with it.
+  See bug 93 for details.
+
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
