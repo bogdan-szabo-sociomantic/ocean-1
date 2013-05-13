@@ -21,6 +21,55 @@
 module ocean.text.convert.Integer;
 
 
+/*******************************************************************************
+
+    Parse an integer value from the provided string. The exact type of integer
+    parsed is determined by the template parameter T (see below).
+
+    The string is inspected for a sign and an optional radix prefix. A radix may
+    be provided as an argument instead, whereupon it must match the prefix
+    (where present). When radix is set to zero, conversion will default to
+    decimal.
+
+    Template params:
+        C = char type of string
+        T = type of integer to parse (must be int, uint, long or ulong)
+
+    Params:
+        digits = string to parse
+        value = receives parsed integer
+        radix = specifies which radix to interpret the string as
+
+    Returns:
+        true if parsing succeeded
+
+*******************************************************************************/
+
+public bool toInteger ( C, T ) ( C[] digits, out T value, uint radix = 0 )
+{
+    static if ( is(T == int) )
+    {
+        return toInt(digits, value, radix);
+    }
+    else static if ( is(T == uint) )
+    {
+        return toUint(digits, value, radix);
+    }
+    else static if ( is(T == long) )
+    {
+        return toLong(digits, value, radix);
+    }
+    else static if ( is(T == ulong) )
+    {
+        return toUlong(digits, value, radix);
+    }
+    else
+    {
+        static assert(false, "toInteger: T must be one of {int, uint, long, ulong}, not "
+            ~ T.stringof);
+    }
+}
+
 
 /*******************************************************************************
 
