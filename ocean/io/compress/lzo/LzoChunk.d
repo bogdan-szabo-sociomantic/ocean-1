@@ -55,7 +55,9 @@ private     import      ocean.io.compress.Lzo;
 
 private     import      ocean.io.compress.lzo.LzoHeader;
 
-private     import      ocean.core.Exception: CompressException, assertEx;
+private     import      ocean.io.compress.CompressException;
+
+private     import      ocean.core.Exception: assertEx;
 
 private     import      ocean.util.log.Trace;
 

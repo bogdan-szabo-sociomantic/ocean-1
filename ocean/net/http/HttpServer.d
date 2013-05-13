@@ -20,7 +20,7 @@ module      ocean.net.http.HttpServer;
 *******************************************************************************/
 
 
-public      import      ocean.core.Exception: HttpServerException;
+public      import      ocean.net.http2.HttpException: HttpServerException;
 
 public      import      ocean.core.Exception: assertEx;
 

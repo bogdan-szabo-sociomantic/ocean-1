@@ -106,8 +106,6 @@ module      ocean.text.ling.ngram.NGramParser;
 
 private import ocean.text.ling.ngram.NGramSet;
 
-public import ocean.core.Exception: NgramParserException;
-
 private import TextUtil = tango.text.Util: contains, substitute, replace, split, trim;
 
 private import Unicode = tango.text.Unicode;
@@ -127,7 +125,22 @@ debug
     private import tango.util.log.Trace;
 }
 
+/******************************************************************************
 
+    NgramParserException
+
+*******************************************************************************/
+
+class NgramParserException : Exception
+{
+    this ( char[] msg ) { super(msg); }
+    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+
+    static void opCall ( Args ... ) ( Args args )
+    {
+        throw new NgramParserException(args);
+    }
+}
 
 /*******************************************************************************
 

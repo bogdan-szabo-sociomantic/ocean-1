@@ -27,13 +27,31 @@
 
 module ocean.db.mysql.MySQL;
 
-public  import ocean.core.Exception: MySQLException;
-
 private import ocean.util.Config;
 
 private import dbi.mysql.MysqlDatabase;
 
 private import tango.util.log.Trace;
+
+
+/******************************************************************************
+
+    MySQLException
+
+*******************************************************************************/
+
+class MySQLException : Exception
+{
+    this ( char[] msg ) { super(msg); }
+    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+
+    static void opCall ( Args ... ) ( Args args )
+    {
+        throw new MySQLException(args);
+    }
+}
+
+
 /*******************************************************************************
 
     MySQL

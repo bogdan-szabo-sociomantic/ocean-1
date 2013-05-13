@@ -27,14 +27,28 @@
 
 module ocean.db.SQLite;
 
-public  import ocean.core.Exception: SqliteException;
-
 private import ocean.util.Config;
 
 private import tango.text.Unicode : toUpper;
 
 private import dbi.sqlite.SqliteDatabase;
 
+/******************************************************************************
+
+    SqliteException
+
+*******************************************************************************/
+
+class SqliteException : Exception
+{
+    this ( char[] msg ) { super(msg); }
+    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+
+    static void opCall ( Args ... ) ( Args args )
+    {
+        throw new SqliteException(args);
+    }
+}
 
 /*******************************************************************************
 

@@ -42,7 +42,7 @@ module ocean.db.tokyocabinet.TokyoCabinetH;
 
  ******************************************************************************/
 
-protected   import  ocean.core.Exception: TokyoCabinetException;
+protected   import  ocean.db.tokyocabinet.util.TokyoCabinetException;
 
 private     import  ocean.db.tokyocabinet.model.ITokyoCabinet;
 

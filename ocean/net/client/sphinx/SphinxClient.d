@@ -55,8 +55,6 @@
 
 module ocean.net.client.sphinx.SphinxClient;
 
-public  import ocean.core.Exception: SphinxException;
-
 private import ocean.net.client.sphinx.c.sphinxclient;
 
 private import tango.stdc.stringz : toDString = fromStringz, toCString = toStringz;
@@ -65,6 +63,23 @@ private import tango.text.Unicode : toLowerCase = toLower;
 
 private import tango.text.Util : delimit, containsPattern;
 
+
+/******************************************************************************
+
+    SphinxException
+
+*******************************************************************************/
+
+class SphinxException : Exception
+{
+    this ( char[] msg ) { super(msg); }
+    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+
+    static void opCall ( Args ... ) ( Args args )
+    {
+        throw new SphinxException(args);
+    }
+}
 
 /*******************************************************************************
 

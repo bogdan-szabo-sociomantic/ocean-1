@@ -42,13 +42,55 @@ private import ocean.text.util.c.iconv;
 
 private import tango.stdc.errno;
 
-private import ocean.core.Exception : IconvException;
-
 debug
 {
     private import tango.util.log.Trace;
 }
 
+/******************************************************************************
+
+    IconvException
+
+*******************************************************************************/
+
+class IconvException : Exception
+{
+    const MSG = "Iconv: Error";
+
+    this ( char[] msg = MSG ) { super(msg); }
+    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+
+    static void opCall ( Args ... ) ( Args args )
+    {
+        throw new IconvException(args);
+    }
+
+    /**************************************************************************
+
+        Invalid Multibyte Sequence
+
+     **************************************************************************/
+
+    static class InvalidMbSeq :  IconvException
+    {
+        const msg = "Iconv: Invalid Multibyte Sequence";
+
+        this ( ) { super(this.msg); }
+    }
+
+    /**************************************************************************
+
+        Incomplete Multibyte Sequence
+
+     **************************************************************************/
+
+    static class IncompleteMbSeq :  IconvException
+    {
+        const msg = "Iconv: Incomplete Multibyte Sequence";
+
+        this ( ) { super(this.msg); }
+    }
+}
 
 /*******************************************************************************
 

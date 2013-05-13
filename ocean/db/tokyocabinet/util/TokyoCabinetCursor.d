@@ -28,7 +28,7 @@ module ocean.db.tokyocabinet.util.TokyoCabinetCursor;
 
  ******************************************************************************/
 
-private import ocean.core.Exception: TokyoCabinetException, assertEx;
+private import ocean.core.Exception: assertEx;
 
 private import ocean.db.tokyocabinet.c.util.tcxstr:  TCXSTR;
 private import ocean.db.tokyocabinet.c.bdb.tcbdbcur: BDBCUR,
@@ -41,6 +41,7 @@ private import ocean.db.tokyocabinet.c.bdb.tcbdbcur: BDBCUR,
 
 private import ocean.db.tokyocabinet.c.tcbdb:        TCBDB;
 
+private import ocean.db.tokyocabinet.util.TokyoCabinetException;
 private import ocean.db.tokyocabinet.util.TokyoCabinetExtString;
 
 debug private import tango.util.log.Trace;

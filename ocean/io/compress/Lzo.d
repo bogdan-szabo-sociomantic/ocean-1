@@ -25,7 +25,9 @@ private import ocean.io.compress.lzo.c.minilzo: lzo1x_1_compress,
 
 private import ocean.io.compress.lzo.LzoCrc;
 
-private import ocean.core.Exception: CompressException, assertEx;
+private import ocean.io.compress.CompressException;
+
+private import ocean.core.Exception: assertEx;
 
 /******************************************************************************
 

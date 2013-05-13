@@ -59,6 +59,23 @@ debug
 }
 
 
+/******************************************************************************
+
+    HMAC Exception
+
+*******************************************************************************/
+
+class HMACException : Exception
+{
+    this ( char[] msg ) { super(msg); }
+    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+
+    static void opCall ( Args ... ) ( Args args )
+    {
+        throw new HMACException(args);
+    }
+}
+
 
 /*******************************************************************************
 

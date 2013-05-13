@@ -39,9 +39,26 @@ module ocean.core.UniStruct;
 
 *******************************************************************************/
 
-import ocean.core.Exception : UniStructException;
-
 import tango.core.Traits;
+
+
+/*******************************************************************************
+
+    UniStructException
+
+*******************************************************************************/
+
+class UniStructException : Exception
+{
+    this ( char[] msg ) { super(msg); }
+    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+
+    static void opCall ( Args ... ) ( Args args )
+    {
+        throw new UniStructException(args);
+    }
+}
+
 
 struct UniStruct ( Types ... )
 {

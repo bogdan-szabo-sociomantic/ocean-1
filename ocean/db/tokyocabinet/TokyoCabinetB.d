@@ -42,11 +42,10 @@ module ocean.db.tokyocabinet.TokyoCabinetB;
 
  ******************************************************************************/
 
-private     import  ocean.core.Exception: TokyoCabinetException;
-
 private     import  ocean.core.Array;
 
 private     import  ocean.db.tokyocabinet.util.TokyoCabinetCursor;
+private     import  ocean.db.tokyocabinet.util.TokyoCabinetException;
 private     import  ocean.db.tokyocabinet.util.TokyoCabinetList;
 private     import  ocean.db.tokyocabinet.util.TokyoCabinetExtString;
 

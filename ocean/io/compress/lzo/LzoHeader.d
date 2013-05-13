@@ -37,7 +37,9 @@ module ocean.io.compress.lzo.LzoHeader;
 
 private import ocean.io.compress.lzo.LzoCrc;
 
-private import ocean.core.Exception: CompressException, assertEx;
+private import ocean.io.compress.CompressException;
+
+private import ocean.core.Exception: assertEx;
 
 debug private import tango.util.log.Trace;
 

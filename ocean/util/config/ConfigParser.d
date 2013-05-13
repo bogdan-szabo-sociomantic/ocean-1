@@ -21,7 +21,7 @@ module ocean.util.config.ConfigParser;
 
 *******************************************************************************/
 
-public  import ocean.core.Exception: ConfigException, assertEx;
+public  import ocean.core.Exception: assertEx;
 
 private import tango.io.device.File;
 
@@ -41,6 +41,23 @@ private import tango.core.Traits : DynamicArrayType;
 
 debug private import ocean.util.log.Trace;
 
+
+/******************************************************************************
+
+    ConfigException
+
+*******************************************************************************/
+
+class ConfigException : Exception
+{
+    this ( char[] msg ) { super(msg); }
+    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+
+    static void opCall ( Args ... ) ( Args args )
+    {
+        throw new ConfigException(args);
+    }
+}
 
 /*******************************************************************************
 

@@ -65,7 +65,9 @@ module ocean.util.config.ClassFiller;
 
 *******************************************************************************/
 
-public  import ocean.core.Exception: ConfigException, assertEx;
+public  import ocean.core.Exception: assertEx;
+
+public import ocean.util.config.ConfigParser: ConfigException;
 
 private import ocean.core.Traits;
 

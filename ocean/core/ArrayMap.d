@@ -28,7 +28,7 @@ pragma(msg, "ocean.core.ArrayMap is deprecated: use ocean.util.container.map.* i
 
 *******************************************************************************/
 
-private     import      ocean.core.Exception: ArrayMapException, assertEx;
+private     import      ocean.core.Exception: assertEx;
 
 private     import      ocean.core.Array: copy;
 
@@ -51,6 +51,33 @@ debug
     private import ocean.util.log.Trace;
 }
 
+/******************************************************************************
+
+    ArrayMapException
+
+ ******************************************************************************/
+
+class ArrayMapException : Exception
+{
+    this ( char[] msg ) { super(msg); }
+    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+
+    static void opCall ( Args ... ) ( Args args )
+    {
+        throw new ArrayMapException(args);
+    }
+
+    static class NonExistingKey : ArrayMapException
+    {
+        this ( char[] msg ) { super(msg); }
+        this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+
+        static void opCall ( Args ... ) ( Args args )
+        {
+            throw new NonExistingKey(args);
+        }
+    }
+}
 
 /*******************************************************************************
 

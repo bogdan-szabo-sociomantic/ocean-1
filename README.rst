@@ -39,6 +39,11 @@ New Features
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
+``ocean.core.Exception``
+  The Exception classes which were previously declared in this module have been
+  moved into the modules of the associated classes. For example
+  ``ArrayMapException`` now lives in ``ocean.core.ArrayMap``.
+
 ``ocean.net.client.curl.CurlProcessMulti``
   The ``max_redirects()`` method is renamed as ``maxRedirects``
 

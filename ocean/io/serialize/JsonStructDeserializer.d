@@ -95,6 +95,23 @@ private import tango.text.json.JsonParser;
 debug private import tango.util.log.Trace;
 
 
+/*******************************************************************************
+
+    Json struct deserializer Exception
+
+*******************************************************************************/
+
+class JsonException : Exception
+{
+    this ( char[] msg ) { super(msg); }
+    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+
+    static void opCall ( Args ... ) ( Args args )
+    {
+        throw new JsonException(args);
+    }
+}
+
 
 /*******************************************************************************
 

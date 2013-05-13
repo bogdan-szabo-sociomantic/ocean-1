@@ -97,7 +97,7 @@ module ocean.io.serialize.StructSerializer;
 
 private import ocean.io.serialize.SimpleSerializer;
 
-private import ocean.core.Exception: assertEx, SerializerException;
+private import ocean.core.Exception: assertEx;
 
 private import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
 
@@ -105,6 +105,51 @@ private import tango.core.Traits;
 
 debug private import ocean.util.log.Trace;
 
+
+/*******************************************************************************
+
+    SerializerException
+
+*******************************************************************************/
+
+class SerializerException : Exception
+{
+    this ( char[] msg ) { super(msg); }
+    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+
+    static void opCall ( Args ... ) ( Args args )
+    {
+        throw new SerializerException(args);
+    }
+
+    /***************************************************************************
+
+        StructSerializer Exception
+
+    ***************************************************************************/
+
+    static class LengthMismatch : SerializerException
+    {
+        size_t bytes_expected, bytes_got;
+
+        this ( char[] msg, size_t bytes_expected, size_t bytes_got )
+        {
+            super(msg);
+
+            this.bytes_expected = bytes_expected;
+            this.bytes_got      = bytes_got;
+        }
+
+        this ( char[] msg, char[] file, long line,
+               size_t bytes_expected, size_t bytes_go )
+        {
+            super(msg, file, line);
+
+            this.bytes_expected = bytes_expected;
+            this.bytes_got      = bytes_got;
+        }
+    }
+}
 
 
 /*******************************************************************************

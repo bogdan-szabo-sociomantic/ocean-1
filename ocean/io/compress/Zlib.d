@@ -135,7 +135,7 @@ private     import      Integer = tango.text.convert.Integer: toInt;
 
 private     import      tango.math.Math: min;
 
-private     import      ocean.core.Exception: CompressException;
+private     import      ocean.io.compress.CompressException;
 
 private import ocean.io.serialize.SimpleSerializer;
 
