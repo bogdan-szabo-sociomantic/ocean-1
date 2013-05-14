@@ -332,7 +332,7 @@ public class HMAC
             "aa4ae5e15272d00e95705637ce8a3b55ed402112"
         ];
 
-        ubyte[200] buffer;
+        ubyte[] buffer;
 
         HMAC h = new HMAC(new Sha1());
         foreach (uint i, char[] k; test_keys)
