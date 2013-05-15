@@ -22,6 +22,10 @@ version **1.4** and finally the steps in version **1.5**.
 master
 ------
 
+
+v1.2 (2013-05-15)
+-----------------
+
 New Features
 ^^^^^^^^^^^^
 
@@ -129,4 +133,3 @@ New Features
 ----------------
 
 * First stable branch
-
