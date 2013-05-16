@@ -70,6 +70,8 @@ private import tango.stdc.time: clock_t, clock, tm, time_t;
 
 private import tango.util.log.Log;
 
+private import tango.io.Console;
+
 
 
 /*******************************************************************************
@@ -238,7 +240,8 @@ public class AppStatus
         this.clock = clock;
         this.start_time = this.clock.now_sec;
         this.static_lines.length = size;
-        this.insert_console = new InsertConsole(new MessageOnlyLayout);
+        this.insert_console = new InsertConsole(Cout.stream, true,
+            new MessageOnlyLayout);
         this.old_terminal_size = Terminal.rows;
 
         this.msg = new StringLayout!(char);
