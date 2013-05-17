@@ -11,13 +11,13 @@ Even when using them is optional, usually is encouraged.
 These instructions should help developers to migrate from one version to
 another. The changes listed here are the steps you need to take to move from
 the previous version to the one being listed. For example, all the steps
-described in version **1.5** are the steps required to move from **1.4** to
-**1.5**.
+described in version **v1.5** are the steps required to move from **v1.4** to
+**v1.5**.
 
 If you need to jump several versions at once, you should read all the steps
-from all the involved versions. For example, to jump from **1.2** to **1.5**,
-you need to first follow the steps in version **1.3**, then the steps in
-version **1.4** and finally the steps in version **1.5**.
+from all the involved versions. For example, to jump from **v1.2** to **v1.5**,
+you need to first follow the steps in version **v1.3**, then the steps in
+version **v1.4** and finally the steps in version **v1.5**.
 
 master
 ------
@@ -72,8 +72,8 @@ Migration Instructions
   ``ref char[]`` instead of just ``char[]``. The methods might modify the string
   by appending a null terminating character to its end.
 
-1.1 (2013-04-09)
-----------------
+v1.1 (2013-04-09)
+-----------------
 
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -145,7 +145,7 @@ New Features
        Gavin: State: HOLD; Token:  DrizzleData; LastSuspend: 1364929515 (3s ago); Addr: 7ff6cad40600; Suspender: ocean.db.drizzle.Connection.Connection
 
 
-1.0 (2013-03-12)
-----------------
+v1.0 (2013-03-12)
+-----------------
 
 * First stable branch
