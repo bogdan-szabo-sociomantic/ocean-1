@@ -142,12 +142,14 @@ public class HMAC
 
         Params:
             k        = the key to initialize from
-            buffer = buffer to use
+            buffer = buffer to use (the buffer is resized to the digest length)
 
     ***************************************************************************/
 
-    public void init ( ubyte[] k, ubyte[] buffer )
+    public void init ( ubyte[] k, ref ubyte[] buffer )
     {
+        buffer.length = this.hash.digestSize();
+
         this.hash.reset();
 
         if (k.length > this.blockSize)
@@ -253,24 +255,17 @@ public class HMAC
         Computes the digest and returns it
 
         Params:
-            buffer = buffer to use
+            buffer = buffer to use (the buffer is resized to the digest length)
 
     ***************************************************************************/
 
-    public ubyte[] digest ( ubyte[] buffer )
+    public ubyte[] digest ( ref ubyte[] buffer )
     {
+        buffer.length = this.hash.digestSize();
+
         ubyte[] t = this.hash.binaryDigest(buffer)[0 .. this.hash.digestSize()];
         this.hash.update(this.opad);
         this.hash.update(t);
-
-        if (buffer.length < t.length)
-        {
-            buffer = null;
-        }
-        else
-        {
-            buffer = buffer[t.length .. $];
-        }
 
         ubyte[] r = this.hash.binaryDigest(buffer)[0 .. this.hash.digestSize()];
 
@@ -285,11 +280,11 @@ public class HMAC
         Computes the digest and returns it as hex
 
         Params:
-            buffer = optional buffer to use
+            buffer = buffer to use (the buffer is resized to the digest length)
 
     ***************************************************************************/
 
-    public char[] hexDigest ( ubyte[] buffer )
+    public char[] hexDigest ( ref ubyte[] buffer )
     {
         return ByteConverter.hexEncode(this.digest(buffer));
     }

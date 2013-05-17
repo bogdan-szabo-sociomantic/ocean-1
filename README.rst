@@ -22,6 +22,22 @@ version **1.4** and finally the steps in version **1.5**.
 master
 ------
 
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
+
+``ocean.crypt.HMAC``
+  The ``init()``, ``digest()`` and ``hexDigest()`` methods now take a
+  ``ref ubyte[]`` buffer, whose length is set as required to avoid a memory
+  allocation in the ``binaryDigest()`` method in
+  ``tango.util.digest.MerkleDamgard``. Previously the provided buffer would not
+  be used (and a new buffer allocated) if it was too short -- and the required
+  length was not noted anywhere!
+
+  Note that as the only change to the interface of the class is the addition of
+  ``ref`` to the buffer arguments, this change will not cause compilation
+  errors in application code. Therefore you need to really check where your code
+  is using this module. (Simply passing a persistent buffer to the methods is
+  enough -- there's no need to set its length beforehand.)
 
 v1.2 (2013-05-15)
 -----------------
