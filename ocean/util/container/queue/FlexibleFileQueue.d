@@ -10,9 +10,7 @@
 
     The flexible file queue can be set to either open any existing files it
     finds, or always delete existing files when it is created using the
-    open_existing parameter in the contructor. If the open_existing flag is
-    set to true then the calling application MUST call enablePop(true) when it
-    is ready to process any records in the file queue.
+    open_existing parameter in the contructor.
 
     Note that the queue file is deleted in the following cases:
         1. Upon calling the clear() method.
@@ -171,15 +169,6 @@ public class FlexibleFileQueue : IByteQueue
 
     /***************************************************************************
 
-        true if the items can be popped from the data files. Set to false in
-        the contructor if we are not re opening any existing data files
-
-    ***************************************************************************/
-
-    private bool enable_pop;
-
-    /***************************************************************************
-
         buffer used to read in the index file
 
     ***************************************************************************/
@@ -205,7 +194,6 @@ public class FlexibleFileQueue : IByteQueue
         this.index_path = path.dup ~ ".index";
         this.size = size;
         this.open_existing = open_existing;
-        this.enable_pop = !this.open_existing;
 
         if ( this.open_existing && Filesystem.exists(this.path) &&
             Filesystem.exists(this.index_path) )
@@ -302,11 +290,6 @@ public class FlexibleFileQueue : IByteQueue
     private ubyte[] getItem ( bool eat = true )
     {
         this.handleSliceBuffer();
-
-        if ( !this.enable_pop )
-        {
-            return null;
-        }
 
         if ( this.bytes_in_file == 0 && this.files_open )
         {
@@ -516,24 +499,6 @@ public class FlexibleFileQueue : IByteQueue
     }
 
 
-    /***************************************************************************
-
-        Enables or disables the pop from the file queue.
-
-        Params:
-            enable_pop = true to enable pop, false to disable pop
-
-    ***************************************************************************/
-
-    public void enablePop ( bool enable_pop )
-    {
-        this.enable_pop = enable_pop;
-        if ( this.enable_pop )
-        {
-            this.peek();
-        }
-    }
-
 
     /***************************************************************************
 
@@ -733,11 +698,6 @@ public class FlexibleFileQueue : IByteQueue
                 {
                     assert( queue.push( cast(ubyte[])[i, ubyte.max-i, i, i*i] ), "push failed" );
 
-                }
-
-                if ( cast(bool)open_existing )
-                {
-                    queue.enablePop(true);
                 }
 
                 for ( ubyte i = 0; i < size; i++ )
