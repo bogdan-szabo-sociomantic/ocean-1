@@ -281,19 +281,14 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
             load_factor = ratio of n to the number of buckets. The desired
                 (approximate) number of elements per bucket. For example, 0.5
                 sets the number of buckets to double n; for 2 the number of
-                buckets is the half of n. load_factor must be greater than 0.
-                The load factor is basically a trade-off between memory usage
-                (number of buckets) and search time (number of elements per
-                bucket).
+                buckets is the half of n. load_factor must be greater than 0
+                (this is asserted in IBucketSet.calcNumBucketsExp2()). The load
+                factor is basically a trade-off between memory usage (number of
+                buckets) and search time (number of elements per bucket).
 
     ***************************************************************************/
 
     protected this ( size_t n, float load_factor = 0.75 )
-    in
-    {
-        assert (load_factor > 0.0);
-    }
-    body
     {
         super(n, load_factor);
 
