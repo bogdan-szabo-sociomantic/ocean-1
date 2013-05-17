@@ -291,7 +291,6 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
     protected this ( size_t n, float load_factor = 0.75 )
     in
     {
-        assert (n);
         assert (load_factor > 0.0);
     }
     body
