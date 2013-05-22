@@ -64,6 +64,14 @@ class ArgumentsExt : IApplicationExtension
 
     /***************************************************************************
 
+        Path that the application was called with
+
+    ***************************************************************************/
+
+    public char[] path;
+
+    /***************************************************************************
+
         Constructor.
 
         See ocean.text.Arguments for details on format of the parameters.
@@ -125,6 +133,8 @@ class ArgumentsExt : IApplicationExtension
         }
 
         auto args_ok = args.parse(cl_args[1 .. $]);
+
+        this.path = cl_args[0];
 
         if ( args.exists("help") )
         {
