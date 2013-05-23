@@ -97,11 +97,16 @@ private class CurlProcess : EpollProcess
 
     /***************************************************************************
 
-        Buffer used for formatting the optional timeout argument.
+        Buffer used for formatting the optional timeout arguments.
 
     ***************************************************************************/
 
     private char[] timeout_buf;
+
+    private char[] timeout_speed_buf;
+
+    private char[] timeout_period_buf;
+
 
     /***************************************************************************
 
@@ -282,6 +287,20 @@ private class CurlProcess : EpollProcess
             Layout!(char).print(this.timeout_buf, "{}", this.params.timeout_s);
 
             this.args ~= this.timeout_buf;
+        }
+
+        // Speed timeout
+        if ( this.params.speed_timeout_set )
+        {
+            this.args ~= "-Y";
+            this.timeout_speed_buf.length = 0;
+            Layout!(char).print(this.timeout_speed_buf, "{}", this.params.speedlimit_bytes_sec);
+            this.args ~= this.timeout_speed_buf;
+
+            this.args ~= "-y";
+            this.timeout_period_buf.length = 0;
+            Layout!(char).print(this.timeout_period_buf, "{}", this.params.speedtime_s);
+            this.args ~= this.timeout_period_buf;
         }
 
         // SSL

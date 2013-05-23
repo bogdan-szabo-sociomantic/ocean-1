@@ -39,6 +39,12 @@ Migration Instructions
   is using this module. (Simply passing a persistent buffer to the methods is
   enough -- there's no need to set its length beforehand.)
 
+New Features
+^^^^^^^^^^^^
+
+``ocean.net.client.curl.process.CurlProcessMulti``
+  Timeouts for slow downloads can now be specified with ``speedTimeout()``.
+
 v1.2 (2013-05-15)
 -----------------
 

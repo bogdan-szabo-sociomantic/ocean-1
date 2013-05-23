@@ -152,6 +152,17 @@ public struct RequestParams
 
     public uint timeout_s;
 
+    /***************************************************************************
+
+        Speed time (in seconds) and amount (in bytes).
+        Set using the speedTimeout() method.
+
+    ***************************************************************************/
+
+    public uint speedtime_s;          // this is 32 bits in the curl source
+
+    public uint speedlimit_bytes_sec; // this is 32 bits in the curl source
+
 
     /***************************************************************************
 
@@ -272,6 +283,17 @@ public struct RequestParams
         return this.ssl_insecure;
     }
 
+    /***************************************************************************
+
+        Returns:
+            true if a minimum speed limit has been set
+
+    ***************************************************************************/
+
+    public bool speed_timeout_set ( )
+    {
+        return this.speedlimit_bytes_sec > 0 && this.speedtime_s > 0;
+    }
 
     /***************************************************************************
 

@@ -156,6 +156,9 @@ public template RequestBase ( )
 
         Sets this download to timeout after the specified time.
 
+        This feature is practically useless, since it applies to the
+        total download time. Use speedTimeout instead.
+
         Params:
             s = seconds to timeout after
 
@@ -170,6 +173,35 @@ public template RequestBase ( )
         return this;
     }
 
+    /***************************************************************************
+
+        Sets the minumum speed required to avoid timeout.
+
+        After establishing the connection, if the speed falls below the specified
+        number of bytes per second when averaged over the time period,
+        a timeout error will occur.
+        The curl default is 1 byte/second over a 30 second period.
+        This is extremely conservative: a 1 Gb file will timeout after 34 years.
+        These settings correspond to --speed-limit and --speed-time in the curl manual.
+
+        Params:
+            bytes_sec   = Minimum number of bytes which must be
+                          received during the period.
+            speed_time  = Time period in seconds to average over
+
+    ***************************************************************************/
+
+    public typeof(this) speedTimeout( uint bytes_sec, uint speed_time = 30)
+    in
+    {
+        assert(bytes_sec > 0 && speed_time > 0);
+    }
+    body
+    {
+        this.params.speedlimit_bytes_sec = bytes_sec;
+        this.params.speedtime_s = speed_time;
+        return this;
+    }
 
     /***************************************************************************
 
