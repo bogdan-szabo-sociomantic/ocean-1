@@ -318,17 +318,6 @@ class EBTree128 ( bool signed = false ) : IEBTree
 
     /***************************************************************************
 
-        Minimizes the memory usage of the node pool.
-
-    ***************************************************************************/
-
-    public void minimize ( )
-    {
-        this.node_pool.minimize();
-    }
-
-    /***************************************************************************
-
         Adds node to the tree, automatically inserting it in the correct
         location to keep the tree sorted.
 

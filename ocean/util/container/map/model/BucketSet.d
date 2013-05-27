@@ -347,45 +347,8 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
         delete this.buckets;
     }
-
-
-    /***************************************************************************
-
-        Removes all elements from all buckets and sets the values to val_init if
-        val_init is not empty.
-
-        Params:
-            val_init = initial element value, the length must be V or 0
-
-        In:
-            val_init.length must be V.
-
-    ***************************************************************************/
-
-    protected void clearBuckets ( void[] val_init = null )
-    in
-    {
-        assert (!val_init.length || val_init.length == V);
-    }
-    body
-    {
-        // Recycle all bucket elements.
-
-        foreach (ref element; this)
-        {
-            static if (V) if (val_init.length)
-            {
-                element.val[] = cast (ubyte[]) val_init[];
-            }
-
-            this.free_bucket_elements.recycle(&element);
-        }
-
-        // Clear bucket contents.
-
-        .clear(this.buckets);
-    }
-
+    
+    
     /**************************************************************************
 
         Ensures that Bucket.init consists only of zero bytes so that the
@@ -664,12 +627,44 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
                 this.buckets[bucket_index].add(element);
             }
         }
-
-        // This call must be outside the scope of parked_elements.
-
-        this.free_bucket_elements.minimize(n_new);
-
+        
         return this;
+    }
+    
+    /***************************************************************************
+
+        Removes all elements from all buckets and sets the values to val_init if
+        val_init is not empty.
+        
+        Params:
+            val_init = initial element value, the length must be V or 0
+        
+        In:
+            val_init.length must be V.
+    
+    ***************************************************************************/
+    
+    protected void clearBuckets ( void[] val_init = null )
+    in
+    {
+        assert (!val_init.length || val_init.length == V);
+    }
+    body
+    {
+        // Recycle all bucket elements.
+        
+        foreach (ref element; this)
+        {
+            static if (V) if (val_init.length)
+            {
+                element.val[] = cast (ubyte[]) val_init[];
+            }
+            
+            this.free_bucket_elements.recycle(&element);
+        }
+        
+        // Clear bucket contents.
+        .clear(this.buckets);
     }
 
     /***************************************************************************

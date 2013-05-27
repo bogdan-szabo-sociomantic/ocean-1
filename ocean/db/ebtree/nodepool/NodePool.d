@@ -25,8 +25,6 @@ interface INodePool ( Node )
     Node* get ( );
 
     void recycle ( Node* );
-
-    void minimize ( );
 }
 
 /*******************************************************************************
@@ -68,7 +66,7 @@ class NodePool ( Node ) : INodePool!(Node)
         }
         else
         {
-            return new Node;
+            return this.newNode();
         }
     }
 
@@ -89,31 +87,26 @@ class NodePool ( Node ) : INodePool!(Node)
 
     /***************************************************************************
 
-        Deletes all free nodes.
+        Creates a new node.
+        May be overridden by a subclass to use a different allocation method.
+
+        Returns:
+            a newly created node.
+
+        Out:
+            The returned node pointer is an integer multiple of 16 as required
+            by the libebtree.
 
     ***************************************************************************/
 
-    void minimize ( )
+    protected Node* newNode ( )
+    out (node)
     {
-        if (this.free_nodes)
-        {
-            foreach (ref node; this.free_nodes)
-            {
-                delete node;
-            }
-
-            delete this.free_nodes;
-        }
+        assert(!((cast(size_t)node) % 0x10),
+               "the node pointer must be an integer multiple of 16");
     }
-
-    /***************************************************************************
-
-        Disposer
-
-    ***************************************************************************/
-
-    protected override void dispose ( )
+    body
     {
-        this.minimize();
+        return new Node;
     }
 }

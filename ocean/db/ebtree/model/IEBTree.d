@@ -70,14 +70,6 @@ abstract class IEBTree
 
     /***************************************************************************
 
-        Deletes all free nodes in the node pool.
-
-    ***************************************************************************/
-
-    abstract public void minimize ( );
-
-    /***************************************************************************
-
         Increases the record counter by n.
 
         Params:
@@ -127,6 +119,5 @@ abstract class IEBTree
     protected override void dispose ( )
     {
         this.clear();
-        this.minimize();
     }
 }

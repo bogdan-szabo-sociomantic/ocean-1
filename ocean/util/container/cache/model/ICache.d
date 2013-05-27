@@ -20,14 +20,23 @@ module ocean.util.container.cache.model.ICache;
 
 private import ocean.util.container.cache.model.ICacheInfo;
 
-private import ocean.util.container.map.HashMap;
-
-private import ocean.db.ebtree.EBTree128;
+private import ocean.util.container.cache.model.containers.TimeToIndex;
+private import ocean.util.container.cache.model.containers.KeyToNode;
 
 private import tango.stdc.time: time_t, time;
 
+/******************************************************************************/
+
 abstract class ICache : ICacheInfo
 {
+    /***************************************************************************
+
+        Alias required by the subclasses.
+    
+    ***************************************************************************/
+    
+    protected alias .TimeToIndex TimeToIndex;
+    
     /***************************************************************************
 
         Insert position into array of items.
@@ -55,9 +64,7 @@ abstract class ICache : ICacheInfo
             TimeToIndex.Key.lo = cache index.
 
     ***************************************************************************/
-
-    protected alias EBTree128!() TimeToIndex;
-
+    
     private const TimeToIndex time_to_index;
 
 
@@ -67,9 +74,7 @@ abstract class ICache : ICacheInfo
         from an access time to the index of an elements in this.items).
 
     ***************************************************************************/
-
-    protected alias HashMap!(TimeToIndex.Node*) KeyToNode;
-
+    
     private const KeyToNode key_to_node;
 
 
@@ -103,9 +108,10 @@ abstract class ICache : ICacheInfo
     protected this ( size_t max_items )
     {
         this.insert = 0;
-
-        this.time_to_index = new TimeToIndex;
-        this.key_to_node = new KeyToNode(this.max_items = max_items);
+    
+        this.max_items     = max_items;
+        this.time_to_index = new TimeToIndex(max_items);
+        this.key_to_node   = new KeyToNode(max_items);
     }
 
     /***************************************************************************

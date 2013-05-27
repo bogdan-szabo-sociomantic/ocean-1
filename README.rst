@@ -39,6 +39,14 @@ Migration Instructions
   is using this module. (Simply passing a persistent buffer to the methods is
   enough -- there's no need to set its length beforehand.)
 
+``ocean.d.ebtree.model.IEBtree`` and all derived ``EBTree*`` classes
+  The ``minimize()`` method has been removed. This is because the pool of ebtree
+  nodes now allows implementing a custom allocation method by deriving from the
+  ``NodePool`` class and some allocation methods do not support minimizing the
+  pool size. An example (and actual the reason why this was changed) is to
+  preallocate all nodes in a contiguous buffer if the maximum number of nodes in
+  the tree is known in advance; this is now done in the ``Cache``.
+
 New Features
 ^^^^^^^^^^^^
 
