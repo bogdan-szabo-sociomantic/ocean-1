@@ -103,7 +103,7 @@ public struct Bucket ( size_t V, K = hash_t )
 
          **********************************************************************/
 
-        private typeof (this) next = null;
+        package typeof (this) next = null;
 
         debug (HostingArrayMapBucket) private Bucket!(V, K)* bucket;
     }
@@ -178,9 +178,18 @@ public struct Bucket ( size_t V, K = hash_t )
     {
         int result = 0;
 
-        for (Element* element = this.first; element && !result; element = element.next)
+        /*
+         * element.next needs to be stored before calling dg because now dg will
+         * modifiy element.next if it returns the element to the free list.
+         */
+
+        for (Element* element = this.first; element && !result;)
         {
+            Element* next = element.next;
+
             result = dg(*element);
+
+            element = next;
         }
 
         return result;

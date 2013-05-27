@@ -100,14 +100,14 @@ public abstract class IBucketSet
 
      **************************************************************************/
 
-    protected this ( size_t n, float load_factor = 0.75 )
+    protected this ( FreeList free_bucket_elements, size_t n, float load_factor = 0.75 )
     {
         size_t num_buckets = 1 << this.calcNumBucketsExp2(n, load_factor);
 
         this.bucket_mask = num_buckets - 1;
 
         this.bucket_info          = new BucketInfo(num_buckets);
-        this.free_bucket_elements = new FreeList(n);
+        this.free_bucket_elements = free_bucket_elements;
     }
 
     /***************************************************************************
@@ -262,6 +262,46 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
     protected alias .Bucket!(V, K) Bucket;
 
+    /***************************************************************************
+
+        Free list of currently unused bucket elements.
+
+    ***************************************************************************/
+
+    static class FreeBuckets : FreeList
+    {
+        /**********************************************************************
+
+            Obtains the next element of element.
+
+            Params:
+                element = bucket element of which to obtain the next one
+
+            Returns:
+                the next bucket element (which may be null).
+
+         **********************************************************************/
+
+        protected void* getNext ( void* element )
+        {
+            return (cast(Bucket.Element*)element).next;
+        }
+
+        /**********************************************************************
+
+            Sets the next element of element.
+
+            Params:
+                element = bucket element to which to set the next one
+                next    = next bucket element for element (nay be null)
+
+         **********************************************************************/
+
+        protected void setNext ( void* element, void* next )
+        {
+            (cast(Bucket.Element*)element).next = cast(Bucket.Element*)next;
+        }
+    }
 
     /***************************************************************************
 
@@ -290,7 +330,7 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
     protected this ( size_t n, float load_factor = 0.75 )
     {
-        super(n, load_factor);
+        super(new FreeBuckets, n, load_factor);
 
         this.buckets = new Bucket[this.bucket_info.num_buckets];
     }
@@ -590,7 +630,7 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
         {
             // Park the bucket elements that are currently in the set.
 
-            scope parked_elements = this.free_bucket_elements.new ParkingStack(this.bucket_info.length);
+            scope parked_elements = this.free_bucket_elements.new ParkingStack;
 
             foreach (ref element; this)
             {

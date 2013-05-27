@@ -6,43 +6,45 @@
 
     authors:        David Eckardt, Gavin Norman
 
-    Free list of dynamically allocated objects of arbitrary type, a basic object
-    pool.
+    Free list of dynamically allocated objects.
+    Implemented as a linked list; a subclass must get and set the next one of
+    a given object.
 
 *******************************************************************************/
 
 module ocean.util.container.map.model.BucketElementFreeList;
 
-/******************************************************************************/
+/******************************************************************************
+
+    Imports
+
+ ******************************************************************************/
 
 private import ocean.core.Array: clear;
 
-class FreeList
+/******************************************************************************/
+
+abstract class FreeList
 {
     /**************************************************************************
 
-        List of free objects (e.g. struct instances).
+        First free element.
 
      **************************************************************************/
 
-    private void*[] free_list;
+    private void* first = null;
 
     /**************************************************************************
 
-        Actual free_list length.
-
-        The elements in free_list[n_free .. $] must be null to prevent dangling
-        references, make it easier for the garbage collector and to allow for
-        consistency checking. The elements in free_list[0 .. n_free] must be
-        non-null because they refer to free objects.
+        Free list length.
 
      **************************************************************************/
 
-    private size_t n_free;
+    private size_t n_free = 0;
 
     /**************************************************************************
 
-        Consistency check.
+        True while a ParkingStack instance for this instance exists.
 
      **************************************************************************/
 
@@ -50,30 +52,25 @@ class FreeList
 
     /**************************************************************************
 
-        Consistency check.
+        Consistency check and assertion that at most one ParkingStack instance
+        for this instance exists at a time.
 
      **************************************************************************/
 
     invariant ( )
     {
-        assert (this.n_free <= this.free_list.length);
+        if (this.first)
+        {
+            assert (this.n_free);
+        }
+        else
+        {
+            assert (!this.n_free);
+        }
+
         assert (!this.parking_stack_open, "attempted to use the outer " ~
                 typeof (this).stringof ~ " instance of an existing " ~
                 ParkingStack.stringof ~ " instance");
-    }
-
-    /**************************************************************************
-
-        Constructor.
-
-        Params:
-            prealloc_length = initial free_list length for preallocation
-
-     **************************************************************************/
-
-    public this ( size_t prealloc_length = 0 )
-    {
-        this.free_list = new void*[prealloc_length];
     }
 
     /**************************************************************************
@@ -84,7 +81,7 @@ class FreeList
 
     protected override void dispose ( )
     {
-        delete this.free_list;
+        this.first = null;
         this.n_free = 0;
     }
 
@@ -111,7 +108,16 @@ class FreeList
     }
     body
     {
-        return this.n_free? this.get_(--this.n_free) : new_object;
+        if (this.first)
+        {
+            this.n_free--;
+
+            return this.get_();
+        }
+        else
+        {
+            return new_object;
+        }
     }
 
     /**************************************************************************
@@ -136,7 +142,9 @@ class FreeList
     }
     body
     {
-        return this.recycle_(old_object, this.n_free++);
+        scope (success) this.n_free++;
+
+        return this.recycle_(old_object);
     }
 
     /**************************************************************************
@@ -153,32 +161,30 @@ class FreeList
 
     /**************************************************************************
 
-        Sets the preallocated free list buffer length to n. n is rounded up to
-        the current number of objects in the free list.
+        Obtains the next object of object. object is never null but the next
+        object may be.
 
         Params:
-            n = new preallocated free list buffer length
+            object = object of which to obtain the next object (is never null)
 
         Returns:
-            the new free list which is the greater of n and the current number
-            of objects in the free list.
+            the next object (which may be null).
 
      **************************************************************************/
 
-    public size_t minimize ( size_t n = 0 )
-    {
-        if (n < this.n_free)
-        {
-            n = this.n_free;
-        }
+    abstract protected void* getNext ( void* object );
 
-        if (this.free_list.length != n)
-        {
-            this.free_list.length = n;
-        }
+    /**************************************************************************
 
-        return n;
-    }
+        Sets the next object of object. object is never null but next may be.
+
+        Params:
+            object = object to which to set the next object (is never null)
+            next   = next object for object (nay be null)
+
+     **************************************************************************/
+
+    abstract protected void setNext ( void* object, void* next );
 
     /**************************************************************************
 
@@ -192,11 +198,20 @@ class FreeList
 
      **************************************************************************/
 
-    private void* get_ ( size_t n )
+    private void* get_ ( )
+    in
     {
-        scope (exit) this.free_list[n] = null;
+        assert (this.first);
+    }
+    body
+    {
+        void* element = this.first;
 
-        return this.free_list[n];
+        this.first = this.getNext(element);
+
+        this.setNext(element, null);
+
+        return element;
     }
 
     /**************************************************************************
@@ -213,38 +228,11 @@ class FreeList
 
      **************************************************************************/
 
-    private void* recycle_ ( void* object, size_t n )
-    in
+    private void* recycle_ ( void* object )
     {
-        if (n < this.free_list.length)
-        {
-            assert (this.free_list[n] is null, typeof (this).stringof ~ ": the "
-                    "free list element after the list end must be null");
+        this.setNext(object, this.first);
 
-            if (n)
-            {
-                assert (this.free_list[n - 1] !is null, typeof (this).stringof ~
-                        ": the last free list element must not be null");
-            }
-        }
-        else
-        {
-            assert (n == this.free_list.length, typeof (this).stringof ~ ": "
-                    "attempted to insert a gap when appending to the free list");
-        }
-    }
-    body
-    {
-        if (n < this.free_list.length)
-        {
-            this.free_list[n] = object;
-        }
-        else
-        {
-            this.free_list ~= object;
-        }
-
-        return object;
+        return this.first = object;
     }
 
     /**************************************************************************
@@ -265,19 +253,7 @@ class FreeList
 
          **********************************************************************/
 
-        private size_t start, end;
-
-        /**********************************************************************
-
-            Index consistency check.
-
-         **********************************************************************/
-
-        invariant ( )
-        {
-            assert (this.start <= this.end);
-            assert (this.end   <= this.outer.free_list.length);
-        }
+        private size_t n = 0;
 
         /**********************************************************************
 
@@ -288,28 +264,17 @@ class FreeList
 
          **********************************************************************/
 
-        public this ( size_t extent = 0 )
+        public this ( )
         in
         {
             assert (!this.outer.parking_stack_open);
             this.outer.parking_stack_open = true;
         }
-        body
-        {
-            this.start = this.outer.n_free;
-            this.end   = this.start;
-
-            size_t extended = this.start + extent;
-
-            if (this.outer.free_list.length < extended)
-            {
-                this.outer.free_list.length = extended;
-            }
-        }
+        body { }
 
         /**********************************************************************
 
-            Destructor; clears the remaining stack elements.
+            Destructor; removes the remaining stack elements, if any.
 
          **********************************************************************/
 
@@ -320,19 +285,7 @@ class FreeList
         }
         body
         {
-            .clear(this[]);
-        }
-
-        /**********************************************************************
-
-            Returns:
-                the number of objects currently on the stack.
-
-         **********************************************************************/
-
-        size_t length ( )
-        {
-            return this.end - this.start;
+            while (this.pop()) { }
         }
 
         /**********************************************************************
@@ -349,7 +302,9 @@ class FreeList
 
         public void* push ( void* object )
         {
-            return this.outer.recycle_(object, this.end++);
+            scope (success) this.n++;
+
+            return this.outer.recycle_(object);
         }
 
         /**********************************************************************
@@ -363,19 +318,16 @@ class FreeList
 
         public void* pop ( )
         {
-            return (this.start < this.end)? this.outer.get_(--this.end) : null;
-        }
+            if (this.n)
+            {
+                scope (success) this.n--;
 
-        /**********************************************************************
-
-            Returns:
-                the current stack content.
-
-         **********************************************************************/
-
-        public void*[] opSlice ( )
-        {
-            return this.outer.free_list[this.start .. this.end];
+                return this.outer.get_();
+            }
+            else
+            {
+                return null;
+            }
         }
 
         /**********************************************************************
