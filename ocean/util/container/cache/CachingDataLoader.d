@@ -143,12 +143,40 @@ abstract class CachingDataLoaderBase
                          if ( data || this.add_empty_values )
                          {
                              value_in_cache = this.cache_.createRaw(key);
-                             value_out = this.loadRaw((*value_in_cache)[] = data[]);
+                             value_out = this.store(key, data, *value_in_cache);
                          }
                      });
 
             return value_out;
         }
+    }
+
+    /**************************************************************************
+
+        Copies data into value_in_cache, then deserializes it. Deletes the cache
+        entry on deserialization error.
+        If, as in many use cases, data contains a serialized value of a type T
+        that is not a dynamic array, the value can be obtained by casting the
+        .ptr of the returned array to T*. (This pointer will be null if data is
+        null or empty.)
+
+        Params:
+            key  = cache element key
+            data = data to store in the cache and deserialize
+
+        Returns:
+            the deseralized data or null of data is null or empty.
+
+        Throws:
+            StructLoaderException on error deserializing data.
+
+     **************************************************************************/
+
+    private void[] store ( hash_t key, void[] data, ref Cache.Value value_in_cache )
+    {
+        scope (failure) this.cache_.remove(key);
+
+        return this.loadRaw(value_in_cache[] = data[]);
     }
 
     /**************************************************************************
