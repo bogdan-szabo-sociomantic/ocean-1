@@ -246,6 +246,7 @@ class Application : IApplication
     public int main(char[][] args)
     {
         ExitException exit_except = null;
+        this.args = args;
 
         try
         {
