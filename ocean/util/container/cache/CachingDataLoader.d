@@ -128,26 +128,56 @@ abstract class CachingDataLoaderBase
     protected void[] load ( hash_t key,
         void delegate ( void delegate ( void[] data ) got ) get_data )
     {
-        auto value_in_cache = this.cache_.getRaw(key);
-
-        if (value_in_cache)
+        if (this.add_empty_values)
         {
-            return this.loadRaw((*value_in_cache)[]);
+            /*
+             * If any value is stored in the map, even an empty value if the
+             * element was not found in the external source, we can save a
+             * lookup by using  getOrCreateRaw().
+             */
+
+            bool existed;
+
+            auto value_in_cache = this.cache_.getOrCreateRaw(key, existed);
+
+            if (existed)
+            {
+                return this.loadRaw((*value_in_cache)[]);
+            }
+            else
+            {
+                void[] value_out = null;
+
+                get_data((void[] data)
+                         {
+                             value_out = this.store(key, data, *value_in_cache);
+                         });
+
+                return value_out;
+            }
         }
         else
         {
-            void[] value_out = null;
+            auto value_in_cache = this.cache_.getRaw(key);
 
-            get_data((void[] data)
-                     {
-                         if ( data || this.add_empty_values )
+            if (value_in_cache)
+            {
+                return this.loadRaw((*value_in_cache)[]);
+            }
+            else
+            {
+                void[] value_out = null;
+
+                get_data((void[] data)
                          {
-                             value_in_cache = this.cache_.createRaw(key);
-                             value_out = this.store(key, data, *value_in_cache);
-                         }
-                     });
+                             if ( data.length )
+                             {
+                                 value_out = this.store(key, data, *this.cache_.createRaw(key));
+                             }
+                         });
 
-            return value_out;
+                return value_out;
+            }
         }
     }
 
