@@ -261,14 +261,15 @@ class StructLoader
              src = data of a serialized S instance
 
          Returns:
-             deserialized S instance
+             the slice to the beginning of src which contains the deserialized
+             struct instance.
 
          Throws:
              StructLoaderException if src is too short or the length of a
              dynamic array is greater than max_length.
 
         Out:
-            The returned buffer is src.
+            The returned buffer slices src from the beginning.
 
      **************************************************************************/
 
@@ -381,17 +382,16 @@ class StructLoader
                                dst.length to the actual referenced content
 
          Returns:
-             a slice to the valid content in dst.
+             the slice to the beginning of dst which contains the deserialized
+             struct instance.
 
          Throws:
              StructLoaderException if src is too short or the length of a
              dynamic array is greater than max_length.
 
         Out:
-            - If only_extend_dst = false, the returned slice is dst, otherwise
-              it is the beginning of dst.
-            - The length of the returned slice (and therefore dst) is at least
-              src.length.
+            If only_extend_dst = false, the returned slice is dst, otherwise it
+            is the beginning of dst.
 
      **************************************************************************/
 
@@ -492,7 +492,10 @@ class StructLoader
                                dst.length to the actual referenced content
 
          Returns:
-             a slice to the valid content in src.
+             the slice to the beginning of src which contains the deserialized
+             struct instance. All branched arrays of non-zero length in the
+             deserialized S instance will reference data in slices_buffer, which
+             in turn reference data in src.
 
          Throws:
              StructLoaderException if src is too short or the length of a
