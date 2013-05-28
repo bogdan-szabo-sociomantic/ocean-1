@@ -265,7 +265,7 @@ public class AppStatus
 
     public void displayStaticLines ( )
     {
-        this.checkHeight();
+        this.checkCursorPosition();
 
         foreach ( line; this.static_lines )
         {
@@ -604,7 +604,7 @@ public class AppStatus
 
     ***************************************************************************/
 
-    private void checkHeight ( )
+    private void checkCursorPosition ( )
     {
         if ( this.old_terminal_size != Terminal.rows )
         {
