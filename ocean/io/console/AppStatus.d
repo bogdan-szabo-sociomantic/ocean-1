@@ -280,8 +280,7 @@ public class AppStatus
         {
             if ( line.length )
             {
-                this.checkLength(line);
-                Stdout.format(line);
+                Stdout.format(this.truncateLength(line));
             }
             Stdout.clearline.cr.flush.up;
         }
@@ -507,9 +506,8 @@ public class AppStatus
         this.formatMemoryUsage();
         this.formatCpuUsage();
 
-        this.checkLength(this.heading_line);
-        Stdout.bold(true).format(this.heading_line).bold(false).
-            clearline.cr.flush;
+        Stdout.bold(true).format(this.truncateLength(this.heading_line)).
+            bold(false).clearline.cr.flush;
     }
 
 
@@ -572,8 +570,8 @@ public class AppStatus
         Layout!(char).print(this.footer_line, "Version {} built on {} by {}",
             this.app_version, this.app_build_date, this.app_build_author);
 
-        this.checkLength(this.footer_line);
-        Stdout.bold(true).format(this.footer_line).bold(false);
+        Stdout.bold(true).format(this.truncateLength(this.footer_line)).
+            bold(false);
     }
 
 
@@ -584,15 +582,19 @@ public class AppStatus
 
         Params:
             buffer = buffer to check the length of
+    
+        Returns:
+            the truncated buffer
 
     ***************************************************************************/
 
-    private void checkLength ( ref char[] buffer )
+    private char[] truncateLength ( ref char[] buffer )
     {
         if ( buffer.length > Terminal.columns )
         {
             buffer.length = Terminal.columns;
         }
+        return buffer;
     }
 
 
