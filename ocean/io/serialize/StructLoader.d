@@ -290,16 +290,14 @@ class StructLoader
             StructLoaderException.assertEx!(S, "data buffer too short to store branched array instances")
                                            (this.e, src.length >= data_len + slices_len, __FILE__, __LINE__);
 
-            void[] slices_buffer = src[data_len .. data_len + slices_len];
+            this.setSlices_!(S, allow_branched_arrays)(src[0 .. data_len], src[data_len .. data_len + slices_len]);
             
-            src = src[0 .. data_len];
+            return src[0 .. data_len + slices_len];
         }
         else
         {
-            const void[] slices_buffer = null;
+            return this.setSlices_!(S, allow_branched_arrays)(src, null);
         }
-
-        return this.setSlices_!(S, allow_branched_arrays)(src, slices_buffer);
     }
     
     /***************************************************************************
@@ -442,7 +440,9 @@ class StructLoader
          * buffers for the dynamic array instances.
          */
 
-        return this.setSlices_!(S, true)(actual_dst[0 .. data_len], actual_dst[data_len .. $]);
+        this.setSlices_!(S, true)(actual_dst[0 .. data_len], actual_dst[data_len .. $]);
+
+        return actual_dst;
     }
 
     /***************************************************************************
