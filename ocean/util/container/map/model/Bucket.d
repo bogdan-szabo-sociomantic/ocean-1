@@ -31,7 +31,13 @@
 
 module ocean.util.container.map.model.Bucket;
 
+/*******************************************************************************
 
+    Imports
+
+*******************************************************************************/
+
+private import tango.core.Traits: isStaticArrayType;
 
 /*******************************************************************************
 
@@ -213,10 +219,8 @@ public struct Bucket ( size_t V, K = hash_t )
         {
             element = this.add(new_element);
 
-            static if (is(K Base : Base[]) && !is(K == Base[]))
+            static if (isStaticArrayType!(K))
             {
-                // K is a static array
-
                 element.key[] = key;
             }
             else
