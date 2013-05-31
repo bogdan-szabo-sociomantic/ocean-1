@@ -819,7 +819,8 @@ struct ClassIterator ( T, Source = ConfigParser )
         {
             scope T instance = new T;
 
-            if ( key.length > root.length && key[0 .. root.length] == root )
+            if ( key.length > root.length && key[0 .. root.length] == root &&
+                 key[root.length] == '.' )
             {
                 fill(key, instance, config);
 
@@ -919,6 +920,43 @@ public ClassIterator!(T) iterate ( T, Source = ConfigParser )
                                  ( char[] root, Source config = null )
 {
     return ClassIterator!(T, Source)(config, root);
+}
+
+debug ( OceanUnitTest )
+{
+    private import ocean.util.Unittest;
+
+    class DummyParser : ConfigParser
+    {
+        char[][] categories = ["ROOT.valid", "ROOT-invalid", "ROOT_invalid",
+                                "ROOTINVALID"];
+
+        override public int opApply ( int delegate ( ref char[] key ) dg )
+        {
+            int result;
+            foreach ( cat ; categories )
+            {
+                result = dg(cat);
+                if (result) break;
+            }
+
+            return result;
+        }
+    }
+
+    class Dummy {};
+
+    unittest
+    {
+        auto iter = iterate!(Dummy)("ROOT", new DummyParser);
+
+        scope t = new Unittest(__FILE__, "Config.ClassFiller");
+
+        foreach ( name, conf; iter )
+        {
+            t.assertLog(name == "valid", __LINE__);
+        }
+    }
 }
 
 /*******************************************************************************
