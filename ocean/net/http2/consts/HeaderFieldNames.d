@@ -142,6 +142,7 @@ struct HeaderFieldNames
         "Accept-Ranges",        "Age",              "ETag",
         "Location",             "Proxy-Authenticate","Retry-After",
         "Server",               "Vary",             "WWW-Authenticate",
+        "Allow",                "Content-Encoding", "Content-Language",
         "Content-Length",       "Content-Location", "Content-MD5",
         "Content-Range",        "Content-Type",     "Expires",
         "Last-Modified",        "Set-Cookie"
@@ -241,4 +242,69 @@ struct HeaderFieldNames
 
         this.EntityNameList = this.EntityNameList_;
     }
+
+    // Assertion check for the struct members
+
+    static assert(General.Names.CacheControl == "Cache-Control");
+    static assert(General.Names.Connection == "Connection");
+    static assert(General.Names.Date == "Date");
+    static assert(General.Names.Pragma == "Pragma");
+    static assert(General.Names.Trailer == "Trailer");
+    static assert(General.Names.TransferEncoding == "Transfer-Encoding");
+    static assert(General.Names.Upgrade == "Upgrade");
+    static assert(General.Names.Via == "Via");
+    static assert(General.Names.Warning == "Warning");
+
+    static assert(Request.Names.Accept == "Accept");
+    static assert(Request.Names.AcceptCharset == "Accept-Charset");
+    static assert(Request.Names.AcceptEncoding == "Accept-Encoding");
+    static assert(Request.Names.AcceptLanguage == "Accept-Language");
+    static assert(Request.Names.Authorization == "Authorization");
+    static assert(Request.Names.Cookie == "Cookie");
+    static assert(Request.Names.Expect == "Expect");
+    static assert(Request.Names.From == "From");
+    static assert(Request.Names.Host == "Host");
+    static assert(Request.Names.IfMatch == "If-Match");
+    static assert(Request.Names.IfModifiedSince == "If-Modified-Since");
+    static assert(Request.Names.IfNoneMatch == "If-None-Match");
+    static assert(Request.Names.IfRange == "If-Range");
+    static assert(Request.Names.IfUnmodifiedSince == "If-Unmodified-Since");
+    static assert(Request.Names.MaxForwards == "Max-Forwards");
+    static assert(Request.Names.ProxyAuthorization == "Proxy-Authorization");
+    static assert(Request.Names.Range == "Range");
+    static assert(Request.Names.Referer == "Referer");
+    static assert(Request.Names.TE == "TE");
+    static assert(Request.Names.UserAgent == "User-Agent");
+
+    static assert(Response.Names.AcceptRanges == "Accept-Ranges");
+    static assert(Response.Names.Age == "Age");
+    static assert(Response.Names.ETag == "ETag");
+    static assert(Response.Names.Location == "Location");
+    static assert(Response.Names.ProxyAuthenticate == "Proxy-Authenticate");
+    static assert(Response.Names.RetryAfter == "Retry-After");
+    static assert(Response.Names.Server == "Server");
+    static assert(Response.Names.Vary == "Vary");
+    static assert(Response.Names.WwwAuthenticate == "WWW-Authenticate");
+    static assert(Response.Names.Allow == "Allow");
+    static assert(Response.Names.ContentEncoding == "Content-Encoding");
+    static assert(Response.Names.ContentLanguage == "Content-Language");
+    static assert(Response.Names.ContentLength == "Content-Length");
+    static assert(Response.Names.ContentLocation == "Content-Location");
+    static assert(Response.Names.ContentMD5 == "Content-MD5");
+    static assert(Response.Names.ContentRange == "Content-Range");
+    static assert(Response.Names.ContentType == "Content-Type");
+    static assert(Response.Names.Expires == "Expires");
+    static assert(Response.Names.LastModified == "Last-Modified");
+    static assert(Response.Names.SetCookie == "Set-Cookie");
+
+    static assert(Entity.Names.Allow == "Allow");
+    static assert(Entity.Names.ContentEncoding == "Content-Encoding");
+    static assert(Entity.Names.ContentLanguage == "Content-Language");
+    static assert(Entity.Names.ContentLength == "Content-Length");
+    static assert(Entity.Names.ContentLocation == "Content-Location");
+    static assert(Entity.Names.ContentMD5 == "Content-MD5");
+    static assert(Entity.Names.ContentRange == "Content-Range");
+    static assert(Entity.Names.ContentType == "Content-Type");
+    static assert(Entity.Names.Expires == "Expires");
+    static assert(Entity.Names.LastModified == "Last-Modified");
 }
