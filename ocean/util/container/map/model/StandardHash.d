@@ -87,15 +87,15 @@ struct StandardHash
 
     static if (is (hash_t == uint))
     {
-        const hash_t fnv1a_prime = 0x0100_0193, // 32 bit fnv1a_prime
-                     fnv1a_init  = 0x811C_9DC5; // 32 bit inital digest
+        const hash_t fnv1a_prime = 0x0100_0193, // 32 bit fnv1a prime
+                     fnv1a_init  = 0x811C_9DC5; // 32 bit initial digest
     }
     else
     {
         static assert (is (hash_t == ulong));
 
-        const hash_t fnv1a_prime = 0x0000_0100_0000_01B3, // 32 bit fnv1a_prime
-                     fnv1a_init  = 0xCBF2_9CE4_8422_2325; // 32 bit inital digest
+        const hash_t fnv1a_prime = 0x0000_0100_0000_01B3, // 64 bit fnv1a prime
+                     fnv1a_init  = 0xCBF2_9CE4_8422_2325; // 64 bit initial digest
     }
 
     /**************************************************************************
