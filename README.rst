@@ -22,6 +22,16 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+New Features
+^^^^^^^^^^^^
+
+``ocean.db.drizzle.RecordParser``
+  Add a try/catch when parsing results from a char array to the relevant field
+  of the result struct in the ``setField`` method. If an exception is caught
+  set the field of the result struct to the init value of that field. The
+  constructor can also optionally take an error notifier which is called when
+  an exception is caught. These changes do not require changes to application
+  code.
 
 v1.3 (2013-05-29)
 -----------------

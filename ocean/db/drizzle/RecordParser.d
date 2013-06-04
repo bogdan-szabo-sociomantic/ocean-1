@@ -155,6 +155,18 @@ public scope class RecordParser ( R )
 
     /***************************************************************************
 
+        Delegate to use to notify the calling application of any errors when
+        parsing a result from a character array to the record struct
+
+    ***************************************************************************/
+
+    private alias void delegate ( char[] exc, char[] name, char[] val ) ErrorNotifier;
+
+    private const ErrorNotifier error_notifier;
+
+
+    /***************************************************************************
+
         List of setter delegates. This list is initialised in the constructor
         to contain an in-order list of the protected setter methods which are
         mixed in with the Setters template. Thus the setter methods can be
@@ -185,7 +197,8 @@ public scope class RecordParser ( R )
         const SetMethod =
             "protected void " ~ FieldName!(field_index, R) ~ "(ref R record, char[] val)"
             "{"
-            "setField(&record." ~  FieldName!(field_index, R) ~ ", val);"
+            "this.setField(&record." ~  FieldName!(field_index, R) ~ 
+                ", FieldName!(" ~ ctfe_i2a(field_index) ~ ", R), val);"
             "}";
     }
 
@@ -295,10 +308,15 @@ public scope class RecordParser ( R )
 
         Constructor. Sets all of the setter methods in the list of setters.
 
+        Params:
+            error_notifier = the error notifier delegate to be called when
+                             parsing a result row
+
     ***************************************************************************/
 
-    public this ( )
+    public this ( ErrorNotifier error_notifier = null )
     {
+        this.error_notifier = error_notifier;
 //    pragma(msg, "SetSetters: " ~ SetSetters!(0, R, typeof(R.tupleof)));
         mixin(SetSetters!(0, R, typeof(R.tupleof)));
     }
@@ -432,28 +450,31 @@ public scope class RecordParser ( R )
     /***************************************************************************
 
         Parses a field from a result row and fills in a member of a record
-        struct.
+        struct. If the conversion from the character array to the member of the
+        record struct throws an exception, set the record struct member to the
+        default (init) value and call the error notifier if it has been set.
 
         Template params:
             T = type of struct member being set
 
         Params:
             field = pointer to the struct member being set
+            name = the name of the field from the result row
             value = field from result row to parse
 
     ***************************************************************************/
 
-    static private void setField ( T ) ( T* field, char[] value )
+    private void setField ( T ) ( T* field, char[] name, char[] value )
     {
         static assert(!isCompoundType!(T),
                 This.stringof ~ "!(" ~ R.stringof ~ "): Recursion into compound member of type " ~ T.stringof ~ " not supported");
-        
+
         try
         {
             static if ( is ( T : char[] ) )
             {
                 (*field).copy(value);
-            }   
+            }
             else static if ( is ( T V == enum ) )
             {
                 (*field) = cast(T)Integer.toLong(value);
@@ -486,6 +507,11 @@ public scope class RecordParser ( R )
         catch ( IllegalArgumentException exc )
         {
             (*field) = (*field).init;
+
+            if ( this.error_notifier !is null )
+            {
+                this.error_notifier(exc.msg, name, value);
+            }
         }
     }
 }
