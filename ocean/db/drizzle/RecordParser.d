@@ -108,6 +108,8 @@ private import ocean.core.Traits;
 
 private import tango.core.Traits;
 
+private import tango.core.Exception;
+
 private import Integer = tango.text.convert.Integer;
 private import Float = tango.text.convert.Float;
 
@@ -445,38 +447,45 @@ public scope class RecordParser ( R )
     {
         static assert(!isCompoundType!(T),
                 This.stringof ~ "!(" ~ R.stringof ~ "): Recursion into compound member of type " ~ T.stringof ~ " not supported");
-
-        static if ( is ( T : char[] ) )
+        
+        try
         {
-            (*field).copy(value);
+            static if ( is ( T : char[] ) )
+            {
+                (*field).copy(value);
+            }   
+            else static if ( is ( T V == enum ) )
+            {
+                (*field) = cast(T)Integer.toLong(value);
+            }
+            else static if ( is(T == bool) )
+            {
+                (*field) = !(value == "0" || value == "false");
+            }
+            else static if ( isIntegerType!(T) )
+            {
+                (*field) = Integer.toLong(value);
+            }
+            else static if ( isRealType!(T) )
+            {
+                (*field) = Float.toFloat(value);
+            }
+            else static if ( is(T == typedef) && is(T : double) && !is( T : int))
+            {
+                (*field) = Float.toFloat(value);
+            }
+            else static if ( is(T == typedef) && is( T : int))
+            {
+                (*field) = cast(T)(Integer.toLong(value));
+            }
+            else
+            {
+                static assert(false, This.stringof ~ "!(" ~ R.stringof ~ "): Unhandled type: " ~ T.stringof);
+            }
         }
-        else static if ( is ( T V == enum ) )
+        catch ( IllegalArgumentException exc )
         {
-            (*field) = cast(T)Integer.toLong(value);
-        }
-        else static if ( is(T == bool) )
-        {
-            (*field) = !(value == "0" || value == "false");
-        }
-        else static if ( isIntegerType!(T) )
-        {
-            (*field) = Integer.toLong(value);
-        }
-        else static if ( isRealType!(T) )
-        {
-            (*field) = Float.toFloat(value);
-        }
-        else static if ( is(T == typedef) && is(T : double) && !is( T : int))
-        {
-            (*field) = Float.toFloat(value);
-        }
-        else static if ( is(T == typedef) && is( T : int))
-        {
-            (*field) = cast(T)(Integer.toLong(value));
-        }
-        else
-        {
-            static assert(false, This.stringof ~ "!(" ~ R.stringof ~ "): Unhandled type: " ~ T.stringof);
+            (*field) = (*field).init;
         }
     }
 }
