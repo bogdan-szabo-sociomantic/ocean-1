@@ -31,6 +31,7 @@ module ocean.io.select.EpollSelectDispatcher;
 
 *******************************************************************************/
 
+private import ocean.io.select.model.IEpollSelectDispatcherInfo;
 private import ocean.io.select.model.ISelectClient;
 
 private import ocean.io.select.event.SelectEvent;
@@ -60,7 +61,7 @@ private import ocean.util.log.Trace;
 
 *******************************************************************************/
 
-public class EpollSelectDispatcher
+public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 {
     /***************************************************************************
 
@@ -481,6 +482,20 @@ public class EpollSelectDispatcher
             }
             throw e;
         }
+    }
+
+    /**************************************************************************
+
+        IEpollSelectDispatcherInfo interface method.
+
+        Returns:
+            the number of clients registered with the select dispatcher
+
+     **************************************************************************/
+
+    public size_t num_registered ( )
+    {
+        return this.registered_clients.length;
     }
 
     /**************************************************************************
