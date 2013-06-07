@@ -33,6 +33,15 @@ New Features
   an exception is caught. These changes do not require changes to application
   code.
 
+``ocean.io.select.EpollSelectDispatcher``
+  ``EpollSelectDispatcher`` now also implements the interface
+  ``IEpollSelectDispatcherInfo`` (``ocean.io.select.model.IEpollSelectDispatcherInfo``),
+  which contains methods to provide information about the state of the select
+  dispatcher. This interface allows the separation of purely informational
+  access to the select dispatcher from "destructive" use of it (i.e. methods
+  which can actually modify its state). Currently only a single method
+  (``num_registered()``) exists in the interface.
+
 v1.3 (2013-05-29)
 -----------------
 
