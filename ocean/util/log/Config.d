@@ -64,7 +64,7 @@
     ----
         import Log = ocean.util.log.Config;
         // ...
-        Log.configureLoggers(Config().iterateClasses!(Log.Config)("LOG"),
+        Log.configureLoggers(Config().iterateCategory!(Log.Config)("LOG"),
                              Config().get!(Log.MetaConfig)("LOG"));
     ----
 
