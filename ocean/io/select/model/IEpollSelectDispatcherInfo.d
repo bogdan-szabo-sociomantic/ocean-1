@@ -16,6 +16,39 @@ module ocean.io.select.model.IEpollSelectDispatcherInfo;
 
 public interface IEpollSelectDispatcherInfo
 {
+    /***************************************************************************
+
+        Returns:
+            the number of currently registered clients
+
+    ***************************************************************************/
+
     size_t num_registered ( );
+
+
+    version ( EpollCounters )
+    {
+        /***********************************************************************
+
+            Returns:
+                the number of select calls (epoll_wait()) since the instance was
+                created (or since the ulong counter wrapped)
+
+        ***********************************************************************/
+
+        ulong selects ( );
+
+
+        /***********************************************************************
+
+            Returns:
+                the number of select calls (epoll_wait()) which exited due to a
+                timeout (as opposed to a client firing) since the instance was
+                created (or since the ulong counter wrapped)
+
+        ***********************************************************************/
+
+        ulong timeouts ( );
+    }
 }
 

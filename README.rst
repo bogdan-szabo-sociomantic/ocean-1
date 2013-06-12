@@ -40,7 +40,9 @@ New Features
   dispatcher. This interface allows the separation of purely informational
   access to the select dispatcher from "destructive" use of it (i.e. methods
   which can actually modify its state). Currently only a single method
-  (``num_registered()``) exists in the interface.
+  (``num_registered()``) exists in the interface by default, but additional
+  methods (``selects()`` and ``timeouts()``) can be added by compiling with
+  version = EpollCounters.
 
 v1.3 (2013-05-29)
 -----------------

@@ -184,6 +184,23 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
     private bool in_event_loop;
 
+    version ( EpollCounters )
+    {
+        /***********************************************************************
+
+            Struct containing counters to track stats about the selector.
+
+        ***********************************************************************/
+
+        private struct Counters
+        {
+            ulong selects;
+            ulong timeouts;
+        }
+
+        private Counters counters;
+    }
+
     /***************************************************************************
 
         Constructor
@@ -498,6 +515,37 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         return this.registered_clients.length;
     }
 
+    version ( EpollCounters )
+    {
+        /***********************************************************************
+
+            Returns:
+                the number of select calls (epoll_wait()) since the instance was
+                created (or since the ulong counter wrapped)
+
+        ***********************************************************************/
+
+        public ulong selects ( )
+        {
+            return this.counters.selects;
+        }
+
+
+        /***********************************************************************
+
+            Returns:
+                the number of select calls (epoll_wait()) which exited due to a
+                timeout (as opposed to a client firing) since the instance was
+                created (or since the ulong counter wrapped)
+
+        ***********************************************************************/
+
+        public ulong timeouts ( )
+        {
+            return this.counters.timeouts;
+        }
+    }
+
     /**************************************************************************
 
         Modifies the registration of client using EPOLL_CTL_MOD.
@@ -687,6 +735,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
             // n == 0).
 
             int n = this.epoll.wait(this.events, have_timeout? cast (int) this.usToMs(us_left) : -1);
+            version ( EpollCounters ) this.counters.selects++;
 
             if (n >= 0)
             {
@@ -697,6 +746,8 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
                 }
 
                 this.separateClientLists(events[0 .. n], have_timeout);
+
+                version ( EpollCounters ) if ( n == 0 ) this.counters.timeouts++;
 
                 return n;
             }
