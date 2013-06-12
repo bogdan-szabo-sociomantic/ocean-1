@@ -544,6 +544,18 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         {
             return this.counters.timeouts;
         }
+
+
+        /***********************************************************************
+
+            Resets the counters returned by selects() and timeouts().
+
+        ***********************************************************************/
+
+        public void resetCounters ( )
+        {
+            this.counters = this.counters.init;
+        }
     }
 
     /**************************************************************************

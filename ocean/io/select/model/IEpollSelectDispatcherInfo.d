@@ -49,6 +49,15 @@ public interface IEpollSelectDispatcherInfo
         ***********************************************************************/
 
         ulong timeouts ( );
+
+
+        /***********************************************************************
+
+            Resets the counters returned by selects() and timeouts().
+
+        ***********************************************************************/
+
+        void resetCounters ( );
     }
 }
 
