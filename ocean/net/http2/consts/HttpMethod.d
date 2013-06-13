@@ -130,4 +130,46 @@ struct HttpMethodNames
 
         this.methods_by_name.rehash;
     }
+
+    /**************************************************************************/
+
+    unittest
+    {
+        static assert(this.List[HttpMethod.Get]     == "GET");
+        static assert(this.List[HttpMethod.Head]    == "HEAD");
+        static assert(this.List[HttpMethod.Post]    == "POST");
+        static assert(this.List[HttpMethod.Put]     == "PUT");
+        static assert(this.List[HttpMethod.Delete]  == "DELETE");
+        static assert(this.List[HttpMethod.Trace]   == "TRACE");
+        static assert(this.List[HttpMethod.Connect] == "CONNECT");
+        static assert(this.List[HttpMethod.Options] == "OPTIONS");
+
+        static assert(!this.List[HttpMethod.Undefined].length);
+
+        assert(typeof(*this)[HttpMethod.Get]     == "GET");
+        assert(typeof(*this)[HttpMethod.Head]    == "HEAD");
+        assert(typeof(*this)[HttpMethod.Post]    == "POST");
+        assert(typeof(*this)[HttpMethod.Put]     == "PUT");
+        assert(typeof(*this)[HttpMethod.Delete]  == "DELETE");
+        assert(typeof(*this)[HttpMethod.Trace]   == "TRACE");
+        assert(typeof(*this)[HttpMethod.Connect] == "CONNECT");
+        assert(typeof(*this)[HttpMethod.Options] == "OPTIONS");
+
+        assert(!typeof(*this)[HttpMethod.Undefined].length);
+
+        assert(typeof(*this)[cast(HttpMethod)(HttpMethod.max + 1)] is null);
+
+        assert(typeof(*this)["GET"]     == HttpMethod.Get);
+        assert(typeof(*this)["HEAD"]    == HttpMethod.Head);
+        assert(typeof(*this)["POST"]    == HttpMethod.Post);
+        assert(typeof(*this)["PUT"]     == HttpMethod.Put);
+        assert(typeof(*this)["DELETE"]  == HttpMethod.Delete);
+        assert(typeof(*this)["TRACE"]   == HttpMethod.Trace);
+        assert(typeof(*this)["CONNECT"] == HttpMethod.Connect);
+        assert(typeof(*this)["OPTIONS"] == HttpMethod.Options);
+
+        assert(typeof(*this)["SPAM"]    == HttpMethod.Undefined);
+        assert(typeof(*this)[""]        == HttpMethod.Undefined);
+        assert(typeof(*this)[null]      == HttpMethod.Undefined);
+    }
 }
