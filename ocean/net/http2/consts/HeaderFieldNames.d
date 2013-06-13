@@ -41,9 +41,15 @@ struct HeaderFieldNames
 
     const General GeneralNames =
     {
-        "Cache-Control",        "Connection",       "Date",
-        "Pragma",               "Trailer",          "Transfer-Encoding",
-        "Upgrade",              "Via",              "Warning"
+        CacheControl:     "Cache-Control",
+        Connection:       "Connection",
+        Date:             "Date",
+        Pragma:           "Pragma",
+        Trailer:          "Trailer",
+        TransferEncoding: "Transfer-Encoding",
+        Upgrade:          "Upgrade",
+        Via:              "Via",
+        Warning:          "Warning"
     };
 
     /**************************************************************************
@@ -88,13 +94,26 @@ struct HeaderFieldNames
 
     const Request RequestNames =
     {
-        "Accept",              "Accept-Charset",      "Accept-Encoding",
-        "Accept-Language",     "Authorization",       "Cookie",
-        "Expect",              "From",                "Host",
-        "If-Match",            "If-Modified-Since",   "If-None-Match",
-        "If-Range",            "If-Unmodified-Since", "Max-Forwards",
-        "Proxy-Authorization", "Range",               "Referer",
-        "TE",                  "User-Agent"
+        Accept:             "Accept",
+        AcceptCharset:      "Accept-Charset",
+        AcceptEncoding:     "Accept-Encoding",
+        AcceptLanguage:     "Accept-Language",
+        Authorization:      "Authorization",
+        Cookie:             "Cookie",
+        Expect:             "Expect",
+        From:               "From",
+        Host:               "Host",
+        IfMatch:            "If-Match",
+        IfModifiedSince:    "If-Modified-Since",
+        IfNoneMatch:        "If-None-Match",
+        IfRange:            "If-Range",
+        IfUnmodifiedSince:  "If-Unmodified-Since",
+        MaxForwards:        "Max-Forwards",
+        ProxyAuthorization: "Proxy-Authorization",
+        Range:              "Range",
+        Referer:            "Referer",
+        TE:                 "TE",
+        UserAgent:          "User-Agent"
     };
 
     /**************************************************************************
@@ -139,13 +158,26 @@ struct HeaderFieldNames
 
     const Response ResponseNames =
     {
-        "Accept-Ranges",        "Age",              "ETag",
-        "Location",             "Proxy-Authenticate","Retry-After",
-        "Server",               "Vary",             "WWW-Authenticate",
-        "Allow",                "Content-Encoding", "Content-Language",
-        "Content-Length",       "Content-Location", "Content-MD5",
-        "Content-Range",        "Content-Type",     "Expires",
-        "Last-Modified",        "Set-Cookie"
+        AcceptRanges:      "Accept-Ranges",
+        Age:               "Age",
+        ETag:              "ETag",
+        Location:          "Location",
+        ProxyAuthenticate: "Proxy-Authenticate",
+        RetryAfter:        "Retry-After",
+        Server:            "Server",
+        Vary:              "Vary",
+        WwwAuthenticate:   "WWW-Authenticate",
+        Allow:             "Allow",
+        ContentEncoding:   "Content-Encoding",
+        ContentLanguage:   "Content-Language",
+        ContentLength:     "Content-Length",
+        ContentLocation:   "Content-Location",
+        ContentMD5:        "Content-MD5",
+        ContentRange:      "Content-Range",
+        ContentType:       "Content-Type",
+        Expires:           "Expires",
+        LastModified:      "Last-Modified",
+        SetCookie:         "Set-Cookie"
     };
 
     /**************************************************************************
@@ -187,10 +219,16 @@ struct HeaderFieldNames
 
     const Entity EntityNames =
     {
-        "Allow",                "Content-Encoding", "Content-Language",
-        "Content-Length",       "Content-Location", "Content-MD5",
-        "Content-Range",        "Content-Type",     "Expires",
-        "Last-Modified"
+        Allow:           "Allow",
+        ContentEncoding: "Content-Encoding",
+        ContentLanguage: "Content-Language",
+        ContentLength:   "Content-Length",
+        ContentLocation: "Content-Location",
+        ContentMD5:      "Content-MD5",
+        ContentRange:    "Content-Range",
+        ContentType:     "Content-Type",
+        Expires:         "Expires",
+        LastModified:    "Last-Modified"
     };
 
     /**************************************************************************

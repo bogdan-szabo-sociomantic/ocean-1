@@ -33,7 +33,12 @@ struct CookieAttributeNames
 
 const CookieAttributeNames CookieAttributeNameStrings =
 {
-     "comment", "domain", "expires", "path", "secure", "version"
+    Comment: "comment",
+    Domain:  "domain",
+    Expires: "expires",
+    Path:    "path",
+    Secure:  "secure",
+    Version: "version"
 };
 
 const char[][] CookieAttributeNameList;
