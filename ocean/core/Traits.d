@@ -14,7 +14,13 @@
 
 module ocean.core.Traits;
 
+/*******************************************************************************
 
+    Imports.
+
+*******************************************************************************/
+
+private import tango.core.Tuple: Tuple;
 
 /*******************************************************************************
 
@@ -540,4 +546,68 @@ template ContainsDynamicArray ( T ... )
     {
         const ContainsDynamicArray = false;
     }
+}
+
+
+/*******************************************************************************
+
+    Evaluates, if T is callable (function, delegate, a class/interface/struct/
+    union implementing opCall() as a member or static method or a typedef of
+    these), to a type tuple with the return type as the first element, followed
+    by the argument types.
+    Evaluates to an empty tuple if T is not callable.
+
+    Template parameter:
+        T = Type to, if callable, get the return and argument types
+
+    Evaluates to:
+        a type tuple containing the return and argument types or an empty tuple
+        if T is not callable.
+
+*******************************************************************************/
+
+template ReturnAndArgumentTypesOf ( T )
+{
+    static if (is(T Args == function) && is(T Return == return))
+    {
+        alias Tuple!(Return, Args) ReturnAndArgumentTypesOf;
+    }
+    else static if (is(T F == delegate) || is(T F == F*) ||
+                    is(T F == typedef)  || is(typeof(&(T.init.opCall)) F))
+    {
+        alias ReturnAndArgumentTypesOf!(F) ReturnAndArgumentTypesOf;
+    }
+    else
+    {
+        alias Tuple!() ReturnAndArgumentTypesOf;
+    }
+}
+
+/******************************************************************************/
+
+unittest
+{
+    static assert(is(ReturnAndArgumentTypesOf!(void) == Tuple!()));
+    static assert(is(ReturnAndArgumentTypesOf!(int) == Tuple!()));
+    static assert(is(ReturnAndArgumentTypesOf!(void function()) == Tuple!(void)));
+    static assert(is(ReturnAndArgumentTypesOf!(int function(char)) == Tuple!(int, char)));
+    static if (is(int function(char) T: T*))
+    {
+        static assert(is(ReturnAndArgumentTypesOf!(T) == Tuple!(int, char)));
+    }
+    static assert(is(ReturnAndArgumentTypesOf!(int delegate(char)) == Tuple!(int, char)));
+
+    class C {int opCall(char){return 0;}}
+    class D {static int opCall(char){return 0;}}
+    class E {int opCall;}
+    interface I {int opCall(char);}
+    struct S {int opCall(char){return 0;}}
+    union U {int opCall(char){return 0;}}
+
+    static assert(is(ReturnAndArgumentTypesOf!(C) == Tuple!(int, char)));
+    static assert(is(ReturnAndArgumentTypesOf!(D) == Tuple!(int, char)));
+    static assert(is(ReturnAndArgumentTypesOf!(E) == Tuple!()));
+    static assert(is(ReturnAndArgumentTypesOf!(I) == Tuple!(int, char)));
+    static assert(is(ReturnAndArgumentTypesOf!(S) == Tuple!(int, char)));
+    static assert(is(ReturnAndArgumentTypesOf!(U) == Tuple!(int, char)));
 }
