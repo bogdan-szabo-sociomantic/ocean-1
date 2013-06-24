@@ -160,6 +160,7 @@ module ocean.text.json.JsonExtractor;
  ******************************************************************************/
 
 private import ocean.text.json.JsonParserIter;
+private import ocean.core.Array;
 
 struct JsonExtractor
 {
@@ -329,6 +330,14 @@ struct JsonExtractor
     {
         /**********************************************************************
 
+            If enabled, any unmatched field will result in an exception.    
+
+         *********************************************************************/
+
+        public bool strict;
+
+        /**********************************************************************
+
             List of getters for named fields, each associated with the name of a
             field.
 
@@ -346,6 +355,15 @@ struct JsonExtractor
          **********************************************************************/
 
         private const GetField[]       get_indexed_fields;
+
+
+        /**********************************************************************
+
+            Thrown as indicator when strict behavior enforcement fails.
+
+         *********************************************************************/
+
+        private Exception field_unmatched;
 
         /**********************************************************************
 
@@ -368,8 +386,8 @@ struct JsonExtractor
         {
             super(json, Type.BeginObject, Type.EndObject);
 
+            this.field_unmatched = new Exception("");
             this.get_named_fields = get_named_fields.rehash;
-
             this.get_indexed_fields = get_indexed_fields;
         }
 
@@ -389,6 +407,50 @@ struct JsonExtractor
             foreach (get_field; this.get_indexed_fields)
             {
                 get_field.reset();
+            }
+        }
+
+        /**********************************************************************
+
+            Called by super.reset() to reset all field getters.
+
+         **********************************************************************/
+
+        final protected override void set_ ( )
+        {
+            super.set_();
+
+            if (this.strict)
+            {
+                foreach (name, field; this.get_named_fields)
+                {
+                    if (field.type == Type.Empty)
+                    {
+                        this.field_unmatched.file = __FILE__;
+                        this.field_unmatched.line = __LINE__;
+                        concat(
+                            this.field_unmatched.msg,
+                            "Field '",
+                            name,
+                            "' not found in JSON"
+                        );
+                        throw this.field_unmatched;
+                    }
+                }
+
+                foreach (i, field; this.get_indexed_fields)
+                {
+                    if (field.type == Type.Empty)
+                    {
+                        this.field_unmatched.file = __FILE__;
+                        this.field_unmatched.line = __LINE__;
+                        copy(
+                            this.field_unmatched.msg,
+                            "Unnamed field not found in JSON"
+                        );
+                        throw this.field_unmatched;
+                    }
+                }
             }
         }
 
@@ -632,7 +694,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        final protected override void set_ ( )
+        protected override void set_ ( )
         {
             assert (super.type == this.start_type);
 
