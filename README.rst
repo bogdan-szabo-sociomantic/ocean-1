@@ -30,6 +30,12 @@ New Features
   set to ``true``, JsonExtractor verifies that all defined fields where found in
   JSON source and throws Exception otherwise.
 
+``ocean.io.FilePath``
+  This is a new module extending ``tango.io.FilePath`` to add extended
+  functionality. Right now it only adds the ``link()`` method, which creates
+  a hard link (see ``link(2)`` manpage for details).
+
+
 v1.4 (2013-06-18)
 -----------------
 
