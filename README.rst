@@ -24,7 +24,7 @@ master
 
 New Features
 ^^^^^^^^^^^^
-``ocean.text.json.JsonExtractir``
+``ocean.text.json.JsonExtractor``
   Add a ``strict`` flag to JsonExtractor which is a public field that can be
   changed at any time. When JSON Object has just been parsed and ``strict`` is
   set to ``true``, JsonExtractor verifies that all defined fields where found in
