@@ -22,6 +22,10 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+
+v1.5 (2013-07-04)
+-----------------
+
 New Features
 ^^^^^^^^^^^^
 ``ocean.text.json.JsonExtractor``
