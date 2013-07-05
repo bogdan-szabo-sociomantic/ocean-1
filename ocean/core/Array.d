@@ -37,6 +37,8 @@ module ocean.core.Array;
 
 *******************************************************************************/
 
+private import ocean.core.Traits: ReturnAndArgumentTypesOf;
+
 private import tango.core.Traits;
 
 private import tango.stdc.string : memmove, memset;
@@ -537,6 +539,235 @@ public T[] uniq ( T, bool sort = true ) ( T[] array )
         return array;
     }
 
+}
+
+/*******************************************************************************
+
+    Moves all elements from array which match the exclusion criterum
+    represented by exclude to the back of array so that the elements that do not
+    match this criterium are in the front.
+
+    array is modified in-place, the order of the elements may change.
+
+    exclude is expected to be callable (function or delegate), accepting exactly
+    one T argument and returning an integer (bool, (u)int, (u)short or (u)long).
+    It is called with the element in question and should return true if that
+    element should moved to the back or false if to the front.
+
+    Params:
+        array   = array to move values matching the exclusion criterum to the
+                  back
+        exclude = returns true if the element matches the exclusion criterium
+
+    Returns:
+        the index of the first excluded elements in array. This element and all
+        following ones matched the exclusion criterum; all elements before it
+        did not match.
+        array.length indicates that all elements matched the exclusion criterium
+        and 0 that none matched.
+
+    Out:
+        The returned index is at most array.length.
+
+*******************************************************************************/
+
+public size_t filterInPlace ( T, Exclude ) ( T[] array, Exclude exclude )
+out (end)
+{
+    assert(end <= array.length, "result index out of bounds");
+}
+body
+{
+    alias ReturnAndArgumentTypesOf!(Exclude) ExcludeParams;
+
+    static assert(ExcludeParams.length, "exclude is expected to be callable, "
+                                        "not \"" ~ Exclude.stringof ~ '"');
+    static assert(ExcludeParams.length == 2, "exclude is expected to accept "
+                                             "one argument, which " ~
+                                             Exclude.stringof ~ " doesn't'");
+    static assert(is(ExcludeParams[0]: long), "the return type of exclude is "
+                                              "expected to be an integer type, "
+                                              "not " ~ ExcludeParams[0].stringof);
+    static assert(is(ExcludeParams[1] == T), "exclude is expected to accept an "
+                                             "argument of type " ~ T.stringof ~
+                                             ", not " ~ ExcludeParams[1].stringof);
+
+    return filterInPlaceCore(array.length,
+                            (size_t i)
+                            {
+                                return !!exclude(array[i]);
+                             },
+                            (size_t i, size_t j)
+                            {
+                                typeid(T).swap(&array[i], &array[j]);
+                            });
+}
+
+/*******************************************************************************
+
+    Moves all elements in an array which match the exclusion criterum
+    represented by exclude to the back of array so that the elements that do not
+    match this criterium are in the front.
+
+    array is modified in-place, the order of the elements may change.
+
+    exclude is called with the index of the element in question and should
+    return true if array[index] should moved to the back or false if to the
+    front. At the time exclude is called, the order of the array elements may
+    have changed so exclude should index the same array instance this function
+    is working on (i.e. not a copy).
+
+    Params:
+        length  = array length
+        exclude = returns true if array)[index] matches the exclusion
+                  criterium
+        swap    = swaps array[i] and array[j]
+
+    Returns:
+        the index of the first excluded elements in the array. This element
+        and all following ones matched the exclusion criterum; all elements
+        before it did not match.
+        length indicates that all elements matched the exclusion criterium and
+        0 that none matched.
+
+*******************************************************************************/
+
+public size_t filterInPlaceCore ( size_t length,
+                                  bool delegate ( size_t index ) exclude,
+                                  void delegate ( size_t i, size_t j ) swap )
+out (end)
+{
+    assert(end <= length, "result length out of bounds");
+}
+body
+{
+    for (size_t i = 0; i < length; i++)
+    {
+        if (exclude(i))
+        {
+            length--;
+
+            while (length > i)
+            {
+                if (exclude(length))
+                {
+                    length--;
+                }
+                else
+                {
+                    swap(i, length);
+                    break;
+                }
+            }
+        }
+    }
+
+    return length;
+}
+
+/******************************************************************************/
+
+unittest
+{
+    uint[] array = [2, 3, 5, 8, 13, 21, 34, 55, 89, 144];
+    size_t end;
+
+    /***************************************************************************
+
+        Returns true if array[0 .. end] contains n or false if not.
+
+    ***************************************************************************/
+
+    bool inIncluded ( uint n )
+    {
+        foreach (element; array[0 .. end])
+        {
+            if (element == n) return true;
+        }
+
+        return false;
+    }
+
+    /***************************************************************************
+
+        Returns true if array[end .. $] contains n or false if not.
+
+    ***************************************************************************/
+
+    bool inExcluded ( uint n )
+    {
+        foreach (element; array[end .. $])
+        {
+            if (element == n) return true;
+        }
+
+        return false;
+    }
+
+    /***************************************************************************
+
+        Returns true n is even or false if n is odd.
+
+    ***************************************************************************/
+
+    bool even ( uint n )
+    {
+        return !(n & 1);
+    }
+
+    end = .filterInPlace(array, &even);
+    assert(end == 6);
+    assert(inIncluded(3));
+    assert(inIncluded(5));
+    assert(inIncluded(13));
+    assert(inIncluded(21));
+    assert(inIncluded(55));
+    assert(inIncluded(89));
+    assert(inExcluded(2));
+    assert(inExcluded(8));
+    assert(inExcluded(34));
+    assert(inExcluded(144));
+
+    array    = [2, 4, 6];
+    end = .filterInPlace(array, &even);
+    assert(!end);
+    assert(inExcluded(2));
+    assert(inExcluded(4));
+    assert(inExcluded(6));
+
+    array    = [8];
+    end = .filterInPlace(array, &even);
+    assert(!end);
+    assert(array[end] == 8);
+
+    array    = [12345];
+    end = .filterInPlace(array, &even);
+    assert(end == array.length);
+    assert(array[0] == 12345);
+
+    array = [1, 2, 4, 6];
+    end = .filterInPlace(array, &even);
+    assert(end == 1);
+    assert(array[0] == 1);
+    assert(inExcluded(2));
+    assert(inExcluded(4));
+    assert(inExcluded(6));
+
+    array = [1, 3, 5, 7];
+    end = .filterInPlace(array, &even);
+    assert(end == array.length);
+    assert(inIncluded(1));
+    assert(inIncluded(3));
+    assert(inIncluded(5));
+    assert(inIncluded(7));
+
+    array = [1, 2, 5, 7];
+    end = .filterInPlace(array, &even);
+    assert(end == 3);
+    assert(inIncluded(1));
+    assert(inIncluded(5));
+    assert(inIncluded(7));
+    assert(inExcluded(2));
 }
 
 /*******************************************************************************
