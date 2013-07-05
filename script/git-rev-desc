@@ -1,13 +1,16 @@
 #!/bin/sh
 #
 # Usage:
-#     git-get-desc path/to/repository
+#     git-get-desc [[path/to/repository] [dirty-string]]
 #
 # Returns a string that identifies the version of the given repository
 #
 
-
-
+if test -n "$2"; then
+    DIRTY_STR=$2
+else
+    DIRTY_STR="*"
+fi
 
 # Check if git is installed
 git=`which git`
@@ -30,6 +33,6 @@ test "$branch" = HEAD &&
     branch=DETACHED
 printf $branch-`$git rev-parse --short HEAD`
 test -n "`$git status --porcelain -uno`" &&
-    printf '*'
+    printf -- "$DIRTY_STR"
 cd - > /dev/null
 
