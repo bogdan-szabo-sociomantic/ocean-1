@@ -1,10 +1,10 @@
 #!/bin/sh
-
 # Defaults
 rev_file=src/main/Version.d
 lib_dir=..
 author="`id -un`"
 dmd="`dmd | head -1`"
+get_rev=`dirname $0`/git-rev-desc
 
 # Command used to get the date (we use day resolution to avoid unnecesary
 # rebuilds)
@@ -57,32 +57,6 @@ shift `expr $OPTIND - 1`
 test -z "$template" && template="$lib_dir/ocean/script/appVersion.d.tpl"
 test -z "$date" && date="`$date_cmd`"
 
-# Check if git is installed
-git=`which git`
-test -z "$git" && {
-    echo "$0: Can't find git command! Aborting..." >&2
-    exit 1
-}
-
-get_rev()
-{
-    # Check if we are pointing to the right directory
-    cd "$1"
-    $git rev-parse --git-dir > /dev/null || {
-        echo "$0: $1 is not a git repository! Aborting..." >&2
-        exit 1
-    }
-    branch=`$git describe --exact-match 2> /dev/null`
-    test -z "$branch" &&
-        branch=`$git rev-parse --abbrev-ref HEAD`
-    test "$branch" = HEAD &&
-        branch=DETACHED
-    printf $branch-`$git rev-parse --short HEAD`
-    test -n "`$git status --porcelain -uno`" &&
-        printf '*'
-    cd - > /dev/null
-}
-
 tmp=`mktemp mkversion.XXXXXXXXXX`
 
 trap "rm -f '$tmp'; exit 1" INT TERM QUIT
@@ -94,7 +68,7 @@ gc="$1"; shift
 sed -i "$tmp" \
     -e "s/@MODULE@/$module/" \
     -e "s/@GC@/$gc/" \
-    -e "s/@REVISION@/`get_rev .`/" \
+    -e "s/@REVISION@/`$get_rev .`/" \
     -e "s/@DATE@/$date/" \
     -e "s/@AUTHOR@/$author/" \
     -e "s/@DMD@/$dmd/"
@@ -103,7 +77,7 @@ sed -i "$tmp" \
 libs=''
 for lib in "$@"
 do
-    libs="${libs}    Version.libraries[\"$lib\"] = \"`get_rev $lib_dir/$lib`\";\\n"
+    libs="${libs}    Version.libraries[\"$lib\"] = \"`$get_rev $lib_dir/$lib`\";\\n"
 done
 sed -i "s/@LIBRARIES@/$libs/" "$tmp"
 
@@ -121,3 +95,4 @@ fi
 mv "$tmp" "$rev_file"
 
 # vim: set et sw=4 sts=4 :
+
