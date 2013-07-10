@@ -33,7 +33,6 @@
 
 module ocean.util.container.map.model.BucketSet;
 
-
 /*******************************************************************************
 
     Imports
@@ -396,8 +395,7 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
         delete this.buckets;
     }
-    
-    
+
     /**************************************************************************
 
         Ensures that Bucket.init consists only of zero bytes so that the
@@ -411,7 +409,6 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
                Bucket.stringof ~ ".init contains non-zero byte: " ~
                typeof (this).stringof ~ ".clear_() will not work");
     }
-
 
     /***************************************************************************
 
@@ -691,20 +688,20 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
         return this;
     }
-    
+
     /***************************************************************************
 
         Removes all elements from all buckets and sets the values to val_init if
         val_init is not empty.
-        
+
         Params:
             val_init = initial element value, the length must be V or 0
-        
+
         In:
             val_init.length must be V.
-    
+
     ***************************************************************************/
-    
+
     protected void clearBuckets ( void[] val_init = null )
     in
     {
@@ -713,7 +710,7 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
     body
     {
         // Recycle all bucket elements.
-        
+
         foreach (ref element; this)
         {
             static if (V) if (val_init.length)
