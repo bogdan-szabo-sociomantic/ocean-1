@@ -139,6 +139,28 @@ public class HashMap ( V ) : Map!(V, hash_t)
 
     /***************************************************************************
 
+        Constructor.
+
+        Params:
+            allocator = custom bucket elements allocator
+            n = expected number of elements in mapping
+            load_factor = ratio of n to the number of internal buckets. The
+                desired (approximate) number of elements per bucket. For
+                example, 0.5 sets the number of buckets to double n; for 2 the
+                number of buckets is the half of n. load_factor must be greater
+                than 0. The load factor is basically a trade-off between memory
+                usage (number of buckets) and search time (number of elements
+                per bucket).
+
+    ***************************************************************************/
+
+    public this ( IAllocator allocator, size_t n, float load_factor = 0.75 )
+    {
+        super(allocator, n, load_factor);
+    }
+
+    /***************************************************************************
+
         Calculates the hash value from key. Uses the identity since key is
         expected to be a suitable hash value.
 

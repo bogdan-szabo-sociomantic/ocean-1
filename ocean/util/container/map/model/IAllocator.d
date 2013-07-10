@@ -69,6 +69,11 @@ interface IAllocator
 
         private size_t n = 0;
 
+        invariant ( )
+        {
+            assert(this.n <= this.max_length);
+        }
+
         /**********************************************************************
 
             Constructor.
@@ -103,10 +108,6 @@ interface IAllocator
         {
             assert(this.n < this.max_length);
         }
-        out
-        {
-            assert(this.n <= this.max_length);
-        }
         body
         {
             this.push_(object, this.n++);
@@ -122,14 +123,22 @@ interface IAllocator
                 object popped from the stack or null if the stack is empty.
 
             Out:
-                At most max_length objects are parked.
+                If an element is returned, less than max_length elements must be
+                on the stack, otherwise the stack must be empty.
 
          **********************************************************************/
 
         public void* pop ( )
         out (element)
         {
-            assert(this.n <= this.max_length);
+            if (element)
+            {
+                assert(this.n < this.max_length);
+            }
+            else
+            {
+                assert(!this.n);
+            }
         }
         body
         {

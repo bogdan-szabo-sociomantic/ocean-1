@@ -20,11 +20,13 @@ module ocean.util.container.map.model.BucketElementFreeList;
 
  ******************************************************************************/
 
+private import ocean.util.container.map.model.IAllocator;
+
 private import ocean.core.Array: clear;
 
 /******************************************************************************/
 
-abstract class FreeList
+abstract class FreeList: IAllocator
 {
     /**************************************************************************
 
@@ -90,9 +92,6 @@ abstract class FreeList
         Obtains an object either from the free list, if available, or from
         new_object if the free list is empty.
 
-        Params:
-            new_object = expression returning a new object
-
         Returns:
             new object
 
@@ -101,7 +100,7 @@ abstract class FreeList
 
      **************************************************************************/
 
-    public void* get ( lazy void* new_object )
+    public void* get ( )
     out (object)
     {
         assert (object !is null);
@@ -116,9 +115,20 @@ abstract class FreeList
         }
         else
         {
-            return new_object;
+            return this.newElement();
         }
     }
+
+    /**************************************************************************
+
+        Allocates a new object. Called by get() if the list is empty.
+
+        Returns:
+            a new object.
+
+     **************************************************************************/
+
+    abstract protected void* newElement ( );
 
     /**************************************************************************
 
@@ -127,15 +137,12 @@ abstract class FreeList
         Params:
             old_object = object to recycle
 
-        Returns:
-            the recycled object, may safely be used until the next get() call.
-
         In:
             old_object must not be null.
 
      **************************************************************************/
 
-    public void* recycle ( void* old_object )
+    public void recycle ( void* old_object )
     in
     {
         assert (old_object !is null);
@@ -144,7 +151,7 @@ abstract class FreeList
     {
         scope (success) this.n_free++;
 
-        return this.recycle_(old_object);
+        this.recycle_(old_object);
     }
 
     /**************************************************************************
@@ -235,6 +242,24 @@ abstract class FreeList
         return this.first = object;
     }
 
+    /***************************************************************************
+
+        Calls dg with an IParkingStack instance that is set up to keep n
+        elements.
+
+        Params:
+            n  = number of elements to park
+            dg = delegate to call with the IParkingStack instance
+
+    ***************************************************************************/
+
+    void parkElements ( size_t n, void delegate ( IParkingStack park ) dg )
+    {
+        scope parking_stack = this.new ParkingStack(n);
+
+        dg(parking_stack);
+    }
+
     /**************************************************************************
 
         Allows using the free list as a stack to park objects without marking
@@ -245,32 +270,27 @@ abstract class FreeList
 
      **************************************************************************/
 
-    scope class ParkingStack
+    scope class ParkingStack: IParkingStack
     {
-        /**********************************************************************
-
-            Start and end index of the stack in the free list.
-
-         **********************************************************************/
-
-        private size_t n = 0;
-
         /**********************************************************************
 
             Constructor.
 
             Params:
-                extent = expected stack length for preallocation, if known.
+                max_length = maximum number of objects that will be stored
 
          **********************************************************************/
 
-        public this ( )
+        private this ( size_t max_length )
         in
         {
             assert (!this.outer.parking_stack_open);
             this.outer.parking_stack_open = true;
         }
-        body { }
+        body
+        {
+            super(max_length);
+        }
 
         /**********************************************************************
 
@@ -293,60 +313,34 @@ abstract class FreeList
             Pushes an object on the stack.
 
             Params:
-                object to push
-
-            Returns:
-                object
+                object = object to push
+                n      = number of parked objects before object is pushed
+                         (guaranteed to be less than max_length)
 
          **********************************************************************/
 
-        public void* push ( void* object )
+        protected void push_ ( void* object, size_t n )
         {
-            scope (success) this.n++;
-
-            return this.outer.recycle_(object);
+            this.outer.recycle_(object);
         }
 
         /**********************************************************************
 
-            Pops an object from the stack.
+            Pops an object from the stack. This method is never called if the
+            stack is empty.
+
+            Params:
+                n = number of parked objects after object is popped (guaranteed
+                    to be less than max_length)
 
             Returns:
                 object popped from the stack or null if the stack is empty.
 
          **********************************************************************/
 
-        public void* pop ( )
+        protected void* pop_ ( size_t n )
         {
-            if (this.n)
-            {
-                scope (success) this.n--;
-
-                return this.outer.get_();
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        /**********************************************************************
-
-            'foreach' iteration, each cycle pops an element from the stack and
-            iterates over it.
-
-         **********************************************************************/
-
-        public int opApply ( int delegate ( ref void* object ) dg )
-        {
-            int r = 0;
-
-            for (void* object = this.pop(); object && !r; object = this.pop())
-            {
-                r = dg(object);
-            }
-
-            return r;
+            return this.outer.get_();
         }
     }
 }

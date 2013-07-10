@@ -19,20 +19,19 @@
     Usage:
         See ocean.util.container.map.HashMap & ocean.util.container.map.HashSet
 
-    TODO: the element pool could perhaps be simplified by replacing it with a
-    free-list implementation in conjunction with a list of non-empty buckets.
-    The non-empty list could be used for iteration over the elements, and for
-    clearing only the buckets which contain elements. (The current clear()
-    implementation simply clears all buckets.) Another advantage of using a
-    free-list implementation would be the removal of the requirement for each
-    bucket element to contain the object_pool_index member. In a bucket set
-    with many elements, these additional 4 bytes per element becomes
-    significant.
+    The method of bucket element allocation and pool management can be
+    customised by passing a custom IAllocator implementation to the constructor.
+    The default implementation--the BucketSet.FreeBuckets class--uses
+    'new Bucket.Element' for allocation and manages the pool as a linked list of
+    bucket elements. Possible alternative implementations include leaving the
+    pool management up to an external memory manager such as the D or C runtime
+    library using 'new'/'delete' or malloc()/free(), respectively. Also, if the
+    maximum number of elements in the map is known in advance, all elements can
+    be preallocated in a row.
 
 *******************************************************************************/
 
 module ocean.util.container.map.model.BucketSet;
-
 
 
 /*******************************************************************************
@@ -42,7 +41,8 @@ module ocean.util.container.map.model.BucketSet;
 *******************************************************************************/
 
 private import ocean.util.container.map.model.Bucket,
-               ocean.util.container.map.model.BucketInfo;
+               ocean.util.container.map.model.BucketInfo,
+               ocean.util.container.map.model.IAllocator;
 
 private import ocean.core.Array: clear, isClearable;
 
@@ -60,6 +60,14 @@ public abstract class IBucketSet
 {
     /**************************************************************************
 
+        Convenience type alias for subclasses.
+
+     **************************************************************************/
+
+    alias .IAllocator IAllocator;
+
+    /**************************************************************************
+
         Map and and bucket statistics like the map length or the number of
         buckets.
 
@@ -69,11 +77,11 @@ public abstract class IBucketSet
 
     /**************************************************************************
 
-        Bucket elements free list.
+        Bucket element allocator.
 
      **************************************************************************/
 
-    protected const FreeList free_bucket_elements;
+    protected const IAllocator bucket_element_allocator;
 
     /**************************************************************************
 
@@ -89,6 +97,7 @@ public abstract class IBucketSet
         Constructor.
 
         Params:
+            bucket_element_allocator = bucket element allocator
             n = expected number of elements in mapping
             load_factor = ratio of n to the number of internal buckets. The
                 desired (approximate) number of elements per bucket. For
@@ -100,14 +109,14 @@ public abstract class IBucketSet
 
      **************************************************************************/
 
-    protected this ( FreeList free_bucket_elements, size_t n, float load_factor = 0.75 )
+    protected this ( IAllocator bucket_element_allocator, size_t n, float load_factor = 0.75 )
     {
         size_t num_buckets = 1 << this.calcNumBucketsExp2(n, load_factor);
 
         this.bucket_mask = num_buckets - 1;
 
         this.bucket_info          = new BucketInfo(num_buckets);
-        this.free_bucket_elements = free_bucket_elements;
+        this.bucket_element_allocator = bucket_element_allocator;
     }
 
     /***************************************************************************
@@ -119,7 +128,6 @@ public abstract class IBucketSet
     protected override void dispose ( )
     {
         delete this.bucket_info;
-        delete this.free_bucket_elements;
     }
 
     /***************************************************************************
@@ -301,6 +309,20 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
         {
             (cast(Bucket.Element*)element).next = cast(Bucket.Element*)next;
         }
+
+        /**********************************************************************
+
+            Allocates a new object.
+
+            Returns:
+                a new object.
+
+         **********************************************************************/
+
+        protected void* newElement ( )
+        {
+            return new Bucket.Element;
+        }
     }
 
     /***************************************************************************
@@ -313,8 +335,11 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
     /***************************************************************************
 
-        Constructor, sets the number of buckets to n / load_factor, rounded up
-        to the nearest power or 2.
+        Constructor, uses the default implementation for the bucket element
+        allocator: Elements are allocated by 'new' and stored in a free list.
+
+        Sets the number of buckets to n / load_factor, rounded up to the nearest
+        power or 2.
 
         Params:
             n = expected number of elements in bucket set
@@ -330,7 +355,31 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
     protected this ( size_t n, float load_factor = 0.75 )
     {
-        super(new FreeBuckets, n, load_factor);
+        this(new FreeBuckets, n, load_factor);
+    }
+
+    /***************************************************************************
+
+        Constructor.
+
+        Sets the number of buckets to n / load_factor, rounded up to the nearest
+        power or 2.
+
+        Params:
+            n = expected number of elements in bucket set
+            load_factor = ratio of n to the number of buckets. The desired
+                (approximate) number of elements per bucket. For example, 0.5
+                sets the number of buckets to double n; for 2 the number of
+                buckets is the half of n. load_factor must be greater than 0
+                (this is asserted in IBucketSet.calcNumBucketsExp2()). The load
+                factor is basically a trade-off between memory usage (number of
+                buckets) and search time (number of elements per bucket).
+
+    ***************************************************************************/
+
+    protected this ( IAllocator allocator, size_t n, float load_factor = 0.75 )
+    {
+        super(allocator, n, load_factor);
 
         this.buckets = new Bucket[this.bucket_info.num_buckets];
     }
@@ -462,7 +511,7 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
                     this.bucket_info.create(bucket_index);
                 }
 
-                return cast (Bucket.Element*) this.free_bucket_elements.get(this.newElement());
+                return cast (Bucket.Element*) this.bucket_element_allocator.get();
             }());
 
             assert (element !is null);
@@ -471,21 +520,6 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
             return element;
         }
-    }
-
-    /***************************************************************************
-
-        Creates a new bucket element. May be overridden by a subclass to
-        implement a different allocation method.
-
-        Returns:
-            a new bucket element.
-
-    ***************************************************************************/
-
-    protected Bucket.Element* newElement ( )
-    {
-        return new Bucket.Element;
     }
 
     /***************************************************************************
@@ -510,44 +544,69 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
     /***************************************************************************
 
+        Removes the mapping for the specified key and optionally invokes dg with
+        the value that is about to be removed.
+
+        Note that, if references to GC-allocated objects (objects or dynamic
+        arrays), it is a good idea to set the value of the element referenced
+        by the element parameter of the callback delegate to null to avoid these
+        objects from being prevented from garbage collection. In general
+        pointers should be set to null for the same reason and to avoid dangling
+        pointers.
+
+        If the default allocator is used (that is, no allocator instance was
+        passed to the constructor), the value of the element referenced
+        by the element parameter of the callback delegate dg is accessible and
+        remains unchanged after dg returned until the next call to put() or
+        clear().
+
+        Params:
+            key = key to remove mapping for
+            dg  = optional delegate to call with the removed element value (not
+                  called if key was not found)
+
+        Returns:
+            true if key was found in the map or false if not. In case of false
+            dg was not called.
+
+    ***************************************************************************/
+
+    final protected bool remove_ ( K key, void delegate ( ref Bucket.Element element ) dg = null )
+    {
+        size_t bucket_index = this.toHash(key) & this.bucket_mask;
+
+        Bucket.Element* element = this.buckets[bucket_index].remove(key);
+
+        scope (exit) if ( element )
+        {
+            this.bucket_info.remove(bucket_index);
+
+            if (dg)
+            {
+                dg(*element);
+            }
+
+            this.bucket_element_allocator.recycle(element);
+        }
+
+        return !!element;
+    }
+
+    /***************************************************************************
+
         Removes the mapping for the specified key.
 
         Params:
             key = key to remove mapping for
 
         Returns:
-            the removed element. It is guaranteed to remain unchanged until the
-            next call to put_(), which may reuse it, or to clear().
+            true if key was found and the mapping removed or false otherwise.
 
     ***************************************************************************/
 
-    final protected Bucket.Element* remove_ ( K key )
-    out (element)
+    public bool remove ( K key )
     {
-        // FIXME: Disabled due to DMD bug 6417, the method parameter argument
-        // values are junk inside this contract.
-
-        version (none) if (element)
-        {
-            assert (element.key == key, "key mismatch");
-        }
-    }
-    body
-    {
-        size_t bucket_index = this.toHash(key) & this.bucket_mask;
-
-        Bucket.Element* element = this.buckets[bucket_index].remove(key);
-
-        if ( element )
-        {
-            this.bucket_info.remove(bucket_index);
-
-            this.free_bucket_elements.recycle(element);
-
-            assert (element.key == key, "key mismatch");
-        }
-
-        return element;
+        return this.remove_(key);
     }
 
     /***************************************************************************
@@ -593,41 +652,43 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
         {
             // Park the bucket elements that are currently in the set.
 
-            scope parked_elements = this.free_bucket_elements.new ParkingStack;
-
-            foreach (ref element; this)
+            this.bucket_element_allocator.parkElements(this.bucket_info.length,
+            (IAllocator.IParkingStack parked_elements)
             {
-                parked_elements.push(&element);
-            }
+                foreach (ref element; this)
+                {
+                    parked_elements.push(&element);
+                }
 
-            // Resize the array of buckets and the bucket_info and calculate
-            // the new bucket_mask.
+                // Resize the array of buckets and the bucket_info and calculate
+                // the new bucket_mask.
 
-            this.buckets.length = n_new;
+                this.buckets.length = n_new;
 
-            .clear(this.buckets[0 .. (n_prev < $)? n_prev : $]);
+                .clear(this.buckets[0 .. (n_prev < $)? n_prev : $]);
 
-            this.bucket_info.clearResize(n_new);
+                this.bucket_info.clearResize(n_new);
 
-            this.bucket_mask = n_new - 1;
+                this.bucket_mask = n_new - 1;
 
-            // Put the parked elements back into the buckets.
+                // Put the parked elements back into the buckets.
 
-            foreach (element_; parked_elements)
-            {
-                auto element = cast (Bucket.Element*) element_,
-                bucket_index = this.toHash(element.key) & this.bucket_mask;
+                foreach (element_; parked_elements)
+                {
+                    auto element = cast (Bucket.Element*) element_,
+                    bucket_index = this.toHash(element.key) & this.bucket_mask;
 
-                assert (!this.bucket_info[bucket_index] ^ this.buckets[bucket_index].has_element,
-                        "bucket with zero length has an element or "
-                        "bucket with non-zero length has no element");
+                    assert (!this.bucket_info[bucket_index] ^ this.buckets[bucket_index].has_element,
+                            "bucket with zero length has an element or "
+                            "bucket with non-zero length has no element");
 
-                this.bucket_info.put(bucket_index);
+                    this.bucket_info.put(bucket_index);
 
-                this.buckets[bucket_index].add(element);
-            }
+                    this.buckets[bucket_index].add(element);
+                }
+            });
         }
-        
+
         return this;
     }
     
@@ -659,10 +720,10 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
             {
                 element.val[] = cast (ubyte[]) val_init[];
             }
-            
-            this.free_bucket_elements.recycle(&element);
+
+            this.bucket_element_allocator.recycle(&element);
         }
-        
+
         // Clear bucket contents.
         .clear(this.buckets);
     }

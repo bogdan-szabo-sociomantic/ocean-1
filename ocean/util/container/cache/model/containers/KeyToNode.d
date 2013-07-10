@@ -28,13 +28,52 @@ private import ocean.util.container.cache.model.containers.TimeToIndex;
 
 class KeyToNode: HashMap!(TimeToIndex.Node*)
 {
-    /***********************************************************************
+    static class ArrayAllocatedFreeBucketElements: FreeBuckets
+    {
+        /***********************************************************************
 
-        Array of bucket elements.
+            Preallocated pool of bucket elements.
 
-    ***********************************************************************/
+        ***********************************************************************/
 
-    private const ArrayPool!(Bucket.Element) elements;
+        private const GenericArrayPool pool;
+
+        /***********************************************************************
+
+            Constructor.
+
+            Params:
+                n = number of elements in the pool
+
+        ***********************************************************************/
+
+        private this ( size_t n )
+        {
+            this.pool = new GenericArrayPool(n, Bucket.Element.sizeof);
+        }
+
+        /***********************************************************************
+
+            Obtains a new element from the pool.
+
+            Returns:
+                A new pool element.
+
+        ***********************************************************************/
+
+        protected override Bucket.Element* newElement ( )
+        {
+            return cast(Bucket.Element*)this.pool.next;
+        }
+    }
+
+    /***************************************************************************
+
+        Bucket elements allocator.
+
+    ***************************************************************************/
+
+    private const ArrayAllocatedFreeBucketElements allocator;
 
     /***********************************************************************
 
@@ -47,20 +86,7 @@ class KeyToNode: HashMap!(TimeToIndex.Node*)
 
     public this ( size_t n )
     {
-        super(n);
-        this.elements = new typeof(this.elements)(n);
-    }
-
-    /***********************************************************************
-
-        Disposer.
-
-    ***********************************************************************/
-
-    protected override void dispose ( )
-    {
-        super.dispose();
-        delete this.elements;
+        super(this.allocator = new ArrayAllocatedFreeBucketElements(n), n);
     }
 
     /***************************************************************************
@@ -75,21 +101,7 @@ class KeyToNode: HashMap!(TimeToIndex.Node*)
     public override typeof(this) clear ( )
     {
         super.clear();
-        this.elements.clear();
+        this.allocator.pool.clear();
         return this;
-    }
-
-    /***************************************************************************
-
-        Obtains a new bucket element.
-
-        Returns:
-            a new bucket element.
-
-    ***************************************************************************/
-
-    protected override Bucket.Element* newElement ( )
-    {
-        return this.elements.next;
     }
 }

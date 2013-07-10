@@ -212,6 +212,28 @@ public class StandardKeyHashingMap ( size_t V, K ) : Map!(V, K)
 
     /***************************************************************************
 
+        Constructor.
+
+        Params:
+            allocator = custom bucket elements allocator
+            n = expected number of elements in mapping
+            load_factor = ratio of n to the number of internal buckets. The
+                desired (approximate) number of elements per bucket. For
+                example, 0.5 sets the number of buckets to double n; for 2 the
+                number of buckets is the half of n. load_factor must be greater
+                than 0. The load factor is basically a trade-off between memory
+                usage (number of buckets) and search time (number of elements
+                per bucket).
+
+    ***************************************************************************/
+
+    public this ( IAllocator allocator, size_t n, float load_factor = 0.75 )
+    {
+        super(allocator, n, load_factor);
+    }
+
+    /***************************************************************************
+
         Mixin of the toHash() method which is declared abstract in BucketSet.
 
     ***************************************************************************/
@@ -293,6 +315,28 @@ public abstract class Map ( V, K ) : BucketSet!(V.sizeof, K)
     protected this ( size_t n, float load_factor = 0.75 )
     {
         super(n, load_factor);
+    }
+
+    /***************************************************************************
+
+        Constructor.
+
+        Params:
+            allocator = custom bucket elements allocator
+            n = expected number of elements in mapping
+            load_factor = ratio of n to the number of internal buckets. The
+                desired (approximate) number of elements per bucket. For
+                example, 0.5 sets the number of buckets to double n; for 2 the
+                number of buckets is the half of n. load_factor must be greater
+                than 0. The load factor is basically a trade-off between memory
+                usage (number of buckets) and search time (number of elements
+                per bucket).
+
+    ***************************************************************************/
+
+    protected this ( IAllocator allocator, size_t n, float load_factor = 0.75 )
+    {
+        super(allocator, n, load_factor);
     }
 
     /***************************************************************************
@@ -459,7 +503,8 @@ public abstract class Map ( V, K ) : BucketSet!(V.sizeof, K)
 
     /***************************************************************************
 
-        Removes the mapping for the specified key.
+        Removes the mapping for the specified key and optionally invokes dg with
+        the value that is about to be removed.
 
         Note that, if references to GC-allocated objects (objects or dynamic
         arrays), it is a good idea to set the value referenced to by the
@@ -467,20 +512,29 @@ public abstract class Map ( V, K ) : BucketSet!(V.sizeof, K)
         from garbage collection. In general pointers should be set to null for
         the same reason and to avoid dangling pointers.
 
+        If the default allocator is used (that is, no allocator instance was
+        passed to the constructor), the value referenced by the val parameter of
+        dg is accessible and remains unchanged after dg returned until the next
+        call to put() or clear().
+
         Params:
             key = key to remove mapping for
+            dg  = optional delegate to call with the removed value (not called
+                  if key was not found)
 
         Returns:
-            a pointer to the value of the remove element, if found, or null
-            otherwise. It is guaranteed that the referenced value will
-            remain unchanged until the next call to put(), which may reuse it,
-            or to clear().
+            true if key was found in the map or false if not. In case of false
+            dg was not called.
 
     ***************************************************************************/
 
-    public V* remove ( K key )
+    public bool remove ( K key, void delegate ( ref V val ) dg = null )
     {
-        return cast(V*)this.remove_(key).val[0 .. V.sizeof].ptr;
+        return this.remove_(key, dg?
+                                 (ref Bucket.Element element)
+                                 {
+                                     dg(*cast(V*)element.val[0 .. V.sizeof].ptr);
+                                 } : null);
     }
 
     /***************************************************************************
