@@ -25,12 +25,38 @@ master
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
+``ocean.util.container.map.Map``
+  ``Map.remove()`` no longer returns a pointer to the removed value. Instead it
+  returns a boolean flag and optionally accepts a delegate which is called with
+  a reference to the value that is about to be removed. This is because with a
+  bucket element deallocation method such as delete the value isn't accessible
+  any more after ``remove()`` returned.
+
+``ocean.util.container.map`` and subpackages
+  ``BucketSet.newElement()``, inherited by ``Map``, ``Set`` and their subclasses
+  has been moved to ``BucketSet.FreeBuckets.newElement()``. Classes which
+  override this method need to be adapted to add a ``BucketSet.FreeBuckets``
+  subclass that overrides this method and pass an instance of this class to the
+  ``Map``/``Set``/``BucketSet`` constructor.
+
 ``ocean.net.http``
   This unused package has been removed from ocean.
   
 ``ocean.net.http2`` renamed to ``ocean.net.http``
   All code that imports from ``ocean.net.http2`` will need to import from
   ``ocean.net.http``.
+
+New Features
+^^^^^^^^^^^^
+
+``ocean.util.container.map`` and subpackages
+  ``BucketSet`` and subclasses allow using a custom allocator or pool for the
+  bucket elements. Such a custom pool and allocator implementation needs to
+  implement the ``IAllocator`` interface in
+  ``ocean.core.util.map.model.IAllocator`` and an instance of it can be passed
+  to the ``Map``/``Set``/``BucketSet`` constructor. It is also possible to use
+  the built-in pool implementation and only customise the allocation method by
+  deriving from ``BucketSet.FreeBuckets`` and overriding ``newElement()``.
 
 v1.5 (2013-07-04)
 -----------------
