@@ -154,6 +154,11 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
         size_t file_count = default_file_count,
         size_t max_file_size = default_max_file_size,
         time_t period = default_period, char[] file_name = default_file_name )
+    in
+    {
+        assert(value_dg !is null, "Value delegate is null");
+    }
+    body
     {
         this.dg     = dg;
         this.period = period;
