@@ -115,11 +115,12 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
 
     /***************************************************************************
 
-        Delegate to get the values that are to be written
+        Delegate to get a pointer to a struct containing the values that are to
+        be written.
 
     ***************************************************************************/
 
-    private alias T delegate ( ) ValueDg;
+    private alias T* delegate ( ) ValueDg;
 
     private ValueDg dg;
 
@@ -179,7 +180,7 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
 
     private bool write_ ( )
     {
-        this.write(this.dg());
+        this.write(*this.dg());
 
         return true;
     }

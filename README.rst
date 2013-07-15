@@ -58,6 +58,10 @@ New Features
   the built-in pool implementation and only customise the allocation method by
   deriving from ``BucketSet.FreeBuckets`` and overriding ``newElement()``.
 
+``ocean.util.log.Stats``
+  ``PeriodicStatsLog`` value delegate must now return a pointer to the struct
+  to be logged. This avoids making an unnecessary copy of the struct.
+
 v1.5 (2013-07-04)
 -----------------
 
