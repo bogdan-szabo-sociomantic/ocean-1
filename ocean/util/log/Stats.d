@@ -247,7 +247,7 @@ public class StatsLog ( T ) : IStatsLog
 
     ***************************************************************************/
 
-    public void write ( T values )
+    public void write ( ref T values )
     {
         this.format(values);
 
@@ -273,7 +273,7 @@ public class StatsLog ( T ) : IStatsLog
 
     ***************************************************************************/
 
-    public void writeExtra ( A ) ( T values, A[char[]] additional )
+    public void writeExtra ( A ) ( ref T values, A[char[]] additional )
     {
         this.formatExtra(values, additional);
 
@@ -295,7 +295,7 @@ public class StatsLog ( T ) : IStatsLog
 
     ***************************************************************************/
 
-    public char[] format ( T values )
+    public char[] format ( ref T values )
     {
         this.layout.clear();
 
@@ -327,7 +327,7 @@ public class StatsLog ( T ) : IStatsLog
 
     ***************************************************************************/
 
-    public char[] formatExtra ( A ) ( T values, A[char[]] additional )
+    public char[] formatExtra ( A ) ( ref T values, A[char[]] additional )
     {
         this.layout.clear();
 
@@ -352,7 +352,7 @@ public class StatsLog ( T ) : IStatsLog
 
     ***************************************************************************/
 
-    private void formatStruct ( T values, ref bool add_separator )
+    private void formatStruct ( ref T values, ref bool add_separator )
     {
         foreach ( i, value; values.tupleof )
         {
