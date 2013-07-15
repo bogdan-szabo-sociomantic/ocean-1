@@ -70,6 +70,9 @@ private import tango.stdc.time : time_t;
                 char[] s = "hello";
             }
 
+            // Instance of Stats struct
+            private Stats stats;
+
             // Periodic logger instance
             private alias PeriodicStatsLog!(Stats) Logger;
             private const Logger logger;
@@ -77,19 +80,26 @@ private import tango.stdc.time : time_t;
             public this ( EpollSelectDispatcher epoll )
             {
                 this.epoll = epoll;
-                this.logger = new Logger(epoll, &this.getStats);
+                this.logger = new Logger(epoll, &this.getStats,
+                    &this.resetStats);
             }
 
             // Delegate which is passed to the logger's ctor and is called
-            // periodically, and returns a struct with the values to be written
-            // to the next line in the log file.
-            private Stats getStats ( )
+            // periodically, and returns a pointer to the struct with the values
+            // to be written to the next line in the log file.
+            private Stats* getStats ( )
             {
-                Stats s;
+                // Set values of this.stats
 
-                // Set values of s
+                return &this.stats;
+            }
 
-                return s;
+            // Delegate which is passed to the logger's ctor and is called after
+            // each log line which is written. Used here to reset the stats
+            // counters.
+            private void resetStats ( )
+            {
+                this.stats = this.stats.init;
             }
         }
 
@@ -217,8 +227,8 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
 
         date key: value, key: value
 
-    The date part is not written by this class. Instead we rely on the logger
-    layout in ocean.util.log.LayoutStatsLog.
+    (The date part is not written by this class. Instead we rely on the logger
+    layout in ocean.util.log.LayoutStatsLog.)
 
     Template Params:
         T = a struct which contains the values that should be written to the
@@ -295,6 +305,9 @@ public class StatsLog ( T ) : IStatsLog
         written to the log are only known at run-time (for example a list of
         names of channels in a dht or queue).
 
+        Template Params:
+            A = type of associative array value. Assumed to be handled by Layout
+
         Params:
             values = struct containing values to write to the log
             additional = associative array of additional values to write to the
@@ -346,6 +359,9 @@ public class StatsLog ( T ) : IStatsLog
         This method can be useful when some of the values which are to be
         written to the log are only known at run-time (for example a list of
         names of channels in a dht or queue).
+
+        Template Params:
+            A = type of associative array value. Assumed to be handled by Layout
 
         Params:
             values = struct containing values to write to format
@@ -474,6 +490,9 @@ public abstract class IStatsLog
         format_buffer member. Each entry of the associative array is output as
         <key>:<value>.
 
+        Template Params:
+            A = type of associative array value. Assumed to be handled by Layout
+
         Params:
             values = associative array of values to write to the log
             add_separator = flag telling whether a separator (space) should be
@@ -495,6 +514,9 @@ public abstract class IStatsLog
     /***************************************************************************
 
         Writes the specified name:value pair to the format_buffer member.
+
+        Template Params:
+            V = type of value. Assumed to be handled by Layout
 
         Params:
             name = name of stats log entry
