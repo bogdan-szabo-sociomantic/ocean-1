@@ -122,7 +122,19 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
 
     private alias T* delegate ( ) ValueDg;
 
-    private ValueDg dg;
+    private ValueDg value_dg;
+
+    /***************************************************************************
+
+        Delegate to be called after outputting a line to the log. Provided as a
+        convenience to user code, allowing special behaviour (for example the
+        resetting of transient stats values) to occur after writing each log.
+
+    ***************************************************************************/
+
+    private alias void delegate ( ) PostLogDg;
+
+    private PostLogDg post_log_dg;
 
     /***************************************************************************
 
@@ -137,12 +149,17 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
         Constructor. Registers an update timer with the provided epoll selector.
         The timer first fires 5 seconds after construction, then periodically
         as specified. Each time the timer fires, it calls the user-provided
-        delegate, dg, which should return a struct of type T containing the
-        values to be written to the next line in the log.
+        delegate, value_dg, which should return a pointer to a struct of type T
+        containing the values to be written to the next line in the log. Once
+        the log line has been written, the optional post_log_dg is called (if
+        provided), which may be used to implement special behaviour in the user
+        code, such as resetting transient values in the logged struct.
 
         Params:
             epoll    = epoll select dispatcher
-            dg       = delegate to query the current values
+            value_dg = delegate to query the current values
+            post_log_dg = delegate to call after writing a log line (may be
+                null)
             file_count = maximum number of log files before old logs are
                 over-written
             max_file_size = size in bytes at which the log files will be rotated
@@ -151,8 +168,8 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
 
     ***************************************************************************/
 
-    public this ( EpollSelectDispatcher epoll, ValueDg dg,
-        size_t file_count = default_file_count,
+    public this ( EpollSelectDispatcher epoll, ValueDg value_dg,
+        PostLogDg post_log_dg, size_t file_count = default_file_count,
         size_t max_file_size = default_max_file_size,
         time_t period = default_period, char[] file_name = default_file_name )
     in
@@ -161,7 +178,8 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
     }
     body
     {
-        this.dg     = dg;
+        this.value_dg = value_dg;
+        this.post_log_dg = post_log_dg;
         this.period = period;
 
         this.timer = new TimerEvent(&this.write_);
@@ -180,7 +198,12 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
 
     private bool write_ ( )
     {
-        this.write(*this.dg());
+        this.write(*this.value_dg());
+
+        if ( this.post_log_dg )
+        {
+            this.post_log_dg();
+        }
 
         return true;
     }

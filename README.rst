@@ -59,8 +59,12 @@ New Features
   deriving from ``BucketSet.FreeBuckets`` and overriding ``newElement()``.
 
 ``ocean.util.log.Stats``
-  ``PeriodicStatsLog`` value delegate must now return a pointer to the struct
-  to be logged. This avoids making an unnecessary copy of the struct.
+  * ``PeriodicStatsLog`` constructor now expects a second delegate, which is
+    called after each stats log line is written. The delegate is optional (can
+    be null). It can be used, for example, to reset transient values in the
+    struct being logged.
+  * ``PeriodicStatsLog`` value delegate must now return a pointer to the struct
+    to be logged. This avoids making an unnecessary copy of the struct.
 
 v1.5 (2013-07-04)
 -----------------
