@@ -59,17 +59,16 @@ static this ( )
 
 unittest
 {
-    static assert(CookieAttributeNames.Comment == "comment");
-    static assert(CookieAttributeNames.Domain  == "domain");
-    static assert(CookieAttributeNames.Expires == "expires");
-    static assert(CookieAttributeNames.Path    == "path");
-    static assert(CookieAttributeNames.Secure  == "secure");
-    static assert(CookieAttributeNames.Version == "version");
+    static assert(CookieAttributeNames.Names.Comment == "comment");
+    static assert(CookieAttributeNames.Names.Domain  == "domain");
+    static assert(CookieAttributeNames.Names.Expires == "expires");
+    static assert(CookieAttributeNames.Names.Path    == "path");
+    static assert(CookieAttributeNames.Names.Secure  == "secure");
+    static assert(CookieAttributeNames.Names.Version == "version");
 
-    assert(CookieAttributeNameList[CookieAttributeNames.Comment] == "comment");
-    assert(CookieAttributeNameList[CookieAttributeNames.Domain]  == "domain");
-    assert(CookieAttributeNameList[CookieAttributeNames.Expires] == "expires");
-    assert(CookieAttributeNameList[CookieAttributeNames.Path]    == "path");
-    assert(CookieAttributeNameList[CookieAttributeNames.Secure]  == "secure");
-    assert(CookieAttributeNameList[CookieAttributeNames.Version] == "version");
+    foreach (i, attribute_name; CookieAttributeNames.Names.tupleof)
+    {
+        assert(CookieAttributeNameList[i] == attribute_name,
+               "mismatch of CookieAttributeNameList[" ~ i.stringof ~ ']');
+    }
 }
