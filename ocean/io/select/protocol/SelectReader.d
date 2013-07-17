@@ -1,16 +1,63 @@
+/*******************************************************************************
+
+    Fiberless SelectReader
+
+    copyright:      Copyright (c) 2013 sociomantic labs. All rights reserved
+
+    version:        May 2013: Initial release
+                    July 2013: Added comments
+
+    authors:        Mathias Baumann
+
+*******************************************************************************/
+
 module ocean.io.select.protocol.SelectReader;
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
 
 import ocean.io.select.model.ISelectClient;
 import ocean.io.device.IODevice;
 import ocean.io.select.protocol.generic.ErrnoIOException;
+
 import tango.sys.linux.consts.errno;
 import tango.stdc.errno;
 
+/*******************************************************************************
+
+    SelectReader without Fiber
+
+    This is useful for when you want to read when there is something to read but
+    you don't want to block/wait/suspend your fiber when there is nothing.
+
+*******************************************************************************/
+
 class SelectReader : IAdvancedSelectClient
 {
+    /***************************************************************************
+
+        Reader device
+
+    ***************************************************************************/
+
     private IInputDevice input;
 
+    /***************************************************************************
+
+        Reader buffer
+
+    ***************************************************************************/
+
     private ubyte[] buffer;
+
+    /***************************************************************************
+
+        Reader delegate, will be called with new data
+
+    ***************************************************************************/
 
     private void delegate ( void[] data ) reader;
 
@@ -30,9 +77,30 @@ class SelectReader : IAdvancedSelectClient
 
     protected const IOError error_e;
 
+    /***************************************************************************
+
+        Events to we are interested in
+
+    ***************************************************************************/
+
     private Event events_ = Event.EPOLLIN | Event.EPOLLRDHUP;
 
-    public this ( IInputDevice input, size_t buffer_size, IOWarning warning_e = null , IOError error_e = null)
+    /***************************************************************************
+
+        Constructor
+
+        Params:
+            input       = input device to use
+            buffer_size = buffer size to use
+            warning_e   = instance of a reusable exception to use, will be
+                          allocated if null
+            error_e     = instance of a reusable exception to use, will be
+                          allocated if null
+
+    ***************************************************************************/
+
+    public this ( IInputDevice input, size_t buffer_size, IOWarning warning_e =
+                  null , IOError error_e = null)
     {
         this.input = input;
         this.buffer = new ubyte[buffer_size];
@@ -40,6 +108,7 @@ class SelectReader : IAdvancedSelectClient
         this.warning_e =  warning_e is null ? new IOWarning(input) : warning_e;
         this.error_e   =  error_e   is null ? new IOError(input)   : error_e;
     }
+
 
     /**************************************************************************
 
@@ -53,6 +122,7 @@ class SelectReader : IAdvancedSelectClient
         return this.events_;
     }
 
+
     /**************************************************************************
 
         Returns:
@@ -65,12 +135,32 @@ class SelectReader : IAdvancedSelectClient
         return this.input.fileHandle();
     }
 
+
+    /***************************************************************************
+
+        Feed delegate with data that was read.
+
+        Params:
+            dg = delegate to call with new data
+
+    ***************************************************************************/
+
     public void read ( void delegate ( void[] data ) dg )
     {
         this.reader = dg;
 
         this.read(Event.None);
     }
+
+
+    /***************************************************************************
+
+        Read data if events don't indicate end of connection
+
+        Params:
+            events = events
+
+    ***************************************************************************/
 
     private void read ( Event events )
     {
@@ -134,6 +224,19 @@ class SelectReader : IAdvancedSelectClient
             this.reader(this.buffer[0 .. n]);
         }
     }
+
+
+    /***************************************************************************
+
+        Handle socket events
+
+        Params:
+            events = events to handle
+
+        Returns:
+            true, so it stays registered
+
+    ***************************************************************************/
 
     final protected bool handle ( Event events )
     {
