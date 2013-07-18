@@ -15,7 +15,7 @@
 
  ******************************************************************************/
 
-module ocean.net.http2.message.HttpHeader;
+module ocean.net.http.message.HttpHeader;
 
 /******************************************************************************
 
@@ -23,8 +23,8 @@ module ocean.net.http2.message.HttpHeader;
 
  ******************************************************************************/
 
-private import ocean.net.http2.consts.HeaderFieldNames,
-               ocean.net.http2.consts.HttpVersion;
+private import ocean.net.http.consts.HeaderFieldNames,
+               ocean.net.http.consts.HttpVersion;
 
 private import ocean.net.util.ParamSet;
 

@@ -1,497 +1,471 @@
-/*******************************************************************************
+/******************************************************************************
 
-    HTTP Response Handler
+    HTTP response message generator
 
-    Copyright:      Copyright (c) 2009-2010 sociomantic labs. All rights
-                    reserved
+    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
 
-    Version:        Mar 2009: Initial release
-                    Aug 2010: Revised version (socket method)
+    version:        May 2011: Initial release
 
-    Authors:        Lars Kirchhoff, Thomas Nicolai & David Eckardt
+    author:         David Eckardt
 
-*******************************************************************************/
+    Before rendering an HTTP response message, the names of all header fields
+    the response may contain must be added, except the General-Header,
+    Response-Header and Entity-Header fields specified in RFC 2616 section 4.5,
+    6.2 and 7.1, respectively.
+    Before calling render(), the values of these message header fields of
+    interest can be assigned by the ParamSet (HttpResponse super class) methods.
+    Header fields with a null value (which is the value reset() assigns to all
+    fields) will be omitted when rendering the response message header.
+    Specification of General-Header fields:
+
+        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.5
+
+    Specification of Request-Header fields:
+
+        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html#sec6.2
+
+    Specification of Entity-Header fields:
+
+        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7.1
+
+    For the definition of the categories the standard request message header
+    fields are of
+
+        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5
+
+ ******************************************************************************/
 
 module ocean.net.http.HttpResponse;
 
-/*******************************************************************************
+/******************************************************************************
 
     Imports
 
-********************************************************************************/
+ ******************************************************************************/
 
-private     import      ocean.net.http.HttpCookie, ocean.net.http.HttpConstants,
-                        ocean.net.http.HttpHeader, ocean.net.http.HttpTime;
+private import ocean.net.http.message.HttpHeader;
 
-private     import      ocean.util.OceanException;
+private import ocean.net.http.consts.StatusCodes: StatusCode, StatusPhrases;
+private import ocean.net.http.consts.HttpVersion: HttpVersion, HttpVersionIds;
 
-private     import      ocean.core.Array;
+private import ocean.net.http.time.HttpTimeFormatter;
 
-private     import      ocean.io.serialize.SimpleSerializer;
+private import ocean.util.container.AppendBuffer;
 
-private     import      tango.net.http.HttpConst;
+/******************************************************************************/
 
-private     import      tango.net.device.Socket: Socket;
-
-private     import      tango.net.device.Berkeley: IPv4Address;
-
-private     import      Integer = tango.text.convert.Integer;
-
-/*******************************************************************************
-
-    Implements Http response handler that manages the socket write after
-    retrieving a Http request.
-
-    Usage example
-    ---
-    import tango.net.http.HttpConst;
-
-    HttpResponse response;
-    SocketConduit socket  = ServerSocket.accept();
-
-    response.setSocket(socket);
-    ---
-
-    Sending a cookie in the header
-    ---
-    response.cookie.attributes[`spam`] = `sausage`;
-    response.cookie.domain             = `www.example.net`;
-    ---
-
-    Sending response wit a body message
-    ---
-    char[] message = `hello world`;
-    response.send(message);
-    ---
-
-
-    Advanced usage example for using zero-copy to send file
-    content over the network.
-    --
-    extern (C)
-    {
-        size_t sendfile(int out_fd, int in_fd, off_t *offset, size_t count);
-    }
-
-    off_t offset = 0;
-
-    FileInput fi = new FileInput(fileName);
-
-    int file_handle = fi.fileHandle();
-    int file_length = fi.length();
-
-    int sock_handle = SocketConduit.fileHandle();
-
-    int out_size = sendfile (sock_handle, file_handle, &offset, file_length);
-
-    fi.close ();
-
-    SocketConduit.detach()
-    ---
-    ---
-
-    More information about using zero-copy can be found here:
-
-    http://articles.techrepublic.com.com/5100-10878_11-1050878.html
-    http://articles.techrepublic.com.com/5100-10878_11-1044112.html
-    http://www.informit.com/articles/article.aspx?p=23618&seqNum=13
-
-    TODO
-
-    Add non-blocking writing with epoll
-
-
-********************************************************************************/
-
-struct HttpResponse
+class HttpResponse : HttpHeader
 {
     /**************************************************************************
 
-        Type alias
+        Response HTTP version; defaults to HTTP/1.1
 
      **************************************************************************/
 
-    public alias        .HttpCookie                 Cookie;
+    private HttpVersion http_version_ = HttpVersion.v1_1;
 
     /**************************************************************************
 
-        Cookies
+        Content string buffer
 
      **************************************************************************/
 
-    public              Cookie[]                    cookies;
+    private const AppendBuffer!(char) content;
 
     /**************************************************************************
 
-        HTTP version
+        Header line appender
 
      **************************************************************************/
 
-    private             char[]                      http_version = HttpVersion.v11;
+    private const AppendHeaderLines append_header_lines;
 
     /**************************************************************************
 
-        send_date: set to false to omit the Date header
+        Time formatter
 
      **************************************************************************/
 
-    private              bool                       send_date = false;
+    private HttpTimeFormatter time;
 
-   /***************************************************************************
+    /**************************************************************************
 
-       Output buffer
+        Decimal string buffer for Content-Length header value
 
-    ***************************************************************************/
+     **************************************************************************/
 
-   private              char[]                      buf;
+    private char[uint_dec_length] dec_content_length;
 
-    /***************************************************************************
+    /**************************************************************************
 
-        HTTP timestamp generator
+        Constructor
 
-     ***************************************************************************/
+     **************************************************************************/
 
-    private             HttpTime                    httptime;
-
-   /***************************************************************************
-
-       Response header
-
-    ***************************************************************************/
-
-    private             HeaderValues                header;
-
-    /***************************************************************************
-
-        Socket connection
-
-     ***************************************************************************/
-
-     private            Socket                      socket;
-
-     /**************************************************************************
-
-          Set Default Header
-
-          Params:
-             socket  = output conduit (socket)
-
-      **************************************************************************/
-
-    public void setSocket ( Socket socket )
+    public this ( )
     {
-        this.socket = socket;
+        super(HeaderFieldNames.Response.NameList,
+              HeaderFieldNames.Entity.NameList);
+
+        this.append_header_lines = new AppendHeaderLines(this.content = new AppendBuffer!(char)(0x400));
     }
 
     /**************************************************************************
 
-        Retrieves the remote client address. A socket must been previously set.
-
-        FIXME; use inet_ntop
+        Renders the response message, using the 200 "OK" status code.
+        If a message body is provided, the "Content-Length" header field will be
+        set and, if head is false, msg_body will be copied into an internal
+        buffer.
 
         Params:
-           remote_addr = remote client address destination string
+            msg_body = response message body
+            head     = set to true if msg_body should actually not be appended
+                       to the response message (HEAD response)
 
-    **************************************************************************/
+        Returns:
 
-    public char[] getRemoteAddress ()
+
+     **************************************************************************/
+
+    public char[] render ( char[] msg_body = null, bool head = false )
+    {
+        return this.render(StatusCode.init, msg_body);
+    }
+
+    /**************************************************************************
+
+        Renders the response message.
+        If a message body is provided, it is appended to the response message
+        according to RFC 2616, section 4.3; that is,
+        - If status is either below 200 or 204 or 304, neither a message body
+          nor a "Content-Length" header field are appended.
+        - Otherwise, if head is true, a "Content-Length" header field reflecting
+          msg_body.length is appended but the message body itself is not.
+        - Otherwise, if head is false, both a "Content-Length" header field
+          reflecting msg_body.length and the message body itself are appended.
+
+        If a message body is not provided, the same is done as for a message
+        body with a zero length.
+
+        Params:
+            status   = status code; must be at least 100 and less than 1000
+            msg_body = response message body
+            head     = set to true if msg_body should actually not be appended
+                       to the response message (HEAD response)
+
+        Returns:
+            response message (exposes an internal buffer)
+
+     **************************************************************************/
+
+    public char[] render ( StatusCode status, char[] msg_body = null, bool head = false )
     in
     {
-        assert (this.socket !is null);
+        assert (100 <= status, "invalid HTTP status code (below 100)");
+        assert (status < 1000, "invalid HTTP status code (1000 or above)");
     }
     body
     {
-        scope addr = cast (IPv4Address) this.socket.socket.remoteAddress;
+        bool append_msg_body = this.setContentLength(status, msg_body);
 
-        return addr.toAddrString();
-    }
+        this.content.clear();
 
+        this.setStatusLine(status);
 
-    /***************************************************************************
+        this.setDate();
 
-        Sends a HTTP response (without message body).
-
-         = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-         !! Please be aware not to use the write funtion when the
-         connection was going down. This will end up in a permanent
-         blocking state of the socket.
-
-         Please, always check status returned on request.read()
-         before using send().
-
-         Usage example
-         ---
-         bool status = request.read(socket, buffer);
-
-         if ( status )
-         {
-             response.send(...);
-         }
-         ---
-
-         = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-        Params:
-            status  = response code
-            msg     = optional response code message, e.g. error message
-
-          Returns:
-             true on success or false on error
-
-    **************************************************************************/
-
-    public bool send ( HttpStatus status = HttpResponses.OK, char[] msg = `` )
-    {
-        return this.send(``, status, msg);
-    }
-
-
-    /**************************************************************************
-
-         Send HTTP response with or without message body
-
-         Sends response header and message body through the output
-         buffer stream to the receiving client.
-
-         = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-         !! Please be aware not to use the write funtion when the
-         connection was going down. This will end up in a permanent
-         blocking state of the socket.
-
-         Please, always check status returned on request.read()
-
-         Usage example
-         ---
-         bool status = request.read(socket, buffer);
-
-         if ( status )
-         {
-             response.send(...);
-         }
-         ---
-
-         = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-         Params:
-              data   = message body data, may be empty
-              status = response code
-              msg    = optional response code mesage, e.g. error message
-
-         Returns:
-             true on success or false on error
-
-     **************************************************************************/
-
-    public bool send ( char[] data, HttpStatus status = HttpResponses.OK,
-                       char[] msg = `` )
-    in
-    {
-        assert (this.socket !is null, `http response error: invalid socket given`);
-    }
-    body
-    {
-        bool ok = true;
-
-        try
+        foreach (key, val; super) if (val)
         {
-            if (this.socket.socket.error() != 0)
+            this.append_header_lines(key, val);
+        }
+
+        this.addHeaders(this.append_header_lines);
+
+        this.content.append("\r\n", (append_msg_body && !head)? msg_body : null);
+
+        return this.content[];
+    }
+
+    /**************************************************************************
+
+        Called by render() when a subclass may use append to add its response
+        eader lines.
+
+        Example:
+
+        ---
+
+        class MyHttpResponse : HttpResponse
+        {
+            protected override addHeaders ( AppendHeaderLines append )
             {
-                this.socket.error ();
+                // append "Hello: World!\r\n"
+
+                append("Hello", "World!");
             }
+        }
 
-            this.setDefaultHeader();
-            this.setHeaderValue(HttpHeader.ContentLength.value, data.length);
+        ---
 
-            if (this.send_date)
-            {
-                this.header[HttpHeader.Date.value] = this.getGmtDate();
-            }
+        If the header field value of a header line needs to be assembled
+        incrementally, the AppendHeaderLines.IncrementalValue may be used; see
+        the documentation of that class below for further information.
 
-            foreach (cookie; this.cookies)
-            {
-                char[] cookie_header_line = cookie.write();                     // HttpCookie.write()
-                                                                                // cookie_header_line to a
-                if (cookie_header_line.length)                                  // reference to its internal buffer
+        Params:
+            append = header line appender
+
+     **************************************************************************/
+
+    protected void addHeaders ( AppendHeaderLines append ) { }
+
+    /**************************************************************************
+
+        Sets the content buffer length to the lowest currently possible value.
+
+        Returns:
+            this instance
+
+     **************************************************************************/
+
+    public typeof (this) minimizeContentBuffer ( )
+    {
+        this.content.minimize();
+
+        return this;
+    }
+
+    /**************************************************************************
+
+        Sets the Content-Length response message header.
+
+        Params:
+            status   = HTTP status code
+            msg_body = HTTP response message body
+
+        Returns:
+            true if msg_body should be appended to the HTTP response or false
+            if it should not be appended because a message body is not allowed
+            with the provided status code.
+
+     **************************************************************************/
+
+    private bool setContentLength ( StatusCode status, char[] msg_body )
+    {
+        switch (status)
+        {
+            default:
+                if (status >= 200)
                 {
-                    this.header[HttpHeader.SetCookie.value] = cookie_header_line;
+                    bool b = super.set("Content-Length", msg_body.length, this.dec_content_length);
+                    assert (b);
+
+                    return true;
+                }
+                return false;
+
+            case status.NoContent:
+                super.set("Content-Length", "0");
+                // TODO: David, do we need to assert that the return value of set() == true?
+                return false;
+
+            case status.NotModified:
+                return false;
+        }
+    }
+
+    /**************************************************************************
+
+        Resets the content and renders the response status line.
+
+        Params:
+            status   = status code
+
+        Returns:
+            response status line
+
+     **************************************************************************/
+
+    private char[] setStatusLine ( StatusCode status )
+    in
+    {
+        assert (this.http_version_, "HTTP version undefined");
+    }
+    body
+    {
+        char[3] status_dec;
+
+        return this.content.append(HttpVersionIds[this.http_version_],  " ",
+                                   super.writeUint(status_dec, status), " ",
+                                   StatusPhrases[status],               "\r\n");
+    }
+
+    /**************************************************************************
+
+        Sets the Date message header to the current wall clock time if it is not
+        already set.
+
+     **************************************************************************/
+
+    private void setDate ( )
+    {
+        super.access(HeaderFieldNames.General.Names.Date, (char[], ref char[] val)
+        {
+            if (!val)
+            {
+                val = this.time.format();
+            }
+        });
+    }
+
+    /**************************************************************************
+
+        Utility class; an instance is passed to addHeaders() to be used by a
+        subclass to append a header line to the response message.
+
+     **************************************************************************/
+
+    private static class AppendHeaderLines
+    {
+        /**********************************************************************
+
+            Response content
+
+         **********************************************************************/
+
+        private const AppendBuffer!(char) content;
+
+        /**********************************************************************
+
+            Constructor
+
+            Params:
+                content = response content
+
+         **********************************************************************/
+
+        this ( AppendBuffer!(char) content )
+        {
+            this.content = content;
+        }
+
+        /**********************************************************************
+
+            Appends a response message header line; that is, appends
+            name ~ ": " ~ value ~ "\r\n" to the response message content.
+
+            Params:
+                name  = header field name
+                value = header field value
+
+         **********************************************************************/
+
+        typeof (this) opCall ( char[] name, char[] value )
+        {
+            this.content.append(name, ": ", value, "\r\n");
+
+            return this;
+        }
+
+        /**********************************************************************
+
+            true when an instance of AppendHeaderLine for this instance exists.
+
+         **********************************************************************/
+
+        private bool occupied = false;
+
+        /**********************************************************************
+
+            Utility class to append a response message header line where the
+            value is appended incrementally.
+
+            Usage in a HttpResponse subclass:
+
+            ---
+
+            class MyHttpResponse : HttpResponse
+            {
+                protected override addHeaders ( AppendHeaderLines append )
+                {
+                    // append "Hello: World!\r\n"
+
+                    {
+                        // constructor appends "Hello: "
+
+                        scope inc_val = append.new IncrementalValue("Hello");
+
+                         // append "Wor" ~ "ld!"
+
+                        inc_val.appendToValue("Wor");
+                        inc_val.appendToValue("ld!");
+
+                        // destructor appends "\r\n"
+                    }
                 }
             }
 
-            this.setHeader(status, msg);
-            this.setBody(data);
+            ---
 
-            this.write();
-        }
-        catch (Exception e)
+            Note: At most one instance may exist at a time per outer instance.
+
+         **********************************************************************/
+
+        scope class IncrementalValue
         {
-            OceanException.Warn(`Error on response: {}`, e.msg);
+            /******************************************************************
 
-            ok = false;
+                Constructor; opens a response message header line by appending
+                name ~ ": " to the response message content.
+
+                Params:
+                    name = header field name
+
+                In:
+                    No other instance for the outer instance may currenty exist.
+
+             ******************************************************************/
+
+            this ( char[] name )
+            in
+            {
+                assert (!this.outer.occupied);
+                this.outer.occupied = true;
+            }
+            body
+            {
+                this.outer.content.append(name, ": ");
+            }
+
+            /******************************************************************
+
+                Appends str to the header field value.
+
+                Params:
+                    chunk = header field valu chunk
+
+             ******************************************************************/
+
+            void appendToValue ( char[] chunk )
+            {
+                this.outer.content ~= chunk;
+            }
+
+            /******************************************************************
+
+                Denstructor; closes a response message header line by appending
+                "\r\n" to the response message content.
+
+             ******************************************************************/
+
+            ~this ( )
+            out
+            {
+                this.outer.occupied = false;
+            }
+            body
+            {
+                this.outer.content ~= "\r\n";
+            }
         }
-
-        return ok;
-    }
-
-    /***************************************************************************
-
-        Reset response
-
-        Note: Method should be called on reuse of the struct
-
-     ***************************************************************************/
-
-    public void reset ()
-    {
-        foreach (cookie; this.cookies)
-        {
-            cookie.reset();
-        }
-
-        this.header.reset();
-        this.buf.length           = 0;
-    }
-
-    /**************************************************************************
-
-         Set value for HTTP header field
-
-         Params:
-             name  = header parameter name
-             value = value of header parameter
-
-     **************************************************************************/
-
-    public void setHeaderValue ( in char[] name, in char[] value )
-    {
-        this.header[name] = value;
-    }
-
-    /**************************************************************************
-
-         Set value for HTTP header field
-
-         Params:
-             name  = header parameter name
-             value = value of header parameter
-
-         FIXME: Integer.toString() returns a .dup. However, considering that
-         HeaderValues .dups everything, fixing this won't currently make things
-         much better.
-
-     **************************************************************************/
-
-    public void setHeaderValue ( in char[] name, int value )
-    {
-        this.header[name] = Integer.toString(value);
-    }
-
-    /**************************************************************************
-
-        Set Default Header
-
-     **************************************************************************/
-
-    private void setDefaultHeader ()
-    {
-        if ( !(HttpHeader.ContentType.value in this.header) )
-        {
-            this.header[HttpHeader.ContentType.value] = HttpHeader.TextHtml.value;
-        }
-
-        if ( !(HttpHeader.Connection.value in this.header) )
-        {
-            this.header[HttpHeader.Connection.value] = `close`.dup;
-        }
-    }
-
-    /**************************************************************************
-
-         Write response to socket
-
-         Throws:
-             IOException on end of flow condition
-
-     **************************************************************************/
-
-    private void write ( )
-    {
-        SimpleSerializer.writeData(this.socket, this.buf);
-    }
-
-    /**************************************************************************
-
-        Set response body message
-
-         Params:
-             data = body message payload
-
-         Returns:
-             void
-
-     **************************************************************************/
-
-    private void setBody ( in char[] data )
-    {
-        this.buf.append(data);
-    }
-
-    /**************************************************************************
-
-        Set response header
-
-         Params:
-             conduit = output socket conduit
-             status  = HTTP response status
-             msg     = additional status message
-
-         Returns:
-             void
-
-
-         FIXME: Integer.toString returns a .dup. However, considering that
-         HeaderValues .dups everything, fixing this won't currently make things
-         much better.
-
-     **************************************************************************/
-
-    private void setHeader ( HttpStatus status, char[] msg = `` )
-    {
-        this.buf.concat(this.http_version, ` `, Integer.toString(status.code), ` `, status.name);
-
-        if ( msg.length )
-        {
-            this.buf.append(`: `, msg);
-        }
-
-        this.buf.append(HttpConst.Eol);
-
-        foreach (name, value; this.header)
-        {
-            this.buf.append(name, `: `, value, HttpConst.Eol);
-        }
-
-        this.buf.append(HttpConst.Eol);
-    }
-    /**************************************************************************
-
-        Returns GMT formatted date/time stamp
-
-        Method formats the current wall clock time (GMT) as HTTP compliant time
-        stamp (asctime).
-
-        Returns:
-            HTTP time stamp of current wall clock time (GMT). Do not modify
-            (exposes an internal buffer).
-
-        Throws:
-            Exception if formatting failed (supposed never to happen)
-
-     **************************************************************************/
-
-    public char[] getGmtDate ()
-    {
-        return this.httptime();
     }
 }

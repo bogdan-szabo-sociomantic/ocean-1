@@ -22,6 +22,15 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
+
+``ocean.net.http``
+  This unused package has been removed from ocean.
+  
+``ocean.net.http2`` renamed to ``ocean.net.http``
+  All code that imports from ``ocean.net.http2`` will need to import from
+  ``ocean.net.http``.
 
 v1.5 (2013-07-04)
 -----------------

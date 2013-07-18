@@ -15,7 +15,7 @@
 
  ******************************************************************************/
 
-module ocean.net.http2.cookie.HttpCookieParser;
+module ocean.net.http.cookie.HttpCookieParser;
 
 /******************************************************************************
 
