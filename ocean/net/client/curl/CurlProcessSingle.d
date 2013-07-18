@@ -41,7 +41,7 @@ private import ocean.io.select.EpollSelectDispatcher;
 private import ocean.io.serialize.StructSerializer;
 
 private import ocean.text.convert.Layout;
-private import ocean.core.Array : copy;
+private import ocean.core.Array : copy, append;
 
 debug private import ocean.io.Stdout;
 
@@ -372,9 +372,17 @@ private class CurlProcess : EpollProcess
 
         if ( this.params.req_data.length )
         {
-            this.args ~= "-d";
-            this.args ~= this.params.req_data;
-
+            if ( this.params.req_is_file )
+            {
+                this.args ~= "--data-binary";
+                char[] prefix;
+                this.args ~= append(prefix, "@", this.params.req_data);
+            }
+            else
+            {
+                this.args ~= "-d";
+                this.args ~= this.params.req_data;
+            }
         }
 
         // Url

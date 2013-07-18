@@ -424,5 +424,22 @@ public template RequestData ( )
         this.params.req_data = data;
         return this;
     }
+
+    /***************************************************************************
+
+        Instead of sending POST data directly from req_data, interpret it as a
+        file name to read from. Only way to send binary data that may contain
+        \0.
+
+        Returns:
+            this pointer for method chaining
+
+    ***************************************************************************/
+
+    public typeof(this) binaryData ()
+    {
+        this.params.req_is_file = true;
+        return this;
+    }
 }
 
