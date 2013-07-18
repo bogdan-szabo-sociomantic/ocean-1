@@ -16,7 +16,7 @@
 
  ******************************************************************************/
 
-module ocean.net.http2.cookie.CookiesHttpResponse;
+module ocean.net.http.cookie.CookiesHttpResponse;
 
 /******************************************************************************
 
@@ -24,9 +24,9 @@ module ocean.net.http2.cookie.CookiesHttpResponse;
 
  ******************************************************************************/
 
-private import ocean.net.http2.HttpResponse;
-private import ocean.net.http2.cookie.HttpCookieGenerator;
-private import ocean.net.http2.consts.HeaderFieldNames;
+private import ocean.net.http.HttpResponse;
+private import ocean.net.http.cookie.HttpCookieGenerator;
+private import ocean.net.http.consts.HeaderFieldNames;
 
 /******************************************************************************/
 

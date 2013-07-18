@@ -17,7 +17,7 @@
 
  ******************************************************************************/
 
-module ocean.net.http2.consts.CookieAttributeNames;
+module ocean.net.http.consts.CookieAttributeNames;
 
 /******************************************************************************/
 

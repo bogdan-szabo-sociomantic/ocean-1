@@ -19,7 +19,7 @@
 
  ******************************************************************************/
 
-module ocean.net.http2.HttpException;
+module ocean.net.http.HttpException;
 
 /******************************************************************************
 
@@ -27,7 +27,7 @@ module ocean.net.http2.HttpException;
 
  ******************************************************************************/
 
-private import ocean.net.http2.consts.StatusCodes;
+private import ocean.net.http.consts.StatusCodes;
 
 private import tango.net.http.HttpConst: HttpResponseCode;
 

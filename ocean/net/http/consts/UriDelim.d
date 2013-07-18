@@ -11,7 +11,7 @@
 
 *******************************************************************************/
 
-module ocean.net.http2.consts.UriDelim;
+module ocean.net.http.consts.UriDelim;
 
 
 

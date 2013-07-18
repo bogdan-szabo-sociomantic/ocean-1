@@ -16,7 +16,7 @@
 
  ******************************************************************************/
 
-module ocean.net.http2.HttpConnectionHandler;
+module ocean.net.http.HttpConnectionHandler;
 
 /******************************************************************************
 
@@ -24,13 +24,13 @@ module ocean.net.http2.HttpConnectionHandler;
 
  ******************************************************************************/
 
-private import ocean.net.http2.HttpRequest,
-               ocean.net.http2.HttpResponse,
-               ocean.net.http2.HttpException;
+private import ocean.net.http.HttpRequest,
+               ocean.net.http.HttpResponse,
+               ocean.net.http.HttpException;
 
-private import ocean.net.http2.consts.StatusCodes: StatusCode;
-private import ocean.net.http2.consts.HttpMethod: HttpMethod;
-private import ocean.net.http2.consts.HeaderFieldNames;
+private import ocean.net.http.consts.StatusCodes: StatusCode;
+private import ocean.net.http.consts.HttpMethod: HttpMethod;
+private import ocean.net.http.consts.HeaderFieldNames;
 
 private import ocean.io.select.model.IFiberConnectionHandler,
                ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
