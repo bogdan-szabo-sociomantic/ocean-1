@@ -98,6 +98,12 @@ New Features
   informational interface to the connection handler's socket
   (``IAddressIPSocketInfo``) is added.
 
+``ocean.io.select.model.ISelectListenerPoolInfo``
+  The new informational (non-destructive) interface ``ISelectListenerPoolInfo``,
+  which is implemented by ``SelectListenerPool`` (the pool of connections
+  handled by a ``SelectListener``), adds foreach iterators over informational
+  interfaces (``IConnectionHandlerInfo``) to the connections in the pool.
+
 v1.5 (2013-07-04)
 -----------------
 
