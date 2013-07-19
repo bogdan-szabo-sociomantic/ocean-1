@@ -84,6 +84,12 @@ New Features
   classes in order to display additional information in the app status display,
   after the standard version info line has been printed.
 
+``ocean.sys.socket.model.IAddressIPSocketInfo``
+  The new informational (non-destructive) interface ``IAddressIPSocketInfo``,
+  which is implemented by ``AddressIPSocket``, allows user code to pass around
+  safe instances of ``AddressIPSocket`` to places which shouldn't have access to
+  its "mutator" methods.
+
 v1.5 (2013-07-04)
 -----------------
 

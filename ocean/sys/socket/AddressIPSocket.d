@@ -14,6 +14,8 @@
 
 module ocean.sys.socket.AddressIPSocket;
 
+private import ocean.sys.socket.model.IAddressIPSocketInfo;
+
 private import ocean.sys.socket.IPSocket,
                ocean.sys.socket.InetAddress,
                ocean.sys.socket.AddrInfo;
@@ -33,7 +35,7 @@ private import tango.stdc.string: strlen;
 
  ******************************************************************************/
 
-class AddressIPSocket ( bool IPv6 = false ) : IPSocket!(IPv6)
+class AddressIPSocket ( bool IPv6 = false ) : IPSocket!(IPv6), IAddressIPSocketInfo
 {
     /**************************************************************************
 
@@ -89,6 +91,34 @@ class AddressIPSocket ( bool IPv6 = false ) : IPSocket!(IPv6)
     public ushort port ( )
     {
         return this.in_address.port;
+    }
+
+    /***************************************************************************
+
+        Returns:
+            true if a client connection is currently established or false if
+            not.
+
+    ***************************************************************************/
+
+    public bool connected ( )
+    {
+        return this.fileHandle >= 0;
+    }
+
+    /***************************************************************************
+
+        IAddressIPSocketInfo interface method. Wrapper for method implemented by
+        super class.
+
+        Returns:
+            I/O device instance (file descriptor under linux)
+
+    ***************************************************************************/
+
+    public Handle fileHandle ( )
+    {
+        return super.fileHandle();
     }
 
     /**************************************************************************
