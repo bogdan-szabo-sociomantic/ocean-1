@@ -90,6 +90,14 @@ New Features
   safe instances of ``AddressIPSocket`` to places which shouldn't have access to
   its "mutator" methods.
 
+``ocean.io.select.model.IConnectionHandlerInfo``
+  The new informational (non-destructive) interface ``IConnectionHandlerInfo``,
+  which is implemented by ``IConnectionHandler``, allows user code to pass
+  around safe instances of ``IConnectionHandler`` to places which shouldn't have
+  access to its "mutator" methods. Specifically, a method which returns an
+  informational interface to the connection handler's socket
+  (``IAddressIPSocketInfo``) is added.
+
 v1.5 (2013-07-04)
 -----------------
 

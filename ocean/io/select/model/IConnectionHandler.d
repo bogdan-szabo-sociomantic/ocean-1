@@ -22,6 +22,7 @@ module ocean.io.select.model.IConnectionHandler;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
+private import ocean.io.select.model.IConnectionHandlerInfo;
 private import ocean.io.select.model.ISelectClient : IAdvancedSelectClient;
 
 private import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
@@ -42,7 +43,8 @@ debug private import ocean.util.log.Trace;
 
 *******************************************************************************/
 
-abstract class IConnectionHandler : IAdvancedSelectClient.IErrorReporter
+abstract class IConnectionHandler : IConnectionHandlerInfo,
+    IAdvancedSelectClient.IErrorReporter
 {
     /***************************************************************************
 
@@ -230,6 +232,21 @@ abstract class IConnectionHandler : IAdvancedSelectClient.IErrorReporter
     public bool connected ( )
     {
         return this.socket.fileHandle >= 0;
+    }
+
+    /***************************************************************************
+
+        IConnectionHandlerInfo method.
+
+        Returns:
+            informational interface to the socket used by this connection
+            handler
+
+    ***************************************************************************/
+
+    IAddressIPSocketInfo socket_info ( )
+    {
+        return this.socket;
     }
 
     /***************************************************************************
