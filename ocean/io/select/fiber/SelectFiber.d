@@ -26,6 +26,7 @@ module ocean.io.select.fiber.SelectFiber;
 private import ocean.core.MessageFiber;
 
 private import ocean.io.select.model.ISelectClient;
+private import ocean.io.select.model.ISelectClientInfo;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
@@ -236,6 +237,19 @@ public class SelectFiber : MessageFiber
         scope (success) this.current = null;
 
         return this.current !is null;
+    }
+
+    /**************************************************************************
+
+        Returns:
+            informational interface to currently registered client (null if no
+            client is registered)
+
+     **************************************************************************/
+
+    public ISelectClientInfo registered_client ( )
+    {
+        return this.current;
     }
 }
 

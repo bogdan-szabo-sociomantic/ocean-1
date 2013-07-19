@@ -114,6 +114,11 @@ New Features
   The ``poolInfo()`` method now returns an ``ISelectListenerPoolInfo``
   interface, allowing iteration over the pool of active connections.
 
+``ocean.io.select.fiber.SelectFiber``
+  Now contains a method ``registered_client()`` which returns an informational
+  interface (``ISelectClientInfo``) to the select client which is currently
+  registered for the fiber.
+
 v1.5 (2013-07-04)
 -----------------
 
