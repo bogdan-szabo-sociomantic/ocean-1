@@ -67,8 +67,10 @@ module ocean.io.select.SelectListener;
 
  ******************************************************************************/
 
-private import ocean.io.select.model.ISelectClient,
-               ocean.io.select.model.IConnectionHandler;
+private import ocean.io.select.model.ISelectClient;
+private import ocean.io.select.model.IConnectionHandler;
+private import ocean.io.select.model.SelectListenerPool;
+private import ocean.io.select.model.ISelectListenerPoolInfo;
 
 private import ocean.core.ErrnoIOException;
 
@@ -435,7 +437,9 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
      **************************************************************************/
 
-    private const AutoCtorPool!(T, IConnectionHandler.FinalizeDg, Args) receiver_pool;
+    private alias SelectListenerPool!(T, Args) ConnPool;
+
+    private const ConnPool receiver_pool;
 
     /**************************************************************************
 
@@ -456,7 +460,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
     {
         super(address, port, backlog);
 
-        this.receiver_pool = this.receiver_pool.newPool(&this.returnToPool, args);
+        this.receiver_pool = new ConnPool(&this.returnToPool, args);
     }
 
     /**************************************************************************
@@ -477,7 +481,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
     {
         super(port, backlog);
 
-        this.receiver_pool = this.receiver_pool.newPool(&this.returnToPool, args);
+        this.receiver_pool = new ConnPool(&this.returnToPool, args);
     }
 
     /**************************************************************************
@@ -580,7 +584,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
      **************************************************************************/
 
-    public IPoolInfo poolInfo ( )
+    public ISelectListenerPoolInfo poolInfo ( )
     {
         return this.receiver_pool;
     }

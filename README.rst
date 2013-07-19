@@ -104,6 +104,10 @@ New Features
   handled by a ``SelectListener``), adds foreach iterators over informational
   interfaces (``IConnectionHandlerInfo``) to the connections in the pool.
 
+``ocean.io.select.SelectListener``
+  The ``poolInfo()`` method now returns an ``ISelectListenerPoolInfo``
+  interface, allowing iteration over the pool of active connections.
+
 v1.5 (2013-07-04)
 -----------------
 
