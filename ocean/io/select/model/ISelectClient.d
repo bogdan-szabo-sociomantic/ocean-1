@@ -29,6 +29,8 @@ module ocean.io.select.model.ISelectClient;
 
  ******************************************************************************/
 
+private import ocean.io.select.model.ISelectClientInfo;
+
 private import ocean.sys.Epoll;
 
 private import tango.io.model.IConduit: ISelectable;
@@ -50,7 +52,7 @@ debug private import ocean.text.convert.Layout;
 
  ******************************************************************************/
 
-public abstract class ISelectClient : ITimeoutClient, ISelectable
+public abstract class ISelectClient : ITimeoutClient, ISelectable, ISelectClientInfo
 {
     /**************************************************************************
 
@@ -332,6 +334,21 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable
     public bool is_registered ( )
     {
         return this.is_registered_;
+    }
+
+    /***************************************************************************
+
+        ISelectClientInfo method.
+
+        Returns:
+            I/O timeout value of client in microseconds. A value of 0 means that
+            no timeout is set for this client
+
+    ***************************************************************************/
+
+    public ulong timeout_value_us ( )
+    {
+        return this.timeout_us;
     }
 
     /**************************************************************************

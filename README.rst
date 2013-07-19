@@ -98,6 +98,12 @@ New Features
   informational interface to the connection handler's socket
   (``IAddressIPSocketInfo``) is added.
 
+``ocean.io.select.model.ISelectClientInfo``
+  The new informational (non-destructive) interface ``ISelectClientInfo``,
+  which is implemented by ``ISelectClient``, allows user code to pass around
+  safe instances of ``SelectClient`` to places which shouldn't have access to
+  its "mutator" methods.
+
 ``ocean.io.select.model.ISelectListenerPoolInfo``
   The new informational (non-destructive) interface ``ISelectListenerPoolInfo``,
   which is implemented by ``SelectListenerPool`` (the pool of connections
