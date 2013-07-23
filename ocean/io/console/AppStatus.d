@@ -637,11 +637,31 @@ public class AppStatus
 
     ***************************************************************************/
 
-    private char[] truncateLength ( ref char[] buffer )
+    protected char[] truncateLength ( ref char[] buffer )
     {
-        if ( buffer.length > Terminal.columns )
+        return this.truncateLength(buffer, Terminal.columns);
+    }
+
+
+    /***************************************************************************
+
+        Check the length of the buffer against the specified maximum length. If
+        the buffer is too long, set it to maximum.
+
+        Params:
+            buffer = buffer to check the length of
+            max = maximum number of characters in buffer
+
+        Returns:
+            the truncated buffer
+
+    ***************************************************************************/
+
+    protected char[] truncateLength ( ref char[] buffer, size_t max )
+    {
+        if ( buffer.length > max )
         {
-            buffer.length = Terminal.columns;
+            buffer.length = max;
         }
         return buffer;
     }
