@@ -106,6 +106,17 @@ public class AppStatus
 
     /***************************************************************************
 
+        Convenience aliases for derived classes.
+
+    ***************************************************************************/
+
+    protected alias .IAdvancedMicrosecondsClock IAdvancedMicrosecondsClock;
+
+    protected alias .TerminalOutput!(char) TerminalOutput;
+
+
+    /***************************************************************************
+
         Interval clock, passed into the constructor. Used to display the current
         time and to calculate running time.
 
@@ -559,7 +570,15 @@ public class AppStatus
     /***************************************************************************
 
         Print the version and build information for this application (prints in
-        bold)
+        bold).
+
+        Additional text may be printed at this point by sub-classes which
+        override the protected printExtraVersionInformation(). This method is
+        only called if there are > 0 character remaining on the terminal line
+        after the standard version info has been displayed. Note that the sub-
+        class is responsible for making sure that any extra text printed does
+        not exceed the specified number of characters (presumably by calling
+        truncateLength()).
 
     ***************************************************************************/
 
@@ -572,6 +591,36 @@ public class AppStatus
 
         Stdout.bold(true).format(this.truncateLength(this.footer_line)).
             bold(false);
+
+        auto remaining = Terminal.columns - this.footer_line.length;
+        if ( remaining )
+        {
+            this.footer_line.length = 0;
+            this.printExtraVersionInformation(Stdout, this.footer_line,
+                remaining);
+        }
+    }
+
+
+    /***************************************************************************
+
+        Prints additional text after the standard version info. The default
+        implementation prints nothing, but sub-classes may override this method
+        to provide specialised version information.
+
+        Params:
+            output = terminal output to use
+            buffer = buffer which may be used for formatting (initially empty)
+            max_length = the maximum number of characters remaining in the
+                terminal line. It is the sub-class' responsiblity to check that
+                printed text does not exceed this length, presumably by calling
+                truncateLength()
+
+    ***************************************************************************/
+
+    protected void printExtraVersionInformation ( TerminalOutput output,
+        ref char[] buffer, size_t max_length )
+    {
     }
 
 

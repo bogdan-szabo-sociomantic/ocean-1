@@ -66,6 +66,11 @@ New Features
   * ``PeriodicStatsLog`` value delegate must now return a pointer to the struct
     to be logged. This avoids making an unnecessary copy of the struct.
 
+``ocean.io.console.AppStatus``
+  The protected printExtraVersionInformation() can be overridden by derived
+  classes in order to display additional information in the app status display,
+  after the standard version info line has been printed.
+
 v1.5 (2013-07-04)
 -----------------
 
