@@ -41,7 +41,7 @@ Migration Instructions
 
 ``ocean.net.http``
   This unused package has been removed from ocean.
-  
+
 ``ocean.net.http2`` renamed to ``ocean.net.http``
   All code that imports from ``ocean.net.http2`` will need to import from
   ``ocean.net.http``.
@@ -59,6 +59,14 @@ Migration Instructions
 ``ocean.text.ling``
   This whole package has been moved into ``dive.text.ling``.
 
+``ocean.util.log.Stats``
+  * ``PeriodicStatsLog`` constructor now expects a second delegate, which is
+    called after each stats log line is written. The delegate is optional (can
+    be null). It can be used, for example, to reset transient values in the
+    struct being logged.
+  * ``PeriodicStatsLog`` value delegate must now return a pointer to the struct
+    to be logged. This avoids making an unnecessary copy of the struct.
+
 New Features
 ^^^^^^^^^^^^
 
@@ -70,14 +78,6 @@ New Features
   to the ``Map``/``Set``/``BucketSet`` constructor. It is also possible to use
   the built-in pool implementation and only customise the allocation method by
   deriving from ``BucketSet.FreeBuckets`` and overriding ``newElement()``.
-
-``ocean.util.log.Stats``
-  * ``PeriodicStatsLog`` constructor now expects a second delegate, which is
-    called after each stats log line is written. The delegate is optional (can
-    be null). It can be used, for example, to reset transient values in the
-    struct being logged.
-  * ``PeriodicStatsLog`` value delegate must now return a pointer to the struct
-    to be logged. This avoids making an unnecessary copy of the struct.
 
 ``ocean.io.console.AppStatus``
   The protected printExtraVersionInformation() can be overridden by derived
