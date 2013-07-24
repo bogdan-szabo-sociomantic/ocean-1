@@ -46,6 +46,13 @@ Migration Instructions
   All code that imports from ``ocean.net.http2`` will need to import from
   ``ocean.net.http``.
 
+``ocean.net.client``
+  This whole package has been moved into dive:
+
+  * ``ocean.net.client.curl`` is now in ``dive.net.curl``
+  * ``ocean.net.client.sphinx`` is now in ``dive.db.sphinx``
+  * ``ocean.net.client.xmlrpc`` is now in ``dive.net.xmlrpc``
+
 New Features
 ^^^^^^^^^^^^
 
