@@ -53,6 +53,9 @@ Migration Instructions
   * ``ocean.net.client.sphinx`` is now in ``dive.db.sphinx``
   * ``ocean.net.client.xmlrpc`` is now in ``dive.net.xmlrpc``
 
+``ocean.db.drizzle``
+  This whole package has been moved into ``dive.db.drizzle``.
+
 New Features
 ^^^^^^^^^^^^
 
