@@ -56,6 +56,9 @@ Migration Instructions
 ``ocean.db.drizzle``
   This whole package has been moved into ``dive.db.drizzle``.
 
+``ocean.text.ling``
+  This whole package has been moved into ``dive.text.ling``.
+
 New Features
 ^^^^^^^^^^^^
 
