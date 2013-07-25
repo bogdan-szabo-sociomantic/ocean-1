@@ -282,7 +282,8 @@ public class StatsLog ( T ) : IStatsLog
         the struct is output as <member name>:<member value>.
 
         Params:
-            values = struct containing values to write to the log
+            values = struct containing values to write to the log. Passed as ref
+                purely to avoid making a copy -- the struct is not modified.
 
     ***************************************************************************/
 
@@ -309,7 +310,8 @@ public class StatsLog ( T ) : IStatsLog
             A = type of associative array value. Assumed to be handled by Layout
 
         Params:
-            values = struct containing values to write to the log
+            values = struct containing values to write to the log. Passed as ref
+                purely to avoid making a copy -- the struct is not modified.
             additional = associative array of additional values to write to the
                 log
 
@@ -330,7 +332,8 @@ public class StatsLog ( T ) : IStatsLog
         <member name>:<member value>.
 
         Params:
-            values = struct containing values to format
+            values = struct containing values to format. Passed as ref purely to
+                avoid making a copy -- the struct is not modified.
 
         Returns:
             formatted string
@@ -364,7 +367,8 @@ public class StatsLog ( T ) : IStatsLog
             A = type of associative array value. Assumed to be handled by Layout
 
         Params:
-            values = struct containing values to write to format
+            values = struct containing values to write to format. Passed as ref
+                purely to avoid making a copy -- the struct is not modified.
             additional = associative array of additional values to format
 
         Returns:
@@ -390,7 +394,8 @@ public class StatsLog ( T ) : IStatsLog
         Each member of the struct is output as <member name>:<member value>.
 
         Params:
-            values = struct containing values to write to the log
+            values = struct containing values to write to the log. Passed as ref
+                purely to avoid making a copy -- the struct is not modified.
             add_separator = flag telling whether a separator (space) should be
                 added before a stats value is formatted. After a single value
                 has been formatted the value of add_separator is set to true.
