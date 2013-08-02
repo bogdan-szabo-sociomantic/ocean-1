@@ -7,6 +7,10 @@
 # Variables that influence the behavior of this makefile (set them right after
 # the include):
 
+### Global settings ###
+
+SHELL := /bin/bash
+
 ### User Setting Variable Defaults ###
 
 # Directory were the libraries are to be found
@@ -50,6 +54,20 @@ OCEAN_LDFLAGS = -L-lminilzo \
                         -L-ldl \
                         -L-lebtree \
                         -L-ldrizzle
+
+### Utility functions ###
+
+# "package/subpackage/module.d" -> "package.subpackage.module"
+
+path_to_module = $(subst /,.,$(1:.d=))
+
+# $(1) is directory path to target binary, assumed to start with 'bin/'
+
+invoke_xfbuild = xfbuild \
+	+o=$(1) \
+	+O=$(subst bin/,obj/,$(1)) \
+	+D=$(subst bin/,obj/,$(1)).deps \
+	+full
 
 ### TARGETS ###
 
