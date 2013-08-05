@@ -31,10 +31,7 @@ VERSION_MODULE=src/main/Version.d
 ### Useful Predefined Variables ###
 
 DEBUG_FLAGS = -debug \
-              -gc \
-              -unittest \
-              -debug=SonarUnitTest \
-              -debug=OceanUnitTest
+              -gc
 
 RELEASE_FLAGS = -release \
                 -inline \
