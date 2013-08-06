@@ -22,6 +22,21 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
+
+``ocean.util.container.map`` and subpackages
+  The default bucket element allocation and disposal method is now using
+  ``new``/``delete``.
+  Previously the unused buckets were stored in a linked list by default. This
+  caused severe slowdown of the GC when scanning for unused references. The new
+  method proved to eliminate the performance impact while not causing a memory
+  leak condition.
+  The linked list pool is still available in
+  ``ocean.util.container.map.model.BucketElementFreeList``, and it is useful if
+  the bucket elements are preallocated and a reference to each bucket element is
+  stored somewhere else. The ``Cache`` is using it in that way.
+
 New Features
 ^^^^^^^^^^^^
 

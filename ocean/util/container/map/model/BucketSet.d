@@ -47,7 +47,7 @@ private import ocean.core.Array: clear, isClearable;
 
 private import tango.core.BitManip: bsr;
 
-private import ocean.util.container.map.model.BucketElementFreeList;
+private import ocean.util.container.map.model.IBucketElementGCAllocator;
 
 /******************************************************************************
 
@@ -269,56 +269,9 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
     protected alias .Bucket!(V, K) Bucket;
 
-    /***************************************************************************
-
-        Free list of currently unused bucket elements.
-
-    ***************************************************************************/
-
-    static class FreeBuckets : FreeList
+    static class BucketElementGCAllocator: IBucketElementGCAllocator
     {
-        /**********************************************************************
-
-            Obtains the next element of element.
-
-            Params:
-                element = bucket element of which to obtain the next one
-
-            Returns:
-                the next bucket element (which may be null).
-
-         **********************************************************************/
-
-        protected void* getNext ( void* element )
-        {
-            return (cast(Bucket.Element*)element).next;
-        }
-
-        /**********************************************************************
-
-            Sets the next element of element.
-
-            Params:
-                element = bucket element to which to set the next one
-                next    = next bucket element for element (nay be null)
-
-         **********************************************************************/
-
-        protected void setNext ( void* element, void* next )
-        {
-            (cast(Bucket.Element*)element).next = cast(Bucket.Element*)next;
-        }
-
-        /**********************************************************************
-
-            Allocates a new object.
-
-            Returns:
-                a new object.
-
-         **********************************************************************/
-
-        protected void* newElement ( )
+        public void* get ( )
         {
             return new Bucket.Element;
         }
@@ -354,7 +307,7 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
     protected this ( size_t n, float load_factor = 0.75 )
     {
-        this(new FreeBuckets, n, load_factor);
+        this(new BucketElementGCAllocator, n, load_factor);
     }
 
     /***************************************************************************
