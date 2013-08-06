@@ -24,9 +24,85 @@ private import ocean.util.container.map.model.IAllocator;
 
 private import ocean.core.Array: clear;
 
-/******************************************************************************/
+/*******************************************************************************
 
-abstract class FreeList: IAllocator
+    Free list of currently unused bucket elements.
+
+*******************************************************************************/
+
+class BucketElementFreeList ( BucketElement ) : IBucketElementFreeList
+{
+    static assert(is(BucketElement == struct),
+                  "BucketElement type needs to be a struct, which " ~
+                  BucketElement.stringof ~ " is not");
+
+    static if(is(typeof(BucketElement.next) Next))
+    {
+        static assert(is(Next == BucketElement*),
+                      BucketElement.stringof ~ ".next needs to be of type " ~
+                      (BucketElement*).stringof ~ ", not " ~ Next.stringof);
+    }
+    else
+    {
+        static assert(false, "need " ~ (BucketElement*).stringof ~ " " ~
+                             BucketElement.stringof ~ ".next");
+    }
+
+
+    /**************************************************************************
+
+        Obtains the next element of element.
+
+        Params:
+            element = bucket element of which to obtain the next one
+
+        Returns:
+            the next bucket element (which may be null).
+
+     **************************************************************************/
+
+    protected void* getNext ( void* element )
+    {
+        return (cast(BucketElement*)element).next;
+    }
+
+    /**************************************************************************
+
+        Sets the next element of element.
+
+        Params:
+            element = bucket element to which to set the next one
+            next    = next bucket element for element (nay be null)
+
+     **************************************************************************/
+
+    protected void setNext ( void* element, void* next )
+    {
+        (cast(BucketElement*)element).next = cast(BucketElement*)next;
+    }
+
+    /**************************************************************************
+
+        Allocates a bucket element.
+
+        Returns:
+            a new bucket element.
+
+     **************************************************************************/
+
+    protected void* newElement ( )
+    {
+        return new BucketElement;
+    }
+}
+
+/*******************************************************************************
+
+    Type generic BucketElementFreeList base class.
+
+*******************************************************************************/
+
+abstract class IBucketElementFreeList: IAllocator
 {
     /**************************************************************************
 

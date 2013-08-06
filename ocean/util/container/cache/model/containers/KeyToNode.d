@@ -21,6 +21,7 @@ module ocean.util.container.cache.model.containers.KeyToNode;
 *******************************************************************************/
 
 private import ocean.util.container.map.HashMap;
+private import ocean.util.container.map.model.BucketElementFreeList;
 private import ocean.util.container.cache.model.containers.ArrayPool;
 private import ocean.util.container.cache.model.containers.TimeToIndex;
 
@@ -28,7 +29,7 @@ private import ocean.util.container.cache.model.containers.TimeToIndex;
 
 class KeyToNode: HashMap!(TimeToIndex.Node*)
 {
-    static class ArrayAllocatedFreeBucketElements: FreeBuckets
+    static class ArrayAllocatedFreeBucketElements: BucketElementFreeList!(Bucket.Element)
     {
         /***********************************************************************
 
