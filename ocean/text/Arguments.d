@@ -429,7 +429,7 @@ class Arguments : Tango.Arguments
             }
         }
 
-        // there is no triling ", " in this case, so add two spaces instead.
+        // there is no trailing ", " in this case, so add two spaces instead.
         if (arg.aliases.length == 0)
         {
             output.format("  ");
