@@ -438,7 +438,35 @@ class Arguments : Tango.Arguments
         output.format("{}", this.space(this.aliases_width -
                     this.aliasesWidth(arg.aliases.length)));
         output.format("--{}{}  ", arg.name, this.space(this.long_name_width - arg.name.length));
-        output.formatln("{}", arg.text);
+        output.format("{}", arg.text);
+
+        uint extras;
+        if ( arg.options.length )  extras++;
+        if ( arg.deefalts.length ) extras++;
+        if ( extras )
+        {
+            output.format(" (");
+
+            if ( arg.options.length )
+            {
+                output.format("{}", arg.options);
+
+                // comma separate if more info to come
+                extras--;
+                if ( extras )
+                {
+                    output.format(", ");
+                }
+            }
+
+            if ( arg.deefalts.length )
+            {
+                output.format("default: {}", arg.deefalts);
+            }
+
+            output.format(")");
+        }
+        output.newline.flush;
     }
 
 
