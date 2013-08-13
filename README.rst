@@ -22,6 +22,15 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+New Features
+^^^^^^^^^^^^
+
+``common.mk``
+  The utility common makefile gain a new function: ``check_deb``. This function
+  makes very easy to check for debian package dependencies in the build
+  process. Please refer to the documentations comment for details on how to use
+  it.
+
 
 v1.6 (2013-08-06)
 -----------------

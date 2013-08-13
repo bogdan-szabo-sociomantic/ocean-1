@@ -69,6 +69,38 @@ invoke_xfbuild = xfbuild \
 	+D=$(subst bin/,obj/,$(1)).deps \
 	+full
 
+# Check if a certain debian package exists and if we have an appropriate
+# version.
+#
+# $1 is the name of the package (required)
+# $2 is the version string to check against (required)
+# $3 is the compare operator (optional: >= by default, but it can be any of
+#    <,<=,=,>=,>)
+#
+# This is best used with an order-only dependency (specified with a | after the
+# normal dependencies), which means the target will be executed each time you
+# have to build a target, but if doesn't affect if the target needs to be
+# rebuilt or not.
+#
+# Example usage:
+#
+# .PHONY: check_deb_dependencies
+# check_deb_dependencies:
+# 	$(call check_deb,dstep,0.0.1-sociomantic1)
+#
+# myprogram: some-source.d | check_deb_dependencies
+check_deb = @i=`apt-cache policy $1 | grep Installed | cut -b14-`; \
+        op="$(if $3,$3,>=)"; \
+        test -z "$$i" && { echo "Unsatisfied dependency: package '$1' is not" \
+                "installed (version $$op $2 is required)" >&2 ; exit 1; }; \
+        python -c "import apt_pkg, sys; \
+                   apt_pkg.init(); \
+                   apt_pkg.check_dep('$$i', '$$op', '$2') or \
+                       (sys.stderr.write('Unsatisfied dependency: package ' \
+                               '\'$1\' version $$op $2 is required but ' \
+                               '$$i is installed\n'), \
+                           sys.exit(1))"
+
 ### TARGETS ###
 
 # Updates the revision version information
