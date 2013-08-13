@@ -123,6 +123,14 @@ New Features
   interface (``ISelectClientInfo``) to the select client which is currently
   registered for the fiber.
 
+``common.mk``
+  The utility common makefile gained a couple of new functions:
+  ``path_to_module`` and ``invoke_xfbuild``. The former converts from
+  ``package/module.d`` to ``package.module`` and the later is a wrapper to call
+  ``xfbuild`` to make a full build and making other assumptions. See the
+  documentation comments for details.
+
+
 v1.5 (2013-07-04)
 -----------------
 
