@@ -517,14 +517,6 @@ public abstract class EpollProcess
     private static RunningProcesses running_processes;
 
 
-    /***************************************************************************
-
-        Process being executed.
-
-    ***************************************************************************/
-
-    private const Process process;
-
 
     /***************************************************************************
 
@@ -588,7 +580,6 @@ public abstract class EpollProcess
 
     private EpollSelectDispatcher epoll;
 
-
     /***************************************************************************
 
         Process state.
@@ -604,6 +595,13 @@ public abstract class EpollProcess
 
     private State state;
 
+    /***************************************************************************
+
+        Process being executed.
+
+    ***************************************************************************/
+
+    protected const Process process;
 
     /***************************************************************************
 
