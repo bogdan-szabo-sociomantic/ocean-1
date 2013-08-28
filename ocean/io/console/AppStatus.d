@@ -261,6 +261,27 @@ public class AppStatus
 
     /***************************************************************************
 
+        Resizes the number of lines in the app status static display and clears
+        the current content of the static lines. Also resets the cursor
+        position so that the static lines are still at the bottom of the
+        display.
+
+        Params:
+            size = number of loglines that are to be displayed below the
+                    title line
+
+    ***************************************************************************/
+
+    public void num_static_lines ( uint size )
+    {
+        this.static_lines.length = size;
+        this.resetStaticLines();
+        this.resetCursorPosition();
+    } 
+
+
+    /***************************************************************************
+
         Print the current static lines set by the calling program to Stdout
         with a title line showing the current time, runtime, and memory and cpu
         usage and a footer line showing the version information.
@@ -670,8 +691,7 @@ public class AppStatus
     /***************************************************************************
 
         Check the height of the terminal. If the height has changed, reset the
-        cursor position to the end of the terminal. Then move the cursor up
-        by the number of static lines that are being printed
+        cursor position.
 
     ***************************************************************************/
 
@@ -679,14 +699,42 @@ public class AppStatus
     {
         if ( this.old_terminal_size != Terminal.rows )
         {
-            Stdout.endrow;
-            this.old_terminal_size = Terminal.rows;
+            this.resetCursorPosition();   
+        }
+    }
 
-            foreach ( line; this.static_lines )
-            {
-                Stdout.clearline.cr.flush.up;
-            }
+
+    /***************************************************************************
+
+        Reset the cursor position to the end of the terminal and then move the
+        cursor up by the number of static lines that are being printed.
+
+    ***************************************************************************/
+
+    private void resetCursorPosition ( )
+    {
+        Stdout.endrow;
+        this.old_terminal_size = Terminal.rows;
+
+        foreach ( line; this.static_lines )
+        {
             Stdout.clearline.cr.flush.up;
+        }
+        Stdout.clearline.cr.flush.up;
+    }
+    
+    
+    /***************************************************************************
+
+        Reset the content of all the static lines by setting the length to 0.
+
+    ***************************************************************************/
+    
+    private void resetStaticLines ( )
+    {
+        foreach ( ref line; this.static_lines )
+        {
+            line.length = 0;
         }
     }
 }
