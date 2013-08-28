@@ -269,14 +269,18 @@ public class AppStatus
         Params:
             size = number of loglines that are to be displayed below the
                     title line
+    
+        Returns:
+            the updated number of static lines
 
     ***************************************************************************/
 
-    public void num_static_lines ( uint size )
+    public size_t num_static_lines ( size_t size )
     {
         this.static_lines.length = size;
         this.resetStaticLines();
         this.resetCursorPosition();
+        return this.static_lines.length;
     } 
 
 
