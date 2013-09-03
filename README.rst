@@ -34,7 +34,6 @@ Migration Instructions
   The interface of these functions remains the same, but users should be aware
   of this change in behaviour.
 
-
 New Features
 ^^^^^^^^^^^^
 
@@ -48,6 +47,10 @@ New Features
   hash_t, char[] containing hex digits (with our without "0x" at the start),
   char[] containing exactly hash_t.sizeof * 2 hex digits (with our without "0x"
   at the start).
+
+``ocean.text.convert.DateTime``
+  New module added that provides methods to convert dates in strings to a
+  time_t UNIX timestamp value.
 
 v1.7 (2013-09-06)
 -----------------
@@ -297,7 +300,7 @@ Migration Instructions
   The ``max_redirects()`` method is renamed as ``maxRedirects``
 
 ``ocean.text.util.StringC``
-  The ``StringC.toCstring()`` methods take their string parameter now  as a 
+  The ``StringC.toCstring()`` methods take their string parameter now  as a
   ``ref char[]`` instead of just ``char[]``. The methods might modify the string
   by appending a null terminating character to its end.
 
