@@ -35,25 +35,25 @@ VERSION_MODULE=src/main/Version.d
 ### Useful Predefined Variables ###
 
 DEBUG_FLAGS = -debug \
-              -gc
+		-gc
 
 RELEASE_FLAGS = -release \
-                -inline \
-                -O
+		-inline \
+		-O
 
 DEFAULT_FLAGS = -L--as-needed \
-                -version=CDGC \
-                -version=WithDateTime \
-                -m64
+		-version=CDGC \
+		-version=WithDateTime \
+		-m64
 
 XFBUILD_DEFAULT_FLAGS = +c=dmd \
-                        +x=tango \
-                        +x=std
+		+x=tango \
+		+x=std
 
 OCEAN_LDFLAGS = -L-lminilzo \
-                        -L-ldl \
-                        -L-lebtree \
-                        -L-ldrizzle
+		-L-ldl \
+		-L-lebtree \
+		-L-ldrizzle
 
 ### Utility functions ###
 
@@ -90,9 +90,9 @@ invoke_xfbuild = xfbuild \
 #
 # myprogram: some-source.d | check_deb_dependencies
 check_deb = @i=`apt-cache policy $1 | grep Installed | cut -b14-`; \
-        op="$(if $3,$3,>=)"; \
-        test -z "$$i" && { echo "Unsatisfied dependency: package '$1' is not" \
-                "installed (version $$op $2 is required)" >&2 ; exit 1; }; \
+	op="$(if $3,$3,>=)"; \
+	test -z "$$i" && { echo "Unsatisfied dependency: package '$1' is not" \
+		"installed (version $$op $2 is required)" >&2 ; exit 1; }; \
 	dpkg --compare-versions "$$i" "$$op" "$2" || { \
 		echo "Unsatisfied dependency: package '$1' version $$op $2" \
 			"is required but $$i is installed" >&2 ; exit 1; };
@@ -103,11 +103,11 @@ check_deb = @i=`apt-cache policy $1 | grep Installed | cut -b14-`; \
 revision:
 	@echo Updating revision information …
 	@cd ${CURDIR} && \
-        ${LIB_BASEDIR}/ocean/script/mkversion.sh \
-            -L ${LIB_BASEDIR} \
-            -t ${LIB_BASEDIR}/ocean/script/appVersion.d.tpl \
-            -o ${VERSION_MODULE} \
-              $(D_GC) $(DEPENDENCIES)
+	${LIB_BASEDIR}/ocean/script/mkversion.sh \
+		-L ${LIB_BASEDIR} \
+		-t ${LIB_BASEDIR}/ocean/script/appVersion.d.tpl \
+		-o ${VERSION_MODULE} \
+			$(D_GC) $(DEPENDENCIES)
 
 # Deletes every file created in the build process
 # To add files to be deleted, add them to DIST_CLEAN_FILES
