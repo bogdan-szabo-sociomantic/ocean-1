@@ -93,13 +93,9 @@ check_deb = @i=`apt-cache policy $1 | grep Installed | cut -b14-`; \
         op="$(if $3,$3,>=)"; \
         test -z "$$i" && { echo "Unsatisfied dependency: package '$1' is not" \
                 "installed (version $$op $2 is required)" >&2 ; exit 1; }; \
-        python -c "import apt_pkg, sys; \
-                   apt_pkg.init(); \
-                   apt_pkg.check_dep('$$i', '$$op', '$2') or \
-                       (sys.stderr.write('Unsatisfied dependency: package ' \
-                               '\'$1\' version $$op $2 is required but ' \
-                               '$$i is installed\n'), \
-                           sys.exit(1))"
+	dpkg --compare-versions "$$i" "$$op" "$2" || { \
+		echo "Unsatisfied dependency: package '$1' version $$op $2" \
+			"is required but $$i is installed" >&2 ; exit 1; };
 
 ### TARGETS ###
 
