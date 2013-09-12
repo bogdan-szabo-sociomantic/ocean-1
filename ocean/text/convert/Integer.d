@@ -282,12 +282,17 @@ private bool convert ( T ) ( T[] digits, out ulong value, out uint eaten,
 
         if ((c -= '0') < radix)
         {
-            auto old_value = value;
-            value = value * radix + c;
-            if ( value < old_value ) // integer overflow
+            if ( value > 0 && radix > value.max / value )
             {
-                return false;
+                return false; // multiplication overflow
             }
+            value *= radix;
+
+            if ( (value.max - value) < c )
+            {
+                return false; // addition overflow
+            }
+            value += c;
 
             ++eaten;
         }
@@ -450,6 +455,10 @@ unittest
     assert(toLong("-9223372036854775809", l) == false);
     assert(toLong("9223372036854775808", l) == false);
     assert(toUlong("18446744073709551616", ul) == false);
+
+    assert(toLong("-0x12345678123456789", l) == false);
+    assert(toLong("0x12345678123456789", l) == false);
+    assert(toUlong("0x12345678123456789", ul) == false);
 
     // hex
     toInt("a", i, 16); assert(i == 0xa);

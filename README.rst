@@ -22,6 +22,19 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
+
+``ocean.text.convert.Integer``
+  The detection of overflows when attempting to convert strings containing
+  numbers which are too large for the destination integer type has been
+  improved. It was previously buggy, and could output a junk value rather than
+  returning false to indicate a failed conversion.
+
+  The interface of these functions remains the same, but users should be aware
+  of this change in behaviour.
+
+
 New Features
 ^^^^^^^^^^^^
 
