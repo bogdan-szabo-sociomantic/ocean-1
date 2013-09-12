@@ -124,6 +124,8 @@ module ocean.io.console.Tables;
 
 private import ocean.core.Array : copy, appendCopy;
 
+private import ocean.text.utf.UtfUtil;
+
 private import ocean.text.util.DigitGrouping;
 private import ocean.text.util.MetricPrefix;
 
@@ -520,7 +522,7 @@ public class Table
                     case Cell.Type.Float:
                         return this.floatWidth(this.contents.floating);
                     case Cell.Type.String:
-                        return this.contents.string.length;
+                        return utf8Length(this.contents.string);
                 }
             }
 
@@ -613,9 +615,9 @@ public class Table
                             return;
                     }
 
-                    assert(width >= content_buf.length, "column not wide enough");
+                    assert(width >= utf8Length(content_buf), "column not wide enough");
 
-                    spacing_buf.length = width - content_buf.length;
+                    spacing_buf.length = width - utf8Length(content_buf);
                     spacing_buf[] = ' ';
                     output.format(" {}{} |", spacing_buf, content_buf);
                 }
