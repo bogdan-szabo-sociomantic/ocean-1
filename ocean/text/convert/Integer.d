@@ -247,6 +247,9 @@ public bool toUlong ( T ) ( T[] digits, out ulong value, uint radix = 0 )
     Convert the provided 'digits' into an integer value, without checking for a
     sign or radix. The radix defaults to decimal (10).
 
+    Parsing fails (returning false) if 'digits' represents an integer of greater
+    magnitude than the type T can store.
+
     Template params:
         T = char type of string
 
