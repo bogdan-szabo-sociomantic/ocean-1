@@ -244,14 +244,20 @@ public bool toUlong ( T ) ( T[] digits, out ulong value, uint radix = 0 )
 
 /*******************************************************************************
 
-    Convert the provided 'digits' into an integer value,
-    without checking for a sign or radix. The radix defaults
-    to decimal (10).
+    Convert the provided 'digits' into an integer value, without checking for a
+    sign or radix. The radix defaults to decimal (10).
 
-    Returns the value and updates 'ate' with the number of
-    characters consumed.
+    Template params:
+        T = char type of string
 
-    Throws: none. The 'ate' param should be checked for valid input.
+    Params:
+        digits = string to parse
+        value = receives parsed integer
+        eaten = receives the number of characters parsed
+        radix = specifies which radix to interpret the string as
+
+    Returns:
+        true if parsing succeeded
 
 *******************************************************************************/
 
@@ -292,14 +298,22 @@ private bool convert ( T ) ( T[] digits, out ulong value, out uint eaten,
 
 /*******************************************************************************
 
-    Strip leading whitespace, extract an optional +/- sign,
-    and an optional radix prefix. If the radix value matches
-    an optional prefix, or the radix is zero, the prefix will
-    be consumed and assigned. Where the radix is non zero and
-    does not match an explicit prefix, the latter will remain
-    unconsumed. Otherwise, radix will default to 10.
+    Strip leading whitespace, extract an optional +/- sign, and an optional
+    radix prefix. If the radix value matches an optional prefix, or the radix is
+    zero, the prefix will be consumed and assigned. Where the radix is non zero
+    and does not match an explicit prefix, the latter will remain unconsumed.
+    Otherwise, radix will default to 10.
 
-    Returns the number of characters consumed.
+    Template params:
+        T = char type of string
+
+    Params:
+        digits = string to parse
+        negative = set to true if the string indicates a negative number
+        radix = receives the radix parsed form the string
+
+    Returns:
+        the number of characters consumed
 
 *******************************************************************************/
 
