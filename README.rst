@@ -22,6 +22,13 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+New Features
+^^^^^^^^^^^^
+
+``Tables.d``
+  New methods for creating binary and decimal metric cells.
+  These methods allow for creation of cells containing a number and a unit,
+  both decimal metric (" 5.2 kB ") and binary metric (" 5.2 MiB ").
 
 v1.7 (2013-09-06)
 -----------------
