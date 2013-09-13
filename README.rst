@@ -43,6 +43,12 @@ New Features
   These methods allow for creation of cells containing a number and a unit,
   both decimal metric (" 5.2 kB ") and binary metric (" 5.2 MiB ").
 
+``ocean.text.convert.Hash``
+  New module containing functions for converting between various types of hash:
+  hash_t, char[] containing hex digits (with our without "0x" at the start),
+  char[] containing exactly hash_t.sizeof * 2 hex digits (with our without "0x"
+  at the start).
+
 v1.7 (2013-09-06)
 -----------------
 
