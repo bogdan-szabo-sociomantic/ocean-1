@@ -103,7 +103,7 @@ private bool loose_parsing = false;
 
     If T is not a struct, T itself is returned
 
-    Params:
+    Template Params:
         T = struct or type to find the basetype for
 
 *******************************************************************************/
@@ -126,7 +126,7 @@ template BaseType ( T )
 
     If value is not a struct, the value itself is returned
 
-    Params:
+    Template Params:
         v = instance of a struct the value itself
 
 *******************************************************************************/
@@ -209,6 +209,14 @@ struct Required ( T )
 
         Checks whether the checked value was found, throws if not
 
+        Params:
+            found = whether the variable was found in the configuration
+            group = group the variable appeares in
+            name  = name of the variable
+
+        Throws:
+            ConfigException
+
     ***************************************************************************/
 
     private void check ( bool found, char[] group, char[] name )
@@ -236,7 +244,7 @@ struct Required ( T )
 
     The value can be accessed with the opCall method
 
-    Params:
+    Template Params:
         T    = the original type of the variable (can be another struct)
         min  = smallest allowed value
         max  = biggest allowed value
@@ -300,6 +308,9 @@ struct MinMax ( T, T min, T max, T init = T.init )
             group = group this variable should appear
             name  = name of the variable
 
+        Throws:
+            ConfigException
+
     ***************************************************************************/
 
     private void check ( bool found, char[] group, char[] name )
@@ -337,7 +348,7 @@ struct MinMax ( T, T min, T max, T init = T.init )
 
     The value can be accessed with the opCall method
 
-    Params:
+    Template Params:
         T    = the original type of the variable (can be another struct)
         min  = smallest allowed value
         init = default value when it is not given in the configuration file
@@ -399,6 +410,9 @@ struct Min ( T, T min, T init = T.init )
             group = group this variable should appear
             name  = name of the variable
 
+        Throws:
+            ConfigException
+
     ***************************************************************************/
 
     private void check ( bool found, char[] group, char[] name )
@@ -428,12 +442,10 @@ struct Min ( T, T min, T init = T.init )
 
     The value can be accessed with the opCall method
 
-    Params:
+    Template Params:
         T    = the original type of the variable (can be another struct)
-        min  = smallest allowed value
         max  = biggest allowed value
         init = default value when it is not given in the configuration file
-
 
 *******************************************************************************/
 
@@ -490,6 +502,9 @@ struct Max ( T, T max, T init = T.init )
             bool  = whether the variable existed in the configuration file
             group = group this variable should appear
             name  = name of the variable
+
+        Throws:
+            ConfigException
 
     ***************************************************************************/
 
@@ -686,7 +701,7 @@ template Limit ( T, Set... )
     Adds the information of whether the filler actually set the value
     or whether it was left untouched.
 
-    Params:
+    Template Params:
         T = the original type
 
 *******************************************************************************/
