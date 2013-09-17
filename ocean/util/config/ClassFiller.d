@@ -145,26 +145,23 @@ BaseType!(T) Value ( T ) ( T v )
 
 /*******************************************************************************
 
-    Configuration settings that are mandatory can be marked as such by
-    wrapping them with this template.
-    If the variable is not set, then an exception is thrown.
+    Contains methods used in all WrapperStructs to access and set the value
+    variable
 
-    The value can be accessed with the opCall method
-
-    Params:
-        T = the original type of the variable
+    Template Params:
+        T = type of the value
 
 *******************************************************************************/
 
-struct Required ( T )
+template WrapperStructCore ( T, T init = T.init )
 {
     /***************************************************************************
 
-        The value of the configuration setting, can be a WrapperStruct
+        The value of the configuration setting
 
     ***************************************************************************/
 
-    private T value;
+    private T value = init;
 
     /***************************************************************************
 
@@ -207,6 +204,47 @@ struct Required ( T )
 
     /***************************************************************************
 
+        Calls check_() with the same parameters. If check doesn't throw an
+        exception it checks whether the wrapped value is also a struct and if so
+        its check function is called.
+
+        Params:
+            bool  = whether the variable existed in the configuration file
+            group = group this variable should appear
+            name  = name of the variable
+
+    ***************************************************************************/
+
+    private void check ( bool found, char[] group, char[] name )
+    {
+        static if ( !is (BaseType!(T) == T) )
+        {
+            scope(success) this.value.check(found, group, name);
+        }
+
+        this.check_(found, group, name);
+    }
+}
+
+/*******************************************************************************
+
+    Configuration settings that are mandatory can be marked as such by
+    wrapping them with this template.
+    If the variable is not set, then an exception is thrown.
+
+    The value can be accessed with the opCall method
+
+    Template Params:
+        T = the original type of the variable
+
+*******************************************************************************/
+
+struct Required ( T )
+{
+    mixin WrapperStructCore!(T);
+
+    /***************************************************************************
+
         Checks whether the checked value was found, throws if not
 
         Params:
@@ -219,18 +257,13 @@ struct Required ( T )
 
     ***************************************************************************/
 
-    private void check ( bool found, char[] group, char[] name )
+    private void check_ ( bool found, char[] group, char[] name )
     {
         if ( !found )
         {
             throw new ConfigException("Mandatory variable " ~ group ~
                                       "." ~ name ~
                                       " not set", __FILE__, __LINE__);
-        }
-
-        static if ( !is (BaseType!(T) == T) )
-        {
-            this.value.check(found, group, name);
         }
     }
 }
@@ -255,47 +288,7 @@ struct Required ( T )
 
 struct MinMax ( T, T min, T max, T init = T.init )
 {
-    /***************************************************************************
-
-        The value of the configuration setting
-
-    ***************************************************************************/
-
-    private T value = init;
-
-    /***************************************************************************
-
-        Sets the wrapped value to val
-
-        Params:
-            val = new value
-
-        Returns:
-            val
-
-    ***************************************************************************/
-
-    public BaseType!(T) opCall ( )
-    {
-        return Value(this.value);
-    }
-
-     /***************************************************************************
-
-        Sets the wrapped value to val
-
-        Params:
-            val = new value
-
-        Returns:
-            val
-
-    ***************************************************************************/
-
-    public BaseType!(T) opAssign ( BaseType!(T) val )
-    {
-        return value = val;
-    }
+    mixin WrapperStructCore!(T, init);
 
      /***************************************************************************
 
@@ -313,7 +306,7 @@ struct MinMax ( T, T min, T max, T init = T.init )
 
     ***************************************************************************/
 
-    private void check ( bool found, char[] group, char[] name )
+    private void check_ ( bool found, char[] group, char[] name )
     {
         if ( Value(this.value) < min )
         {
@@ -330,11 +323,6 @@ struct MinMax ( T, T min, T max, T init = T.init )
                                 "Configuration key " ~ group ~ "." ~ name ~
                                 " is bigger than allowed maximum of " ~ ctfe_i2a(max),
                                 __FILE__, __LINE__);
-        }
-
-        static if ( !is (BaseType!(T) == T) )
-        {
-            this.value.check(found, group, name);
         }
     }
 }
@@ -358,47 +346,7 @@ struct MinMax ( T, T min, T max, T init = T.init )
 
 struct Min ( T, T min, T init = T.init )
 {
-    /***************************************************************************
-
-        The value of the configuration setting
-
-    ***************************************************************************/
-
-    private T value = init;
-
-     /***************************************************************************
-
-        Sets the wrapped value to val
-
-        Params:
-            val = new value
-
-        Returns:
-            val
-
-    ***************************************************************************/
-
-    public BaseType!(T) opAssign ( BaseType!(T) val )
-    {
-        return value = val;
-    }
-
-    /***************************************************************************
-
-        Sets the wrapped value to val
-
-        Params:
-            val = new value
-
-        Returns:
-            val
-
-    ***************************************************************************/
-
-    public BaseType!(T) opCall ( )
-    {
-        return Value(this.value);
-    }
+    mixin WrapperStructCore!(T, init);
 
      /***************************************************************************
 
@@ -415,7 +363,7 @@ struct Min ( T, T min, T init = T.init )
 
     ***************************************************************************/
 
-    private void check ( bool found, char[] group, char[] name )
+    private void check_ ( bool found, char[] group, char[] name )
     {
         if ( Value(this.value) < min )
         {
@@ -423,11 +371,6 @@ struct Min ( T, T min, T init = T.init )
                     "Configuration key " ~ group ~ "." ~ name ~ " is smaller "
                     "than allowed minimum of " ~ ctfe_i2a(min),
                     __FILE__, __LINE__);
-        }
-
-        static if ( !is (BaseType!(T) == T) )
-        {
-            this.value.check(found, group, name);
         }
     }
 }
@@ -451,47 +394,7 @@ struct Min ( T, T min, T init = T.init )
 
 struct Max ( T, T max, T init = T.init )
 {
-    /***************************************************************************
-
-        The value of the configuration setting
-
-    ***************************************************************************/
-
-    private T value = init;
-
-     /***************************************************************************
-
-        Sets the wrapped value to val
-
-        Params:
-            val = new value
-
-        Returns:
-            val
-
-    ***************************************************************************/
-
-    public BaseType!(T) opAssign ( BaseType!(T) val )
-    {
-        return value = val;
-    }
-
-     /***************************************************************************
-
-        Sets the wrapped value to val
-
-        Params:
-            val = new value
-
-        Returns:
-            val
-
-    ***************************************************************************/
-
-    public BaseType!(T) opCall ( )
-    {
-        return Value(this.value);
-    }
+    mixin WrapperStructCore!(T, init);
 
      /***************************************************************************
 
@@ -508,7 +411,7 @@ struct Max ( T, T max, T init = T.init )
 
     ***************************************************************************/
 
-    private void check ( bool found, char[] group, char[] name )
+    private void check_ ( bool found, char[] group, char[] name )
     {
         if ( Value(this.value) > max )
         {
@@ -516,11 +419,6 @@ struct Max ( T, T max, T init = T.init )
                     "Configuration key " ~ group ~ "." ~ name ~ " is bigger "
                     "than allowed maximum of " ~ ctfe_i2a(max),
                     __FILE__, __LINE__);
-        }
-
-        static if ( !is (BaseType!(T) == T) )
-        {
-            this.value.check(found, group, name);
         }
     }
 }
@@ -566,47 +464,7 @@ bool defComp ( T ) ( T a, T b )
 
 struct LimitCmp ( T, T init = T.init, alias comp = defComp!(T), Set... )
 {
-    /***************************************************************************
-
-        The value of the configuration setting
-
-    ***************************************************************************/
-
-    private T value = init;
-
-     /***************************************************************************
-
-        Sets the wrapped value to val
-
-        Params:
-            val = new value
-
-        Returns:
-            val
-
-    ***************************************************************************/
-
-    public BaseType!(T) opAssign ( BaseType!(T) val )
-    {
-        return value = val;
-    }
-
-     /***************************************************************************
-
-        Sets the wrapped value to val
-
-        Params:
-            val = new value
-
-        Returns:
-            val
-
-    ***************************************************************************/
-
-    public BaseType!(T) opCall ( )
-    {
-        return Value(this.value);
-    }
+    mixin WrapperStructCore!(T, init);
 
      /***************************************************************************
 
@@ -623,18 +481,13 @@ struct LimitCmp ( T, T init = T.init, alias comp = defComp!(T), Set... )
 
     ***************************************************************************/
 
-    private void check ( bool found, char[] group, char[] name )
+    private void check_ ( bool found, char[] group, char[] name )
     {
-        static if ( !is (BaseType!(T) == T) )
-        {
-            scope(success) this.value.check(found, group, name);
-        }
-
         if ( found == false ) return;
 
         foreach ( el ; Set )
         {
-            static assert ( is ( typeof(el) == T ),
+            static assert ( is ( typeof(el) : T ),
                     "Tuple contains incompatible types!" );
 
             if ( comp(Value(this.value), el) )
@@ -708,21 +561,7 @@ template Limit ( T, Set... )
 
 struct SetInfo ( T )
 {
-    /***************************************************************************
-
-        The value of the configuration setting
-
-    ***************************************************************************/
-
-    private T value;
-
-    /***************************************************************************
-
-        Whether this value has been set
-
-    ***************************************************************************/
-
-    public bool set;
+    mixin WrapperStructCore!(T);
 
     /***************************************************************************
 
@@ -746,20 +585,11 @@ struct SetInfo ( T )
 
     /***************************************************************************
 
-        Sets the wrapped value to val
-
-        Params:
-            val = new value
-
-        Returns:
-            val
+        Whether this value has been set
 
     ***************************************************************************/
 
-    public BaseType!(T) opAssign ( BaseType!(T) val )
-    {
-        return value = val;
-    }
+    public bool set;
 
      /***************************************************************************
 
@@ -773,14 +603,9 @@ struct SetInfo ( T )
 
     ***************************************************************************/
 
-    private void check ( bool found, char[] group, char[] name )
+    private void check_ ( bool found, char[] group, char[] name )
     {
         this.set = found;
-
-        static if ( !is (BaseType!(T) == T) )
-        {
-            this.value.check(found, group, name);
-        }
     }
 }
 
