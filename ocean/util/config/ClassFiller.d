@@ -418,6 +418,7 @@ struct Min ( T, T min, T init = T.init )
     }
 }
 
+
 /*******************************************************************************
 
     Configuration settings that are required to be within a certain numeric
@@ -508,6 +509,177 @@ struct Max ( T, T max )
         }
     }
 }
+
+
+/*******************************************************************************
+
+    Default compare function, used with the LimitCmp struct/template
+
+    Params:
+        a = first value to compare
+        b = second value to compare with
+
+    Returns:
+        whether a == b
+
+*******************************************************************************/
+
+bool defComp ( T ) ( T a, T b )
+{
+    return a == b;
+}
+
+/*******************************************************************************
+
+    Configuration settings that are limited to a certain set of values can be
+    marked as such by wrapping them with this template.
+
+    If the value is not in the provided set, an exception is thrown.
+
+    The value can be accessed with the opCall method
+
+    See also the documentation of iterate() for a usage example.
+
+    Template Params:
+        T    = the original type of the variable (can be another struct)
+        init = default value when it is not given in the configuration file
+        comp = compare function to be used to compare two values from the set
+        Set  = tuple of values that are valid
+
+
+*******************************************************************************/
+
+struct LimitCmp ( T, T init = T.init, alias comp = defComp!(T), Set... )
+{
+    /***************************************************************************
+
+        The value of the configuration setting
+
+    ***************************************************************************/
+
+    private T value = init;
+
+     /***************************************************************************
+
+        Sets the wrapped value to val
+
+        Params:
+            val = new value
+
+        Returns:
+            val
+
+    ***************************************************************************/
+
+    public BaseType!(T) opAssign ( BaseType!(T) val )
+    {
+        return value = val;
+    }
+
+     /***************************************************************************
+
+        Sets the wrapped value to val
+
+        Params:
+            val = new value
+
+        Returns:
+            val
+
+    ***************************************************************************/
+
+    public BaseType!(T) opCall ( )
+    {
+        return Value(this.value);
+    }
+
+     /***************************************************************************
+
+        Checks whether the configuration value is within the set of allowed
+        values. If not, an exception is thrown
+
+        Params:
+            bool  = whether the variable existed in the configuration file
+            group = group this variable should appear
+            name  = name of the variable
+
+         Throws:
+            ConfigException
+
+    ***************************************************************************/
+
+    private void check ( bool found, char[] group, char[] name )
+    {
+        static if ( !is (BaseType!(T) == T) )
+        {
+            scope(success) this.value.check(found, group, name);
+        }
+
+        if ( found == false ) return;
+
+        foreach ( el ; Set )
+        {
+            static assert ( is ( typeof(el) == T ),
+                    "Tuple contains incompatible types!" );
+
+            if ( comp(Value(this.value), el) )
+                return;
+        }
+
+        char[] allowed_vals;
+
+        foreach ( el ; Set )
+        {
+            allowed_vals ~= ", " ~ el ;
+        }
+
+        throw new ConfigException(
+                "Value '" ~ Value(this.value) ~ "' "
+                "of configuration key " ~ group ~ "." ~ name ~ " "
+                "is not within the set of allowed values "
+                "(" ~ allowed_vals[2 ..$] ~ ")",
+                __FILE__, __LINE__);
+    }
+}
+
+
+/*******************************************************************************
+
+    Simplified version of LimitCmp that uses default comparison
+
+    See also the documentation of iterate() for a usage example.
+
+    Template Params:
+        T = type of the value
+        init = default initial value if config value wasn't set
+        Set = set of allowed values
+
+*******************************************************************************/
+
+template LimitInit ( T, T init = T.init, Set... )
+{
+    alias LimitCmp!(T, init, defComp!(T), Set) Limit;
+}
+
+
+/*******************************************************************************
+
+    Simplified version of LimitCmp that uses default comparison and default
+    initializer
+
+    See also the documentation of iterate() for a usage example.
+
+    Template Params:
+        T = type of the value
+        Set = set of allowed values
+
+*******************************************************************************/
+
+template Limit ( T, Set... )
+{
+    alias LimitInit!(T, T.init, Set) Limit;
+}
+
 
 /*******************************************************************************
 
@@ -872,6 +1044,8 @@ struct ClassIterator ( T, Source = ConfigParser )
         Required!(char[]) required_string;
         SetInfo!(char[]) was_this_set;
         Required!(MinMax!(size_t, 1, 30)) limited;
+        Limit!(char[], "one", "two", "three") limited_set;
+        LimitInit!(char[], "one", "one", "two", "three") limited_set_with_default;
     }
 
     void main ( char[][] argv )
@@ -895,6 +1069,16 @@ struct ClassIterator ( T, Source = ConfigParser )
             // If limited was set but is outside of the specified
             // range [1 .. 30], an exception will be thrown as well
             Stdout.formatln("Limited: {}", conf.limited());
+
+            // If limited_set is not a value in the given set ("one", "two",
+            // "three"), an exception will be thrown
+            Stdout.formatln("Limited_set: {}", conf.limited_set());
+
+            // If limited_set is not a value in the given set ("one", "two",
+            // "three"), an exception will be thrown, if it is not set, it
+            // defaults to "one"
+            Stdout.formatln("Limited_set_with_default: {}",
+                             conf.limited_set_with_default());
         }
         catch ( Exception e )
         {

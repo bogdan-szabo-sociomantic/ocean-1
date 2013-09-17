@@ -37,6 +37,11 @@ Migration Instructions
 New Features
 ^^^^^^^^^^^^
 
+``ocean.util.ClassFiller``
+  A new config property struct wrapper was added that makes sure that the config
+  value is within a certain set of values: 
+  ``LimitCmp``, ``LimitInit``, ``Limit``
+
 ``Tables.d``
   New methods for creating binary and decimal metric cells.
   These methods allow for creation of cells containing a number and a unit,
