@@ -34,6 +34,11 @@ Migration Instructions
   The interface of these functions remains the same, but users should be aware
   of this change in behaviour.
 
+``ocean.text.regex.PCRE``
+  The meaning of the optional 'case sensitivity' match parameter has been
+  reversed. It was previously 'case insensitive', now means 'case sensitive'.
+  The new meaning is more intuitive, leading to less confusing double negatives.
+
 New Features
 ^^^^^^^^^^^^
 

@@ -207,14 +207,14 @@ class PCRE
 
             Params:
                 pattern = pattern to search for, as a string
-                icase   = case sensitive matching
+                case_sens = case sensitive matching
 
             Throws:
                 if the compilation of the regex fails
 
         ***********************************************************************/
 
-        public this ( char[] pattern, bool icase = false )
+        public this ( char[] pattern, bool case_sens = true )
         {
             char* errmsg;
             int error_code;
@@ -222,7 +222,7 @@ class PCRE
 
             this.outer.buffer_char.concat(pattern, "\0");
             this.pcre_object = pcre_compile2(this.outer.buffer_char.ptr,
-                    (icase ? PCRE_CASELESS : 0), &error_code, &errmsg,
+                    (case_sens ? 0 : PCRE_CASELESS), &error_code, &errmsg,
                     &error_offset, null);
             if ( !this.pcre_object )
             {
@@ -333,7 +333,7 @@ class PCRE
 
         Params:
             pattern = pattern to search for
-            icase = case sensitive matching
+            case_sens = case sensitive matching
 
         Returns:
             new CompiledRegex instance which can be used to perform multiple
@@ -344,9 +344,9 @@ class PCRE
 
     ***************************************************************************/
 
-    public CompiledRegex compile ( char[] pattern, bool icase = false )
+    public CompiledRegex compile ( char[] pattern, bool case_sens = true )
     {
-        return new CompiledRegex(pattern, icase);
+        return new CompiledRegex(pattern, case_sens);
     }
 
 
@@ -364,7 +364,7 @@ class PCRE
         Params:
             string  = input string (subject)
             pattern = pattern to search for, as a string
-            icase   = case sensitive matching
+            case_sens = case sensitive matching
 
         Returns:
             true, if matches or false if no match
@@ -374,9 +374,9 @@ class PCRE
 
     ***************************************************************************/
 
-    public bool preg_match ( char[] string, char[] pattern, bool icase = false )
+    public bool preg_match ( char[] string, char[] pattern, bool case_sens = true )
     {
-        scope regex = new CompiledRegex(pattern, icase);
+        scope regex = new CompiledRegex(pattern, case_sens);
         return regex.match(string);
     }
 
@@ -425,10 +425,10 @@ class PCRE
         // Simple string match (fail)
         test({ return pcre.preg_match("Hello World", "Hallo"); }, false, false);
 
-        // Case-sensitive match
-        test({ return pcre.preg_match("Hello World", "Hello", true); }, true, false);
-
         // Case-sensitive match (fail)
-        test({ return pcre.preg_match("Hello World", "hello", true); }, true, false);
+        test({ return pcre.preg_match("Hello World", "hello"); }, false, false);
+
+        // Case-insensitive match
+        test({ return pcre.preg_match("Hello World", "hello", false); }, true, false);
     }
 }
