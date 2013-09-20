@@ -76,6 +76,11 @@ New Features
   New module added that provides methods to convert dates in strings to a
   time_t UNIX timestamp value.
 
+``ocean.text.regex.PCRE``
+  Added a class (CompiledRegex) which can be used to compile a regex pattern
+  once and use it to perform multiple searches. (Previously the pattern was
+  compiled every time a search was performed.)
+
 v1.7 (2013-09-06)
 -----------------
 

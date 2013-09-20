@@ -120,6 +120,114 @@ class PCRE
 
     protected PcreException exception;
 
+    /***************************************************************************
+
+        Compiled regex class. Enables a regex pattern to be compiled once and
+        used for multiple searches. As this class is private, the only way to
+        construct an instance is via the compile() method, below.
+
+    ***************************************************************************/
+
+    private class CompiledRegex
+    {
+        /***********************************************************************
+
+            Pointer to C-allocated pcre object, created in ctor.
+
+        ***********************************************************************/
+
+        private const pcre* pcre_object;
+
+        /***********************************************************************
+
+            While this class instance exists, the pcre object must be non-null.
+
+        ***********************************************************************/
+
+        invariant
+        {
+            assert(this.pcre_object);
+        }
+
+        /***********************************************************************
+
+            Constructor. Allocates the pcre object.
+
+            Params:
+                pattern = pattern to search for, as a string
+                icase   = case sensitive matching
+
+            Throws:
+                if the compilation of the regex fails
+
+        ***********************************************************************/
+
+        public this ( char[] pattern, bool icase = false )
+        {
+            char* errmsg;
+            int error_code;
+            int error_offset;
+
+            this.outer.buffer_char.concat(pattern, "\0");
+            this.pcre_object = pcre_compile2(this.outer.buffer_char.ptr,
+                    (icase ? PCRE_CASELESS : 0), &error_code, &errmsg,
+                    &error_offset, null);
+            if ( !this.pcre_object )
+            {
+                this.outer.exception.msg.length = 0;
+                Layout!(char).print(this.outer.exception.msg,
+                    "Error compiling regular expression: {} - on pattern: {} at position {}",
+                    StringC.toDString(errmsg), pattern, error_offset);
+                this.outer.exception.error = error_code;
+                throw this.outer.exception;
+            }
+        }
+
+        /***********************************************************************
+
+            Destructor. Frees the C-allocated pcre object.
+
+        ***********************************************************************/
+
+        ~this ( )
+        {
+            free(this.pcre_object);
+        }
+
+        /***********************************************************************
+
+            Perform a regular expression match.
+
+            Params:
+                string  = input string
+
+            Returns:
+                true, if matches or false if no match
+
+            Throws:
+                if an error occurs when running the regex search
+
+        ***********************************************************************/
+
+        public bool match ( char[] string )
+        {
+            this.outer.buffer_char.concat(string, "\0");
+            int error_code = pcre_exec(this.pcre_object, null,
+                this.outer.buffer_char.ptr, string.length, 0, 0, null, 0);
+            if ( error_code >= 0 )
+            {
+                return true;
+            }
+            else if ( error_code != PCRE_ERROR_NOMATCH )
+            {
+                this.outer.exception.set(error_code,
+                    "Error on executing regular expression!");
+                throw this.outer.exception;
+            }
+
+            return false;
+        }
+    }
 
     /***************************************************************************
 
@@ -135,8 +243,34 @@ class PCRE
 
     /***************************************************************************
 
-        Perform a regular expression match
+        Compiles a regex pattern and returns an instance of CompiledRegex, which
+        can be used to perform multiple regex searches.
 
+        Params:
+            pattern = pattern to search for
+            icase = case sensitive matching
+
+        Returns:
+            new CompiledRegex instance which can be used to perform multiple
+            regex searches
+
+        Throws:
+            if the compilation of the regex fails
+
+    ***************************************************************************/
+
+    public CompiledRegex compile ( char[] pattern, bool icase = false )
+    {
+        return new CompiledRegex(pattern, icase);
+    }
+
+
+    /***************************************************************************
+
+        Perform a regular expression match. Note that this method internally
+        allocates and then frees a C pcre object each time it is called. If you
+        want to run the same regex search multiple times on different input, you
+        are probably better off using the compile() method, above.
 
         Usage:
             auto regex = new PCRE;
@@ -154,37 +288,8 @@ class PCRE
 
     public bool preg_match ( char[] string, char[] pattern, bool icase = false )
     {
-        char* errmsg;
-        int error_code;
-        int error_offset;
-        pcre* re;
-        scope (exit) free(re);
-
-        this.buffer_char.concat(pattern, "\0");
-
-        if ((re = pcre_compile2( this.buffer_char.ptr,
-                (icase ? PCRE_CASELESS : 0), &error_code, &errmsg, &error_offset,
-                null)) == null)
-        {
-            this.buffer_char.length = 0;
-            Layout!(char).print(this.buffer_char, "Couldn't compile regular "
-                "expression: {} - on pattern: {}", StringC.toDString(errmsg),
-                pattern);
-            this.exception.set(error_code, this.buffer_char);
-            throw this.exception;
-        }
-
-        this.buffer_char.concat(string, "\0");
-        if ((error_code = pcre_exec(re, null, this.buffer_char.ptr,
-                string.length, 0, 0, null, 0)) >= 0)
-            return true;
-        else if (error_code != PCRE_ERROR_NOMATCH)
-        {
-            this.exception.set(error_code, "Error on executing regular expression!");
-            throw this.exception;
-        }
-
-        return false;
+        scope regex = new CompiledRegex(pattern, icase);
+        return regex.match(string);
     }
 
     unittest
