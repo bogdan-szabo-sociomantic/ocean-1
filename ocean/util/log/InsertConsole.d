@@ -115,6 +115,11 @@ public class InsertConsole: Appender
 
     final void append ( LogEvent event )
     {
+        // attempt to format output for non-existing terminal will cause
+        // an infinite loop
+        if (!Terminal.columns)
+            return;
+
         if (this.buffer.length != Terminal.columns)
         {
             this.buffer.length = Terminal.columns;
