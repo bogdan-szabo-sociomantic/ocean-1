@@ -68,6 +68,14 @@ class PCRE
     {
         /***********************************************************************
 
+            Error code returned by pcre function
+
+        ***********************************************************************/
+
+        public int error;
+
+        /***********************************************************************
+
             Constructor.
             Just calls the super Exception constructor with initial error
             message.
@@ -81,16 +89,18 @@ class PCRE
 
         /***********************************************************************
 
-            Sets the error message.
+            Sets the error code and message.
 
             Params:
-                new_msg = the new exception message to be used
+                code = error code to set
+                msg = the new exception message to be used
 
         ***********************************************************************/
 
-        private void setMsg(char[] new_msg)
+        private void set ( int code, char[] msg )
         {
-            super.msg.copy(new_msg);
+            this.error = code;
+            super.msg.copy(msg);
         }
     }
 
@@ -145,29 +155,32 @@ class PCRE
     public bool preg_match ( char[] string, char[] pattern, bool icase = false )
     {
         char* errmsg;
-        int error;
+        int error_code;
+        int error_offset;
         pcre* re;
         scope (exit) free(re);
 
         this.buffer_char.copy(pattern);
-        if ((re = pcre_compile( StringC.toCstring(this.buffer_char),
-                (icase ? PCRE_CASELESS : 0), &errmsg, &error, null)) == null)
+
+        if ((re = pcre_compile2( StringC.toCstring(this.buffer_char),
+                (icase ? PCRE_CASELESS : 0), &error_code, &errmsg, &error_offset,
+                null)) == null)
         {
             this.buffer_char.length = 0;
             Layout!(char).print(this.buffer_char, "Couldn't compile regular "
                 "expression: {} - on pattern: {}", StringC.toDString(errmsg),
                 pattern);
-            this.exception.setMsg(this.buffer_char);
+            this.exception.set(error_code, this.buffer_char);
             throw this.exception;
         }
 
         this.buffer_char.copy(string);
-        if ((error = pcre_exec(re, null, StringC.toCstring(this.buffer_char),
+        if ((error_code = pcre_exec(re, null, StringC.toCstring(this.buffer_char),
                 string.length, 0, 0, null, 0)) >= 0)
             return true;
-        else if (error != PCRE_ERROR_NOMATCH)
+        else if (error_code != PCRE_ERROR_NOMATCH)
         {
-            this.exception.setMsg("Error on executing regular expression!");
+            this.exception.set(error_code, "Error on executing regular expression!");
             throw this.exception;
         }
 
