@@ -90,8 +90,7 @@ class PCRE
 
         private void setMsg(char[] new_msg)
         {
-            super.msg.length = 0;
-            Layout!(char).print(super.msg, "{}", new_msg);
+            super.msg.copy(new_msg);
         }
     }
 
