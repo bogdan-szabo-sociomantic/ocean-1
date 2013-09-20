@@ -40,7 +40,7 @@ module  ocean.text.regex.PCRE;
 
 *******************************************************************************/
 
-private import ocean.core.Array : copy;
+private import ocean.core.Array : copy, concat;
 private import ocean.text.convert.Layout;
 private import ocean.text.util.StringC;
 private import ocean.text.regex.c.pcre;
@@ -160,9 +160,9 @@ class PCRE
         pcre* re;
         scope (exit) free(re);
 
-        this.buffer_char.copy(pattern);
+        this.buffer_char.concat(pattern, "\0");
 
-        if ((re = pcre_compile2( StringC.toCstring(this.buffer_char),
+        if ((re = pcre_compile2( this.buffer_char.ptr,
                 (icase ? PCRE_CASELESS : 0), &error_code, &errmsg, &error_offset,
                 null)) == null)
         {
@@ -174,8 +174,8 @@ class PCRE
             throw this.exception;
         }
 
-        this.buffer_char.copy(string);
-        if ((error_code = pcre_exec(re, null, StringC.toCstring(this.buffer_char),
+        this.buffer_char.concat(string, "\0");
+        if ((error_code = pcre_exec(re, null, this.buffer_char.ptr,
                 string.length, 0, 0, null, 0)) >= 0)
             return true;
         else if (error_code != PCRE_ERROR_NOMATCH)
