@@ -284,6 +284,9 @@ class PCRE
         Returns:
             true, if matches or false if no match
 
+        Throws:
+            if the compilation or running of the regex fails
+
     ***************************************************************************/
 
     public bool preg_match ( char[] string, char[] pattern, bool icase = false )
