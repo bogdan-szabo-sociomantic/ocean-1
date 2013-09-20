@@ -122,6 +122,56 @@ struct Terminal
         public const DEFAULT    = "49m";
     }
 
+
+    /***************************************************************************
+
+        Colour arrays, one for foreground and one for background colours
+        Each uses the Colour enum values as index
+
+        The enum can be useful for passing to functions in order to specify
+        one of the colours defined in this module with validation
+        (as opposed to accepting a generic char[]).
+
+    ***************************************************************************/
+
+    public enum Colour
+    {
+        Black,
+        Red,
+        Green,
+        Yellow,
+        Blue,
+        Magenta,
+        Cyan,
+        White,
+        Default
+    }
+
+    public static const char[][] fg_colour_codes = [
+        Colour.Black: Foreground.BLACK,
+        Colour.Red: Foreground.RED,
+        Colour.Green: Foreground.GREEN,
+        Colour.Yellow: Foreground.YELLOW,
+        Colour.Blue: Foreground.BLUE,
+        Colour.Magenta: Foreground.MAGENTA,
+        Colour.Cyan: Foreground.CYAN,
+        Colour.White: Foreground.WHITE,
+        Colour.Default: Foreground.DEFAULT
+    ];
+
+    public static const char[][] bg_colour_codes = [
+        Colour.Black: Background.BLACK,
+        Colour.Red: Background.RED,
+        Colour.Green: Background.GREEN,
+        Colour.Yellow: Background.YELLOW,
+        Colour.Blue: Background.BLUE,
+        Colour.Magenta: Background.MAGENTA,
+        Colour.Cyan: Background.CYAN,
+        Colour.White: Background.WHITE,
+        Colour.Default: Background.DEFAULT
+    ];
+
+
     /***************************************************************************
 
         Bold / non-bold text.

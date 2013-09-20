@@ -42,6 +42,11 @@ New Features
   value is within a certain set of values: 
   ``LimitCmp``, ``LimitInit``, ``Limit``
 
+``ocean.io.Terminal``
+  New arrays containing foreground and background colour control codes.
+  These arrays are indexed and accessed by an enum of colours, for clarity,
+  and to avoid having to pass char[] directly to methods using these codes.
+
 ``Tables.d``
   New methods for creating binary and decimal metric cells.
   These methods allow for creation of cells containing a number and a unit,
