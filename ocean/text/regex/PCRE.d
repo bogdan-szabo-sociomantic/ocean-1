@@ -181,6 +181,17 @@ class PCRE
 
         /***********************************************************************
 
+            Settings used by the call to pcre_exec() in the match() method.
+            These are modified by the complexity_limit field of the outer class,
+            and by the study() method.
+
+        ***********************************************************************/
+
+        private pcre_extra match_settings;
+
+
+        /***********************************************************************
+
             While this class instance exists, the pcre object must be non-null.
 
         ***********************************************************************/
@@ -252,15 +263,14 @@ class PCRE
 
         public bool match ( char[] string )
         {
-            pcre_extra settings;
             if ( this.outer.complexity_limit != DEFAULT_COMPLEXITY_LIMIT )
             {
-                settings.flags |= PCRE_EXTRA_MATCH_LIMIT;
-                settings.match_limit = this.outer.complexity_limit;
+                this.match_settings.flags |= PCRE_EXTRA_MATCH_LIMIT;
+                this.match_settings.match_limit = this.outer.complexity_limit;
             }
 
             this.outer.buffer_char.concat(string, "\0");
-            int error_code = pcre_exec(this.pcre_object, &settings,
+            int error_code = pcre_exec(this.pcre_object, &this.match_settings,
                 this.outer.buffer_char.ptr, string.length, 0, 0, null, 0);
             if ( error_code >= 0 )
             {
@@ -274,6 +284,33 @@ class PCRE
             }
 
             return false;
+        }
+
+        /***********************************************************************
+
+            Study a compiled regex in order to increase processing efficiency
+            when calling match(). This is usually only worth doing for a regex
+            which will be used many times, and does not always yield an
+            improvement in efficiency.
+
+            Throws:
+                if an error occurs when studying the regex
+
+        ***********************************************************************/
+
+        public void study ( )
+        {
+            char* errmsg;
+            auto res = pcre_study(this.pcre_object, 0, &errmsg);
+            if ( errmsg )
+            {
+                this.outer.exception.set(0, StringC.toDString(errmsg));
+                throw this.outer.exception;
+            }
+            if ( res )
+            {
+                this.match_settings.study_data = res.study_data;
+            }
         }
     }
 

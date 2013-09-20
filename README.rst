@@ -83,6 +83,8 @@ New Features
   * Added a field which can set the maximum complexity limit of a regex search.
     If the limit is exceeded, the search is aborted. This can be useful to
     control the amount of time spent performing a search.
+  * Added a method study() which can be used to increase the processing
+    efficiency of a compiled regex.
 
 v1.7 (2013-09-06)
 -----------------
