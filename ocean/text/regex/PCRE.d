@@ -106,6 +106,47 @@ class PCRE
 
     /***************************************************************************
 
+        Limits the complexity of regex searches. If a regex search passes the
+        specified complexity limit without either finding a match or determining
+        that no match exists, it bails out, throwing an exception (see
+        CompiledRegex.match()).
+
+        The default value of 0 uses libpcre's built-in default complexity
+        limit (10 million, see below), which is set to be extremely permissive.
+        Any value less than 10 million will have the effect of reducing the
+        level of complexity tolerated, thus reducing the potential processing
+        time spent searching.
+
+        This field maps directly to the match_limit field in libpcre's
+        pcre_extra struct.
+
+        From http://regexkit.sourceforge.net/Documentation/pcre/pcreapi.html:
+
+        The match_limit field provides a means of preventing PCRE from using up
+        a vast amount of resources when running patterns that are not going to
+        match, but which have a very large number of possibilities in their
+        search trees. The classic example is the use of nested unlimited
+        repeats.
+
+        Internally, PCRE uses a function called match() which it calls
+        repeatedly (sometimes recursively). The limit set by match_limit is
+        imposed on the number of times this function is called during a match,
+        which has the effect of limiting the amount of backtracking that can
+        take place. For patterns that are not anchored, the count restarts from
+        zero for each position in the subject string.
+
+        The default value for the limit can be set when PCRE is built; the
+        default default is 10 million, which handles all but the most extreme
+        cases.
+
+    ***************************************************************************/
+
+    public const int DEFAULT_COMPLEXITY_LIMIT = 0;
+
+    public int complexity_limit = DEFAULT_COMPLEXITY_LIMIT;
+
+    /***************************************************************************
+
         A reusable char buffer
 
     ***************************************************************************/
@@ -211,8 +252,15 @@ class PCRE
 
         public bool match ( char[] string )
         {
+            pcre_extra settings;
+            if ( this.outer.complexity_limit != DEFAULT_COMPLEXITY_LIMIT )
+            {
+                settings.flags |= PCRE_EXTRA_MATCH_LIMIT;
+                settings.match_limit = this.outer.complexity_limit;
+            }
+
             this.outer.buffer_char.concat(string, "\0");
-            int error_code = pcre_exec(this.pcre_object, null,
+            int error_code = pcre_exec(this.pcre_object, &settings,
                 this.outer.buffer_char.ptr, string.length, 0, 0, null, 0);
             if ( error_code >= 0 )
             {

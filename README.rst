@@ -77,9 +77,12 @@ New Features
   time_t UNIX timestamp value.
 
 ``ocean.text.regex.PCRE``
-  Added a class (CompiledRegex) which can be used to compile a regex pattern
-  once and use it to perform multiple searches. (Previously the pattern was
-  compiled every time a search was performed.)
+  * Added a class (CompiledRegex) which can be used to compile a regex pattern
+    once and use it to perform multiple searches. (Previously the pattern was
+    compiled every time a search was performed.)
+  * Added a field which can set the maximum complexity limit of a regex search.
+    If the limit is exceeded, the search is aborted. This can be useful to
+    control the amount of time spent performing a search.
 
 v1.7 (2013-09-06)
 -----------------
