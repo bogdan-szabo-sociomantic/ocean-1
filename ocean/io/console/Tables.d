@@ -122,7 +122,7 @@ module ocean.io.console.Tables;
 
 *******************************************************************************/
 
-private import ocean.core.Array : copy, appendCopy;
+private import ocean.core.Array : copy, appendCopy, concat;
 
 private import ocean.text.utf.UtfUtil;
 
@@ -134,6 +134,8 @@ private import tango.io.stream.Format;
 private import tango.text.convert.Layout;
 
 private import ocean.io.Stdout;
+
+private import ocean.io.Terminal;
 
 
 
@@ -370,6 +372,20 @@ public class Table
 
             /*******************************************************************
 
+                Colour code strings, used to determine the color of this cell's
+                contents for output. One for foreground colour, and one for
+                background colour. If a string is empty, terminal's default
+                colour will be used for output.
+
+            *******************************************************************/
+
+            private char[] fg_colour_string;
+
+            private char[] bg_colour_string;
+
+
+            /*******************************************************************
+
                 Sets the cell to contain a string.
 
                 Params:
@@ -494,6 +510,38 @@ public class Table
 
             /*******************************************************************
 
+                Sets the foreground colour of this cell
+
+                Params:
+                    colour = The colour to use
+
+            *******************************************************************/
+
+            public void setForegroundColour ( Terminal.Colour colour )
+            {
+                auto colour_str = Terminal.fg_colour_codes[colour];
+                this.fg_colour_string.concat(Terminal.CSI, colour_str);
+            }
+
+
+            /*******************************************************************
+
+                Sets the background colour of this cell
+
+                Params:
+                    colour = The colour to use
+
+            *******************************************************************/
+
+            public void setBackgroundColour ( Terminal.Colour colour )
+            {
+                auto colour_str = Terminal.bg_colour_codes[colour];
+                this.bg_colour_string.concat(Terminal.CSI, colour_str);
+            }
+
+
+            /*******************************************************************
+
                 Returns:
                     the width of cell's contents, in characters
 
@@ -543,10 +591,24 @@ public class Table
 
             public void display ( Output output, size_t width, ref char[] content_buf, ref char[] spacing_buf )
             {
+                // sequence of control characters to reset output colors to default
+                // use Terminal.CSI.dup to avoid string constant concatenation issues
+                // see: https://github.com/sociomantic/dmd/issues/3
+                const char[] default_colours =
+                    Terminal.CSI.dup ~ Terminal.fg_colour_codes[Terminal.Colour.Default] ~
+                    Terminal.CSI.dup ~ Terminal.bg_colour_codes[Terminal.Colour.Default];
+
                 uint layoutSink ( char[] s )
                 {
                     content_buf ~= s;
                     return s.length;
+                }
+
+                // set the colour of this cell
+                if ( this.fg_colour_string.length > 0 ||
+                     this.bg_colour_string.length > 0 )
+                {
+                    output.format("{}{}", this.fg_colour_string, this.bg_colour_string);
                 }
 
                 if ( this.type == Type.Divider )
@@ -555,6 +617,13 @@ public class Table
                     content_buf[] = '-';
 
                     output.format("{}", content_buf);
+
+                    // reset colour to default
+                    if ( this.fg_colour_string.length > 0 ||
+                         this.bg_colour_string.length > 0 )
+                    {
+                        output.format("{}", default_colours);
+                    }
                 }
                 else
                 {
@@ -619,7 +688,12 @@ public class Table
 
                     spacing_buf.length = width - utf8Length(content_buf);
                     spacing_buf[] = ' ';
-                    output.format(" {}{} |", spacing_buf, content_buf);
+                    output.format(" {}{} ", spacing_buf, content_buf);
+
+                    // reset colour to default
+                    output.format("{}", default_colours);
+
+                    output.format("|");
                 }
             }
 

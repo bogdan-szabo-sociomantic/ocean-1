@@ -47,10 +47,13 @@ New Features
   These arrays are indexed and accessed by an enum of colours, for clarity,
   and to avoid having to pass char[] directly to methods using these codes.
 
-``Tables.d``
+``ocean.io.console.Tables``
   New methods for creating binary and decimal metric cells.
   These methods allow for creation of cells containing a number and a unit,
   both decimal metric (" 5.2 kB ") and binary metric (" 5.2 MiB ").
+  
+  New methods for changing the foreground and background colors of a cell.
+  They use the ocean.io.Terminal.Colour enum as described above.
 
 ``ocean.text.convert.Hash``
   New module containing functions for converting between various types of hash:
