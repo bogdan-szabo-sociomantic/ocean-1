@@ -391,12 +391,17 @@ public class Table
                 Params:
                     str = string to set
 
+                Returns:
+                    this instance for method chaining
+
             *******************************************************************/
 
-            public void setString ( char[] str )
+            public typeof(this) setString ( char[] str )
             {
                 this.type = Type.String;
                 this.contents.string.copy(str);
+
+                return this;
             }
 
 
@@ -407,12 +412,17 @@ public class Table
                 Params:
                     num = integer to set
 
+                Returns:
+                    this instance for method chaining
+
             *******************************************************************/
 
-            public void setInteger ( ulong num )
+            public typeof(this) setInteger ( ulong num )
             {
                 this.type = Type.Integer;
                 this.contents.integer = num;
+
+                return this;
             }
 
 
@@ -426,13 +436,18 @@ public class Table
                     metric_string = metric identifier (eg bytes, Kbytes, Mbytes,
                         etc.)
 
+                Returns:
+                    this instance for method chaining
+
             *******************************************************************/
 
-            public void setBinaryMetric ( ulong num, char[] metric_string = "" )
+            public typeof(this) setBinaryMetric ( ulong num, char[] metric_string = "" )
             {
                 this.type = Type.BinaryMetric;
                 this.contents.integer = num;
                 this.metric_string.copy(metric_string);
+
+                return this;
             }
 
 
@@ -446,13 +461,18 @@ public class Table
                     metric_string = metric identifier (eg bytes, Kbytes, Mbytes,
                         etc.)
 
+                Returns:
+                    this instance for method chaining
+
             *******************************************************************/
 
-            public void setDecimalMetric ( ulong num, char[] metric_string = "" )
+            public typeof(this) setDecimalMetric ( ulong num, char[] metric_string = "" )
             {
                 this.type = Type.DecimalMetric;
                 this.contents.integer = num;
                 this.metric_string.copy(metric_string);
+
+                return this;
             }
 
 
@@ -463,12 +483,17 @@ public class Table
                 Params:
                     num = float to set
 
+                Returns:
+                    this instance for method chaining
+
             *******************************************************************/
 
-            public void setFloat ( double num )
+            public typeof(this) setFloat ( double num )
             {
                 this.type = Type.Float;
                 this.contents.floating = num;
+
+                return this;
             }
 
 
@@ -476,11 +501,16 @@ public class Table
 
                 Sets the cell to contain nothing.
 
+                Returns:
+                    this instance for method chaining
+
             *******************************************************************/
 
-            public void setEmpty ( )
+            public typeof(this) setEmpty ( )
             {
                 this.type = Type.Empty;
+
+                return this;
             }
 
 
@@ -488,11 +518,16 @@ public class Table
 
                 Sets the cell to contain a horizontal divider.
 
+                Returns:
+                    this instance for method chaining
+
             *******************************************************************/
 
-            public void setDivider ( )
+            public typeof(this) setDivider ( )
             {
                 this.type = Type.Divider;
+
+                return this;
             }
 
 
@@ -500,11 +535,16 @@ public class Table
 
                 Sets the cell to be merged with the cell to its right.
 
+                Returns:
+                    this instance for method chaining
+
             *******************************************************************/
 
-            public void setMerged ( )
+            public typeof(this) setMerged ( )
             {
                 this.type = Type.Merged;
+
+                return this;
             }
 
 
@@ -515,12 +555,17 @@ public class Table
                 Params:
                     colour = The colour to use
 
+                Returns:
+                    this instance for method chaining
+
             *******************************************************************/
 
-            public void setForegroundColour ( Terminal.Colour colour )
+            public typeof(this) setForegroundColour ( Terminal.Colour colour )
             {
                 auto colour_str = Terminal.fg_colour_codes[colour];
                 this.fg_colour_string.concat(Terminal.CSI, colour_str);
+
+                return this;
             }
 
 
@@ -531,12 +576,17 @@ public class Table
                 Params:
                     colour = The colour to use
 
+                Returns:
+                    this instance for method chaining
+
             *******************************************************************/
 
-            public void setBackgroundColour ( Terminal.Colour colour )
+            public typeof(this) setBackgroundColour ( Terminal.Colour colour )
             {
                 auto colour_str = Terminal.bg_colour_codes[colour];
                 this.bg_colour_string.concat(Terminal.CSI, colour_str);
+
+                return this;
             }
 
 

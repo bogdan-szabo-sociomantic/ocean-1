@@ -55,6 +55,8 @@ New Features
   New methods for changing the foreground and background colors of a cell.
   They use the ocean.io.Terminal.Colour enum as described above.
 
+  Cell setter methods now return this, to allow chaining calls to them.
+
 ``ocean.text.convert.Hash``
   New module containing functions for converting between various types of hash:
   hash_t, char[] containing hex digits (with our without "0x" at the start),
