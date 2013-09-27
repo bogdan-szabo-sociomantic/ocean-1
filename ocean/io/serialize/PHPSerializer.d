@@ -459,6 +459,31 @@ public class PHPSerializer
 
     ***************************************************************************/
 
+    public void serializeStaticArray ( T ) ( ref ubyte[] output, char[] name, T[] array )
+    {
+        uint len = cast(uint) array.length;
+
+        output ~= (cast(ubyte*)array.ptr)[0 .. len];
+    }
+
+
+    /***************************************************************************
+
+        Appends a named array to the output buffer.
+        The length of the array is written as uint, so arrays longer
+        than uint.max can't be used.
+        This is done because php doesn't support ulongs (only longs)
+
+        Template params:
+            T = base type of array
+
+        Params:
+            output = string to serialize struct data to
+            array = array to append
+            name = name of array item
+
+    ***************************************************************************/
+
     public void serializeArray ( T ) ( ref ubyte[] output, char[] name, T[] array )
     {
         assert ( array.length <= uint.max, "Array length doesn't fit into uint");
