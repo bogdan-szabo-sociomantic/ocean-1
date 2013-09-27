@@ -167,20 +167,20 @@ public class PCRE
     /***************************************************************************
 
         Compiled regex class. Enables a regex pattern to be compiled once and
-        used for multiple searches. As this class is private, the only way to
-        construct an instance is via the compile() method, below.
+        used for multiple searches.
 
     ***************************************************************************/
 
-    private class CompiledRegex
+    public class CompiledRegex
     {
         /***********************************************************************
 
-            Pointer to C-allocated pcre object, created in ctor.
+            Pointer to C-allocated pcre regex object, created upon compilation
+            of a regex (see compile()).
 
         ***********************************************************************/
 
-        private const pcre* pcre_object;
+        private pcre* pcre_object;
 
         /***********************************************************************
 
@@ -194,18 +194,20 @@ public class PCRE
 
         /***********************************************************************
 
-            While this class instance exists, the pcre object must be non-null.
+            Destructor. Frees the C-allocated pcre object.
 
         ***********************************************************************/
 
-        invariant
+        ~this ( )
         {
-            assert(this.pcre_object);
+            this.cleanup();
         }
 
         /***********************************************************************
 
-            Constructor. Allocates the pcre object.
+            Compiles the specified regex for use in the match() method. Cleans
+            up a previously compiled regex, if this instance has been used
+            before.
 
             Params:
                 pattern = pattern to search for, as a string
@@ -214,10 +216,20 @@ public class PCRE
             Throws:
                 if the compilation of the regex fails
 
+            Out:
+                following a call to this method, the compiled regex exists
+
         ***********************************************************************/
 
-        public this ( char[] pattern, bool case_sens = true )
+        public void compile ( char[] pattern, bool case_sens = true )
+        out
         {
+            assert(this.pcre_object);
+        }
+        body
+        {
+            this.cleanup();
+
             char* errmsg;
             int error_code;
             int error_offset;
@@ -239,17 +251,6 @@ public class PCRE
 
         /***********************************************************************
 
-            Destructor. Frees the C-allocated pcre object.
-
-        ***********************************************************************/
-
-        ~this ( )
-        {
-            free(this.pcre_object);
-        }
-
-        /***********************************************************************
-
             Perform a regular expression match.
 
             Params:
@@ -261,9 +262,17 @@ public class PCRE
             Throws:
                 if an error occurs when running the regex search
 
+            In:
+                the regex must have been compiled
+
         ***********************************************************************/
 
         public bool match ( char[] string )
+        in
+        {
+            assert(this.pcre_object);
+        }
+        body
         {
             if ( this.outer.complexity_limit != DEFAULT_COMPLEXITY_LIMIT )
             {
@@ -298,9 +307,17 @@ public class PCRE
             Throws:
                 if an error occurs when studying the regex
 
+            In:
+                the regex must have been compiled
+
         ***********************************************************************/
 
         public void study ( )
+        in
+        {
+            assert(this.pcre_object);
+        }
+        body
         {
             char* errmsg;
             auto res = pcre_study(this.pcre_object, 0, &errmsg);
@@ -314,41 +331,29 @@ public class PCRE
                 this.match_settings.study_data = res.study_data;
             }
         }
+
+        /***********************************************************************
+
+            Cleans up the compiled regex object and the study data.
+
+        ***********************************************************************/
+
+        private void cleanup ( )
+        {
+            free(this.pcre_object);
+            this.match_settings = this.match_settings.init;
+        }
     }
 
     /***************************************************************************
 
-        constructor
-        Initializes the re-usable exception.
+        Constructor. Initializes the re-usable exception.
 
     ***************************************************************************/
 
-    public this()
+    public this ( )
     {
         this.exception = new PcreException();
-    }
-
-    /***************************************************************************
-
-        Compiles a regex pattern and returns an instance of CompiledRegex, which
-        can be used to perform multiple regex searches.
-
-        Params:
-            pattern = pattern to search for
-            case_sens = case sensitive matching
-
-        Returns:
-            new CompiledRegex instance which can be used to perform multiple
-            regex searches
-
-        Throws:
-            if the compilation of the regex fails
-
-    ***************************************************************************/
-
-    public CompiledRegex compile ( char[] pattern, bool case_sens = true )
-    {
-        return new CompiledRegex(pattern, case_sens);
     }
 
     /***************************************************************************
@@ -377,7 +382,8 @@ public class PCRE
 
     public bool preg_match ( char[] string, char[] pattern, bool case_sens = true )
     {
-        scope regex = new CompiledRegex(pattern, case_sens);
+        scope regex = new CompiledRegex;
+        regex.compile(pattern, case_sens);
         return regex.match(string);
     }
 
