@@ -546,6 +546,12 @@ struct StructSerializer ( bool AllowUnions = false )
 
             void serializeArray ( T ) ( D, char[] name, T[] array );
 
+              Optional:
+
+                void serializeStaticArray ( T ) ( D, char[] name, T[] array );
+
+              If this methond doesn't exist, serializeArray will be used.
+
             void openStructArray ( T ) ( D, char[] name, T[] array );
 
             void closeStructArray ( T ) ( D, char[] name, T[] array );
@@ -1045,6 +1051,11 @@ struct StructSerializer ( bool AllowUnions = false )
                         serializer.closeStruct(data, U.stringof);
                     }
                     serializer.closeStructArray(data, field_name, array);
+                }
+                else static if ( isStaticArrayType!(T) &&
+                                 is ( typeof(serializer.serializeStaticArray!(T)) ) )
+                {
+                    serializer.serializeStaticArray(data, field_name, array);
                 }
                 else
                 {
