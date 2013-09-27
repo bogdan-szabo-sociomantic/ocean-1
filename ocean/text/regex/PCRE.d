@@ -62,7 +62,7 @@ public class PCRE
     /***************************************************************************
 
         Represents a PCRE Exception.
-        The class is re-uusable exception where the error message can be
+        The class is re-usable exception where the error message can be
         reset and the same instance can be re-thrown.
 
     ***************************************************************************/
@@ -150,7 +150,7 @@ public class PCRE
 
     /***************************************************************************
 
-        A reusable char buffer
+        String used internally for formatting.
 
     ***************************************************************************/
 
