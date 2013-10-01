@@ -110,6 +110,9 @@ private import ocean.util.container.AppendBuffer;
 
     Class to report on the distribution of a series of values.
 
+    Template params:
+        T = The type of the values in the distribution
+
 *******************************************************************************/
 
 public class Distribution ( T )
@@ -356,6 +359,60 @@ public class Distribution ( T )
 
     /***************************************************************************
 
+        Calculates the median value of this distribution
+        For an odd number of values, the middle value is returned
+        For an even number, the average of the 2 middle values is returned
+
+        Returns:
+            The median of the values contained in this distribution
+
+    ***************************************************************************/
+
+    public double median ( )
+    {
+        if ( this.values.length == 0 )
+        {
+            return 0;
+        }
+
+        this.sort;
+
+        auto count = this.values.length;
+        double median;
+
+        if ( count % 2 == 0 )
+        {
+            double lval = this.values[( count / 2 ) - 1];
+            double rval = this.values[count / 2];
+            median = ( lval + rval ) / 2;
+        }
+        else
+        {
+            median = this.values[count / 2];
+        }
+
+        return median;
+    }
+
+
+    unittest
+    {
+        // test with ulong
+        medianTests!(ulong)([2, 3, 4, 5, 6], 4);
+
+        // test with even amount of numbers
+        medianTests!(ulong)([2, 3, 4, 5, 6, 7], 4.5);
+
+        // test with signed int
+        medianTests!(int)([-2, -3, -4, -5, -6], -4);
+
+        // test with double
+        medianTests!(double)([2.4, 5.0, 7.6], 5.0);
+    }
+
+
+    /***************************************************************************
+
         Sorts the values in the list, if they are not already sorted.
 
     ***************************************************************************/
@@ -494,4 +551,32 @@ private void meanTests ( T ) ( T[] values, T average_value )
 
     // test average value
     assert(dist.mean() == average_value, "mean returned the wrong average value");
+}
+
+
+/*******************************************************************************
+ *
+    Runs a standard set of median tests on the given distribution
+    Tests will be checked against the given expected median value
+
+    Template params:
+        T = the type used by the distribution
+
+    Params:
+        values = the values to test a distribution of
+        median_value = the expected median value to check against
+
+*******************************************************************************/
+
+private void medianTests ( T ) ( T[] values, double median_value )
+{
+    auto dist = new Distribution!(T);
+
+    // test that median always returns 0 for empty distributions regardless of type
+    assert(dist.median() == 0, "median should always return 0 for an empty distribution");
+
+    appendDist!(T)(dist, values);
+
+    // test median value
+    assert(dist.median() == median_value, "median returned the wrong median value");
 }
