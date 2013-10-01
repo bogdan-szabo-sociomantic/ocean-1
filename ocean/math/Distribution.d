@@ -254,15 +254,29 @@ public class Distribution ( T )
         percentValue(0.5) returns 4, while percentValue(0.25) returns 2, and
         percentValue(1.0) returns 8.
 
+        Throws an error if passed a value <= 0 or >= 1.
+
         Params:
-            percent = percentage as a fraction
+            fraction = percentage as a fraction
 
         Returns:
             value which X% of the values in the list are less than or equal to
 
     ***************************************************************************/
 
-    public size_t percentValue ( float percent )
+    public T percentValue ( double fraction )
+    in
+    {
+        assert(fraction >= 0.0 && fraction <= 1.0, "fraction must be within [0.0 ... 0.1]");
+    }
+    out ( result )
+    {
+        if ( this.values.length == 0 )
+        {
+            assert(result == 0, "percentValue should be 0 for empty distributions");
+        }
+    }
+    body
     {
         if ( this.values.length == 0 )
         {
@@ -271,7 +285,10 @@ public class Distribution ( T )
 
         this.sort;
 
-        auto index = cast(size_t)(percent * this.values.length);
+        auto index = cast(size_t)(fraction * (this.values.length - 1));
+
+        assert(index < this.values.length, "index greater than or equal to length of value list");
+
         if ( index >= this.values.length )
         {
             index = this.values.length - 1;
@@ -280,6 +297,21 @@ public class Distribution ( T )
         return this.values[index];
     }
 
+
+    unittest
+    {
+        // test with ulong
+        percentValueTests!(ulong)([1, 2, 3, 4, 5, 6, 7, 8], 4);
+
+        // test with odd amount of numbers
+        percentValueTests!(ulong)([1, 2, 3, 4, 5, 6, 7, 8, 9], 5);
+
+        // test with signed int
+        percentValueTests!(int)([-8, -7, -6, -5, -4, -3, -2, -1], -5);
+
+        // test with double
+        percentValueTests!(double)([1.5, 2.5, 3.5, 4.5, 5.5, 7.5, 8.5], 4.5);
+    }
 
     /***************************************************************************
 
@@ -297,3 +329,100 @@ public class Distribution ( T )
     }
 }
 
+
+
+/*******************************************************************************
+
+    Functions that are common to the unittests in this module
+    These functions are template functions, so they will not
+    generate any code unless compiled with -unittest.
+
+*******************************************************************************/
+
+
+
+/*******************************************************************************
+
+    Appends the given list of values to the given distribution
+
+    Template params:
+        T = the type used by the distribution
+
+    Params:
+        dist = the distribution to append to
+        values = the values to put into the distribution
+
+*******************************************************************************/
+
+private void appendDist ( T ) ( Distribution!(T) dist, T[] values )
+{
+    foreach ( val; values )
+    {
+        dist ~= val;
+    }
+}
+
+
+/*******************************************************************************
+
+    Tests if an error was caught or not when calling the given delegate
+
+    Template params:
+        dummy = dummy template parameter to avoid generating
+            code for this function if it is not used
+
+    Params:
+        dg = a delegate that calls an error throwing function
+        error = whether an error should have been thrown or not
+        msg = the error message should the assert fail
+
+*******************************************************************************/
+
+private void testForError ( bool dummy = false )
+                          ( void delegate ( ) dg, bool error, char[] msg )
+{
+    bool caught = false;
+
+    try
+    {
+        dg();
+    }
+    catch ( Exception e )
+    {
+        caught = true;
+    }
+
+    assert(error == caught, "Error " ~ (!error ? "not " : "")  ~ "expected: " ~ msg);
+}
+
+
+/*******************************************************************************
+
+    Runs a standard set of percentValue tests on the given distribution
+    Tests will be checked against the given expected middle value
+
+    Template params:
+        T = the type used by the distribution
+
+    Params:
+        values = the values to test a distribution of
+        middle_value = the expected middle value to check against
+
+*******************************************************************************/
+
+private void percentValueTests ( T ) ( T[] values, T middle_value )
+{
+    auto dist = new Distribution!(T);
+
+    // test that percentValue always returns 0 for empty distributions regardless of type
+    assert(dist.percentValue(0.25) == 0, "percentValue should always return 0 for an empty distribution");
+
+    appendDist!(T)(dist, values);
+
+    // test that exceeding the boundaries throws an error
+    testForError({ dist.percentValue(-1.0); }, true, "fraction < 0 is out of bounds");
+    testForError({ dist.percentValue(2.0); }, true, "fraction > 1 is out of bounds");
+
+    // test middle value
+    assert(dist.percentValue(0.5) == middle_value, "");
+}
