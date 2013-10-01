@@ -61,6 +61,9 @@ New Features
 
   Cell setter methods now return this, to allow chaining calls to them.
 
+``ocean.math.Distribution``
+  New method for calculating the mean (average) of the contained values.
+
 ``ocean.text.convert.Hash``
   New module containing functions for converting between various types of hash:
   hash_t, char[] containing hex digits (with our without "0x" at the start),

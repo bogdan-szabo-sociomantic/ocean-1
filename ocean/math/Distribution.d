@@ -313,6 +313,47 @@ public class Distribution ( T )
         percentValueTests!(double)([1.5, 2.5, 3.5, 4.5, 5.5, 7.5, 8.5], 4.5);
     }
 
+
+    /***************************************************************************
+
+        Calculates the mean (average) value of this distribution
+
+        Returns:
+            The average of the values contained in this distribution
+
+    ***************************************************************************/
+
+    public double mean ( )
+    {
+        if ( this.values.length == 0 )
+        {
+            return 0;
+        }
+
+        double total = 0.0;
+
+        for ( int i = 0; i < this.values.length; i++ )
+        {
+            total += this.values[i];
+        }
+
+        return total / this.values.length;
+    }
+
+
+    unittest
+    {
+        // test with ulong
+        meanTests!(ulong)([2, 3, 4, 5, 6], 4);
+
+        // test with signed int
+        meanTests!(int)([-2, -3, -4, -5, -6], -4);
+
+        // test with double
+        meanTests!(double)([2.4, 5.0, 7.6], 5.0);
+    }
+
+
     /***************************************************************************
 
         Sorts the values in the list, if they are not already sorted.
@@ -425,4 +466,32 @@ private void percentValueTests ( T ) ( T[] values, T middle_value )
 
     // test middle value
     assert(dist.percentValue(0.5) == middle_value, "");
+}
+
+
+/*******************************************************************************
+ *
+    Runs a standard set of mean tests on the given distribution
+    Tests will be checked against the given expected average value
+
+    Template params:
+        T = the type used by the distribution
+
+    Params:
+        values = the values to test a distribution of
+        average_value = the expected average value to check against
+
+*******************************************************************************/
+
+private void meanTests ( T ) ( T[] values, T average_value )
+{
+    auto dist = new Distribution!(T);
+
+    // test that mean always returns 0 for empty distributions regardless of type
+    assert(dist.mean() == 0, "mean should always return 0 for an empty distribution");
+
+    appendDist!(T)(dist, values);
+
+    // test average value
+    assert(dist.mean() == average_value, "mean returned the wrong average value");
 }
