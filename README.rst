@@ -37,6 +37,10 @@ Migration Instructions
 New Features
 ^^^^^^^^^^^^
 
+``ocean.util.container.map.FileSerializer``
+  Files are now written compressed (with the Zlib algorithm). Can still read old
+  uncompressed maps.
+
 ``ocean.util.ClassFiller``
   A new config property struct wrapper was added that makes sure that the config
   value is within a certain set of values: 

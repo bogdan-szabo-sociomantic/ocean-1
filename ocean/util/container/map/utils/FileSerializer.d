@@ -34,6 +34,7 @@ private import tango.core.Exception: IOException;
 private import tango.io.model.IConduit : IOStream;
 private import tango.core.Traits,
                tango.io.stream.Buffered,
+               tango.io.stream.Zlib,
                tango.io.device.File;
 
 
@@ -96,7 +97,7 @@ private struct KeyValueStruct( K, V)
 
 *******************************************************************************/
 
-private struct FileHeader ( K, V, ubyte VERSION = 2 )
+private struct FileHeader ( K, V, ubyte VERSION = 3 )
 {
     /***************************************************************************
 
@@ -193,19 +194,28 @@ public void dump ( K, V ) ( Map!(V, K) map, char[] file_path,
     buffered.output(file);
     buffered.clear();
 
+    scope zlib = new ZlibOutput(buffered);
+
+    scope (exit)
+    {
+        zlib.flush();
+        zlib.close();
+    }
+
     FileHeader!(K,V) fh;
     SimpleSerializer.write(buffered, fh);
     SimpleSerializer.write(buffered, nr_rec);
+
+    buffered.flush();
 
     foreach(key, value; map)
     {
         if ( check(key, value) )
         {
-            SimpleSerializer.write!(K)(buffered, key);
-            SimpleSerializer.write!(V)(buffered, value);
+            SimpleSerializer.write!(K)(zlib, key);
+            SimpleSerializer.write!(V)(zlib, value);
         }
     }
-    buffered.flush();
 }
 
 /*******************************************************************************
@@ -353,16 +363,16 @@ body
     size_t nr_rec;
     scope file = new File(file_path, File.ReadExisting);
     scope buffered = new BufferedInput(file, 4096 * 10);
+    scope zlib = new ZlibInput(file);
+    InputStream reader = zlib;
+
 
     if ( putter is null ) putter = ( K k, V v ) { *map.put(k) = v; };
 
     FileHeader!(K,V) fh_expected;
     FileHeader!(K,V) fh_actual;
 
-    buffered.compress();
-    buffered.populate();
-
-    SimpleSerializer.read(buffered, fh_actual);
+    SimpleSerializer.read(file, fh_actual);
 
     if ( fh_actual.marker != fh_expected.marker )
     {
@@ -391,6 +401,12 @@ body
                 return;
             }
         }
+        else if ( fh_actual.versionNumber < 3 )
+        { // Don't use zlib stream if version < 3
+            buffered.input(file);
+            buffered.clear();
+            reader = buffered;
+        }
         else
         {
             throw new Exception("Version of file header " ~ file_path ~
@@ -404,24 +420,12 @@ body
                             " differ from our structs, aborting!");
     }
 
-    if ( buffered.readable < nr_rec.sizeof )
-    {
-        buffered.compress();
-        buffered.populate();
-    }
-    SimpleSerializer.read(buffered, nr_rec);
+    SimpleSerializer.read(file, nr_rec);
 
     for ( ulong i=0; i < nr_rec;i++ )
     {
-
-        if ( buffered.readable < V.sizeof + K.sizeof )
-        {
-            buffered.compress();
-            buffered.populate();
-        }
-
-        SimpleSerializer.read!(K)(buffered, key);
-        SimpleSerializer.read!(V)(buffered, value);
+        SimpleSerializer.read!(K)(reader, key);
+        SimpleSerializer.read!(V)(reader, value);
         putter(key, value);
     }
 }
