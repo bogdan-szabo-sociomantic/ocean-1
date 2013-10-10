@@ -34,11 +34,30 @@ class StructDumper
 {
     /**************************************************************************
 
-        Set to true to only extend the internal buffer.
+        If true the passed buffer reference will never be resized to something
+        smaller its current length.
+        If false, the passed buffer reference could be set to something smaller
+        its current length
 
      **************************************************************************/
 
     public bool extend_only = false;
+
+    /***************************************************************************
+
+        Serializes the data in s
+
+        Params:
+            s = struct to serialize
+            buffer = buffer to write to (resize behavior depending on
+                     this.extend_only)
+
+        Template Params:
+            S = type of the struct to dump
+
+        See_Also: this.extend_only
+
+    ***************************************************************************/
 
     void[] opCall ( S ) ( ref void[] buffer, S s )
     {
@@ -49,8 +68,17 @@ class StructDumper
 
         Serializes the data in s.
 
+        If S.StructVersion exists, the version will be written in the first byte
+        of the serialized data.
+
         Params:
-            s = instance of S to serialize
+            s            = instance of S to serialize
+            extend_only  = if true the passed buffer reference will never be
+                           resized to something smaller its current length.
+                           if false, the passed buffer reference could be set to
+                           something smaller its current length
+        Template Params:
+            S = struct type
 
         Returns:
             the data serialized from s.
@@ -61,6 +89,23 @@ class StructDumper
     {
         return DumpArrays.dump(s, resize(buffer, DumpArrays.length(s), extend_only));
     }
+
+    /***************************************************************************
+
+        Resizes the passed buffer reference
+
+        Params:
+            buffer = buffer to resize
+            len    = length to resize to
+            extend_only  = if true the passed buffer reference will never be
+                           resized to something smaller its current length.
+                           if false, the passed buffer reference could be set to
+                           something smaller its current length
+
+        Returns:
+            slice to the potentially resized buffer
+
+    ***************************************************************************/
 
     private static void[] resize ( ref void[] buffer, size_t len, bool extend_only = false )
     out (buffer_out)
@@ -163,8 +208,13 @@ class BufferedStructDumper : StructDumper
         Params:
             s = instance of S to serialize
 
+        Template Params:
+            S = type of the struct to dump
+
         Returns:
             the data serialized from s.
+
+        See_Also: extend_only
 
      **************************************************************************/
 
@@ -414,7 +464,7 @@ struct DumpArrays
     void[] dump ( S ) ( S s, void[] data )
     in
     {
-        assert (data.length >= length(s));
+        assert (data.length >= length(s), "Destination buffer too small!");
     }
     out (data_out)
     {

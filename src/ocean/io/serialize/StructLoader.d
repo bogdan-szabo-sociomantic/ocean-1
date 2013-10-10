@@ -51,7 +51,11 @@
 
 module ocean.io.serialize.StructLoader;
 
-/******************************************************************************/
+/*******************************************************************************
+
+    The struct loader class
+
+*******************************************************************************/
 
 class StructLoader
 {
@@ -155,58 +159,10 @@ class StructLoader
 
     /***************************************************************************
 
-        Loads the S instance represented by data by setting the dynamic array
-        slices. data must have been obtained by StructSerializer.dump!(S)().
-
-        If S contains dynamic arrays, the content of src is modified in-place.
+        Identical to Structloader.load with the following differences:
 
         If S contains branched dynamic arrays, the length of src is set so that
         the slices of the branched arrays can be stored at the end of src.
-
-        Notes:
-            1. If S doesn't contain branched arrays, load() can be used as well
-               and is recommended because it doesn't resize the data buffer.
-            2. After this method has returned, do not change src.length to a
-               value other than 0, unless you set the content of src to zero
-               bytes *before* changing the size:
-               ---
-                   {
-                       S* s = load!(S)(data);
-
-                       // do something with s...
-                   }
-
-                   (cast (ubyte[]) data)[] = 0; // clear data
-
-                   data.length = 1234;          // resize data
-               ---
-               Of course the obtained instance gets invalid when src is cleared
-               and should be reset to null *before* clearing src if it is in the
-               same scope. (If you don't do that, src may be relocated in
-               memory, turning all dynamic arrays into dangling, segfault prone
-               references!)
-            3. The members of the obtained instance may be written to as long as
-               the length of arrays is not changed.
-            4. It is safe (however pointless) to load the same buffer twice.
-            5. When copying the content of src or doing src.dup, run this method
-               on the newly created copy. (If you don't do that, the dynamic
-               arrays of the copy will reference the original!) Make sure that
-               the original remains unchanged until this method has returned.
-
-        Template params:
-            S = struct type
-
-         Params:
-             src = data of a serialized S instance. The length will be modified
-                   as required.
-
-         Returns:
-             a slice to the valid content in src.
-
-         Throws:
-             StructLoaderException if
-              - src is too short
-              - or the length of a dynamic array is greater than max_length.
 
      **************************************************************************/
 
@@ -226,49 +182,9 @@ class StructLoader
 
     /***************************************************************************
 
-        Loads the S instance represented by data by setting the dynamic array
-        slices. data must have been obtained by StructSerializer.dump!(S)().
+        Identical to Structloader.load with the following differences:
 
-        If S contains dynamic arrays, the content of src is modified in-place.
-
-        allow_branched_arrays = true is useful to adjust the slices after a
-        buffer previously created by loadCopy() is copied or relocated.
-
-        Notes:
-            1. After this method has returned, do not change src.length to a
-               value other than 0, unless you set the content of src to zero
-               bytes *before* changing the size. (If you don't do that, src may
-               be relocated in memory, turning all dynamic arrays into dangling,
-               segfault prone references!)
-            2. The members of the obtained instance may be written to as long as
-               the length of arrays is not changed.
-            3. It is safe to use "cast (S*) src.ptr" to obtain the S instance.
-            4. It is safe (however pointless) to load the same buffer twice.
-            5. When copying the content of src or doing src.dup, run this method
-               on the newly created copy. (If you don't do that, the dynamic
-               arrays of the copy will reference the original!) Make sure that
-               the original remains unchanged until this method has returned.
-
-        Template params:
-            S                     = struct type
-            allow_branched_arrays = true: allow branced arrays; src must be long
-                                    enough to store the branched array
-                                    instances. If false, a static assertion
-                                    makes sure that S does not contain branched
-                                    arrays.
-
-         Params:
-             src = data of a serialized S instance
-
-         Returns:
-             the slice to the beginning of src which contains the deserialized
-             struct instance.
-
-         Throws:
-             StructLoaderException if src is too short or the length of a
-             dynamic array is greater than max_length.
-
-        Out:
+        Returns:
             The returned buffer slices src from the beginning.
 
      **************************************************************************/
@@ -276,8 +192,8 @@ class StructLoader
     public void[] setSlices ( S, bool allow_branched_arrays = false ) ( void[] src )
     out (data)
     {
-        assert (data.ptr    is src.ptr);
-        assert (data.length <= src.length);
+        assert (data.ptr    is src.ptr, "output doesn't start with input!");
+        assert (data.length <= src.length, "Length of output less than input!");
     }
     body
     {
@@ -303,42 +219,18 @@ class StructLoader
 
     /***************************************************************************
 
-        Copies src to dst and loads the S instance represented by dst. src must
-        have been obtained by StructSerializer.dump!(S)(). dst is resized as
-        required. If dst is initially null, it is set to a newly allocated
-        array.
+        Identical to StructLoader.load with the following differences:
+
+        Copies src to dst and loads the S instance represented by dst.
+        If dst is initially null, it is set to a newly allocated array.
 
         S may contain branched dynamic arrays.
-
-        Notes:
-            1. After this method has returned, do not change dst.length to a
-               value other than 0, unless you set the content of src to zero
-               bytes *before* changing the size. Of course the obtained instance
-               gets invalid when dst is cleared and should be reset to null
-               *before* clearing dst if it is in the same scope.
-            2. The members of the obtained instance may be written to unless the
-               length of arrays is not changed.
-            3. It is safe to use "cast (S*) dst.ptr" to obtain the S instance.
-
-        Template params:
-            S = struct type
 
          Params:
              dst             = destination buffer; may be null, a new array is
                                then created
-             src             = data of a serialized S instance
              only_extend_dst = true: do not decrease dst.length, false: set
                                dst.length to the actual referenced content
-
-         Returns:
-             deserialised S instance
-
-         Throws:
-             StructLoaderException if src is too short or the length of a
-             dynamic array is greater than max_length.
-
-        Out:
-            The returned S instance is dst.ptr.
 
      **************************************************************************/
 
@@ -354,44 +246,11 @@ class StructLoader
 
     /***************************************************************************
 
-        Copies src to dst and loads the S instance represented by dst. src must
-        have been obtained by StructSerializer.dump!(S)(). dst is resized as
-        required. If dst is initially null, it is set to a newly allocated
-        array.
+        Identical to StructLoader.loadCopy with the following differences:
 
-        S may contain branched dynamic arrays.
-
-        Notes:
-            1. After this method has returned, do not change dst.length to a
-               value other than 0, unless you set the content of src to zero
-               bytes *before* changing the size. Of course the obtained instance
-               gets invalid when dst is cleared and should be reset to null
-               *before* clearing dst if it is in the same scope.
-            2. The members of the obtained instance may be written to unless the
-               length of arrays is not changed.
-            3. It is safe to use "cast (S*) dst.ptr" to obtain the S instance.
-
-        Template params:
-            S = struct type
-
-         Params:
-             dst             = destination buffer; may be null, a new array is
-                               then created
-             src             = data of a serialized S instance
-             only_extend_dst = true: do not decrease dst.length, false: set
-                               dst.length to the actual referenced content
-
-         Returns:
-             the slice to the beginning of dst which contains the deserialized
-             struct instance.
-
-         Throws:
-             StructLoaderException if src is too short or the length of a
-             dynamic array is greater than max_length.
-
-        Out:
-            If only_extend_dst = false, the returned slice is dst, otherwise it
-            is the beginning of dst.
+        Returns:
+            the slice to the beginning of dst which contains the deserialized
+            struct instance.
 
      **************************************************************************/
 
@@ -447,26 +306,24 @@ class StructLoader
 
     /***************************************************************************
 
-        Loads the S instance represented by src. src must have been obtained by
-        the StructDumper.dump. slices_buffer is resized as required or created
-        as 'new ubyte[]' if initially null.
+        Identical to StructLoader.load with the following differences:
+
+        slices_buffer is resized as required or created as 'new ubyte[]' if
+        initially null.
 
         S may contain branched dynamic arrays.
 
-        Template params:
-            S = struct type
+        Params:
+            slices_buffer   = buffer to use for the slices
+            only_extend_buffer = true: do not decrease slices_buffer.length,
+                                 false: set slices_buffer.length to the actual
+                                 referenced content
 
-         Params:
-             src             = data of a serialized S instance
-             only_extend_dst = true: do not decrease dst.length, false: set
-                               dst.length to the actual referenced content
-
-         Returns:
-             the deserialized S instance, references src.
-
-         Throws:
-             StructLoaderException if src is too short or the length of a
-             dynamic array is greater than max_length.
+        Returns:
+            the struct pointer, pointing to the beginning of src which contains
+            the deserialized struct instance. All branched arrays of non-zero
+            length in the deserialized S instance will reference data in
+            slices_buffer, which in turn reference data in src.
 
      **************************************************************************/
 
@@ -477,29 +334,18 @@ class StructLoader
 
     /***************************************************************************
 
-        Loads the S instance represented by src. src must have been obtained by
-        the StructDumper.dump. slices_buffer is resized as required or created
-        as 'new ubyte[]' if initially null.
+        Identical to StructLoader.loadSlice with the following differences:
 
-        S may contain branched dynamic arrays.
+        Returns:
+            the slice to the beginning of src which contains the deserialized
+            struct instance. All branched arrays of non-zero length in the
+            deserialized S instance will reference data in slices_buffer, which
+            in turn reference data in src.
 
-        Template params:
-            S = struct type
-
-         Params:
-             src             = data of a serialized S instance
-             only_extend_dst = true: do not decrease dst.length, false: set
-                               dst.length to the actual referenced content
-
-         Returns:
-             the slice to the beginning of src which contains the deserialized
-             struct instance. All branched arrays of non-zero length in the
-             deserialized S instance will reference data in slices_buffer, which
-             in turn reference data in src.
-
-         Throws:
-             StructLoaderException if src is too short or the length of a
-             dynamic array is greater than max_length.
+        Throws:
+            StructLoaderException if
+             - src is too short
+             - or the length of a dynamic array is greater than max_length.
 
      **************************************************************************/
 
