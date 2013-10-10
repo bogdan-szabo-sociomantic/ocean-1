@@ -159,7 +159,7 @@ class StructLoader
         slices. data must have been obtained by StructSerializer.dump!(S)().
 
         If S contains dynamic arrays, the content of src is modified in-place.
-        
+
         If S contains branched dynamic arrays, the length of src is set so that
         the slices of the branched arrays can be stored at the end of src.
 
@@ -292,7 +292,7 @@ class StructLoader
                                            (this.e, src.length >= data_len + slices_len, __FILE__, __LINE__);
 
             this.setSlices_!(S, allow_branched_arrays)(src[0 .. data_len], src[data_len .. data_len + slices_len]);
-            
+
             return src[0 .. data_len + slices_len];
         }
         else
@@ -300,7 +300,7 @@ class StructLoader
             return this.setSlices_!(S, allow_branched_arrays)(src, null);
         }
     }
-    
+
     /***************************************************************************
 
         Copies src to dst and loads the S instance represented by dst. src must
@@ -604,7 +604,7 @@ class StructLoader
               - slices_buffer is too short.
 
      **************************************************************************/
-    
+
     private void[] setSlices_ ( S, bool allow_branched_arrays = false ) ( void[] src, void[] slices_buffer )
     out (data)
     {
@@ -639,7 +639,7 @@ class StructLoader
         size_t arrays_length = this.sliceArrays!(allow_branched_arrays, S)
                                                  (*cast (S*) src[0 .. src.length].ptr,
                                                  src[S.sizeof .. $], get_slice_buffer);
-        
+
         return src[0 .. arrays_length + S.sizeof];
     }
 
