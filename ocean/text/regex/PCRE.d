@@ -1,38 +1,40 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
+    copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
-        version:        Jan 2009: Initial release
+    version:        Jan 2009: Initial release
 
-        authors:        Thomas Nicolai, Lars Kirchhoff
+    authors:        Thomas Nicolai, Lars Kirchhoff, Gavin Norman
 
-        D Library Binding for PCRE regular expression engine
+    D Library Binding for PCRE regular expression engine.
 
-        This module provides bindings for the libpcre library. This is just a
-        first draft and needs further extension.
+    Requires linking with libpcre.
 
-        Requires linking with libpcre
+    Usage example:
 
-        Usage example:
+    ---
 
-            auto regex = new PCRE;
+        import ocean.text.regex.PCRE;
+        import ocean.io.Stdout;
 
-            if ( regex.preg_match("Hello World!", "^Hello") == true)
-                Stdout("match");
-            else
-                Stdout("no match");
+        auto regex = new PCRE;
 
-        Related:
+        if ( regex.preg_match("Hello World!", "^Hello") == true)
+            Stdout("match");
+        else
+            Stdout("no match");
 
-        http://regexpal.com/
-        http://www.pcre.org/
-        http://www.pcre.org/pcre.txt
-        http://de2.php.net/manual/en/ref.pcre.php
+    ---
 
+    Related:
+
+    http://regexkit.sourceforge.net/Documentation/pcre/pcreapi.html
 
 *******************************************************************************/
 
-module  ocean.text.regex.PCRE;
+module ocean.text.regex.PCRE;
+
+
 
 /*******************************************************************************
 
@@ -46,6 +48,7 @@ private import ocean.text.util.StringC;
 private import ocean.text.regex.c.pcre;
 
 private import tango.stdc.stdlib : free;
+
 
 
 /*******************************************************************************
@@ -188,7 +191,6 @@ class PCRE
         ***********************************************************************/
 
         private pcre_extra match_settings;
-
 
         /***********************************************************************
 
@@ -348,7 +350,6 @@ class PCRE
     {
         return new CompiledRegex(pattern, case_sens);
     }
-
 
     /***************************************************************************
 
