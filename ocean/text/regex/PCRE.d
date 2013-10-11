@@ -15,14 +15,19 @@
     ---
 
         import ocean.text.regex.PCRE;
-        import ocean.io.Stdout;
 
-        auto regex = new PCRE;
+        auto pcre = new PCRE;
 
-        if ( regex.preg_match("Hello World!", "^Hello") == true)
-            Stdout("match");
-        else
-            Stdout("no match");
+        // Simple, one-off use
+        auto match = pcre.preg_match("Hello World!", "^Hello");
+
+        // Compile then reuse
+        auto regex = pcre.new CompiledRegex;
+        regex.compile("^Hello");
+        for ( int i; i < 100; i++ )
+        {
+            auto match = regex.match("Hello World!");
+        }
 
     ---
 
