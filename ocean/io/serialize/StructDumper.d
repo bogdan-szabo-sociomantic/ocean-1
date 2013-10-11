@@ -621,9 +621,12 @@ struct DumpArrays
         {
             static if (is (T == struct))
             {
-                // Recurse into field of struct type.
-
-                resetReferences(s.tupleof[i]);
+                // Recurse into field of struct type if it contains
+                // a dynamic array.
+                static if (ContainsDynamicArray!(T))
+                {
+                    resetReferences(s.tupleof[i]);
+                }
             }
             else static if (is (T Base : Base[]))
             {
