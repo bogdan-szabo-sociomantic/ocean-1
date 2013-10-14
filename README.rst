@@ -31,6 +31,13 @@ Migration Instructions
   version < 2, use ocean v1.8.1 to load the map and dump it to get it as
   a file of version 2.
 
+New Features
+^^^^^^^^^^^^
+``ocean.util.ReusableException`` ``ocean.net.http.HttpException`` ``ocean.core.ErrnoIOException``
+  Message argument for `assertEx` calls has been made `lazy` and thus can be
+  used with no performance concerns about complex formatting happening in
+  normal code flow.
+
 v1.8.1 (2013-10-21)
 -------------------
 
@@ -45,7 +52,6 @@ Migration Instructions
   The reason compression is removed is since it didn't work for all maps
   and it took longer time to load a compressed map compared to a
   uncompressed map.
-
 
 v1.8 (2013-10-16)
 -----------------

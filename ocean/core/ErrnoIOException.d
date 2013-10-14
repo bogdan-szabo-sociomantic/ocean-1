@@ -52,7 +52,7 @@ public class ErrnoIOException : IOException
 
     this ( ) {super("");}
 
-    public void assertEx ( bool ok, char[] msg, char[] file = "", long line = 0 )
+    public void assertEx ( bool ok, lazy char[] msg, char[] file = "", long line = 0 )
     {
         if (!ok) throw this.opCall(msg, file, line);
     }
