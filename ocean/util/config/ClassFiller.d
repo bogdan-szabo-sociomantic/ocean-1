@@ -12,9 +12,54 @@
     instance) to fill the member variables of a provided or newly
     created instance of a given class.
 
-    The provided class can use certain wrappers to mark variables as
-    required or to get the information whether the variable was set from
-    the source or left untouched.
+    The provided class can use certain wrappers to add conditions or
+    informations to the variable in question. The value of a wrapped variable
+    can be accessed using the opCall syntax "variable()"
+
+    Overview of available wrappers:
+
+    * Required  — This variable has to be set in the configuration file
+                  Example:  Required!(char[]) nodes_config;
+    * MinMax    — This numeric variable has to be within the specified range
+                  Example: MinMax!(long, -10, 10) range;
+    * Min       — This numeric variable has to be >= the specified value
+                  Example: Min!(int, -10) min_range;
+    * Max       — This numeric variable has to be <= the specified value
+                  Example: Max!(int, 20) max_range;
+    * LimitCmp  — This variable must be one of the given values. To compare the
+                  config value with the given values, the given function will be
+                  used
+                  Example:  LimitCmp!(char[], "red", defComp!(char[]),
+                                      "red", "green", "blue", "yellow") color;
+    * LimitInit — This variable must be one of the given values, it will default
+                  to the given value.
+                  Example: LimitInit!(char[], "red", "red", "green") color;
+    * Limit     — This variable must be one of the given values
+                  Example: Limit!(char[], "up", "down", "left", "right") dir;
+    * SetInfo   — the 'set' member can be used to query whether this
+                  variable was set from the configuration file or not
+                  Example: SetInfo!(bool) enable; // enable.set
+
+    Use debug=Config to get a printout of all the configuration options
+
+    Config file for the example below:
+    -------
+    [Example.FirstGroup]
+    number = 1
+    required_string = SET
+    was_this_set = "there, I set it!"
+    limited = 20
+
+    [Example.SecondGroup]
+    number = 2
+    required_string = SET_AGAIN
+
+    [Example.ThirdGroup]
+    number = 3
+    required_string = SET
+    was_this_set = "arrr"
+    limited = 40
+    -------
 
     Usage Example:
     -------
@@ -27,23 +72,42 @@
         int number;
         Required!(char[]) required_string;
         SetInfo!(char[]) was_this_set;
+        Required!(MinMax!(size_t, 1, 30)) limited;
+        Limit!(char[], "one", "two", "three") limited_set;
+        LimitInit!(char[], "one", "one", "two", "three") limited_set_with_default;
     }
 
     void main ( char[][] argv )
     {
         Config.parse(argv[1]);
 
-        try
-        {
-            auto conf = Class.fill!(ConfigParameters)("EXAMPLE_GROUP");
+        auto iter = Class.iterate!(ConfigParameters)("Example");
 
+        foreach ( name, conf; iter ) try
+        {
+            // Outputs FirstGroup/SecondGroup/ThirdGroup
+            Stdout.formatln("Group: {}", name);
             Stdout.formatln("Number: {}", conf.number);
-            Stdout.formatln("Required: {}", conf.required_string);
+            Stdout.formatln("Required: {}", conf.required_string());
             if ( conf.was_this_set.set )
             {
                 Stdout.formatln("It was set! And the value is {}",
                 was_this_set());
             }
+            // If limited was not set, an exception will be thrown
+            // If limited was set but is outside of the specified
+            // range [1 .. 30], an exception will be thrown as well
+            Stdout.formatln("Limited: {}", conf.limited());
+
+            // If limited_set is not a value in the given set ("one", "two",
+            // "three"), an exception will be thrown
+            Stdout.formatln("Limited_set: {}", conf.limited_set());
+
+            // If limited_set is not a value in the given set ("one", "two",
+            // "three"), an exception will be thrown, if it is not set, it
+            // defaults to "one"
+            Stdout.formatln("Limited_set_with_default: {}",
+                             conf.limited_set_with_default());
         }
         catch ( Exception e )
         {
@@ -52,7 +116,6 @@
     }
     -------
 
-    Use debug=Config to get a printout of all the configuration options
 
 *******************************************************************************/
 
@@ -283,7 +346,6 @@ struct Required ( T )
         max  = biggest allowed value
         init = default value when it is not given in the configuration file
 
-
 *******************************************************************************/
 
 struct MinMax ( T, T min, T max, T init = T.init )
@@ -340,7 +402,6 @@ struct MinMax ( T, T min, T max, T init = T.init )
         T    = the original type of the variable (can be another struct)
         min  = smallest allowed value
         init = default value when it is not given in the configuration file
-
 
 *******************************************************************************/
 
@@ -451,14 +512,11 @@ bool defComp ( T ) ( T a, T b )
 
     The value can be accessed with the opCall method
 
-    See also the documentation of iterate() for a usage example.
-
     Template Params:
         T    = the original type of the variable (can be another struct)
         init = default value when it is not given in the configuration file
         comp = compare function to be used to compare two values from the set
         Set  = tuple of values that are valid
-
 
 *******************************************************************************/
 
@@ -515,8 +573,6 @@ struct LimitCmp ( T, T init = T.init, alias comp = defComp!(T), Set... )
 
     Simplified version of LimitCmp that uses default comparison
 
-    See also the documentation of iterate() for a usage example.
-
     Template Params:
         T = type of the value
         init = default initial value if config value wasn't set
@@ -534,8 +590,6 @@ template LimitInit ( T, T init = T.init, Set... )
 
     Simplified version of LimitCmp that uses default comparison and default
     initializer
-
-    See also the documentation of iterate() for a usage example.
 
     Template Params:
         T = type of the value
@@ -852,80 +906,6 @@ struct ClassIterator ( T, Source = ConfigParser )
     Creates an iterator that iterates over groups that start with
     a common string, filling an instance of the passed class type from
     the variables of each matching group and calling the delegate.
-
-    Config file for the example below:
-    -------
-    [Example.FirstGroup]
-    number = 1
-    required_string = SET
-    was_this_set = "there, I set it!"
-    limited = 20
-
-    [Example.SecondGroup]
-    number = 2
-    required_string = SET_AGAIN
-
-    [Example.ThirdGroup]
-    number = 3
-    required_string = SET
-    was_this_set = "arrr"
-    limited = 40
-    -------
-
-    Usage Example:
-    -------
-    import Class = ocean.util.config.ClassFiller;
-    import ocean.util.Config;
-    import ocean.util.log.Trace;
-
-    class ConfigParameters
-    {
-        int number;
-        Required!(char[]) required_string;
-        SetInfo!(char[]) was_this_set;
-        Required!(MinMax!(size_t, 1, 30)) limited;
-        Limit!(char[], "one", "two", "three") limited_set;
-        LimitInit!(char[], "one", "one", "two", "three") limited_set_with_default;
-    }
-
-    void main ( char[][] argv )
-    {
-        Config.parse(argv[1]);
-
-        auto iter = Class.iterate!(ConfigParameters)("Example");
-
-        foreach ( name, conf; iter ) try
-        {
-            // Outputs FirstGroup/SecondGroup/ThirdGroup
-            Stdout.formatln("Group: {}", name);
-            Stdout.formatln("Number: {}", conf.number);
-            Stdout.formatln("Required: {}", conf.required_string());
-            if ( conf.was_this_set.set )
-            {
-                Stdout.formatln("It was set! And the value is {}",
-                was_this_set());
-            }
-            // If limited was not set, an exception will be thrown
-            // If limited was set but is outside of the specified
-            // range [1 .. 30], an exception will be thrown as well
-            Stdout.formatln("Limited: {}", conf.limited());
-
-            // If limited_set is not a value in the given set ("one", "two",
-            // "three"), an exception will be thrown
-            Stdout.formatln("Limited_set: {}", conf.limited_set());
-
-            // If limited_set is not a value in the given set ("one", "two",
-            // "three"), an exception will be thrown, if it is not set, it
-            // defaults to "one"
-            Stdout.formatln("Limited_set_with_default: {}",
-                             conf.limited_set_with_default());
-        }
-        catch ( Exception e )
-        {
-            Stdout.formatln("Required parameter wasn't set: {}", e.msg);
-        }
-    }
-    -------
 
     TemplateParams:
         T = type of the class to fill
