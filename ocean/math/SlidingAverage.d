@@ -28,6 +28,8 @@
 
 module ocean.math.SlidingAverage;
 
+
+
 /*******************************************************************************
 
     Sliding Average Class
@@ -37,7 +39,7 @@ module ocean.math.SlidingAverage;
 
 *******************************************************************************/
 
-class SlidingAverage ( T )
+public class SlidingAverage ( T )
 {
     /***************************************************************************
 
@@ -47,6 +49,7 @@ class SlidingAverage ( T )
 
     protected T window[];
 
+
     /***************************************************************************
 
         Current average value of the whole window
@@ -55,6 +58,7 @@ class SlidingAverage ( T )
 
     protected real _average;
 
+
     /***************************************************************************
 
         Index of the value that was updated most recently
@@ -62,6 +66,7 @@ class SlidingAverage ( T )
     ***************************************************************************/
 
     protected size_t index;
+
 
     /***************************************************************************
 
@@ -77,10 +82,15 @@ class SlidingAverage ( T )
         this.window = new T[window_size];
     }
 
+
     /***************************************************************************
 
-        Pushes another value to the sliding window, overwriting the oldest one.
-        Calculates the new average and returns it
+        Pushes another value to the sliding window, overwriting the oldest one
+        if the sliding window has reached its maximum size.
+        Calculates the new average, stores it, and returns it.
+
+        Params:
+            value = The value to into the sliding window
 
         Returns:
             new average
@@ -106,6 +116,7 @@ class SlidingAverage ( T )
         return this._average /= this.window.length;
     }
 
+
     /***************************************************************************
 
         Returns the last value pushed
@@ -120,6 +131,7 @@ class SlidingAverage ( T )
         return this.window[this.index];
     }
 
+
     /***************************************************************************
 
         Returns the current average
@@ -133,6 +145,7 @@ class SlidingAverage ( T )
     {
         return this._average;
     }
+
 
     /***************************************************************************
 
@@ -151,6 +164,7 @@ class SlidingAverage ( T )
         }
     }
 }
+
 
 /*******************************************************************************
 
@@ -225,7 +239,7 @@ class SlidingAverage ( T )
 
 *******************************************************************************/
 
-class SlidingAverageTime ( T ) : SlidingAverage!(T)
+public class SlidingAverageTime ( T ) : SlidingAverage!(T)
 {
     /***************************************************************************
 
@@ -235,6 +249,7 @@ class SlidingAverageTime ( T ) : SlidingAverage!(T)
 
     public T current;
 
+
     /***************************************************************************
 
         Resolution that the output needs to be multiplied with
@@ -242,6 +257,7 @@ class SlidingAverageTime ( T ) : SlidingAverage!(T)
     ***************************************************************************/
 
     protected real resolution;
+
 
     /***************************************************************************
 
@@ -263,6 +279,7 @@ class SlidingAverageTime ( T ) : SlidingAverage!(T)
 
         this.resolution = cast(real) output_resolution / cast(real) resolution;
     }
+
 
     /***************************************************************************
 
@@ -293,6 +310,7 @@ class SlidingAverageTime ( T ) : SlidingAverage!(T)
         return super._average;
     }
 
+
     /***************************************************************************
 
         Returns the last finished value
@@ -306,6 +324,7 @@ class SlidingAverageTime ( T ) : SlidingAverage!(T)
     {
         return this.window[this.index] * cast(T) this.resolution;
     }
+
 
     /***************************************************************************
 
@@ -324,6 +343,7 @@ class SlidingAverageTime ( T ) : SlidingAverage!(T)
         return this.current = val;
     }
 
+
     /***************************************************************************
 
         Increments the current value by one
@@ -337,6 +357,7 @@ class SlidingAverageTime ( T ) : SlidingAverage!(T)
     {
         return this.current++;
     }
+
 
     /***************************************************************************
 
