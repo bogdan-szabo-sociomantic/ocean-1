@@ -70,6 +70,15 @@ public class SlidingAverage ( T )
 
     /***************************************************************************
 
+        The number of values the sliding window currently contains
+
+    ***************************************************************************/
+
+    protected size_t current_size;
+
+
+    /***************************************************************************
+
         Constructor
 
         Params:
@@ -78,6 +87,11 @@ public class SlidingAverage ( T )
     ***************************************************************************/
 
     public this ( size_t window_size )
+    in
+    {
+        assert(window_size > 1, "SlidingAverage, window_size parameter must be > 1");
+    }
+    body
     {
         this.window = new T[window_size];
     }
@@ -99,21 +113,32 @@ public class SlidingAverage ( T )
 
     public real push ( T value )
     {
-        if ( ++this.index >= this.window.length )
+        // overwrite oldest value if max slider size has been reached
+        if ( this.index >= this.window.length )
         {
             this.index = 0;
         }
 
         this.window[this.index] = value;
 
+        this.index++;
+
+        // only the filled indexes in the slider should be calculated
+        if ( this.current_size < this.window.length )
+        {
+            this.current_size++;
+        }
+
         this._average = 0.0;
 
-        foreach ( val; this.window )
+        foreach ( val; this.window[0 .. this.current_size] )
         {
             this._average += val;
         }
 
-        return this._average /= this.window.length;
+        this._average /= this.current_size;
+
+        return this._average;
     }
 
 
@@ -157,11 +182,8 @@ public class SlidingAverage ( T )
     {
         this.index = 0;
         this._average = 0;
-
-        foreach ( ref val; this.window )
-        {
-            val = 0;
-        }
+        this.current_size = 0;
+        this.window[] = 0;
     }
 }
 
