@@ -22,6 +22,10 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+
+v1.8 (2013-10-16)
+-----------------
+
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
