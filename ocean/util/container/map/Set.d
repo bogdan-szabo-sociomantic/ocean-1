@@ -156,6 +156,83 @@ public abstract class Set ( K ) : BucketSet!(0, K)
 
     /***************************************************************************
 
+        Mixin of the specialized iterator classes which inherit from
+        BucketSet.Iterator.
+
+        This makes available three iterator classes that can be newed to allow
+        certain iteration behaviors:
+
+        * Iterator — just a normal iterator
+        * InterruptibleIterator — an iterator that can be interrupted and
+          resumed, but that has to be manually reset with reset() if the
+          iteration is meant to be repeated
+
+        If the map is modified between interrupted iterations, it can happen
+        that new elements that were added in the mean time won't appear in the
+        iteratation, depending on whether they end up in a bucket that was
+        already iterated or not.
+
+        Iterator usage example
+        ---
+        auto map = new HashMap!(size_t);
+
+        auto it = map.new Iterator();
+
+        // A normal iteration over the map
+        foreach ( k, v; it )
+        {
+            ..
+        }
+
+        // Equal to
+        foreach ( k, v; map )
+        {
+            ..
+        }
+        ---
+
+        InterruptibleIterator
+        ---
+        auto map = new HashMap!(size_t);
+
+        auto interruptible_it = map.new InterruptibleIterator();
+
+        // Iterate over the first 100k elements
+        foreach ( i, k, v; interruptible_it )
+        {
+            ..
+            // Break after 100k elements
+            if ( i % 100_000 == 0 ) break;
+        }
+
+        // Iterate over the next 100k elments
+        foreach ( i, k, v; interruptible_it )
+        {
+            ..
+            // Break after 100k elements
+            if ( i % 100_000 == 0 ) break;
+        }
+
+        // Assuming the map had 150k elements, the iteration is done now,
+        // so this won't do anything
+        foreach ( i, k, v; interruptible_it )
+        {
+            ..
+            // Break after 100k elements
+            if ( i % 100_000 == 0 ) break;
+        }
+
+        assert ( interruptible_it.finished() == true );
+        ---
+
+        See also: BucketSet.Iterator, MapIterator.IteratorClass
+
+    ***************************************************************************/
+
+    mixin IteratorClass!(BucketSet!(0,K).Iterator, SetIterator);
+
+    /***************************************************************************
+
         Constructor.
 
         Params:
@@ -240,7 +317,12 @@ public abstract class Set ( K ) : BucketSet!(0, K)
 
     /***************************************************************************
 
-        'foreach' iteration over the keys in the map.
+        'foreach' iteration over set.
+
+        Note: It is possible to have interruptible iterations, see documentation
+        for mixin of IteratorClass
+
+        See also: BucketSet.Iterator, MapIterator.IteratorClass
 
         Notes:
         - During iteration it is forbidden to call clear() or redistribute() or
@@ -257,8 +339,21 @@ public abstract class Set ( K ) : BucketSet!(0, K)
 
     public int opApply ( SetIterator.Dg dg )
     {
-        return super.opApply((ref Bucket.Element element)
-                             {return SetIterator.iterate(dg, element);});
+        scope it = this.new Iterator;
+
+        return it.opApply(dg);
+    }
+
+    /***************************************************************************
+
+        Same as above, but includes a counter
+
+    ***************************************************************************/
+
+    public int opApply ( SetIterator.Dgi dgi )
+    {
+        scope it = this.new Iterator;
+
+        return it.opApply(dgi);
     }
 }
-

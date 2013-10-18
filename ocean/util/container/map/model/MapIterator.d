@@ -17,6 +17,159 @@ module ocean.util.container.map.model.MapIterator;
 
 private import ocean.util.container.map.model.Bucket;
 
+/*******************************************************************************
+
+    Mixin that adds an iterator class and a member variable of it.
+    Note that this.iterator still has to be initialized by the constructor.
+
+    Template Params:
+        ParentIterator = parent class to inherit from
+        IteratorTemplate = Instance of the MapIterator template
+
+*******************************************************************************/
+
+public template IteratorClass ( alias ParentIterator, alias IteratorTemplate )
+{
+    /***************************************************************************
+
+        Iterator class offering specialized versions of opApply for the given
+        map/set class.
+
+        The appropriate type for the delegates is taken from the MapIterator
+        template.
+
+    ***************************************************************************/
+
+    class Iterator : ParentIterator
+    {
+        /***********************************************************************
+
+            Ctor
+
+        ***********************************************************************/
+
+        public this ( )
+        {
+            super(true);
+        }
+
+        /***********************************************************************
+
+            Protected Ctor, used for inheriting classes to ensure a certain
+            behavior
+
+            Params:
+                reset_after_foreach = whether to reset iteration counters
+                                      after a foreach (true) or not (false)
+
+        ***********************************************************************/
+
+        protected this ( bool reset_after_foreach )
+        {
+            super(reset_after_foreach);
+        }
+
+        /***********************************************************************
+
+            Foreach support with counter
+
+        ***********************************************************************/
+
+        public int opApply ( IteratorTemplate.Dgi dgi )
+        {
+            return super.opApply((ref size_t i, ref Bucket.Element e )
+                                 {
+                                    return IteratorTemplate.iterate(dgi, i, e);
+                                 });
+        }
+
+        /***********************************************************************
+
+            Foreach support
+
+        ***********************************************************************/
+
+        public int opApply ( IteratorTemplate.Dg dg )
+        {
+            return super.opApply((ref Bucket.Element e )
+                                 {
+                                    return IteratorTemplate.iterate(dg, e);
+                                 });
+        }
+    }
+
+    /***************************************************************************
+
+        Interruptible iterator
+
+    ***************************************************************************/
+
+    class InterruptibleIterator  : Iterator
+    {
+        /***********************************************************************
+
+            Whether the iteration finished, set by resetIterator(), reset by
+            reset()
+
+        ***********************************************************************/
+
+        protected bool _finished;
+
+        /***********************************************************************
+
+            Constructor
+
+        ***********************************************************************/
+
+        public this ( )
+        {
+            super(false);
+        }
+
+        /***********************************************************************
+
+            Set the finished flag.
+
+            Params:
+                interrupted = if true, the foreach iteration was interrupted
+                              with a break, if false, it finished the iteration
+
+        ***********************************************************************/
+
+        protected override void resetIterator ( bool interrupted )
+        {
+            this._finished = !interrupted;
+        }
+
+        /***********************************************************************
+
+            Prepare the iterator to restart the iteration from the beginning
+
+        ***********************************************************************/
+
+        public override void reset ( )
+        {
+            this._finished = false;
+            super.reset();
+        }
+
+        /***********************************************************************
+
+            Whether iteration finished
+
+            Returns:
+                true, if iteration finished
+                false, if not
+
+        ***********************************************************************/
+
+        public bool finished ( )
+        {
+            return _finished;
+        }
+    }
+}
+
 /******************************************************************************
 
     opApply wrapper to work around the problem that it isn't possible to have a
@@ -74,6 +227,7 @@ template MapIterator ( V, K = hash_t )
         const v_is_static_array = false;
 
         alias int delegate ( ref Kref ) Dg;
+        alias int delegate ( ref size_t i, ref Kref ) Dgi;
 
         alias Bucket!(cast (size_t) 0, K).Element Element;
     }
@@ -93,6 +247,7 @@ template MapIterator ( V, K = hash_t )
         }
 
         alias int delegate ( ref Kref, ref Vref ) Dg;
+        alias int delegate ( ref size_t i, ref Kref, ref Vref ) Dgi;
 
         alias Bucket!(V.sizeof, K).Element Element;
     }
@@ -133,6 +288,32 @@ template MapIterator ( V, K = hash_t )
 
     int iterate ( Dg dg, ref Element element )
     {
+        static if (is (V == void))
+        {
+            int tmpDg ( ref size_t i, ref Kref k )
+            {
+                return dg(k);
+            }
+        }
+        else
+        {
+            int tmpDg ( ref size_t i, ref Kref k, ref Vref v )
+            {
+                return dg(k, v);
+            }
+        }
+
+        return iterate(&tmpDg, 0, element);
+    }
+
+    /***************************************************************************
+
+        Same method as above, but with counter
+
+    ***************************************************************************/
+
+    int iterate ( Dgi dg, size_t i, ref Element element )
+    {
         static if (k_is_static_array)
         {
             Kref key = element.key;
@@ -154,7 +335,7 @@ template MapIterator ( V, K = hash_t )
 
         static if (is (V == void))
         {
-            return dg(*key_ptr);
+            return dg(i, *key_ptr);
         }
         else static if (v_is_static_array)
         {
@@ -169,11 +350,11 @@ template MapIterator ( V, K = hash_t )
                         "during iteration");
             }
 
-            return dg(*key_ptr, val);
+            return dg(i, *key_ptr, val);
         }
         else
         {
-            return dg(*key_ptr, *cast (V*) element.val.ptr);
+            return dg(i, *key_ptr, *cast (V*) element.val.ptr);
         }
     }
 }

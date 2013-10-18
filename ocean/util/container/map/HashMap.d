@@ -375,6 +375,65 @@ public class HashMap ( V ) : Map!(V, hash_t)
             assert (false);
         }
 
+        map.put(1);
+        map.put(2);
+        map.put(3);
+        map.put(4);
+        map.put(5);
+        map.put(6);
+        map.put(7);
+        map.put(8);
+        map.put(9);
+
+
+        void testPartial ( typeof(this).Iterator it )
+        {
+            foreach (i, ref k, ref v; it )
+            {
+                assert ( i == 0, "Didn't interrupt when expected 1" );
+                if ( i % 3 == 0 ) break;
+            }
+
+            foreach (i, ref k, ref v; it )
+            {
+                assert ( i >= 1 && i <= 3, "Didn't interrupt when expected 2" );
+                if ( i % 3 == 0 ) break;
+            }
+
+            foreach (i, ref k, ref v; it )
+            {
+                assert ( i >= 4 && i <= 6, "Didn't interrupt when expected 3" );
+                if ( i % 3 == 0 ) break;
+            }
+
+            foreach (i, ref k, ref v; it )
+            {
+                assert ( i >= 7 && i <= 9, "Didn't interrupt when expected 4" );
+                if ( i % 3 == 0 ) break;
+            }
+        }
+
+        auto not_looping_it = map.new InterruptibleIterator;
+
+        testPartial(not_looping_it);
+
+        // Should be finished
+        assert ( not_looping_it.finished() == true );
+
+        // Should not run again
+        foreach (i, ref k, ref v; not_looping_it )
+        {
+            assert ( 1 == 0, "Ran iteration even though it should be finished" );
+        }
+
+        not_looping_it.reset();
+
+        assert ( not_looping_it.finished() == false );
+
+        // After manual reset, should loop again
+        testPartial(not_looping_it);
+        assert ( not_looping_it.finished() == true );
+
 //            foreach (i, bucket; map.buckets)
 //            {
 //                Stdout.formatln("Bucket {,2}: {,2} elements:", i, bucket.length);

@@ -38,6 +38,14 @@ New Features
   used with no performance concerns about complex formatting happening in
   normal code flow.
 
+``ocean.util.container.map``
+  Every BucketSet based class now features an interruptible iterator, allowing a
+  `foreach` to be interrupted (by `break`) and continued where it left off. It is
+  provided as a nested class that can be newed using 
+  `auto it = map_instance.new InterruptableIterator;` 
+  It can be reset to the beginning using `reset()` and queried for its iteration
+  status using `finished()`
+
 v1.8.1 (2013-10-21)
 -------------------
 

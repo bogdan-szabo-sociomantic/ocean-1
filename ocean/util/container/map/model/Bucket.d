@@ -114,7 +114,7 @@ public struct Bucket ( size_t V, K = hash_t )
 
      **************************************************************************/
 
-    private Element* first = null;
+    package Element* first = null;
 
     /**************************************************************************
 
@@ -165,35 +165,6 @@ public struct Bucket ( size_t V, K = hash_t )
         return null;
     }
 
-
-    /**************************************************************************
-
-        'foreach' iteration over elements in this bucket.
-
-        TODO: Add support for removing the current element during iteration.
-
-     **************************************************************************/
-
-    public int opApply ( int delegate ( ref Element element ) dg )
-    {
-        int result = 0;
-
-        /*
-         * element.next needs to be stored before calling dg because now dg will
-         * modifiy element.next if it returns the element to the free list.
-         */
-
-        for (Element* element = this.first; element && !result;)
-        {
-            Element* next = element.next;
-
-            result = dg(*element);
-
-            element = next;
-        }
-
-        return result;
-    }
 
     /**************************************************************************
 

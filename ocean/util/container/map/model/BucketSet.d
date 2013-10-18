@@ -605,7 +605,9 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
             this.bucket_element_allocator.parkElements(this.bucket_info.length,
             (IAllocator.IParkingStack parked_elements)
             {
-                foreach (ref element; this)
+                scope Iterator it = this.new Iterator(true);
+
+                foreach (ref element; it)
                 {
                     parked_elements.push(&element);
                 }
@@ -664,7 +666,9 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
     {
         // Recycle all bucket elements.
 
-        foreach (ref element; this)
+        scope Iterator it = this.new Iterator(true);
+
+        foreach (ref element; it)
         {
             static if (V) if (val_init.length)
             {
@@ -687,22 +691,183 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
     ***************************************************************************/
 
-    protected int opApply ( int delegate ( ref Bucket.Element element ) dg )
+    protected class Iterator
     {
-        int result = 0;
+        /***********************************************************************
 
-        foreach (i, info; this.bucket_info.filled_buckets)
+            Whether to reset the counter after each foreach
+
+        ***********************************************************************/
+
+        protected bool reset_after_foreach = true;
+
+        /***********************************************************************
+
+            Index of the last bucket that was iterated in the last call to
+            foreach
+
+        ***********************************************************************/
+
+        protected size_t last_bucket_index;
+
+        /***********************************************************************
+
+            Last element within the last bucket that was iterated
+
+        ***********************************************************************/
+
+        protected size_t last_bucket_element;
+
+        /***********************************************************************
+
+            Total count of the elements currently iterated
+
+        ***********************************************************************/
+
+        protected size_t counter;
+
+        /***********************************************************************
+
+            Ctor
+
+            Params:
+                reset_after_foreach = whether to reset iteration counters
+                                      after a foreach (true) or not (false)
+
+        ***********************************************************************/
+
+        public this ( bool reset_after_foreach = false )
         {
-            with (this.buckets[info.index])
-            {
-                assert (has_element);
-
-                result = opApply(dg);
-            }
-
-            if (result) break;
+            this.reset_after_foreach = reset_after_foreach;
         }
 
-        return result;
+        /***********************************************************************
+
+            Reset the counters, effectively forcing any interrupted iteration to
+            start from the beginning.
+
+        ***********************************************************************/
+
+        public void reset ( )
+        {
+            this.last_bucket_index = 0;
+            this.last_bucket_element = 0;
+            this.counter = 0;
+        }
+
+        /***********************************************************************
+
+            if reset_after_foreach is true:
+                resets the counters after each foreach so the next iteration
+                starts from the beginning
+
+            if reset_after_foreach is false:
+                resets the counters only when the whole map was iterated
+
+            Params:
+                interrupted = whether the last foreach call was interrupted
+                using break (true) or not (false)
+
+        ***********************************************************************/
+
+        protected void resetIterator ( bool interrupted )
+        {
+            if ( reset_after_foreach || !interrupted )
+            {
+                this.reset();
+            }
+        }
+
+        /***********************************************************************
+
+            Foreach support
+
+        ***********************************************************************/
+
+        final protected int opApply ( int delegate ( ref Bucket.Element element ) dg )
+        {
+            int tmpDg ( ref size_t i, ref Bucket.Element e )
+            {
+                return dg(e);
+            }
+
+            return this.opApply(&tmpDg);
+        }
+
+        /***********************************************************************
+
+            Foreach support with counter
+
+            Instead of remembering the exact pointer we last iterated upon a
+            break, we remember the index within the linked list and re-iterate
+            to that index next time we're called. Using a pointer for this
+            problem would be problematic, probably (alliteration!), because the
+            linked list could change drastically in the mean time. Elements
+            could be removed, especially the one we were remembering. adding
+            checks to make that safe is a lot of hassle and not worth it.
+
+            As buckets are supposed to be very small anyway, we just remember
+            the index and if the list finished before we reach that index, so be
+            it, we just use the next bucket then.
+
+        ***********************************************************************/
+
+        final protected int opApply ( int delegate ( ref size_t i,
+                                                     ref Bucket.Element element ) dg )
+        {
+            int result = 0;
+
+            scope (exit)
+            {
+                this.resetIterator(result != 0);
+            }
+
+            if ( this.outer.bucket_info.num_filled_buckets < this.last_bucket_index )
+            {
+                this.last_bucket_index = this.outer
+                                            .bucket_info
+                                            .num_filled_buckets;
+            }
+
+            auto remaining_buckets = this.outer
+                                      .bucket_info
+                                      .filled_buckets[this.last_bucket_index .. $];
+
+            top: foreach (info; remaining_buckets)
+            {
+                with (this.outer.buckets[info.index])
+                {
+                    size_t bucket_element_counter = 0;
+                    assert (has_element);
+
+                    for ( auto element = first; element !is null; )
+                    {
+                        /* element.next needs to be stored before calling dg
+                         * because now dg will modifiy element.next if it
+                         * returns the element to the free list.  */
+                        auto next = element.next;
+
+                        if ( bucket_element_counter == this.last_bucket_element )
+                        {
+                            result = dg(this.counter, *element);
+
+                            this.counter++;
+                            this.last_bucket_element++;
+                        }
+
+                        bucket_element_counter++;
+
+                        element = next;
+
+                        if (result) break top;
+                    }
+                }
+
+                this.last_bucket_index++;
+                this.last_bucket_element = 0;
+            }
+
+            return result;
+        }
     }
 }
