@@ -197,9 +197,8 @@ public class HashMap ( V ) : Map!(V, hash_t)
 
         debug ( UnittestVerbose ) void printState ( )
         {
-            Stdout.formatln("  ::  len={}, load={}, max_load={}, pool={} ({} busy)",
-                map.length, map.load, map.max_load,
-                map.bucket_elements.length, map.bucket_elements.num_busy);
+            Stdout.formatln("  ::  len={}, load={}, max_load={}",
+                map.bucket_info.length, map.bucket_info.load, map.bucket_info.max_load);
         }
 
         bool lengthIs ( int expected )
@@ -249,7 +248,8 @@ public class HashMap ( V ) : Map!(V, hash_t)
                 assert(*map.get(key) == V.init, "Value does not equal previously set value");
             }
 
-            assert(lengthIs(len + (should_exist ? 0 : 1)));
+            assert(lengthIs(len + (should_exist ? 0 : 1)),
+                   "Length different from foreach-counted elements!");
         }
 
         void remove ( hash_t key, bool should_exist )
