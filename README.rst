@@ -22,6 +22,21 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+v1.8.1 (2013-10-21)
+-------------------
+
+This is an emergency release only to revert a new feature that was buggy and
+caused more problems than it solved. If you generate any `map.FileSerializer` files please bare in mind they won't be loaded by future versions, so pleas upgrade to this version as soon as possible!
+
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
+
+``ocean.util.container.map.FileSerializer``
+  Files are no longer compressed and it can't read old compressed maps.
+  The reason compression is removed is since it didn't work for all maps
+  and it took longer time to load a compressed map compared to a
+  uncompressed map.
+
 
 v1.8 (2013-10-16)
 -----------------
@@ -52,7 +67,7 @@ New Features
 
 ``ocean.util.ClassFiller``
   A new config property struct wrapper was added that makes sure that the config
-  value is within a certain set of values: 
+  value is within a certain set of values:
   ``LimitCmp``, ``LimitInit``, ``Limit``
 
 ``ocean.io.Terminal``
@@ -64,7 +79,7 @@ New Features
   New methods for creating binary and decimal metric cells.
   These methods allow for creation of cells containing a number and a unit,
   both decimal metric (" 5.2 kB ") and binary metric (" 5.2 MiB ").
-  
+
   New methods for changing the foreground and background colors of a cell.
   They use the ocean.io.Terminal.Colour enum as described above.
 
