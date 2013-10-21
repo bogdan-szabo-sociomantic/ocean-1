@@ -61,7 +61,7 @@ New Features
 
 ``ocean.util.ClassFiller``
   A new config property struct wrapper was added that makes sure that the config
-  value is within a certain set of values: 
+  value is within a certain set of values:
   ``LimitCmp``, ``LimitInit``, ``Limit``
 
 ``ocean.io.Terminal``
@@ -73,7 +73,7 @@ New Features
   New methods for creating binary and decimal metric cells.
   These methods allow for creation of cells containing a number and a unit,
   both decimal metric (" 5.2 kB ") and binary metric (" 5.2 MiB ").
-  
+
   New methods for changing the foreground and background colors of a cell.
   They use the ocean.io.Terminal.Colour enum as described above.
 
