@@ -22,6 +22,12 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+v1.8.1 (2013-10-21)
+-------------------
+
+This is an emergency release only to revert a new feature that was buggy and
+caused more problems than it solved. If you generate any `map.FileSerializer` files please bare in mind they won't be loaded by future versions, so pleas upgrade to this version as soon as possible!
+
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
