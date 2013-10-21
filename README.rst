@@ -22,6 +22,15 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
+
+``ocean.util.container.map.FileSerializer``
+  Files are no longer compressed and it can't read old compressed maps.
+  The reason compression is removed is since it didn't work for all maps
+  and it took longer time to load a compressed map compared to a
+  uncompressed map.
+
 
 v1.8 (2013-10-16)
 -----------------
