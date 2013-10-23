@@ -48,36 +48,6 @@ private const uint MAGIC_MARKER = 0xCA1101AF;
 
 /*******************************************************************************
 
-    Evaluates to a string made of all the types of the struct.
-    Does not dive recursivley in to sub-structs
-
-*******************************************************************************/
-
-private template GetUniqueStructString ( S )
-{
-    static if ( is ( S == struct ) )
-        const char[] GetUniqueStructString = GetUniqueStructStringHelper!(typeof(S.tupleof));
-    else
-        const char[] GetUniqueStructString = S.stringof;
-}
-
-/*******************************************************************************
-
-    Helper for GetUniqStructString
-
-*******************************************************************************/
-
-private template GetUniqueStructStringHelper ( T ... )
-{
-    static if ( T.length > 0 )
-        const char[] GetUniqueStructStringHelper = T[0].stringof ~ GetUniqueStructStringHelper!(T[1 .. $]);
-    else
-        const char[] GetUniqueStructStringHelper = "";
-}
-
-
-/*******************************************************************************
-
     Struct to be used for creating unique hash
 
 *******************************************************************************/
@@ -122,15 +92,7 @@ private struct FileHeader ( K, V, ubyte VERSION = 2 )
 
     ***************************************************************************/
 
-    static if ( VERSION < 2 )
-    {
-        uint hash = StaticFnv1a32!(GetUniqueStructString!(K) ~ "|" ~
-                                   GetUniqueStructString!(V));
-    }
-    else
-    {
-        ulong hash = TypeHash!(KeyValueStruct!(K,V));
-    }
+    ulong hash = TypeHash!(KeyValueStruct!(K,V));
 }
 
 /*******************************************************************************
@@ -208,111 +170,6 @@ public void dump ( K, V ) ( Map!(V, K) map, char[] file_path,
     buffered.flush();
 }
 
-/*******************************************************************************
-
-    This function is to only be used by load, since this is only keept for
-    keeping compatibility with files of verison 0. Will soon be removed.
-
-    Initializes cache map and loads dumped map content from the file system
-
-    Throws:
-        UnexpectedEndException when the file that was loaded is incomplete.
-                               The existing data was loaded none the less
-                               and the map can be used.
-        Other Exceptions for various kinds of errors (file not found, etc)
-
-    Template Params:
-        K = key of the array map
-        V = value of the corresponding key
-
-    Params:
-        map       = instance of the array map
-        file_path = path to the file to load from
-        putter    = function called for each entry to insert it into the map,
-                    defaults to map.put
-
-    Note: This function allocates a buffered input which has to be collected
-          by the GC. As files are usually only read once during startup
-          this usually does not pose a problem. None the less, it could
-          be modified to use a global buffered input object if desired,
-          or take one as a parameter.
-
-*******************************************************************************/
-
-private void load_0 ( K, V ) ( Map!(V, K) map, File file, BufferedInput buffered,
-                               void delegate ( K, V ) putter = null )
-in
-{
-    assert (map !is null);
-}
-body
-{
-    ubyte[] read;
-    K key;
-    V value;
-
-    while (true)
-    {
-        if ( buffered.readable < V.sizeof + K.sizeof )
-        {
-            buffered.compress();
-            buffered.populate();
-        }
-
-        read = (cast(ubyte*) &key)[0 .. K.sizeof];
-
-
-        if (buffered.read(read) == file.Eof)
-        {
-            break;
-        }
-
-        static if ( isArrayType!(V) )
-        {
-            size_t len = void;
-            read = (cast(ubyte*) &len)[0 .. size_t.sizeof];
-
-            if ( buffered.read(read) == file.Eof )
-            {
-                throw new UnexpectedEndException("Expected length of value "
-                                                 "after key instead"
-                                                 " of EoF", __FILE__, __LINE__);
-
-                break;
-            }
-
-            value.length = len;
-
-            foreach ( ref sv; value )
-            {
-                read = (cast(ubyte*) &sv)[0 .. ElementTypeOfArray!(V).sizeof];
-
-                if ( buffered.read(read) == file.Eof )
-                {
-                    throw new UnexpectedEndException("Expected value "
-                                                     "instead of EoF",
-                                                     __FILE__, __LINE__);
-
-                    break;
-                }
-            }
-        }
-        else
-        {
-            read = (cast(ubyte*) &value)[0 .. V.sizeof];
-
-            if ( buffered.read(read) == file.Eof )
-            {
-                throw new UnexpectedEndException("Expected value after key instead"
-                                                 " of EoF", __FILE__, __LINE__);
-
-                break;
-            }
-        }
-        putter(key, value);
-    }
-}
-
 
 /*******************************************************************************
 
@@ -368,34 +225,10 @@ body
     {
         throw new Exception("Magic Marker mismatch in file " ~ file_path);
     }
-
-    if ( fh_actual.versionNumber != fh_expected.versionNumber )
+    else if ( fh_actual.versionNumber != fh_expected.versionNumber )
     {
-        if ( fh_actual.versionNumber < 2 )
-        {
-            FileHeader!(K,V,1) fh1;
-
-            // files with version<2 use 4 byte hashes
-            buffered.seek(-4, IOStream.Anchor.Current);
-
-            if ( fh1.hash != (fh_actual.hash & 0xFFFFFFFF) )
-            {
-                throw new Exception("Structs " ~ K.stringof ~ ", " ~
-                                    V.stringof ~ " in file " ~ file_path ~
-                                    " differ from our structs, aborting!");
-            }
-
-            if ( fh_actual.versionNumber == 0 )
-            {
-                load_0(map,file, buffered, putter);
-                return;
-            }
-        }
-        else
-        {
-            throw new Exception("Version of file header " ~ file_path ~
-                               " does not match our version, aborting!");
-        }
+        throw new Exception("Version of file header " ~ file_path ~
+                            " does not match our version, aborting!");
     }
     else if ( fh_actual.hash != fh_expected.hash )
     {

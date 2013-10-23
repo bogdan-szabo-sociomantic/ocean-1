@@ -22,6 +22,15 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
+
+``ocean.util.container.map.FileSerializer``
+  Loading files with version < 2 is not longer supported, since the older
+  versions was deprecated a long time ago. If you have a file with
+  version < 2, use ocean v1.8.1 to load the map and dump it to get it as
+  a file of version 2.
+
 v1.8.1 (2013-10-21)
 -------------------
 
