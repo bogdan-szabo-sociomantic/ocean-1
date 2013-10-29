@@ -113,8 +113,16 @@ private import tango.stdc.time : time_t;
 
 *******************************************************************************/
 
-public class PeriodicStatsLog ( T ) : StatsLog!(T)
+public class PeriodicStatsLog ( T )
 {
+    /***************************************************************************
+
+        Instance of the stats log
+
+    ***************************************************************************/
+
+    private const StatsLog!(T) stats_log;
+
     /***************************************************************************
 
         Write period
@@ -179,9 +187,41 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
     ***************************************************************************/
 
     public this ( EpollSelectDispatcher epoll, ValueDg value_dg,
-        PostLogDg post_log_dg, size_t file_count = default_file_count,
-        size_t max_file_size = default_max_file_size,
-        time_t period = default_period, char[] file_name = default_file_name )
+        PostLogDg post_log_dg, size_t file_count = IStatsLog.default_file_count,
+        size_t max_file_size = IStatsLog.default_max_file_size,
+        time_t period = IStatsLog.default_period,
+        char[] file_name = IStatsLog.default_file_name )
+    {
+        this(epoll, value_dg, post_log_dg,
+             new StatsLog!(T)(file_count, max_file_size, file_name),
+             period);
+    }
+
+
+    /***************************************************************************
+
+        Constructor. Registers an update timer with the provided epoll selector.
+        The timer first fires 5 seconds after construction, then periodically
+        as specified. Each time the timer fires, it calls the user-provided
+        delegate, value_dg, which should return a pointer to a struct of type T
+        containing the values to be written to the next line in the log. Once
+        the log line has been written, the optional post_log_dg is called (if
+        provided), which may be used to implement special behaviour in the user
+        code, such as resetting transient values in the logged struct.
+
+        Params:
+            epoll       = epoll select dispatcher
+            value_dg    = delegate to query the current values
+            post_log_dg = delegate to call after writing a log line (may be
+                          null)
+            stats_log   = Stats log instance to use
+            period      = period after which the values should be written
+
+    ***************************************************************************/
+
+    public this ( EpollSelectDispatcher epoll, ValueDg value_dg,
+                  PostLogDg post_log_dg, StatsLog!(T) stats_log,
+                  time_t period = IStatsLog.default_period )
     in
     {
         assert(value_dg !is null, "Value delegate is null");
@@ -196,8 +236,9 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
         epoll.register(timer);
         timer.set(5, 0, period, 0);
 
-        super(file_count, max_file_size, file_name);
+        this.stats_log = stats_log;
     }
+
 
     /***************************************************************************
 
@@ -208,7 +249,7 @@ public class PeriodicStatsLog ( T ) : StatsLog!(T)
 
     private bool write_ ( )
     {
-        this.write(*this.value_dg());
+        this.stats_log.write(*this.value_dg());
 
         if ( this.post_log_dg )
         {
