@@ -117,6 +117,17 @@ public class PeriodicStatsLog ( T )
 {
     /***************************************************************************
 
+        Config class
+
+    ***************************************************************************/
+
+    public static class Config : IStatsLog.Config
+    {
+        time_t period = IStatsLog.default_period; // 30 seconds
+    }
+
+    /***************************************************************************
+
         Instance of the stats log
 
     ***************************************************************************/
@@ -161,6 +172,35 @@ public class PeriodicStatsLog ( T )
     ***************************************************************************/
 
     private const TimerEvent timer;
+
+    /***************************************************************************
+
+        Constructor. Registers an update timer with the provided epoll selector.
+        The timer first fires 5 seconds after construction, then periodically
+        as specified. Each time the timer fires, it calls the user-provided
+        delegate, value_dg, which should return a pointer to a struct of type T
+        containing the values to be written to the next line in the log. Once
+        the log line has been written, the optional post_log_dg is called (if
+        provided), which may be used to implement special behaviour in the user
+        code, such as resetting transient values in the logged struct.
+
+        Params:
+            epoll    = epoll select dispatcher
+            value_dg = delegate to query the current values
+            post_log_dg = delegate to call after writing a log line (may be
+                null)
+            config      = instance of the config class
+
+    ***************************************************************************/
+
+    public this ( EpollSelectDispatcher epoll, ValueDg value_dg,
+                  PostLogDg post_log_dg, Config config )
+    {
+        with(config) this(epoll, value_dg, post_log_dg,
+                          new StatsLog!(T)(file_count, max_file_size, file_name),
+                          period);
+    }
+
 
     /***************************************************************************
 
@@ -284,6 +324,21 @@ public class StatsLog ( T ) : IStatsLog
         Constructor
 
         Params:
+            config = instance of the config class
+
+    ***************************************************************************/
+
+    public this ( Config config )
+    {
+        super(config);
+    }
+
+
+    /***************************************************************************
+
+        Constructor
+
+        Params:
             file_count = maximum number of log files before old logs are
                 over-written
             max_file_size = size in bytes at which the log files will be rotated
@@ -295,7 +350,7 @@ public class StatsLog ( T ) : IStatsLog
         size_t max_file_size = default_max_file_size,
         char[] file_name = default_file_name )
     {
-        super(file_count, max_file_size, file_name);
+        super(new Config(file_name, max_file_size, file_count));
     }
 
 
@@ -458,7 +513,6 @@ public class StatsLog ( T ) : IStatsLog
 }
 
 
-
 /*******************************************************************************
 
     Templateless stats log base class. Contains no abstract methods, but
@@ -468,6 +522,28 @@ public class StatsLog ( T ) : IStatsLog
 
 public abstract class IStatsLog
 {
+    /***************************************************************************
+
+        Config class
+
+    ***************************************************************************/
+
+    public static class Config
+    {
+        char[] file_name = default_file_name;
+        size_t max_file_size = default_max_file_size;
+        size_t file_count = default_file_count;
+
+        this ( char[] file_name, size_t max_file_size, size_t file_count )
+        {
+            this.file_name = file_name;
+            this.max_file_size = max_file_size;
+            this.file_count = file_count;
+        }
+
+        this(){}
+    }
+
     /***************************************************************************
 
         Stats log default settings (used in ctor)
@@ -510,16 +586,14 @@ public abstract class IStatsLog
 
     ***************************************************************************/
 
-    public this ( size_t file_count = default_file_count,
-        size_t max_file_size = default_max_file_size,
-        char[] file_name = default_file_name )
+    public this ( Config config, char[] name = "Stats" )
     {
-        this.logger = Log.lookup(file_name);
+        this.logger = Log.lookup(name);
         this.logger.clear();
         this.logger.additive(false);
 
-        this.logger.add(new AppendSyslog(file_name, file_count,
-                                         max_file_size, "gzip {}", "gz", 4,
+        this.logger.add(new AppendSyslog(config.file_name, config.file_count,
+                                         config.max_file_size, "gzip {}", "gz", 4,
                                          new LayoutStatsLog));
 
         // Explcitly set the logger to output all levels, to avoid the situation
