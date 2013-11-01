@@ -50,6 +50,13 @@ New Features
   It can be reset to the beginning using `reset()` and queried for its iteration
   status using `finished()`
 
+``ocean.util.app.VersionedLoggedStatsCliApp``
+  This class now provides a StatsLog instance, configured from the [STATS]
+  section in your configuration file. You can configure `file_name`,
+  `max_file_size` and `file_count` in that section.
+  The StatsLog instance can be passed to a PeriodicStatsLog instance to have the
+  usual 30 seconds logging as you all are used to.
+
 v1.8.1 (2013-10-21)
 -------------------
 
