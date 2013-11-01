@@ -132,7 +132,7 @@ public class PeriodicStatsLog ( T )
 
     ***************************************************************************/
 
-    private const StatsLog!(T) stats_log;
+    private const StatsLog stats_log;
 
     /***************************************************************************
 
@@ -197,7 +197,7 @@ public class PeriodicStatsLog ( T )
                   PostLogDg post_log_dg, Config config )
     {
         with(config) this(epoll, value_dg, post_log_dg,
-                          new StatsLog!(T)(file_count, max_file_size, file_name),
+                          new StatsLog(file_count, max_file_size, file_name),
                           period);
     }
 
@@ -233,7 +233,7 @@ public class PeriodicStatsLog ( T )
         char[] file_name = IStatsLog.default_file_name )
     {
         this(epoll, value_dg, post_log_dg,
-             new StatsLog!(T)(file_count, max_file_size, file_name),
+             new StatsLog(file_count, max_file_size, file_name),
              period);
     }
 
@@ -260,7 +260,7 @@ public class PeriodicStatsLog ( T )
     ***************************************************************************/
 
     public this ( EpollSelectDispatcher epoll, ValueDg value_dg,
-                  PostLogDg post_log_dg, StatsLog!(T) stats_log,
+                  PostLogDg post_log_dg, StatsLog stats_log,
                   time_t period = IStatsLog.default_period )
     in
     {
@@ -317,7 +317,7 @@ public class PeriodicStatsLog ( T )
 
 *******************************************************************************/
 
-public class StatsLog ( T ) : IStatsLog
+public class StatsLog : IStatsLog
 {
     /***************************************************************************
 
@@ -383,7 +383,7 @@ public class StatsLog ( T ) : IStatsLog
 
     ***************************************************************************/
 
-    public void write ( ref T values )
+    public void write ( T ) ( ref T values )
     {
         this.format(values);
 
@@ -413,7 +413,7 @@ public class StatsLog ( T ) : IStatsLog
 
     ***************************************************************************/
 
-    public void writeExtra ( A ) ( ref T values, A[char[]] additional )
+    public void writeExtra ( T, A ) ( ref T values, A[char[]] additional )
     {
         this.formatExtra(values, additional);
 
@@ -436,7 +436,7 @@ public class StatsLog ( T ) : IStatsLog
 
     ***************************************************************************/
 
-    public char[] format ( ref T values )
+    public char[] format ( T ) ( ref T values )
     {
         this.layout.clear();
 
@@ -472,7 +472,7 @@ public class StatsLog ( T ) : IStatsLog
 
     ***************************************************************************/
 
-    public char[] formatExtra ( A ) ( ref T values, A[char[]] additional )
+    public char[] formatExtra ( T, A ) ( ref T values, A[char[]] additional )
     {
         this.layout.clear();
 
@@ -498,7 +498,7 @@ public class StatsLog ( T ) : IStatsLog
 
     ***************************************************************************/
 
-    private void formatStruct ( ref T values, ref bool add_separator )
+    private void formatStruct ( T ) ( ref T values, ref bool add_separator )
     {
         foreach ( i, value; values.tupleof )
         {

@@ -31,6 +31,10 @@ Migration Instructions
   version < 2, use ocean v1.8.1 to load the map and dump it to get it as
   a file of version 2.
 
+``ocean.util.log.Stats``
+  The class is no longer is a template class. Instead the according methods
+  became template methods
+
 New Features
 ^^^^^^^^^^^^
 ``ocean.util.ReusableException`` ``ocean.net.http.HttpException`` ``ocean.core.ErrnoIOException``
