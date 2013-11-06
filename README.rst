@@ -37,6 +37,11 @@ Migration Instructions
 
 New Features
 ^^^^^^^^^^^^
+
+``ocean.util.Unittest``
+  `enforce` and `enforceRel` methods were added which throw test-specific
+  exception class instance with better message formatting than built-in assert.
+
 ``ocean.util.container.map``
   Every BucketSet based class now features an interruptible iterator, allowing a
   `foreach` to be interrupted (by `break`) and continued where it left off. It is

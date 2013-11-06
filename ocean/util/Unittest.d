@@ -27,27 +27,100 @@ private import tango.util.log.AppendConsole;
 
 private import tango.util.log.Log;
 
+private import tango.text.convert.Format;
+
+/*******************************************************************************
+
+    Base failed unittest exception class. Used to differentiate between
+    test check failures and internal application exceptions that happen during
+    testing if this becomes necessary.
+
+*******************************************************************************/
+
+class TestException : Exception
+{
+    /***************************************************************************
+
+        Test case name (if any)
+
+    ***************************************************************************/
+
+    const char[] name;
+
+    /***************************************************************************
+
+        Wraps Exception constructor.
+
+    ***************************************************************************/
+
+    public this ( char[] name, char[] msg, char[] file, size_t line )
+    {
+        super( msg, file, line );
+        this.name = name;
+    }
+
+    /***************************************************************************
+
+        Default formatter
+
+    ***************************************************************************/
+
+    override char[] toString()
+    {
+        return Format(
+            "{}:{} : Test '{}' has failed ({})",
+            this.file,
+            this.line,
+            this.name,
+            this.msg
+        );
+    }
+}
+
 /*******************************************************************************
 
     Unittest scope class
 
     Helper class to enable the possibility to run all unittests, not just
-    all till one fails.
+    all till one fails. Stores file name to avoid duplication, assigns names
+    to tests.
+
+    Also provides `enforce` and `enforceRel` utility methods which do throw
+    immediately as built-in assert does but do better message formatting.
 
     Usage Example
     --------
     import ocean.util.Unittest;
+    import tango.io.Stdout;
 
     unittest
     {
-        scope t = new Unittest(__FILE__, "ExampleTest");
-
-        t.assertLog( 1 == 2, __LINE__);
-        t.assertLog( 1 == 1, "Basic logic failed", __LINE__);
-
-        with (t)
+        static bool throwing()
         {
-            assertLog( 2 + 2 == 4, "Math failed", __LINE__);
+            throw new Exception("oops");
+        }
+
+        {
+            scope t = new Unittest(__FILE__, "ExampleTest");
+            with (t)
+            {
+                assertLog( 1 == 2, __LINE__);
+                assertLog( throwing(), "Math failed", __LINE__);
+                assertLog( 1 == 1, "Basic logic failed", __LINE__);
+            }
+        }
+
+        try
+        {
+            scope t = new Unittest(__FILE__, "Throwing Example", false);
+            with (t)
+            {
+               enforceRel!("==")(2, 3, __LINE__);
+            }
+        }
+        catch (TestException e)
+        {
+            Stdout.formatln("{}", e);
         }
     }
 
@@ -55,13 +128,17 @@ private import tango.util.log.Log;
     {
         Unittest.check();  // Required call
     }
+
     -------
     This example would output:
 
-    Assert example.d:6 failed
-    Assert example.d:12 failed: Math failed
+    Assert example.d:15 failed
+    Caught exception while executing assert check: :0 oops
+    Assert example.d:16 failedMath failed
     Test ExampleTest failed
-    object.Exception: 1 of 1 Unittests failed!
+    example.d:26 : Test 'Throwing Example' has failed (Expression '2 == 3' evaluates to false)
+    terminated after throwing an uncaught instance of 'object.Exception'
+      toString():  2 of 2 Unittests failed!
 
 *******************************************************************************/
 
@@ -77,11 +154,11 @@ scope class Unittest
 
     /***************************************************************************
 
-        File and name of the test
+        Name and file of the test
 
     ***************************************************************************/
 
-    char[] test, file;
+    char[] name, file;
 
     /***************************************************************************
 
@@ -90,6 +167,15 @@ scope class Unittest
     ***************************************************************************/
 
     bool failed = false;
+
+    /***************************************************************************
+
+        If set to true, summary message is printed for a test case block if any
+        single test has failed.
+
+    ***************************************************************************/
+
+    bool summary = true;
 
     /***************************************************************************
 
@@ -124,15 +210,18 @@ scope class Unittest
         Params:
             file = file of the unittest
             test = name of the test
+            summary = activates printing of failure state upon unittest block
+                disposal
 
     ***************************************************************************/
 
-    this ( char[] file, char[] test )
+    this ( char[] file, char[] name, bool summary = true )
     {
         Unittest.num_all++;
 
-        this.test = test;
+        this.name = name;
         this.file = file;
+        this.summary = summary;
     }
 
     /***************************************************************************
@@ -163,9 +252,9 @@ scope class Unittest
 
     void dispose ( )
     {
-        if ( failed )
+        if ( this.failed && this.summary )
         {
-            Trace.formatln("Test {} failed", this.test);
+            Trace.formatln("Test {} failed", this.name);
         }
     }
 
@@ -226,6 +315,65 @@ scope class Unittest
             Trace.formatln("Caught exception while executing assert check: {}:{} {}",
                            e.file, e.line, e.msg);
             print();
+        }
+    }
+
+    /***************************************************************************
+
+        Similar to built-in assert, stops the test case early by throwing
+        exception. Should be used for checks critical for testing integrity.
+
+        Params:
+            ok = boolean expression to check
+            msg = error message to put into exception
+            line = line of origin
+
+        Throws:
+            TestException if !ok
+
+    ***************************************************************************/
+
+    void enforce (T) ( T ok, char[] msg = "", size_t line = 0 )
+    {
+        if (!ok)
+        {
+            Unittest.num_failed++;
+            throw new TestException(this.name, msg, this.file, line);
+        }
+    }
+
+    /***************************************************************************
+
+        Short form for 'enforce relation'. Similar to `enforce` but takes
+        a comparison operator as template parameter string and both operands
+        as separate parameters. Upon a failure detailed error message is
+        generated.
+
+        Template params:
+            op = string representation of binary comparison operator, e.g. "=="
+
+        Params:
+            exp1 = left side of comparison expression
+            exp2 = right side of comparison expression
+            line = line of origin
+
+        Throws:
+            TestException if expression evaluates to false
+
+    ***************************************************************************/
+
+    void enforceRel ( char[] op, T1, T2 ) ( T1 exp1, T2 exp2, size_t line )
+    {
+        mixin ("bool ok = exp1 " ~ op ~ " exp2;");
+        if (!ok)
+        {
+            Unittest.num_failed++;
+            throw new TestException(
+                this.name,
+                Format("Expression '{} {} {}' evaluates to false", exp1, op, exp2),
+                this.file,
+                line
+            );
         }
     }
 
