@@ -132,9 +132,9 @@ class TestException : Exception
     -------
     This example would output:
 
-    Assert example.d:15 failed
+    example.d:15 : Assertion failed
     Caught exception while executing assert check: :0 oops
-    Assert example.d:16 failedMath failed
+    example.d:16 : Assertion failed (Math failed)
     Test ExampleTest failed
     example.d:26 : Test 'Throwing Example' has failed (Expression '2 == 3' evaluates to false)
     terminated after throwing an uncaught instance of 'object.Exception'
@@ -286,24 +286,27 @@ scope class Unittest
 
     void assertLog ( lazy bool ok, char[] msg = null, size_t line = 0 )
     {
-        void print ( )
+        void print ()
         {
+            char[] fmsg = msg;
+
+            if (msg !is null)
+            {
+                fmsg = " (" ~ msg ~ ")";
+            }
+
             if ( line > 0 )
             {
-                Trace.formatln("Assert {}:{} failed{}",
-                               this.file, line, msg);
+                Trace.formatln("{}:{} : Assertion failed{}", this.file, line, fmsg);
             }
             else
             {
-                Trace.formatln("Assert {} failed{}",
-                               this.file,  msg);
+                Trace.formatln("{} : Assertion failed{}", this.file, fmsg);
             }
         }
 
         try if ( ok == false )
         {
-            if ( msg !is null ) msg = ": " ~ msg;
-
             this.failed = true;
 
             print();
