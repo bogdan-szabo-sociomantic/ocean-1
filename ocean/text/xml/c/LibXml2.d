@@ -1,9 +1,9 @@
 /*******************************************************************************
 
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     version:        November 2010: Initial release
-    
+
     authors:        Gavin Norman
 
     D binding for C functions & structures in libxml2.
@@ -37,7 +37,7 @@ extern ( C )
     /***************************************************************************
 
         Char type definition used by all libxml2 functions.
-    
+
     ***************************************************************************/
 
     public alias char xmlChar;
@@ -46,7 +46,7 @@ extern ( C )
     /***************************************************************************
 
         Xml document struct & pointer type.
-    
+
     ***************************************************************************/
 
     struct xmlDoc;
@@ -57,18 +57,18 @@ extern ( C )
     /***************************************************************************
 
         Initialises the xml parser
-    
+
     ***************************************************************************/
-    
+
     void xmlInitParser ( );
-    
-    
+
+
     /***************************************************************************
-    
+
         Cleans up any global xml parser allocations.
-    
+
     ***************************************************************************/
-    
+
     void xmlCleanupParser ( );
 
 
@@ -87,7 +87,7 @@ extern ( C )
     
     ***************************************************************************/
 
-    int xmlLoadExtDtdDefaultValue;
+    extern int xmlLoadExtDtdDefaultValue;
 
 
     /***************************************************************************
