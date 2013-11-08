@@ -45,7 +45,7 @@ class TestException : Exception
 
     ***************************************************************************/
 
-    const char[] name;
+    private const char[] name;
 
     /***************************************************************************
 
@@ -65,7 +65,7 @@ class TestException : Exception
 
     ***************************************************************************/
 
-    override char[] toString()
+    public override char[] toString()
     {
         return Format(
             "{}:{} : Test '{}' has failed ({})",
@@ -158,7 +158,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    char[] name, file;
+    private char[] name, file;
 
     /***************************************************************************
 
@@ -166,7 +166,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    bool failed = false;
+    private bool failed = false;
 
     /***************************************************************************
 
@@ -175,7 +175,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    bool summary = true;
+    private bool summary = true;
 
     /***************************************************************************
 
@@ -189,7 +189,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    static bool check ( bool throw_ = true )
+    public static bool check ( bool throw_ = true )
     {
         if ( num_failed > 0 )
         {
@@ -215,7 +215,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    this ( char[] file, char[] name, bool summary = true )
+    public this ( char[] file, char[] name, bool summary = true )
     {
         Unittest.num_all++;
 
@@ -244,22 +244,6 @@ scope class Unittest
 
     /***************************************************************************
 
-        Dispose-Destructor
-
-        If the test failed, a message is outputed
-
-    ***************************************************************************/
-
-    void dispose ( )
-    {
-        if ( this.failed && this.summary )
-        {
-            Trace.formatln("Test {} failed", this.name);
-        }
-    }
-
-    /***************************************************************************
-
         Assert method that logs any error with the given line
 
         Params:
@@ -268,7 +252,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    void assertLog ( lazy bool ok, size_t line )
+    public void assertLog ( lazy bool ok, size_t line )
     {
         this.assertLog(ok, null, line );
     }
@@ -284,7 +268,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    void assertLog ( lazy bool ok, char[] msg = null, size_t line = 0 )
+    public void assertLog ( lazy bool ok, char[] msg = null, size_t line = 0 )
     {
         void print ()
         {
@@ -336,7 +320,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    void enforce (T) ( T ok, char[] msg = "", size_t line = 0 )
+    public void enforce (T) ( T ok, char[] msg = "", size_t line = 0 )
     {
         if (!ok)
         {
@@ -365,7 +349,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    void enforceRel ( char[] op, T1, T2 ) ( T1 exp1, T2 exp2, size_t line )
+    public void enforceRel ( char[] op, T1, T2 ) ( T1 exp1, T2 exp2, size_t line )
     {
         mixin ("bool ok = exp1 " ~ op ~ " exp2;");
         if (!ok)
@@ -390,5 +374,21 @@ scope class Unittest
     public void output ( )
     {
         Log.root.add(new AppendConsole);
+    }
+
+    /***************************************************************************
+
+        Dispose-Destructor
+
+        If the test failed, a message is outputed
+
+    ***************************************************************************/
+
+    protected void dispose ( )
+    {
+        if ( this.failed && this.summary )
+        {
+            Trace.formatln("Test {} failed", this.name);
+        }
     }
 }
