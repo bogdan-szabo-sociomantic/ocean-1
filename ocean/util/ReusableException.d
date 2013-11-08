@@ -47,7 +47,7 @@ class ReusableException : Exception
 
      **************************************************************************/
 
-    void assertEx ( T ) ( T ok, lazy char[] msg, char[] file, long line )
+    void assertEx ( T ) ( T ok, char[] msg, char[] file, long line )
     {
         static if (is (T : typeof (null)))
         {

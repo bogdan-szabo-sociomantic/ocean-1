@@ -71,13 +71,12 @@ class HttpException : HttpServerException
 {
     StatusCode status;
 
-    void assertEx ( char[] file, typeof (__LINE__) line, T, U ... ) 
-        ( T ok, HttpResponseCode status, lazy U msg )
+    void assertEx ( char[] file, typeof (__LINE__) line, T, U ... ) ( T ok, HttpResponseCode status, U msg )
     {
         if (!ok) throw this.opCall!(file, line, U)(status, msg);
     }
 
-    void assertEx ( T, U ... ) ( T ok, HttpResponseCode status, lazy U msg )
+    void assertEx ( T, U ... ) ( T ok, HttpResponseCode status, U msg )
     {
         if (!ok) throw this.opCall(status, msg);
     }
@@ -110,12 +109,12 @@ class HttpException : HttpServerException
 
 class HttpParseException : HttpException
 {
-    void assertEx ( char[] file, typeof (__LINE__) line, T, U ... ) ( T ok, lazy U msg )
+    void assertEx ( char[] file, typeof (__LINE__) line, T, U ... ) ( T ok, U msg )
     {
         if (!ok) throw this.opCall!(file, line, U)(msg);
     }
 
-    void assertEx ( T, U ... ) ( T ok, lazy U msg )
+    void assertEx ( T, U ... ) ( T ok, U msg )
     {
         if (!ok) throw this.opCall(msg);
     }
@@ -142,13 +141,12 @@ class HeaderParameterException : HttpServerException
 {
     char[] header_field_name;
 
-    void assertEx ( char[] file, typeof (__LINE__) line, T, U ... )
-        ( T ok, char[] header_field_name, lazy U msg )
+    void assertEx ( char[] file, typeof (__LINE__) line, T, U ... ) ( T ok, char[] header_field_name, U msg )
     {
         if (!ok) throw this.opCall!(file, line, U)(header_field_name, msg);
     }
 
-    void assertEx ( T, U ... ) ( T ok, char[] header_field_name, lazy U msg )
+    void assertEx ( T, U ... ) ( T ok, char[] header_field_name, U msg )
     {
         if (!ok) throw this.opCall(header_field_name, msg);
     }

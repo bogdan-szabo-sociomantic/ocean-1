@@ -37,11 +37,6 @@ Migration Instructions
 
 New Features
 ^^^^^^^^^^^^
-``ocean.util.ReusableException`` ``ocean.net.http.HttpException`` ``ocean.core.ErrnoIOException``
-  Message argument for `assertEx` calls has been made `lazy` and thus can be
-  used with no performance concerns about complex formatting happening in
-  normal code flow.
-
 ``ocean.util.container.map``
   Every BucketSet based class now features an interruptible iterator, allowing a
   `foreach` to be interrupted (by `break`) and continued where it left off. It is
@@ -71,6 +66,7 @@ Migration Instructions
   The reason compression is removed is since it didn't work for all maps
   and it took longer time to load a compressed map compared to a
   uncompressed map.
+
 
 v1.8 (2013-10-16)
 -----------------
