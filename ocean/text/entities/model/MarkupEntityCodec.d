@@ -461,30 +461,29 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
         decoded.length = 0;
 
-        size_t last_special_char;
-        size_t i;
+        size_t last_special_char = 0;
+        size_t i = 0;
         while ( i < text.length )
         {
-            auto entity = this.sliceEncodedEntity(text[i..$]);
-            if ( entity.length )
+            if ( text[i] == '&')
             {
-                decoded.append(text[last_special_char..i]);
-
-                dchar unicode = this.decodeEntity(entity);
-                if ( unicode != InvalidUnicode )
+                auto entity = this.sliceEncodedEntity(text[i..$]);
+                if ( entity.length )
                 {
-                    decoded.append(this.dcharTo!(Char)(unicode));
-                }
+                    decoded.append(text[last_special_char..i]);
 
-                i += entity.length;
-                last_special_char = i;
+                    dchar unicode = this.decodeEntity(entity);
+                    if ( unicode != InvalidUnicode )
+                    {
+                        decoded.append(this.dcharTo!(Char)(unicode));
+                    }
+
+                    i += entity.length;
+                    last_special_char = i;
+                    continue;
+                }
             }
-            else
-            {
-                // skip to the next character
-                UtfString!(Char, false) utf_str = { text[i..$] };
-                i += utf_str[0].length;
-            }
+            ++i;
         }
 
         decoded.append(text[last_special_char..$]);

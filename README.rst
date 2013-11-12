@@ -61,6 +61,9 @@ New Features
   The StatsLog instance can be passed to a PeriodicStatsLog instance to have the
   usual 30 seconds logging as you all are used to.
 
+``ocean.text.entities.model.MarkupEntityCodec``
+  The `decode` function is now approximately 700% faster.
+
 v1.8.1 (2013-10-21)
 -------------------
 
