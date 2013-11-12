@@ -10,9 +10,6 @@
 
     TODO: move module to ocean.util.digest
 
-    TODO: remove Fnv1, we only need one hash function -- having two almost
-    identical ones only leads to confusion.
-
 *******************************************************************************/
 
 module  ocean.io.digest.Fnv1;
@@ -79,9 +76,9 @@ template Fnv1Const ( T = hash_t )
 
 *******************************************************************************/
 
-alias Fnv1Generic!(false)         Fnv1;
-alias Fnv1Generic!(false, uint)   Fnv132;
-alias Fnv1Generic!(false, ulong)  Fnv164;
+deprecated alias Fnv1Generic!(false)         Fnv1;
+deprecated alias Fnv1Generic!(false, uint)   Fnv132;
+deprecated alias Fnv1Generic!(false, ulong)  Fnv164;
 alias Fnv1Generic!(true)          Fnv1a;
 alias Fnv1Generic!(true,  uint)   Fnv1a32;
 alias Fnv1Generic!(true,  ulong)  Fnv1a64;

@@ -25,6 +25,10 @@ master
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
+``ocean.io.digest.Fnv1``
+  Fnv1 hash aliases deprecated. All code which uses them should create its own
+  alias of the ``Fnv1Generic`` class as needed.
+
 ``ocean.util.container.map.FileSerializer``
   Loading files with version < 2 is not longer supported, since the older
   versions was deprecated a long time ago. If you have a file with
