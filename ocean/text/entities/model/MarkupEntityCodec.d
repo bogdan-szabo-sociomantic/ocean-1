@@ -182,12 +182,14 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
         decoded.length = 0;
 
+        char[] encoded_entity_buff;
+
         size_t last_amp;
         size_t i;
         while ( i < text.length )
         {
             auto entity = this.sliceEncodedEntity(text[i..$]);
-            if ( entity.length && utf_match(entity, this.entities.getEncodedEntity('&')) )
+            if ( entity.length && utf_match(entity, this.entities.getEncodedEntity('&', encoded_entity_buff)) )
             {
                 decoded ~= text[last_amp..i];
                 decoded ~= "&";
