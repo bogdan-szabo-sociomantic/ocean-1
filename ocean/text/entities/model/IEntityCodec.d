@@ -256,7 +256,9 @@ public abstract class IEntityCodec ( E : IEntitySet )
 
         static if ( is(Char == dchar) )
         {
-            return text;
+            output[0..text.length] = text[];
+
+            return output[0..text.length];
         }
         else static if ( is(Char == wchar) )
         {
