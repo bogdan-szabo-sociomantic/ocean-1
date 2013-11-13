@@ -164,52 +164,6 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     /***************************************************************************
 
-        Decode only encoded ampersands in the input string.
-
-        Params:
-            text = string to decode
-            decoded = output string
-
-        Returns:
-            decoded output string
-
-    ***************************************************************************/
-
-    public Char[] decodeAmpersands ( Char ) ( Char[] text, ref Char[] decoded )
-    {
-        static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
-                This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
-
-        decoded.length = 0;
-
-        char[] encoded_entity_buff;
-
-        size_t last_amp;
-        size_t i;
-        while ( i < text.length )
-        {
-            auto entity = this.sliceEncodedEntity(text[i..$]);
-            if ( entity.length && utf_match(entity, this.entities.getEncodedEntity('&', encoded_entity_buff)) )
-            {
-                decoded ~= text[last_amp..i];
-                decoded ~= "&";
-
-                i += entity.length;
-                last_amp = i;
-            }
-            else
-            {
-                i++;
-            }
-        }
-
-        decoded ~= text[last_amp..$];
-        return decoded;
-    }
-
-
-    /***************************************************************************
-
         Checks whether the input string contains any unencoded entities.
 
         Params:

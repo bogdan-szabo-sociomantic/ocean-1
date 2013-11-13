@@ -63,6 +63,7 @@ New Features
 
 ``ocean.text.entities.model.MarkupEntityCodec``
   The `decode` function is now approximately 700% faster.
+  The broken `decodeAmpersands` function is removed. Previously, it didn't compile.
 
 v1.8.1 (2013-10-21)
 -------------------
