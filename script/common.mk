@@ -92,7 +92,8 @@ invoke_xfbuild = xfbuild \
 # myprogram: some-source.d | check_deb_dependencies
 check_deb = @i=`apt-cache policy $1 | grep Installed | cut -b14-`; \
 	op="$(if $3,$3,>=)"; \
-	test -z "$$i" && { echo "Unsatisfied dependency: package '$1' is not" \
+	test "$$i" = "(none)" -o -z "$$i" && { \
+		echo "Unsatisfied dependency: package '$1' is not" \
 		"installed (version $$op $2 is required)" >&2 ; exit 1; }; \
 	dpkg --compare-versions "$$i" "$$op" "$2" || { \
 		echo "Unsatisfied dependency: package '$1' version $$op $2" \
