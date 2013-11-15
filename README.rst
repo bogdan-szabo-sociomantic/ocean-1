@@ -46,9 +46,19 @@ Migration Instructions
   version < 2, use ocean v1.8.1 to load the map and dump it to get it as
   a file of version 2.
 
-``ocean.util.log.Stats``
+``ocean.util.log.Stats.StatsLog``
   The class is no longer is a template class. Instead the according methods
   became template methods
+  The methods `write`, `writeExtra` and `formatExtra` have been removed. Their
+  functionality is replaced by the `add` and `flush` functions. After all values
+  have been added using the various overloads of `add`, `flush` has to be called
+  to finalize the writing.
+
+``ocean.util.log.Stats.PeriodicStatsLog``
+  The post log delegate passed to the c'tor now receives a reference to the
+  `StatsLog` class. This can be used to add further values to the stats line.
+  After the call to the post log delegate, the stats values are flushed and
+  written out to the file.
 
 New Features
 ^^^^^^^^^^^^

@@ -97,7 +97,7 @@ private import tango.stdc.time : time_t;
             // Delegate which is passed to the logger's ctor and is called after
             // each log line which is written. Used here to reset the stats
             // counters.
-            private void resetStats ( )
+            private void resetStats ( StatsLog unused )
             {
                 this.stats = this.stats.init;
             }
@@ -161,7 +161,7 @@ public class PeriodicStatsLog ( T )
 
     ***************************************************************************/
 
-    private alias void delegate ( ) PostLogDg;
+    private alias void delegate ( StatsLog stats_log ) PostLogDg;
 
     private PostLogDg post_log_dg;
 
@@ -241,13 +241,16 @@ public class PeriodicStatsLog ( T )
     /***************************************************************************
 
         Constructor. Registers an update timer with the provided epoll selector.
+
         The timer first fires 5 seconds after construction, then periodically
         as specified. Each time the timer fires, it calls the user-provided
         delegate, value_dg, which should return a pointer to a struct of type T
         containing the values to be written to the next line in the log. Once
         the log line has been written, the optional post_log_dg is called (if
         provided), which may be used to implement special behaviour in the user
-        code, such as resetting transient values in the logged struct.
+        code, such as resetting transient values in the logged struct or
+        addition of further values using the StatsLog.add methods. The stats
+        values will be written to file after post_log_dg returned.
 
         Params:
             epoll       = epoll select dispatcher
@@ -289,12 +292,14 @@ public class PeriodicStatsLog ( T )
 
     private bool write_ ( )
     {
-        this.stats_log.write(*this.value_dg());
+        this.stats_log.add(*this.value_dg());
 
         if ( this.post_log_dg )
         {
-            this.post_log_dg();
+            this.post_log_dg(this.stats_log);
         }
+
+        this.stats_log.flush();
 
         return true;
     }
@@ -311,14 +316,35 @@ public class PeriodicStatsLog ( T )
     (The date part is not written by this class. Instead we rely on the logger
     layout in ocean.util.log.LayoutStatsLog.)
 
-    Template Params:
-        T = a struct which contains the values that should be written to the
-            file, the tuple of the struct's members is iterated and each printed
+    Usage Example
+    ---
+    struct MyStats
+    {
+        size_t bytes_in, bytes_out, awesomeness;
+    }
+
+    auto stats_log = new StatsLog(new IStatsLog.Config("log/stats.log", 10_000, 5));
+
+    MyStats stats;
+
+    stats_log.add(stats)
+        .add([ "DynVal" : 34, "DynVal2" : 52])
+        .add("dyn3", 62)
+        .flush();
+    ---
 
 *******************************************************************************/
 
 public class StatsLog : IStatsLog
 {
+    /***************************************************************************
+
+        Whether to add a separator or not
+
+    ***************************************************************************/
+
+    private bool add_separator = false;
+
     /***************************************************************************
 
         Constructor
@@ -374,50 +400,93 @@ public class StatsLog : IStatsLog
 
     /***************************************************************************
 
-        Writes the values from the provided struct to the logger. Each member of
-        the struct is output as <member name>:<member value>.
+        Adds one or several values to be outputted to the stats log.
 
-        Params:
-            values = struct containing values to write to the log. Passed as ref
-                purely to avoid making a copy -- the struct is not modified.
+        This function is written using variadic templates to work around the
+        limits of template deduction. This function is equivalent to the
+        following three functions:
+
+        *************************************************************************
+        * Adds the values of the given struct to the stats log. Each member of
+        * the struct will be output as <member name>:<member value>.
+        *
+        * Params:
+        *     values = struct containing values to write to the log. Passed as ref
+        *         purely to avoid making a copy -- the struct is not modified.
+        * ---
+        * public typeof(this) add ( T ) ( T values )
+        * ---
+
+        *************************************************************************
+        * Add another value to the stats
+        *
+        * Params:
+        *     name = name of the value
+        *     value = the value to add
+        * ---
+        * public typeof(this) add ( T ) ( char[] name, T value )
+        * ---
+
+        *************************************************************************
+        * Add values from an associative array to the stats
+        *
+        * Params:
+        *     values = The associative array with the values to add
+        * ---
+        * public typeof(this) add ( T ) ( T[char[]] values )
+        * ----
+
+        Don't forget to call .flush() after all values have been added.
+
+        Returns:
+            A reference to this class so that
+
+            ---
+                add(myValues).add("abc", 3).add("efg", 2).flush()
+            ---
+
+            can be used to write values
 
     ***************************************************************************/
 
-    public void write ( T ) ( ref T values )
+    public typeof(this) add ( T... ) ( T parameters )
     {
-        this.format(values);
+        static if ( T.length == 1 )
+        {   // only parameter a struct
+            static if ( is ( T[0] == struct ) )
+            {
+                this.format(parameters[0]);
+            }
+            else // only parameter not a struct, assumed AA
+            {
+                this.formatAssocArray(parameters[0], this.add_separator);
+            }
+        }
+        // two parameters always (assumed to be) name, value
+        else static if ( T.length == 2 )
+        {
+            this.formatValue(parameters[0], parameters[1], this.add_separator);
+        }
+        else static assert (false,
+                "StatsLog.add(...): called with invalid amount of parameters");
 
-        this.logger.info(this.layout[]);
+        this.add_separator = true;
+
+        return this;
     }
 
 
     /***************************************************************************
 
-        Writes the values from the provided struct to the logger, followed by
-        the additional values contained in the provided associative array. Each
-        member of the struct is output as <member name>:<member value>. Each
-        entry in the associative array is output as <key>:<value>.
-
-        This method can be useful when some of the values which are to be
-        written to the log are only known at run-time (for example a list of
-        names of channels in a dht or queue).
-
-        Template Params:
-            A = type of associative array value. Assumed to be handled by Layout
-
-        Params:
-            values = struct containing values to write to the log. Passed as ref
-                purely to avoid making a copy -- the struct is not modified.
-            additional = associative array of additional values to write to the
-                log
+        Flush everything to file and prepare for the next iteration
 
     ***************************************************************************/
 
-    public void writeExtra ( T, A ) ( ref T values, A[char[]] additional )
+    public void flush ( )
     {
-        this.formatExtra(values, additional);
-
         this.logger.info(this.layout[]);
+        this.add_separator = false;
+        this.layout.clear();
     }
 
 
@@ -436,49 +505,9 @@ public class StatsLog : IStatsLog
 
     ***************************************************************************/
 
-    public char[] format ( T ) ( ref T values )
+    private char[] format ( T ) ( ref T values )
     {
-        this.layout.clear();
-
-        bool add_separator = false;
-        this.formatStruct(values, add_separator);
-
-        return this.layout[];
-    }
-
-
-    /***************************************************************************
-
-        Formats the values from the provided struct to the internal string
-        buffer, followed by the additional values contained in the provided
-        associative array. Each member of the struct is formatted as
-        <member name>:<member value>. Each entry in the associative array is
-        formatted as <key>:<value>.
-
-        This method can be useful when some of the values which are to be
-        written to the log are only known at run-time (for example a list of
-        names of channels in a dht or queue).
-
-        Template Params:
-            A = type of associative array value. Assumed to be handled by Layout
-
-        Params:
-            values = struct containing values to write to format. Passed as ref
-                purely to avoid making a copy -- the struct is not modified.
-            additional = associative array of additional values to format
-
-        Returns:
-            formatted string
-
-    ***************************************************************************/
-
-    public char[] formatExtra ( T, A ) ( ref T values, A[char[]] additional )
-    {
-        this.layout.clear();
-
-        bool add_separator = false;
-        this.formatStruct(values, add_separator);
-        this.formatAssocArray(additional, add_separator);
+        this.formatStruct(values);
 
         return this.layout[];
     }
@@ -492,13 +521,10 @@ public class StatsLog : IStatsLog
         Params:
             values = struct containing values to write to the log. Passed as ref
                 purely to avoid making a copy -- the struct is not modified.
-            add_separator = flag telling whether a separator (space) should be
-                added before a stats value is formatted. After a single value
-                has been formatted the value of add_separator is set to true.
 
     ***************************************************************************/
 
-    private void formatStruct ( T ) ( ref T values, ref bool add_separator )
+    private void formatStruct ( T ) ( ref T values )
     {
         foreach ( i, value; values.tupleof )
         {
@@ -506,8 +532,8 @@ public class StatsLog : IStatsLog
             // only "somename"
             this.formatValue(values.tupleof[i].stringof["values.".length .. $],
                              value,
-                             add_separator);
-            add_separator = true;
+                             this.add_separator);
+            this.add_separator = true;
         }
     }
 }
