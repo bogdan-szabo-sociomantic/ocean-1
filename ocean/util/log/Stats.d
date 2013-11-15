@@ -351,12 +351,14 @@ public class StatsLog : IStatsLog
 
         Params:
             config = instance of the config class
+            name   = name of the logger, should be set to a different string
+                     when using more than two StatLogs
 
     ***************************************************************************/
 
-    public this ( Config config )
+    public this ( Config config, char[] name = "Stats" )
     {
-        super(config);
+        super(config, name);
     }
 
 
@@ -374,9 +376,9 @@ public class StatsLog : IStatsLog
 
     public this ( size_t file_count = default_file_count,
         size_t max_file_size = default_max_file_size,
-        char[] file_name = default_file_name )
+        char[] file_name = default_file_name, char[] name = "Stats" )
     {
-        super(new Config(file_name, max_file_size, file_count));
+        super(new Config(file_name, max_file_size, file_count), name);
     }
 
 
@@ -392,9 +394,9 @@ public class StatsLog : IStatsLog
 
     ***************************************************************************/
 
-    public this ( char[] file_name )
+    public this ( char[] file_name, char[] name = "Stats" )
     {
-        this(default_file_count, default_max_file_size, file_name);
+        this(default_file_count, default_max_file_size, file_name, name);
     }
 
 
