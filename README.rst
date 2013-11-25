@@ -22,6 +22,13 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+New Features
+^^^^^^^^^^^^
+
+``ocean.math.Convert``
+  New module that contains methods to round a float, double, or real to an int
+  or a long. Rounds x.5 to the nearest integer (the tango functions
+  (rndint/rndlong) round x.5 to the nearest even integer).
 
 v1.9 (2013-11-15)
 -----------------
