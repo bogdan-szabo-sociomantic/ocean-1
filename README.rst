@@ -80,6 +80,24 @@ Migration Instructions
   This module has been removed as it was only partly documented/working. See #33
   for discussion on a full asynchronous file I/O system.
 
+``ocean.io.serialize.StructLoader``, ``ocean.io.serialize.StructDumper``, ``ocean.io.serialize.model.StructVersionBase``, ``ocean.io.serialize.model.StructLoaderBase``  
+  StructLoader has been replaced by a interface-compatible class that adds
+  support for struct versions. The original loader is still available at
+  `ocean.io.serialize.model.StructLoaderCore`. 
+
+  Version support means, that each definition of a struct can have a version.
+  Upon serialization, that version is put into the serialized data. when this
+  data is loaded again, the loader checks whether the requested struct version
+  is the same as the one that it was serialized with.  If it isn't, an
+  semi-automatic conversion to the requested version will be attempted. 
+
+  If no version information can be found in a struct (none-existance of 
+  `const StructVersion`), the struct is treated as unversioned and nothing
+  changes.
+
+  The version logic is found in `ocean.io.serialize.model.StructVersionBase` in
+  case you plan to use it outside the loader/dumper classes.
+
 v1.12 (2014-04-01)
 ------------------
 

@@ -27,9 +27,14 @@ private import ocean.io.serialize.StructLoader: IBufferedStructLoader;
 
 private import tango.stdc.time: time_t, time;
 
-/******************************************************************************/
+/*******************************************************************************
 
-abstract class CachingDataLoaderBase
+    Template Params:
+        Loader = loader that should be used
+
+*******************************************************************************/
+
+abstract class CachingDataLoaderBase ( Loader )
 {
     /**************************************************************************
 
@@ -55,7 +60,7 @@ abstract class CachingDataLoaderBase
 
      **************************************************************************/
 
-    private const IBufferedStructLoader loader;
+    private const IBufferedStructLoader!(Loader) loader;
 
     /**************************************************************************
 
@@ -76,7 +81,7 @@ abstract class CachingDataLoaderBase
 
      **************************************************************************/
 
-    protected this ( Cache cache_, IBufferedStructLoader loader )
+    protected this ( Cache cache_, IBufferedStructLoader!(Loader) loader )
     {
         this.cache = this.cache_ = cache_;
         this.loader = loader;
@@ -232,9 +237,12 @@ abstract class CachingDataLoaderBase
     Provides an abstract class method to obtain values instead of a callback
     delegate argument of load().
 
+    Template Params:
+        Loader = loader that should be used
+
  ******************************************************************************/
 
-abstract class CachingDataLoader : CachingDataLoaderBase
+abstract class CachingDataLoader ( Loader ): CachingDataLoaderBase!(Loader)
 {
     /**************************************************************************
 
@@ -246,7 +254,7 @@ abstract class CachingDataLoader : CachingDataLoaderBase
 
      **************************************************************************/
 
-    protected this ( Cache cache, IBufferedStructLoader loader )
+    protected this ( Cache cache, IBufferedStructLoader!(Loader) loader )
     {
         super(cache, loader);
     }

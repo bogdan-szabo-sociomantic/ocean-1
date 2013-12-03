@@ -23,6 +23,8 @@ module ocean.io.serialize.StructDumper;
 
 private import ocean.core.Traits: ContainsDynamicArray;
 
+private import ocean.io.serialize.model.StructVersionBase;
+
 /******************************************************************************
 
     Serializes instances of struct type S and keeps a data buffer for the
@@ -87,7 +89,25 @@ class StructDumper
 
     static void[] dump ( S ) ( ref void[] buffer, S s, bool extend_only = false )
     {
-        return DumpArrays.dump(s, resize(buffer, DumpArrays.length(s), extend_only));
+        static if ( StructVersionBase.hasVersion!(S)() )
+        {
+            auto version_ = StructVersionBase.getStructVersion!(S);
+
+            auto resized = resize(buffer, DumpArrays.length(s) + version_.sizeof,
+                                  extend_only);
+
+            resized[0 .. StructVersionBase.Version.sizeof] = (cast(void*)&version_)
+                                        [0 .. StructVersionBase.Version.sizeof];
+
+            DumpArrays.dump(s, resized[StructVersionBase.Version.sizeof.. $]);
+
+            return resized;
+        }
+        else
+        {
+            return DumpArrays.dump(s, resize(buffer, DumpArrays.length(s),
+                                             extend_only));
+        }
     }
 
     /***************************************************************************

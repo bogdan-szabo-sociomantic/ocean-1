@@ -28,9 +28,18 @@ private import tango.stdc.time: time_t;
 
 debug (DhtDynamicCache) private import tango.io.Stdout;
 
-/******************************************************************************/
+/*******************************************************************************
 
-class CachingStructLoader ( S ) : CachingDataLoader
+    Template Params:
+        S = type of the struct to use
+        Loader = type of the loader to use (VersionedStructLoader or
+                 StructLoader)
+
+*******************************************************************************/
+
+
+class CachingStructLoader ( S, Loader = StructLoader )
+    : CachingDataLoader!(Loader)
 {
     /**************************************************************************
 
@@ -45,7 +54,7 @@ class CachingStructLoader ( S ) : CachingDataLoader
 
     public this ( Cache cache, size_t bytes_reserved = 0 )
     {
-        super(cache, new BufferedStructLoader!(S)(bytes_reserved));
+        super(cache, new BufferedStructLoader!(S, Loader)(bytes_reserved));
     }
 
     /**************************************************************************
