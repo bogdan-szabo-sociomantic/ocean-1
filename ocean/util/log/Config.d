@@ -217,6 +217,11 @@ static this ( )
 
     Sets up logging configuration.
 
+    Template Params:
+        Source = the type of the config parser
+        FileLayout = the layout formatter to use with log files
+        ConsoleLayout = the layout formatter to use with the log consoles
+
     Params:
         config   = an instance of an class iterator for Config
         m_config = an instance of the MetaConfig class
@@ -225,7 +230,8 @@ static this ( )
 
 *******************************************************************************/
 
-public void configureLoggers ( Source = ConfigParser )
+public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
+                               ConsoleLayout = SimpleLayout )
                              ( ClassIterator!(Config, Source) config,
                                MetaConfig m_config, bool loose = false,
                                bool use_insert_appender = false )
@@ -271,18 +277,18 @@ public void configureLoggers ( Source = ConfigParser )
                                      m_config.file_count,
                                      m_config.max_file_size,
                                      "gzip {}", "gz", m_config.start_compress,
-                                     new LayoutDate));
+                                     new FileLayout));
         }
 
         if ( console_enabled )
         {
             if ( use_insert_appender )
             {
-                log.add(new InsertConsole(new SimpleLayout));
+                log.add(new InsertConsole(new ConsoleLayout));
             }
             else
             {
-                log.add(new AppendConsole(new SimpleLayout));
+                log.add(new AppendConsole(new ConsoleLayout));
             }
         }
 
