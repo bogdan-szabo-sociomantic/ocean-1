@@ -22,8 +22,16 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+:Dependency: tango v1.0.0
+
 New Features
 ^^^^^^^^^^^^
+
+``ocean.text.utf.UtfUtil``
+  Add two new methods ``truncateAtWordBreak`` and ``truncateAppendEnding``. The
+  first method truncates a UTF-8 string to the nearest white space less than a
+  maximum length passed parameter. The second method truncates a UTF-8 string
+  using the first method and appends an ending string parameter.
 
 ``ocean.io.device.DirectIO``
   New module to perform I/O using Linux's ``O_DIRECT`` flag. Two separate

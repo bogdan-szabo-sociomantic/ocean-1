@@ -6,7 +6,11 @@
 
     author:         Stefan Brus
 
-    Contains utility functions for working with unicode strings.
+    Contains utility functions for working with unicode strings. Contains a
+    function to return the length of a UTF-8 string, a method to truncate a
+    UTF-8 string to the nearest whitespace character that is less than a maximum
+    length parameter, and a method to truncate a UTF-8 string and append a set
+    ending to it.
 
     Example usage:
 
@@ -37,7 +41,13 @@ module ocean.text.utf.UtfUtil;
 
 private import tango.core.Exception: onUnicodeError;
 
+private import tango.stdc.string: memrchr;
 
+private import ocean.core.Array: append, copy;
+
+private import ocean.text.utf.c.glib_unicode;
+
+private import ocean.util.Unittest;
 
 /*******************************************************************************
 
@@ -172,4 +182,182 @@ unittest
     utf8Length(valid_str, ( size_t i ) { error_caught = true; });
     assert(!error_caught,
         "the call to utf8Length should not have caught an error");
+}
+
+
+/*******************************************************************************
+
+    Limits str to a length of n UTF-8 code points, cutting off on the last
+    space, if found. If str is not valid UTF-8, str.length is assumed to be the
+    number of code points.
+
+    Params:
+        str = string to limit the length
+        n = maximum number of code points in the resulting string
+
+    Out:
+        The maximum number of code points in str is n.
+
+    Returns:
+        The truncated string for method chaining
+
+*******************************************************************************/
+
+public char[] truncateAtWordBreak ( ref char[] str, uint n )
+out (result)
+{
+    if (result.length > n)
+    {
+        assert(g_utf8_validate(result.ptr, result.length, null));
+        assert(g_utf8_strlen(result.ptr, result.length) <= n);
+    }
+}
+body
+{
+    if (n < str.length)
+    {
+        bool valid_utf8 = g_utf8_validate(str.ptr, str.length, null);
+
+        auto utf8_len = valid_utf8 ? utf8Length(str) : str.length;
+
+        if (n < utf8_len)
+        {
+            size_t last = n;
+
+            if (valid_utf8)
+            {
+                last = g_utf8_offset_to_pointer(str.ptr, last) - str.ptr;
+            }
+
+            auto c = cast (char*) memrchr(str.ptr, ' ', last);
+            if (c)
+            {
+                // Skip consecutive ' ' characters.
+                while (*c == ' ' && c > str.ptr)
+                {
+                    c--;
+                }
+
+                str.length = c - str.ptr + (c != str.ptr);
+            }
+            else
+            {
+                // If no ' ' is found to break on, set the break to the maximum
+                // number of code points
+                str.length = last;
+            }
+        }
+    }
+
+    return str;
+}
+
+unittest
+{
+    scope t = new Unittest(
+        __FILE__,
+        "truncateAtWordBreak"
+    );
+
+    char[] buffer;
+
+    void doTest ( char[] input, char[] expected_output, int length, int line )
+    {
+        buffer.copy(input);
+        t.enforceRel!("==")(truncateAtWordBreak(buffer, length),
+            expected_output, line);
+    }
+
+    doTest("Hello World!", "Hello World!", "Hello World!".length, __LINE__);
+
+    doTest("Hello World!", "Hello World!", "Hello World!".length + 5, __LINE__);
+
+    doTest("Hello World!", "Hello", 9, __LINE__);
+
+    doTest("Hällö World!", "Hällö", 9, __LINE__);
+
+    doTest("äöü", "äöü", 3, __LINE__);
+
+    doTest("Hello  World!", "Hello", 9, __LINE__);
+}
+
+
+/*******************************************************************************
+
+    Truncate the length of a UTF-8 string and append a set ending. The string
+    is initially truncated so that it is of maximum length n (this includes
+    the extra ending paramter so the string is truncated to position
+    n - ending.length).
+
+    Params:
+        str = string to truncate and append the ending to
+        n = maximum number of code points in the resulting string
+        ending = the ending to append to the string, defaults to "..."
+
+    In:
+        n must be at least `ending.length`
+
+    Returns:
+        The truncated and appended string for method chaining
+
+*******************************************************************************/
+
+public char[] truncateAppendEnding ( ref char[] str, uint n, char[] ending = "...")
+in
+{
+    assert (n >= ending.length);
+}
+body
+{
+    bool valid_utf8 = g_utf8_validate(str.ptr, str.length, null);
+
+    auto utf8_len = valid_utf8 ? utf8Length(str) : str.length;
+
+    if (n < utf8_len)
+    {
+        truncateAtWordBreak(str, (n - ending.length));
+        str.append(ending);
+    }
+
+    return str;
+}
+
+unittest
+{
+    scope t = new Unittest(
+        __FILE__,
+        "truncateAppendEnding"
+    );
+
+    char[] buffer;
+
+    void doTest ( char[] input, char[] expected_output, int length, int line,
+        char[] ending = "..." )
+    {
+        buffer.copy(input);
+        t.enforceRel!("==")(truncateAppendEnding(buffer, length, ending),
+            expected_output, line);
+    }
+
+    doTest("Hello World!", "Hello World!", "Hello World!".length, __LINE__);
+
+    doTest("Hello World!", "Hello World!", "Hello World!".length + 5, __LINE__);
+
+    doTest("Hello World!", "Hello...", 9, __LINE__);
+
+    doTest("Hällö World!", "Hällö...", 9, __LINE__);
+
+    doTest("äöü äöü", "ä...", 4, __LINE__);
+
+    doTest("Hello  World!", "Hello...", 9, __LINE__);
+
+    doTest("HelloW"  ~ cast (char) 0x81 ~ "rld!",
+        "HelloW"  ~ cast (char) 0x81 ~ "...", 10, __LINE__);
+
+    doTest("HelloWörld!", "HelloWörl+", 10, __LINE__, "+");
+
+    doTest("Designstarker Couchtisch in hochwertiger Holznachbildung. Mit "
+        "praktischem Ablagebogen in Kernnussbaumfarben oder Schwarz. "
+        "Winkelfüße mit Alukante. B", "Designstarker Couchtisch in hochwertiger"
+        " Holznachbildung. Mit praktischem Ablagebogen...", 90, __LINE__);
 }
