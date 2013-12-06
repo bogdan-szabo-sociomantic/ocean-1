@@ -1,7 +1,7 @@
 #!/bin/sh
 # Defaults
 rev_file=src/main/Version.d
-lib_dir=..
+lib_dir=.
 author="`id -un`"
 dmd="`dmd | head -1`"
 get_rev=`dirname $0`/git-rev-desc
