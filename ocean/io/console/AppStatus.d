@@ -269,7 +269,7 @@ public class AppStatus
         Params:
             size = number of loglines that are to be displayed below the
                     title line
-    
+
         Returns:
             the updated number of static lines
 
@@ -281,7 +281,7 @@ public class AppStatus
         this.resetStaticLines();
         this.resetCursorPosition();
         return this.static_lines.length;
-    } 
+    }
 
 
     /***************************************************************************
@@ -656,7 +656,7 @@ public class AppStatus
 
         Params:
             buffer = buffer to check the length of
-    
+
         Returns:
             the truncated buffer
 
@@ -703,7 +703,7 @@ public class AppStatus
     {
         if ( this.old_terminal_size != Terminal.rows )
         {
-            this.resetCursorPosition();   
+            this.resetCursorPosition();
         }
     }
 
@@ -726,14 +726,14 @@ public class AppStatus
         }
         Stdout.clearline.cr.flush.up;
     }
-    
-    
+
+
     /***************************************************************************
 
         Reset the content of all the static lines by setting the length to 0.
 
     ***************************************************************************/
-    
+
     private void resetStaticLines ( )
     {
         foreach ( ref line; this.static_lines )
