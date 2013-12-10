@@ -30,6 +30,11 @@ New Features
   or a long. Rounds x.5 to the nearest integer (the tango functions
   (rndint/rndlong) round x.5 to the nearest even integer).
 
+``ocean.net.email.EmailSender``
+  New optional argument bcc added to sendEmail. It can be used for sending
+  a blind carbon copy of the email.
+
+
 v1.9 (2013-11-15)
 -----------------
 

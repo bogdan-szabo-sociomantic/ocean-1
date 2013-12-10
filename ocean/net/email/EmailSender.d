@@ -60,6 +60,7 @@ class EmailSender
             subject    = the email subject
             msg_body   = the email body
             mail_id    = an optional mail id/In-Reply-To. default empty
+            bcc        = an optional bcc. default empty
 
         Returns:
             true if the mail was sent without any errors, otherwise false;
@@ -67,8 +68,8 @@ class EmailSender
     ***************************************************************************/
 
 
-    public bool sendEmail ( char [] sender, char [] recipients,
-        char[] subject, char[] msg_body, char[] mail_id = null )
+    public bool sendEmail ( char [] sender, char [] recipients, char[] subject,
+                     char[] msg_body, char[] mail_id = null, char[] bcc = null )
     {
         Process.Result result;
 
@@ -81,6 +82,11 @@ class EmailSender
                 stdin.write(sender);
                 stdin.write("\nTo: ");
                 stdin.write(recipients);
+                if ( bcc != null )
+                {
+                    stdin.write("\nBcc: ");
+                    stdin.write(bcc);
+                }
                 stdin.write("\nSubject: ");
                 stdin.write(subject);
                 if ( mail_id != null)
