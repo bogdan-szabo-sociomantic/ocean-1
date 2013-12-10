@@ -34,6 +34,11 @@ New Features
   New optional argument bcc added to sendEmail. It can be used for sending
   a blind carbon copy of the email.
 
+``ocean.io.console.AppStatus``
+  New optional argument to the constructor that sets the expected time period
+  between calls to ``getCpuUsage()`` to support applications that refresh the
+  app status window for a period more or less than 1000ms (defaults to 1000ms).
+
 
 v1.9 (2013-11-15)
 -----------------

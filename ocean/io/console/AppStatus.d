@@ -147,6 +147,16 @@ public class AppStatus
 
     /***************************************************************************
 
+        Expected milliseconds between calls to getCpuUsage. Needed to calculate
+        the cpu usage correctly. Defaults to 1000ms.
+
+    ***************************************************************************/
+
+    private const ulong ms_between_calls;
+
+
+    /***************************************************************************
+
         private buffer for storing and formatting the static lines to display
 
     ***************************************************************************/
@@ -238,11 +248,14 @@ public class AppStatus
             clock = clock used to get the current time
             size = number of loglines that are to be displayed below the
                     title line
+            ms_between_calls = expected milliseconds between calls to
+                               getCpuUsage (defaults to 1000ms)
 
     ***************************************************************************/
 
     public this ( char[] app_name, char[] app_version, char[] app_build_date,
-        char[] app_build_author, IAdvancedMicrosecondsClock clock, uint size )
+        char[] app_build_author, IAdvancedMicrosecondsClock clock, uint size,
+        ulong ms_between_calls = 1000 )
     {
         this.app_name.copy(app_name);
         this.app_version.copy(app_version);
@@ -251,6 +264,7 @@ public class AppStatus
         this.clock = clock;
         this.start_time = this.clock.now_sec;
         this.static_lines.length = size;
+        this.ms_between_calls = ms_between_calls;
         this.insert_console = new InsertConsole(Cout.stream, true,
             new MessageOnlyLayout);
         this.old_terminal_size = Terminal.rows;
@@ -514,7 +528,8 @@ public class AppStatus
         clock_t ticks = system_clock();
         if ( this.ticks >= 0 )
         {
-            usage = lroundf((ticks - this.ticks) / 10_000.f);
+            usage =
+                lroundf((ticks - this.ticks) / (this.ms_between_calls * 10.f));
         }
         this.ticks = ticks;
     }
