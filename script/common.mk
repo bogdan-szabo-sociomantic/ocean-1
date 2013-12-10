@@ -17,7 +17,8 @@ SHELL := /bin/bash
 LIB_BASEDIR=${PWD}
 
 # Garbage Collector to use
-D_GC=cdgc
+D_GC ?= cdgc
+export D_GC
 
 # Libraries that the project depends on
 DEPENDENCIES=tango ocean
