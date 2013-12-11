@@ -25,6 +25,15 @@ master
 New Features
 ^^^^^^^^^^^^
 
+``ocean.io.device.DirectIO``
+  New module to perform I/O using Linux's ``O_DIRECT`` flag. Two separate
+  classes are provided for input and output because of the complex nature of
+  direct I/O, ``BufferedDirectWriteFile`` and ``BufferedDirectReadFile``,
+  and they only follow Tango's stream API (but that should be enough for most
+  of the needed interaction with other Tango I/O facilities).
+  Please read the module documentation for details on when using this module is
+  convenient and when it isn't.
+
 ``ocean.math.Convert``
   New module that contains methods to round a float, double, or real to an int
   or a long. Rounds x.5 to the nearest integer (the tango functions
