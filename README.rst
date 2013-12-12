@@ -33,6 +33,11 @@ New Features
   maximum length passed parameter. The second method truncates a UTF-8 string
   using the first method and appends an ending string parameter.
 
+``ocean.io.serialize.StringStructSerializer``
+  The ``StringStructSerializer`` class takes a new argument in the constructor,
+  ``fp_dec_to_display``, specifying the maximum number of decimal digits to show
+  for floating point types.
+
 ``ocean.io.device.DirectIO``
   New module to perform I/O using Linux's ``O_DIRECT`` flag. Two separate
   classes are provided for input and output because of the complex nature of

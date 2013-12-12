@@ -102,6 +102,34 @@ public class StringStructSerializer ( Char )
 
     /***************************************************************************
 
+        format string for displaying an item of type floating point
+
+    ***************************************************************************/
+
+    private const char[] fp_format;
+
+
+    /***************************************************************************
+
+        Constructor, sets the maximum number of decimal digits to show for
+        floating point types.
+
+        Params:
+            fp_dec_to_display = maximum number of decimal digits to show for
+                                floating point types.
+
+    ***************************************************************************/
+
+    public this ( size_t fp_dec_to_display = 2 )
+    {
+        this.fp_format = "{}{} {} : {:.";
+        Layout!(char).print(this.fp_format, "{}", fp_dec_to_display);
+        this.fp_format ~= "}/n";
+    }
+
+
+    /***************************************************************************
+
         Convenience method to serialize a struct.
 
         Template params:
@@ -176,6 +204,10 @@ public class StringStructSerializer ( Char )
         static if ( is(T == union) )
         {
             Layout!(Char).print(output, "{}union {} {} : {}\n", this.indent, T.stringof, name, (cast(ubyte*)&item)[0..item.sizeof]);
+        }
+        else static if ( isFloatingPointType!(T) )
+        {
+            Layout!(Char).print(output, this.fp_format, this.indent, T.stringof, name, item);
         }
         else
         {
