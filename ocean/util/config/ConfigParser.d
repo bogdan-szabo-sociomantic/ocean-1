@@ -834,7 +834,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public static T conv ( T ) ( char[] property )
+    private static T conv ( T ) ( char[] property )
     {
         static if ( is(T : bool) )
         {
