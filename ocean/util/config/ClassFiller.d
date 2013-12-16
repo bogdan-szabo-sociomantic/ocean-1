@@ -927,6 +927,87 @@ public ClassIterator!(T) iterate ( T, Source = ConfigParser )
     return ClassIterator!(T, Source)(config, root);
 }
 
+/*******************************************************************************
+
+    Converts property to T
+
+    Params:
+        property = value to convert
+        config = instance of the source to use (defaults to Config)
+
+    Returns:
+        property converted to T
+
+*******************************************************************************/
+
+protected void readFields ( T, Source )
+                          ( char[] group, T reference, Source config )
+{
+    static if ( is(Source : ConfigParser)) if ( config is null )
+    {
+        config = Config;
+    }
+
+    assert ( config !is null, "Source is null :(");
+
+    foreach ( si, field; reference.tupleof )
+    {
+        alias BaseType!(typeof(field)) Type;
+        debug bool found = false;
+
+        static assert ( IsSupported!(Type),
+                        "ClassFiller.readFields: Type "
+                        ~ Type.stringof ~ " is not supported" );
+
+        auto key = reference.tupleof[si].stringof["reference.".length .. $];
+
+        if ( config.exists(group, key) )
+        {
+            static if ( is(Type U : U[]) && !isStringType!(Type))
+            {
+                reference.tupleof[si] = config.getListStrict!(DynamicArrayType!(U))(group, key);
+            }
+            else
+            {
+                reference.tupleof[si] = config.getStrict!(DynamicArrayType!(Type))(group, key);
+            }
+
+
+            debug (Config) Trace.formatln("Config Debug: {}.{} = {}", group,
+                             reference.tupleof[si]
+                            .stringof["reference.".length  .. $],
+                            Value(reference.tupleof[si]));
+
+            static if ( !is (Type == typeof(field)) )
+            {
+                reference.tupleof[si].check(true, group, key);
+            }
+        }
+        else
+        {
+            debug (Config) Trace.formatln("Config Debug: {}.{} = {} (builtin)", group,
+                             reference.tupleof[si]
+                            .stringof["reference.".length  .. $],
+                            Value(reference.tupleof[si]));
+
+            static if ( !is (Type == typeof(field)) )
+            {
+                reference.tupleof[si].check(false, group, key);
+            }
+        }
+    }
+
+    // Recurse into super any classes
+    static if ( is(T S == super ) )
+    {
+        foreach ( G; S ) static if ( !is(G == Object) )
+        {
+            readFields!(G)(group, cast(G) reference, config);
+        }
+    }
+}
+
+
 debug ( OceanUnitTest )
 {
     private import ocean.util.Unittest;
@@ -1007,85 +1088,5 @@ string_arr = Hello
         readFields("SectionArray", array_values, config_parser);
         assert(array_values.string_arr == ["Hello", "World"],
                                        "classFiller: Wrong string-array parse");
-    }
-}
-
-/*******************************************************************************
-
-    Converts property to T
-
-    Params:
-        property = value to convert
-        config = instance of the source to use (defaults to Config)
-
-    Returns:
-        property converted to T
-
-*******************************************************************************/
-
-protected void readFields ( T, Source )
-                          ( char[] group, T reference, Source config )
-{
-    static if ( is(Source : ConfigParser)) if ( config is null )
-    {
-        config = Config;
-    }
-
-    assert ( config !is null, "Source is null :(");
-
-    foreach ( si, field; reference.tupleof )
-    {
-        alias BaseType!(typeof(field)) Type;
-        debug bool found = false;
-
-        static assert ( IsSupported!(Type),
-                        "ClassFiller.readFields: Type "
-                        ~ Type.stringof ~ " is not supported" );
-
-        auto key = reference.tupleof[si].stringof["reference.".length .. $];
-
-        if ( config.exists(group, key) )
-        {
-            static if ( is(Type U : U[]) && is(U V: V[]) )
-            {
-                reference.tupleof[si] = config.getListStrict!(DynamicArrayType!(U))(group, key);
-            }
-            else
-            {
-                reference.tupleof[si] = config.getStrict!(DynamicArrayType!(Type))(group, key);
-            }
-
-
-            debug (Config) Trace.formatln("Config Debug: {}.{} = {}", group,
-                             reference.tupleof[si]
-                            .stringof["reference.".length  .. $],
-                            Value(reference.tupleof[si]));
-
-            static if ( !is (Type == typeof(field)) )
-            {
-                reference.tupleof[si].check(true, group, key);
-            }
-        }
-        else
-        {
-            debug (Config) Trace.formatln("Config Debug: {}.{} = {} (builtin)", group,
-                             reference.tupleof[si]
-                            .stringof["reference.".length  .. $],
-                            Value(reference.tupleof[si]));
-
-            static if ( !is (Type == typeof(field)) )
-            {
-                reference.tupleof[si].check(false, group, key);
-            }
-        }
-    }
-
-    // Recurse into super any classes
-    static if ( is(T S == super ) )
-    {
-        foreach ( G; S ) static if ( !is(G == Object) )
-        {
-            readFields!(G)(group, cast(G) reference, config);
-        }
     }
 }
