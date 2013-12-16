@@ -146,6 +146,7 @@ private import ocean.util.log.Trace;
 
 private import tango.core.Traits : DynamicArrayType;
 
+debug ( OceanUnitTest ) private import ocean.text.convert.Layout;
 
 /*******************************************************************************
 
@@ -960,6 +961,52 @@ debug ( OceanUnitTest )
         {
             t.assertLog(name == "valid", __LINE__);
         }
+
+
+        const config_text =
+`
+[Section]
+string = I'm a string
+integer = -300
+pi = 3.14
+
+[SectionArray]
+string_arr = Hello
+             World
+`;
+
+        auto config_parser = new ConfigParser();
+
+        class SingleValues
+        {
+            char[] string;
+            int integer;
+            float pi;
+            uint default_value = 99;
+        }
+
+        auto single_values = new SingleValues();
+        config_parser.parseString(config_text);
+
+        readFields("Section", single_values, config_parser);
+        assert(single_values.string == "I'm a string",
+                                             "classFiller: Wrong string parse");
+        assert(single_values.integer == -300, "classFiller: Wrong int parse");
+        assert(single_values.pi == cast(float)3.14,
+                                              "classFiller: Wrong float parse");
+        assert(single_values.default_value == 99,
+                                      "classFiller: wrong default value parse");
+
+
+        class ArrayValues
+        {
+            char[][] string_arr;
+        }
+
+        auto array_values = new ArrayValues();
+        readFields("SectionArray", array_values, config_parser);
+        assert(array_values.string_arr == ["Hello", "World"],
+                                       "classFiller: Wrong string-array parse");
     }
 }
 
