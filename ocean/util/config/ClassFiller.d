@@ -695,6 +695,10 @@ public template IsSupported ( T )
         {
             const IsSupported = true;
         }
+        else static if ( isIntegerType!(U) || isRealType!(U) )
+        {
+            const IsSupported = true;
+        }
         else
         {
             const IsSupported = false;
@@ -1060,6 +1064,19 @@ pi = 3.14
 [SectionArray]
 string_arr = Hello
              World
+int_arr = 30
+          40
+          -60
+          1111111111
+          0x10
+ulong_arr = 0
+            50
+            18446744073709551615
+            0xa123bcd
+float_arr = 10.2
+            -25.3
+            90
+            0.000000001
 `;
 
         auto config_parser = new ConfigParser();
@@ -1088,11 +1105,22 @@ string_arr = Hello
         class ArrayValues
         {
             char[][] string_arr;
+            int[] int_arr;
+            ulong[] ulong_arr;
+            float[] float_arr;
         }
 
         auto array_values = new ArrayValues();
         readFields("SectionArray", array_values, config_parser);
         assert(array_values.string_arr == ["Hello", "World"],
                                        "classFiller: Wrong string-array parse");
+        assert(array_values.int_arr == [30, 40, -60, 1111111111, 0x10],
+                                          "classFiller: Wrong int-array parse");
+        ulong[] ulong_array = [0, 50, ulong.max, 0xa123bcd];
+        assert(array_values.ulong_arr == ulong_array,
+                                        "classFiller: Wrong ulong-array parse");
+        float[] float_array = [10.2, -25.3, 90, 0.000000001];
+        assert(array_values.float_arr == float_array,
+                                        "classFiller: Wrong float-array parse");
     }
 }

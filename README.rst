@@ -61,6 +61,11 @@ New Features
   between calls to ``getCpuUsage()`` to support applications that refresh the
   app status window for a period more or less than 1000ms (defaults to 1000ms).
 
+``ocean.util.config.ClassFiller``
+  Add the ability to parse list of numbers in config file. The feature can
+  be used through providing a number array (e.g ``float[] floats_list``) in
+  the config class passed to the ``ClassFiller()``.
+
 ``ocean.util.config.ConfigParser``
   Fixed a bug in ``getListStrict()`` where the method could only parse
   ``char[][]`` arrays. The method can now parse other supported multi-line
