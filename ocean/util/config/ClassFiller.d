@@ -144,7 +144,8 @@ private import ocean.util.config.ConfigParser;
 
 private import ocean.util.log.Trace;
 
-private import tango.core.Traits : DynamicArrayType;
+private import tango.core.Traits : DynamicArrayType, isStringType,
+                                   isIntegerType, isRealType;
 
 debug ( OceanUnitTest ) private import ocean.text.convert.Layout;
 
@@ -680,19 +681,24 @@ public template IsSupported ( T )
     {
         const IsSupported = true;
     }
-    else static if ( is(T : long) )
+    else static if ( isIntegerType!(T) || isRealType!(T) )
     {
         const IsSupported = true;
     }
-    else static if ( is(T : real) )
+    else static if ( is(T U : U[])) // If it is an array
     {
-        const IsSupported = true;
-    }
-    else static if ( is(T U : U[]) &&
-                   ( is(U : char)   || is(U : wchar)   || is(U:dchar)  ||
-                     is(U : char[]) || is(U : wchar[]) || is(U:dchar[]) ) )
-    {
-        const IsSupported = true;
+        static if ( isStringType!(T) ) // If it is a string
+        {
+            const IsSupported = true;
+        }
+        else static if ( isStringType!(U) ) // If it is string of strings
+        {
+            const IsSupported = true;
+        }
+        else
+        {
+            const IsSupported = false;
+        }
     }
     else
     {
