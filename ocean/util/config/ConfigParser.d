@@ -717,11 +717,11 @@ class ConfigParser
 
     public T[] getListStrict ( T = char[] ) ( char[] category, char[] key )
     {
-        auto value = this.getStrict!(T)(category, key);
+        auto value = this.getStrict!(char[])(category, key);
         T[] r;
-        foreach (elem; delimit!(typeof(T[0]))(value, "\n"))
+        foreach (elem; delimit(value, "\n"))
         {
-            r ~= elem;
+            r ~= This.conv!(T)(elem);
         }
         return r;
     }
@@ -887,8 +887,23 @@ b
 c
 // and the ultimative comment
 d
- `
- ;
+int_arr = 30
+          40
+          -60
+          1111111111
+          0x10
+ulong_arr = 0
+            50
+            18446744073709551615
+            0xa123bcd
+float_arr = 10.2
+            -25.3
+            90
+            0.000000001
+bool_arr = true
+           false
+`;
+
 
         Config.parseString(str);
 
@@ -899,6 +914,25 @@ d
 
         assertLog(l[0] == "a" && l[1] == "b" && l[2] == "c" && l[3] == "d",
                 "Multiline value was not parsed as expected", __LINE__);
+
+        scope ints = Config.getListStrict!(int)("Section1", "int_arr");
+        assertLog(ints == [30, 40, -60, 1111111111, 0x10], "Wrong multi-line "
+                                                 "int-array parsing", __LINE__);
+
+        scope ulong_arr = Config.getListStrict!(ulong)("Section1", "ulong_arr");
+        ulong[] ulong_array = [0, 50, ulong.max, 0xa123bcd];
+        assertLog(ulong_arr == ulong_array, "Wrong multi-line ulong-array "
+                                            "parsing", __LINE__);
+
+        scope float_arr = Config.getListStrict!(float)("Section1", "float_arr");
+        float[] float_array = [10.2, -25.3, 90, 0.000000001];
+        assertLog(float_arr == float_array, "Wrong multi-line float-array "
+                                            "parsing", __LINE__);
+
+        scope bool_arr = Config.getListStrict!(bool)("Section1", "bool_arr");
+        bool[] bool_array = [true, false];
+        assertLog(bool_arr == bool_array, "Wrong multi-line bool-array "
+                                          "parsing", __LINE__);
 
         Config.resetParser();
     }

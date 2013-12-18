@@ -61,6 +61,11 @@ New Features
   between calls to ``getCpuUsage()`` to support applications that refresh the
   app status window for a period more or less than 1000ms (defaults to 1000ms).
 
+``ocean.util.config.ConfigParser``
+  Fixed a bug in ``getListStrict()`` where the method could only parse
+  ``char[][]`` arrays. The method can now parse other supported multi-line
+  values (e.g ``float[]``, ``ulong[]`` and ``bool[]``).
+
 
 v1.9 (2013-11-15)
 -----------------
