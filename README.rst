@@ -22,6 +22,10 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+
+v1.10 (2013-12-20)
+------------------
+
 :Dependency: tango v1.0.0
 
 New Features
