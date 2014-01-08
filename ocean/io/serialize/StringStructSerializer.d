@@ -124,7 +124,7 @@ public class StringStructSerializer ( Char )
     {
         this.fp_format = "{}{} {} : {:.";
         Layout!(char).print(this.fp_format, "{}", fp_dec_to_display);
-        this.fp_format ~= "}/n";
+        this.fp_format ~= "}\n";
     }
 
 
