@@ -22,6 +22,13 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+New Features
+^^^^^^^^^^^^
+
+``ocean.text.xml.Xslt``
+  A new function `suppressXsltStderrOutput` is added to prevent XSLT parsing
+  errors from appearing on the console.
+
 
 v1.10 (2013-12-20)
 ------------------

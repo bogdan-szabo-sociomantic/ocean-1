@@ -4,7 +4,7 @@
 
     version:        November 2010: Initial release
 
-    authors:        Gavin Norman
+    authors:        Gavin Norman, Don Clugston
 
     D binding for C functions & structures in libxml2.
 
@@ -23,6 +23,8 @@ module ocean.text.xml.c.LibXml2;
 private import ocean.core.Array;
 
 private import tango.stdc.string;
+
+private import tango.stdc.stdarg;
 
 
 
@@ -156,6 +158,37 @@ extern ( C )
     ***************************************************************************/
 
     xmlErrorPtr xmlGetLastError ( );
+
+    /***************************************************************************
+
+        Signature of the function to use when there is an error and no
+        parsing or validity context available
+
+        Params:
+            ctx = a parsing context
+            msg = the message
+            ... = the extra arguments of the varags to format the message
+
+    ***************************************************************************/
+
+    public alias void  function ( void * ctx, char * msg, ... ) xmlGenericErrorFuncPtr;
+
+    /***************************************************************************
+
+        Reset the handler and the error context for out of context error messages.
+
+        The provided handler will be called for subsequent error
+        messages while not parsing or validating. The handler will recieve ctx
+        as the first argument.
+
+        Params:
+            ctx =  the new error handling context. For the default handler,
+                   this is the FILE * to print error messages to.
+            handler = the new handler, or null to use the default handler
+
+    ***************************************************************************/
+
+    void  xmlSetGenericErrorFunc ( void *ctx, xmlGenericErrorFuncPtr handler );
 }
 
 

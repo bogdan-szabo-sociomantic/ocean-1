@@ -4,7 +4,7 @@
 
     version:        November 2010: Initial release
 
-    authors:        Gavin Norman
+    authors:        Gavin Norman, Don Clugston
 
     Xslt (Extensible Stylesheet Language Transformations) - enables
     transformation of xml documents into other formats (including differently
@@ -37,6 +37,8 @@ private import ocean.text.xml.c.LibXml2,
 
 private import tango.stdc.stdio,
                tango.stdc.stdlib;
+
+private import tango.stdc.stdarg;
 
 private import tango.core.Exception;
 
@@ -310,6 +312,50 @@ public class XsltParameters
     }
 }
 
+/***************************************************************************
+
+    Handler for Xml errors, which does nothing
+
+    The default libxml2 error hander prints the error messages to stderr,
+    which is normally undesirable.
+
+    This alternative handler simply returns without generating output.
+
+    Note that the default handler is completely redundant. The error message
+    which would be written to stderr is present in the exceptions thrown by
+    this library. (Effectively, the default handler calls xmlGetLastError()
+    and writes the result to stderr).
+
+    Params:
+        ctx = context supplied by libxml2. Ignored.
+        msg = message supplied by libxml2. Ignored.
+
+***************************************************************************/
+
+extern ( C )
+{
+    private void  silentXmlErrorHandler ( void * ctx, char * msg, ... )
+    {
+
+    }
+}
+
+
+/***************************************************************************
+
+    Prevent XSLT errors from being displayed to the console
+
+    The default libxml2 error hander prints the error messages to stderr,
+    which is normally undesirable.
+
+    This function simply suppresses the error output.
+
+***************************************************************************/
+
+public void suppressXsltStderrOutput ( )
+{
+    xmlSetGenericErrorFunc(null, &silentXmlErrorHandler);
+}
 
 
 /*******************************************************************************
@@ -465,7 +511,6 @@ public class XsltProcessor
             this.xml_parser_initialised = true;
         }
     }
-
 
     /***************************************************************************
 
