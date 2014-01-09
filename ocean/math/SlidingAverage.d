@@ -425,7 +425,7 @@ public class SlidingAverageTime ( T ) : SlidingAverage!(T)
 
     public T last ( )
     {
-        return this.window[this.index] * cast(T) this.resolution;
+        return super.last() * cast(T) this.resolution;
     }
 
 
