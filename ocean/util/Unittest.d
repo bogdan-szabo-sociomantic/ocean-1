@@ -331,6 +331,26 @@ scope class Unittest
 
     /***************************************************************************
 
+        Similar to built-in assert, stops the test case early by throwing
+        exception. This overload allows for test checks with line but no message,
+        which is useful when doing lot of similar checks in cluster.
+
+        Params:
+            ok = boolean expression to check
+            line = line of origin
+
+        Throws:
+            TestException if !ok
+
+    ***************************************************************************/
+
+    public void enforce (T) ( T ok, size_t line )
+    {
+        this.enforce(ok, "", line);
+    }
+
+    /***************************************************************************
+
         Short form for 'enforce relation'. Similar to `enforce` but takes
         a comparison operator as template parameter string and both operands
         as separate parameters. Upon a failure detailed error message is
