@@ -816,7 +816,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
 
     ***************************************************************************/
 
-    private CacheItem* getItem ( size_t index )
+    protected CacheItem* getItem ( size_t index )
     {
         return (index < this.length)? &this.items[index] : null;
     }

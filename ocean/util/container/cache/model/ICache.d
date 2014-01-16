@@ -65,7 +65,7 @@ abstract class ICache : ICacheInfo
 
     ***************************************************************************/
     
-    private const TimeToIndex time_to_index;
+    protected const TimeToIndex time_to_index;
 
 
     /***************************************************************************
@@ -75,7 +75,7 @@ abstract class ICache : ICacheInfo
 
     ***************************************************************************/
     
-    private const KeyToNode key_to_node;
+    protected const KeyToNode key_to_node;
 
 
     /***************************************************************************
