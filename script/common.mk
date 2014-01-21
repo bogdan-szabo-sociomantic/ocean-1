@@ -9,7 +9,7 @@
 
 ### Global settings ###
 
-SHELL := /bin/bash
+SHELL ?= /bin/bash
 
 ### User Setting Variable Defaults ###
 
