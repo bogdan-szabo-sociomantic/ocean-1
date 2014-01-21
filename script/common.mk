@@ -10,6 +10,7 @@
 ### Global settings ###
 
 SHELL ?= /bin/bash
+DC ?= dmd
 
 ### User Setting Variable Defaults ###
 
@@ -48,7 +49,7 @@ DEFAULT_FLAGS = \
 		-I${LIB_BASEDIR}/tango/tango/core/rt/compiler/dmd \
 		-m64
 
-XFBUILD_DEFAULT_FLAGS = +c=dmd \
+XFBUILD_DEFAULT_FLAGS = +c=$(DC) \
 		+x=tango \
 		+x=std
 
