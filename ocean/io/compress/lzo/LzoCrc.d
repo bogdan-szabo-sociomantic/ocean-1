@@ -18,7 +18,7 @@ module ocean.io.compress.lzo.LzoCrc;
 
  ******************************************************************************/
 
-private import ocean.io.compress.lzo.c.lzo_crc: lzo_crc32, lzo_crc32_init;
+private import ocean.io.compress.lzo.c.lzoconf: lzo_crc32, lzo_crc32_init;
 
 /******************************************************************************
 

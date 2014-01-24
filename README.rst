@@ -22,6 +22,18 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
+
+``ocean.io.compress.lzo.c``
+  Minilzo C sources files has been removed and the bare C bindings were adapted
+  to match the full liblzo2 organization (this only affects you if you use the
+  bare C bindings, nothing changed in the higher level D bindings).
+
+  Users are now expected to have the distribution's ``liblzo2-2`` package
+  installed for running applications and the ``liblzo2-dev`` package to compile
+  them.
+
 New Features
 ^^^^^^^^^^^^
 

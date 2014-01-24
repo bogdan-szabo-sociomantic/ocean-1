@@ -64,8 +64,7 @@ XFBUILD_DEFAULT_FLAGS = +c=$(DC) \
 		+x=tango \
 		+x=std
 
-OCEAN_LDFLAGS = -L-lminilzo \
-		-L-ldl \
+OCEAN_LDFLAGS = -L-ldl \
 		-L-lebtree \
 		-L-ldrizzle
 
