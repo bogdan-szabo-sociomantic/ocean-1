@@ -10,7 +10,12 @@
 ### Global settings ###
 
 SHELL ?= /bin/bash
-DC ?= dmd
+
+ifeq ($(shell which dmd1), )
+	DC ?= dmd
+else
+	DC ?= dmd1
+endif
 
 ### User Setting Variable Defaults ###
 
