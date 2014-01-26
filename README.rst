@@ -22,6 +22,13 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+New Features
+^^^^^^^^^^^^
+
+``script/common.mk``
+  New target `unittest` provides easy way to run all unit tests for projects on
+  machines that have rdmd installed. Just including `common.mk` is enough to add
+  it to project.
 
 v1.11 (2014-01-24)
 ------------------
