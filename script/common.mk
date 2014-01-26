@@ -51,7 +51,6 @@ RELEASE_FLAGS = -release \
 DEFAULT_FLAGS = \
 		-version=CDGC \
 		-version=WithDateTime \
-		-I${LIB_BASEDIR}/tango/tango/core/rt/compiler/dmd \
 		-m64
 
 XFBUILD_DEFAULT_FLAGS = +c=$(DC) \
