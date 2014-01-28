@@ -434,12 +434,6 @@ class ConfigParser
             bool hash_comment      = this.value[0] == '#';
             bool semicolon_comment = this.value[0] == ';';
 
-            debug if ( hash_comment )
-            {
-                Trace.formatln("Warning: Line '{}' will be interpreted as "
-                               "comment!", this.value);
-            }
-
             if ( !slash_comment && !semicolon_comment && !hash_comment ) // ignore comments
             {
                 int pos = locate(this.value, '['); // category present in line?
