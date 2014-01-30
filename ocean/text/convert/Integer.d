@@ -407,25 +407,25 @@ unittest
 
     // basic functionality
     toInt("1", i); assert (i == 1);
-    toUint("1", ui); assert (i == 1);
+    toUint("1", ui); assert (ui == 1);
     toLong("1", l); assert (l == 1);
     toUlong("1", ul); assert (ul == 1);
 
     // basic functionality with wide chars
     toInt("1"w, i); assert (i == 1);
-    toUint("1"w, ui); assert (i == 1);
+    toUint("1"w, ui); assert (ui == 1);
     toLong("1"w, l); assert (l == 1);
     toUlong("1"w, ul); assert (ul == 1);
 
     // basic functionality with double chars
     toInt("1"d, i); assert (i == 1);
-    toUint("1"d, ui); assert (i == 1);
+    toUint("1"d, ui); assert (ui == 1);
     toLong("1"d, l); assert (l == 1);
     toUlong("1"d, ul); assert (ul == 1);
 
     // basic signed functionality
     toInt("+1", i); assert (i == 1);
-    toUint("+1", ui); assert (i == 1);
+    toUint("+1", ui); assert (ui == 1);
     toLong("+1", l); assert (l == 1);
     toUlong("+1", ul); assert (ul == 1);
 
@@ -436,7 +436,7 @@ unittest
 
     // basic functionality + radix
     toInt("1", i, 10); assert (i == 1);
-    toUint("1", ui, 10); assert (i == 1);
+    toUint("1", ui, 10); assert (ui == 1);
     toLong("1", l, 10); assert (l == 1);
     toUlong("1", ul, 10); assert (ul == 1);
 
