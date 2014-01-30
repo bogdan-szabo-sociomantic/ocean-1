@@ -406,39 +406,39 @@ unittest
     ulong ul;
 
     // basic functionality
-    toInt("1", i); assert (i == 1);
-    toUint("1", ui); assert (ui == 1);
-    toLong("1", l); assert (l == 1);
-    toUlong("1", ul); assert (ul == 1);
+    toInt("1", i); assert(i == 1);
+    toUint("1", ui); assert(ui == 1);
+    toLong("1", l); assert(l == 1);
+    toUlong("1", ul); assert(ul == 1);
 
     // basic functionality with wide chars
-    toInt("1"w, i); assert (i == 1);
-    toUint("1"w, ui); assert (ui == 1);
-    toLong("1"w, l); assert (l == 1);
-    toUlong("1"w, ul); assert (ul == 1);
+    toInt("1"w, i); assert(i == 1);
+    toUint("1"w, ui); assert(ui == 1);
+    toLong("1"w, l); assert(l == 1);
+    toUlong("1"w, ul); assert(ul == 1);
 
     // basic functionality with double chars
-    toInt("1"d, i); assert (i == 1);
-    toUint("1"d, ui); assert (ui == 1);
-    toLong("1"d, l); assert (l == 1);
-    toUlong("1"d, ul); assert (ul == 1);
+    toInt("1"d, i); assert(i == 1);
+    toUint("1"d, ui); assert(ui == 1);
+    toLong("1"d, l); assert(l == 1);
+    toUlong("1"d, ul); assert(ul == 1);
 
     // basic signed functionality
-    toInt("+1", i); assert (i == 1);
-    toUint("+1", ui); assert (ui == 1);
-    toLong("+1", l); assert (l == 1);
-    toUlong("+1", ul); assert (ul == 1);
+    toInt("+1", i); assert(i == 1);
+    toUint("+1", ui); assert(ui == 1);
+    toLong("+1", l); assert(l == 1);
+    toUlong("+1", ul); assert(ul == 1);
 
-    toInt("-1", i); assert (i == -1);
-    assert(toUint("-1", ui) == false);
-    toLong("-1", l); assert (l == -1);
-    assert(toUlong("-1", ul) == false);
+    toInt("-1", i); assert(i == -1);
+    assert(!toUint("-1", ui));
+    toLong("-1", l); assert(l == -1);
+    assert(!toUlong("-1", ul));
 
     // basic functionality + radix
-    toInt("1", i, 10); assert (i == 1);
-    toUint("1", ui, 10); assert (ui == 1);
-    toLong("1", l, 10); assert (l == 1);
-    toUlong("1", ul, 10); assert (ul == 1);
+    toInt("1", i, 10); assert(i == 1);
+    toUint("1", ui, 10); assert(ui == 1);
+    toLong("1", l, 10); assert(l == 1);
+    toUlong("1", ul, 10); assert(ul == 1);
 
     // numerical limits
     toInt("-2147483648", i); assert(i == int.min);
@@ -449,16 +449,16 @@ unittest
     toUlong("18446744073709551615", ul); assert(ul == ulong.max);
 
     // beyond numerical limits
-    assert(toInt("-2147483649", i) == false);
-    assert(toInt("2147483648", i) == false);
-    assert(toUint("4294967296", ui) == false);
-    assert(toLong("-9223372036854775809", l) == false);
-    assert(toLong("9223372036854775808", l) == false);
-    assert(toUlong("18446744073709551616", ul) == false);
+    assert(!toInt("-2147483649", i));
+    assert(!toInt("2147483648", i));
+    assert(!toUint("4294967296", ui));
+    assert(!toLong("-9223372036854775809", l));
+    assert(!toLong("9223372036854775808", l));
+    assert(!toUlong("18446744073709551616", ul));
 
-    assert(toLong("-0x12345678123456789", l) == false);
-    assert(toLong("0x12345678123456789", l) == false);
-    assert(toUlong("0x12345678123456789", ul) == false);
+    assert(!toLong("-0x12345678123456789", l));
+    assert(!toLong("0x12345678123456789", l));
+    assert(!toUlong("0x12345678123456789", ul));
 
     // hex
     toInt("a", i, 16); assert(i == 0xa);
@@ -500,14 +500,14 @@ unittest
     toUlong("0B1010", ul); assert(ul == 0b1010);
 
     // recognise wrong radix prefix
-    assert(toUlong("0x10", ul, 10) == false);
-    assert(toUlong("0b10", ul, 10) == false);
-    assert(toUlong("0o10", ul, 10) == false);
+    assert(!toUlong("0x10", ul, 10));
+    assert(!toUlong("0b10", ul, 10));
+    assert(!toUlong("0o10", ul, 10));
 
     // empty string handling (pasring error)
-    assert(toInt("", i) == false);
-    assert(toUint("", ui) == false);
-    assert(toLong("", l) == false);
-    assert(toUlong("", ul) == false);
+    assert(!toInt("", i));
+    assert(!toUint("", ui));
+    assert(!toLong("", l));
+    assert(!toUlong("", ul));
 }
 
