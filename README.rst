@@ -25,10 +25,16 @@ master
 New Features
 ^^^^^^^^^^^^
 
+``ocean.text.convert.Integer``
+  Add four new integer conversion methods ``toByte``, ``toUbyte``, ``toShort``
+  and ``toUshort``, and update ``toInteger`` to use these conversions.  Integer
+  conversion now supports all built-in integer types.
+
 ``script/common.mk``
   New target `unittest` provides easy way to run all unit tests for projects on
   machines that have rdmd installed. Just including `common.mk` is enough to add
   it to project.
+
 
 v1.11 (2014-01-24)
 ------------------

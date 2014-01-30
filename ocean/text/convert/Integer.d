@@ -21,6 +21,9 @@
 module ocean.text.convert.Integer;
 
 
+import tango.core.Traits;
+
+
 /*******************************************************************************
 
     Parse an integer value from the provided string. The exact type of integer
@@ -33,7 +36,8 @@ module ocean.text.convert.Integer;
 
     Template params:
         C = char type of string
-        T = type of integer to parse (must be int, uint, long or ulong)
+        T = type of integer to parse (must be byte, ubyte, short, ushort,
+            int, uint, long or ulong)
 
     Params:
         digits = string to parse
@@ -47,26 +51,42 @@ module ocean.text.convert.Integer;
 
 public bool toInteger ( C, T ) ( C[] digits, out T value, uint radix = 0 )
 {
-    static if ( is(T == int) )
+    static if (is(T == byte))
+    {
+        return toByte(digits, value, radix);
+    }
+    else static if (is(T == ubyte))
+    {
+        return toUbyte(digits, value, radix);
+    }
+    else static if (is(T == short))
+    {
+        return toShort(digits, value, radix);
+    }
+    else static if (is(T == ushort))
+    {
+        return toUshort(digits, value, radix);
+    }
+    else static if (is(T == int))
     {
         return toInt(digits, value, radix);
     }
-    else static if ( is(T == uint) )
+    else static if (is(T == uint))
     {
         return toUint(digits, value, radix);
     }
-    else static if ( is(T == long) )
+    else static if (is(T == long))
     {
         return toLong(digits, value, radix);
     }
-    else static if ( is(T == ulong) )
+    else static if (is(T == ulong))
     {
         return toUlong(digits, value, radix);
     }
     else
     {
-        static assert(false, "toInteger: T must be one of {int, uint, long, ulong}, not "
-            ~ T.stringof);
+        static assert(false, "toInteger: T must be one of {byte, ubyte, short, "
+                      "ushort, int, uint, long, ulong}, not " ~ T.stringof);
     }
 }
 
@@ -93,21 +113,123 @@ public bool toInteger ( C, T ) ( C[] digits, out T value, uint radix = 0 )
 
 *******************************************************************************/
 
+public bool toByte ( T ) ( T[] digits, out byte value, uint radix = 0 )
+{
+    return toSignedInteger(digits, value, radix);
+}
+
+/// Ditto
+public bool toUbyte ( T ) ( T[] digits, out ubyte value, uint radix = 0 )
+{
+    return toUnsignedInteger(digits, value, radix);
+}
+
+/// Ditto
+public bool toShort ( T ) ( T[] digits, out short value, uint radix = 0 )
+{
+    return toSignedInteger(digits, value, radix);
+}
+
+/// Ditto
+public bool toUshort ( T ) ( T[] digits, out ushort value, uint radix = 0 )
+{
+    return toUnsignedInteger(digits, value, radix);
+}
+
+/// Ditto
 public bool toInt ( T ) ( T[] digits, out int value, uint radix = 0 )
 {
-    long long_value;
-    if ( !toLong(digits, long_value, radix) )
-    {
-        return false;
-    }
+    return toSignedInteger(digits, value, radix);
+}
 
-    if ( long_value > value.max || long_value < value.min )
-    {
-        return false;
-    }
+/// Ditto
+public bool toUint ( T ) ( T[] digits, out uint value, uint radix = 0 )
+{
+    return toUnsignedInteger(digits, value, radix);
+}
 
-    value = long_value;
-    return true;
+/// Ditto
+public bool toLong ( T ) ( T[] digits, out long value, uint radix = 0 )
+{
+    return toSignedInteger(digits, value, radix);
+}
+
+/// Ditto
+public bool toUlong ( T ) ( T[] digits, out ulong value, uint radix = 0 )
+{
+    return toUnsignedInteger(digits, value, radix);
+}
+
+
+/*******************************************************************************
+
+    Parse a signed integer value from the provided string.
+
+    The string is inspected for a sign and an optional radix prefix. A radix may
+    be provided as an argument instead, whereupon it must match the prefix
+    (where present). When radix is set to zero, conversion will default to
+    decimal.
+
+    Template params:
+        T = char type of string
+        I = type of integer to extract
+
+    Params:
+        digits = string to parse
+        value = receives parsed integer
+        radix = specifies which radix to interpret the string as
+
+    Returns:
+        true if parsing succeeded
+
+*******************************************************************************/
+
+private bool toSignedInteger ( T, I ) ( T[] digits, out I value, uint radix = 0 )
+{
+    static assert(isSignedIntegerType!(I), "I must be signed integer type.");
+    static assert(I.max <= long.max, "I cannot be larger than long.");
+
+    static if (I.max < long.max)
+    {
+        long long_value;
+        if ( !toSignedInteger(digits, long_value, radix) )
+        {
+            return false;
+        }
+
+        if ( long_value > value.max || long_value < value.min )
+        {
+            return false;
+        }
+
+        value = long_value;
+        return true;
+    }
+    else
+    {
+        static assert(is(I == long),
+                      "Largest signed integer type should be long.");
+
+        bool negative;
+        uint len;
+        ulong x;
+
+        auto trimmed = trim(digits, negative, radix);
+        convert(digits[trimmed..$], x, len, radix);
+
+        if (len == 0 || trimmed + len < digits.length)
+        {
+            return false;
+        }
+
+        if ((negative && -x < value.min) || (!negative && x > value.max))
+        {
+            return false;
+        }
+
+        value = cast(long)(negative ? -x : x);
+        return true;
+    }
 }
 
 
@@ -122,10 +244,11 @@ public bool toInt ( T ) ( T[] digits, out int value, uint radix = 0 )
 
     Template params:
         T = char type of string
+        U = type of unsigned integer to extract
 
     Params:
         digits = string to parse
-        value = receives parsed integer
+        value = receives parsed unsigned integer
         radix = specifies which radix to interpret the string as
 
     Returns:
@@ -133,112 +256,50 @@ public bool toInt ( T ) ( T[] digits, out int value, uint radix = 0 )
 
 *******************************************************************************/
 
-public bool toUint ( T ) ( T[] digits, out uint value, uint radix = 0 )
+private bool toUnsignedInteger ( T, U ) ( T[] digits, out U value, uint radix = 0 )
 {
-    ulong long_value;
-    if ( !toUlong(digits, long_value, radix) )
+    static assert(isUnsignedIntegerType!(U), "U must be unsigned integer type.");
+
+    static if (U.max < ulong.max)
     {
-        return false;
-    }
+        ulong long_value;
+        if (!toUnsignedInteger(digits, long_value, radix))
+        {
+            return false;
+        }
 
-    if ( long_value > value.max || long_value < value.min )
+        if (long_value > value.max || long_value < value.min)
+        {
+            return false;
+        }
+
+        value = long_value;
+        return true;
+    }
+    else
     {
-        return false;
+        static assert(is(U == ulong),
+                      "Largest unsigned integer type should be ulong.");
+
+        bool negative;
+        uint len;
+        ulong x;
+
+        auto trimmed = trim(digits, negative, radix);
+        if ( negative )
+        {
+            return false;
+        }
+
+        convert(digits[trimmed..$], x, len, radix);
+        if (len == 0 || trimmed + len < digits.length)
+        {
+            return false;
+        }
+
+        value = x;
+        return true;
     }
-
-    value = long_value;
-    return true;
-}
-
-
-/*******************************************************************************
-
-    Parse a long value from the provided string.
-
-    The string is inspected for a sign and an optional radix prefix. A radix may
-    be provided as an argument instead, whereupon it must match the prefix
-    (where present). When radix is set to zero, conversion will default to
-    decimal.
-
-    Template params:
-        T = char type of string
-
-    Params:
-        digits = string to parse
-        value = receives parsed integer
-        radix = specifies which radix to interpret the string as
-
-    Returns:
-        true if parsing succeeded
-
-*******************************************************************************/
-
-public bool toLong ( T ) ( T[] digits, out long value, uint radix = 0 )
-{
-    bool negative;
-    uint len;
-    ulong x;
-
-    auto trimmed = trim(digits, negative, radix);
-    convert(digits[trimmed..$], x, len, radix);
-
-    if ( len == 0 || trimmed + len < digits.length )
-    {
-        return false;
-    }
-
-    if ( (negative && -x < value.min) || (!negative && x > value.max) )
-    {
-        return false;
-    }
-
-    value = cast(long)(negative ? -x : x);
-    return true;
-}
-
-
-/*******************************************************************************
-
-    Parse an unsigned long value from the provided string.
-
-    The string is inspected for a sign and an optional radix prefix. A radix may
-    be provided as an argument instead, whereupon it must match the prefix
-    (where present). When radix is set to zero, conversion will default to
-    decimal.
-
-    Template params:
-        T = char type of string
-
-    Params:
-        digits = string to parse
-        value = receives parsed integer
-        radix = specifies which radix to interpret the string as
-
-    Returns:
-        true if parsing succeeded
-
-*******************************************************************************/
-
-public bool toUlong ( T ) ( T[] digits, out ulong value, uint radix = 0 )
-{
-    bool negative;
-    uint len;
-    ulong x;
-
-    auto trimmed = trim(digits, negative, radix);
-    if ( negative )
-    {
-        return false;
-    }
-
-    convert(digits[trimmed..$], x, len, radix);
-    if ( len == 0 || trimmed + len < digits.length )
-    {
-        return false;
-    }
-
-    value = x;
-    return true;
 }
 
 
@@ -400,47 +461,81 @@ private uint trim ( T ) ( T[] digits, ref bool negative, ref uint radix )
 
 unittest
 {
+    byte b;
+    ubyte ub;
+    short s;
+    ushort us;
     int i;
     uint ui;
     long l;
     ulong ul;
 
     // basic functionality
+    toByte("1", b); assert(b == 1);
+    toUbyte("1", ub); assert(ub == 1);
+    toShort("1", s); assert(s == 1);
+    toUshort("1", us); assert(us == 1);
     toInt("1", i); assert(i == 1);
     toUint("1", ui); assert(ui == 1);
     toLong("1", l); assert(l == 1);
     toUlong("1", ul); assert(ul == 1);
 
     // basic functionality with wide chars
+    toByte("1"w, b); assert(b == 1);
+    toUbyte("1"w, ub); assert(ub == 1);
+    toShort("1"w, s); assert(s == 1);
+    toUshort("1"w, us); assert(us == 1);
     toInt("1"w, i); assert(i == 1);
     toUint("1"w, ui); assert(ui == 1);
     toLong("1"w, l); assert(l == 1);
     toUlong("1"w, ul); assert(ul == 1);
 
     // basic functionality with double chars
+    toByte("1"d, b); assert(b == 1);
+    toUbyte("1"d, ub); assert(ub == 1);
+    toShort("1"d, s); assert(s == 1);
+    toUshort("1"d, us); assert(us == 1);
     toInt("1"d, i); assert(i == 1);
     toUint("1"d, ui); assert(ui == 1);
     toLong("1"d, l); assert(l == 1);
     toUlong("1"d, ul); assert(ul == 1);
 
     // basic signed functionality
+    toByte("+1", b); assert(b == 1);
+    toUbyte("+1", ub); assert(ub == 1);
+    toShort("+1", s); assert(s == 1);
+    toUshort("+1", us); assert(us == 1);
     toInt("+1", i); assert(i == 1);
     toUint("+1", ui); assert(ui == 1);
     toLong("+1", l); assert(l == 1);
     toUlong("+1", ul); assert(ul == 1);
 
+    toByte("-1", b); assert(b == -1);
+    assert(!toUbyte("-1", ub));
+    toShort("-1", s); assert(s == -1);
+    assert(!toUshort("-1", us));
     toInt("-1", i); assert(i == -1);
     assert(!toUint("-1", ui));
     toLong("-1", l); assert(l == -1);
     assert(!toUlong("-1", ul));
 
     // basic functionality + radix
+    toByte("1", b, 10); assert(b == 1);
+    toUbyte("1", ub, 10); assert(ub == 1);
+    toShort("1", s, 10); assert(s == 1);
+    toUshort("1", us, 10); assert(us == 1);
     toInt("1", i, 10); assert(i == 1);
     toUint("1", ui, 10); assert(ui == 1);
     toLong("1", l, 10); assert(l == 1);
     toUlong("1", ul, 10); assert(ul == 1);
 
     // numerical limits
+    toByte("-128", b); assert(b == byte.min);
+    toByte("127", b); assert(b == byte.max);
+    toUbyte("255", ub); assert(ub == ubyte.max);
+    toShort("-32768", s); assert(s == short.min);
+    toShort("32767", s); assert(s == short.max);
+    toUshort("65535", us); assert(us == ushort.max);
     toInt("-2147483648", i); assert(i == int.min);
     toInt("2147483647", i); assert(i == int.max);
     toUint("4294967295", ui); assert(ui == uint.max);
@@ -449,6 +544,12 @@ unittest
     toUlong("18446744073709551615", ul); assert(ul == ulong.max);
 
     // beyond numerical limits
+    assert(!toByte("-129", b));
+    assert(!toByte("128", b));
+    assert(!toUbyte("256", ub));
+    assert(!toShort("-32769", s));
+    assert(!toShort("32768", s));
+    assert(!toUshort("65536", us));
     assert(!toInt("-2147483649", i));
     assert(!toInt("2147483648", i));
     assert(!toUint("4294967296", ui));
@@ -510,4 +611,3 @@ unittest
     assert(!toLong("", l));
     assert(!toUlong("", ul));
 }
-
