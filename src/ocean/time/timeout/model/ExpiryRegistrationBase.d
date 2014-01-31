@@ -36,7 +36,7 @@ debug private import tango.io.Stdout;
 
 *******************************************************************************/
 
-private import ocean.db.ebtree.EBTree64;
+private import ocean.util.container.ebtree.EBTree64;
 
 alias EBTree64!() ExpiryTree;
 

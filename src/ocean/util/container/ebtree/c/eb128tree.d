@@ -43,19 +43,14 @@
     by two 64-bit integer values (int + uint for cent, uint + uint for ucent).
     eb128tree.c provides dual-64-bit functions to interchange the 128-bit keys.
 
-    Link with:
-        -Llibebtree.a
-    which needs to be compiled with GCC 4.6 or higher on a target that supports
-    128-bit integers.
-
-    (The library can be found pre-compiled in ocean.db.ebtree.c.lib, or can be
-    built by running 'make' inside ocean.db.ebtree.c.src.)
+    You need to have the library installed and link with -lebtree. A Debian
+    package is provided in Sociomantic repos.
 
  ******************************************************************************/
 
-module ocean.db.ebtree.c.eb128tree;
+module ocean.util.container.ebtree.c.eb128tree;
 
-private import ocean.db.ebtree.c.ebtree: eb_root, eb_node;
+private import ocean.util.container.ebtree.c.ebtree: eb_root, eb_node;
 
 /******************************************************************************
 

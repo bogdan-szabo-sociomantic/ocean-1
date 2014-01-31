@@ -12,7 +12,7 @@
 
 *******************************************************************************/
 
-module ocean.db.ebtree.model.IEBTree;
+module ocean.util.container.ebtree.model.IEBTree;
 
 /******************************************************************************
 
@@ -20,7 +20,7 @@ module ocean.db.ebtree.model.IEBTree;
 
  ******************************************************************************/
 
-private import ocean.db.ebtree.c.ebtree: eb_root;
+private import ocean.util.container.ebtree.c.ebtree: eb_root;
 
 /******************************************************************************/
 

@@ -18,10 +18,10 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-module ocean.db.ebtree.c.ebimtree;
+module ocean.util.container.ebtree.c.ebimtree;
 
-private import ocean.db.ebtree.c.ebtree;
-private import ocean.db.ebtree.c.ebpttree;
+private import ocean.util.container.ebtree.c.ebtree;
+private import ocean.util.container.ebtree.c.ebpttree;
 
 extern (C):
 

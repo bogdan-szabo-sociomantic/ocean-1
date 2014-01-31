@@ -26,17 +26,14 @@
 
     authors:        Gavin Norman, Mathias Baumann, David Eckardt
 
-    Link with:
-        -Llibebtree.a
-
-    (The library can be found pre-compiled in ocean.db.ebtree.c.lib, or can be
-    built by running 'make' inside ocean.db.ebtree.c.src.)
+    You need to have the library installed and link with -lebtree. A Debian
+    package is provided in Sociomantic repos.
 
  ******************************************************************************/
 
-module ocean.db.ebtree.c.eb64tree;
+module ocean.util.container.ebtree.c.eb64tree;
 
-private import ocean.db.ebtree.c.ebtree: eb_root, eb_node;
+private import ocean.util.container.ebtree.c.ebtree: eb_root, eb_node;
 
 /**
  * This structure carries a node, a leaf, and a key. It must start with the

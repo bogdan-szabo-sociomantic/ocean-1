@@ -12,7 +12,7 @@
 
 *******************************************************************************/
 
-module ocean.db.ebtree.nodepool.NodePool;
+module ocean.util.container.ebtree.nodepool.NodePool;
 
 /*******************************************************************************
 

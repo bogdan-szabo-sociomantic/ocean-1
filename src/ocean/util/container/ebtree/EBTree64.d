@@ -11,17 +11,14 @@
     Fast 64-bit value binary tree class based on the ebtree library from
     HAProxy.
 
-    Link with:
-        -Llibebtree.a
-
-    (The library can be found pre-compiled in ocean.db.ebtree.c.lib, or can be
-    built by running 'make' inside ocean.db.ebtree.c.src.)
+    You need to have the library installed and link with -lebtree. A Debian
+    package is provided in Sociomantic repos.
 
     Usage example:
 
     ---
 
-        import ocean.db.ebtree.EBTree64;
+        import ocean.util.container.ebtree.EBTree64;
 
         // Create a tree
         auto tree = new EBTree64!();
@@ -49,11 +46,9 @@
 
     ---
 
-    TODO: move this whole package out of ocean.db and into ocean.util.container.
-
 *******************************************************************************/
 
-module ocean.db.ebtree.EBTree64;
+module ocean.util.container.ebtree.EBTree64;
 
 /*******************************************************************************
 
@@ -61,14 +56,14 @@ module ocean.db.ebtree.EBTree64;
 
 *******************************************************************************/
 
-private import ocean.db.ebtree.model.IEBTree,
-               ocean.db.ebtree.model.Node,
-               ocean.db.ebtree.model.KeylessMethods,
-               ocean.db.ebtree.model.Iterators;
+private import ocean.util.container.ebtree.model.IEBTree,
+               ocean.util.container.ebtree.model.Node,
+               ocean.util.container.ebtree.model.KeylessMethods,
+               ocean.util.container.ebtree.model.Iterators;
 
-private import ocean.db.ebtree.nodepool.NodePool;
+private import ocean.util.container.ebtree.nodepool.NodePool;
 
-private import ocean.db.ebtree.c.ebtree: eb_node, eb_root;
+private import ocean.util.container.ebtree.c.ebtree: eb_node, eb_root;
 
 /*******************************************************************************
 

@@ -18,9 +18,9 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-module ocean.db.ebtree.c.ebmbtree;
+module ocean.util.container.ebtree.c.ebmbtree;
 
-private import ocean.db.ebtree.c.ebtree;
+private import ocean.util.container.ebtree.c.ebtree;
 
 /* This structure carries a node, a leaf, and a key. It must start with the
  * eb_node so that it can be cast into an eb_node. We could also have put some

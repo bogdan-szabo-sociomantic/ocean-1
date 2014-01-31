@@ -14,7 +14,7 @@
 
 *******************************************************************************/
 
-module ocean.db.ebtree.model.Iterators;
+module ocean.util.container.ebtree.model.Iterators;
 
 /*******************************************************************************
 
@@ -22,7 +22,7 @@ module ocean.db.ebtree.model.Iterators;
 
     Template parameters:
         Node = tree node struct type; expected to be an instance of the Node
-               struct template in ocean.db.ebtree.model.Node.
+               struct template in ocean.util.container.ebtree.model.Node.
 
 *******************************************************************************/
 

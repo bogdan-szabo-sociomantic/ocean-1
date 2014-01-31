@@ -253,7 +253,7 @@
 
  */
 
-module ocean.db.ebtree.c.ebtree;
+module ocean.util.container.ebtree.c.ebtree;
 
 /* Force linking to libzlo2 when using this module. */
 pragma (lib, "ebtree");

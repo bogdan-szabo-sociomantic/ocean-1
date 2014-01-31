@@ -72,7 +72,7 @@ pragma(msg, "ocean.core.Cache is deprecated: use ocean.util.container.Cache inst
 
 private import ocean.core.ArrayMap;
 
-private import ocean.db.ebtree.EBTree128;
+private import ocean.util.container.ebtree.EBTree128;
 
 private import tango.stdc.time: time_t;
 

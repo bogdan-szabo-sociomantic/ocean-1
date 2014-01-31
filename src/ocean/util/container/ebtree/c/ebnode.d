@@ -18,9 +18,9 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-module ocean.db.ebtree.c.ebnode;
+module ocean.util.container.ebtree.c.ebnode;
 
-private import ocean.db.ebtree.c.ebtree;
+private import ocean.util.container.ebtree.c.ebtree;
 
 /*****************************************************************************
 

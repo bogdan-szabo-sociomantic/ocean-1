@@ -20,10 +20,10 @@
 
 /* These functions and macros rely on Multi-Byte nodes */
 
-module ocean.db.ebtree.c.ebistree;
+module ocean.util.container.ebtree.c.ebistree;
 
-private import ocean.db.ebtree.c.ebtree;
-private import ocean.db.ebtree.c.ebpttree;
+private import ocean.util.container.ebtree.c.ebtree;
+private import ocean.util.container.ebtree.c.ebpttree;
 
 extern (C):
 

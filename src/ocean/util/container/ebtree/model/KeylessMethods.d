@@ -13,7 +13,7 @@
 
 *******************************************************************************/
 
-module ocean.db.ebtree.model.KeylessMethods;
+module ocean.util.container.ebtree.model.KeylessMethods;
 
 /*******************************************************************************
 
@@ -21,7 +21,7 @@ module ocean.db.ebtree.model.KeylessMethods;
 
     Template parameters:
         Node = tree node struct type; expected to be an instance of the Node
-               struct template in ocean.db.ebtree.model.Node.
+               struct template in ocean.util.container.ebtree.model.Node.
 
         eb_first = eb_node* ( eb_root* root ); returns the first node
         eb_last  = eb_node* ( eb_root* root ); returns the last node

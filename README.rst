@@ -36,7 +36,8 @@ Migration Instructions
   installed for running applications and the ``liblzo2-dev`` package to compile
   them.
 
-``ocean.db.ebtree.c``
+``ocean.db.ebtree``
+  The whole package was moved to ``ocean.util.container.ebtree``. Also the
   ebtree C sources files has been removed, users are now expected to have the
   the external ``libebtree6`` library installed. This is a custom version of
   the ebtree library that can be found here:
