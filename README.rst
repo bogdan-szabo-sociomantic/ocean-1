@@ -22,6 +22,8 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+:Dependency: tango v1.0.0
+
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -50,8 +52,11 @@ New Features
 ``ocean.core.Enum``
   Added opIndex lookup of names / values.
 
+
 v1.11 (2014-01-24)
 ------------------
+
+:Dependency: tango v1.0.0
 
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
