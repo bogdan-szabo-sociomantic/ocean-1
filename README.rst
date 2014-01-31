@@ -60,6 +60,10 @@ New Features
   New target `unittest` provides easy way to run all unit tests for projects on
   machines that have rdmd installed. Just including `common.mk` is enough to add
   it to project.
+  Also now makefiles shouldn't provide tango as a dependency or feed them to
+  ``mkversion.sh``, as long as they are using Tango v1.0.1 or later. If you are
+  using the latest Tango but you still provide a local Tango instance as
+  dependency, the local version will be used as before.
 
 ``ocean.core.Enum``
   Added opIndex lookup of names / values.

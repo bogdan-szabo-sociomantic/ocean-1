@@ -20,6 +20,7 @@ module @MODULE@;
 
 private import ocean.core.VersionIdentifiers;
 private import ocean.util.app.ext.VersionInfo;
+private import tango.core.Version: getVersionString;
 
 public VersionInfo Version;
 
@@ -37,6 +38,10 @@ static this()
     {
         Version.version_flags ~= version_name;
     });
+    static if (is(typeof(getVersionString)))
+    {
+        Version.libraries["tango"] = getVersionString();
+    }
 @LIBRARIES@
 }
 
