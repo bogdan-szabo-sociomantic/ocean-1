@@ -26,7 +26,7 @@ private import ocean.db.ebtree.c.ebtree;
 private import ocean.db.ebtree.c.ebpttree;
 
 extern (C):
-    
+
 /* Find the first occurence of a zero-terminated string <x> in the tree <root>.
  * It's the caller's reponsibility to use this function only on trees which
  * only contain zero-terminated strings. If none can be found, return NULL.

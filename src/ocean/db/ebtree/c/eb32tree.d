@@ -3,7 +3,7 @@
     Elastic Binary Trees - macros and structures for operations on 32bit nodes.
     Version 6.0
     (C) 2002-2010 - Willy Tarreau <w@1wt.eu>
- 
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -13,17 +13,17 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- 
+
     D language binding:
-    
+
     copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-    
+
     version:        April 2012: Initial release
-    
+
     authors:        Gavin Norman, Mathias Baumann, David Eckardt
 
     Link with:
@@ -48,30 +48,30 @@ struct eb32_node
 {
     eb_node  node; // the tree node, must be at the beginning
     uint     key;
-    
+
     /// Return next node in the tree, skipping duplicates, or NULL if none
-    
+
     typeof (this) next ( )
     {
         return eb32_next(this);
     }
-    
+
     /// Return previous node in the tree, or NULL if none
-    
+
     typeof (this) prev ( )
     {
         return eb32_prev(this);
     }
-    
+
     /// Return next node in the tree, skipping duplicates, or NULL if none
-    
+
     typeof (this) next_unique ( )
     {
         return eb32_next_unique(this);
     }
-    
+
     /// Return previous node in the tree, skipping duplicates, or NULL if none
-    
+
     typeof (this) prev_unique ( )
     {
         return eb32_prev_unique(this);
@@ -79,23 +79,23 @@ struct eb32_node
 }
 
 extern (C):
-    
-/// Return leftmost node in the tree, or NULL if none 
+
+/// Return leftmost node in the tree, or NULL if none
 eb32_node* eb32_first(eb_root* root);
 
-/// Return rightmost node in the tree, or NULL if none 
+/// Return rightmost node in the tree, or NULL if none
 eb32_node* eb32_last(eb_root* root);
 
-/// Return next node in the tree, or NULL if none 
+/// Return next node in the tree, or NULL if none
 eb32_node* eb32_next(eb32_node* eb32);
 
-/// Return previous node in the tree, or NULL if none 
+/// Return previous node in the tree, or NULL if none
 eb32_node* eb32_prev(eb32_node* eb32);
 
-/// Return next node in the tree, skipping duplicates, or NULL if none 
+/// Return next node in the tree, skipping duplicates, or NULL if none
 eb32_node* eb32_next_unique(eb32_node* eb32);
 
-/// Return previous node in the tree, skipping duplicates, or NULL if none 
+/// Return previous node in the tree, skipping duplicates, or NULL if none
 eb32_node* eb32_prev_unique(eb32_node* eb32);
 
 /**

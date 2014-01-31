@@ -275,9 +275,9 @@ struct eb_root
     /* Number of bits per node, and number of leaves per node */
     const BITS          = 1;
     const BRANCHES      = (1 << BITS);
-    
+
     eb_troot_t*[BRANCHES] b; /* left and right branches */
-    
+
     /* Return non-zero if the tree is empty, otherwise zero */
     bool is_empty ( )
     {
@@ -297,13 +297,13 @@ struct eb_node
                 leaf_p;   /* leaf node's parent */
     short       bit;      /* link's bit position. */
     short       pfx;      /* data prefix length, always related to leaf */
-    
+
     /* Return the first leaf in the tree starting at <root>, or NULL if none */
     alias .eb_first first;
 
     /* Return the last leaf in the tree starting at <root>, or NULL if none */
     alias .eb_last last;
-    
+
     /* Return previous leaf node before an existing leaf node, or NULL if none. */
     typeof (this) prev( )
     {

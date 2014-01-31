@@ -24,7 +24,7 @@ private import ocean.db.ebtree.c.ebtree;
 
 /*****************************************************************************
 
-    Superseded by eb32_node, eb64_node and eb128_node. 
+    Superseded by eb32_node, eb64_node and eb128_node.
 
  *****************************************************************************/
 
@@ -39,33 +39,33 @@ struct ebT_node ( T )
 {
     eb_node node; /* the tree node, must be at the beginning */
     T key;
-    
+
     alias typeof (this) This;
-    
+
     static if ( T.sizeof == 4 )
     {
         alias Node32Ptr NodePtr;
         alias int CType;
         alias uint UCType;
-        
+
         /* Return leftmost node in the tree, or NULL if none */
         alias .eb32_first first;
-    
+
         /* Return rightmost node in the tree, or NULL if none */
         alias .eb32_last last;
-        
+
         /*
          * Find the first occurence of a key in the tree <root>. If none can be
          * found, return NULL.
          */
         alias .eb32_lookup clookup;
-    
+
         /*
          * Find the first occurence of a signed key in the tree <root>. If none can
          * be found, return NULL.
          */
         alias .eb32i_lookup clookup;
-    
+
         public alias eb32_node Node;
         private alias eb32_first cgetFirst;
         private alias eb32_last cgetLast;
@@ -76,7 +76,7 @@ struct ebT_node ( T )
         private alias eb32_next_unique cnext_unique;
         private alias eb32_prev_unique cprev_unique;
         private alias eb32_insert cinsert;
-        private alias eb32i_insert ciinsert;  
+        private alias eb32i_insert ciinsert;
         private alias eb32_delete cdelete;
     }
     else static if ( T.sizeof == 8 )
@@ -84,25 +84,25 @@ struct ebT_node ( T )
         alias Node64Ptr NodePtr;
         alias long CType;
         alias ulong UCType;
-        
+
         /* Return leftmost node in the tree, or NULL if none */
         alias .eb64_first first;
-    
+
         /* Return rightmost node in the tree, or NULL if none */
         alias .eb64_last last;
-                
+
         /*
          * Find the first occurence of a key in the tree <root>. If none can be
          * found, return NULL.
          */
         alias .eb64_lookup clookup;
-    
+
         /*
          * Find the first occurence of a signed key in the tree <root>. If none can
          * be found, return NULL.
          */
         alias .eb64i_lookup clookup;
-        
+
         private alias eb64_first cgetFirst;
         private alias eb64_last cgetLast;
         private alias eb64_lookup_le clookupLE;
@@ -112,33 +112,33 @@ struct ebT_node ( T )
         private alias eb64_next_unique cnext_unique;
         private alias eb64_prev_unique cprev_unique;
         private alias eb64_insert cinsert;
-        private alias eb64i_insert ciinsert;    
-        private alias eb64_delete cdelete;    
+        private alias eb64i_insert ciinsert;
+        private alias eb64_delete cdelete;
     }
     else static if ( T.sizeof == 16 )
     {
-        alias Node128Ptr NodePtr;        
-        alias Cent CType;       
+        alias Node128Ptr NodePtr;
+        alias Cent CType;
         alias UCent UCType;
-        
+
         /* Return leftmost node in the tree, or NULL if none */
         alias .eb128_first first;
-    
+
         /* Return rightmost node in the tree, or NULL if none */
         alias .eb128_last last;
-                            
+
         /*
          * Find the first occurence of a key in the tree <root>. If none can be
          * found, return NULL.
          */
         alias .eb128_lookup clookup;
-    
+
         /*
          * Find the first occurence of a signed key in the tree <root>. If none can
          * be found, return NULL.
          */
         alias .eb128i_lookup clookup;
-            
+
         private alias eb128_first cgetFirst;
         private alias eb128_last cgetLast;
         private alias eb128_lookup_le clookupLE;
@@ -148,15 +148,15 @@ struct ebT_node ( T )
         private alias eb128_next_unique cnext_unique;
         private alias eb128_prev_unique cprev_unique;
         private alias eb128_insert cinsert;
-        private alias eb128i_insert ciinsert;       
-        private alias eb128_delete cdelete;  
-    }    
+        private alias eb128i_insert ciinsert;
+        private alias eb128_delete cdelete;
+    }
     else
     {
         public alias bool Node;
         static assert(false, typeof(this).stringof ~ ": internal type must be either a 32-, 64-bit or 128-bit type, not " ~ T.stringof);
-    } 
-    
+    }
+
     /* Return next node in the tree, or NULL if none */
     This next ( )
     {
@@ -197,22 +197,22 @@ struct ebT_node ( T )
     static This lookupGE ( eb_root* root, T key )
     {
         return cast(This) clookupGE(root, *cast(UCType*)&key);
-    }  
+    }
 
     static This getFirst ( eb_root* root )
     {
         return cast(This) cgetFirst(root);
-    }   
+    }
 
     static This getLast ( eb_root* root )
     {
         return cast(This) cgetLast(root);
-    } 
+    }
 
     static This lookup ( eb_root* root, T key )
     {
         return cast(This) clookup(root, *cast(UCType*)&key);
-    }     
+    }
 
     /* Insert eb32_node <new> into subtree starting at node root <root>.
      * Only new->key needs be set with the key. The eb32_node is returned.
@@ -240,7 +240,7 @@ struct ebT_node ( T )
  */
 
 extern (C):
-    
+
 typedef void* Node32Ptr;
 
 /* Return leftmost node in the tree, or NULL if none */
@@ -304,7 +304,7 @@ Node32Ptr eb32i_insert(eb_root* root, Node32Ptr neww);
 
 
 typedef void* Node64Ptr;
-    
+
 /* Return leftmost node in the tree, or NULL if none */
 Node64Ptr eb64_first(eb_root* root);
 
