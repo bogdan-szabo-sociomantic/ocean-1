@@ -66,7 +66,6 @@ XFBUILD_DEFAULT_FLAGS = +c=$(DC) \
 		+x=std
 
 OCEAN_LDFLAGS = -L-ldl \
-		-L-lebtree \
 		-L-ldrizzle
 
 # All sources can be found in ./src folder for applications, but for libraries

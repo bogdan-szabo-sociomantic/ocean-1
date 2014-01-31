@@ -36,8 +36,11 @@ Migration Instructions
   installed for running applications and the ``liblzo2-dev`` package to compile
   them.
 
-Migration Instructions
-^^^^^^^^^^^^^^^^^^^^^^
+``ocean.db.ebtree.c``
+  ebtree C sources files has been removed, users are now expected to have the
+  the external ``libebtree6`` library installed. This is a custom version of
+  the ebtree library that can be found here:
+  https://github.com/sociomantic/ebtree
 
 ``script/common.mk``
 ``script/mkversion.sh``
