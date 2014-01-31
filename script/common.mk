@@ -72,7 +72,7 @@ OCEAN_LDFLAGS = -L-lminilzo \
 # All sources can be found in ./src folder for applications, but for libraries
 # it matches name of library
 
-ifeq ($(shell test -d ./src),)
+ifeq ($(shell test -d ./src; echo $$?),1)
 	TESTED_SOURCE_ROOT = ./$(REPO_NAME)
 else
 	TESTED_SOURCE_ROOT = ./src
