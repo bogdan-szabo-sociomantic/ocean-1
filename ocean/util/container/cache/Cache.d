@@ -32,6 +32,11 @@
     TODO: Extend the cache by making values visible to the GC by default and
     provide GC hiding as an option.
 
+    When a cache element is removed -- explicitly by calling remove() or
+    automatically if the cache is full and a new element is added --, the value
+    of the removed element is kept in the cache in a spare location. If required
+    it is possible to erase the value by overriding Cache.replaceRemovedItem(),
+    see the description of this method for an example.
 
     Cache.createRaw() and Cache.getOrCreateRaw() return a reference to a record
     value in the cache. Cache.getRaw() behaves like Cache.getOrCreateRaw() if
@@ -527,8 +532,9 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
             key = item key
 
         Returns:
-            a reference to the value of the created item. If an old item was
-            replaced, this reference refers to the old value.
+            a reference to the value of the created item. If an existing item
+            was replaced, this reference refers to its current value, otherwise
+            it may refer to the value of a previously removed element.
 
         Out:
             The returned reference is never null; for values of fixed size the
@@ -621,8 +627,9 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
                           false: the item was created
 
         Returns:
-            a reference to the value of the obtained or created item. If an old
-            item was replaced, this reference refers to the old value.
+            a reference to the value of the obtained or created item. If an item
+            was created, the returned reference may refer to the value of a
+            previously removed element.
 
         Out:
             The returned reference is never null; for values of fixed size the
@@ -703,47 +710,63 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
 
     /***************************************************************************
 
-        Copies the cache item with index src to dst, overwriting the previous
-        content of the cache item with index dst.
-        Unlike all other situations where indices are used, src is always valid
-        although it may be (and actually is) equal to length. However, src is
-        still guaranteed to be less than max_length so it is safe to use src for
-        indexing.
+        Called when a cache element is removed, replaces the cache items at
+        index "replaced" with the one at index "replace" by swapping the items.
+
+        Unlike all other situations where indices and are used, "replaced" and
+        "replace" must be always valid, i.e. less than length.
+
+        Note: A subclass may erase removed elements by overriding this method as
+              follows:
+
+        ---
+        protected override hash_t replaceRemovedItem ( size_t replaced,
+                                                       size_t replace )
+        {
+            scope (success) this.items[replace] = this.items[replace].init;
+
+            return (this.items[replaced] = this.items[replace]).key;
+        }
+        ---
 
         Params:
-            dst = destination cache item index, guaranteed to be below length
-            src = source cache item index, guaranteed to be below max_length
+            replaced = index of the cache item that is to be replaced
+            replace  = index of the cache item that will replace the replaced
+                       item
 
         Returns:
-            the key of the copied cache item.
+            the key of the cache item that was at index "replace" before and is
+            at index "replaced" now.
+
+        In:
+            "replaced" and "replace" must be different and be valid cache item
+            indices, i.e. less than this.length.
+
+        Out:
+            The returned key must be the key of this.items[replaced].
 
     ***************************************************************************/
 
-    protected hash_t copyLast ( size_t dst, size_t src )
+    protected hash_t replaceRemovedItem ( size_t replaced, size_t replace )
     in
     {
-        assert (src < this.max_length);
-        assert (dst < this.length);
+        assert(replaced != replace);
+
+        size_t length = this.length;
+
+        assert(replaced < length);
+        assert(replace < length);
+    }
+    out (key)
+    {
+        assert(key == this.items[replaced].key);
     }
     body
     {
-        /*
-         * src_item: last item in elements to be copied to the item to
-         *           remove.
-         */
+        CacheItem tmp       = this.items[replace];
+        this.items[replace] = this.items[replaced];
 
-        CacheItem src_item = this.items[src];
-
-        /*
-         * Copy the last item to the item to remove. dst_node.index
-         * is the index of the element to remove in this.items.
-         */
-
-        with (this.items[dst])
-        {
-            setValue(src_item.value);
-            return key = src_item.key;
-        }
+        return (this.items[replaced] = tmp).key;
     }
 
     /***************************************************************************

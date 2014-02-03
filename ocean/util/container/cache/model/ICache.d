@@ -516,7 +516,7 @@ abstract class ICache : ICacheInfo
 
         if ( index != this.insert )
         {
-            hash_t src_key = this.copyLast(index, this.insert);
+            hash_t src_key = this.replaceRemovedItem(index, this.insert);
 
             /*
              * Obtain the time-to-mapping entry for the copied cache item.
@@ -558,21 +558,27 @@ abstract class ICache : ICacheInfo
 
     /***************************************************************************
 
-        Copies the cache item with index src to dst, overwriting the previous
-        content of the cache item with index dst.
-        Unlike all other situations where indices are used, src is always valid
-        although it may be (and actually is) equal to length. However, src is
-        still guaranteed to be less than max_length so it is safe to use src for
-        indexing.
+        Called when a cache element is removed, replaces the cache items at
+        index "replaced"" with the one at index "replace".
+
+        The "replace" and "replaced" indices are guaranteed to be different and
+        valid cache item indices, i.e. less than this.length.
+
+        When this method has returned, the cache item at index "replace" won't
+        be used until a new cache element is added; a subclass is free to do
+        with it as it pleases but should be aware that it will be reused later
+        on.
 
         Params:
-            dst = destination cache item index, guaranteed to be below length
-            src = source cache item index, guaranteed to be below max_length
+            replaced = index of the cache item that is to be replaced
+            replace  = index of the cache item that will replace the replaced
+                       item
 
         Returns:
-            the key of the copied cache item.
+            the key of the cache item that was at index "replace"" before and is
+            at index "replaced" now.
 
     ***************************************************************************/
 
-    abstract protected hash_t copyLast ( size_t dst, size_t src );
+    protected hash_t replaceRemovedItem ( size_t replaced, size_t replace );
 }
