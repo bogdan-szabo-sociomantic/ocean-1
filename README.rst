@@ -39,6 +39,14 @@ New Features
 v1.11 (2014-01-24)
 ------------------
 
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
+
+``ocean.sys.Epoll``
+  Dependency on ISelectClient was removed. Convenience overload for `ctl` method
+  that accepted ISelectClient argument was removed. Use other overloads, passing
+  ISelectClient members as arguments explicitly.
+
 New Features
 ^^^^^^^^^^^^
 

@@ -20,8 +20,6 @@ module ocean.sys.Epoll;
 
 private import tango.stdc.posix.unistd: close;
 
-private import ocean.io.select.model.ISelectClient;
-
 /*****************************************************************************
 
     Struct bundling the event to register a file descriptor for with an
@@ -672,30 +670,6 @@ struct Epoll
         event.data.obj = obj;
 
         return epoll_ctl(this.fd, op, fd, &event);
-    }
-
-    /**************************************************************************
-
-        Calls epoll_ctl() using the current epoll file descriptor to modify the
-        registration of client.conduit.fileHandle for client.events, setting
-        data.obj of the created epoll_data_t instance to client.
-
-        The current epoll file descriptor should have been sucessfully obtained
-        by create() or epoll_create1() and not already been closed, otherwise
-        epoll_ctl() will fail so that this method returns -1.
-
-        Params:
-            op     = epoll_ctl opcode
-            client = client to modify registration
-
-        Returns:
-            0 on success or -1 on error. On error errno is set appropriately.
-
-     **************************************************************************/
-
-    public int ctl ( CtlOp op, ISelectClient client )
-    {
-        return this.ctl(op, client.fileHandle, client.events, client);
     }
 
     /**************************************************************************

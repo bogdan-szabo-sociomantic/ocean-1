@@ -320,7 +320,8 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         }
         else
         {
-            if (this.epoll.ctl(epoll.CtlOp.EPOLL_CTL_ADD, client))
+            if (this.epoll.ctl(epoll.CtlOp.EPOLL_CTL_ADD, client.fileHandle,
+                client.events, client))
             {
                 throw this.e("error adding epoll registration", __FILE__, __LINE__);
             }
@@ -371,7 +372,8 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
                 this.registered_clients -= client;
             }
 
-            if (!this.epoll.ctl(epoll.CtlOp.EPOLL_CTL_DEL, client))
+            if (!this.epoll.ctl(epoll.CtlOp.EPOLL_CTL_DEL, client.fileHandle,
+                client.events, client))
             {
                 return 0;
             }
@@ -586,7 +588,8 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
     private bool modify ( ISelectClient client )
     {
-        if (!this.epoll.ctl(epoll.CtlOp.EPOLL_CTL_MOD, client))
+        if (!this.epoll.ctl(epoll.CtlOp.EPOLL_CTL_MOD, client.fileHandle,
+            client.events, client))
         {
             return false;
         }
@@ -596,7 +599,8 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
             if (errnum == ENOENT)
             {
-                if (!this.epoll.ctl(epoll.CtlOp.EPOLL_CTL_ADD, client))
+                if (!this.epoll.ctl(epoll.CtlOp.EPOLL_CTL_ADD, client.fileHandle,
+                    client.events, client))
                 {
                     return true;
                 }
