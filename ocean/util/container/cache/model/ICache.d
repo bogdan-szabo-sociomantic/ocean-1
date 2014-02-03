@@ -538,21 +538,11 @@ abstract class ICache : ICacheInfo
 
             assert (src_node !is null);
 
-            /*
-             * FIXME: Commented out the following line because a
-             * key_to_node.put() is done three lines later anyway. Is that
-             * correct? If so, remove the next line.
-             */
-
-            // this.key_to_node.put(src_key, src_node);
-
             TimeToIndex.Key src_node_key = src_node.key;
 
             src_node_key.lo = index;
 
-            *this.key_to_node.put(src_key) = this.time_to_index.update(*src_node,
-                                                                  src_node_key);
-
+            *src_node_in_map = this.time_to_index.update(*src_node, src_node_key);
         }
     }
 
