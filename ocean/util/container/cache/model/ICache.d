@@ -530,11 +530,11 @@ abstract class ICache : ICacheInfo
              * entry to the updated time-to-mapping entry.
              */
 
-            TimeToIndex.Node** src_node_ = src_key in this.key_to_node;
+            TimeToIndex.Node** src_node_in_map = src_key in this.key_to_node;
 
-            assert (src_node_ !is null);
+            assert (src_node_in_map !is null);
 
-            TimeToIndex.Node* src_node = *src_node_;
+            TimeToIndex.Node* src_node = *src_node_in_map;
 
             assert (src_node !is null);
 
