@@ -579,6 +579,7 @@ debug ( OceanUnitTest )
     }
     body
     {
+        // Internal name/value lists
         assert(E.names == names);
         assert(E.values == values);
 
