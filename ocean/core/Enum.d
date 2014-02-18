@@ -605,9 +605,11 @@ debug ( OceanUnitTest )
         int max = int.min;
         foreach ( v; values )
         {
-            if ( v < min ) v = min;
-            if ( v > max ) v = max;
+            if ( v < min ) min = v;
+            if ( v > max ) max = v;
         }
+        assert(E().min == min);
+        assert(E().max == max);
 
         // opApply 1
         size_t i;
