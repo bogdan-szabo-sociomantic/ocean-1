@@ -133,6 +133,42 @@ public interface IEnum
 
     /***************************************************************************
 
+        Looks up an enum member's name from its value, using opIndex.
+
+        Params:
+            v = value to look up
+
+        Returns:
+            corresponding name
+
+        Throws:
+            ArrayBoundsException if value doesn't exist in enum
+
+    ***************************************************************************/
+
+    public Name opIndex ( Value v );
+
+
+    /***************************************************************************
+
+        Looks up an enum member's value from its name, using opIndex.
+
+        Params:
+            n = name to look up
+
+        Returns:
+            corresponding value
+
+        Throws:
+            ArrayBoundsException if name doesn't exist in enum
+
+    ***************************************************************************/
+
+    public Value opIndex ( Name n );
+
+
+    /***************************************************************************
+
         Returns:
             the number of members in the enum
 
@@ -456,6 +492,50 @@ public template EnumBase ( T ... )
 
     /***************************************************************************
 
+        Looks up an enum member's name from its value, using opIndex.
+
+        Params:
+            v = value to look up
+
+        Returns:
+            corresponding name
+
+        Throws:
+            (in non-release builds) ArrayBoundsException if value doesn't exist
+            in enum
+
+    ***************************************************************************/
+
+    public Name opIndex ( Value v )
+    {
+        return v_to_n[v];
+    }
+
+
+    /***************************************************************************
+
+        Looks up an enum member's value from its name, using opIndex.
+
+        Params:
+            n = name to look up
+
+        Returns:
+            corresponding value
+
+        Throws:
+            (in non-release builds) ArrayBoundsException if value doesn't exist
+            in enum
+
+    ***************************************************************************/
+
+    public Value opIndex ( Name n )
+    {
+        return n_to_v[n];
+    }
+
+
+    /***************************************************************************
+
         Returns:
             the number of members in the enum
 
@@ -583,18 +663,30 @@ debug ( OceanUnitTest )
         assert(E.names == names);
         assert(E.values == values);
 
-        // Lookup by name
+        // opIn_r lookup by name
         foreach ( i, n; names )
         {
             assert(n in E());
             assert(*(n in E()) == values[i]);
         }
 
-        // Lookup by value
+        // opIn_r lookup by value
         foreach ( i, v; values )
         {
             assert(v in E());
             assert(*(v in E()) == names[i]);
+        }
+
+        // opIndex lookup by name
+        foreach ( i, n; names )
+        {
+            assert(E()[n] == values[i]);
+        }
+
+        // opIndex lookup by value
+        foreach ( i, v; values )
+        {
+            assert(E()[v] == names[i]);
         }
 
         // length

@@ -35,6 +35,8 @@ New Features
   machines that have rdmd installed. Just including `common.mk` is enough to add
   it to project.
 
+``ocean.core.Enum``
+  Added opIndex lookup of names / values.
 
 v1.11 (2014-01-24)
 ------------------
