@@ -36,6 +36,18 @@ Migration Instructions
   installed for running applications and the ``liblzo2-dev`` package to compile
   them.
 
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
+
+``script/common.mk``
+``script/mkversion.sh``
+  - Move all submodules to ./submodules/ top-level folder
+  - Update expected import paths for submodules: `-I./ocean/` -> `-I./submodules/ocean/src`
+    `DEFAULT_FLAGS` in `common.mk` are filled with import flags for all submodules automatically
+  - Update .gitignore for new version module location: `./src/Version.d`
+  - If you use `mkversion.sh` directly, remove library base dir parameter and provide qualified
+    submodule folder paths instead.
+
 New Features
 ^^^^^^^^^^^^
 
