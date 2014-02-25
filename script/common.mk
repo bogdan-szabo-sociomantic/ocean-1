@@ -59,7 +59,8 @@ RELEASE_FLAGS = -release \
 DEFAULT_FLAGS = \
 		-version=CDGC \
 		-version=WithDateTime \
-		-I./src
+		-I./src \
+		$(foreach dep,$(DEPENDENCIES), -I./$(dep)/src)
 
 XFBUILD_DEFAULT_FLAGS = +c=$(DC) \
 		+x=tango \
