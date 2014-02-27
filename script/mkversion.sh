@@ -3,8 +3,14 @@
 rev_file=src/main/Version.d
 lib_dir=.
 author="`id -un`"
-dmd="`dmd | head -1`"
 get_rev=`dirname $0`/git-rev-desc
+
+if which dmd1 > /dev/null
+then
+    dmd="`dmd1 | head -1`"
+else
+    dmd="`dmd | head -1`"
+fi
 
 # Command used to get the date (we use day resolution to avoid unnecesary
 # rebuilds)
