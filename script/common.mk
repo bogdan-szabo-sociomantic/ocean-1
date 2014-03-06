@@ -17,6 +17,16 @@ else
 	DC ?= dmd1
 endif
 
+ifeq ($(shell which rdmd1), )
+	RDMD ?= rdmd
+else
+	RDMD ?= rdmd1
+endif
+
+RDMDFLAGS = --force --compiler=$(DC) --exclude=tango \
+               $(DFLAGS) $(DEFAULT_FLAGS) $(OCEAN_LDFLAGS)
+
+
 ### User Setting Variable Defaults ###
 
 # Directory were ocean submodule is located, needed to find version scripts
@@ -141,8 +151,8 @@ tested_sources_ = $(shell find $(TESTED_SOURCE_ROOT) -name *.d | grep -v "$(TEST
 unittest: $(tested_sources_)
 	@for module in $(tested_sources_); do \
 		echo "Testing $$module"; \
-		rdmd --compiler=$(DC) --main -unittest -debug=UnitTest -version=UnitTest \
-			$(DEFAULT_FLAGS) $(DEBUG_FLAGS) $$module \
+		$(RDMD) --main $(RDMDFLAGS) -unittest -debug=UnitTest -version=UnitTest \
+			$(DEBUG_FLAGS) $$module \
 			2>&1 > /dev/null \
 			|| exit 1; \
 	done
