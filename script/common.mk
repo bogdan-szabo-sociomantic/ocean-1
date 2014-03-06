@@ -28,7 +28,8 @@ export D_GC
 
 # Source libraries that the project depends on
 # Defaults to submodule list
-DEPENDENCIES := $(shell sed -n 's/^\s*path\s*=\s//p' .gitmodules)
+DEPENDENCIES := $(shell test -r .gitmodules && \
+		sed -n 's/^\s*path\s*=\s//p' .gitmodules)
 
 # Files to delete when doing dist clean (for example generated binaries)
 DIST_CLEAN_FILES=
