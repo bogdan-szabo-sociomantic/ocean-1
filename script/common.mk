@@ -82,7 +82,7 @@ OCEAN_LDFLAGS = -L-ldl \
 # All sources can be found in ./src folder for applications, but for libraries
 # it matches name of library
 
-TESTED_SOURCE_ROOT = ./src
+TESTED_SOURCE_ROOT = src
 
 ### Utility functions ###
 
@@ -146,15 +146,17 @@ dist-clean:
 
 # internal convenience variable
 tested_sources_ = $(shell find $(TESTED_SOURCE_ROOT) -name *.d | grep -v "$(TEST_EXCLUSION_PATTERN)")
+test_results_ = $(patsubst %.d,testresult/%,$(tested_sources_))
 
 # Runs unittests for all D modules in a projects
-unittest: $(tested_sources_)
-	@fail=0; for module in $(tested_sources_); do \
-		echo "Testing $$module"; \
-		$(RDMD) --main $(RDMDFLAGS) -unittest -debug=UnitTest -version=UnitTest \
-			$(DEBUG_FLAGS) $$module \
-			2>&1 > /dev/null || \
-			fail=1; \
-	done; exit $$fail
+.PHONY: unittest
+unittest: $(test_results_)
 	@echo "All tests have finished"
+
+testresult/%: %.d
+	@echo "Testing $<"
+	@mkdir -p $(dir $@)
+	@$(RDMD) --main $(RDMDFLAGS) -unittest -debug=UnitTest \
+			-version=UnitTest $(DEBUG_FLAGS) $< > $@.log 2>&1
+	@touch $@
 
