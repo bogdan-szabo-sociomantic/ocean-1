@@ -5,9 +5,6 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/io/select/model/ITimeoutSelectClient.d \
 	$C/src/ocean/io/compress/ZlibStream.d \
 	$C/src/ocean/io/compress/Zlib.d \
-	$C/src/ocean/db/tokyocabinet/c/tctdb.d \
-	$C/src/ocean/db/tokyocabinet/TokyoCabinetB.d \
-	$C/src/ocean/db/tokyocabinet/TokyoCabinetH.d \
 	$C/src/ocean/util/app/ConfiguredApp.d \
 	$C/src/ocean/util/app/ConsoleToolApp.d \
 	$C/src/ocean/util/Profiler.d \
@@ -72,10 +69,13 @@ $U/src/ocean/db/ebtree/c/ebtree: \
 	override LDFLAGS += -lebtree
 
 $U/src/ocean/db/tokyocabinet/c/tcbdb \
+$U/src/ocean/db/tokyocabinet/c/tctdb \
 $U/src/ocean/db/tokyocabinet/c/bdb/tcbdbcur \
 $U/src/ocean/db/tokyocabinet/util/TokyoCabinetList \
 $U/src/ocean/db/tokyocabinet/util/TokyoCabinetCursor \
 $U/src/ocean/db/tokyocabinet/util/TokyoCabinetExtString \
+$U/src/ocean/db/tokyocabinet/TokyoCabinetB \
+$U/src/ocean/db/tokyocabinet/TokyoCabinetH \
 $U/src/ocean/db/tokyocabinet/TokyoCabinetM: \
 	override LDFLAGS += -ltokyocabinet
 

@@ -211,7 +211,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
 
             tcbdbdel(this.db);
 
-            debug Trace.formatln(typeof (this).stringof ~ " deleted").flush();
+            debug Trace.formatln(typeof (this).stringof ~ " deleted");
         }
 
         this.deleted = true;

@@ -16,7 +16,15 @@ module ocean.db.tokyocabinet.c.tctdb;
 
 private import ocean.db.tokyocabinet.c.tcutil;
 
+private import ocean.db.tokyocabinet.c.util.tcxstr;
+
+private import ocean.db.tokyocabinet.c.util.tcmap;
+
+private import ocean.db.tokyocabinet.c.util.tclist;
+
 private import ocean.db.tokyocabinet.c.tchdb;
+
+private import ocean.db.tokyocabinet.c.tcmdb;
 
 private import ocean.db.tokyocabinet.c.tcbdb;
 

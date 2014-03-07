@@ -59,6 +59,8 @@ private     import  ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
 
 private     import  ocean.text.util.StringC;
 
+private     import  tango.stdc.stdlib;
+
 
 debug
 {
@@ -188,7 +190,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 
     public this ( )
     {
-        debug Trace.formatln(typeof (this).stringof ~ " created").flush();
+        debug Trace.formatln(typeof (this).stringof ~ " created");
 
         super.db = tchdbnew();
     }
@@ -213,7 +215,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 
             debug
             {
-                Trace.formatln(typeof (this).stringof ~ " deleted").flush();
+                Trace.formatln(typeof (this).stringof ~ " deleted");
             }
         }
 
@@ -247,7 +249,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 
     public void open ( char[] dbfile )
     {
-        debug Trace.formatln(typeof (this).stringof ~ " opened {}", dbfile).flush();
+        debug Trace.formatln(typeof (this).stringof ~ " opened {}", dbfile);
         this.db_name = dbfile;
         return this.openNonBlocking(dbfile, OpenStyle.WriteCreate);
     }
@@ -303,11 +305,11 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
     {
         scope ( failure )
         {
-            debug Trace.formatln(typeof (this).stringof ~ " error closing {}", this.db_name).flush();
+            debug Trace.formatln(typeof (this).stringof ~ " error closing {}", this.db_name);
         }
         scope ( success )
         {
-            debug Trace.formatln(typeof (this).stringof ~ " closed {}", this.db_name).flush();
+            debug Trace.formatln(typeof (this).stringof ~ " closed {}", this.db_name);
         }
 
         if (super.db)
