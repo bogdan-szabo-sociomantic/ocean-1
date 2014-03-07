@@ -5,7 +5,6 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/io/compress/Zlib.d \
 	$C/src/ocean/util/app/ConfiguredApp.d \
 	$C/src/ocean/util/app/ConsoleToolApp.d \
-	$C/src/ocean/util/Profiler.d \
 	$C/src/ocean/util/MemUsage.d \
 	$C/src/ocean/io/Retry.d
 
