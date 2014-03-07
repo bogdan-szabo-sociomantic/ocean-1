@@ -57,7 +57,6 @@ RELEASE_FLAGS = -release \
 		-O
 
 DEFAULT_FLAGS = \
-		-version=CDGC \
 		-version=WithDateTime \
 		-I./src \
 		$(foreach dep,$(DEPENDENCIES), -I./$(dep)/src)
