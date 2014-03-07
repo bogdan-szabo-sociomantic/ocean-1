@@ -149,12 +149,12 @@ tested_sources_ = $(shell find $(TESTED_SOURCE_ROOT) -name *.d | grep -v "$(TEST
 
 # Runs unittests for all D modules in a projects
 unittest: $(tested_sources_)
-	@for module in $(tested_sources_); do \
+	@fail=0; for module in $(tested_sources_); do \
 		echo "Testing $$module"; \
 		$(RDMD) --main $(RDMDFLAGS) -unittest -debug=UnitTest -version=UnitTest \
 			$(DEBUG_FLAGS) $$module \
-			2>&1 > /dev/null \
-			|| exit 1; \
-	done
+			2>&1 > /dev/null || \
+			fail=1; \
+	done; exit $$fail
 	@echo "All tests have finished"
 
