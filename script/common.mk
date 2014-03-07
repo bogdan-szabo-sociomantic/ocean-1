@@ -67,7 +67,7 @@ RELEASE_FLAGS = -release \
 		-inline \
 		-O
 
-DEFAULT_FLAGS = \
+DEFAULT_FLAGS = -wi \
 		-version=WithDateTime \
 		-I./src \
 		$(foreach dep,$(DEPENDENCIES), -I./$(dep)/src)
