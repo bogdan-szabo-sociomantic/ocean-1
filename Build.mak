@@ -2,7 +2,6 @@
 # Modules to exclude from testing
 TEST_FILTER_OUT += \
 	$C/src/ocean/time/timeout/ExpiryPoolTimeoutManager.d \
-	$C/src/ocean/io/select/model/ITimeoutSelectClient.d \
 	$C/src/ocean/io/compress/ZlibStream.d \
 	$C/src/ocean/io/compress/Zlib.d \
 	$C/src/ocean/util/app/ConfiguredApp.d \
