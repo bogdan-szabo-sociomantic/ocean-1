@@ -8,8 +8,7 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/util/app/ConsoleToolApp.d \
 	$C/src/ocean/util/Profiler.d \
 	$C/src/ocean/util/MemUsage.d \
-	$C/src/ocean/io/Retry.d \
-	$C/src/ocean/db/sqlite/SQLite.d
+	$C/src/ocean/io/Retry.d
 
 # Link particular tests with the appropriate libraries they need
 $U/src/ocean/text/utf/UtfUtil \
