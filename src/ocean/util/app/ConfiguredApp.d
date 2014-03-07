@@ -168,40 +168,4 @@ abstract class ConfiguredApp : Application, IConfigExtExtension
     ***************************************************************************/
 
     protected abstract int run ( char[][] args, ConfigParser config );
-
-
-    /***************************************************************************
-
-        IConfigExtExtension methods dummy implementation.
-
-        This methods are implemented with "empty" implementation to ease
-        deriving from this class.
-
-        See IConfigExtExtension documentation for more information on how to
-        override this methods.
-
-    ***************************************************************************/
-
-    public override void preParseConfig ( Application app, ConfigParser config )
-    {
-        // Dummy implementation of the interface
-    }
-
-    public override char[][] filterConfigFiles ( Application app,
-            ConfigParser config, char[][] files )
-    {
-        // Dummy implementation of the interface
-        if (files.length)
-        {
-            return files[$-1 .. $];
-        }
-        return files;
-    }
-
-    public override void processConfig ( Application app, ConfigParser config )
-    {
-        // Dummy implementation of the interface
-    }
-
 }
-
