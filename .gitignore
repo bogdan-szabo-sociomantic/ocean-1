@@ -1,1 +1,4 @@
 testresult/
+build/
+src/Version.d
+Config.local.mak

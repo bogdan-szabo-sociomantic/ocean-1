@@ -1,3 +1,10 @@
+# Please note this file will be deprecated soon (message left commented out for
+# future activation).
+#$(info $(shell printf '\033[00;33m')Warning:\
+#	$(shell printf '\033[00m')script/common.mk in ocean is \
+#	deprecated. Please migrate to Makd. For more information read \
+#	script/Makd.README.rst in ocean.)
+
 # Common Makefile that provides often used targets and variables
 #
 # Use it by writing 'include ocean/script/common.mk' at the beginning of your makefile

@@ -63,17 +63,24 @@ New Features
   and ``toUshort``, and update ``toInteger`` to use these conversions.  Integer
   conversion now supports all built-in integer types.
 
+``ocean.core.Enum``
+  Added opIndex lookup of names / values.
+
 ``script/common.mk``
   New target `unittest` provides easy way to run all unit tests for projects on
   machines that have rdmd installed. Just including `common.mk` is enough to add
   it to project.
+
   Also now makefiles shouldn't provide tango as a dependency or feed them to
   ``mkversion.sh``, as long as they are using Tango v1.0.1 or later. If you are
   using the latest Tango but you still provide a local Tango instance as
   dependency, the local version will be used as before.
 
-``ocean.core.Enum``
-  Added opIndex lookup of names / values.
+``script/Makd.mak``
+  This is a new build system, a replacement for ``script/common.mk`` providing
+  all the features from it and much more. At this stage is still considered
+  experimental but people is encouraged to try it and report problems. For more
+  information please read ``script/Makd.README.rst``.
 
 
 v1.11 (2014-01-24)
