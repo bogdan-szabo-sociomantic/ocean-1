@@ -70,7 +70,7 @@ private import tango.core.Exception;
 
 private import ocean.math.Math : pow;
 
-debug private import ocean.util.log.Trace;
+version (UnitTest) private import ocean.util.log.Trace;
 
 /*******************************************************************************
 

@@ -194,78 +194,78 @@ public class SlidingAverage ( T )
     }
 }
 
-
 /*******************************************************************************
 
     SlidingAverage unittests
 
 *******************************************************************************/
 
-debug private import tango.util.Convert: to;
-
-
-/*******************************************************************************
-
-    Runs a series of tests a SlidingAverage of the given type and size
-    Template function so no code will be generated unless in debug mode.
-
-    Params:
-        size = The number of values to fill the SlidingAverage with.
-        test_iteration = The current test iteration, for error messages.
-
-*******************************************************************************/
-
-debug void runTests ( T ) ( uint size, int test_iteration )
+version (UnitTest)
 {
-    assert(size > 2, "can only test SlidingAverages with at least 2 values");
+    private import tango.util.Convert: to;
 
-    auto avg = new SlidingAverage!(T)(size);
+    /*******************************************************************************
 
-    char[] err_prefix = "SlidingAverage assertion failed for iteration " ~
-        to!(char[])(test_iteration) ~ ": ";
+        Runs a series of tests a SlidingAverage of the given type and size
+        Template function so no code will be generated unless in debug mode.
 
-    ulong sum;
+        Params:
+            size = The number of values to fill the SlidingAverage with.
+            test_iteration = The current test iteration, for error messages.
 
-    for ( int i = 1; i <= size; i++ )
+    *******************************************************************************/
+
+    version (UnitTest) void runTests ( T ) ( uint size, int test_iteration )
     {
-        avg.push(i);
-        assert ( avg.last == i, "last() didn't return last added value" ); // #220
-        sum += i;
+        assert(size > 2, "can only test SlidingAverages with at least 2 values");
+
+        auto avg = new SlidingAverage!(T)(size);
+
+        char[] err_prefix = "SlidingAverage assertion failed for iteration " ~
+            to!(char[])(test_iteration) ~ ": ";
+
+        ulong sum;
+
+        for ( int i = 1; i <= size; i++ )
+        {
+            avg.push(i);
+            assert ( avg.last == i, "last() didn't return last added value" ); // #220
+            sum += i;
+        }
+
+        // Test a full SlidingAverage
+        assert(avg.average == cast(double)sum / size, err_prefix ~ "test 1");
+        assert ( avg.last == size, "last() didn't return last added value" ); // #220
+
+        // Add size + 1 to the average, but only size to the sum
+        // Because at this point the first value of the average will be pushed out
+        avg.push(size + 1);
+        assert ( avg.last == size+1, "last() didn't return last added value" ); // #220
+        sum += size;
+
+        // Test a SlidingAverage where the oldest value has been replaced
+        assert(avg.average == cast(double)sum / size, err_prefix ~ "test 2");
+
+        avg.clear;
+
+        // Test if average is 0 upon clearing after filling it with values
+        assert(avg.average == 0, err_prefix ~ "test 3");
+
+        avg.push(2);
+        assert ( avg.last == 2 , "last() didn't return last added value" ); // #220
+        avg.push(4);
+        assert ( avg.last == 4 , "last() didn't return last added value" ); // #220
+
+        // Test a partially filled SlidingAverage
+        assert(avg.average == 3, err_prefix ~ "test 4");
     }
 
-    // Test a full SlidingAverage
-    assert(avg.average == cast(double)sum / size, err_prefix ~ "test 1");
-    assert ( avg.last == size, "last() didn't return last added value" ); // #220
-
-    // Add size + 1 to the average, but only size to the sum
-    // Because at this point the first value of the average will be pushed out
-    avg.push(size + 1);
-    assert ( avg.last == size+1, "last() didn't return last added value" ); // #220
-    sum += size;
-
-    // Test a SlidingAverage where the oldest value has been replaced
-    assert(avg.average == cast(double)sum / size, err_prefix ~ "test 2");
-
-    avg.clear;
-
-    // Test if average is 0 upon clearing after filling it with values
-    assert(avg.average == 0, err_prefix ~ "test 3");
-
-    avg.push(2);
-    assert ( avg.last == 2 , "last() didn't return last added value" ); // #220
-    avg.push(4);
-    assert ( avg.last == 4 , "last() didn't return last added value" ); // #220
-
-    // Test a partially filled SlidingAverage
-    assert(avg.average == 3, err_prefix ~ "test 4");
-}
-
-
-unittest
-{
-    runTests!(ulong)(100, 1);
-    runTests!(int)(50, 2);
-    runTests!(double)(1000, 3);
+    unittest
+    {
+        runTests!(ulong)(100, 1);
+        runTests!(int)(50, 2);
+        runTests!(double)(1000, 3);
+    }
 }
 
 
