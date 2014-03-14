@@ -27,6 +27,7 @@ Options:
 -o FILE      Where to write the output (Version.d) file (default: $rev_file)
 -a AUTHOR    Author of the build (default: detected, currently $author)
 -d DATE      Build date string (default: output of '$date_cmd')
+-v           Be more verbose (print a message if the file was updated)
 -h           Shows this help and exit
 
 GC is the garbage collector used to compile the program (should be either 'cdgc'
@@ -44,12 +45,14 @@ NOTE: All these options are replace in the template using sed s// command and
 }
 
 # Parse arguments
-while getopts o:L:a:t:d:h flag
+verbose=0
+while getopts o:L:a:t:d:vh flag
 do
     case $flag in
         o)  rev_file="$OPTARG";;
         a)  author="$OPTARG";;
         d)  date="$OPTARG";;
+        v)  verbose=1;;
         h)  print_usage ; exit 0;;
         \?) echo >&2; print_usage >&2; exit 2;;
     esac
@@ -99,6 +102,8 @@ then
     fi
 fi
 mv "$tmp" "$rev_file"
+test "$verbose" -gt 0 &&
+    echo "$rev_file updated"
 
 # vim: set et sw=4 sts=4 :
 
