@@ -27,6 +27,7 @@ Options:
 -o FILE      Where to write the output (Version.d) file (default: $rev_file)
 -a AUTHOR    Author of the build (default: detected, currently $author)
 -d DATE      Build date string (default: output of '$date_cmd')
+-m MODULE    Module name to use in the module declaration (default: built from -o)
 -v           Be more verbose (print a message if the file was updated)
 -h           Shows this help and exit
 
@@ -46,12 +47,14 @@ NOTE: All these options are replace in the template using sed s// command and
 
 # Parse arguments
 verbose=0
-while getopts o:L:a:t:d:vh flag
+module=
+while getopts o:L:a:t:d:m:vh flag
 do
     case $flag in
         o)  rev_file="$OPTARG";;
         a)  author="$OPTARG";;
         d)  date="$OPTARG";;
+        m)  module="$OPTARG";;
         v)  verbose=1;;
         h)  print_usage ; exit 0;;
         \?) echo >&2; print_usage >&2; exit 2;;
@@ -71,7 +74,7 @@ trap "rm -f '$tmp'; exit 1" INT TERM QUIT
 
 # Generate the file (in a temporary) based on a template
 cp "$template" "$tmp"
-module=`echo "$rev_file" | sed -e 's|/|.|g' -e 's|.d||g'`
+module=${module:-`echo "$rev_file" | sed -e 's|/|.|g' -e 's|.d||g'`}
 
 sed -i "$tmp" \
     -e "s/@MODULE@/$module/" \
