@@ -272,7 +272,9 @@ enum EpollCtlOp : int
 
     /**************************************************************************
 
-        Change the event event associated with the target file descriptor fd.
+        Remove (deregister) the target file descriptor fd from the epoll
+        instance referred to by epfd. The event is ignored; it and can be null
+        on Linux 2.6.9 or later.
 
      **************************************************************************/
 
@@ -280,9 +282,7 @@ enum EpollCtlOp : int
 
     /**************************************************************************
 
-        Remove (deregister) the target file descriptor fd from the epoll
-        instance referred to by epfd. The event is ignored; it and can be null
-        on Linux 2.6.9 or later.
+        Change the event event associated with the target file descriptor fd.
 
      **************************************************************************/
 
