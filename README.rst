@@ -43,6 +43,9 @@ Migration Instructions
   the ebtree library that can be found here:
   https://github.com/sociomantic/ebtree
 
+``ocean.util.MemUsage``
+  This module has been removed. It wasn't being use and it was outdated.
+
 ``script/common.mk``
 ``script/mkversion.sh``
   - Move all submodules to ./submodules/ top-level folder
