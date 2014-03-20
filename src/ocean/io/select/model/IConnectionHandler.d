@@ -32,6 +32,8 @@ private import ocean.sys.socket.AddressIPSocket;
 
 private import ocean.io.device.IODevice: IInputDevice, IOutputDevice;
 
+private import ocean.text.convert.Layout;
+
 private import tango.io.model.IConduit: ISelectable;
 
 debug private import ocean.util.log.Trace;
@@ -354,6 +356,30 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
         {
             this.error_dg_(exception, event);
         }
+    }
+
+    /***************************************************************************
+
+        Formats information about the connection into the provided buffer. This
+        method is called from the SelectListener in order to log information
+        about the state of all connections in the pool.
+
+        We format the following here:
+            * the file descriptor of the socket of this connection
+            * the remote ip and port of the socket
+            * whether an I/O error has occurred for the socket since the last
+              call to assign()
+
+        Params:
+            buf = buffer to format into
+
+    ***************************************************************************/
+
+    public void formatInfo ( ref char[] buf )
+    {
+        Layout!(char).print(buf, "fd={}, remote={}:{}, ioerr={}",
+            this.socket_info.fileHandle, this.socket_info.address,
+            this.socket_info.port, this.io_error);
     }
 
     /***************************************************************************

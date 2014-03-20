@@ -58,5 +58,19 @@ public interface IConnectionHandlerInfo
     ***************************************************************************/
 
     IAddressIPSocketInfo socket_info ( );
+
+
+    /***************************************************************************
+
+        Formats information about the connection into the provided buffer. This
+        method is called from the SelectListener in order to log information
+        about the state of all connections in the pool.
+
+        Params:
+            buf = buffer to format into
+
+    ***************************************************************************/
+
+    void formatInfo ( ref char[] buf );
 }
 

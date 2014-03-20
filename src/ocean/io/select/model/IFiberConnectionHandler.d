@@ -30,6 +30,7 @@ private import ocean.io.select.model.IConnectionHandler;
 private import ocean.io.select.fiber.SelectFiber;
 private import ocean.core.MessageFiber : MessageFiberControl;
 private import ocean.util.container.pool.model.IResettable;
+private import ocean.text.convert.Layout;
 
 private import tango.net.device.Socket : Socket;
 
@@ -152,6 +153,42 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
     body
     {
         this.fiber.start();
+    }
+
+
+    /***************************************************************************
+
+        Formats information about the connection into the provided buffer. This
+        method is called from the SelectListener in order to log information
+        about the state of all connections in the pool.
+
+        In addition to the information formatted by the super class, we also
+        format the following here:
+            * the events which the ISelectClient is registered with in epoll
+            * (in debug builds) the id of the ISelectClient (a description
+              string)
+
+        Params:
+            buf = buffer to format into
+
+    ***************************************************************************/
+
+    override public void formatInfo ( ref char[] buf )
+    {
+        super.formatInfo(buf);
+
+        auto client = this.fiber.registered_client;
+        auto events = client ? client.events : 0;
+
+        debug
+        {
+            auto id = client ? client.id : "none";
+            Layout!(char).print(buf, ", events={}, id={}", events, id);
+        }
+        else
+        {
+            Layout!(char).print(buf, ", events={}", events);
+        }
     }
 
     /***************************************************************************

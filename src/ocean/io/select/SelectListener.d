@@ -77,6 +77,8 @@ private import ocean.core.ErrnoIOException;
 private import ocean.util.container.pool.ObjectPool : AutoCtorPool;
 private import ocean.util.container.pool.model.IPoolInfo;
 
+private import ocean.text.convert.Layout;
+
 private import tango.net.device.Socket,
                tango.net.device.Berkeley: IPv4Address;
 
@@ -90,6 +92,20 @@ private import ocean.sys.socket.AddressIPSocket;
 private import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
 
 debug private import ocean.util.log.Trace;
+
+private import tango.util.log.Log;
+
+/*******************************************************************************
+
+    Static module logger
+
+*******************************************************************************/
+
+static private Logger log;
+static this ( )
+{
+    log = Log.lookup("ocean.io.select.SelectListener");
+}
 
 /******************************************************************************
 
@@ -443,6 +459,14 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
     /**************************************************************************
 
+        String buffer used for connection logging.
+
+     **************************************************************************/
+
+    private char[] connection_log_buf;
+
+    /**************************************************************************
+
         Constructor
 
         Creates the server socket and registers it for incoming connections.
@@ -587,6 +611,30 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
     public ISelectListenerPoolInfo poolInfo ( )
     {
         return this.receiver_pool;
+    }
+
+    /***************************************************************************
+
+        Writes connection information to log file.
+
+    ***************************************************************************/
+
+    public void connectionLog ( )
+    {
+        auto conns = this.poolInfo;
+
+        log.info("Connection pool: {} busy, {} idle", conns.num_busy,
+            conns.num_idle);
+
+        foreach ( i, conn; conns )
+        {
+            this.connection_log_buf.length = 0;
+            Layout!(char).print(this.connection_log_buf, "{}: ", i);
+
+            conn.formatInfo(this.connection_log_buf);
+
+            log.info(this.connection_log_buf);
+        }
     }
 
     /**************************************************************************
