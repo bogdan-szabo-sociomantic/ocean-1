@@ -244,7 +244,7 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
 
     ***************************************************************************/
 
-    IAddressIPSocketInfo socket_info ( )
+    public IAddressIPSocketInfo socket_info ( )
     {
         return this.socket;
     }
