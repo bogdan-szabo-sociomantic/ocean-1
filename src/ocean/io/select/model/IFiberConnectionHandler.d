@@ -32,6 +32,8 @@ private import ocean.core.MessageFiber : MessageFiberControl;
 private import ocean.util.container.pool.model.IResettable;
 private import ocean.text.convert.Layout;
 
+private import ocean.sys.Epoll : epoll_event_t;
+
 private import tango.net.device.Socket : Socket;
 
 debug private import ocean.util.log.Trace;
@@ -164,7 +166,8 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
 
         In addition to the information formatted by the super class, we also
         format the following here:
-            * the events which the ISelectClient is registered with in epoll
+            * the events which the ISelectClient is registered with in epoll (in
+              debug builds these are printed in a human-readable format)
             * (in debug builds) the id of the ISelectClient (a description
               string)
 
@@ -183,7 +186,17 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
         debug
         {
             auto id = client ? client.id : "none";
-            Layout!(char).print(buf, ", events={}, id={}", events, id);
+            buf ~= ", events=";
+
+            foreach ( event, name; epoll_event_t.event_to_name )
+            {
+                if ( events & event )
+                {
+                    buf ~= name;
+                }
+            }
+
+            Layout!(char).print(buf, ", id={}", id);
         }
         else
         {
