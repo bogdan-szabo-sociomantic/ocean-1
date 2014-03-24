@@ -22,7 +22,7 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
-:Dependency: tango v1.0.0
+:Dependency: tango v1.0.0 (v1.0.1 recommended)
 
 .. important:: The repository layout changed!
 
