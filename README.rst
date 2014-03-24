@@ -48,14 +48,18 @@ Migration Instructions
 
 ``script/common.mk``
 ``script/mkversion.sh``
-  - Move all submodules to ./submodules/ top-level folder.
-    Instructions for moving submodules : http://stackoverflow.com/questions/4604486/how-do-i-move-an-existing-git-submodule-within-a-git-repository
-  - Update expected import paths for submodules: `-I./ocean/` -> `-I./submodules/ocean/src`
-    `DEFAULT_FLAGS` in `common.mk` are filled with import flags for all submodules automatically
-  - Update .gitignore for new version module location: `./src/Version.d`
-  - Update your module imports for `Version.d` to be plain `import Version`;
-  - If you use `mkversion.sh` directly, remove library base dir parameter and provide qualified
-    submodule folder paths instead.
+  - Move all submodules to ./submodules/ top-level folder (instructions__).
+  - Update expected import paths for submodules:
+    ``-I./ocean/`` -> ``-I./submodules/ocean/src``
+    ``DEFAULT_FLAGS`` in ``common.mk`` are filled with import flags for all
+    submodules automatically.
+  - Update .gitignore for new version module location: ``./src/Version.d``.
+  - Update your module imports for ``Version.d`` to be plain ``import
+    Version``.
+  - If you use ``mkversion.sh`` directly, remove library base dir parameter and
+    provide qualified submodule folder paths instead.
+
+__ http://stackoverflow.com/questions/4604486/how-do-i-move-an-existing-git-submodule-within-a-git-repository
 
 New Features
 ^^^^^^^^^^^^
