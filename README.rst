@@ -56,6 +56,9 @@ Migration Instructions
 ``script/common.mk``
 ``script/mkversion.sh``
   - Move all submodules to ./submodules/ top-level folder (instructions__).
+  - Now ``-I./src`` is added automatically to the flags, it is strongly
+    recommended for you to start importing application project modules without
+    including the prefix ``src.``.
   - Update expected import paths for submodules:
     ``-I./ocean/`` -> ``-I./submodules/ocean/src``
     ``DEFAULT_FLAGS`` in ``common.mk`` are filled with import flags for all
