@@ -74,7 +74,12 @@ RELEASE_FLAGS = -release \
 		-inline \
 		-O
 
-DEFAULT_FLAGS = \
+# Add -wi if the user invoked make W=1
+ifeq ($W,1)
+override W := -wi
+endif
+
+DEFAULT_FLAGS = $W \
 		-version=WithDateTime \
 		-I./src \
 		$(foreach dep,$(DEPENDENCIES), -I./$(dep)/src)

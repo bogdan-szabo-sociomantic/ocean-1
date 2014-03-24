@@ -92,6 +92,11 @@ New Features
   using the latest Tango but you still provide a local Tango instance as
   dependency, the local version will be used as before.
 
+  A new *option* was added to enable DMD warnings while compiling, just call
+  ``make W=1`` to enable them. We are moving towards to enable warnings by
+  default in a non distant future so it is recommended to compile with this
+  option from time to time and start squashing warnings sooner than later.
+
 ``script/Makd.mak``
   This is a new build system, a replacement for ``script/common.mk`` providing
   all the features from it and much more. At this stage is still considered
