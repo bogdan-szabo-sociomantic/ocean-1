@@ -53,8 +53,7 @@ Migration Instructions
 ``ocean.util.MemUsage``
   This module has been removed. It wasn't being use and it was outdated.
 
-``script/common.mk``
-``script/mkversion.sh``
+``script/common.mk``, ``script/mkversion.sh``
   - Move all submodules to ./submodules/ top-level folder (instructions__).
   - Now ``-I./src`` is added automatically to the flags, it is strongly
     recommended for you to start importing application project modules without
