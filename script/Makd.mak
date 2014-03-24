@@ -352,7 +352,7 @@ $U/%: $T/%.d $G/build-d-flags | $O/check_rdmd1
 	$(mkversion)
 	$(call exec,$(BUILD.d) --main -unittest -debug=UnitTest \
 		-version=UnitTest $(LOADLIBES) $(LDLIBS) -of$@ $< \
-		> $@.log 2>&1 || { cat $@.log; false; },$<,test)
+		2>&1 > $@.log || { cat $@.log; false; },$<,test)
 
 # Clean the whole build directory, uses $(clean) to remove extra files
 .PHONY: clean
