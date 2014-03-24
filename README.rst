@@ -84,6 +84,15 @@ New Features
   experimental but people is encouraged to try it and report problems. For more
   information please read ``script/Makd.README.rst``.
 
+``ocean.io.select.SelectListener``
+  A new public method, ``connectionlog()``, has been added. Calling this method
+  causes information about the server's connection pool to be output to the
+  module's logger, at level "info". Detailed information about each busy
+  connection is logged by the new ``formatInfo()`` method of the
+  ``IConnectionHandler`` class. The base class logs the file descriptor of the
+  connection's socket, the remote ip and port of the socket, and a flag telling
+  whether any I/O errors occurred since the connection was accepted. Derived
+  classes may override this method to add further connection-level information.
 
 v1.11 (2014-01-24)
 ------------------
