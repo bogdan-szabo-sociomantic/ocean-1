@@ -105,8 +105,10 @@ then
     fi
 fi
 mv "$tmp" "$rev_file"
-test "$verbose" -gt 0 &&
+if test "$verbose" -gt 0
+then
     echo "$rev_file updated"
+fi
 
 # vim: set et sw=4 sts=4 :
 
