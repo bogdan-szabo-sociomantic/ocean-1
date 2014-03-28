@@ -88,7 +88,7 @@ IFLAGS ?= -D
 # Default compiler flags
 #########################
 
-DFLAGS ?= -wi
+DFLAGS ?= -wi -di
 
 ifeq ($F,devel)
 override DFLAGS += -debug -gc
