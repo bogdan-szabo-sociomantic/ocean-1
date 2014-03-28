@@ -26,10 +26,22 @@ master
 
 .. important:: **The repository layout changed!**
 
-   Now the source code for libraries will be stored in ``./src`` too. If you
-   are using ``script/common.mk``, most of the changes were done for you
-   already. Please take a look at the migration instructions for
-   ``script/common.mk`` and ``script/mkversion.sh`` for defails.
+   You need to change a few things in your repository:
+
+   * Now the source code for libraries will be stored in ``./src`` too.
+     You need to change your library include paths from ``-I./ocean`` to
+     ``-I./ocean/src`` (this will apply to other libraries too).  If you are
+     using ``script/common.mk``, the changes were done for you already (check
+     the migration instructions for extra details).
+
+   * Now git submodules are expected to be in the ``submodules`` subdirectory,
+     you can move them like this::
+
+       mkdir -vp submodules
+       sed -n 's/^\[submodule "\(.*\)"\]$/git mv \1 submodules\/\1/p' .gitmodules |
+               sh -x
+       git commit -m 'Move submodules to ./submodules'
+
 
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -54,21 +66,18 @@ Migration Instructions
   This module has been removed. It wasn't being use and it was outdated.
 
 ``script/common.mk``, ``script/mkversion.sh``
-  - Move all submodules to ./submodules/ top-level folder (instructions__).
+  On top of what is said in the *Important* note, you need to do the following
+  changes:
+
   - Now ``-I./src`` is added automatically to the flags, it is strongly
     recommended for you to start importing application project modules without
     including the prefix ``src.``.
-  - Update expected import paths for submodules:
-    ``-I./ocean/`` -> ``-I./submodules/ocean/src``
-    ``DEFAULT_FLAGS`` in ``common.mk`` are filled with import flags for all
-    submodules automatically.
-  - Update .gitignore for new version module location: ``./src/Version.d``.
+  - Update ``.gitignore`` with the new version module location:
+    ``./src/Version.d``.
   - Update your module imports for ``Version.d`` to be plain ``import
     Version``.
   - If you use ``mkversion.sh`` directly, remove library base dir parameter and
     provide qualified submodule folder paths instead.
-
-__ http://stackoverflow.com/questions/4604486/how-do-i-move-an-existing-git-submodule-within-a-git-repository
 
 New Features
 ^^^^^^^^^^^^
