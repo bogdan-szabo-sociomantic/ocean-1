@@ -24,7 +24,7 @@ master
 
 :Dependency: tango v1.0.0 (v1.0.1 recommended)
 
-.. important:: The repository layout changed!
+.. important:: **The repository layout changed!**
 
    Now the source code for libraries will be stored in ``./src`` too. If you
    are using ``script/common.mk``, most of the changes were done for you
