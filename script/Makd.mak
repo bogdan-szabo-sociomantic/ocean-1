@@ -335,24 +335,15 @@ $I/bin/%:
 $I/sbin/%:
 	$(call install_file,0755)
 
-# Runs unittests for all D modules in a projects.
-# If the variable TEST_FILTER_OUT is defined is used to exclude some modules.
-# The Make function $(filter-out) is used, which basically means you can
-# specify multple patterns separated by whitespaces and each pattern can have
-# one '%' that's used as a wildcard. For more information refer to the
-# documentation:
-# http://www.gnu.org/software/make/manual/make.html#Text-Functions
-.PHONY: unittest
-unittest: $(patsubst %.d,%,\
-		$(call find_files,.d,$U/src,$T/src,$(TEST_FILTER_OUT)))
-test += unittest
-
 # Build the individual unittest binaries
 $U/%: $T/%.d $G/build-d-flags | $O/check_rdmd1
 	$(mkversion)
 	$(call exec,$(BUILD.d) --main -unittest -debug=UnitTest \
 		-version=UnitTest $(LOADLIBES) $(LDLIBS) -of$@ $< \
 		2>&1 > $@.log || { cat $@.log; false; },$<,test)
+# Add the unittest target (will be defined after processing Build.mak) to the
+# test special target
+test += unittest
 
 # Clean the whole build directory, uses $(clean) to remove extra files
 .PHONY: clean
@@ -363,31 +354,6 @@ clean:
 .PHONY: uninstall
 uninstall:
 	$V$(foreach i,$(install),$(call vexec,$(RM) $i,$i);)
-
-# These rules use the "Secondary Expansion" GNU Make feature, to allow
-# sub-makes to add values to the special variables $(all), $(install), $(doc)
-# and $(test), after this makefile was read.
-.SECONDEXPANSION:
-
-# Phony rule to make all the targets (sub-makefiles can append targets to build
-# to the $(all) variable).
-.PHONY: all
-all: $$(all)
-
-# Phony rule to install all built targets (sub-makefiles can append targets to
-# build to the $(install) variable).
-.PHONY: install
-install: $$(install)
-
-# Phony rule to build all documentation targets (sub-makefiles can append
-# documentation to build to the $(doc) variable).
-.PHONY: doc
-doc: $$(doc)
-
-# Phony rule to build and run all test (sub-makefiles can append targets to
-# build and run tests to the $(test) variable).
-.PHONY: test
-test: $$(test)
 
 
 # Create build directory structure
@@ -421,6 +387,43 @@ $(if $V,$(if $(setup_flag_files__), \
 
 # Include the Build.mak for this directory
 -include $T/Build.mak
+
+
+# Targets using special variables
+##################################
+# These targets need to be after processing the Build.mak so all the special
+# variables get populated.
+
+# Runs unittests for all D modules in a projects.
+# If the variable TEST_FILTER_OUT is defined is used to exclude some modules.
+# The Make function $(filter-out) is used, which basically means you can
+# specify multple patterns separated by whitespaces and each pattern can have
+# one '%' that's used as a wildcard. For more information refer to the
+# documentation:
+# http://www.gnu.org/software/make/manual/make.html#Text-Functions
+.PHONY: unittest
+unittest: $(patsubst %.d,%,\
+		$(call find_files,.d,$U/src,$T/src,$(TEST_FILTER_OUT)))
+
+# Phony rule to make all the targets (sub-makefiles can append targets to build
+# to the $(all) variable).
+.PHONY: all
+all: $(all)
+
+# Phony rule to install all built targets (sub-makefiles can append targets to
+# build to the $(install) variable).
+.PHONY: install
+install: $(install)
+
+# Phony rule to build all documentation targets (sub-makefiles can append
+# documentation to build to the $(doc) variable).
+.PHONY: doc
+doc: $(doc)
+
+# Phony rule to build and run all test (sub-makefiles can append targets to
+# build and run tests to the $(test) variable).
+.PHONY: test
+test: $(test)
 
 
 # Automatic dependency handling

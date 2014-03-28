@@ -1,4 +1,21 @@
 
+# Modules to exclude from testing
+TEST_FILTER_OUT += \
+	$C/src/ocean/time/timeout/ExpiryPoolTimeoutManager.d \
+	$C/src/ocean/io/select/model/ITimeoutSelectClient.d \
+	$C/src/ocean/io/compress/ZlibStream.d \
+	$C/src/ocean/io/compress/Zlib.d \
+	$C/src/ocean/db/tokyocabinet/c/tctdb.d \
+	$C/src/ocean/db/tokyocabinet/TokyoCabinetB.d \
+	$C/src/ocean/db/tokyocabinet/TokyoCabinetH.d \
+	$C/src/ocean/util/app/ConfiguredApp.d \
+	$C/src/ocean/util/app/ConsoleToolApp.d \
+	$C/src/ocean/util/Profiler.d \
+	$C/src/ocean/util/MemUsage.d \
+	$C/src/ocean/io/Retry.d \
+	$C/src/ocean/db/sqlite/SQLite.d \
+	$C/src/ocean/db/mysql/MySQL.d
+
 # Link particular tests with the appropriate libraries they need
 $U/src/ocean/text/utf/UtfUtil \
 $U/src/ocean/text/utf/GlibUnicode \

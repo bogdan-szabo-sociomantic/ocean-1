@@ -463,21 +463,18 @@ If you have a test script, you can easily add the target to run that script to
 Then when you run ``make test`` both the *unittests* and your test will run.
 
 If you want to skip some module from the *unittest* run, you can add files to
-the special variable ``$(TEST_FILTER_OUT)``. This is usually done in the
-Config.mak_, but it could be also done in the Build.mak_ file. The contents of
-this variable are used as arguments to the Make ``$(filter-out)`` function. This
-means you can use a single ``%`` as a wildcard, useful for example if you want
-to skip a whole package.
+the special variable ``$(TEST_FILTER_OUT)``. This should be done in the
+Build.mak_ file normally. The contents of this variable are used as arguments
+to the Make ``$(filter-out)`` function. This means you can use a single ``%``
+as a wildcard, useful for example if you want to skip a whole package.
 
 Examples::
 
         TEST_FILTER_OUT += \
-                $T/src/brokenmodule.d \
-                $T/src/brokenpackage/%
+                $C/src/brokenmodule.d \
+                $C/src/brokenpackage/%
 
-Always use ``+=``, there might be other predefined modules to skip. Remember, if
-you put it in the Config.mak_ you can't use ``$C``, but if you put it in the
-Build.mak_ you can (and should :).
+Always use ``+=``, there might be other predefined modules to skip.
 
 
 
