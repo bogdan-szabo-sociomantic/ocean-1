@@ -146,6 +146,7 @@ revision:
 	@echo Updating revision information …
 	@cd ${CURDIR} && \
 	${OCEAN_PATH}/script/mkversion.sh \
+		-m Version \
 		-o ${VERSION_MODULE} \
 		$(D_GC) \
 		${OCEAN_PATH}/script/appVersion.d.tpl \
