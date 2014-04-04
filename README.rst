@@ -40,6 +40,8 @@ New Features
   The helper class SerializingMap and the template mixin MapExtension have been
   added, allowing easy integration of serialization functionality in existing
   map classes.
+  Extended the map serializer with version support similar to the struct loader
+  and dumper. Includes automatic conversion from older versions to current ones.
 
 ``ocean.core.Array``
   Added functions ``startsWith`` & ``endsWith`` to check whether an array 
@@ -77,12 +79,12 @@ New Features
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
-``ocean.util.container.map.utils.MapSerializer``
-  This module has been rewritten to use an object oriented interface, making it
-  more maintainable and memory friendly.
 
-``ocean.util.container.map.utils.FileSerializer``
+``ocean.util.container.map.utils.FileSerializer``, ``ocean.util.container.map.utils.MapSerializer``
   This module has moved to ``ocean.util.container.map.utils.MapSerializer``
+  and has been rewritten to use an object oriented interface, making it
+  more maintainable and memory friendly. Refer to the documentation on how the
+  interface changed.
 
 ``ocean.io.select.SelectListener``
   This module has moved to the ``ocean.net.server`` package.
