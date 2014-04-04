@@ -7,7 +7,7 @@
 
     version:        May 2011: Initial release
 
-    authors:        Gavin Norman
+    authors:        Gavin Norman, Joseph Wakeling
 
     Creates a deep copy from one instance of a type to another. Also provides
     a method to do a deep reset of a struct.
@@ -32,7 +32,7 @@ module ocean.core.DeepCopy;
 
 private import ocean.core.Array : copy;
 
-private import ocean.text.convert.Layout;
+private import ocean.core.Traits : isTypedef, StripTypedef;
 
 private import tango.core.Traits;
 
@@ -40,8 +40,8 @@ private import tango.core.Traits;
 
 /*******************************************************************************
 
-    Template to determine the correct DeepCopy function to call dependant on the
-    type given.
+    Template to determine the correct DeepCopy function to call dependent
+    on the type given.
 
     Template params:
         T = type to deep copy
@@ -53,35 +53,132 @@ private import tango.core.Traits;
 
 public template DeepCopy ( T )
 {
-    static if ( is(T == class) )
+    static if ( isTypedef!(T) )
+    {
+        alias DeepCopy!(StripTypedef!(T)) DeepCopy;
+    }
+    else static if ( is(T == union) )
+    {
+        alias UnionDeepCopy DeepCopy;
+    }
+    else static if ( is(T == class) )
     {
         alias ClassDeepCopy DeepCopy;
     }
-    else static if ( is(T == struct) )
+    else static if ( is(T == struct))
     {
         alias StructDeepCopy DeepCopy;
     }
     else static if ( isAssocArrayType!(T) )
     {
-        // TODO: copy associative arrays
-        pragma(msg, "Warning: deep copy of associative arrays not yet implemented");
-        alias nothing DeepCopy;
+        alias AssocArrayDeepCopy DeepCopy;
     }
-    else static if ( is(T S : S[]) && is(T S == S[]) )
+    else static if ( isDynamicArrayType!(T) )
     {
         alias DynamicArrayDeepCopy DeepCopy;
     }
-    else static if ( is(T S : S[]) && !is(T S == S[]) )
+    else static if ( isStaticArrayType!(T) )
     {
         alias StaticArrayDeepCopy DeepCopy;
     }
+    else static if ( isAtomicType!(T) || is(T == enum) )
+    {
+        alias ValueDeepCopy DeepCopy;
+    }
     else
     {
-        pragma(msg, "Warning: DeepCopy template could not expand for type " ~ T.stringof);
-        alias nothing DeepCopy;
+        alias UnknownDeepCopy DeepCopy;
     }
 }
 
+
+/*******************************************************************************
+
+    Handler for types that are unknown to DeepCopy.  This simply static
+    asserts to alert the user the copy cannot be made.
+
+    Params:
+        src = source variable
+        dst = destination variable
+
+    Template params:
+        T = type of variables to copy
+
+*******************************************************************************/
+
+public void UnknownDeepCopy (T) (T src, ref T dst)
+{
+    static assert(false, "Error: DeepCopy template could not expand for type " ~ T.stringof);
+}
+
+
+/*******************************************************************************
+
+    "Deep" copy function for unions.  In theory this should be able to
+    handle unions of basic value types (i.e. not structs, classes, arrays
+    and so on).  However, in practice we simply static assert(false) in
+    order to prevent deep copying of these very type-unsafe variables.
+
+    Params:
+        src = source value
+        dst = destination value
+
+    Template params:
+        T = type of values to copy
+
+*******************************************************************************/
+
+public void UnionDeepCopy (T) (T src, ref T dst)
+{
+    static assert(is(T == union), "UnionDeepCopy: " ~ T.stringof ~ " is not a union.");
+    static assert(false, "UnionDeepCopy: impossible to safely deep-copy unions.");
+}
+
+
+/*******************************************************************************
+
+    "Deep" copy function for atomic types and enums.  This is provided
+    simply to give support for generic code that may wish to deep-copy
+    variables of arbitrary type.
+
+    Params:
+        src = source array
+        dst = destination array
+
+    Template params:
+        T = type of values to copy
+
+*******************************************************************************/
+
+public void ValueDeepCopy (T) (T src, ref T dst)
+{
+    static assert(isAtomicType!(StripTypedef!(T)) || is(StripTypedef!(T) == enum),
+                  "ValueDeepCopy: " ~ T.stringof ~ " is not an atomic type or enum.");
+
+    dst = src;
+}
+
+
+/*******************************************************************************
+
+    Deep copy function for associative arrays.
+
+    Params:
+        src = source associative array
+        dst = destination associative array
+
+    Template params:
+        Array = type of associative array to deep copy
+
+*******************************************************************************/
+
+public void AssocArrayDeepCopy (Array) (Array src, ref Array dst)
+{
+    static assert(isAssocArrayType!(StripTypedef!(Array)), "AssocArrayDeepCopy: "
+                  ~ Array.stringof ~ " is not an associative array type.");
+    static assert(false, "AssocArrayDeepCopy: deep copy of associative arrays "
+                         "not yet implemented");
+}
 
 
 /*******************************************************************************
@@ -93,12 +190,15 @@ public template DeepCopy ( T )
         dst = destination array
 
     Template params:
-        T = type of array to deep copy
+        Array = type of array to deep copy
 
 *******************************************************************************/
 
-public void DynamicArrayDeepCopy ( T ) ( T[] src, ref T[] dst )
+public void DynamicArrayDeepCopy (Array) (Array src, ref Array dst)
 {
+    static assert(isDynamicArrayType!(StripTypedef!(Array)), "DynamicArrayDeepCopy: "
+                  ~ Array.stringof ~ " is not a dynamic array type.");
+
     dst.length = src.length;
 
     ArrayDeepCopy(src, dst);
@@ -114,20 +214,22 @@ public void DynamicArrayDeepCopy ( T ) ( T[] src, ref T[] dst )
         dst = destination array
 
     Template params:
-        T = type of array to deep copy
+        Array = type of array to deep copy
 
 *******************************************************************************/
 
-public void StaticArrayDeepCopy ( T ) ( T[] src, T[] dst )
+public void StaticArrayDeepCopy (Array) (Array src, Array dst)
 in
 {
     assert(src.length == dst.length, "StaticArrayDeepCopy: static array length mismatch");
 }
 body
 {
+    static assert(isStaticArrayType!(StripTypedef!(Array)), "StaticArrayDeepCopy: "
+                  ~ Array.stringof ~ " is not a static array type.");
+
     ArrayDeepCopy(src, dst);
 }
-
 
 
 /*******************************************************************************
@@ -139,56 +241,45 @@ body
         dst = destination array
 
     Template params:
-        T = type of array to deep copy
+        Array = type of array to deep copy
 
 *******************************************************************************/
 
-private void ArrayDeepCopy ( T ) ( T[] src, T[] dst )
+private void ArrayDeepCopy (Array) (Array src, Array dst)
+in
 {
-    static if ( isAssocArrayType!(T) )
+    assert(src.length == dst.length, "ArrayDeepCopy: length mismatch");
+}
+body
+{
+    static assert(isArrayType!(StripTypedef!(Array)), "ArrayDeepCopy: "
+                  ~ Array.stringof ~ " is not an array type.");
+
+    static if (is(StripTypedef!(Array) T : T[]))
     {
-        // TODO: copy associative arrays
-        pragma(msg, "Warning: deep copy of associative arrays not yet implemented");
-    }
-    else static if ( is(T S : S[]) )
-    {
-        foreach ( i, e; src )
+        static if (isAtomicType!(T) || is(T == enum) || is(T == void))
         {
-            static if ( is(T S == S[]) ) // dynamic array
-            {
-                DynamicArrayDeepCopy(src[i], dst[i]);
-            }
-            else // static array
-            {
-                StaticArrayDeepCopy(src[i], dst[i]);
-            }
+            dst[] = src[];
         }
-    }
-    else static if ( is(T == struct) )
-    {
-        foreach ( i, e; src )
+        else
         {
-            StructDeepCopy(src[i], dst[i]);
-        }
-    }
-    else static if ( is(T == class) )
-    {
-        foreach ( i, e; src )
-        {
-            ClassDeepCopy(src[i], dst[i]);
+            foreach (i, e; src)
+            {
+                DeepCopy!(T)(e, dst[i]);
+            }
         }
     }
     else
     {
-        dst[] = src[];
+        static assert(false, "ArrayDeepCopy: unable to copy arrays of type "
+                             ~ Array.stringof);
     }
 }
 
 
-
 /*******************************************************************************
 
-    Deep copy function for structs.
+    Deep copy function for structs
 
     Params:
         src = source struct
@@ -199,48 +290,13 @@ private void ArrayDeepCopy ( T ) ( T[] src, T[] dst )
 
 *******************************************************************************/
 
-// TODO: struct & class both share basically the same body, could be shared?
-
-public void StructDeepCopy ( T ) ( T src, ref T dst )
+public void StructDeepCopy (T) (T src, ref T dst)
 {
-    static if ( !is(T == struct) )
-    {
-        static assert(false, "StructDeepCopy: " ~ T.stringof ~ " is not a struct");
-    }
+    static assert(is(StripTypedef!(T) == struct), "StructDeepCopy: " ~ T.stringof ~
+                                                  " is not a struct.");
 
-    foreach ( i, member; src.tupleof )
-    {
-        static if ( isAssocArrayType!(typeof(member)) )
-        {
-            // TODO: copy associative arrays
-            pragma(msg, "Warning: deep copy of associative arrays not yet implemented");
-        }
-        else static if ( is(typeof(member) S : S[]) )
-        {
-            static if ( is(typeof(member) U == S[]) ) // dynamic array
-            {
-                DynamicArrayDeepCopy(src.tupleof[i], dst.tupleof[i]);
-            }
-            else // static array
-            {
-                StaticArrayDeepCopy(src.tupleof[i], dst.tupleof[i]);
-            }
-        }
-        else static if ( is(typeof(member) == class) )
-        {
-            ClassDeepCopy(src.tupleof[i], dst.tupleof[i]);
-        }
-        else static if ( is(typeof(member) == struct) )
-        {
-            StructDeepCopy(src.tupleof[i], dst.tupleof[i]);
-        }
-        else
-        {
-            dst.tupleof[i] = src.tupleof[i];
-        }
-    }
+    AggregateDeepCopy(src, dst);
 }
-
 
 
 /*******************************************************************************
@@ -256,58 +312,52 @@ public void StructDeepCopy ( T ) ( T src, ref T dst )
 
 *******************************************************************************/
 
-public void ClassDeepCopy ( T ) ( T src, T dst )
+public void ClassDeepCopy (T) (T src, T dst)
 {
-    static if ( !is(T == class) )
-    {
-        static assert(false, "ClassDeepCopy: " ~ T.stringof ~ " is not a class");
-    }
+    static assert(is(StripTypedef!(T) == class), "ClassDeepCopy: " ~ T.stringof ~
+                                                 " is not a struct or class.");
 
-    foreach ( i, member; src.tupleof )
-    {
-        static if ( isAssocArrayType!(typeof(member)) )
-        {
-            // TODO: copy associative arrays
-            pragma(msg, "Warning: deep copy of associative arrays not yet implemented");
-        }
-        else static if ( is(typeof(member) S : S[]) )
-        {
-            static if ( is(typeof(member) S == S[]) ) // dynamic array
-            {
-                DynamicArrayDeepCopy(src.tupleof[i], dst.tupleof[i]);
-            }
-            else // static array
-            {
-                StaticArrayDeepCopy(src.tupleof[i], dst.tupleof[i]);
-            }
-        }
-        else static if ( is(typeof(member) == class) )
-        {
-            ClassDeepCopy(src.tupleof[i], dst.tupleof[i]);
-        }
-        else static if ( is(typeof(member) == struct) )
-        {
-            StructDeepCopy(src.tupleof[i], dst.tupleof[i]);
-        }
-        else
-        {
-            dst.tupleof[i] = src.tupleof[i];
-        }
-    }
+    AggregateDeepCopy(src, dst);
 
     // Recurse into super any classes
-    static if ( is(T S == super ) )
+    static if (is(StripTypedef!(T) S == super))
     {
-        foreach ( V; S )
+        foreach (V; S)
         {
-            static if ( !is(V == Object) )
+            static if (!is(V == Object))
             {
-                ClassDeepCopy(cast(V)src, cast(V)dst);
+                DeepCopy!(V)(cast(V) src, cast(V) dst);
             }
         }
     }
 }
 
+
+/*******************************************************************************
+
+    Deep copy function used internally by StructDeepCopy and ClassDeepCopy.
+    This will copy the immediate members of a struct or class, but not for
+    example subclass members.
+
+    Params:
+        src = source struct/class
+        dst = destination struct/class
+
+    Template params:
+        T = type of struct/class to deep copy
+
+*******************************************************************************/
+
+public void AggregateDeepCopy (T) (T src, ref T dst)
+{
+    static assert((is(StripTypedef!(T) == struct) || is(StripTypedef!(T) == class)),
+                  "StructClassDeepCopy: " ~ T.stringof ~ " is not a struct or class.");
+
+    foreach (i, member; src.tupleof)
+    {
+        DeepCopy!(typeof(member))(member, dst.tupleof[i]);
+    }
+}
 
 
 /*******************************************************************************
