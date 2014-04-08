@@ -76,9 +76,6 @@ template Fnv1Const ( T = hash_t )
 
 *******************************************************************************/
 
-deprecated alias Fnv1Generic!(false)         Fnv1;
-deprecated alias Fnv1Generic!(false, uint)   Fnv132;
-deprecated alias Fnv1Generic!(false, ulong)  Fnv164;
 alias Fnv1Generic!(true)          Fnv1a;
 alias Fnv1Generic!(true,  uint)   Fnv1a32;
 alias Fnv1Generic!(true,  ulong)  Fnv1a64;
