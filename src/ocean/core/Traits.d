@@ -462,7 +462,7 @@ public template CountTypesInTuple ( Type, Tuple ... )
 
     Strips the typedef off T.
 
-    Template params::
+    Template params:
         T = type to strip of typedef
 
     Evaluates to:
@@ -474,12 +474,21 @@ public template StripTypedef ( T )
 {
     static if ( is ( T Orig == typedef ) )
     {
-        alias Orig StripTypedef;
+        alias StripTypedef!(Orig) StripTypedef;
     }
     else
     {
         alias T StripTypedef;
     }
+}
+
+unittest
+{
+    typedef int Foo;
+    typedef Foo Bar;
+    typedef Bar Goo;
+
+    static assert(is(StripTypedef!(Goo) == int));
 }
 
 
