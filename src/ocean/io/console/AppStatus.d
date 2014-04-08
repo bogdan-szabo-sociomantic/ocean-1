@@ -496,19 +496,25 @@ public class AppStatus
             mem_allocated = the amount of memory currently allocated
             mem_free = the amount of allocated memory that is currently free
 
+        Returns:
+            true if the memory usage was properly gathered, false if is not
+            available.
+
     ***************************************************************************/
 
-    public void getMemoryUsage ( out float mem_allocated, out float mem_free )
+    public bool getMemoryUsage ( out float mem_allocated, out float mem_free )
     {
-        version ( CDGC )
-        {
-            const float Mb = 1024 * 1024;
-            size_t used, free;
-            GC.usage(used, free);
+        const float Mb = 1024 * 1024;
+        size_t used, free;
+        GC.usage(used, free);
 
-            mem_allocated = cast(float)(used + free) / Mb;
-            mem_free = cast(float)free / Mb;
-        }
+        if (used == 0 && free == 0)
+            return false;
+
+        mem_allocated = cast(float)(used + free) / Mb;
+        mem_free = cast(float)free / Mb;
+
+        return true;
     }
 
 
@@ -565,16 +571,25 @@ public class AppStatus
     /***************************************************************************
 
         Format the memory usage for the current program to using the
-        tango memory module to calculate current usage
+        tango memory module to calculate current usage (if available).
 
     ***************************************************************************/
 
     private void formatMemoryUsage ( )
     {
         float mem_allocated, mem_free;
-        this.getMemoryUsage(mem_allocated, mem_free);
-        Layout!(char).print(this.heading_line, " Memory: Used {}Mb/Free {}Mb",
-            mem_allocated, mem_free);
+
+        bool stats_available = this.getMemoryUsage(mem_allocated, mem_free);
+
+        if (stats_available)
+        {
+            Layout!(char).print(this.heading_line,
+                " Memory: Used {}Mb/Free {}Mb", mem_allocated, mem_free);
+        }
+        else
+        {
+            Layout!(char).print(this.heading_line, " Memory: n/a");
+        }
     }
 
 
