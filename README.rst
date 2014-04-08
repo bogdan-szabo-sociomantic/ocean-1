@@ -22,6 +22,17 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+New Features
+^^^^^^^^^^^^
+
+``ocean.io.device.MemoryDevice``
+  MemoryDevice behaves like a file but exists only in memory. Useful for when
+  you want to test functions that want to operate on a file
+
+  This was created as an alternative to tango.io.device.Array, whose write()
+  function has the unresonable limitation of always appending instead of
+  respecting the current seek position and thus not properly simulating a file
+
 
 v1.12 (2014-04-01)
 ------------------
