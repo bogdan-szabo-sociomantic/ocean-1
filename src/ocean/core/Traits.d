@@ -460,6 +460,40 @@ public template CountTypesInTuple ( Type, Tuple ... )
 
 /*******************************************************************************
 
+    Determines if T is a typedef.
+
+    Template params:
+        T = type to check
+
+    Evaluates to:
+        true if T is a typedef, false otherwise
+
+*******************************************************************************/
+
+public template isTypedef (T)
+{
+    static if (is(T Orig == typedef))
+    {
+        const bool isTypedef = true;
+    }
+    else
+    {
+        const bool isTypedef = false;
+    }
+}
+
+unittest
+{
+    typedef double RealNum;
+
+    static assert(!isTypedef!(int));
+    static assert(!isTypedef!(double));
+    static assert(isTypedef!(RealNum));
+}
+
+
+/*******************************************************************************
+
     Strips the typedef off T.
 
     Template params:
