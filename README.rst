@@ -72,6 +72,9 @@ New Features
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
+``ocean.util.container.map.utils.FileSerializer``
+  This module has moved to ``ocean.util.container.map.utils.MapSerializer``
+
 ``ocean.io.select.SelectListener``
   This module has moved to the ``ocean.net.server`` package.
 

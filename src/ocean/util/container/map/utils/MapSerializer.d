@@ -15,7 +15,7 @@
 
 *******************************************************************************/
 
-module ocean.util.container.map.utils.FileSerializer;
+module ocean.util.container.map.utils.MapSerializer;
 import ocean.io.Stdout;
 
 
