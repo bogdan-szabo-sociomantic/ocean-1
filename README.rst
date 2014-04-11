@@ -81,7 +81,10 @@ Migration Instructions
   - Update your module imports for ``Version.d`` to be plain ``import
     Version``.
   - If you use ``mkversion.sh`` directly, remove library base dir parameter and
-    provide qualified submodule folder paths instead.
+    provide qualified submodule folder paths instead. Also be aware that the
+    template parameter is no longer an option specified by -t, it is now a
+    required parameter and should appear after the GC parameter and before the
+    libraries.
 
 New Features
 ^^^^^^^^^^^^
