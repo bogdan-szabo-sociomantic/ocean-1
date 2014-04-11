@@ -123,18 +123,7 @@ class SelectedKeysHandler: ISelectedKeysHandler
     {
         ISelectClient client = cast (ISelectClient) key.data.ptr;
 
-        debug ( ISelectClient )
-        {
-            Trace.format("{} :: Epoll firing with events ", client);
-            foreach ( event, name; epoll_event_t.event_to_name )
-            {
-                if ( key.events & event )
-                {
-                    Trace.format("{}", name);
-                }
-            }
-            Trace.formatln("");
-        }
+        debug ( ISelectClient ) this.logEvents(client, key.events);
 
         // Only handle clients which are registered. Clients may have
         // already been unregistered (presumably deliberately), as a side-
@@ -151,27 +140,11 @@ class SelectedKeysHandler: ISelectedKeysHandler
 
                 unregister_key = !client.handle(key.events);
 
-                debug ( ISelectClient ) if ( unregister_key )
-                {
-                    Trace.formatln("{} :: Handled, unregistering fd", client);
-                }
-                else
-                {
-                    Trace.formatln("{} :: Handled, leaving fd registered", client);
-                }
+                debug (ISelectClient) this.logHandled( client, unregister_key);
             }
             catch (Exception e)
             {
-                debug (ISelectClient)
-                {
-                    // FIXME: printing on separate lines for now as a workaround
-                    // for a dmd bug with varargs
-                    Trace.formatln("{} :: ISelectClient handle exception:", client);
-                    Trace.formatln("    '{}'", e.msg);
-                    Trace.formatln("    @{}:{}", e.file, e.line);
-//                    Trace.formatln("{} :: ISelectClient handle exception: '{}' @{}:{}",
-//                        client, e.msg, e.file, e.line);
-                }
+                debug (ISelectClient) this.logException(client, e);
 
                 this.clientError(client, key.events, e);
                 error = true;
@@ -299,5 +272,88 @@ class SelectedKeysHandler: ISelectedKeysHandler
         }
 
         client.error(e, events);
+    }
+
+    /***************************************************************************
+
+        Trace logging functions.
+
+    ***************************************************************************/
+
+    debug (ISelectClient):
+
+    /***************************************************************************
+
+        Logs that events were reported for client.
+
+        Params:
+            client = select client for which events were reported
+            events = events reported for client
+
+    ***************************************************************************/
+
+    private static void logEvents ( ISelectClient client, epoll_event_t.Event events )
+    {
+        Trace.format("{} :: Epoll firing with events ", client);
+        foreach ( event, name; epoll_event_t.event_to_name )
+        {
+            if ( events & event )
+            {
+                Trace.format("{}", name);
+            }
+        }
+        Trace.formatln("");
+    }
+
+    /***************************************************************************
+
+        Logs that client was handled.
+
+        Params:
+            client         = handled client
+            unregister_key = true if the client is unregistered or false if it
+                             stays registered
+
+    ***************************************************************************/
+
+    private static void logHandled ( ISelectClient client, bool unregister_key )
+    {
+        if ( unregister_key )
+        {
+            Trace.formatln("{} :: Handled, unregistering fd", client);
+        }
+        else
+        {
+            Trace.formatln("{} :: Handled, leaving fd registered", client);
+        }
+    }
+
+    /***************************************************************************
+
+        Logs that an exception was thrown while handing client. This includes
+        an error event reported by epoll.
+
+        Params:
+            client = client that caused an error
+            e      = caught exception
+
+    ***************************************************************************/
+
+    private static void logException ( ISelectClient client, Exception e )
+    {
+        // FIXME: printing on separate lines for now as a workaround
+        // for a dmd bug with varargs
+
+        version (none)
+        {
+             Trace.formatln("{} :: ISelectClient handle exception: '{}' @{}:{}",
+                 client, e.msg, e.file, e.line);
+        }
+        else
+        {
+            Trace.formatln("{} :: ISelectClient handle exception:", client);
+            Trace.formatln("    '{}'", e.msg);
+            Trace.formatln("    @{}:{}", e.file, e.line);
+        }
     }
 }
