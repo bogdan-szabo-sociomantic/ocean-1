@@ -9,7 +9,7 @@ Makd.mak.included := 1
 # S should be sub-directory where the current makefile is, relative to $T.
 
 # Use the git top-level directory by default
-T ?= $(shell dirname `git rev-parse --git-dir`)
+T ?= $(shell git rev-parse --show-toplevel)
 # Use absolute paths to avoid problems with automatic dependencies when
 # building from subdirectories
 T := $(abspath $T)
