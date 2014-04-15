@@ -54,12 +54,9 @@
 
     ---
 
-    TODO: suggest moving this module to: ocean.io.select.server, along with
-    I*ConnectionHandler from ocean.io.select.model.
-
  ******************************************************************************/
 
-module ocean.io.select.SelectListener;
+module ocean.net.server.SelectListener;
 
 /******************************************************************************
 
@@ -67,14 +64,13 @@ module ocean.io.select.SelectListener;
 
  ******************************************************************************/
 
-private import ocean.io.select.model.ISelectClient;
-private import ocean.io.select.model.IConnectionHandler;
-private import ocean.io.select.model.SelectListenerPool;
-private import ocean.io.select.model.ISelectListenerPoolInfo;
+private import ocean.io.select.client.model.ISelectClient;
+private import ocean.net.server.connection.IConnectionHandler;
+private import ocean.net.server.connpool.SelectListenerPool;
+private import ocean.net.server.connpool.ISelectListenerPoolInfo;
 
 private import ocean.core.ErrnoIOException;
 
-private import ocean.util.container.pool.ObjectPool : AutoCtorPool;
 private import ocean.util.container.pool.model.IPoolInfo;
 
 private import ocean.text.convert.Layout;

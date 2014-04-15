@@ -11,7 +11,7 @@
 
 *******************************************************************************/
 
-module ocean.io.select.model.IFiberConnectionHandler;
+module ocean.net.server.connection.IFiberConnectionHandler;
 
 /*******************************************************************************
 
@@ -25,7 +25,7 @@ private import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol,
                ocean.io.select.protocol.fiber.BufferedFiberSelectWriter,
                ocean.io.select.protocol.generic.ErrnoIOException: IOWarning;
 
-private import ocean.io.select.model.IConnectionHandler;
+private import ocean.net.server.connection.IConnectionHandler;
 
 private import ocean.io.select.fiber.SelectFiber;
 private import ocean.core.MessageFiber : MessageFiberControl;

@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module ocean.io.select.model.IConnectionHandlerInfo;
+module ocean.net.server.connection.IConnectionHandlerInfo;
 
 
 

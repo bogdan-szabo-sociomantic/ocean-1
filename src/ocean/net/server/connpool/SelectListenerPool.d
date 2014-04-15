@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module ocean.io.select.model.SelectListenerPool;
+module ocean.net.server.connpool.SelectListenerPool;
 
 
 
@@ -20,9 +20,9 @@ module ocean.io.select.model.SelectListenerPool;
 
 *******************************************************************************/
 
-private import ocean.io.select.model.ISelectListenerPoolInfo;
+private import ocean.net.server.connpool.ISelectListenerPoolInfo;
 
-private import ocean.io.select.model.IConnectionHandler;
+private import ocean.net.server.connection.IConnectionHandler;
 
 private import ocean.util.container.pool.ObjectPool : AutoCtorPool;
 

@@ -32,7 +32,7 @@ private import ocean.net.http.consts.StatusCodes: StatusCode;
 private import ocean.net.http.consts.HttpMethod: HttpMethod;
 private import ocean.net.http.consts.HeaderFieldNames;
 
-private import ocean.io.select.model.IFiberConnectionHandler,
+private import ocean.net.server.connection.IFiberConnectionHandler,
                ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
 private import ocean.core.ErrnoIOException;

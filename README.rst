@@ -43,6 +43,15 @@ New Features
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
+``ocean.io.select.SelectListener``
+  This module has moved to the ``ocean.net.server`` package.
+
+``ocean.io.select.SelectListener.model.*ConnectionHandler*``
+  These modules have moved to the ``ocean.net.server.connection`` package.
+
+``ocean.io.select.model.*ListenerPool*``
+  These modules have moved to the ``ocean.net.server.connpool`` package.
+
 ``ocean.io.select.model.IEpollSelectDispatcherInfo``
   This module has moved to the ``ocean.io.select.selector`` package. The
   ``ocean.io.select.model`` package has been removed, as it is now empty.

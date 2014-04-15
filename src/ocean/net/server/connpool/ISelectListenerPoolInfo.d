@@ -11,7 +11,7 @@
 
 *******************************************************************************/
 
-module ocean.io.select.model.ISelectListenerPoolInfo;
+module ocean.net.server.connpool.ISelectListenerPoolInfo;
 
 
 
@@ -21,7 +21,7 @@ module ocean.io.select.model.ISelectListenerPoolInfo;
 
 *******************************************************************************/
 
-private import ocean.io.select.model.IConnectionHandlerInfo;
+private import ocean.net.server.connection.IConnectionHandlerInfo;
 
 private import ocean.util.container.pool.model.IPoolInfo;
 

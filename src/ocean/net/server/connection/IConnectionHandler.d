@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module ocean.io.select.model.IConnectionHandler;
+module ocean.net.server.connection.IConnectionHandler;
 
 
 
@@ -22,8 +22,8 @@ module ocean.io.select.model.IConnectionHandler;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
-private import ocean.io.select.model.IConnectionHandlerInfo;
-private import ocean.io.select.model.ISelectClient : IAdvancedSelectClient;
+private import ocean.net.server.connection.IConnectionHandlerInfo;
+private import ocean.io.select.client.model.ISelectClient : IAdvancedSelectClient;
 
 private import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
 
