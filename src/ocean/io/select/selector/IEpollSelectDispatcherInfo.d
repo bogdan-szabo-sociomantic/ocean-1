@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module ocean.io.select.model.IEpollSelectDispatcherInfo;
+module ocean.io.select.selector.IEpollSelectDispatcherInfo;
 
 
 

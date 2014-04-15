@@ -40,6 +40,12 @@ New Features
   be deep-copied, such as unions or pointers.  Associative arrays currently
   remain unsupported.
 
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
+
+``ocean.io.select.model.IEpollSelectDispatcherInfo``
+  This module has moved to the ``ocean.io.select.selector`` package. The
+  ``ocean.io.select.model`` package has been removed, as it is now empty.
 
 v1.12 (2014-04-01)
 ------------------
