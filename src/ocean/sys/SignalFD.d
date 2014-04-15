@@ -98,8 +98,6 @@ else
 
 private import ocean.core.ErrnoIOException;
 
-private import ocean.io.select.model.ISelectClient;
-
 private import ocean.sys.SignalMask;
 
 private import tango.io.model.IConduit;

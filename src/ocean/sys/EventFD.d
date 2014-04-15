@@ -106,8 +106,6 @@ private import tango.stdc.posix.sys.types: ssize_t;
 
 private import tango.stdc.posix.unistd: read, write, close;
 
-private import ocean.io.select.model.ISelectClient;
-
 debug private import tango.util.log.Trace;
 
 
