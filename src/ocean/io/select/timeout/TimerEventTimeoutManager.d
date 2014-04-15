@@ -39,9 +39,9 @@ module ocean.io.select.timeout.TimerEventTimeoutManager;
 
 private import ocean.time.timeout.TimeoutManager;
 
-private import ocean.io.select.event.TimerEvent;
+private import ocean.io.select.client.TimerEvent;
 
-private import ocean.io.select.model.ISelectClient;
+private import ocean.io.select.client.model.ISelectClient;
 
 private import tango.stdc.posix.time: time_t, timespec;
 

@@ -16,7 +16,7 @@ module ocean.io.device.AsyncFileEpoll;
 
 *******************************************************************************/
 
-private import ocean.io.select.event.SelectEvent;
+private import ocean.io.select.client.SelectEvent;
 
 private import ocean.io.select.EpollSelectDispatcher;
 

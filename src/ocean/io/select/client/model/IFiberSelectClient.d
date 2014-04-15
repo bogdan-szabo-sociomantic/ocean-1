@@ -18,7 +18,7 @@
 
  ******************************************************************************/
 
-module ocean.io.select.model.IFiberSelectClient;
+module ocean.io.select.client.model.IFiberSelectClient;
 
 /******************************************************************************
 
@@ -26,7 +26,7 @@ module ocean.io.select.model.IFiberSelectClient;
 
  ******************************************************************************/
 
-private import ocean.io.select.model.ISelectClient;
+private import ocean.io.select.client.model.ISelectClient;
 
 private import ocean.io.select.fiber.SelectFiber;
 

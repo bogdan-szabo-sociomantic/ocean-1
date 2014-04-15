@@ -13,7 +13,7 @@
 
     ---
 
-        import ocean.io.select.event.IntervalClock;
+        import ocean.io.select.client.IntervalClock;
         import ocean.io.select.EpollSelectDispatcher;
 
         scope dispatcher = new EpollSelectDispatcher;
@@ -56,7 +56,7 @@
 
  ******************************************************************************/
 
-module ocean.io.select.event.IntervalClock;
+module ocean.io.select.client.IntervalClock;
 
 /******************************************************************************
 
@@ -64,7 +64,7 @@ module ocean.io.select.event.IntervalClock;
 
  ******************************************************************************/
 
-private import ocean.io.select.event.TimerEvent;
+private import ocean.io.select.client.TimerEvent;
 
 private import ocean.time.model.IMicrosecondsClock,
                ocean.time.MicrosecondsClock;

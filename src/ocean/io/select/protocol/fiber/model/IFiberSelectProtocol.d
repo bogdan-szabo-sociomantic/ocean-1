@@ -23,7 +23,7 @@ module ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
 private import ocean.core.MessageFiber;
 
-private import ocean.io.select.model.IFiberSelectClient;
+private import ocean.io.select.client.model.IFiberSelectClient;
 
 private import ocean.io.select.fiber.SelectFiber;
 

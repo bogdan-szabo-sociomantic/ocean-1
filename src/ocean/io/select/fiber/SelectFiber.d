@@ -25,8 +25,8 @@ module ocean.io.select.fiber.SelectFiber;
 
 private import ocean.core.MessageFiber;
 
-private import ocean.io.select.model.ISelectClient;
-private import ocean.io.select.model.ISelectClientInfo;
+private import ocean.io.select.client.model.ISelectClient;
+private import ocean.io.select.client.model.ISelectClientInfo;
 
 private import ocean.io.select.EpollSelectDispatcher;
 

@@ -54,7 +54,7 @@
 
 *******************************************************************************/
 
-module ocean.io.select.event.Scheduler;
+module ocean.io.select.client.Scheduler;
 
 
 

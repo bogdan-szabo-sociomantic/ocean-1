@@ -21,7 +21,7 @@
 
     ---
 
-        import ocean.io.select.event.SelectEvent;
+        import ocean.io.select.client.SelectEvent;
         import ocean.io.select.EpollSelectDispatcher;
 
         // Event handler
@@ -44,7 +44,7 @@
 
 *******************************************************************************/
 
-module ocean.io.select.event.SelectEvent;
+module ocean.io.select.client.SelectEvent;
 
 
 
@@ -56,7 +56,7 @@ module ocean.io.select.event.SelectEvent;
 
 private import ocean.sys.EventFD;
 
-private import ocean.io.select.model.ISelectClient;
+private import ocean.io.select.client.model.ISelectClient;
 
 debug private import tango.util.log.Trace;
 

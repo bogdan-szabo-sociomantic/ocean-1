@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module ocean.io.select.model.ISelectClientInfo;
+module ocean.io.select.client.model.ISelectClientInfo;
 
 
 

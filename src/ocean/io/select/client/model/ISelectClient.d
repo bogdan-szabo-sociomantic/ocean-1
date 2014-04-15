@@ -19,7 +19,7 @@
 
  ******************************************************************************/
 
-module ocean.io.select.model.ISelectClient;
+module ocean.io.select.client.model.ISelectClient;
 
 
 
@@ -29,7 +29,7 @@ module ocean.io.select.model.ISelectClient;
 
  ******************************************************************************/
 
-private import ocean.io.select.model.ISelectClientInfo;
+private import ocean.io.select.client.model.ISelectClientInfo;
 
 private import ocean.sys.Epoll;
 

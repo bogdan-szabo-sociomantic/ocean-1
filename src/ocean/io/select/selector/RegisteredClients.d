@@ -21,7 +21,7 @@ module ocean.io.select.selector.RegisteredClients;
 
 *******************************************************************************/
 
-private import ocean.io.select.model.ISelectClient;
+private import ocean.io.select.client.model.ISelectClient;
 
 private import ocean.util.container.map.Set;
 

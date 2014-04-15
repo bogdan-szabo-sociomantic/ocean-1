@@ -13,7 +13,7 @@
 
     ---
 
-        import ocean.io.select.event.FiberSelectEvent;
+        import ocean.io.select.client.FiberSelectEvent;
         import ocean.io.select.EpollSelectDispatcher;
 
         auto fiber = new MessageFiber(&coroutine);
@@ -37,7 +37,7 @@
 
 *******************************************************************************/
 
-module ocean.io.select.event.FiberSelectEvent;
+module ocean.io.select.client.FiberSelectEvent;
 
 /*******************************************************************************
 
@@ -49,7 +49,7 @@ private import ocean.core.MessageFiber;
 
 private import ocean.sys.EventFD;
 
-private import ocean.io.select.model.IFiberSelectClient;
+private import ocean.io.select.client.model.IFiberSelectClient;
 
 debug private import ocean.util.log.Trace;
 

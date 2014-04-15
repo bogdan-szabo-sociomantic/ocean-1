@@ -21,7 +21,7 @@
 
 *******************************************************************************/
 
-module ocean.io.select.event.SignalEvent;
+module ocean.io.select.client.SignalEvent;
 
 
 
@@ -31,7 +31,7 @@ module ocean.io.select.event.SignalEvent;
 
 *******************************************************************************/
 
-private import ocean.io.select.model.ISelectClient;
+private import ocean.io.select.client.model.ISelectClient;
 
 private import ocean.sys.SignalFD;
 

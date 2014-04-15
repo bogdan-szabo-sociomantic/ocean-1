@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module ocean.io.select.event.TimerEvent;
+module ocean.io.select.client.TimerEvent;
 
 /*******************************************************************************
 
@@ -18,7 +18,7 @@ module ocean.io.select.event.TimerEvent;
 
 *******************************************************************************/
 
-private import ocean.io.select.model.ISelectClient: ISelectClient;
+private import ocean.io.select.client.model.ISelectClient: ISelectClient;
 
 private import ocean.core.ErrnoIOException;
 private import ocean.core.Array : copy;

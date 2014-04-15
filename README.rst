@@ -52,6 +52,12 @@ Migration Instructions
 ``ocean.io.select.model.*ListenerPool*``
   These modules have moved to the ``ocean.net.server.connpool`` package.
 
+``ocean.io.select.event``
+  This package has been renamed ``ocean.io.select.client``.
+
+``ocean.io.select.model.*SelectClient*``
+  These modules have moved to the ``ocean.io.select.client.model`` package.
+
 ``ocean.io.select.model.IEpollSelectDispatcherInfo``
   This module has moved to the ``ocean.io.select.selector`` package. The
   ``ocean.io.select.model`` package has been removed, as it is now empty.

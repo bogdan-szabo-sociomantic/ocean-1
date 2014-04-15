@@ -13,7 +13,7 @@
     ---
 
         import ocean.io.Stdout;
-        import ocean.io.select.event.EpollProcess;
+        import ocean.io.select.client.EpollProcess;
         import ocean.io.select.EpollSelectDispatcher;
 
         // Simple epoll process class which uses curl to download data from a
@@ -80,7 +80,7 @@
 
 *******************************************************************************/
 
-module ocean.io.select.event.EpollProcess;
+module ocean.io.select.client.EpollProcess;
 
 
 
@@ -92,13 +92,13 @@ module ocean.io.select.event.EpollProcess;
 
 private import ocean.util.container.map.Map;
 
-private import ocean.io.select.model.ISelectClient;
+private import ocean.io.select.client.model.ISelectClient;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
 private import ocean.sys.SignalHandler;
 
-private import ocean.io.select.event.SignalEvent;
+private import ocean.io.select.client.SignalEvent;
 
 private import tango.io.model.IConduit;
 

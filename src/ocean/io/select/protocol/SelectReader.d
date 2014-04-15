@@ -19,7 +19,7 @@ module ocean.io.select.protocol.SelectReader;
 
 *******************************************************************************/
 
-import ocean.io.select.model.ISelectClient;
+import ocean.io.select.client.model.ISelectClient;
 import ocean.io.device.IODevice;
 import ocean.io.select.protocol.generic.ErrnoIOException;
 

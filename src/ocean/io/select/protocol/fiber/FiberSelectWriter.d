@@ -24,7 +24,7 @@ module ocean.io.select.protocol.fiber.FiberSelectWriter;
 
 private import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
-private import ocean.io.select.model.ISelectClient;
+private import ocean.io.select.client.model.ISelectClient;
 
 private import ocean.io.device.IODevice: IOutputDevice;
 

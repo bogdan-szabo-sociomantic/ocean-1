@@ -32,9 +32,9 @@ module ocean.io.select.EpollSelectDispatcher;
 *******************************************************************************/
 
 private import ocean.io.select.selector.IEpollSelectDispatcherInfo;
-private import ocean.io.select.model.ISelectClient;
+private import ocean.io.select.client.model.ISelectClient;
 
-private import ocean.io.select.event.SelectEvent;
+private import ocean.io.select.client.SelectEvent;
 
 private import ocean.io.select.selector.RegisteredClients;
 

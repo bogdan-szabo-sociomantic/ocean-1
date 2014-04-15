@@ -23,7 +23,7 @@ module ocean.util.log.Stats;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
-private import ocean.io.select.event.TimerEvent;
+private import ocean.io.select.client.TimerEvent;
 
 private import ocean.text.convert.Layout: StringLayout;
 
