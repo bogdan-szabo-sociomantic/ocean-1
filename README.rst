@@ -33,6 +33,13 @@ New Features
   function has the unresonable limitation of always appending instead of
   respecting the current seek position and thus not properly simulating a file
 
+``ocean.core.DeepCopy``
+  ``DeepCopy`` has been updated to cover a much broader range of types:
+  structs, classes, static and dynamic arrays (including ``void[]`` arrays),
+  atomic types and enums.  It will however reject types that cannot effectively
+  be deep-copied, such as unions or pointers.  Associative arrays currently
+  remain unsupported.
+
 
 v1.12 (2014-04-01)
 ------------------
