@@ -855,26 +855,5 @@ public abstract class EpollProcess
             this.finished(this.exited_ok, this.exit_code);
         }
     }
-
-    version ( UnitTest )
-    {
-        /***********************************************************************
-
-            Emulate that the process has exited. Useful for a testing a class
-            inheriting this class.
-
-            Params:
-                exited_ok = did the fake process exit without errors?
-                exit_code = what was the exit code of the fake process?
-
-        ***********************************************************************/
-
-        protected void emulateExit ( bool exited_ok, int exit_code )
-        {
-            this.stdoutFinalize();
-            this.stderrFinalize();
-            this.exit(exited_ok, exit_code);
-        }
-    }
 }
 
