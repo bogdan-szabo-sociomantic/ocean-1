@@ -22,6 +22,10 @@ module ocean.core.Traits;
 
 private import tango.core.Tuple: Tuple;
 
+private import tango.core.Traits : isReferenceType, isDynamicArrayType,
+                                   isStaticArrayType, isAtomicType,
+                                   ElementTypeOfArray;
+
 /*******************************************************************************
 
     Tells whether the passed string is a D 1.0 keyword.
@@ -125,6 +129,56 @@ public bool isIdentifier ( char[] string )
     return true;
 }
 
+
+
+/*******************************************************************************
+
+    Evaluates to true if T or any of its sub types is a reference, dynamic array
+    or pointer type.
+
+    Template Params:
+        T = one or more types to check
+
+*******************************************************************************/
+
+public template hasIndirections ( T... )
+{
+    static if ( T.length == 0 )
+    {
+        const hasIndirections = false;
+    }
+    else static if ( isAtomicType!(T[0]) )
+    {
+        const hasIndirections = hasIndirections!(T[1..$]);
+    }
+    else static if ( isStaticArrayType!(T[0]) )
+    {
+       const hasIndirections = hasIndirections!(ElementTypeOfArray!(T[0])) ||
+                               hasIndirections!(T[1..$]);
+    }
+    else static if ( is ( T[0] == struct ) || is ( T[0] == union ) )
+    {
+        static if ( TypeTuple!(T[0]).length == 0 )
+        {
+            const hasIndirections = hasIndirections!(T[1..$]);
+        }
+        else static if ( TypeTuple!(T[0]).length == 1 )
+        {
+            const hasIndirections = hasIndirections!(TypeTuple!(T)[0]) ||
+                                    hasIndirections!(T[1..$]);
+        }
+        else
+        {
+            const hasIndirections = hasIndirections!(TypeTuple!(T[0])[0]) ||
+                                    hasIndirections!(TypeTuple!(T[0])[1..$]) ||
+                                    hasIndirections!(T[1..$]);
+        }
+    }
+    else
+    {
+        const hasIndirections = true;
+    }
+}
 
 
 /*******************************************************************************
@@ -653,4 +707,71 @@ unittest
     static assert(is(ReturnAndArgumentTypesOf!(I) == Tuple!(int, char)));
     static assert(is(ReturnAndArgumentTypesOf!(S) == Tuple!(int, char)));
     static assert(is(ReturnAndArgumentTypesOf!(U) == Tuple!(int, char)));
+
+    // Check hasIndirections
+
+    struct NoIndirections
+    {
+        struct Z
+        {
+            int f,g;
+        }
+        int a;
+        long b;
+        byte c;
+        union U
+        {
+            char e;
+            char[2] arr;
+        }
+
+        U u;
+        Z q;
+    }
+
+    static assert ( hasIndirections!(NoIndirections) == false );
+
+    struct Arrays
+    {
+        int a;
+        int[] b;
+    }
+
+    static assert ( hasIndirections!(Arrays) );
+
+    struct Ptr
+    {
+        int* a;
+    }
+
+    static assert ( hasIndirections!(Arrays) );
+
+    struct Class
+    {
+        class A {}
+        A a;
+    }
+
+    static assert ( hasIndirections!(Class) );
+
+    struct Asso
+    {
+        char[int] a;
+    }
+
+    static assert ( hasIndirections!(Asso) );
+
+    struct Dg
+    {
+        void delegate ( ) a;
+    }
+
+    static assert ( hasIndirections!(Dg) );
+
+    struct Func
+    {
+        void function ( ) a;
+    }
+
+    static assert ( hasIndirections!(Func) );
 }
