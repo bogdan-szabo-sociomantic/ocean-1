@@ -1620,8 +1620,8 @@ version (UnitTest)
 
 /*******************************************************************************
 
-    Template to determine the correct DeepCopy function to call dependant on the
-    type given.
+    Template to determine the correct DeepReset function to call dependent on
+    the type given.
 
     Template params:
         T = type to deep reset
