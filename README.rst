@@ -25,6 +25,9 @@ master
 New Features
 ^^^^^^^^^^^^
 
+``ocean.net.email.EmailSender``
+  Ability to cc added.
+
 ``ocean.io.device.MemoryDevice``
   MemoryDevice behaves like a file but exists only in memory. Useful for when
   you want to test functions that want to operate on a file
