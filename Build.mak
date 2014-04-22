@@ -74,6 +74,3 @@ $U/src/ocean/db/tokyocabinet/TokyoCabinetM: \
 $U/src/ocean/io/compress/lzo/c/lzo_crc: \
 	override LDFLAGS += -llzo2
 
-$U/src/ocean/io/device/AsyncFileEpoll: \
-	 override LDFLAGS += -laio
-

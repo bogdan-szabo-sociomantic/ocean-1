@@ -65,6 +65,10 @@ Migration Instructions
   This module has moved to the ``ocean.io.select.selector`` package. The
   ``ocean.io.select.model`` package has been removed, as it is now empty.
 
+``ocean.io.device.AsyncFileEpoll``
+  This module has been removed as it was only partly documented/working. See #33
+  for discussion on a full asynchronous file I/O system.
+
 v1.12 (2014-04-01)
 ------------------
 
