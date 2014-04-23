@@ -369,6 +369,19 @@ public class BufferedDirectWriteFile: OutputStream
 
     /***********************************************************************
 
+        Returns:
+            the path of the open file
+
+    ***********************************************************************/
+
+    public char[] path ( )
+    {
+        assert(this.file.fileHandle != -1, "cannot get path of non-open file");
+        return this.file.path();
+    }
+
+    /***********************************************************************
+
         Return the host conduit.
 
     ***********************************************************************/
