@@ -232,12 +232,36 @@ public class BufferedDirectWriteFile: OutputStream
 
     *******************************************************************************/
 
-    static private class DirectWriteFile : File
+    static protected class DirectWriteFile : File
     {
-        void open(char[] path)
+        /***********************************************************************
+
+            Opens a direct-write file at the specified path.
+
+            Params:
+                path = path at which to create file
+
+            Throws:
+                IOException on error opening the file
+
+        ***********************************************************************/
+
+        public void open(char[] path)
         {
             if (!super.open(path, this.WriteCreate, O_DIRECT))
                 this.error();
+        }
+
+        /***********************************************************************
+
+            Returns:
+                the file's path
+
+        ***********************************************************************/
+
+        public char[] path ( )
+        {
+            return this.toString();
         }
     }
 
@@ -247,7 +271,7 @@ public class BufferedDirectWriteFile: OutputStream
 
     ***********************************************************************/
 
-    private DirectWriteFile file;
+    private const DirectWriteFile file;
 
     /***********************************************************************
 
@@ -274,9 +298,25 @@ public class BufferedDirectWriteFile: OutputStream
     public this (char[] path, ubyte[] buffer)
     {
         this.setBuffer(buffer);
-        this.file = new DirectWriteFile;
+        this.file = this.newFile();
         if (path.length > 0)
             this.open(path);
+    }
+
+    /***************************************************************************
+
+        Instantiates the file object to be used to write to. This method may be
+        overridden by derived classes, allowing different types of file to be
+        used with this class.
+
+        Returns:
+            file object to write to
+
+    ***************************************************************************/
+
+    protected DirectWriteFile newFile ( )
+    {
+        return new DirectWriteFile;
     }
 
     /***********************************************************************
