@@ -31,7 +31,7 @@ else
 endif
 
 RDMDFLAGS = --force --compiler=$(DC) --exclude=tango \
-               $(DFLAGS) $(DEFAULT_FLAGS) $(OCEAN_LDFLAGS)
+               $(DFLAGS) $(DEFAULT_FLAGS)
 
 
 ### User Setting Variable Defaults ###
