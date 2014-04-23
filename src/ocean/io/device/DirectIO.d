@@ -276,7 +276,7 @@ public class BufferedDirectWriteFile: OutputStream
         this.setBuffer(buffer);
         this.file = new DirectWriteFile;
         if (path.length > 0)
-            this.file.open(path);
+            this.open(path);
     }
 
     /***********************************************************************
