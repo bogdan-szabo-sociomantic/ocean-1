@@ -82,34 +82,34 @@ private import tango.stdc.posix.fcntl : O_DIRECT; // Linux only
 private template AlignedBufferedStream ( )
 {
 
-    /***********************************************************************
+    /***************************************************************************
 
         Block size.
 
         Almost every HDD out there has a block size of 512. But we should be
         careful about this...
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public enum { BLOCK_SIZE = 512 }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Internal buffer (the size needs to be multiple of the block size).
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     protected ubyte[] buffer;
 
-    /***********************************************************************
+    /***************************************************************************
 
         Internal pointer to the next byte of the buffer that is free.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     protected size_t free_index;
 
-    /***********************************************************************
+    /***************************************************************************
 
         Construct the buffer using an existing buffer.
 
@@ -119,7 +119,7 @@ private template AlignedBufferedStream ( )
         Params:
             buffer = buffer to re-use for this aligned buffer.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     protected void setBuffer ( ubyte[] buffer )
     {
@@ -136,7 +136,7 @@ private template AlignedBufferedStream ( )
         this.free_index = 0;
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Construct the buffer with a specified size.
 
@@ -146,7 +146,7 @@ private template AlignedBufferedStream ( )
         Params:
             buffer_blocks = Buffer size in blocks
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     protected void createBuffer ( size_t buffer_blocks )
     {
@@ -160,22 +160,22 @@ private template AlignedBufferedStream ( )
         this.setBuffer(new ubyte[buffer_blocks * BLOCK_SIZE]);
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Return true if the pointer is aligned to the block size.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     final public bool isAligned ( void* ptr )
     {
         return (cast(size_t) ptr & (this.BLOCK_SIZE - 1)) == 0;
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Throws an IOException because is not implemented.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public override long seek (long offset, Anchor anchor = Anchor.Begin)
     {
@@ -183,11 +183,11 @@ private template AlignedBufferedStream ( )
                 this.classinfo.name);
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Throws an IOException because is not implemented.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public override IOStream flush ()
     {
@@ -195,13 +195,13 @@ private template AlignedBufferedStream ( )
                 this.classinfo.name);
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Throws IOException because is not implemented.
 
         Only present in OutputStream, so we can't use the override keyword.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public OutputStream copy (InputStream src, size_t max = -1)
     {
@@ -223,14 +223,14 @@ private template AlignedBufferedStream ( )
 public class BufferedDirectWriteFile: OutputStream
 {
 
-    /*******************************************************************************
+    /***************************************************************************
 
         File to do direct IO writes.
 
         Actually there is no way to open files with tango specifying custom
         flags that is not sub-classing. Bummer!
 
-    *******************************************************************************/
+    ***************************************************************************/
 
     static protected class DirectWriteFile : File
     {
@@ -265,15 +265,15 @@ public class BufferedDirectWriteFile: OutputStream
         }
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Direct I/O file device to write to.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     private const DirectWriteFile file;
 
-    /***********************************************************************
+    /***************************************************************************
 
         Constructs a new BufferedDirectWriteFile.
 
@@ -293,7 +293,7 @@ public class BufferedDirectWriteFile: OutputStream
                      the BLOCK_SIZE and the memory must be aligned to the
                      BLOCK_SIZE
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public this (char[] path, ubyte[] buffer)
     {
@@ -319,7 +319,7 @@ public class BufferedDirectWriteFile: OutputStream
         return new DirectWriteFile;
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Constructs a new BufferedDirectWriteFile allocating a new buffer.
 
@@ -329,7 +329,7 @@ public class BufferedDirectWriteFile: OutputStream
             path = Path of the file to write to.
             buffer_blocks = Buffer size in blocks (default 32MiB)
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public this (char[] path = null, size_t buffer_blocks = 32 * 2 * 1024)
     {
@@ -343,22 +343,22 @@ public class BufferedDirectWriteFile: OutputStream
         this(path, new ubyte[buffer_blocks * BLOCK_SIZE]);
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Mixin for common functionality.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     mixin AlignedBufferedStream;
 
-    /***********************************************************************
+    /***************************************************************************
 
         Open a BufferedDirectWriteFile file.
 
         Params:
             path = Path of the file to write to.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public void open (char[] path)
     {
@@ -367,12 +367,12 @@ public class BufferedDirectWriteFile: OutputStream
         this.free_index = 0;
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Returns:
             the path of the open file
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public char[] path ( )
     {
@@ -380,23 +380,23 @@ public class BufferedDirectWriteFile: OutputStream
         return this.file.path();
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Return the host conduit.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public IConduit conduit ()
     {
         return this.file;
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Close the underlying file, but calling flushWithPadding() and sync()
         first.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public void close ()
     {
@@ -407,7 +407,7 @@ public class BufferedDirectWriteFile: OutputStream
         this.file.close();
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Write to stream from a source array. The provided src content will be
         written to the stream.
@@ -415,7 +415,7 @@ public class BufferedDirectWriteFile: OutputStream
         Returns the number of bytes written from src, which may be less than the
         quantity provided. Eof is returned when an end-of-flow condition arises.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public size_t write (void[] src)
     {
@@ -456,18 +456,18 @@ public class BufferedDirectWriteFile: OutputStream
         return total;
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Return the upstream sink.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public OutputStream output ()
     {
         return file;
     }
 
-    /**********************************************************************
+    /**************************************************************************
 
         Write the current buffer rounding to the block size (and setting the
         padding bytes to padding_byte).
@@ -478,7 +478,7 @@ public class BufferedDirectWriteFile: OutputStream
         Returns:
             Number of bytes that have been flushed.
 
-    **********************************************************************/
+    **************************************************************************/
 
     public size_t flushWithPadding ( ubyte padding_byte = 0 )
     {
@@ -505,11 +505,11 @@ public class BufferedDirectWriteFile: OutputStream
         return written;
     }
 
-    /**********************************************************************
+    /**************************************************************************
 
         Instructs the OS to flush it's internal buffers to the disk device.
 
-    **********************************************************************/
+    **************************************************************************/
 
     public void sync ( )
     {
@@ -531,14 +531,14 @@ public class BufferedDirectWriteFile: OutputStream
 public class BufferedDirectReadFile: InputStream
 {
 
-    /*******************************************************************************
+    /***************************************************************************
 
         File to do direct IO reads.
 
         Actually there is no way to open files with tango specifying custom
         flags that is not sub-classing. Bummer!
 
-    *******************************************************************************/
+    ***************************************************************************/
 
     static private class DirectReadFile : File
     {
@@ -549,24 +549,24 @@ public class BufferedDirectReadFile: InputStream
         }
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Direct I/O file device to read from.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     private DirectReadFile file;
 
-    /***********************************************************************
+    /***************************************************************************
 
         Internal pointer to data we already read but is still pending, waiting
         for a reader.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     protected size_t pending_index;
 
-    /***********************************************************************
+    /***************************************************************************
 
         Constructs a new BufferedDirectReadFile.
 
@@ -578,7 +578,7 @@ public class BufferedDirectReadFile: InputStream
                      the BLOCK_SIZE and the memory must be aligned to the
                      BLOCK_SIZE
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public this (char[] path, ubyte[] buffer)
     {
@@ -589,7 +589,7 @@ public class BufferedDirectReadFile: InputStream
             this.file.open(path);
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Constructs a new BufferedDirectReadFile allocating a new buffer.
 
@@ -599,29 +599,29 @@ public class BufferedDirectReadFile: InputStream
             path = Path of the file to read from.
             buffer_blocks = Buffer size in blocks (default 32MiB)
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public this (char[] path = null, size_t buffer_blocks = 32 * 2 * 1024)
     {
         this(path, new ubyte[buffer_blocks * BLOCK_SIZE]);
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Mixin for common functionality.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     mixin AlignedBufferedStream;
 
-    /***********************************************************************
+    /***************************************************************************
 
         Open a BufferedDirectReadFile file.
 
         Params:
             path = Path of the file to read from.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public void open (char[] path)
     {
@@ -631,22 +631,22 @@ public class BufferedDirectReadFile: InputStream
         this.pending_index = 0;
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Return the host conduit.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public IConduit conduit ()
     {
         return this.file;
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Close the underlying file, but calling sync() first.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public void close ()
     {
@@ -656,7 +656,7 @@ public class BufferedDirectReadFile: InputStream
         this.file.close();
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Read from stream to a destination array. The content read from the
         stream will be stored in the provided dst.
@@ -664,7 +664,7 @@ public class BufferedDirectReadFile: InputStream
         Returns the number of bytes written to dst, which may be less than
         dst.length. Eof is returned when an end-of-flow condition arises.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public size_t read (void[] dst)
     {
@@ -746,11 +746,11 @@ public class BufferedDirectReadFile: InputStream
         return bytes_read;
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Throws IOException because is not implemented.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     void[] load (size_t max = -1)
     {
@@ -758,22 +758,22 @@ public class BufferedDirectReadFile: InputStream
                 this.classinfo.name);
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Return the upstream sink.
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public InputStream input ()
     {
         return file;
     }
 
-    /**********************************************************************
+    /**************************************************************************
 
         Instructs the OS to flush it's internal buffers to the disk device.
 
-    **********************************************************************/
+    **************************************************************************/
 
     public void sync ( )
     {
