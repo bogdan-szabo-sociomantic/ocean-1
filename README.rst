@@ -32,6 +32,11 @@ New Features
 ``ocean.net.email.EmailSender``
   Ability to cc added.
 
+``ocean.core.StructConverter``
+  This module allows you to convert a struct A to a similar but not equal 
+  struct B. You can guide the conversion using converter functions for variables
+  that differ between them.
+
 ``ocean.io.device.MemoryDevice``
   MemoryDevice behaves like a file but exists only in memory. Useful for when
   you want to test functions that want to operate on a file
