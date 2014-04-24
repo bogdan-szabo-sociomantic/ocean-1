@@ -302,12 +302,11 @@ BUILD.d = $(RDMD) $(RDMDFLAGS) --makedepfile=$O/$*.mak $(DFLAGS) \
 		$($@.EXTRA_FLAGS) $(addprefix -L,$(LDFLAGS)) $(TARGET_ARCH)
 
 # Updates the git version information
-VERSION_MODULE ?= $T/src/Version.d
+VERSION_MODULE := $T/src/Version.d
 clean += $(VERSION_MODULE)
 mkversion = $V$(if $V,to=0; test -r $(VERSION_MODULE) && \
 		to=`stat --printf "%Y" "$(VERSION_MODULE)"`; \
-	)$(OCEAN_PATH)/script/mkversion.sh -o $(VERSION_MODULE) \
-	-m "$(subst /,.,$(subst $T/,,$(VERSION_MODULE:.d=)))" \
+	)$(OCEAN_PATH)/script/mkversion.sh -o $(VERSION_MODULE) -m Version \
 	$(D_GC) $(OCEAN_PATH)/script/appVersion.d.tpl $(SUBMODULES)$(if $V,\
 		; tn=`stat --printf "%Y" "$(VERSION_MODULE)"`; \
 		test "$$tn" -gt "$$to" && { \
