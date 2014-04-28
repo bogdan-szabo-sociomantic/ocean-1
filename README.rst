@@ -25,6 +25,10 @@ master
 New Features
 ^^^^^^^^^^^^
 
+``ocean.core.Array``
+  Added functions, startsWith(), endsWith(), to check whether an array 
+  starts or ends with a specified sub-array.
+
 ``ocean.net.email.EmailSender``
   Ability to cc added.
 

@@ -541,6 +541,91 @@ public T[] uniq ( T, bool sort = true ) ( T[] array )
 
 }
 
+version ( UnitTest )
+{
+    private import ocean.util.Unittest;
+}
+
+/*******************************************************************************
+
+    Check if the given array starts with the given prefix
+
+    Template Params:
+        T = The type of the array element
+
+    Params:
+        arr    = The array to be tested
+        prefix = The prefix to test for
+
+    Returns:
+        True if the array starts with the prefix, false otherwise
+
+*******************************************************************************/
+
+bool startsWith ( T ) ( T[] arr, T[] prefix )
+{
+    return (arr.length >= prefix.length) && (arr[0..prefix.length] == prefix[]);
+}
+
+unittest
+{
+    scope Unittest t = new Unittest(__FILE__, "startsWith");
+    with ( t )
+    {
+        assertLog( startsWith!(char)("abcd", "abc") );
+        assertLog( startsWith!(char)("abcd", "abcd") );
+        assertLog(!startsWith!(char)("ab", "abc") );
+        assertLog( startsWith!(char)("ab", null) );
+        assertLog(!startsWith!(char)(null, "xx") );
+
+        assertLog( startsWith!(uint)([1,2,3,4], [1,2,3]) );
+        assertLog( startsWith!(uint)([1,2,3,4], [1,2,3,4]) );
+        assertLog(!startsWith!(uint)([1,2], [1,2,3]) );
+        assertLog( startsWith!(uint)([1,2], null) );
+        assertLog(!startsWith!(uint)(null, [1,2]) );
+    }
+}
+
+/*******************************************************************************
+
+    Check if the given array ends with the given suffix
+
+    Template Params:
+        T = The type of the array element
+
+    Params:
+        arr    = The array to be tested
+        suffix = The suffix to test for
+
+    Returns:
+        True if the array ends with the suffix, false otherwise
+
+*******************************************************************************/
+
+bool endsWith ( T ) ( T[] arr, T[] suffix )
+{
+    return (arr.length >= suffix.length) && (arr[$ - suffix.length .. $] == suffix[]);
+}
+
+unittest
+{
+    scope Unittest t = new Unittest(__FILE__, "endsWith");
+    with ( t )
+    {
+        assertLog( endsWith!(char)("abcd", "bcd") );
+        assertLog( endsWith!(char)("abcd", "abcd") );
+        assertLog(!endsWith!(char)("ab", "abc") );
+        assertLog( endsWith!(char)("ab", null) );
+        assertLog(!endsWith!(char)(null, "xx") );
+
+        assertLog( endsWith!(uint)([1,2,3,4], [2,3,4]) );
+        assertLog( endsWith!(uint)([1,2,3,4], [1,2,3,4]) );
+        assertLog(!endsWith!(uint)([1,2], [1,2,3]) );
+        assertLog( endsWith!(uint)([1,2], null) );
+        assertLog(!endsWith!(uint)(null, [1,2]) );
+    }
+}
+
 /*******************************************************************************
 
     Moves all elements from array which match the exclusion criterum
