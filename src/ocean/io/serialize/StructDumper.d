@@ -112,6 +112,33 @@ class StructDumper
 
     /***************************************************************************
 
+        Return the serialized length of input
+
+        Template Params:
+            type of the struct
+
+        Params:
+            input = struct to get the serialized length of
+
+        Returns:
+            serialized length of input
+
+    ***************************************************************************/
+
+    static size_t length ( S ) ( S input )
+    {
+        static if ( StructVersionBase.hasVersion!(S)() )
+        {
+            return DumpArrays.length(input) + StructVersionBase.Version.sizeof;
+        }
+        else
+        {
+            return DumpArrays.length(input);
+        }
+    }
+
+    /***************************************************************************
+
         Resizes the passed buffer reference
 
         Params:

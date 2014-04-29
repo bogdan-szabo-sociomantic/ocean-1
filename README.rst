@@ -153,6 +153,8 @@ Migration Instructions
   The version logic is found in ``ocean.io.serialize.model.StructVersionBase`` in
   case you plan to use it outside the loader/dumper classes.
 
+  The StructDumper gained the version aware `length()` method originally found in `DumpArrays`
+
 v1.12 (2014-04-01)
 ------------------
 
