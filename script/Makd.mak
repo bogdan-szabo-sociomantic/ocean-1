@@ -17,8 +17,10 @@ T := $(abspath $T)
 # Name of the current directory, relative to $T
 R := $(subst $T,,$(patsubst $T/%,%,$(CURDIR)))
 
+# Define the valid flavors
+VALID_FLAVORS := devel production
+
 # Flavor (variant), can be defined by the user in Config.mak
-# Default available flavors: devel, production
 F ?= devel
 
 # Load top-level directory project configuration
@@ -26,6 +28,12 @@ F ?= devel
 
 # Load top-level directory local configuration
 -include $T/Config.local.mak
+
+# Check flavours
+FLAVOR_IS_VALID_ := $(if $(filter $F,$(VALID_FLAVORS)),1,0)
+ifeq ($(FLAVOR_IS_VALID_),0)
+$(error F=$F is not a valid flavor (options are: $(VALID_FLAVORS)))
+endif
 
 # Verbosity flag (empty show nice messages, non-empty use make messages)
 # When used internally, $V expand to @ is nice messages should be printed, this
