@@ -60,7 +60,9 @@ Migration Instructions
   These modules have moved to the ``ocean.net.server.connpool`` package.
 
 ``ocean.io.select.event``
-  This package has been renamed ``ocean.io.select.client``.
+  This package has been renamed ``ocean.io.select.client``. The following
+  command can be used to update any user code which imports these modules:
+  ``find src -iname "*.d" -exec sed 's/ocean\.io\.select\.event\./ocean.io.select.client./g' -i \{\} \;``
 
 ``ocean.io.select.model.*SelectClient*``
   These modules have moved to the ``ocean.io.select.client.model`` package.
