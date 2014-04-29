@@ -285,7 +285,7 @@ version (UnitTest)
 
     import ocean.math.SlidingAverage;
     import ocean.io.select.EpollSelectDispatcher;
-    import ocean.io.select.event.TimerEvent;
+    import ocean.io.select.client.TimerEvent;
 
     import tango.io.Stdout;
 
