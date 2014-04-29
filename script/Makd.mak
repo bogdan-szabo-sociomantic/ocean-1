@@ -95,7 +95,7 @@ override DFLAGS += -debug -gc
 endif
 
 ifeq ($F,production)
-override DFLAGS += -O -inline -release
+override DFLAGS += -O -inline
 endif
 
 
