@@ -80,6 +80,5 @@ abstract class VersionedLoggedStatsCliApp : VersionedLoggedCliApp
 
         this.stats_ext = new StatsExt();
         this.config_ext.registerExtension(this.stats_ext);
-        this.registerExtension(this.ver_ext);
     }
 }
