@@ -36,6 +36,11 @@ New Features
   by inheriting from the ``Appender.Layout`` class and implementing the
   ``format`` method.
 
+``ocean.util.container.map.utils.MapSerializer``
+  The helper class SerializingMap and the template mixin MapExtension have been
+  added, allowing easy integration of serialization functionality in existing
+  map classes.
+
 ``ocean.core.Array``
   Added functions ``startsWith`` & ``endsWith`` to check whether an array 
   starts or ends with a specified sub-array respectively.

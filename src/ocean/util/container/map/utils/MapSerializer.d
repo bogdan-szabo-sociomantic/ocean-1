@@ -34,6 +34,169 @@ private import tango.core.Traits,
                tango.io.stream.Buffered,
                tango.io.device.File;
 
+/*******************************************************************************
+
+    Specialized version of class Map that includes serialization capabilities
+    using the MapExtension mixin
+
+    Everything else is identical to the class Map, that means you still need to
+    implement your own hashing functionality.
+
+    Template Params:
+        V = type of the value
+        K = type of the key
+
+*******************************************************************************/
+
+abstract class SerializingMap ( V, K ) : Map!(V, K)
+{
+    /***************************************************************************
+
+        Mixin extensions for serialization
+
+    ***************************************************************************/
+
+    mixin MapExtension!(K, V);
+
+    /***************************************************************************
+
+        Constructor.
+
+        Same as the Constructor of Map, but additionally initializes the
+        serializer.
+
+    ***************************************************************************/
+
+    protected this ( size_t n, float load_factor = 0.75 )
+    {
+        this.serializer = new MapSerializer;
+        super(n, load_factor);
+    }
+
+    /***************************************************************************
+
+        Constructor.
+
+        Same as the Constructor of Map, but additionally initializes the
+        serializer.
+
+    ***************************************************************************/
+
+    protected this ( IAllocator allocator, size_t n, float load_factor = 0.75 )
+    {
+        this.serializer = new MapSerializer;
+        super(allocator, n, load_factor);
+    }
+}
+
+/*******************************************************************************
+
+    Template meant to be used with mixin in classes that inherit from the class
+    Map.
+
+    Extends the class with a load() and dump() function. The mixed in class has
+    to initialize the member 'serializer' in its constructor.
+
+    See SerializingMap for an usage example
+
+    Template Params:
+        K = key type of the map
+        V = value type of the map
+
+*******************************************************************************/
+
+template MapExtension ( K, V )
+{
+    /***************************************************************************
+
+        Delegate used to check whether a given record should be dumped or loaded
+
+    ***************************************************************************/
+
+    alias bool delegate ( K, V ) CheckDg;
+
+    /***************************************************************************
+
+        Instance of the serializer, needs to be initialized in the class
+        constructor
+
+    ***************************************************************************/
+
+    const protected MapSerializer serializer;
+
+    /***************************************************************************
+
+        Loads a file into the map
+
+        Params:
+            file_path = path to the file
+
+    ***************************************************************************/
+
+    public void load ( char[] file_path )
+    {
+        this.serializer.load!(K, V)(this, file_path);
+    }
+
+    /***************************************************************************
+
+        Loads a file into the map
+
+        Params:
+            file_path = path to teh file
+            check     = function called for every entry, should return true if
+                        it should be loaded
+
+    ***************************************************************************/
+
+    public void load ( char[] file_path, CheckDg check  )
+    {
+        void add ( ref K k, ref V v )
+        {
+            if (check(k,v)) *this.put(k) = v;
+        }
+
+        this.serializer.loadDg!(K, V)(file_path, &add);
+    }
+
+    /***************************************************************************
+
+        Dumps a map into a file
+
+        Params:
+            file_path = path to the file
+
+    ***************************************************************************/
+
+    public void dump ( char[] file_path )
+    {
+        this.serializer.dump!(K, V)(this, file_path);
+    }
+
+    /***************************************************************************
+
+        Writes a map to a file.
+
+        Params:
+            file_path = path to where the map should be dumped to
+            check     = function called for each key/value to confirm that it
+                        should be dumped
+
+     ***************************************************************************/
+
+    public void dump ( char[] file_path, CheckDg check )
+    {
+        void adder ( void delegate ( K, V ) add )
+        {
+            foreach ( k, v; this ) if ( check(k,v) )
+            {
+                add(k, v);
+            }
+        }
+
+        this.serializer.dumpDg!(K, V)(file_path, &adder);
+    }
+}
 
 /*******************************************************************************
 
@@ -680,6 +843,17 @@ unittest
         {
             return *old == *this;
         }
+    }
+
+    // Test creation of a SerializingMap instance
+    class HashingSerializingMap : SerializingMap!(int,int)
+    {
+        public this ( size_t n, float load_factor = 0.75 )
+        {
+            super(n, load_factor);
+        }
+
+        mixin StandardHash.toHash!(int);
     }
 
 
