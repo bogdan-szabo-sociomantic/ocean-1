@@ -72,6 +72,10 @@ New Features
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
+``ocean.util.container.map.utils.MapSerializer``
+  This module has been rewritten to use an object oriented interface, making it
+  more maintainable and memory friendly.
+
 ``ocean.util.container.map.utils.FileSerializer``
   This module has moved to ``ocean.util.container.map.utils.MapSerializer``
 
