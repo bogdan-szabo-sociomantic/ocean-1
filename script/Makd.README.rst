@@ -414,6 +414,11 @@ to make, for example::
 
         make F=production
 
+If you need to define more flavors, you can do so by defining the
+``$(VALID_FLAVORS)`` variable in your ``Config.mak``, for example::
+
+        VALID_FLAVORS := devel production profiling
+
 
 Binary specific flags
 ---------------------
