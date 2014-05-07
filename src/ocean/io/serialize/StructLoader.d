@@ -632,7 +632,7 @@ class StructLoader
         }
         else
         {
-            return cast(S) data.ptr;
+            return cast(S*) data.ptr;
         }
     }
 
