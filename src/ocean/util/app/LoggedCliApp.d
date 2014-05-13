@@ -139,9 +139,9 @@ abstract class LoggedCliApp : ConfiguredCliApp, ILogExtExtension
     ***************************************************************************/
 
     this ( char[] name, char[] desc, char[] usage = null, char[] help = null,
-            bool use_insert_appender = false, bool loose_config_parsing = false,
-            char[][] default_configs = [ "etc/config.ini" ],
-            ConfigParser config = null )
+           bool use_insert_appender = false, bool loose_config_parsing = false,
+           char[][] default_configs = [ "etc/config.ini" ],
+           ConfigParser config = null )
     {
         super(name, desc, usage, help, loose_config_parsing, default_configs,
                 config);
