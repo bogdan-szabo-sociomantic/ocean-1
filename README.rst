@@ -25,6 +25,17 @@ master
 New Features
 ^^^^^^^^^^^^
 
+``ocean.util.app.LoggedCliApp``, ``ocean.util.app.VersionedLoggedCliApp``, ``ocean.util.app.VersionedLoggedStatsCliApp``
+  These application classes that support tango based logging out-of-the-box can
+  now also specify the layouts for the log output. The layouts for the file logs
+  and console logs can be specified individually using two additional arguments
+  in the constructors of these classes.
+
+  The user has the option of either using one of the pre-existing layouts in
+  ``ocean/util/log`` or ``tango/util/log`` or creating a desired custom layout
+  by inheriting from the ``Appender.Layout`` class and implementing the
+  ``format`` method.
+
 ``ocean.core.Array``
   Added functions, startsWith(), endsWith(), to check whether an array 
   starts or ends with a specified sub-array.

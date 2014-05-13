@@ -204,6 +204,14 @@ alias ClassIterator!(Config) ConfigIterator;
 
 /*******************************************************************************
 
+    Convenience alias for layouts
+
+*******************************************************************************/
+
+alias Appender.Layout Layout;
+
+/*******************************************************************************
+
     Clear any default appenders at startup
 
 *******************************************************************************/
@@ -219,22 +227,25 @@ static this ( )
 
     Template Params:
         Source = the type of the config parser
-        FileLayout = the layout formatter to use with log files
-        ConsoleLayout = the layout formatter to use with the log consoles
 
     Params:
         config   = an instance of an class iterator for Config
         m_config = an instance of the MetaConfig class
         use_insert_appender = whether to use the insert appender which
                               doesn't support newlines in the output msg
+        file_log_layout = layout to use for logging to file, defaults to
+                          LayoutDate
+        console_log_layout = layout to use for logging to console, defaults to
+                             SimpleLayout
 
 *******************************************************************************/
 
-public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
-                               ConsoleLayout = SimpleLayout )
+public void configureLoggers ( Source = ConfigParser )
                              ( ClassIterator!(Config, Source) config,
                                MetaConfig m_config, bool loose = false,
-                               bool use_insert_appender = false )
+                               bool use_insert_appender = false,
+                               Layout file_log_layout = null,
+                               Layout console_log_layout = null )
 {
     enable_loose_parsing(loose);
 
@@ -273,22 +284,32 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
 
         if ( settings.file.set )
         {
+            if ( file_log_layout is null )
+            {
+                file_log_layout = new LayoutDate;
+            }
+
             log.add(new AppendSyslog(settings.file(),
                                      m_config.file_count,
                                      m_config.max_file_size,
                                      "gzip {}", "gz", m_config.start_compress,
-                                     new FileLayout));
+                                     file_log_layout));
         }
 
         if ( console_enabled )
         {
+            if ( console_log_layout is null )
+            {
+                console_log_layout = new SimpleLayout;
+            }
+
             if ( use_insert_appender )
             {
-                log.add(new InsertConsole(new ConsoleLayout));
+                log.add(new InsertConsole(console_log_layout));
             }
             else
             {
-                log.add(new AppendConsole(new ConsoleLayout));
+                log.add(new AppendConsole(console_log_layout));
             }
         }
 
