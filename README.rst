@@ -6,7 +6,7 @@ which are the mandatory steps the users have to do to update to a new version,
 **Deprecated** which contains deprecated functions which is recommended not to
 use but will not break any old code and the **New Features** which are optional
 new features available in the new version that users might find interesting.
-Even when using them is optional, usually is encouraged.
+Using them is optional, but encouraged.
 
 These instructions should help developers to migrate from one version to
 another. The changes listed here are the steps you need to take to move from
@@ -14,8 +14,8 @@ the previous version to the one being listed. For example, all the steps
 described in version **v1.5** are the steps required to move from **v1.4** to
 **v1.5**.
 
-If you need to jump several versions at once, you should read all the steps
-from all the involved versions. For example, to jump from **v1.2** to **v1.5**,
+If you need to jump several versions at once, you should read all the steps from
+all the intermediate versions. For example, to jump from **v1.2** to **v1.5**,
 you need to first follow the steps in version **v1.3**, then the steps in
 version **v1.4** and finally the steps in version **v1.5**.
 
@@ -37,8 +37,8 @@ New Features
   ``format`` method.
 
 ``ocean.core.Array``
-  Added functions, startsWith(), endsWith(), to check whether an array 
-  starts or ends with a specified sub-array.
+  Added functions ``startsWith`` & ``endsWith`` to check whether an array 
+  starts or ends with a specified sub-array respectively.
 
 ``ocean.net.email.EmailSender``
   Ability to cc added.
@@ -50,17 +50,17 @@ New Features
 
 ``ocean.io.device.MemoryDevice``
   MemoryDevice behaves like a file but exists only in memory. Useful for when
-  you want to test functions that want to operate on a file
+  you want to test functions that want to operate on a file.
 
-  This was created as an alternative to tango.io.device.Array, whose write()
-  function has the unresonable limitation of always appending instead of
-  respecting the current seek position and thus not properly simulating a file
+  This was created as an alternative to ``tango.io.device.Array``, whose ``write``
+  function has the unreasonable limitation of always appending instead of
+  respecting the current seek position and thus not properly simulating a file.
 
 ``ocean.core.DeepCopy``
   ``DeepCopy`` has been updated to cover a much broader range of types:
   structs, classes, static and dynamic arrays (including ``void[]`` arrays),
   atomic types and enums.  It will however reject types that cannot effectively
-  be deep-copied, such as unions or pointers.  Associative arrays currently
+  be deep-copied, such as unions or pointers. Associative arrays currently
   remain unsupported.
 
 Migration Instructions
@@ -94,19 +94,19 @@ Migration Instructions
 ``ocean.io.serialize.StructLoader``, ``ocean.io.serialize.StructDumper``, ``ocean.io.serialize.model.StructVersionBase``, ``ocean.io.serialize.model.StructLoaderBase``  
   StructLoader has been replaced by a interface-compatible class that adds
   support for struct versions. The original loader is still available at
-  `ocean.io.serialize.model.StructLoaderCore`. 
+  ``ocean.io.serialize.model.StructLoaderCore``. 
 
-  Version support means, that each definition of a struct can have a version.
-  Upon serialization, that version is put into the serialized data. when this
+  Version support means that each definition of a struct can have a version.
+  Upon serialization, that version is put into the serialized data. When this
   data is loaded again, the loader checks whether the requested struct version
-  is the same as the one that it was serialized with.  If it isn't, an
+  is the same as the one that it was serialized with. If it isn't, a
   semi-automatic conversion to the requested version will be attempted. 
 
-  If no version information can be found in a struct (none-existance of 
-  `const StructVersion`), the struct is treated as unversioned and nothing
+  If no version information can be found in a struct (absence of 
+  ``const StructVersion``), the struct is treated as unversioned and nothing
   changes.
 
-  The version logic is found in `ocean.io.serialize.model.StructVersionBase` in
+  The version logic is found in ``ocean.io.serialize.model.StructVersionBase`` in
   case you plan to use it outside the loader/dumper classes.
 
 v1.12 (2014-04-01)
