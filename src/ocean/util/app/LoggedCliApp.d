@@ -116,15 +116,6 @@ abstract class LoggedCliApp : ConfiguredCliApp, ILogExtExtension
 
     /***************************************************************************
 
-        Convenience alias for layouts
-
-    ***************************************************************************/
-
-    private alias Appender.Layout Layout;
-
-
-    /***************************************************************************
-
         Constructor.
 
         This constructor only setup the internal state of the class, but does
@@ -144,24 +135,17 @@ abstract class LoggedCliApp : ConfiguredCliApp, ILogExtExtension
             default_configs = default configuration files to parse
             config = configuration parser to use, defaults to the global
                      instance provided by the ocean.util.Config module.
-            file_log_layout = layout to use for logging to file, defaults to
-                              LayoutDate
-            console_log_layout = layout to use for logging to console, defaults
-                                 to SimpleLayout
 
     ***************************************************************************/
 
     this ( char[] name, char[] desc, char[] usage = null, char[] help = null,
            bool use_insert_appender = false, bool loose_config_parsing = false,
            char[][] default_configs = [ "etc/config.ini" ],
-           ConfigParser config = null,
-           Layout file_log_layout = null,
-           Layout console_log_layout = null )
+           ConfigParser config = null )
     {
         super(name, desc, usage, help, loose_config_parsing, default_configs,
                 config);
-        this.log_ext = new LogExt(use_insert_appender, file_log_layout,
-                                  console_log_layout);
+        this.log_ext = new LogExt(use_insert_appender);
         this.config_ext.registerExtension(this.log_ext);
     }
 

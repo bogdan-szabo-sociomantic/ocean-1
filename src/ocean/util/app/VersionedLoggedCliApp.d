@@ -70,10 +70,6 @@ abstract class VersionedLoggedCliApp : LoggedCliApp
             default_configs = default configuration files to parse
             config = configuration parser to use, defaults to the global
                      instance provided by the ocean.util.Config module.
-            file_log_layout = layout to use for logging to file, defaults to
-                              LayoutDate
-            console_log_layout = layout to use for logging to console, defaults
-                                 to SimpleLayout
 
     ***************************************************************************/
 
@@ -82,13 +78,10 @@ abstract class VersionedLoggedCliApp : LoggedCliApp
            bool use_insert_appender = false,
            bool loose_config_parsing = false,
            char[][] default_configs = [ "etc/config.ini" ],
-           ConfigParser config = null,
-           Layout file_log_layout = null,
-           Layout console_log_layout = null )
+           ConfigParser config = null )
     {
         super(name, desc, usage, help, use_insert_appender,
-              loose_config_parsing, default_configs, config, file_log_layout,
-              console_log_layout);
+              loose_config_parsing, default_configs, config);
 
         this.ver_ext = new VersionArgsExt(ver);
         this.ver = this.ver_ext.ver;

@@ -28,13 +28,18 @@ New Features
 ``ocean.util.app.LoggedCliApp``, ``ocean.util.app.VersionedLoggedCliApp``, ``ocean.util.app.VersionedLoggedStatsCliApp``
   These application classes that support tango based logging out-of-the-box can
   now also specify the layouts for the log output. The layouts for the file logs
-  and console logs can be specified individually using two additional arguments
-  in the constructors of these classes.
+  and console logs can be specified individually using the keys ``file_layout``
+  and ``console_layout`` respectively.
 
-  The user has the option of either using one of the pre-existing layouts in
-  ``ocean/util/log`` or ``tango/util/log`` or creating a desired custom layout
-  by inheriting from the ``Appender.Layout`` class and implementing the
-  ``format`` method.
+  The following values are currently supported with the layout keys:
+  ``messageonly``, ``stats``, ``simple``, ``date`` & ``chainsaw``.  Additional
+  layouts can be created by inheriting from the ``Appender.Layout`` class and
+  implementing the ``format`` method.
+
+  If a layout has not been explicitly set in the config file, the ``date``
+  layout is used for file logs and the ``simple`` layout is used for console
+  logs. This corresponds to the default layouts in place before the addition of
+  this feature.
 
 ``ocean.util.container.map.utils.MapSerializer``
   The helper class SerializingMap and the template mixin MapExtension have been

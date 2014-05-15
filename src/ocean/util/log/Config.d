@@ -78,17 +78,24 @@ module ocean.util.log.Config;
 
 *******************************************************************************/
 
+private import ocean.io.Stdout;
+private import ocean.core.Array : remove;
 private import ocean.util.Config;
 private import ocean.util.config.ClassFiller;
 private import ocean.util.config.ConfigParser;
-
-private import ocean.util.log.SimpleLayout;
+private import ocean.text.util.StringSearch;
 
 private import tango.util.log.Log;
 private import tango.util.log.AppendSyslog;
 private import ocean.util.log.InsertConsole;
 private import tango.util.log.AppendConsole;
+
+// Log layouts
+private import ocean.util.log.MessageOnlyLayout;
+private import ocean.util.log.LayoutStatsLog;
+private import ocean.util.log.SimpleLayout;
 private import tango.util.log.LayoutDate;
+private import tango.util.log.LayoutChainsaw;
 
 debug private import ocean.util.log.Trace;
 
@@ -118,11 +125,27 @@ class Config
 
     /***************************************************************************
 
+        Layout to use for console output
+
+    ***************************************************************************/
+
+    public char[] console_layout;
+
+    /***************************************************************************
+
         Whether to use file output and if, which file path
 
     ***************************************************************************/
 
     public SetInfo!(char[]) file;
+
+    /***************************************************************************
+
+        Layout to use for file output
+
+    ***************************************************************************/
+
+    public char[] file_layout;
 
     /***************************************************************************
 
@@ -212,6 +235,63 @@ alias Appender.Layout Layout;
 
 /*******************************************************************************
 
+    Gets a new layout instance, based on the given name.
+
+    Params:
+        layout_str = name of the desired layout
+
+    Returns:
+        an instance of a suitable layout based on the input string, or an
+        instance of 'MessageOnlyLayout' if no suitable layout was identified.
+
+*******************************************************************************/
+
+public Layout newLayout ( char[] layout_str )
+{
+    Layout layout;
+
+    char[] lowercased_str = layout_str.dup;
+
+    StringSearch!() s;
+
+    s.strToLower(lowercased_str);
+
+    char[] stripped_str;
+
+    remove(lowercased_str, "layout", stripped_str);
+
+    switch ( stripped_str )
+    {
+        case "messageonly":
+            layout = new MessageOnlyLayout;
+            break;
+
+        case "stats":
+        case "statslog":
+            layout = new LayoutStatsLog;
+            break;
+
+        case "simple":
+            layout = new SimpleLayout;
+            break;
+
+        case "date":
+            layout = new LayoutDate;
+            break;
+
+        case "chainsaw":
+            layout = new LayoutChainsaw;
+            break;
+
+        default:
+            throw new Exception("Invalid layout requested : " ~ layout_str);
+    }
+
+    return layout;
+}
+
+/*******************************************************************************
+
     Clear any default appenders at startup
 
 *******************************************************************************/
@@ -233,19 +313,13 @@ static this ( )
         m_config = an instance of the MetaConfig class
         use_insert_appender = whether to use the insert appender which
                               doesn't support newlines in the output msg
-        file_log_layout = layout to use for logging to file, defaults to
-                          LayoutDate
-        console_log_layout = layout to use for logging to console, defaults to
-                             SimpleLayout
 
 *******************************************************************************/
 
 public void configureLoggers ( Source = ConfigParser )
                              ( ClassIterator!(Config, Source) config,
                                MetaConfig m_config, bool loose = false,
-                               bool use_insert_appender = false,
-                               Layout file_log_layout = null,
-                               Layout console_log_layout = null )
+                               bool use_insert_appender = false )
 {
     enable_loose_parsing(loose);
 
@@ -284,10 +358,9 @@ public void configureLoggers ( Source = ConfigParser )
 
         if ( settings.file.set )
         {
-            if ( file_log_layout is null )
-            {
-                file_log_layout = new LayoutDate;
-            }
+            Layout file_log_layout = (settings.file_layout.length)
+                                         ? newLayout(settings.file_layout)
+                                         : new LayoutDate;
 
             log.add(new AppendSyslog(settings.file(),
                                      m_config.file_count,
@@ -298,10 +371,9 @@ public void configureLoggers ( Source = ConfigParser )
 
         if ( console_enabled )
         {
-            if ( console_log_layout is null )
-            {
-                console_log_layout = new SimpleLayout;
-            }
+            Layout console_log_layout = (settings.console_layout.length)
+                                            ? newLayout(settings.console_layout)
+                                            : new SimpleLayout;
 
             if ( use_insert_appender )
             {

@@ -65,53 +65,17 @@ class LogExt : IConfigExtExtension
 
     /***************************************************************************
 
-        Convenience alias for layouts
-
-    ***************************************************************************/
-
-    private alias Appender.Layout Layout;
-
-
-    /***************************************************************************
-
-        Layout to use when logging to file
-
-    ***************************************************************************/
-
-    private Layout file_log_layout;
-
-
-    /***************************************************************************
-
-        Layout to use when logging to console
-
-    ***************************************************************************/
-
-    private Layout console_log_layout;
-
-
-    /***************************************************************************
-
         Constructor.
 
         Params:
             use_insert_appender = true if the insert appender should be used
                                   instead of the regular one
-            file_log_layout = layout to use for logging to file, defaults to
-                              LayoutDate
-            console_log_layout = layout to use for logging to console, defaults
-                                 to SimpleLayout
 
     ***************************************************************************/
 
-    this ( bool use_insert_appender = false,
-           Layout file_log_layout = null,
-           Layout console_log_layout = null )
+    this ( bool use_insert_appender = false )
     {
         this.use_insert_appender = use_insert_appender;
-
-        this.file_log_layout    = file_log_layout;
-        this.console_log_layout = console_log_layout;
     }
 
 
@@ -146,8 +110,7 @@ class LogExt : IConfigExtExtension
 
         LogUtil.configureLoggers(ClassFiller.iterate!(LogUtil.Config)("LOG"),
                 ClassFiller.fill!(LogUtil.MetaConfig)("LOG"),
-                conf_ext.loose_config_parsing, this.use_insert_appender,
-                this.file_log_layout, this.console_log_layout);
+                conf_ext.loose_config_parsing, this.use_insert_appender);
 
         foreach (ext; this.extensions)
         {
