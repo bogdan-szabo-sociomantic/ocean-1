@@ -105,7 +105,7 @@ abstract class IFiberSelectClient : IAdvancedSelectClient
     /**************************************************************************
 
         Finalize method, called after this instance has been unregistered from
-        the Dispatcher; resumes the fiber and calls the super-class' finalize()
+        the Dispatcher; kills the fiber and calls the super-class' finalize()
         method (which calls a finalizer delegate, if one has been set).
 
         The fiber must be waiting or finished as it is ought to be when in
