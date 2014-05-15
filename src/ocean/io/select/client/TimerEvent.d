@@ -324,6 +324,13 @@ abstract class ITimerEvent : ISelectClient, ISelectable
         this.e = new TimerException;
     }
 
+    /***************************************************************************
+
+        Returns:
+            the epoll events to register for.
+
+    ***************************************************************************/
+
     public Event events ( )
     {
         return Event.EPOLLIN;
