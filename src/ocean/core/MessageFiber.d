@@ -658,6 +658,9 @@ class MessageFiber
     }
     body
     {
+        debug (MessageFiber) Trace.formatln("--FIBER {} KILLED -- ({}:{})",
+                FirstName(this), file, line);
+
         this.killed = true;
         this.e_killed.set(file, line);
 
