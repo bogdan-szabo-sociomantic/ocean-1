@@ -76,6 +76,13 @@ New Features
 ``ocean.io.select.client.FiberTimerEvent``
   New class which allows a fiber to be suspended for a specified time.
 
+``ocean.util.log.Stats``
+  Added the new templateless base class ``IPeriodicStatsLog``. This can be used
+  to implement other types of periodically updating stats loggers. (The existing
+  ``PeriodicStatsLog``, which now derives from ``IPeriodicStatsLog``, is rather
+  particular in its requirement that the information to be written to the stats
+  log is a single struct.)
+
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 

@@ -113,35 +113,8 @@ private import tango.stdc.time : time_t;
 
 *******************************************************************************/
 
-public class PeriodicStatsLog ( T )
+public class PeriodicStatsLog ( T ) : IPeriodicStatsLog
 {
-    /***************************************************************************
-
-        Config class
-
-    ***************************************************************************/
-
-    public static class Config : IStatsLog.Config
-    {
-        time_t period = IStatsLog.default_period; // 30 seconds
-    }
-
-    /***************************************************************************
-
-        Instance of the stats log
-
-    ***************************************************************************/
-
-    private const StatsLog stats_log;
-
-    /***************************************************************************
-
-        Write period
-
-    ***************************************************************************/
-
-    private const time_t period;
-
     /***************************************************************************
 
         Delegate to get a pointer to a struct containing the values that are to
@@ -164,14 +137,6 @@ public class PeriodicStatsLog ( T )
     private alias void delegate ( StatsLog stats_log ) PostLogDg;
 
     private PostLogDg post_log_dg;
-
-    /***************************************************************************
-
-        Timer which fires to write log output.
-
-    ***************************************************************************/
-
-    private const TimerEvent timer;
 
     /***************************************************************************
 
@@ -273,6 +238,138 @@ public class PeriodicStatsLog ( T )
     {
         this.value_dg = value_dg;
         this.post_log_dg = post_log_dg;
+
+        super(epoll, stats_log, period);
+    }
+
+
+    /***************************************************************************
+
+        Called when the timer event fires. Calls the user's value delegate and
+        adds the returned value to the stats log, then calls the optional post-
+        log delegate.
+
+    ***************************************************************************/
+
+    protected override void addStats ( )
+    {
+        this.stats_log.add(*this.value_dg());
+
+        if ( this.post_log_dg )
+        {
+            this.post_log_dg(this.stats_log);
+        }
+    }
+}
+
+
+/*******************************************************************************
+
+    Templateless periodic stats log base class.
+
+    The constructors register an update timer with the provided epoll selector.
+    The timer first fires 5 seconds after construction, then periodically as
+    specified. Each time the timer fires, it calls the abstract method
+    addStats() before flushing the logger, writing one line.
+
+*******************************************************************************/
+
+public abstract class IPeriodicStatsLog
+{
+    /***************************************************************************
+
+        Config class
+
+    ***************************************************************************/
+
+    public static class Config : IStatsLog.Config
+    {
+        time_t period = IStatsLog.default_period; // 30 seconds
+    }
+
+    /***************************************************************************
+
+        Instance of the stats log
+
+    ***************************************************************************/
+
+    protected const StatsLog stats_log;
+
+    /***************************************************************************
+
+        Write period
+
+    ***************************************************************************/
+
+    private const time_t period;
+
+    /***************************************************************************
+
+        Timer which fires to write log output.
+
+    ***************************************************************************/
+
+    private const TimerEvent timer;
+
+    /***************************************************************************
+
+        Construct from config. Registers and starts timer.
+
+        Params:
+            epoll = epoll select dispatcher
+            config = instance of the config class
+
+    ***************************************************************************/
+
+    public this ( EpollSelectDispatcher epoll, Config config )
+    {
+        with(config) this(epoll,
+                          new StatsLog(file_count, max_file_size, file_name),
+                          period);
+    }
+
+
+    /***************************************************************************
+
+        Construct from individual settings. Registers and starts timer.
+
+        Params:
+            epoll = epoll select dispatcher
+            file_count = maximum number of log files before old logs are
+                over-written
+            max_file_size = size in bytes at which the log files will be rotated
+            period = period after which the values should be written
+            file_name = name of log file
+
+    ***************************************************************************/
+
+    public this ( EpollSelectDispatcher epoll,
+        size_t file_count = IStatsLog.default_file_count,
+        size_t max_file_size = IStatsLog.default_max_file_size,
+        time_t period = IStatsLog.default_period,
+        char[] file_name = IStatsLog.default_file_name )
+    {
+        this(epoll,
+             new StatsLog(file_count, max_file_size, file_name),
+             period);
+    }
+
+
+    /***************************************************************************
+
+        Construct from the provided StatsLog instance. Registers and starts
+        timer.
+
+        Params:
+            epoll = epoll select dispatcher
+            stats_log = Stats log instance to use
+            period = period after which the values should be written
+
+    ***************************************************************************/
+
+    public this ( EpollSelectDispatcher epoll, StatsLog stats_log,
+        time_t period = IStatsLog.default_period )
+    {
         this.period = period;
 
         this.timer = new TimerEvent(&this.write_);
@@ -285,26 +382,31 @@ public class PeriodicStatsLog ( T )
 
     /***************************************************************************
 
-        Called by the timer at the end of each period, writes the values to
-        the logger
+        Called by the timer at the end of each period. Calls the abstract
+        addStats() and then flushes the stats to the logger.
 
     ***************************************************************************/
 
     private bool write_ ( )
     {
-        this.stats_log.add(*this.value_dg());
-
-        if ( this.post_log_dg )
-        {
-            this.post_log_dg(this.stats_log);
-        }
+        this.addStats();
 
         this.stats_log.flush();
 
         return true;
     }
-}
 
+
+    /***************************************************************************
+
+        Called when the timer event fires. The method is expected to add any
+        desired stats to the log, using the this.stats_log member. The added
+        stats will be automatically flushed to the logger.
+
+    ***************************************************************************/
+
+    abstract protected void addStats ( );
+}
 
 
 /*******************************************************************************
