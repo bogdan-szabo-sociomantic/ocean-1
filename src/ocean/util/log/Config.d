@@ -385,55 +385,46 @@ public void configureLoggers ( Source = ConfigParser )
             }
         }
 
-        with (settings) if ( level.length > 0 ) switch ( level )
+        with (settings) if ( level.length > 0 )
         {
-            case "Trace":
-            case "trace":
-            case "TRACE":
-            case "Debug":
-            case "debug":
-            case "DEBUG":
-                log.level(Level.Trace, propagate);
-                break;
+            StringSearch!() s;
 
-            case "Info":
-            case "info":
-            case "INFO":
-                log.level(Level.Info, propagate);
-                break;
+            level = s.strToLower(level);
 
-            case "Warn":
-            case "warn":
-            case "WARN":
-                log.level(Level.Warn, propagate);
-                break;
+            switch ( level )
+            {
+                case "trace":
+                case "debug":
+                    log.level(Level.Trace, propagate);
+                    break;
 
-            case "Error":
-            case "error":
-            case "ERROR":
-                log.level(Level.Error, propagate);
-                break;
+                case "info":
+                    log.level(Level.Info, propagate);
+                    break;
 
-            case "Fatal":
-            case "fatal":
-            case "FATAL":
-                log.level(Level.Info, propagate);
-                break;
+                case "warn":
+                    log.level(Level.Warn, propagate);
+                    break;
 
-            case "None":
-            case "none":
-            case "NONE":
-            case "Off":
-            case "off":
-            case "OFF":
-            case "Disabled":
-            case "disabled":
-            case "DISABLED":
-                log.level(Level.None, propagate);
-                break;
-            default:
-                throw new Exception("Invalid value for log level in section"
-                                    " [" ~ name ~ "]");
+                case "error":
+                    log.level(Level.Error, propagate);
+                    break;
+
+                case "fatal":
+                    log.level(Level.Info, propagate);
+                    break;
+
+                case "none":
+                case "off":
+                case "disabled":
+                    log.level(Level.None, propagate);
+                    break;
+
+                default:
+                    throw new Exception("Invalid value for log level in section"
+                                        " [" ~ name ~ "]");
+            }
         }
     }
 }
+
