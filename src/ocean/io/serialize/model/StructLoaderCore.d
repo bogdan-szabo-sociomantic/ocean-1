@@ -1025,6 +1025,7 @@ class StructLoaderCore
     template IsPrimitive ( T )
     {
         const IsPrimitive =
+            is (T == void) ||
             is (T : real)  || // bool, (u)byte/short/int/long, float/double/real
             is (T : dchar) || // char/wchar/dchar
             is (T : creal);   // cfloat/cdouble/creal
