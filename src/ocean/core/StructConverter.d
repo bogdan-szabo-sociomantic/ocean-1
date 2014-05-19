@@ -133,7 +133,7 @@ private void copyField ( From, To ) ( From* from_field, To* to_field,
     {
         alias structCopy!(typeof(*from_field), typeof((*to_field))) copyMember;
 
-        copyMember(*from_field, to.tupleof[to_index],
+        copyMember(*from_field, *to_field,
                    requestBuffer);
     }
     else static if (isStaticArrayType!(typeof((*to_field))) &&
@@ -376,6 +376,13 @@ unittest
         int[][] i;
         int c;
         char[] the;
+
+        struct AA
+        {
+            int b;
+        }
+
+        AA srt;
     }
 
     struct B
@@ -386,6 +393,17 @@ unittest
         short d;
         char[] the;
         int[][] i;
+
+        struct AB
+        {
+            int b;
+            int c;
+
+            void convert_c () {}
+
+        }
+
+        AB srt;
 
         void convert_b ( ref A structa )
         {
