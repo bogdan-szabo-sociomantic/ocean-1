@@ -66,6 +66,9 @@ New Features
 ``ocean.sys.TimerFD``
   New class wrapping the linux timer fd functions.
 
+``ocean.io.select.client.FiberTimerEvent``
+  New class which allows a fiber to be suspended for a specified time.
+
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
