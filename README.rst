@@ -63,6 +63,9 @@ New Features
   be deep-copied, such as unions or pointers. Associative arrays currently
   remain unsupported.
 
+``ocean.sys.TimerFD``
+  New class wrapping the linux timer fd functions.
+
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
