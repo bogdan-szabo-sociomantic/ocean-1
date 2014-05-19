@@ -124,7 +124,7 @@ public class PeriodicStatsLog ( T ) : IPeriodicStatsLog
 
     private alias T* delegate ( ) ValueDg;
 
-    private ValueDg value_dg;
+    private const ValueDg value_dg;
 
     /***************************************************************************
 
