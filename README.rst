@@ -22,6 +22,10 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+
+v1.13 (2014-05-20)
+------------------
+
 New Features
 ^^^^^^^^^^^^
 
