@@ -582,6 +582,63 @@ public class StatsLog : IStatsLog
 
     /***************************************************************************
 
+        Adds a set of values (denoted by either a struct or an associative
+        array) to be output to the stats log. The specified string is appended
+        to the name of each value written.
+
+        This function is written as a single template to work around the limits
+        of template deduction. This function is equivalent to the following two
+        functions:
+
+        *************************************************************************
+        * Adds the values of the given struct to the stats log. Each member of
+        * the struct will be output as <member name><suffix>:<member value>.
+        *
+        * Params:
+        *     values = struct containing values to write to the log. Passed as ref
+        *         purely to avoid making a copy -- the struct is not modified.
+        *     suffix = suffix to append to the values' names
+        * ---
+        * public typeof(this) add ( T ) ( T values )
+        * ---
+
+        *************************************************************************
+        * Add values from an associative array to the stats
+        *
+        * Params:
+        *     values = The associative array with the values to add
+        *     suffix = suffix to append to the values' names
+        * ---
+        * public typeof(this) add ( T ) ( T[char[]] values )
+        * ----
+
+        Don't forget to call .flush() after all values have been added.
+
+        Returns:
+            A reference to this class for method chaining
+
+    ***************************************************************************/
+
+    public typeof(this) addSuffix ( T ) ( T parameter, char[] suffix )
+    {
+        // only parameter a struct
+        static if ( is ( T == struct ) )
+        {
+            this.formatStruct(parameter, suffix);
+        }
+        else // only parameter not a struct, assumed AA
+        {
+            this.formatAssocArray(parameter, this.add_separator, suffix);
+        }
+
+        this.add_separator = true;
+
+        return this;
+    }
+
+
+    /***************************************************************************
+
         Flush everything to file and prepare for the next iteration
 
     ***************************************************************************/
@@ -625,18 +682,18 @@ public class StatsLog : IStatsLog
         Params:
             values = struct containing values to write to the log. Passed as ref
                 purely to avoid making a copy -- the struct is not modified.
+            suffix = optional suffix to append to the values' names
 
     ***************************************************************************/
 
-    private void formatStruct ( T ) ( ref T values )
+    private void formatStruct ( T ) ( ref T values, char[] suffix = null )
     {
         foreach ( i, value; values.tupleof )
         {
             // stringof results in something like "values.somename", we want
             // only "somename"
             this.formatValue(values.tupleof[i].stringof["values.".length .. $],
-                             value,
-                             this.add_separator);
+                             value, this.add_separator, suffix);
             this.add_separator = true;
         }
     }
@@ -748,14 +805,16 @@ public abstract class IStatsLog
             add_separator = flag telling whether a separator (space) should be
                 added before a stats value is formatted. After a single value
                 has been formatted the value of add_separator is set to true.
+            suffix = optional suffix to append to the values' names
 
     ***************************************************************************/
 
-    protected void formatAssocArray ( A ) ( A[char[]] values, ref bool add_separator )
+    protected void formatAssocArray ( A ) ( A[char[]] values, ref bool add_separator,
+        char[] suffix = null )
     {
         foreach ( name, value; values )
         {
-            this.formatValue(name, value, add_separator);
+            this.formatValue(name, value, add_separator, suffix);
             add_separator = true;
         }
     }
@@ -773,17 +832,26 @@ public abstract class IStatsLog
             value = value of stats log entry
             add_separator = flag telling whether a separator (space) should be
                 added before the stats value is formatted
+            suffix = optional suffix to append to the name
 
     ***************************************************************************/
 
-    protected void formatValue ( V ) ( char[] name, V value, bool add_separator )
+    protected void formatValue ( V ) ( char[] name, V value, bool add_separator,
+        char[] suffix = null )
     {
         if (add_separator)
         {
             this.layout(' ');
         }
 
-        this.layout(name, ':', value);
+        if ( suffix )
+        {
+            this.layout(name, suffix, ':', value);
+        }
+        else
+        {
+            this.layout(name, ':', value);
+        }
     }
 }
 

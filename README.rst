@@ -83,6 +83,18 @@ New Features
   particular in its requirement that the information to be written to the stats
   log is a single struct.)
 
+``ocean.util.log.Stats``
+  Added a method ``StatsLog.addSuffix()`` which writes the values of the
+  provided struct or associative array to the stats log, appending the specified
+  suffix to the name of each individual value. This can be useful in situations
+  where you have a set of stats which is repeated for a variable list of
+  instances. An example of this kind of usage would be if you had a struct
+  containing two fields, counters of bytes and records, and wanted to write one
+  instance of this struct to the stats log for each channel in a dht, suffixing
+  the name of the dht channel to the name of each individual stats value
+  (bytes_campaign_metadata, records_campaign_metadata, bytes_admedia_metadata,
+  records_admedia_metadata, etc).
+
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
