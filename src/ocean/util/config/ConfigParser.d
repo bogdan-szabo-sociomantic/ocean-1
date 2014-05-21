@@ -23,9 +23,13 @@ module ocean.util.config.ConfigParser;
 
 public  import ocean.core.Exception: assertEx;
 
+private import ocean.io.Stdout;
+
 private import tango.io.device.File;
 
 private import tango.io.stream.Lines;
+
+private import tango.io.stream.Format;
 
 private import tango.text.convert.Integer: toLong;
 
@@ -113,11 +117,6 @@ class ConfigException : Exception
     multiple times if the config file needs to be re-read from the file on disk.
 
     TODO:
-
-    A print function provides a facility to print all config properties at
-    once for debugging reasons.
-
-        Config.print;
 
     If properties have changed within the program it can be written back to
     the INI file with a write function. This function clears the INI file and
@@ -775,6 +774,28 @@ class ConfigParser
 
     /***************************************************************************
 
+         Prints the current configuration to the given formatted text stream.
+
+         Note that no guarantees can be made about the order of the categories
+         or the order of the key-value pairs within each category.
+
+         Params:
+             output = formatted text stream in which to print the configuration
+                      (defaults to Stdout)
+
+    ***************************************************************************/
+
+    public void print ( FormatOutput!(char) output = Stdout )
+    {
+        foreach ( key, val; this.properties )
+        {
+            output.formatln("{} = {}\n", key, val);
+        }
+    }
+
+
+    /***************************************************************************
+
         Converts a string to a boolean value. The following string values are
         accepted:
 
@@ -923,6 +944,11 @@ bool_arr = true
         bool[] bool_array = [true, false];
         assertLog(bool_arr == bool_array, "Wrong multi-line bool-array "
                                           "parsing", __LINE__);
+
+        debug ( ConfigParser )
+        {
+            Config.print();
+        }
 
         Config.resetParser();
     }
