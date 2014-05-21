@@ -154,7 +154,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    char[] category;
+    public char[] category;
 
     /***************************************************************************
 
@@ -162,7 +162,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    char[] key;
+    public char[] key;
 
     /***************************************************************************
 
@@ -170,7 +170,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    char[] value;
+    public char[] value;
 
     /***************************************************************************
 
@@ -178,7 +178,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    bool multiline_first = true;
+    public bool multiline_first = true;
 
 
     /***************************************************************************
@@ -212,7 +212,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    struct VarIterator
+    public struct VarIterator
     {
         char[][char[]]* vars;
 
@@ -255,7 +255,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    VarIterator iterateCategory ( char[] category )
+    public VarIterator iterateCategory ( char[] category )
     {
         return VarIterator(category in this.properties);
     }
