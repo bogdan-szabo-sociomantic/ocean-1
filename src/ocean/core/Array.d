@@ -572,17 +572,17 @@ unittest
     scope Unittest t = new Unittest(__FILE__, "startsWith");
     with ( t )
     {
-        assertLog( startsWith!(char)("abcd", "abc") );
-        assertLog( startsWith!(char)("abcd", "abcd") );
-        assertLog(!startsWith!(char)("ab", "abc") );
-        assertLog( startsWith!(char)("ab", null) );
-        assertLog(!startsWith!(char)(null, "xx") );
+        assertLog( startsWith!(char)("abcd", "abc"), __LINE__);
+        assertLog( startsWith!(char)("abcd", "abcd"), __LINE__);
+        assertLog(!startsWith!(char)("ab", "abc"), __LINE__);
+        assertLog( startsWith!(char)("ab", null), __LINE__);
+        assertLog(!startsWith!(char)(null, "xx"), __LINE__);
 
-        assertLog( startsWith!(uint)([1,2,3,4], [1,2,3]) );
-        assertLog( startsWith!(uint)([1,2,3,4], [1,2,3,4]) );
-        assertLog(!startsWith!(uint)([1,2], [1,2,3]) );
-        assertLog( startsWith!(uint)([1,2], null) );
-        assertLog(!startsWith!(uint)(null, [1,2]) );
+        assertLog( startsWith!(uint)([1,2,3,4], [1,2,3]), __LINE__);
+        assertLog( startsWith!(uint)([1,2,3,4], [1,2,3,4]), __LINE__);
+        assertLog(!startsWith!(uint)([1,2], [1,2,3]), __LINE__);
+        assertLog( startsWith!(uint)([1,2], null), __LINE__);
+        assertLog(!startsWith!(uint)(null, [1,2]), __LINE__);
     }
 }
 
@@ -612,17 +612,17 @@ unittest
     scope Unittest t = new Unittest(__FILE__, "endsWith");
     with ( t )
     {
-        assertLog( endsWith!(char)("abcd", "bcd") );
-        assertLog( endsWith!(char)("abcd", "abcd") );
-        assertLog(!endsWith!(char)("ab", "abc") );
-        assertLog( endsWith!(char)("ab", null) );
-        assertLog(!endsWith!(char)(null, "xx") );
+        assertLog( endsWith!(char)("abcd", "bcd"), __LINE__);
+        assertLog( endsWith!(char)("abcd", "abcd"), __LINE__);
+        assertLog(!endsWith!(char)("ab", "abc"), __LINE__);
+        assertLog( endsWith!(char)("ab", null), __LINE__);
+        assertLog(!endsWith!(char)(null, "xx"), __LINE__);
 
-        assertLog( endsWith!(uint)([1,2,3,4], [2,3,4]) );
-        assertLog( endsWith!(uint)([1,2,3,4], [1,2,3,4]) );
-        assertLog(!endsWith!(uint)([1,2], [1,2,3]) );
-        assertLog( endsWith!(uint)([1,2], null) );
-        assertLog(!endsWith!(uint)(null, [1,2]) );
+        assertLog( endsWith!(uint)([1,2,3,4], [2,3,4]), __LINE__);
+        assertLog( endsWith!(uint)([1,2,3,4], [1,2,3,4]), __LINE__);
+        assertLog(!endsWith!(uint)([1,2], [1,2,3]), __LINE__);
+        assertLog( endsWith!(uint)([1,2], null), __LINE__);
+        assertLog(!endsWith!(uint)(null, [1,2]), __LINE__);
     }
 }
 
