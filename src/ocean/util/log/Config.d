@@ -79,7 +79,7 @@ module ocean.util.log.Config;
 *******************************************************************************/
 
 private import ocean.io.Stdout;
-private import ocean.core.Array : remove;
+private import ocean.core.Array : removePrefix, removeSuffix;
 private import ocean.util.Config;
 private import ocean.util.config.ClassFiller;
 private import ocean.util.config.ConfigParser;
@@ -250,17 +250,17 @@ public Layout newLayout ( char[] layout_str )
 {
     Layout layout;
 
-    char[] lowercased_str = layout_str.dup;
+    char[] tweaked_str = layout_str.dup;
 
     StringSearch!() s;
 
-    s.strToLower(lowercased_str);
+    s.strToLower(tweaked_str);
 
-    char[] stripped_str;
+    tweaked_str = removePrefix(tweaked_str, "layout");
 
-    remove(lowercased_str, "layout", stripped_str);
+    tweaked_str = removeSuffix(tweaked_str, "layout");
 
-    switch ( stripped_str )
+    switch ( tweaked_str )
     {
         case "messageonly":
             layout = new MessageOnlyLayout;
