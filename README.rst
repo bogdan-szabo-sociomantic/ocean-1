@@ -33,6 +33,61 @@ New Features
 v1.13 (2014-05-20)
 ------------------
 
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
+
+``ocean.util.container.map.utils.FileSerializer``, ``ocean.util.container.map.utils.MapSerializer``
+  This module has moved to ``ocean.util.container.map.utils.MapSerializer``
+  and has been rewritten to use an object oriented interface, making it
+  more maintainable and memory friendly. Refer to the documentation on how the
+  interface changed.
+
+``ocean.io.select.SelectListener``
+  This module has moved to the ``ocean.net.server`` package.
+
+``ocean.io.select.SelectListener.model.*ConnectionHandler*``
+  These modules have moved to the ``ocean.net.server.connection`` package.
+
+``ocean.io.select.model.*ListenerPool*``
+  These modules have moved to the ``ocean.net.server.connpool`` package.
+
+``ocean.io.select.event``
+  This package has been renamed ``ocean.io.select.client``. The following
+  command can be used to update any user code which imports these modules:
+  ``find src -iname "*.d" -exec sed 's/ocean\.io\.select\.event\./ocean.io.select.client./g' -i \{\} \;``
+
+``ocean.io.select.model.*SelectClient*``
+  These modules have moved to the ``ocean.io.select.client.model`` package.
+
+``ocean.io.select.model.IEpollSelectDispatcherInfo``
+  This module has moved to the ``ocean.io.select.selector`` package. The
+  ``ocean.io.select.model`` package has been removed, as it is now empty.
+
+``ocean.io.device.AsyncFileEpoll``
+  This module has been removed as it was only partly documented/working. See #33
+  for discussion on a full asynchronous file I/O system.
+
+``ocean.io.serialize.StructLoader``, ``ocean.io.serialize.StructDumper``,
+``ocean.io.serialize.model.StructVersionBase``, ``ocean.io.serialize.model.StructLoaderBase``
+  StructLoader has been replaced by a interface-compatible class that adds
+  support for struct versions. The original loader is still available at
+  ``ocean.io.serialize.model.StructLoaderCore``.
+
+  Version support means that each definition of a struct can have a version.
+  Upon serialization, that version is put into the serialized data. When this
+  data is loaded again, the loader checks whether the requested struct version
+  is the same as the one that it was serialized with. If it isn't, a
+  semi-automatic conversion to the requested version will be attempted.
+
+  If no version information can be found in a struct (absence of
+  ``const StructVersion``), the struct is treated as unversioned and nothing
+  changes.
+
+  The version logic is found in ``ocean.io.serialize.model.StructVersionBase`` in
+  case you plan to use it outside the loader/dumper classes.
+
+  The StructDumper gained the version aware `length()` method originally found in `DumpArrays`
+
 New Features
 ^^^^^^^^^^^^
 
@@ -60,14 +115,14 @@ New Features
   and dumper. Includes automatic conversion from older versions to current ones.
 
 ``ocean.core.Array``
-  Added functions ``startsWith`` & ``endsWith`` to check whether an array 
+  Added functions ``startsWith`` & ``endsWith`` to check whether an array
   starts or ends with a specified sub-array respectively.
 
 ``ocean.net.email.EmailSender``
   Ability to cc added.
 
 ``ocean.core.StructConverter``
-  This module allows you to convert a struct A to a similar but not equal 
+  This module allows you to convert a struct A to a similar but not equal
   struct B. You can guide the conversion using converter functions for variables
   that differ between them.
 
@@ -111,60 +166,6 @@ New Features
   (bytes_campaign_metadata, records_campaign_metadata, bytes_admedia_metadata,
   records_admedia_metadata, etc).
 
-Migration Instructions
-^^^^^^^^^^^^^^^^^^^^^^
-
-
-``ocean.util.container.map.utils.FileSerializer``, ``ocean.util.container.map.utils.MapSerializer``
-  This module has moved to ``ocean.util.container.map.utils.MapSerializer``
-  and has been rewritten to use an object oriented interface, making it
-  more maintainable and memory friendly. Refer to the documentation on how the
-  interface changed.
-
-``ocean.io.select.SelectListener``
-  This module has moved to the ``ocean.net.server`` package.
-
-``ocean.io.select.SelectListener.model.*ConnectionHandler*``
-  These modules have moved to the ``ocean.net.server.connection`` package.
-
-``ocean.io.select.model.*ListenerPool*``
-  These modules have moved to the ``ocean.net.server.connpool`` package.
-
-``ocean.io.select.event``
-  This package has been renamed ``ocean.io.select.client``. The following
-  command can be used to update any user code which imports these modules:
-  ``find src -iname "*.d" -exec sed 's/ocean\.io\.select\.event\./ocean.io.select.client./g' -i \{\} \;``
-
-``ocean.io.select.model.*SelectClient*``
-  These modules have moved to the ``ocean.io.select.client.model`` package.
-
-``ocean.io.select.model.IEpollSelectDispatcherInfo``
-  This module has moved to the ``ocean.io.select.selector`` package. The
-  ``ocean.io.select.model`` package has been removed, as it is now empty.
-
-``ocean.io.device.AsyncFileEpoll``
-  This module has been removed as it was only partly documented/working. See #33
-  for discussion on a full asynchronous file I/O system.
-
-``ocean.io.serialize.StructLoader``, ``ocean.io.serialize.StructDumper``, ``ocean.io.serialize.model.StructVersionBase``, ``ocean.io.serialize.model.StructLoaderBase``  
-  StructLoader has been replaced by a interface-compatible class that adds
-  support for struct versions. The original loader is still available at
-  ``ocean.io.serialize.model.StructLoaderCore``. 
-
-  Version support means that each definition of a struct can have a version.
-  Upon serialization, that version is put into the serialized data. When this
-  data is loaded again, the loader checks whether the requested struct version
-  is the same as the one that it was serialized with. If it isn't, a
-  semi-automatic conversion to the requested version will be attempted. 
-
-  If no version information can be found in a struct (absence of 
-  ``const StructVersion``), the struct is treated as unversioned and nothing
-  changes.
-
-  The version logic is found in ``ocean.io.serialize.model.StructVersionBase`` in
-  case you plan to use it outside the loader/dumper classes.
-
-  The StructDumper gained the version aware `length()` method originally found in `DumpArrays`
 
 v1.12 (2014-04-01)
 ------------------
