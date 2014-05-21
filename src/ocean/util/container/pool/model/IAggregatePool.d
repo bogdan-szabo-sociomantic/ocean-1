@@ -598,8 +598,8 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
         Checks a and b for identity.
 
         Params:
-            a = item to check for being indentical to b
-            b = item to check for being indentical to a
+            a = item to check for being identical to b
+            b = item to check for being identical to a
 
         Returs:
             true if a and b are identical or false otherwise.

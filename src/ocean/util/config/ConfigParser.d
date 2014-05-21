@@ -313,15 +313,15 @@ class ConfigParser
         Reads the content of the configuration file and copies to a static
         array buffer.
 
-        Each property in the ini file belongs to a category. A property has always
-        a key and a value associated to the key. The function parses currently
-        three different elements:
+        Each property in the ini file belongs to a category. A property always
+        has a key and a value associated with the key. The function parses the
+        following different elements:
 
         i. Categories
         [Example Category]
 
         ii. Comments
-        // comments always start with two slashes,
+        // comments start with two slashes,
         ;  a semi-colon
         #  or a hash
 
@@ -547,7 +547,7 @@ class ConfigParser
     public T getStrict ( T ) ( char[] category, char[] key )
     {
         assertEx!(ConfigException)(exists(category, key),
-                                   "Critial Error: No configuration key "
+                                   "Critical Error: No configuration key "
                                    "'" ~ category ~ ":" ~ key ~ "' found");
         try
         {
@@ -557,7 +557,7 @@ class ConfigParser
         }
         catch ( IllegalArgumentException )
         {
-            ConfigException("Critial Error: Configuration key '" ~ category ~
+            ConfigException("Critical Error: Configuration key '" ~ category ~
             ":" ~ key ~ "' appears not to be of type '" ~ T.stringof ~ "'");
         }
 

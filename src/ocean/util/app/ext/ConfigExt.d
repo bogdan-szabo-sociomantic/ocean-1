@@ -179,7 +179,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     /***************************************************************************
 
-        Process overrided config options
+        Process overridden config options
 
     ***************************************************************************/
 
@@ -241,8 +241,8 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
         This function do all the extension processing invoking all the
         extensions hooks.
 
-        If configuration file parsing fails, it it exits with a status code
-        3 printing an appropriate error message.
+        If configuration file parsing fails, it exits with status code 3 and
+        prints an appropriate error message.
 
         Note:
             This is not done in processArgs() method because it can be used
