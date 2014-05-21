@@ -687,13 +687,33 @@ public class FlexibleFileQueue : IByteQueue
 
 ***************************************************************************/
 
+version (UnitTest)
+{
+    import ocean.text.util.StringC;
+    import ocean.io.Stdout;
+    import tango.stdc.posix.unistd;
+    extern (C) char* mkdtemp(char*);
+}
+
 unittest
 {
+    auto test_dir = StringC.toDString(mkdtemp("Dunittest-XXXXXX\0".dup.ptr));
+    if (test_dir.length == 0)
+    {
+        Stderr.formatln("{}:{}: Can't create temporary directory "
+                "for unittest, skipping...", __FILE__, __LINE__);
+        return;
+    }
+    scope (exit) rmdir(test_dir);
+
+    auto test_file = test_dir ~ "testfile";
+    scope (exit) unlink(test_file);
+
     for ( int open_existing = 0; open_existing < 2; open_existing++ )
     {
         for (ubyte size; size < ubyte.max; size++)
         {
-            auto queue = new FlexibleFileQueue("testfile", 4, cast(bool)open_existing);
+            auto queue = new FlexibleFileQueue(test_file, 4, cast(bool)open_existing);
 
             for ( ubyte i = 0; i < size; i++ )
             {
