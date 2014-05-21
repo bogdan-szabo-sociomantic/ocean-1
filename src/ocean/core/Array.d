@@ -628,6 +628,108 @@ unittest
 
 /*******************************************************************************
 
+    Remove the given prefix from the given array.
+
+    Template Params:
+        T = The type of the array element
+
+    Params:
+        arr    = The array from which the prefix is to be removed
+        prefix = The prefix to remove
+
+    Returns:
+        A slice without the prefix if successful, the original array otherwise
+
+*******************************************************************************/
+
+public T[] removePrefix ( T ) ( T[] arr, T[] prefix )
+{
+    return ((arr.length >= prefix.length) && (startsWith(arr, prefix))
+                ? arr[prefix.length .. $]
+                : arr);
+}
+
+unittest
+{
+    scope Unittest t = new Unittest(__FILE__, "removePrefix");
+    with ( t )
+    {
+        assertLog(removePrefix!(char)("abcd", "abc") == "d", __LINE__);
+        assertLog(removePrefix!(char)("abcd", "abcd") == "", __LINE__);
+        assertLog(removePrefix!(char)("abcd", "abcde") == "abcd", __LINE__);
+        assertLog(removePrefix!(char)("abcd", null) == "abcd", __LINE__);
+        assertLog(removePrefix!(char)(null, "xx") == "", __LINE__);
+        assertLog("abcd".removePrefix("abc") == "d", __LINE__);
+        assertLog("abcd".removePrefix("abcd") == "", __LINE__);
+        assertLog("abcd".removePrefix("abcde") == "abcd", __LINE__);
+        assertLog("abcd".removePrefix("") == "abcd", __LINE__);
+        assertLog("".removePrefix("xx") == "", __LINE__);
+
+        assertLog(removePrefix!(uint)([1,2,3,4], [1,2,3]) == cast(uint[])[4],
+                  __LINE__);
+        assertLog(removePrefix!(uint)([1,2,3,4], [1,2,3,4]) == cast(uint[])[],
+                  __LINE__);
+        assertLog(removePrefix!(uint)([1,2], [1,2,3]) == cast(uint[])[1,2],
+                  __LINE__);
+        assertLog(removePrefix!(uint)([1,2], null) == cast(uint[])[1,2],
+                  __LINE__);
+        assertLog(removePrefix!(uint)(null, [1,2]) == cast(uint[])[], __LINE__);
+    }
+}
+
+/*******************************************************************************
+
+    Remove the given suffix from the given array.
+
+    Template Params:
+        T = The type of the array element
+
+    Params:
+        arr    = The array from which the suffix is to be removed
+        suffix = The suffix to remove
+
+    Returns:
+        A slice without the suffix if successful, the original array otherwise
+
+*******************************************************************************/
+
+public T[] removeSuffix ( T ) ( T[] arr, T[] suffix )
+{
+    return ((arr.length >= suffix.length) && (endsWith(arr, suffix))
+                ? arr[0 .. $-suffix.length]
+                : arr);
+}
+
+unittest
+{
+    scope Unittest t = new Unittest(__FILE__, "removeSuffix");
+    with ( t )
+    {
+        assertLog(removeSuffix!(char)("abcd", "cd") == "ab", __LINE__);
+        assertLog(removeSuffix!(char)("abcd", "abcd") == "", __LINE__);
+        assertLog(removeSuffix!(char)("abcd", "abcde") == "abcd", __LINE__);
+        assertLog(removeSuffix!(char)("abcd", null) == "abcd", __LINE__);
+        assertLog(removeSuffix!(char)(null, "xx") == "", __LINE__);
+        assertLog("abcd".removeSuffix("cd") == "ab", __LINE__);
+        assertLog("abcd".removeSuffix("abcd") == "", __LINE__);
+        assertLog("abcd".removeSuffix("abcde") == "abcd", __LINE__);
+        assertLog("abcd".removeSuffix("") == "abcd", __LINE__);
+        assertLog("".removeSuffix("xx") == "", __LINE__);
+
+        assertLog(removeSuffix!(uint)([1,2,3,4], [2,3,4]) == cast(uint[])[1],
+                  __LINE__);
+        assertLog(removeSuffix!(uint)([1,2,3,4], [1,2,3,4]) == cast(uint[])[],
+                  __LINE__);
+        assertLog(removeSuffix!(uint)([1,2], [1,2,3]) == cast(uint[])[1,2],
+                  __LINE__);
+        assertLog(removeSuffix!(uint)([1,2], null) == cast(uint[])[1,2],
+                  __LINE__);
+        assertLog(removeSuffix!(uint)(null, [1,2]) == cast(uint[])[], __LINE__);
+    }
+}
+
+/*******************************************************************************
+
     Moves all elements from array which match the exclusion criterum
     represented by exclude to the back of array so that the elements that do not
     match this criterium are in the front.

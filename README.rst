@@ -22,6 +22,13 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+New Features
+^^^^^^^^^^^^
+
+``ocean.core.Array``
+  Added functions ``removePrefix`` & ``removeSuffix`` that return a slice of the
+  given array without the specified prefix or suffix respectively.
+
 
 v1.13 (2014-05-20)
 ------------------
