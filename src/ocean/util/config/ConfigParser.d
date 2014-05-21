@@ -131,15 +131,6 @@ class ConfigParser
 {
     /***************************************************************************
 
-        Typeof this alias.
-
-    ***************************************************************************/
-
-    public alias typeof(this) This;
-
-
-    /***************************************************************************
-
         Config Keys and Properties
 
     ***************************************************************************/
@@ -266,7 +257,7 @@ class ConfigParser
 
     VarIterator iterateCategory ( char[] category )
     {
-        return VarIterator(category in This.properties);
+        return VarIterator(category in this.properties);
     }
 
 
@@ -280,7 +271,7 @@ class ConfigParser
     {
         int result = 0;
 
-        foreach (key, val; This.properties)
+        foreach (key, val; this.properties)
         {
             result = dg(key);
 
@@ -454,7 +445,7 @@ class ConfigParser
 
                         this.value = trim(this.value[pos + 1 .. $]).dup;
 
-                        This.properties[this.category][this.key] = this.value;
+                        this.properties[this.category][this.key] = this.value;
                         multiline_first = !this.value.length;
                     }
                     else
@@ -465,10 +456,10 @@ class ConfigParser
                         {
                             if (!multiline_first)
                             {
-                                This.properties[this.category][this.key] ~= '\n';
+                                this.properties[this.category][this.key] ~= '\n';
                             }
 
-                            This.properties[this.category][this.key] ~= this.value;
+                            this.properties[this.category][this.key] ~= this.value;
 
                             multiline_first = false;
                         }
@@ -490,7 +481,7 @@ class ConfigParser
 
     public bool isEmpty()
     {
-        return This.properties.length == 0;
+        return this.properties.length == 0;
     }
 
 
@@ -509,7 +500,7 @@ class ConfigParser
 
     public bool exists ( char[] category, char[] key )
     {
-        return (category in This.properties) && (key in This.properties[category]);
+        return (category in this.properties) && (key in this.properties[category]);
     }
 
 
@@ -551,7 +542,7 @@ class ConfigParser
                                    "'" ~ category ~ ":" ~ key ~ "' found");
         try
         {
-            char[] property = This.properties[category][key];
+            char[] property = this.properties[category][key];
 
             return conv!(T)(property);
         }
@@ -715,7 +706,7 @@ class ConfigParser
         T[] r;
         foreach (elem; delimit(value, "\n"))
         {
-            r ~= This.conv!(T)(elem);
+            r ~= this.conv!(T)(elem);
         }
         return r;
     }
@@ -773,7 +764,7 @@ class ConfigParser
 
     public void set ( char[] category, char[] key, char[] value )
     {
-        This.properties[category][key] = value;
+        this.properties[category][key] = value;
     }
 
 
