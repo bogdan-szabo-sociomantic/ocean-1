@@ -132,21 +132,40 @@ class ConfigParser
 {
     /***************************************************************************
 
-        Config Keys and Properties
+        Variable Iterator. Iterates over variables of a category
 
     ***************************************************************************/
 
-    alias char[] String;
-    private String[String][String] properties;
+    public struct VarIterator
+    {
+        char[][char[]]* vars;
 
 
-    /***************************************************************************
+        /***********************************************************************
 
-        Config File Location
+            Variable Iterator. Iterates over variables of a category
 
-    ***************************************************************************/
+        ***********************************************************************/
 
-    private char[] configFile;
+        public int opApply ( int delegate ( ref char[] x ) dg )
+        {
+            int result = 0;
+
+            if ( vars is null )
+            {
+                return result;
+            }
+
+            foreach ( key, val; *vars )
+            {
+                result = dg(key);
+
+                if ( result ) break;
+            }
+
+            return result;
+        }
+    }
 
 
     /***************************************************************************
@@ -187,6 +206,25 @@ class ConfigParser
 
     /***************************************************************************
 
+        Config Keys and Properties
+
+    ***************************************************************************/
+
+    alias char[] String;
+    private String[String][String] properties;
+
+
+    /***************************************************************************
+
+        Config File Location
+
+    ***************************************************************************/
+
+    private char[] configFile;
+
+
+    /***************************************************************************
+
          Constructor
 
     ***************************************************************************/
@@ -207,44 +245,6 @@ class ConfigParser
     public this ( char[] config )
     {
         this.parse(config);
-    }
-
-
-    /***************************************************************************
-
-        Variable Iterator. Iterates over variables of a category
-
-    ***************************************************************************/
-
-    public struct VarIterator
-    {
-        char[][char[]]* vars;
-
-
-        /***********************************************************************
-
-            Variable Iterator. Iterates over variables of a category
-
-        ***********************************************************************/
-
-        public int opApply ( int delegate ( ref char[] x ) dg )
-        {
-            int result = 0;
-
-            if ( vars is null )
-            {
-                return result;
-            }
-
-            foreach ( key, val; *vars )
-            {
-                result = dg(key);
-
-                if ( result ) break;
-            }
-
-            return result;
-        }
     }
 
 
