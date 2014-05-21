@@ -9,7 +9,7 @@
     Array manipulation functions.
 
     It's often convenient to use these functions with D's 'function as array
-    property' sytnax, so:
+    property' syntax, so:
 
     ---
         char[] dest;
