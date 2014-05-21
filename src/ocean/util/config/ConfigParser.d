@@ -59,6 +59,7 @@ class ConfigException : Exception
     }
 }
 
+
 /*******************************************************************************
 
     Config reads all properties of the application from an INI style of the
@@ -156,6 +157,7 @@ class ConfigParser
 
     public char[] category;
 
+
     /***************************************************************************
 
         Current key being parsed
@@ -164,6 +166,7 @@ class ConfigParser
 
     public char[] key;
 
+
     /***************************************************************************
 
         Current value being parsed
@@ -171,6 +174,7 @@ class ConfigParser
     ***************************************************************************/
 
     public char[] value;
+
 
     /***************************************************************************
 
@@ -227,21 +231,22 @@ class ConfigParser
         {
             int result = 0;
 
-            if (vars is null)
+            if ( vars is null )
             {
                 return result;
             }
 
-            foreach (key, val; *vars)
+            foreach ( key, val; *vars )
             {
                 result = dg(key);
 
-                if (result) break;
+                if ( result ) break;
             }
 
             return result;
         }
     }
+
 
     /***************************************************************************
 
@@ -271,11 +276,11 @@ class ConfigParser
     {
         int result = 0;
 
-        foreach (key, val; this.properties)
+        foreach ( key, val; this.properties )
         {
             result = dg(key);
 
-            if (result) break;
+            if ( result ) break;
         }
 
         return result;
@@ -343,13 +348,13 @@ class ConfigParser
     {
         this.configFile = filePath;
 
-        if (clean_old)
+        if ( clean_old )
         {
             this.resetParser();
             this.properties = null;
         }
 
-        foreach (line; new Lines!(char) (new File(this.configFile)))
+        foreach ( line; new Lines!(char) (new File(this.configFile)) )
         {
             this.parseLine(line);
         }
@@ -382,7 +387,7 @@ class ConfigParser
 
     public void parseString ( char[] str )
     {
-        foreach (line; splitLines(str))
+        foreach ( line; splitLines(str) )
         {
             this.parseLine(line);
         }
@@ -439,7 +444,7 @@ class ConfigParser
                 {
                     pos = locate(this.value, '='); // check for key value pair
 
-                    if (pos < this.value.length)
+                    if ( pos < this.value.length )
                     {
                         this.key = trim(this.value[0 .. pos]).dup;
 
@@ -452,9 +457,9 @@ class ConfigParser
                     {
                         this.value = trim(this.value).dup;
 
-                        if (this.value.length)
+                        if ( this.value.length )
                         {
-                            if (!multiline_first)
+                            if ( ! multiline_first )
                             {
                                 this.properties[this.category][this.key] ~= '\n';
                             }
@@ -704,7 +709,7 @@ class ConfigParser
     {
         auto value = this.getStrict!(char[])(category, key);
         T[] r;
-        foreach (elem; delimit(value, "\n"))
+        foreach ( elem; delimit(value, "\n") )
         {
             r ~= this.conv!(T)(elem);
         }
@@ -799,8 +804,8 @@ class ConfigParser
 
         foreach ( id; BOOL_IDS )
         {
-            if (property == id[0]) return false;
-            if (property == id[1]) return true;
+            if ( property == id[0] ) return false;
+            if ( property == id[1] ) return true;
         }
 
         throw new IllegalArgumentException("Config.toBool :: invalid boolean value");
@@ -922,3 +927,4 @@ bool_arr = true
         Config.resetParser();
     }
 }
+
