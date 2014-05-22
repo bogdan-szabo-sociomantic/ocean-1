@@ -307,6 +307,9 @@ static this ( )
 
     Template Params:
         Source = the type of the config parser
+        FileLayout = layout to use for logging to file, defaults to LayoutDate
+        ConsoleLayout = layout to use for logging to console, defaults to
+                        SimpleLayout
 
     Params:
         config   = an instance of an class iterator for Config
@@ -316,7 +319,8 @@ static this ( )
 
 *******************************************************************************/
 
-public void configureLoggers ( Source = ConfigParser )
+public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
+                               ConsoleLayout = SimpleLayout )
                              ( ClassIterator!(Config, Source) config,
                                MetaConfig m_config, bool loose = false,
                                bool use_insert_appender = false )
@@ -360,7 +364,7 @@ public void configureLoggers ( Source = ConfigParser )
         {
             Layout file_log_layout = (settings.file_layout.length)
                                          ? newLayout(settings.file_layout)
-                                         : new LayoutDate;
+                                         : new FileLayout;
 
             log.add(new AppendSyslog(settings.file(),
                                      m_config.file_count,
@@ -373,7 +377,7 @@ public void configureLoggers ( Source = ConfigParser )
         {
             Layout console_log_layout = (settings.console_layout.length)
                                             ? newLayout(settings.console_layout)
-                                            : new SimpleLayout;
+                                            : new ConsoleLayout;
 
             if ( use_insert_appender )
             {
