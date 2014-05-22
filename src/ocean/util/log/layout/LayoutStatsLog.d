@@ -13,7 +13,7 @@
 
 *******************************************************************************/
 
-module ocean.util.log.LayoutStatsLog;
+module ocean.util.log.layout.LayoutStatsLog;
 
 private import  tango.text.Util;
 

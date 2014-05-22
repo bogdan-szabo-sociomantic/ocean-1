@@ -11,7 +11,7 @@
 
 *******************************************************************************/
 
-module ocean.util.log.LayoutMessageOnly;
+module ocean.util.log.layout.LayoutMessageOnly;
 
 
 

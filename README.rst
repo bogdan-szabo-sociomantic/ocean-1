@@ -25,9 +25,13 @@ master
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
+``ocean.util.log.LayoutStatsLog``
+  - This layout class has been moved into ``ocean.util.log.layout.*``
+
 ``ocean.util.log.MessageOnlyLayout``, ``ocean.util.log.SimpleLayout``
   - ``MessageOnlyLayout`` has been renamed to ``LayoutMessageOnly``
   - ``SimpleLayout`` has been renamed to ``LayoutSimple``
+  - Both these layout classes have been moved into ``ocean.util.log.layout.*``
 
 New Features
 ^^^^^^^^^^^^

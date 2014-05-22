@@ -58,7 +58,7 @@ private import ocean.text.convert.Layout;
 
 private import ocean.util.log.InsertConsole;
 
-private import ocean.util.log.LayoutMessageOnly;
+private import ocean.util.log.layout.LayoutMessageOnly;
 
 private import tango.stdc.math: lroundf;
 

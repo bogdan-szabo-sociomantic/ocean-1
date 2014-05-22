@@ -91,9 +91,9 @@ private import ocean.util.log.InsertConsole;
 private import tango.util.log.AppendConsole;
 
 // Log layouts
-private import ocean.util.log.LayoutMessageOnly;
-private import ocean.util.log.LayoutStatsLog;
-private import ocean.util.log.LayoutSimple;
+private import ocean.util.log.layout.LayoutMessageOnly;
+private import ocean.util.log.layout.LayoutStatsLog;
+private import ocean.util.log.layout.LayoutSimple;
 private import tango.util.log.LayoutDate;
 private import tango.util.log.LayoutChainsaw;
 

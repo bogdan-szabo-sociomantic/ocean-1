@@ -27,7 +27,7 @@ private import ocean.io.select.client.TimerEvent;
 
 private import ocean.text.convert.Layout: StringLayout;
 
-private import ocean.util.log.LayoutStatsLog;
+private import ocean.util.log.layout.LayoutStatsLog;
 
 private import tango.util.log.Log;
 private import tango.util.log.AppendSyslog;
@@ -42,7 +42,7 @@ private import tango.stdc.time : time_t;
         date key:value, key:value
 
     (The date part of the output is handled by the logger layout in
-    ocean.util.log.LayoutStatsLog.)
+    ocean.util.log.layout.LayoutStatsLog.)
 
     Template Params:
         T = a struct which contains the values that should be written to the
@@ -416,7 +416,7 @@ public abstract class IPeriodicStatsLog
         date key: value, key: value
 
     (The date part is not written by this class. Instead we rely on the logger
-    layout in ocean.util.log.LayoutStatsLog.)
+    layout in ocean.util.log.layout.LayoutStatsLog.)
 
     Usage Example
     ---
