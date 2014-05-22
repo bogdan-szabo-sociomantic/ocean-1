@@ -22,6 +22,13 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
+
+``ocean.util.log.MessageOnlyLayout``, ``ocean.util.log.SimpleLayout``
+  - ``MessageOnlyLayout`` has been renamed to ``LayoutMessageOnly``
+  - ``SimpleLayout`` has been renamed to ``LayoutSimple``
+
 New Features
 ^^^^^^^^^^^^
 

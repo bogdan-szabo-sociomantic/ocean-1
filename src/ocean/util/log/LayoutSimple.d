@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module ocean.util.log.SimpleLayout;
+module ocean.util.log.LayoutSimple;
 
 private import  tango.text.Util;
 
@@ -29,13 +29,13 @@ private import  Integer = tango.text.convert.Integer;
 
         Example:
         ------
-        import ocean.util.log.SimpleLayout;
+        import ocean.util.log.LayoutSimple;
         import tango.util.log.Log;
         import tango.util.log.AppendConsole;
 
 
         Log.root.clear;
-        Log.root.add(new AppendConsole(new SimpleLayout));
+        Log.root.add(new AppendConsole(new LayoutSimple));
 
         auto logger = Log.lookup("Example");
 
@@ -53,7 +53,7 @@ private import  Integer = tango.text.convert.Integer;
 
 *******************************************************************************/
 
-public class SimpleLayout : Appender.Layout
+public class LayoutSimple : Appender.Layout
 {
         /***********************************************************************
 

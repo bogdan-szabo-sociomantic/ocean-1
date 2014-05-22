@@ -11,7 +11,7 @@
 
 *******************************************************************************/
 
-module ocean.util.log.MessageOnlyLayout;
+module ocean.util.log.LayoutMessageOnly;
 
 
 
@@ -31,7 +31,7 @@ private import  tango.util.log.Log;
 
 *******************************************************************************/
 
-public class MessageOnlyLayout : Appender.Layout
+public class LayoutMessageOnly : Appender.Layout
 {
     /***************************************************************************
 

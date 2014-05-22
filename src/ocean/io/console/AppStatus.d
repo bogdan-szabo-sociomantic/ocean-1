@@ -58,7 +58,7 @@ private import ocean.text.convert.Layout;
 
 private import ocean.util.log.InsertConsole;
 
-private import ocean.util.log.MessageOnlyLayout;
+private import ocean.util.log.LayoutMessageOnly;
 
 private import tango.stdc.math: lroundf;
 
@@ -266,7 +266,7 @@ public class AppStatus
         this.static_lines.length = size;
         this.ms_between_calls = ms_between_calls;
         this.insert_console = new InsertConsole(Cout.stream, true,
-            new MessageOnlyLayout);
+            new LayoutMessageOnly);
         this.old_terminal_size = Terminal.rows;
 
         this.msg = new StringLayout!(char);

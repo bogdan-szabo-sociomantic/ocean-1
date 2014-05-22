@@ -91,9 +91,9 @@ private import ocean.util.log.InsertConsole;
 private import tango.util.log.AppendConsole;
 
 // Log layouts
-private import ocean.util.log.MessageOnlyLayout;
+private import ocean.util.log.LayoutMessageOnly;
 private import ocean.util.log.LayoutStatsLog;
-private import ocean.util.log.SimpleLayout;
+private import ocean.util.log.LayoutSimple;
 private import tango.util.log.LayoutDate;
 private import tango.util.log.LayoutChainsaw;
 
@@ -242,7 +242,7 @@ alias Appender.Layout Layout;
 
     Returns:
         an instance of a suitable layout based on the input string, or an
-        instance of 'MessageOnlyLayout' if no suitable layout was identified.
+        instance of 'LayoutMessageOnly' if no suitable layout was identified.
 
 *******************************************************************************/
 
@@ -263,7 +263,7 @@ public Layout newLayout ( char[] layout_str )
     switch ( tweaked_str )
     {
         case "messageonly":
-            layout = new MessageOnlyLayout;
+            layout = new LayoutMessageOnly;
             break;
 
         case "stats":
@@ -272,7 +272,7 @@ public Layout newLayout ( char[] layout_str )
             break;
 
         case "simple":
-            layout = new SimpleLayout;
+            layout = new LayoutSimple;
             break;
 
         case "date":
@@ -322,7 +322,7 @@ static this ( )
 *******************************************************************************/
 
 public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
-                               ConsoleLayout = SimpleLayout )
+                               ConsoleLayout = LayoutSimple )
                              ( ClassIterator!(Config, Source) config,
                                MetaConfig m_config, bool loose = false,
                                bool use_insert_appender = false )
