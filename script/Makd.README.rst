@@ -420,7 +420,7 @@ If you need to define more flavors, you can do so by defining the
         VALID_FLAVORS := devel production profiling
 
 
-Binary specific flags
+Target specific flags
 ---------------------
 There is a not-so-known Make feature that makes it very easy to override
 variables for a particular target, and usually that's the best way to pass
