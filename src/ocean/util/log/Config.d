@@ -314,6 +314,8 @@ static this ( )
     Params:
         config   = an instance of an class iterator for Config
         m_config = an instance of the MetaConfig class
+        loose = if true, configuration files will be parsed in a more relaxed
+                manner
         use_insert_appender = whether to use the insert appender which
                               doesn't support newlines in the output msg
 
