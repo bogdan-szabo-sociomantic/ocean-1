@@ -169,38 +169,49 @@ class ConfigParser
 
     /***************************************************************************
 
-        Current category being parsed
+        Immediate context of the current line being parsed
 
     ***************************************************************************/
 
-    public char[] category;
+    private struct ParsingContext
+    {
+        /***************************************************************************
+
+          Current category being parsed
+
+         ***************************************************************************/
+
+        char[] category;
 
 
-    /***************************************************************************
+        /***************************************************************************
 
-        Current key being parsed
+          Current key being parsed
 
-    ***************************************************************************/
+         ***************************************************************************/
 
-    public char[] key;
-
-
-    /***************************************************************************
-
-        Current value being parsed
-
-    ***************************************************************************/
-
-    public char[] value;
+        char[] key;
 
 
-    /***************************************************************************
+        /***************************************************************************
 
-        True if we are at the first multiline value when parsing
+          Current value being parsed
 
-    ***************************************************************************/
+         ***************************************************************************/
 
-    public bool multiline_first = true;
+        char[] value;
+
+
+        /***************************************************************************
+
+          True if we are at the first multiline value when parsing
+
+         ***************************************************************************/
+
+        bool multiline_first = true;
+    }
+
+    private ParsingContext context;
 
 
     /***************************************************************************
@@ -294,10 +305,12 @@ class ConfigParser
 
     public void resetParser ( )
     {
-        this.value = "";
-        this.category = "";
-        this.key = "";
-        this.multiline_first = true;
+        auto ctx = &this.context;
+
+        ctx.value           = "";
+        ctx.category        = "";
+        ctx.key             = "";
+        ctx.multiline_first = true;
     }
 
 
@@ -421,51 +434,54 @@ class ConfigParser
 
     public void parseLine ( char[] line )
     {
-        this.value = trim(line);
+        auto ctx = &this.context;
 
-        if ( this.value.length ) // ignore empty lines
+        ctx.value = trim(line);
+
+        if ( ctx.value.length ) // ignore empty lines
         {
-            bool slash_comment     = this.value.length >= 2 && this.value[0 .. 2] == "//";
-            bool hash_comment      = this.value[0] == '#';
-            bool semicolon_comment = this.value[0] == ';';
+            bool slash_comment     = ctx.value.length >= 2 &&
+                                             ctx.value[0 .. 2] == "//";
+            bool hash_comment      = ctx.value[0] == '#';
+            bool semicolon_comment = ctx.value[0] == ';';
 
             if ( !slash_comment && !semicolon_comment && !hash_comment ) // ignore comments
             {
-                int pos = locate(this.value, '['); // category present in line?
+                int pos = locate(ctx.value, '['); // category present in line?
 
                 if ( pos == 0 )
                 {
-                    this.category = this.value[pos + 1 .. locate(this.value, ']')].dup;
+                    ctx.category = ctx.value[pos + 1 .. locate(ctx.value, ']')].dup;
 
-                    this.key = "";
+                    ctx.key = "";
                 }
                 else
                 {
-                    pos = locate(this.value, '='); // check for key value pair
+                    pos = locate(ctx.value, '='); // check for key value pair
 
-                    if ( pos < this.value.length )
+                    if ( pos < ctx.value.length )
                     {
-                        this.key = trim(this.value[0 .. pos]).dup;
+                        ctx.key = trim(ctx.value[0 .. pos]).dup;
 
-                        this.value = trim(this.value[pos + 1 .. $]).dup;
+                        ctx.value = trim(ctx.value[pos + 1 .. $]).dup;
 
-                        this.properties[this.category][this.key] = this.value;
-                        multiline_first = !this.value.length;
+                        this.properties[ctx.category][ctx.key] = ctx.value;
+                        ctx.multiline_first = !ctx.value.length;
                     }
                     else
                     {
-                        this.value = trim(this.value).dup;
+                        ctx.value = trim(ctx.value).dup;
 
-                        if ( this.value.length )
+                        if ( ctx.value.length )
                         {
-                            if ( ! multiline_first )
+                            if ( ! ctx.multiline_first )
                             {
-                                this.properties[this.category][this.key] ~= '\n';
+                                this.properties[ctx.category][ctx.key] ~= '\n';
                             }
 
-                            this.properties[this.category][this.key] ~= this.value;
+                            this.properties[ctx.category][ctx.key] ~= ctx.value;
 
-                            multiline_first = false;
+                            ctx.multiline_first = false;
                         }
                     }
                 }
