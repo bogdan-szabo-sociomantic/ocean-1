@@ -120,9 +120,7 @@ public class FiberTimerEvent : IFiberSelectClient
 
     public void wait ( uint s )
     {
-        this.timer.set(s, 0, 0, 0);
-        this.fiber.register(this);
-        this.fiber.suspend(TimerFired, this, this.fiber.Message(true));
+        this.wait(s, 0);
     }
 
 
@@ -140,7 +138,28 @@ public class FiberTimerEvent : IFiberSelectClient
     public void wait ( double s )
     {
         auto ms = cast(uint)(s - floor(s));
-        this.timer.set(cast(uint)s, ms, 0, 0);
+        this.wait(cast(uint)floor(s), ms);
+    }
+
+
+    /***************************************************************************
+
+        Sets the timer to the specified number of seconds and milliseconds,
+        registers it, and suspends the fiber until it fires. If both seconds and
+        milliseconds are 0, the fiber is not suspended and the event is not
+        registered with epoll -- no pause occurs.
+
+        Params:
+            s = number of seconds to suspend fiber for
+            ms = number of milliseconds to suspend fiber for
+
+    ***************************************************************************/
+
+    private void wait ( uint s, uint ms )
+    {
+        if ( s == 0 && ms == 0 ) return;
+
+        this.timer.set(s, ms, 0, 0);
         this.fiber.register(this);
         this.fiber.suspend(TimerFired, this, this.fiber.Message(true));
     }
