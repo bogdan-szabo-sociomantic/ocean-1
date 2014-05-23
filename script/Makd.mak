@@ -98,8 +98,10 @@ IFLAGS ?= -D
 
 DFLAGS ?= -di
 
+override DFLAGS += -gc
+
 ifeq ($F,devel)
-override DFLAGS += -debug -gc
+override DFLAGS += -debug
 endif
 
 ifeq ($F,production)
