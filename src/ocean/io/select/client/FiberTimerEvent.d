@@ -200,5 +200,31 @@ public class FiberTimerEvent : IFiberSelectClient
         // fixed.
         return (message.active == message.active.num)? message.num != 0 : false;
     }
+
+
+    /***************************************************************************
+
+        Returns:
+            identifier string for this instance, including the remaining time
+
+    ***************************************************************************/
+
+    debug
+    {
+        private char[] time_buffer;
+        private import ocean.core.Array : copy;
+        private import ocean.text.convert.Layout;
+
+        public override char[] id ( )
+        {
+            this.time_buffer.copy(super.id());
+            auto time = this.timer.time();
+
+            Layout!(char).print(this.time_buffer, ": {}s {}ns",
+                time.it_value.tv_sec, time.it_value.tv_nsec);
+            return this.time_buffer;
+        }
+    }
+
 }
 
