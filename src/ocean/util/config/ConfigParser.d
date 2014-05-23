@@ -880,6 +880,8 @@ class ConfigParser
 version ( UnitTest )
 {
     private import ocean.util.Unittest;
+
+    private import tango.core.Memory;
 }
 
 unittest
@@ -1037,6 +1039,50 @@ bool_arr = true
                   "category iteration failure", __LINE__);
         assertLog(obtained_keys.sort == expected_keys.sort,
                   "key iteration failure", __LINE__);
+
+
+        /***********************************************************************
+
+            Section 3: unit-tests to check memory usage
+
+            this entire section is inside a conditional compilation block as it
+            does console output meant for human interpretation
+
+        ***********************************************************************/
+
+        debug ( ConfigParser )
+        {
+            const num_parses = 200;
+
+            // Repeated parsing of the same configuration.
+
+            Stdout.blue.formatln("Memory analysis of repeated parsing of the "
+                                 "same configuration").default_colour;
+
+            size_t memused1, memused2, memfree;
+
+            GC.usage(memused1, memfree);
+            Stdout.formatln("before parsing  : memused = {}", memused1);
+
+            Config.parseString(str);
+
+            GC.usage(memused2, memfree);
+            Stdout.formatln("after parse # 1 : memused = {} (additional mem "
+                            "consumed = {})", memused2, (memused2 - memused1));
+
+            memused1 = memused2;
+
+            for (int i = 2; i < num_parses; ++i)
+            {
+                Config.parseString(str);
+            }
+
+            GC.usage(memused2, memfree);
+            Stdout.formatln("after parse # {} : memused = {} (additional mem "
+                            "consumed = {})", num_parses, memused2,
+                            (memused2 - memused1));
+            Stdout.formatln("");
+        }
 
         Config.resetParser();
     }
