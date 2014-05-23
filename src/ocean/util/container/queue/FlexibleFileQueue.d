@@ -704,10 +704,10 @@ unittest
                 "for unittest, skipping...", __FILE__, __LINE__);
         return;
     }
-    scope (exit) rmdir(test_dir);
+    scope (exit) rmdir(test_dir.ptr);
 
-    auto test_file = test_dir ~ "testfile";
-    scope (exit) unlink(test_file);
+    auto test_file = (test_dir ~ "testfile\0")[0..$-1];
+    scope (exit) unlink(test_file.ptr);
 
     for ( int open_existing = 0; open_existing < 2; open_existing++ )
     {
