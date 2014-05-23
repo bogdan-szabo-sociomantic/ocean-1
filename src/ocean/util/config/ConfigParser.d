@@ -877,8 +877,10 @@ class ConfigParser
 
 *******************************************************************************/
 
-
-private import ocean.util.Unittest;
+version ( UnitTest )
+{
+    private import ocean.util.Unittest;
+}
 
 unittest
 {
@@ -918,10 +920,13 @@ bool_arr = true
 
         Config.parseString(str);
 
+        assertLog(Config.isEmpty == false,
+                  "Config is incorrectly marked as being empty", __LINE__);
+
         scope l = Config.getListStrict("Section1", "multiline");
 
-        assertLog(l.length == 4, "Multiline value has more elements than"
-                                 "expected", __LINE__);
+        assertLog(l.length == 4,
+                  "Incorrect number of elements in multiline", __LINE__);
 
         assertLog(l[0] == "a" && l[1] == "b" && l[2] == "c" && l[3] == "d",
                 "Multiline value was not parsed as expected", __LINE__);
@@ -944,6 +949,48 @@ bool_arr = true
         bool[] bool_array = [true, false];
         assertLog(bool_arr == bool_array, "Wrong multi-line bool-array "
                                           "parsing", __LINE__);
+
+        try
+        {
+            scope w_bool_arr = Config.getListStrict!(bool)("Section1",
+                                                           "int_arr");
+        }
+        catch ( IllegalArgumentException e )
+        {
+            assertLog((e.msg == "Config.toBool :: invalid boolean value"),
+                      "invalid conversion to bool "
+                      "was not reported as a problem", __LINE__);
+        }
+
+        // Manually set a property (new category).
+        Config.set("Section2", "set_key", "set_value");
+
+        char[] new_val;
+        Config.getStrict(new_val, "Section2", "set_key");
+        assertLog(new_val == "set_value",
+                  "New value not added correctly", __LINE__);
+
+        // Manually set a property (existing category, new key).
+        Config.set("Section2", "another_set_key", "another_set_value");
+
+        Config.getStrict(new_val, "Section2", "another_set_key");
+        assertLog(new_val == "another_set_value",
+                  "New value not added correctly", __LINE__);
+
+        // Manually set a property (existing category, existing key).
+        Config.set("Section2", "set_key", "new_set_value");
+
+        Config.getStrict(new_val, "Section2", "set_key");
+        assertLog(new_val == "new_set_value",
+                  "New value not added correctly", __LINE__);
+
+        // Check if the 'exists' function works as expected.
+        assertLog( Config.exists("Section1", "int_arr"),
+                  "exists API failure", __LINE__);
+        assertLog(!Config.exists("Section420", "int_arr"),
+                  "exists API failure", __LINE__);
+        assertLog(!Config.exists("Section1", "key420"),
+                  "exists API failure", __LINE__);
 
         debug ( ConfigParser )
         {
