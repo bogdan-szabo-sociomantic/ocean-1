@@ -890,6 +890,12 @@ unittest
 
     with (t)
     {
+        /***********************************************************************
+
+            Section 1: unit-tests to confirm correct parsing of config files
+
+        ***********************************************************************/
+
         auto str =
 `
 [Section1]
@@ -996,6 +1002,41 @@ bool_arr = true
         {
             Config.print();
         }
+
+
+        /***********************************************************************
+
+            Section 2: unit-tests to confirm correct working of iterators
+
+        ***********************************************************************/
+
+        char[][] expected_categories = [ "Section1",
+                                         "Section2" ];
+        char[][] expected_keys = [ "multiline",
+                                   "int_arr",
+                                   "ulong_arr",
+                                   "float_arr",
+                                   "bool_arr",
+
+                                   "set_key",
+                                   "another_set_key" ];
+        char[][] obtained_categories;
+        char[][] obtained_keys;
+
+        foreach ( category; Config )
+        {
+            obtained_categories ~= category;
+
+            foreach ( key; Config.iterateCategory(category) )
+            {
+                obtained_keys ~= key;
+            }
+        }
+
+        assertLog(obtained_categories.sort == expected_categories.sort,
+                  "category iteration failure", __LINE__);
+        assertLog(obtained_keys.sort == expected_keys.sort,
+                  "key iteration failure", __LINE__);
 
         Config.resetParser();
     }
