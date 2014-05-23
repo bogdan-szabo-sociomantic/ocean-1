@@ -125,7 +125,7 @@ template MapExtension ( K, V )
 
     ***************************************************************************/
 
-    alias bool delegate ( K, V ) CheckDg;
+    alias bool delegate ( ref K, ref V ) CheckDg;
 
     /***************************************************************************
 
@@ -198,7 +198,7 @@ template MapExtension ( K, V )
 
     public void dump ( char[] file_path, CheckDg check )
     {
-        void adder ( void delegate ( K, V ) add )
+        void adder ( void delegate ( ref K, ref V ) add )
         {
             foreach ( k, v; this ) if ( check(k,v) )
             {
@@ -447,7 +447,7 @@ class MapSerializer
 
     template AdderDg ( K, V )
     {
-        alias void delegate ( void delegate ( K, V ) ) AdderDg;
+        alias void delegate ( void delegate ( ref K, ref V ) ) AdderDg;
     }
 
     /***************************************************************************
@@ -550,9 +550,9 @@ class MapSerializer
 
     public void dump ( K, V ) ( Map!(V, K) map, char[] file_path )
     {
-        void adder ( void delegate ( K, V ) add )
+        void adder ( void delegate ( ref K, ref V ) add )
         {
-            foreach ( k, v; map )
+            foreach ( ref k, ref v; map )
             {
                 add(k, v);
             }
@@ -614,7 +614,7 @@ class MapSerializer
         // Write dummy value first
         SimpleSerializer.write(buffered, nr_rec);
 
-        void addKeyVal ( K key, V val )
+        void addKeyVal ( ref K key, ref V val )
         {
             SimpleSerializer.write!(K)(buffered, key);
             SimpleSerializer.write!(V)(buffered, val);
@@ -1085,7 +1085,7 @@ version ( UnitTest )
         // Write dummy value for now
         SimpleSerializer.write(buffered, nr_rec);
 
-        void addKeyVal ( K key, V val )
+        void addKeyVal ( ref K key, ref V val )
         {
             SimpleSerializer.write!(K)(buffered, key);
             SimpleSerializer.write!(V)(buffered, val);
@@ -1193,9 +1193,9 @@ version ( UnitTest )
             *map.put(initKey(i)) = initVal(i);
         }
 
-        void adder ( void delegate ( K, V ) add )
+        void adder ( void delegate ( ref K, ref V ) add )
         {
-            foreach ( k, v; map )
+            foreach ( ref k, ref v; map )
             {
                 add(k, v);
             }
