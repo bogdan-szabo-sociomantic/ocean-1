@@ -115,6 +115,24 @@ abstract class CachingDataLoaderBase ( Loader )
 
     /**************************************************************************
 
+        This method is called before storing new entry into the cache. It can
+        be used to do any adjustments necessary for specific cached type. Does
+        nothing by default.
+
+        If overriden this method must always modify data in-place
+        
+        Params:
+            data = deserialized element data, can be cast directly to cached
+                element pointer type
+
+    ***************************************************************************/
+
+    protected void onStoringData ( void[] data )
+    {
+    }
+
+    /**************************************************************************
+
         Gets the record value corresponding to key. If it is not in the cache,
         get_data is called with a callback delegate as argument. get_data
         should then call the delegate passed to it with the obtained value. If
@@ -147,7 +165,7 @@ abstract class CachingDataLoaderBase ( Loader )
 
             if (existed)
             {
-                return this.loadRaw((*value_in_cache)[]);
+                return (*value_in_cache)[];
             }
             else
             {
@@ -155,6 +173,8 @@ abstract class CachingDataLoaderBase ( Loader )
 
                 get_data((void[] data)
                          {
+                             data = this.loadRaw(data);
+                             this.onStoringData(data);
                              value_out = this.store(key, data, *value_in_cache);
                          });
 
@@ -167,7 +187,7 @@ abstract class CachingDataLoaderBase ( Loader )
 
             if (value_in_cache)
             {
-                return this.loadRaw((*value_in_cache)[]);
+                return (*value_in_cache)[];
             }
             else
             {
@@ -177,6 +197,8 @@ abstract class CachingDataLoaderBase ( Loader )
                          {
                              if ( data.length )
                              {
+                                 data = this.loadRaw(data);
+                                 this.onStoringData(data);
                                  value_out = this.store(key, data, *this.cache_.createRaw(key));
                              }
                          });
