@@ -438,52 +438,57 @@ class ConfigParser
 
         ctx.value = trim(line);
 
-        if ( ctx.value.length ) // ignore empty lines
+        if ( ctx.value.length == 0 )
         {
-            bool slash_comment     = ctx.value.length >= 2 &&
-                                             ctx.value[0 .. 2] == "//";
-            bool hash_comment      = ctx.value[0] == '#';
-            bool semicolon_comment = ctx.value[0] == ';';
+            // Ignore empty lines.
+            return;
+        }
 
-            if ( !slash_comment && !semicolon_comment && !hash_comment ) // ignore comments
+        bool slash_comment = ctx.value.length >= 2 && ctx.value[0 .. 2] == "//";
+        bool hash_comment = ctx.value[0] == '#';
+        bool semicolon_comment = ctx.value[0] == ';';
+
+        if ( slash_comment || semicolon_comment || hash_comment )
+        {
+            // Ignore comment lines.
+            return;
+        }
+
+        int pos = locate(ctx.value, '['); // category present in line?
+
+        if ( pos == 0 )
+        {
+            ctx.category = ctx.value[pos + 1 .. locate(ctx.value, ']')].dup;
+
+            ctx.key = "";
+        }
+        else
+        {
+            pos = locate(ctx.value, '='); // check for key value pair
+
+            if ( pos < ctx.value.length )
             {
-                int pos = locate(ctx.value, '['); // category present in line?
+                ctx.key = trim(ctx.value[0 .. pos]).dup;
 
-                if ( pos == 0 )
+                ctx.value = trim(ctx.value[pos + 1 .. $]).dup;
+
+                this.properties[ctx.category][ctx.key] = ctx.value;
+                ctx.multiline_first = !ctx.value.length;
+            }
+            else
+            {
+                ctx.value = trim(ctx.value).dup;
+
+                if ( ctx.value.length )
                 {
-                    ctx.category = ctx.value[pos + 1 .. locate(ctx.value, ']')].dup;
-
-                    ctx.key = "";
-                }
-                else
-                {
-                    pos = locate(ctx.value, '='); // check for key value pair
-
-                    if ( pos < ctx.value.length )
+                    if ( ! ctx.multiline_first )
                     {
-                        ctx.key = trim(ctx.value[0 .. pos]).dup;
-
-                        ctx.value = trim(ctx.value[pos + 1 .. $]).dup;
-
-                        this.properties[ctx.category][ctx.key] = ctx.value;
-                        ctx.multiline_first = !ctx.value.length;
+                        this.properties[ctx.category][ctx.key] ~= '\n';
                     }
-                    else
-                    {
-                        ctx.value = trim(ctx.value).dup;
 
-                        if ( ctx.value.length )
-                        {
-                            if ( ! ctx.multiline_first )
-                            {
-                                this.properties[ctx.category][ctx.key] ~= '\n';
-                            }
+                    this.properties[ctx.category][ctx.key] ~= ctx.value;
 
-                            this.properties[ctx.category][ctx.key] ~= ctx.value;
-
-                            ctx.multiline_first = false;
-                        }
-                    }
+                    ctx.multiline_first = false;
                 }
             }
         }
