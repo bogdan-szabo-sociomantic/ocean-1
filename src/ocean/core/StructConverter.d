@@ -88,9 +88,8 @@ public void structCopy ( From, To ) ( ref From from, out To to,
         else
         {
             static assert ( false, "Unhandled field: " ~
-                            FieldName!(to_index, To) ~ " of types " ~
-                            typeof(to_member).stringof ~ " " ~
-                            typeof(*from_field).stringof);
+                            FieldName!(to_index, To) ~ " of type " ~
+                            typeof(to_member).stringof);
         }
     }
 }
@@ -437,4 +436,26 @@ unittest
     assert ( b_loaded.i[1][] == a.i[1][], "Nested array mismatch" );
     assert ( b_loaded.i[2][] == a.i[2][], "Nested array mismatch" );
     assert ( b_loaded.i[3][] == a.i[3][], "Nested array mismatch" );
+}
+
+unittest
+{
+    struct A
+    {
+        int a;
+    }
+
+    struct B
+    {
+        double b;
+    }
+
+    A a; B b;
+
+    void[] buf ( size_t t )
+    {
+        return new ubyte[t];
+    }
+
+    static assert (! is(typeof( structCopy!(A, B)(a, b, &buf) )) );
 }
