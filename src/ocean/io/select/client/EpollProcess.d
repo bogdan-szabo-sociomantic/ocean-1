@@ -149,7 +149,7 @@ public abstract class EpollProcess
 
         /***********************************************************************
 
-            Epoll instance which signal event is reigstered with.
+            Epoll instance which signal event is registered with.
 
         ***********************************************************************/
 
@@ -300,6 +300,17 @@ public abstract class EpollProcess
             return Event.EPOLLIN;
         }
 
+
+        /***********************************************************************
+
+            Catches exceptions thrown by the handle() method.
+
+            Params:
+                exception = Exception thrown by handle()
+                event     = Selector event while exception was caught
+
+        ***********************************************************************/
+
         protected override void error_ ( Exception exception, Event event )
         {
             Trace.formatln("EPOLL error {} at {} {} event = {}", exception.msg, exception.file, exception.line, event);
@@ -321,6 +332,10 @@ public abstract class EpollProcess
 
             Params:
                 event = event which fired in epoll
+
+            Returns:
+                true to stay registered with epoll and be called again when a
+                read event fires for this stream, false to unregister.
 
         ***********************************************************************/
 
@@ -772,9 +787,9 @@ public abstract class EpollProcess
         occurs when the process terminates and all data from its stdout buffer
         has been read.
 
-        The protected checkFinished() method is called once the
-        stdoutFinished(), stderrFinished() and exit() methods have been called,
-        ensuring that no more data will be received after this point.
+        The checkFinished() method is called once the stdoutFinished(),
+        stderrFinished() and exit() methods have been called, ensuring that no
+        more data will be received after this point.
 
     ***************************************************************************/
 
@@ -792,9 +807,9 @@ public abstract class EpollProcess
         occurs when the process terminates and all data from its stderr buffer
         has been read.
 
-        The protected checkFinished() method is called once the
-        stdoutFinished(), stderrFinished() and exit() methods have been called,
-        ensuring that no more data will be received after this point.
+        The checkFinished() method is called once the stdoutFinished(),
+        stderrFinished() and exit() methods have been called, ensuring that no
+        more data will be received after this point.
 
     ***************************************************************************/
 
@@ -811,9 +826,16 @@ public abstract class EpollProcess
         Called when the process exits. The RunningProcesses instance is notified
         of this via a SIGCHLD signal.
 
-        The protected checkFinished() method is called once the
-        stdoutFinished(), stderrFinished() and exit() methods have been called,
-        ensuring that no more data will be received after this point.
+        The checkFinished() method is called once the stdoutFinished(),
+        stderrFinished() and exit() methods have been called, ensuring that no
+        more data will be received after this point.
+
+        Params:
+            exited_ok = if true, the process exited normally and the exit_code
+                parameter is valid. Otherwise the process exited abnormally, and
+                exit_code will be 0.
+            exit_code = the process' exit code, if exited_ok is true. Otherwise
+                0.
 
     ***************************************************************************/
 

@@ -219,11 +219,11 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable, ISelectClient
 
         Note that this method will catch all exceptions thrown by the error_()
         method. This is to prevent unhandled exceptions flying out of the select
-        dispatcher and brining down the event loop.
+        dispatcher and bringing down the event loop.
 
         Params:
-            exception: Exception thrown by handle()
-            event:     Seletor event while exception was caught
+            exception = Exception thrown by handle()
+            event     = Selector event while exception was caught
 
      **************************************************************************/
 
