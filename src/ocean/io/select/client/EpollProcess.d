@@ -73,8 +73,55 @@
         epoll.eventLoop;
 
 
-        Important to remember that all EpollProcesses needs to share the same
-        epoll instance.
+        All EpollProcess instances created in this manner need to share the same
+        EpollSelectDispatcher instance (since they would rely on the singleton
+        instance of the ProcessMonitor class).
+
+        However, it is sometimes desirable to use more than one
+        EpollSelectDispatcher instance with various EpollProcess instances.
+        One example of such usage is when an application needs to create
+        short-lived EpollProcess instance(s) in a unittest block. In this case
+        one EpollSelectDispatcher instance would be needed in the unittest
+        block, and a different one in the application's main logic.
+        To achieve this, the singleton ProcessMonitor instance needs to be
+        circumvented for the EpollProcess instances of the unittest block.
+        This can be done by explicitly creating a ProcessMonitor instance and
+        passing it to both the constructor and the 'start' method of
+        EpollProcess. This involves the following changes to the usage example
+        above:
+
+        class CurlProcess : EpollProcess
+        {
+            // Change the constructor to allow a process monitor to be passed.
+            this ( EpollSelectDispatcher epoll,
+                   ProcessMonitor process_monitor = null )
+            {
+                super(epoll, process_monitor);
+            }
+
+            // Similarly change the start method to allow a process monitor to
+            // be passed.
+            public void start ( char[] url,
+                                ProcessMonitor process_monitor = null )
+            {
+                super.start("curl", [url], process_monitor);
+            }
+
+            // The remaining code in this class is same as above.
+        }
+
+        // Create epoll selector instance (as above)
+
+        // Explicitly create a process monitor instance.
+        auto process_monitor = new EpollProcess.ProcessMonitor(epoll);
+
+        // Create a curl process instance passing the created process monitor.
+        auto process = new CurlProcess(epoll, process_monitor);
+
+        // Start the process, again passing the created process monitor.
+        process.start("http://www.google.com", process_monitor);
+
+        // Handle arriving data (as above)
 
     ---
 
@@ -124,17 +171,21 @@ public abstract class EpollProcess
 {
     /***************************************************************************
 
-        Manager class for a set of running processes. A single static instance
-        of this class is created in the constructor of EpollProcess.
+        Class to monitor and handle inter-process signals via a signal event
+        registered with epoll. All processes monitored by a given ProcessMonitor
+        instance must share the same EpollSelectDispatcher instance.
 
-        TODO: it may be cleaner to split this so that it must be instantiated
-        separately (called ProcessMonitor or something), and so a (non-null)
-        instance must be passed to the ctor of EpollProcess. That way the
-        relationship is made clearer and is explicit to the user.
+        Note that an application would normally not need to explicitly
+        instantiate this class. Instead it could rely on the implicit singleton
+        instance created in the constructor of EpollProcess. However sometimes
+        an application needs to use different EpollSelectDispatcher instances
+        with different EpollProcess instances. In such situations, this class
+        can be explicitly instantiated and passed to EpollProcess. Refer the
+        usage example at the top of this module to see how this is done.
 
     ***************************************************************************/
 
-    private static class RunningProcesses
+    public static class ProcessMonitor
     {
         /***********************************************************************
 
@@ -529,11 +580,12 @@ public abstract class EpollProcess
 
     /***************************************************************************
 
-        Static manager for all running processes.
+        Singleton instance of ProcessMonitor that is used if an instance was not
+        explicitly given when instantiating the EpollProcess class.
 
     ***************************************************************************/
 
-    private static RunningProcesses running_processes;
+    private static ProcessMonitor process_monitor;
 
 
     /***************************************************************************
@@ -633,10 +685,13 @@ public abstract class EpollProcess
 
         Params:
             epoll = epoll selector to use
+            process_monitor = process monitor to use (null if the implicit
+                              singleton process monitor is to be used)
 
     ***************************************************************************/
 
-    public this ( EpollSelectDispatcher epoll )
+    public this ( EpollSelectDispatcher epoll,
+                  ProcessMonitor process_monitor = null )
     {
         this.epoll = epoll;
 
@@ -644,15 +699,22 @@ public abstract class EpollProcess
         this.stdout_handler = new StdoutHandler;
         this.stderr_handler = new StderrHandler;
 
-        if ( running_processes is null )
+        if ( process_monitor is null )
         {
-            running_processes = new RunningProcesses(this.epoll);
+            if ( this.process_monitor is null )
+            {
+                debug ( EpollProcess ) Stdout.formatln("Creating the implicit "
+                                                   "singleton process monitor");
+
+                this.process_monitor = new ProcessMonitor(this.epoll);
+            }
+
+            process_monitor = this.process_monitor;
         }
-        else
-        {
-            assert(this.epoll == running_processes.epoll, "All Epollprocesses "
-                   "need to share the same instance of EpollSelectDispatcher");
-        }
+
+        assert(this.epoll == process_monitor.epoll, "Mismatch between given "
+                   "EpollSelectDispatcher instance and the process monitor's "
+                   "EpollSelectDispatcher instance");
     }
 
 
@@ -665,10 +727,13 @@ public abstract class EpollProcess
 
         Params:
             args_with_command = command followed by arguments
+            process_monitor = process monitor to use (null if the implicit
+                              singleton process monitor is to be used)
 
     ***************************************************************************/
 
-    public void start ( char[][] args_with_command )
+    public void start ( char[][] args_with_command,
+                        ProcessMonitor process_monitor = null )
     {
         assert(this.state == State.None); // TODO: error notification?
 
@@ -687,7 +752,18 @@ public abstract class EpollProcess
 
         this.state = State.Running;
 
-        this.running_processes.add(this);
+        if ( process_monitor is null )
+        {
+            assert(this.process_monitor !is null, "Implicit singleton process "
+                                                  "monitor not initialised");
+
+            debug ( EpollProcess ) Stdout.formatln("Starting process using the "
+                                          "implicit singleton process monitor");
+
+            process_monitor = this.process_monitor;
+        }
+
+        process_monitor.add(this);
     }
 
 
@@ -832,7 +908,8 @@ public abstract class EpollProcess
 
     /***************************************************************************
 
-        Called when the process exits. The RunningProcesses instance is notified
+        Called when the process exits, by the process monitor that is
+        responsible for this process. The process monitor, in turn, was notified
         of this via a SIGCHLD signal.
 
         The checkFinished() method is called once the stdoutFinished(),
@@ -858,7 +935,7 @@ public abstract class EpollProcess
 
         // We know the process has already exited, as we have explicitly been
         // notified about this by the SIGCHLD signal (handled by the
-        // signalHandler() method of RunningProcesses, above). However the tango
+        // signalHandler() method of ProcessMonitor, above). However the tango
         // Process instance contains a flag (running_) which needs to be reset.
         // This can be achieved by calling wait(), which internally calls
         // waitpid() again. In this case waitpid() will return immediately with
@@ -886,6 +963,81 @@ public abstract class EpollProcess
             debug ( EpollProcess ) Stdout.formatln("Streams finalised & "
                                                    "process exited");
             this.finished(this.exited_ok, this.exit_code);
+        }
+    }
+}
+
+
+
+/*******************************************************************************
+
+    Unit tests
+
+*******************************************************************************/
+
+version ( UnitTest )
+{
+    private import ocean.util.Unittest;
+}
+
+unittest
+{
+    scope t = new Unittest(__FILE__, "EpollProcessTest");
+
+    with (t)
+    {
+        /* IMPORTANT NOTE:
+         * In this unittest block, do not do anything that would cause
+         * EpollProcess to be instantiated with the 'process_monitor' argument
+         * being null. Doing so would result in the singleton process monitor
+         * instance being created even before an application's main function is
+         * entered. This would preclude the application's ability to use the
+         * singleton process monitor instance, as there would be no way for the
+         * application to use the same EpollSelectDispatcher instance as that of
+         * the already created singleton process monitor. */
+
+        class MyProcess : EpollProcess
+        {
+            /* The 'process_monitor' argument of this constructor deliberately
+             * does not have a default value. This makes sure that a process
+             * monitor must be explicitly supplied to create an instance of this
+             * class, and thus prevents automatic creation of the singleton
+             * process monitor. */
+            public this ( EpollSelectDispatcher epoll,
+                          ProcessMonitor process_monitor )
+            {
+                super(epoll, process_monitor);
+            }
+            protected void stdout ( ubyte[] data ) { }
+            protected void stderr ( ubyte[] data ) { }
+            protected void finished ( bool exited_ok, int exit_code ) { }
+        }
+
+        scope epoll1 = new EpollSelectDispatcher;
+        scope epoll2 = new EpollSelectDispatcher;
+
+        scope process_monitor1 = new EpollProcess.ProcessMonitor(epoll1);
+        scope process_monitor2 = new EpollProcess.ProcessMonitor(epoll2);
+
+        scope proc1 = new MyProcess(epoll1, process_monitor1);
+
+        try
+        {
+            // should throw because of mismatch between epoll2 and
+            // process_monitor1.
+            scope proc2 = new MyProcess(epoll2, process_monitor1);
+            assertLog(false, "Expected exception was not thrown", __LINE__);
+        } catch { }
+
+        try
+        {
+            // should not throw now because the instances of
+            // EpollSelectDispatcher now match.
+            scope proc2 = new MyProcess(epoll2, process_monitor2);
+        }
+        catch
+        {
+            assertLog(false, "Exception should not have been thrown", __LINE__);
         }
     }
 }
