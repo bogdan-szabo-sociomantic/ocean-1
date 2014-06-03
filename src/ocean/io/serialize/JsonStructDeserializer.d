@@ -70,7 +70,7 @@
 
 *******************************************************************************/
 
-module io.serialize.JsonStructDeserializer;
+module ocean.io.serialize.JsonStructDeserializer;
 
 
 
