@@ -221,7 +221,8 @@ public abstract class EpollProcess
 
         private void signalHandler ( SignalEvent.SignalInfo siginfo )
         {
-            debug ( EpollProcess ) Stdout.formatln("Signal fired in epoll: pid={}", siginfo.ssi_pid);
+            debug ( EpollProcess ) Stdout.formatln("Signal fired in epoll: "
+                                                   "pid = {}", siginfo.ssi_pid);
 
             pid_t pid;
             do
@@ -243,7 +244,8 @@ public abstract class EpollProcess
                 // pid has changed state).
                 if ( pid )
                 {
-                    debug ( EpollProcess ) Stdout.formatln("Signal fired in epoll: pid={}", pid);
+                    debug ( EpollProcess ) Stdout.formatln("Signal fired in "
+                                                        "epoll: pid = {}", pid);
 
                     auto exited_ok = WIFEXITED(status);
                     int exit_code = exited_ok ? WEXITSTATUS(status) : 0;
@@ -251,7 +253,9 @@ public abstract class EpollProcess
                     auto process = pid in this.processes;
                     if ( process )
                     {
-                        debug ( EpollProcess ) Stdout.formatln("pid {} finished, ok={}, code={}", pid, exited_ok, exit_code);
+                        debug ( EpollProcess ) Stdout.formatln("pid {} "
+                                                 "finished, ok = {}, code = {}",
+                                                 pid, exited_ok, exit_code);
                         process.exit(exited_ok, exit_code);
                     }
 
@@ -313,7 +317,8 @@ public abstract class EpollProcess
 
         protected override void error_ ( Exception exception, Event event )
         {
-            Trace.formatln("EPOLL error {} at {} {} event = {}", exception.msg, exception.file, exception.line, event);
+            Trace.formatln("EPOLL error {} at {} {} event = {}", exception.msg,
+                           exception.file, exception.line, event);
         }
 
 
@@ -674,7 +679,8 @@ public abstract class EpollProcess
         this.process.argsWithCommand(args_with_command);
         this.process.execute();
 
-        debug ( EpollProcess ) Stdout.formatln("Starting process pid {}, {}", this.process.pid, args_with_command);
+        debug ( EpollProcess ) Stdout.formatln("Starting process pid {}, {}",
+                                           this.process.pid, args_with_command);
 
         this.epoll.register(this.stdout_handler);
         this.epoll.register(this.stderr_handler);
@@ -796,7 +802,8 @@ public abstract class EpollProcess
 
     private void stdoutFinalize ( )
     {
-        debug ( EpollProcess ) Stdout.formatln("Finalized stdout pid {}", this.process.pid);
+        debug ( EpollProcess ) Stdout.formatln("Finalized stdout pid {}",
+                                               this.process.pid);
         this.stdout_finalized = true;
         this.checkFinished();
     }
@@ -816,7 +823,8 @@ public abstract class EpollProcess
 
     private void stderrFinalize ( )
     {
-        debug ( EpollProcess ) Stdout.formatln("Finalized stderr pid {}", this.process.pid);
+        debug ( EpollProcess ) Stdout.formatln("Finalized stderr pid {}",
+                                               this.process.pid);
         this.stderr_finalized = true;
         this.checkFinished();
     }
@@ -842,7 +850,8 @@ public abstract class EpollProcess
 
     private void exit ( bool exited_ok, int exit_code )
     {
-        debug ( EpollProcess ) Stdout.formatln("Set exit status pid {}", this.process.pid);
+        debug ( EpollProcess ) Stdout.formatln("Set exit status pid {}",
+                                               this.process.pid);
         this.exited_ok = exited_ok;
         this.exit_code = exit_code;
         this.exited = true;
@@ -874,7 +883,8 @@ public abstract class EpollProcess
         {
             this.state = State.None;
 
-            debug ( EpollProcess ) Stdout.formatln("Streams finalised & process exited");
+            debug ( EpollProcess ) Stdout.formatln("Streams finalised & "
+                                                   "process exited");
             this.finished(this.exited_ok, this.exit_code);
         }
     }
