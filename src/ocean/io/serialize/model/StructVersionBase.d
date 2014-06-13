@@ -206,7 +206,8 @@ class StructVersionBase
 
     public ubyte getVersion ( void[] data )
     {
-        return *(cast(ubyte*) data[0..StructVersionBase.Version.sizeof].ptr);
+        return *(cast(StructVersionBase.Version*)
+            data[0..StructVersionBase.Version.sizeof].ptr);
     }
 
     /***************************************************************************

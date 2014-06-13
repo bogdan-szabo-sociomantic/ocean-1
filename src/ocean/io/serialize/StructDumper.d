@@ -91,7 +91,7 @@ class StructDumper
     {
         static if ( StructVersionBase.hasVersion!(S)() )
         {
-            auto version_ = StructVersionBase.getStructVersion!(S);
+            StructVersionBase.Version version_ = StructVersionBase.getStructVersion!(S);
 
             auto resized = resize(buffer, DumpArrays.length(s) + version_.sizeof,
                                   extend_only);
