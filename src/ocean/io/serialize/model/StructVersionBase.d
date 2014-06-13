@@ -87,9 +87,9 @@ class StructVersionBase
 
     static public bool canConvertStruct ( S ) ( )
     {
-        static if ( StructVersionBase .hasVersion!(S)() )
+        static if ( StructVersionBase.hasVersion!(S)() )
         {
-            return StructVersionBase.getStructVersion!(S)() > 0;
+            return (StructVersionBase.getStructVersion!(S)() > 0) || is(S.StructNext);
         }
 
         return false;
@@ -114,43 +114,16 @@ class StructVersionBase
         return S.StructVersion;
     }
 
-
-    /***************************************************************************
-
-        Helper template
-
-        Used when a function intents to recursivley call itself to convert from
-        ever older versions to the latest one without having to use a static if
-        that checks for the existance of StructPrevious.
-
-        Template Params:
-            S = struct to help with
-
-    ***************************************************************************/
-
-    template GetPreviousOrSame ( S )
-    {
-        static if ( StructVersionBase.canConvertStruct!(S)() )
-        {
-            alias S.StructPrevious GetPreviousOrSame;
-        }
-        else
-        {
-            alias S GetPreviousOrSame;
-        }
-    }
-
-
     /***************************************************************************
 
         Updates a struct to the next version
 
         Template Parameters:
-            Old = old version of the struct
-            New = new version of the struct
+            Current = type of the struct you have
+            Desired = type of the struct you want to get
 
         Params:
-            old = instance of the old struct
+            current = current struct instance
             dst = buffer to use for the new struct
 
         Returns:
@@ -158,18 +131,17 @@ class StructVersionBase
 
     ***************************************************************************/
 
-    public New* convertStructFromPrevious ( Old, New, StructLoader )
-                                          ( StructLoader loader, ref Old old,
-                                            ref void[] dst )
+    public Desired* convertStruct ( Current, Desired, StructLoader )
+        ( StructLoader loader, ref Current current, ref void[] dst )
     {
         scope(exit) this.convert_buffer.clear();
-        New* new_struct = cast(New*)this.requestBuffer(New.sizeof);
+        Desired* desired_struct = cast(Desired*)this.requestBuffer(Desired.sizeof);
 
-        structCopy(old, *new_struct, &this.requestBuffer);
+        structCopy(current, *desired_struct, &this.requestBuffer);
 
-        StructDumper.dump(dst, *new_struct);
+        StructDumper.dump(dst, *desired_struct);
 
-        return loader.loadExtend!(New)(dst);
+        return loader.loadExtend!(Desired)(dst);
     }
 
 

@@ -41,6 +41,16 @@ New Features
   New helper ``toDg`` creates a delegate from function pointer, useful when
   method has signature expecting former and you have latter.
 
+``ocean.io.serialize.StructLoader``
+  Versioned structs are now capable of bi-directional conversion, both to
+  previous and next versions. Forward conversion only works if struct definition
+  has ``StructNext`` member alias and appropriate ``convert_x`` methods for
+  non-trivial field conversion. Multiple ``convert_x`` methods can be present
+  to support both directions, correct one is chosen based on argument type.
+
+  If received byte buffer has version with no matching ``StructPrevious`` or
+  ``StructNext`` aliases for this struct, runtime error will happen.
+
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 

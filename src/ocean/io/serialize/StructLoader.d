@@ -44,14 +44,6 @@ class StructLoader
 
     /***************************************************************************
 
-        Convenience alias to prevent typing & increase readability
-
-    ***************************************************************************/
-
-    private alias StructVersionBase.GetPreviousOrSame Prev;
-
-    /***************************************************************************
-
         Exception thrown when the loaded version is not known to us
 
     ***************************************************************************/
@@ -72,7 +64,7 @@ class StructLoader
 
     /***************************************************************************
 
-        Buffers used when doing a conversion from an older struct to a newer one.
+        Buffers used when converting between different versions of a struct.
 
         There are two buffers because if a conversion over more than two
         versions happens, we have a call stack likes this:
@@ -188,27 +180,51 @@ class StructLoader
     ***************************************************************************/
 
     private void[] handleVersion ( S ) ( ref void[] src,
-                                         void[] delegate ( ) converter )
+                                         void[] delegate ( bool conv_to_prev ) converter )
     {
         static if ( StructVersionBase.hasVersion!(S)() )
         {
             const version_ = StructVersionBase.getStructVersion!(S);
 
-            static if ( version_ > 0 ) if ( this.struct_version.getVersion(src) < version_ )
+            static assert (
+                (version_ > 0) || !is(S.StructPrevious),
+                S.stringof ~ "is of version 0 but has .StructPrevious defined"
+            );
+
+            if ( this.struct_version.getVersion(src) != version_ )
             {
-                static assert ( StructVersionBase.getStructVersion!(S) - 1 ==
-                                StructVersionBase.getStructVersion!(S.StructPrevious),
-                                S.stringof ~ ".StructPrevious.StructVersion "
-                                "must always have one version less than "
-                                " S.StructVersion!");
+                static if (is(S.StructPrevious))
+                {
+                    static assert (
+                        StructVersionBase.getStructVersion!(S) - 1 ==
+                            StructVersionBase.getStructVersion!(S.StructPrevious),
+                        S.stringof ~ ".StructPrevious.StructVersion " ~
+                            "must always have one version less than " ~
+                            " S.StructVersion!"
+                    );
+                }
 
-                return converter();
+                static if (is(S.StructNext))
+                {
+                    static assert (
+                        StructVersionBase.getStructVersion!(S) + 1 ==
+                            StructVersionBase.getStructVersion!(S.StructNext),
+                        S.stringof ~ ".StructNext.StructVersion " ~
+                            "must always have one version more than " ~
+                            " S.StructVersion!"
+                    );
+                }
+
+                auto conv_to_prev = this.struct_version.getVersion(src) < version_;
+
+                return converter(conv_to_prev);
             }
-
-            UnknownVersionException.assertEx!(S, "Unknown version!")
-                                           (this.unknown_exception,
-                                            this.struct_version.getVersion(src) == version_,
-                                            __FILE__, __LINE__);
+            
+            UnknownVersionException.assertEx!(S, "Unknown version!")(
+                this.unknown_exception,
+                this.struct_version.getVersion(src) == version_,
+                __FILE__, __LINE__
+            );
 
             src = src[StructLoader.VSize .. $];
         }
@@ -338,7 +354,7 @@ class StructLoader
     {
         auto orig_src = src;
 
-        void[] convert ( )
+        void[] convert ( bool conv_to_prev )
         {
              auto buf = src.ptr == this.convert_buffer_a.ptr ?
                                     &this.convert_buffer_b :
@@ -346,10 +362,35 @@ class StructLoader
 
              (*buf).copy(src);
 
-             auto prev = this.loadExtend!(Prev!(S))(*buf);
+             S* cur;
 
-             auto cur = this.convertStructFromPrevious!(Prev!(S), S)
-                                        (*cast(Prev!(S)*) prev, src);
+             if ( conv_to_prev )
+             {
+                 static if (is(S.StructPrevious))
+                 {
+                     auto prev = this.loadExtend!(S.StructPrevious)(*buf);
+                     cur = this.convertStruct!(S.StructPrevious, S)(*prev, src);
+                 }
+                 else
+                 {
+                     assert(false, "Can't convert " ~ S.stringof ~
+                         " to previous version, no StructPrevious defined");
+
+                 }
+             }
+             else
+             {
+                 static if (is(S.StructNext))
+                 {
+                     auto next = this.loadExtend!(S.StructNext)(*buf);
+                     cur = this.convertStruct!(S.StructNext, S)(*next, src);
+                 }
+                 else
+                 {
+                     assert(false, "Can't convert " ~ S.stringof ~
+                         " to next version, no StructNext defined");
+                 }
+             }
 
              return (cast(void*)cur)[0 .. cur.sizeof];
         }
@@ -407,7 +448,7 @@ class StructLoader
     }
     body
     {
-        void[] convert ( )
+        void[] convert ( bool conv_to_prev )
         {
             auto buf = src.ptr == this.convert_buffer_a.ptr ?
                                                 &this.convert_buffer_b :
@@ -415,11 +456,38 @@ class StructLoader
 
             (*buf).copy(src);
 
-            auto prev = this.setSlices!(Prev!(S),
-                                        allow_branched_arrays) (*buf);
+            S* cur;
 
-            auto cur = this.convertStructFromPrevious!(Prev!(S), S)
-                ( *cast(Prev!(S)*) prev, src);
+            if (conv_to_prev)
+            {
+                static if (is(S.StructPrevious))
+                {
+                    auto prev = this.setSlices!(S.StructPrevious, allow_branched_arrays) (*buf);
+
+                    cur = this.convertStruct!(S.StructPrevious, S)
+                        ( *cast(S.StructPrevious*) prev, src);
+                }
+                else
+                {
+                    assert(false, "Can't convert " ~ S.stringof ~
+                        " to previous version, no StructPrevious defined");
+                }
+            }
+            else
+            {
+                static if (is(S.StructNext))
+                {
+                    auto next = this.setSlices!(S.StructNext, allow_branched_arrays) (*buf);
+
+                    cur = this.convertStruct!(S.StructNext, S)
+                        ( *cast(S.StructNext*) next, src);
+                }
+                else
+                {
+                    assert(false, "Can't convert " ~ S.stringof ~
+                        " to next version, no StructNext defined");
+                }
+            }
 
             return (cast(void*) cur)[0 .. (*cur).sizeof];
         }
@@ -469,17 +537,46 @@ class StructLoader
     public void[] loadCopyRaw ( S ) ( ref void[] dst, void[] src,
                                       bool only_extend_dst = false )
     {
-        void[] convert ( )
+        void[] convert ( bool conv_to_prev )
         {
             void[]* buf = dst.ptr == this.convert_buffer_a.ptr ?
                                                      &this.convert_buffer_b :
                                                      &this.convert_buffer_a;
 
-            auto prev = this.loadCopyRaw!(Prev!(S))(*buf, src,
-                                                    only_extend_dst);
+            S* cur;
 
-            auto cur = this.convertStructFromPrevious!(Prev!(S), S)
-                                                (*cast(Prev!(S)*) prev, dst);
+            if (conv_to_prev)
+            {
+                static if (is(S.StructPrevious))
+                {
+                    auto prev = this.loadCopyRaw!(S.StructPrevious)
+                        (*buf, src, only_extend_dst);
+
+                    cur = this.convertStruct!(S.StructPrevious, S)
+                        (*cast(S.StructPrevious*) prev, dst);
+                }
+                else
+                {
+                    assert(false, "Can't convert " ~ S.stringof ~
+                        " to previous version, no StructPrevious defined");
+                }
+            }
+            else
+            {
+                static if (is(S.StructNext))
+                {
+                    auto next = this.loadCopyRaw!(S.StructNext)
+                        (*buf, src, only_extend_dst);
+
+                    cur = this.convertStruct!(S.StructNext, S)
+                       (*cast(S.StructNext*) next, dst);
+                }
+                else
+                {
+                    assert(false, "Can't convert " ~ S.stringof ~
+                        " to next version, no StructNext defined");
+                }
+            }
 
             auto void_ptr = cast(void*) cur;
 
@@ -547,7 +644,7 @@ class StructLoader
                                ( void[] src, ref void[] slices_buffer,
                                  bool only_extend_buffer = false )
     {
-        void[] convert ( )
+        void[] convert ( bool conv_to_prev )
         {
             auto buf = src.ptr == this.convert_buffer_a.ptr ?
                                              &this.convert_buffer_b :
@@ -555,11 +652,40 @@ class StructLoader
 
             (*buf).copy(src);
 
-            auto prev = this.loadSliceRaw!(Prev!(S))(*buf, slices_buffer,
-                                                     only_extend_buffer);
+            S* cur;
 
-            auto cur = this.convertStructFromPrevious!(Prev!(S), S)
-                                                 (*cast(Prev!(S)*) prev, src);
+            if (conv_to_prev)
+            {
+                static if (is(S.StructPrevious))
+                {
+                    auto prev = this.loadSliceRaw!(S.StructPrevious)
+                        (*buf, slices_buffer, only_extend_buffer);
+
+                    cur = this.convertStruct!(S.StructPrevious, S)
+                        (*cast(S.StructPrevious*) prev, src);
+                }
+                else
+                {
+                    assert(false, "Can't convert " ~ S.stringof ~
+                        " to previous version, no StructPrevious defined");
+                }
+            }
+            else
+            {
+                static if (is(S.StructNext))
+                {
+                    auto next = this.loadSliceRaw!(S.StructNext)
+                        (*buf, slices_buffer, only_extend_buffer);
+
+                    cur = this.convertStruct!(S.StructNext, S)
+                        (*cast(S.StructNext*) next, src);
+                }
+                else
+                {
+                    assert(false, "Can't convert " ~ S.stringof ~
+                        " to next version, no StructNext defined");
+                }
+            }
 
             return (cast(void*) cur)[0 .. (*cur).sizeof];
         }
@@ -663,26 +789,25 @@ class StructLoader
 
     /***************************************************************************
 
-        Updates a struct to the next version
+        Updates a struct to the desired version
 
         Template Parameters:
-            Old = old version of the struct
-            New = new version of the struct
+            Current = current version of the struct
+            Desired = desired version of the struct
 
         Params:
-            old = instance of the old struct
-            dst = buffer to use for the new struct
+            current = instance of the current struct
+            dst = buffer to use for the desired struct
 
         Returns:
-            pointer to the new struct
+            pointer to the desired struct
 
     ***************************************************************************/
 
-    private New* convertStructFromPrevious ( Old, New ) ( ref Old old,
-                                                         ref void[] dst )
+    private Desired* convertStruct ( Current, Desired ) ( ref Current current,
+                                                      ref void[] dst )
     {
-        return this.struct_version.convertStructFromPrevious!(Old, New)
-                                                             (this, old, dst);
+        return this.struct_version.convertStruct!(Current, Desired)(this, current, dst);
     }
 }
 
@@ -1105,7 +1230,6 @@ version ( UnitTest )
             foreach ( wrapper ; load_wrappers )
             {
                 StructDumper.dump(src, old);
-
                 wrapper(loader, src, dst).compare(old, t);
             }
 
@@ -1183,9 +1307,18 @@ version ( UnitTest )
         }
     }
 
+    struct NoNext
+    {
+        static const ubyte StructVersion = 0;
+
+        int a, b;
+    }
+
     struct Test0
     {
         static const ubyte StructVersion = 0;
+
+        alias Test1 StructNext;
 
         struct Sub
         {
@@ -1212,11 +1345,15 @@ version ( UnitTest )
             return t;
         }
 
-        void compare ( ref Test0 n, NamedTest t )
+        void compare (T) ( ref T n, NamedTest t )
         {
-            with ( t ) foreach ( i, member; this.tupleof )
+            // no-op for others
+            static if (is(T == Test0))
             {
-                test!("==")(member, n.tupleof[i]);
+                with ( t ) foreach ( i, member; this.tupleof )
+                {
+                    test!("==")(member, n.tupleof[i]);
+                }
             }
         }
     }
@@ -1225,6 +1362,7 @@ version ( UnitTest )
     {
         static const ubyte StructVersion = 1;
         alias Test0 StructPrevious;
+        alias Test2 StructNext;
 
         struct Sub1
         {
@@ -1232,6 +1370,7 @@ version ( UnitTest )
             int o;
 
             void convert_o ( ref Test0.Sub s ) { this.o = s.f + 1; }
+            void convert_o ( ref Test2.Sub2 s ) { this.o = s.f - 1; }
         }
 
         int none;
@@ -1243,6 +1382,11 @@ version ( UnitTest )
         void convert_b ( ref StructPrevious n )
         {
             this.b = n.none + 5;
+        }
+
+        void convert_b ( ref StructNext n )
+        {
+            this.b = n.none - 5;
         }
 
         void compare ( ref StructPrevious n, NamedTest t )
@@ -1274,6 +1418,30 @@ version ( UnitTest )
             with ( t ) foreach ( i, member; this.tupleof )
             {
                 test!("==")(member, n.tupleof[i]);
+            }
+        }
+
+        void compare ( ref StructNext n, NamedTest t )
+        {
+            with ( t )
+            {
+                test(none == n.none);
+                test(a    == n.a);
+                test(b    == n.none - 5);
+                test(oi.length   == n.oi.length);
+
+                foreach ( i, o; n.oi )
+                {
+                    test(o.f     == oi[i].f);
+                    test(o.f - 1 == oi[i].o);
+                }
+
+                test(chars.length   == n.chars.length);
+
+                foreach ( i, o; chars )
+                {
+                    test(o == n.chars[i]);
+                }
             }
         }
 
@@ -1398,21 +1566,26 @@ unittest
 {
     const Iterations = 10_000;
 
-    test(!StructVersionBase.canConvertStruct!(Test0), "Can convert struct .. ?");
-    test( StructVersionBase.canConvertStruct!(Test1), "Can not convert struct");
-    test( StructVersionBase.canConvertStruct!(Test2), "Can not convert struct");
+    test(!StructVersionBase.canConvertStruct!(NoVersion), "Unexpected: can convert struct NoVersion");
+    test(!StructVersionBase.canConvertStruct!(NoNext), "Unexpected: can convert struct NoNext");
+
+    test(StructVersionBase.canConvertStruct!(Test0), "Can not convert struct Test0");
+    test(StructVersionBase.canConvertStruct!(Test1), "Can not convert struct Test1");
+    test(StructVersionBase.canConvertStruct!(Test2), "Can not convert struct Test2");
 
     testConv!(Test0, Test0)(Iterations);
     testConv!(Test0, Test1)(Iterations);
     testConv!(Test0, Test2)(Iterations);
 
+    testConv!(Test1, Test0)(Iterations);
     testConv!(Test1, Test1)(Iterations);
     testConv!(Test1, Test2)(Iterations);
 
+    testConv!(Test2, Test0)(Iterations);
+    testConv!(Test2, Test1)(Iterations);
     testConv!(Test2, Test2)(Iterations);
 
     testConv!(NoVersion, NoVersion)(Iterations);
-
 
     debug ( PerformanceTest )
     {

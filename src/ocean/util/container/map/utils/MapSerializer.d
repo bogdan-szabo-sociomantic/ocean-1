@@ -928,9 +928,8 @@ class MapSerializer
                 AddPtr!(T) res;
 
                 res[index] = this.struct_version.
-                        convertStructFromPrevious!(TWithPrev[index], T[index])
-                                                  (this.loader, keyval[index],
-                                                   *buf);
+                        convertStruct!(TWithPrev[index], T[index])
+                            (this.loader, keyval[index], *buf);
                 res[other] = &keyval[other];
 
                 putter(*res[0], *res[1]);
