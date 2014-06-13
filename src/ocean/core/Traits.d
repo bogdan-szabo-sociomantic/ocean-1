@@ -26,6 +26,8 @@ private import tango.core.Traits : isReferenceType, isDynamicArrayType,
                                    isStaticArrayType, isAtomicType,
                                    ElementTypeOfArray;
 
+private import tango.core.Traits : ReturnTypeOf, ParameterTupleOf;
+
 /*******************************************************************************
 
     Tells whether the passed string is a D 1.0 keyword.
@@ -774,4 +776,42 @@ unittest
     }
 
     static assert ( hasIndirections!(Func) );
+}
+
+/*******************************************************************************
+
+    Helper function to wrap any callable type in a delegate. Most useful when
+    you need to pass function pointer as a delegate argument.
+
+    NB! toDg does not preserve any argument attributes of Func such as ref or
+    lazy.
+
+    Params:
+        f = function or function pointer or delegate
+
+    Returns:
+        delegate that internally calls f and does nothing else
+
+*******************************************************************************/
+
+ReturnTypeOf!(Func) delegate (ParameterTupleOf!(Func)) toDg ( Func ) ( Func f )
+{
+    static assert (
+        is(Func == ReturnTypeOf!(Func) function (ParameterTupleOf!(Func))),
+        "toDg does not preserve argument attributes!"
+    );
+    ReturnTypeOf!(Func) delegate (ParameterTupleOf!(Func)) dg;
+    dg.funcptr = f;
+    dg.ptr = null;
+    return dg;
+}
+
+unittest
+{
+    static int foo() { return 42; }
+    static assert (is(typeof(toDg(&foo)) == int delegate()));
+    assert (toDg(&foo)() == 42);
+
+    static int bad(ref int x) { return x; }
+    static assert(!is(typeof(toDg(&bad))));
 }
