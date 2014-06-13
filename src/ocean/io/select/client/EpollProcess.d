@@ -317,7 +317,6 @@ public abstract class EpollProcess
         }
 
 
-
         /***********************************************************************
 
             ISelectClient handle method. Called by epoll when a read event fires
@@ -532,7 +531,6 @@ public abstract class EpollProcess
     private static RunningProcesses running_processes;
 
 
-
     /***************************************************************************
 
         Handlers integrating the stdout & stderr of the executing process with
@@ -595,6 +593,7 @@ public abstract class EpollProcess
 
     private EpollSelectDispatcher epoll;
 
+
     /***************************************************************************
 
         Process state.
@@ -610,6 +609,7 @@ public abstract class EpollProcess
 
     private State state;
 
+
     /***************************************************************************
 
         Process being executed.
@@ -617,6 +617,7 @@ public abstract class EpollProcess
     ***************************************************************************/
 
     protected const Process process;
+
 
     /***************************************************************************
 
