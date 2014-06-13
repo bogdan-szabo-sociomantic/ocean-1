@@ -268,19 +268,27 @@ private void callBestOverload ( From, To, char[] function_name )
            ( ref From from, ref To to, void[] delegate ( size_t ) requestBuffer )
 {
      mixin (`
-        static if ( is ( typeof(&to.`~function_name~`)
-                       == void delegate ( ref From, void[] delegate ( size_t ) ) ))
+        void delegate ( ref From, void[] delegate ( size_t ) ) longest_convert;
+        void delegate ( ref From ) long_convert;
+        void delegate ( ) convert;
+
+        static if ( is ( typeof(longest_convert = &to.`~function_name~`)) )
         {
-            to.`~function_name~ `(from, requestBuffer);
+            longest_convert = &to.`~function_name~`;
+
+            longest_convert(from, requestBuffer);
         }
-        else static if ( is ( typeof(&to.`~function_name~`)
-                                                   == void delegate ( ref From ) ))
+        else static if ( is ( typeof(long_convert = &to.`~function_name~`)) )
         {
-            to.`~function_name~ `(from);
+            long_convert = &to.`~function_name~`;
+
+            long_convert(from);
         }
-        else static if ( is ( typeof(&to.`~function_name~`) == void delegate ( ) ))
+        else static if ( is ( typeof(convert = &to.`~function_name~`)) )
         {
-            to.`~function_name~ `();
+            convert = &to.`~function_name~`;
+
+            convert();
         }
         else
         {
@@ -479,24 +487,65 @@ unittest
     assert ( b_loaded.i[3][] == a.i[3][], "Nested array mismatch" );
 }
 
-unittest
+// multiple conversion overloads
+
+version(UnitTest)
 {
+    // can't place those structs inside unit test block because of
+    // forward reference issue
+
     struct A
     {
-        int a;
+        int x;
+
+        void convert_x ( ref B src )
+        {
+            this.x = cast(int) src.x;
+        }
     }
 
     struct B
     {
-        double b;
+        uint x;
+
+        void convert_x ( ref A src )
+        {
+            this.x = cast(uint) src.x;
+        }
+
+        void convert_x ( ref C src )
+        {
+            this.x = cast(uint) src.x;
+        }
     }
 
-    A a; B b;
-
-    void[] buf ( size_t t )
+    struct C
     {
-        return new ubyte[t];
-    }
+        double x;
 
-    static assert (! is(typeof( structCopy!(A, B)(a, b, &buf) )) );
+        void convert_x ( ref B src )
+        {
+            this.x = src.x;
+        }
+    }
+}
+
+unittest
+{
+    A a; B b; C c;
+
+    a.x = 42;
+    structCopy(a, b, toDg(&testAlloc));
+    assert(b.x == 42);
+
+    b.x = 43;
+    structCopy(b, a, toDg(&testAlloc));
+    assert(a.x == 43);
+
+    structCopy(b, c, toDg(&testAlloc));
+    assert(c.x == 43);
+
+    c.x = 44;
+    structCopy(c, b, toDg(&testAlloc));
+    assert(b.x == 44);
 }
