@@ -110,3 +110,52 @@ void throwChained ( E : Exception = Exception )
 {
     throw new E(msg, file, line, e);
 }
+
+
+/******************************************************************************
+
+    Creates an iteratable data structure over a chained sequence of
+    exceptions.
+
+*******************************************************************************/
+
+struct ExceptionChain
+{
+    /**************************************************************************
+
+        Exception that forms the root of the exception chain.  This can
+        be passed in like a constructor argument:
+
+            foreach (e; ExceptionChain(myException))
+            {
+                ...
+            }
+
+    ***************************************************************************/
+
+    private Exception root;
+
+
+    /**************************************************************************
+
+        Allows the user to iterate over the exception chain
+
+    ***************************************************************************/
+
+    public int opApply (int delegate (ref Exception) dg)
+    {
+        int result;
+
+        for (Exception e = root; e !is null; e = e.next)
+        {
+            result = dg(e);
+
+            if (result)
+            {
+                break;
+            }
+        }
+
+        return result;
+    }
+}

@@ -55,6 +55,10 @@ New Features
   in an existing one: this can be used for creating a sequence of exceptions
   to trace the source of an error through the program hierarchy.
 
+  ``ExceptionChain`` transforms an exception into an foreach'able data structure
+  consisting of the sequence of exceptions accessible via the ``Exception.next``
+  pointer.
+
 
 v1.13 (2014-05-20)
 ------------------
