@@ -50,6 +50,12 @@ New Features
   Added a new struct that allows calculating the average on the fly from a
   stream (without storing the previous values).
 
+``ocean.core.Exception``
+  ``throwChained`` allows the user to throw a new exception while chaining
+  in an existing one: this can be used for creating a sequence of exceptions
+  to trace the source of an error through the program hierarchy.
+
+
 v1.13 (2014-05-20)
 ------------------
 

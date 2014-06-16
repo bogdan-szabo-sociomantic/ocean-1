@@ -87,3 +87,26 @@ void assertEx ( E : Exception = Exception, T, Args ... ) ( T ok, lazy char[] msg
 {
     if (!ok) throw new E(msg, args);
 }
+
+
+/******************************************************************************
+
+    Throws a new exception E chained together with an existing exception.
+
+    Template params:
+        E = type of exception to throw
+
+    Params:
+        e = existing exception to chain with new exception
+        msg  = message to pass to exception constructor
+        file = file from which this exception was thrown
+        line = line from which this exception was thrown
+
+*******************************************************************************/
+
+void throwChained ( E : Exception = Exception )
+                  ( lazy Exception e, lazy char[] msg, char[] file = __FILE__,
+                    size_t line = __LINE__ )
+{
+    throw new E(msg, file, line, e);
+}
