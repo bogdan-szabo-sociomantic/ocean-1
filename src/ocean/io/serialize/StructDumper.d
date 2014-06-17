@@ -355,7 +355,7 @@ struct DumpArrays
     {
         size_t len = 0;
 
-        static if (ContainsDynamicArray!(S)) foreach (i, field; s.tupleof)
+        static if (ContainsDynamicArray!(S)) foreach (i, ref field; s.tupleof)
         {
             alias typeof (field) T;
 

@@ -76,7 +76,7 @@ public void structCopy ( From, To ) ( ref From from, out To to,
     }
     else
     {
-        foreach ( to_index, to_member; to.tupleof )
+        foreach ( to_index, ref to_member; to.tupleof )
         {
             const convFuncName = "convert_" ~ FieldName!(to_index, To);
 
