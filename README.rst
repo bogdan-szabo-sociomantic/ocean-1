@@ -36,6 +36,12 @@ Migration Instructions
 New Features
 ^^^^^^^^^^^^
 
+``ocean.io.select.client.EpollProcess``
+  An application inheriting from EpollProcess can now use different
+  EpollSelectDispatcher instances with different EpollProcess instances. To do
+  so, refer the usage example and the unit tests block in the EpollProcess
+  module.
+
 ``ocean.core.Array``
   Added functions ``removePrefix`` & ``removeSuffix`` that return a slice of the
   given array without the specified prefix or suffix respectively.
