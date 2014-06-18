@@ -386,7 +386,7 @@ struct DumpArrays
             }
             else static if (is (T == union))
             {
-                static assert (!ContainsDynamicArrays!(T),
+                static assert (!ContainsDynamicArray!(T),
                                T.stringof ~ " " ~ s.tupleof[i].stringof ~
                                " - unions containing dynamic arrays are is not "
                                "allowed, sorry");
