@@ -165,7 +165,7 @@ abstract class CachingDataLoaderBase ( Loader )
 
             if (existed)
             {
-                return (*value_in_cache)[];
+                return this.loadRaw((*value_in_cache)[]);
             }
             else
             {
@@ -187,7 +187,7 @@ abstract class CachingDataLoaderBase ( Loader )
 
             if (value_in_cache)
             {
-                return (*value_in_cache)[];
+                return this.loadRaw((*value_in_cache)[]);
             }
             else
             {
