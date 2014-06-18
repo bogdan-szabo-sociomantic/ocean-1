@@ -13,6 +13,335 @@
 
 module ocean.core.Exception;
 
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+private import tango.text.convert.Format;
+
+/******************************************************************************
+
+    Enforces that given expression evaluates to boolean `true` after
+    implicit conversion.
+
+    Template Params:
+        E = exception type to create and throw
+
+    Params:
+        ok = result of expression
+        msg = optional custom message for exception
+        file = file of origin
+        line = line of origin
+
+    Throws:
+        E if expression evaluates to false
+
+******************************************************************************/
+
+public void enforce ( E : Exception = Exception, T ) ( T ok, lazy char[] msg = "",
+    char[] file = __FILE__, size_t line = __LINE__ )
+{
+    // duplicate msg/file/line mention to both conform Exception cnstructor
+    // signature and fit our reusable exceptions.
+
+    E exception = null;
+
+    if (!ok)
+    {
+        static if (is(typeof(new E((char[]).init, file, line))))
+        {
+            exception = new E(null, file, line);
+        }
+        else static if (is(typeof(new E(file, line))))
+        {
+            exception = new E(file, line);
+        }
+        else static if (is(typeof(new E((char[]).init))))
+        {
+            exception = new E(null);
+        }
+        else static if (is(typeof(new E())))
+        {
+            exception = new E();
+        }
+        else
+        {
+            static assert (false, "Unsupported constructor signature");
+        }
+    }
+
+    enforce!(E, T)(exception, ok, msg, file, line);
+}
+
+unittest
+{
+    // uses 'assert' to avoid dependency on itself
+
+    enforce(true);
+
+    try
+    {
+        enforce(false);
+        assert(false);
+    }
+    catch (Exception e)
+    {
+        assert(e.msg == "enforcement has failed");
+        assert(e.line == __LINE__ - 6);
+    }
+
+    try
+    {
+        enforce(3 > 4, "custom message");
+        assert(false);
+    }
+    catch (Exception e)
+    {
+        assert(e.msg == "custom message");
+        assert(e.line == __LINE__ - 6);
+    }
+}
+
+/******************************************************************************
+
+    Enforces that given expression evaluates to boolean `true` after
+    implicit conversion.
+
+    NB! When present 'msg' is used instead of existing 'e.msg'
+
+    In D2 we will be able to call this via UFCS:
+        exception.enforce(1 == 1);
+
+    Params:
+        e = exception instance to throw in case of an error
+        ok = result of expression
+        msg = optional custom message for exception
+        file = file of origin
+        line = line of origin
+
+    Throws:
+        e if expression evaluates to false
+
+******************************************************************************/
+
+public void enforce ( E : Exception, T ) ( ref E e, T ok, lazy char[] msg = "",
+    char[] file = __FILE__, size_t line = __LINE__ )
+{
+    if (!ok)
+    {
+        if (msg.length)
+        {
+            e.msg = msg;
+        }
+        else
+        {
+            if (!e.msg.length)
+            {
+                e.msg = "enforcement has failed";
+            }
+        }
+
+        e.file = file;
+        e.line = line;
+
+        throw e;
+    }
+}
+
+unittest
+{
+    class MyException : Exception
+    {
+        this ( char[] msg, char[] file = __FILE__, size_t line = __LINE__ )
+        {
+            super ( msg, file, line );
+        }
+    }
+
+    auto reusable = new MyException(null);
+
+    enforce(reusable, true);
+
+    try
+    {
+        enforce(reusable, false);
+        assert(false);
+    }
+    catch (MyException e)
+    {
+        assert(e.msg == "enforcement has failed");
+        assert(e.line == __LINE__ - 6);
+    }
+
+    try
+    {
+        enforce(reusable, false, "custom message");
+        assert(false);
+    }
+    catch (MyException e)
+    {
+        assert(e.msg == "custom message");
+        assert(e.line == __LINE__ - 6);
+    }
+
+    try
+    {
+        enforce(reusable, false);
+        assert(false);
+    }
+    catch (MyException e)
+    {
+        // preserved from previous enforcement
+        assert(e.msg == "custom message");
+        assert(e.line == __LINE__ - 7);
+    }
+}
+
+/******************************************************************************
+
+    enforcement that builds error message string automatically based on value
+    of operands and supplied "comparison" operation.
+    
+    'op' can be any binary operation.
+
+    Template Params:
+        op = binary operator string
+        E = exception type to create and throw
+
+    Params:
+        ok = result of expression
+        file = file of origin
+        line = line of origin
+
+    Throws:
+        E if expression evaluates to false
+
+******************************************************************************/
+
+public void enforce ( char[] op, E : Exception = Exception, T1, T2 ) ( T1 a,
+    T2 b, char[] file = __FILE__, size_t line = __LINE__ )
+{
+    static if (is(typeof(new E((char[]).init, file, line))))
+    {
+        auto exception = new E(null, file, line);
+    }
+    else static if (is(typeof(new E(file, line))))
+    {
+        auto exception = new E(file, line);
+    }
+    else static if (is(typeof(new E((char[]).init))))
+    {
+        auto exception = new E(null);
+    }
+    else static if (is(typeof(new E())))
+    {
+        auto exception = new E();
+    }
+    else
+    {
+        static assert (false, "Unsupported constructor signature");
+    }
+
+    enforce!(op, E, T1, T2)(exception, a, b, file, line);
+}
+
+unittest
+{
+    class MyException : Exception
+    {
+        this ( char[] msg, char[] file = __FILE__, size_t line = __LINE__ )
+        {
+            super ( msg, file, line );
+        }
+    }
+
+    auto reusable = new MyException(null);
+
+    enforce!("==")(reusable, 2, 2);
+
+    try
+    {
+        enforce!("==")(reusable, 2, 3);
+        assert(false);
+    }
+    catch (MyException e)
+    {
+        assert(e.msg == "expression '2 == 3' evaluates to false");
+        assert(e.line == __LINE__ - 6);
+    }
+
+    try
+    {
+        enforce!("is")(reusable, cast(void*)43, cast(void*)42);
+        assert(false);
+    }
+    catch (MyException e)
+    {
+        assert(e.msg == "expression '2b is 2a' evaluates to false");
+        assert(e.line == __LINE__ - 6);
+    }
+}
+
+/******************************************************************************
+
+    ditto
+
+    Params:
+        e = exception instance to throw in case of an error
+        ok = result of expression
+        msg = optional custom message for exception
+        file = file of origin
+        line = line of origin
+
+    Throws:
+        e if expression evaluates to false
+
+******************************************************************************/
+
+public void enforce ( char[] op, E : Exception, T1, T2 ) ( ref E e, T1 a,
+    T2 b, char[] file = __FILE__, size_t line = __LINE__ )
+{
+    mixin("auto ok = a " ~ op ~ " b;");
+
+    if (!ok)
+    {
+        e.msg = Format("expression '{} {} {}' evaluates to false", a, op, b);
+        e.file = file;
+        e.line = line;
+        throw e;
+    }
+}
+
+unittest
+{
+    // uses 'assert' to avoid dependency on itself
+
+    enforce!("==")(2, 2);
+
+    try
+    {
+        enforce!("==")(2, 3);
+        assert(false);
+    }
+    catch (Exception e)
+    {
+        assert(e.msg == "expression '2 == 3' evaluates to false");
+        assert(e.line == __LINE__ - 6);
+    }
+
+    try
+    {
+        enforce!(">")(3, 4);
+        assert(false);
+    }
+    catch (Exception e)
+    {
+        assert(e.msg == "expression '3 > 4' evaluates to false");
+        assert(e.line == __LINE__ - 6);
+    }
+}
 
 /******************************************************************************
 
@@ -20,6 +349,7 @@ module ocean.core.Exception;
 
 *******************************************************************************/
 
+deprecated
 template ExceptionOpCalls  ( E : Exception )
 {
     void opCall ( Args ... ) ( Args args )
@@ -44,6 +374,7 @@ template ExceptionOpCalls  ( E : Exception )
 
  ******************************************************************************/
 
+deprecated
 void assertEx ( E : Exception = Exception, T ) ( T ok, lazy E e )
 {
     if (!ok) throw e;
@@ -64,6 +395,7 @@ void assertEx ( E : Exception = Exception, T ) ( T ok, lazy E e )
 
  ******************************************************************************/
 
+deprecated
 void assertEx ( E : Exception = Exception, T ) ( T ok )
 {
     if (!ok) throw new E;
@@ -83,6 +415,7 @@ void assertEx ( E : Exception = Exception, T ) ( T ok )
 
 *******************************************************************************/
 
+deprecated
 void assertEx ( E : Exception = Exception, T, Args ... ) ( T ok, lazy char[] msg, Args args )
 {
     if (!ok) throw new E(msg, args);

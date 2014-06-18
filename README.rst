@@ -22,6 +22,22 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+New Features
+^^^^^^^^^^^^
+
+``ocean.core.Exception``
+  ``assertEx`` functions replaced with ``enforce`` with similar functionality but
+  different API. Check https://github.com/sociomantic/ocean/wiki/Standard-error-handling-and-testing for details.
+  Requires dmd1 package version 1.076.s2
+
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
+
+``ocean.core.Exception``
+  Renamed ``assertEx`` to ``enforce``. If variadic argument list has been used, format
+  it into single message argument at call site (this argument is lazy). You can also
+  remove explicit mentions of __FILE__ and __LINE__ (not necessary but recommended).
+
 
 v1.14 (2014-06-20)
 ------------------
