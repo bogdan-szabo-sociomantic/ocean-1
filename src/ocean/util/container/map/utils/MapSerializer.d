@@ -37,6 +37,7 @@ private import ocean.io.digest.Fnv1,
                ocean.io.serialize.model.StructVersionBase,
                ocean.util.container.map.Map,
                ocean.core.Traits : ContainsDynamicArray;
+private import ocean.core.Array : copy;
 
 private import tango.core.Exception    : IOException;
 private import tango.io.model.IConduit : IOStream;
@@ -165,7 +166,26 @@ template MapExtension ( K, V )
     {
         void add ( ref K k, ref V v )
         {
-            if (check(k,v)) *this.put(k) = v;
+            if (check(k,v))
+            {
+                bool added = false;
+
+                static if ( isDynamicArrayType!(V) )
+                {
+                    (*this.put(k, added)).copy(v);
+                }
+                else
+                {
+                    (*this.put(k, added)) = v;
+                }
+
+                // If added key is an array and new don't reuse the memory it
+                // references
+                static if ( isDynamicArrayType!(K) ) if ( added )
+                {
+                    k = k.dup;
+                }
+            }
         }
 
         this.serializer.loadDg!(K, V)(file_path, &add);
@@ -658,7 +678,26 @@ class MapSerializer
 
     public void load ( K, V ) ( Map!(V, K) map, char[] file_path )
     {
-        void putter ( ref K k, ref V v ) { *map.put(k) = v; }
+        void putter ( ref K k, ref V v )
+        {
+            bool added = false;
+
+            static if ( isDynamicArrayType!(V) )
+            {
+                copy(*map.put(k, added), v);
+            }
+            else
+            {
+                (*map.put(k, added)) = v;
+            }
+
+            // If added key is an array and new don't reuse the memory it
+            // references
+            static if ( isDynamicArrayType!(K) ) if ( added )
+            {
+                k = k.dup;
+            }
+        }
 
         this.loadDg!(K, V)(file_path, &putter);
     }
