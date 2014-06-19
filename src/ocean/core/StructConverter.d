@@ -340,7 +340,30 @@ private TypeOf!(field_name, Struct)* getField ( char[] field_name, Struct )
         }`);
 }
 
+version(UnitTest)
+{
+    void[] testAlloc( size_t s )
+    {
+        return new void[s];
+    }
+}
 
+// same struct
+unittest
+{
+    struct A
+    {
+        int x;
+    }
+
+    A a1, a2;
+    a1.x = 42;
+
+    structCopy(a1, a2, toDg(&testAlloc));
+    assert ( a1.x == a2.x, "failure to copy same type instances" );
+}
+
+// same fields, different order
 unittest
 {
     struct A
@@ -357,22 +380,36 @@ unittest
         int b;
     }
 
-    void[] buf ( size_t s )
-    {
-        return new ubyte[s];
-    }
-
     auto a = A(1,2,3);
     B b;
 
-    structCopy(a, b, &buf);
+    structCopy(a, b, toDg(&testAlloc));
 
     assert ( a.a == b.a, "a != a" );
     assert ( a.b == b.b, "b != b" );
     assert ( a.c == b.c, "c != c" );
 }
 
+// no conversion method -> failure
+unittest
+{
+    struct A
+    {
+        int x;
+    }
 
+    struct B
+    {
+        int x;
+        int y;
+    }
+
+    A a; B b;
+
+    static assert (!is(typeof(structCopy(a, b, toDg(&testAlloc)))));
+}
+
+// multiple conversions at once
 unittest
 {
     struct A
@@ -383,12 +420,12 @@ unittest
         int c;
         char[] the;
 
-        struct AA
+        struct C
         {
             int b;
         }
 
-        AA srt;
+        C srt;
     }
 
     struct B
@@ -400,16 +437,18 @@ unittest
         char[] the;
         int[][] i;
 
-        struct AB
+        struct C
         {
             int b;
             int c;
+            int ff;
 
+            // verify different conversion signatures...
             void convert_c () {}
-
+            void convert_ff ( ref A.C, void[] delegate ( size_t ) ) {}
         }
 
-        AB srt;
+        C srt;
 
         void convert_b ( ref A structa )
         {
@@ -425,12 +464,7 @@ unittest
     auto a = A(1,2, [[1,2], [45,234], [53],[3]],3, "THE TEH THE RTANEIARTEN");
     B b_loaded;
 
-    void[] buf ( size_t t )
-    {
-        return new ubyte[t];
-    }
-
-    structCopy!(A, B)(a, b_loaded, &buf);
+    structCopy!(A, B)(a, b_loaded, toDg(&testAlloc));
 
     assert ( b_loaded.a == a.a, "Conversion failure" );
     assert ( b_loaded.b == a.b, "Conversion failure" );
