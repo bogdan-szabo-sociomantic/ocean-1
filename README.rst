@@ -46,6 +46,9 @@ New Features
   Added functions ``removePrefix`` & ``removeSuffix`` that return a slice of the
   given array without the specified prefix or suffix respectively.
 
+``ocean.math.IncrementalAverage``
+  Added a new struct that allows calculating the average on the fly from a
+  stream (without storing the previous values).
 
 v1.13 (2014-05-20)
 ------------------
