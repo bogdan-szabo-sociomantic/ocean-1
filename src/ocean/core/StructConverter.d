@@ -70,26 +70,33 @@ public void structCopy ( From, To ) ( ref From from, out To to,
             "structCopy works only on structs, not on " ~
             From.stringof ~ " / " ~ To.stringof);
 
-    foreach ( to_index, to_member; to.tupleof )
+    static if (is(From == To))
     {
-        const convFuncName = "convert_" ~ FieldName!(to_index, To);
+        to = from;
+    }
+    else
+    {
+        foreach ( to_index, to_member; to.tupleof )
+        {
+            const convFuncName = "convert_" ~ FieldName!(to_index, To);
 
-        static if ( structHasMember!(convFuncName, To)() )
-        {
-            callBestOverload!(From, To, convFuncName)(from, to, requestBuffer);
-        }
-        else static if ( structHasMember!(FieldName!(to_index, To), From)() )
-        {
-            auto from_field = getField!(FieldName!(to_index, To))(from);
-            auto to_field = &to.tupleof[to_index];
+            static if ( structHasMember!(convFuncName, To)() )
+            {
+                callBestOverload!(From, To, convFuncName)(from, to, requestBuffer);
+            }
+            else static if ( structHasMember!(FieldName!(to_index, To), From)() )
+            {
+                auto from_field = getField!(FieldName!(to_index, To))(from);
+                auto to_field = &to.tupleof[to_index];
 
-            copyField(from_field, to_field, requestBuffer);
-        }
-        else
-        {
-            static assert ( false, "Unhandled field: " ~
+                copyField(from_field, to_field, requestBuffer);
+            }
+            else
+            {
+                static assert ( false, "Unhandled field: " ~
                             FieldName!(to_index, To) ~ " of type " ~
                             typeof(to_member).stringof);
+            }
         }
     }
 }
