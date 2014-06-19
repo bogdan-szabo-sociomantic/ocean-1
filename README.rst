@@ -50,6 +50,9 @@ Migration Instructions
   necessary, replace ``Unittest`` with ``NamedTest``. NB: ``NamedTest`` is NOT as scope
   class.
 
+``ocean.util.app.UnittestedApp``
+``ocean.util.app.ext.UnittestExt``
+  These modules are deprecated, simply remove them from your application extensions.
 
 v1.14 (2014-06-20)
 ------------------

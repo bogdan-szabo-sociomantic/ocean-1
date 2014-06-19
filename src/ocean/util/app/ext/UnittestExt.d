@@ -10,7 +10,8 @@
 
 module ocean.util.app.ext.UnittestExt;
 
-
+pragma(msg, "ocean.util.app.ext.UnittestExt is deprecated:");
+pragma(msg, "   unit tests are not supposed to have any special handling");
 
 /*******************************************************************************
 
@@ -39,6 +40,7 @@ private import ocean.util.Unittest;
 
 *******************************************************************************/
 
+deprecated
 class UnittestExt : IApplicationExtension, IArgumentsExtExtension
 {
 
