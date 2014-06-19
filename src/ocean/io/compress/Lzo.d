@@ -27,7 +27,7 @@ private import ocean.io.compress.lzo.LzoCrc;
 
 private import ocean.io.compress.CompressException;
 
-private import ocean.core.Exception: assertEx;
+private import ocean.core.Exception: enforce;
 
 /******************************************************************************
 
@@ -58,7 +58,7 @@ class Lzo
 
     static this ( )
     {
-        assertEx!(CompressException)(!lzo_init(), "Lzo kaputt");
+        enforce!(CompressException)(!lzo_init(), "Lzo kaputt");
     }
 
     /**************************************************************************

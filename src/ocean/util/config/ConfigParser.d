@@ -21,7 +21,7 @@ module ocean.util.config.ConfigParser;
 
 *******************************************************************************/
 
-public  import ocean.core.Exception: assertEx;
+public  import ocean.core.Exception : enforce;
 
 private import ocean.io.Stdout;
 
@@ -562,9 +562,11 @@ class ConfigParser
 
     public T getStrict ( T ) ( char[] category, char[] key )
     {
-        assertEx!(ConfigException)(exists(category, key),
-                                   "Critical Error: No configuration key "
-                                   "'" ~ category ~ ":" ~ key ~ "' found");
+        enforce!(ConfigException)(
+            exists(category, key),
+            "Critical Error: No configuration key '" ~ category 
+                ~ ":" ~ key ~ "' found"
+        );
         try
         {
             char[] property = this.properties[category][key];
@@ -573,8 +575,8 @@ class ConfigParser
         }
         catch ( IllegalArgumentException )
         {
-            ConfigException("Critical Error: Configuration key '" ~ category ~
-            ":" ~ key ~ "' appears not to be of type '" ~ T.stringof ~ "'");
+            throw new ConfigException("Critical Error: Configuration key '" ~ category ~
+                ":" ~ key ~ "' appears not to be of type '" ~ T.stringof ~ "'");
         }
 
         assert(0);
@@ -900,26 +902,21 @@ class ConfigParser
 
 version ( UnitTest )
 {
-    private import ocean.util.Unittest;
-
+    private import ocean.core.Test;
     private import tango.core.Memory;
 }
 
 unittest
 {
-    scope t = new Unittest(__FILE__, "ConfigParserTest");
-
     scope Config = new ConfigParser();
 
-    with (t)
-    {
-        /***********************************************************************
+    /***********************************************************************
 
-            Section 1: unit-tests to confirm correct parsing of config files
+        Section 1: unit-tests to confirm correct parsing of config files
 
-        ***********************************************************************/
+    ***********************************************************************/
 
-        auto str =
+    auto str =
 `
 [Section1]
 multiline = a
@@ -930,182 +927,181 @@ c
 // and the ultimative comment
 d
 int_arr = 30
-          40
-          -60
-          1111111111
-          0x10
+      40
+      -60
+      1111111111
+      0x10
 ulong_arr = 0
-            50
-            18446744073709551615
-            0xa123bcd
+        50
+        18446744073709551615
+        0xa123bcd
 float_arr = 10.2
-            -25.3
-            90
-            0.000000001
+        -25.3
+        90
+        0.000000001
 bool_arr = true
-           false
+       false
 `;
 
 
+    Config.parseString(str);
+
+    test(Config.isEmpty == false,
+              "Config is incorrectly marked as being empty");
+
+    scope l = Config.getListStrict("Section1", "multiline");
+
+    test(l.length == 4,
+              "Incorrect number of elements in multiline");
+
+    test(l[0] == "a" && l[1] == "b" && l[2] == "c" && l[3] == "d",
+            "Multiline value was not parsed as expected");
+
+    scope ints = Config.getListStrict!(int)("Section1", "int_arr");
+    test(ints == [30, 40, -60, 1111111111, 0x10], "Wrong multi-line "
+                                             "int-array parsing");
+
+    scope ulong_arr = Config.getListStrict!(ulong)("Section1", "ulong_arr");
+    ulong[] ulong_array = [0, 50, ulong.max, 0xa123bcd];
+    test(ulong_arr == ulong_array, "Wrong multi-line ulong-array "
+                                        "parsing");
+
+    scope float_arr = Config.getListStrict!(float)("Section1", "float_arr");
+    float[] float_array = [10.2, -25.3, 90, 0.000000001];
+    test(float_arr == float_array, "Wrong multi-line float-array "
+                                        "parsing");
+
+    scope bool_arr = Config.getListStrict!(bool)("Section1", "bool_arr");
+    bool[] bool_array = [true, false];
+    test(bool_arr == bool_array, "Wrong multi-line bool-array "
+                                      "parsing");
+
+    try
+    {
+        scope w_bool_arr = Config.getListStrict!(bool)("Section1",
+                                                       "int_arr");
+    }
+    catch ( IllegalArgumentException e )
+    {
+        test((e.msg == "Config.toBool :: invalid boolean value"),
+                  "invalid conversion to bool "
+                  "was not reported as a problem");
+    }
+
+    // Manually set a property (new category).
+    Config.set("Section2", "set_key", "set_value");
+
+    char[] new_val;
+    Config.getStrict(new_val, "Section2", "set_key");
+    test(new_val == "set_value",
+              "New value not added correctly");
+
+    // Manually set a property (existing category, new key).
+    Config.set("Section2", "another_set_key", "another_set_value");
+
+    Config.getStrict(new_val, "Section2", "another_set_key");
+    test(new_val == "another_set_value",
+              "New value not added correctly");
+
+    // Manually set a property (existing category, existing key).
+    Config.set("Section2", "set_key", "new_set_value");
+
+    Config.getStrict(new_val, "Section2", "set_key");
+    test(new_val == "new_set_value",
+              "New value not added correctly");
+
+    // Check if the 'exists' function works as expected.
+    test( Config.exists("Section1", "int_arr"),
+              "exists API failure");
+    test(!Config.exists("Section420", "int_arr"),
+              "exists API failure");
+    test(!Config.exists("Section1", "key420"),
+              "exists API failure");
+
+    debug ( ConfigParser )
+    {
+        Config.print();
+    }
+
+
+    /***********************************************************************
+
+        Section 2: unit-tests to confirm correct working of iterators
+
+    ***********************************************************************/
+
+    char[][] expected_categories = [ "Section1",
+                                     "Section2" ];
+    char[][] expected_keys = [ "multiline",
+                               "int_arr",
+                               "ulong_arr",
+                               "float_arr",
+                               "bool_arr",
+
+                               "set_key",
+                               "another_set_key" ];
+    char[][] obtained_categories;
+    char[][] obtained_keys;
+
+    foreach ( category; Config )
+    {
+        obtained_categories ~= category;
+
+        foreach ( key; Config.iterateCategory(category) )
+        {
+            obtained_keys ~= key;
+        }
+    }
+
+    test(obtained_categories.sort == expected_categories.sort,
+              "category iteration failure");
+    test(obtained_keys.sort == expected_keys.sort,
+              "key iteration failure");
+
+
+    /***********************************************************************
+
+        Section 3: unit-tests to check memory usage
+
+        this entire section is inside a conditional compilation block as it
+        does console output meant for human interpretation
+
+    ***********************************************************************/
+
+    debug ( ConfigParser )
+    {
+        const num_parses = 200;
+
+        // Repeated parsing of the same configuration.
+
+        Stdout.blue.formatln("Memory analysis of repeated parsing of the "
+                             "same configuration").default_colour;
+
+        size_t memused1, memused2, memfree;
+
+        GC.usage(memused1, memfree);
+        Stdout.formatln("before parsing  : memused = {}", memused1);
+
         Config.parseString(str);
 
-        assertLog(Config.isEmpty == false,
-                  "Config is incorrectly marked as being empty", __LINE__);
+        GC.usage(memused2, memfree);
+        Stdout.formatln("after parse # 1 : memused = {} (additional mem "
+                        "consumed = {})", memused2, (memused2 - memused1));
 
-        scope l = Config.getListStrict("Section1", "multiline");
+        memused1 = memused2;
 
-        assertLog(l.length == 4,
-                  "Incorrect number of elements in multiline", __LINE__);
-
-        assertLog(l[0] == "a" && l[1] == "b" && l[2] == "c" && l[3] == "d",
-                "Multiline value was not parsed as expected", __LINE__);
-
-        scope ints = Config.getListStrict!(int)("Section1", "int_arr");
-        assertLog(ints == [30, 40, -60, 1111111111, 0x10], "Wrong multi-line "
-                                                 "int-array parsing", __LINE__);
-
-        scope ulong_arr = Config.getListStrict!(ulong)("Section1", "ulong_arr");
-        ulong[] ulong_array = [0, 50, ulong.max, 0xa123bcd];
-        assertLog(ulong_arr == ulong_array, "Wrong multi-line ulong-array "
-                                            "parsing", __LINE__);
-
-        scope float_arr = Config.getListStrict!(float)("Section1", "float_arr");
-        float[] float_array = [10.2, -25.3, 90, 0.000000001];
-        assertLog(float_arr == float_array, "Wrong multi-line float-array "
-                                            "parsing", __LINE__);
-
-        scope bool_arr = Config.getListStrict!(bool)("Section1", "bool_arr");
-        bool[] bool_array = [true, false];
-        assertLog(bool_arr == bool_array, "Wrong multi-line bool-array "
-                                          "parsing", __LINE__);
-
-        try
+        for (int i = 2; i < num_parses; ++i)
         {
-            scope w_bool_arr = Config.getListStrict!(bool)("Section1",
-                                                           "int_arr");
-        }
-        catch ( IllegalArgumentException e )
-        {
-            assertLog((e.msg == "Config.toBool :: invalid boolean value"),
-                      "invalid conversion to bool "
-                      "was not reported as a problem", __LINE__);
-        }
-
-        // Manually set a property (new category).
-        Config.set("Section2", "set_key", "set_value");
-
-        char[] new_val;
-        Config.getStrict(new_val, "Section2", "set_key");
-        assertLog(new_val == "set_value",
-                  "New value not added correctly", __LINE__);
-
-        // Manually set a property (existing category, new key).
-        Config.set("Section2", "another_set_key", "another_set_value");
-
-        Config.getStrict(new_val, "Section2", "another_set_key");
-        assertLog(new_val == "another_set_value",
-                  "New value not added correctly", __LINE__);
-
-        // Manually set a property (existing category, existing key).
-        Config.set("Section2", "set_key", "new_set_value");
-
-        Config.getStrict(new_val, "Section2", "set_key");
-        assertLog(new_val == "new_set_value",
-                  "New value not added correctly", __LINE__);
-
-        // Check if the 'exists' function works as expected.
-        assertLog( Config.exists("Section1", "int_arr"),
-                  "exists API failure", __LINE__);
-        assertLog(!Config.exists("Section420", "int_arr"),
-                  "exists API failure", __LINE__);
-        assertLog(!Config.exists("Section1", "key420"),
-                  "exists API failure", __LINE__);
-
-        debug ( ConfigParser )
-        {
-            Config.print();
-        }
-
-
-        /***********************************************************************
-
-            Section 2: unit-tests to confirm correct working of iterators
-
-        ***********************************************************************/
-
-        char[][] expected_categories = [ "Section1",
-                                         "Section2" ];
-        char[][] expected_keys = [ "multiline",
-                                   "int_arr",
-                                   "ulong_arr",
-                                   "float_arr",
-                                   "bool_arr",
-
-                                   "set_key",
-                                   "another_set_key" ];
-        char[][] obtained_categories;
-        char[][] obtained_keys;
-
-        foreach ( category; Config )
-        {
-            obtained_categories ~= category;
-
-            foreach ( key; Config.iterateCategory(category) )
-            {
-                obtained_keys ~= key;
-            }
-        }
-
-        assertLog(obtained_categories.sort == expected_categories.sort,
-                  "category iteration failure", __LINE__);
-        assertLog(obtained_keys.sort == expected_keys.sort,
-                  "key iteration failure", __LINE__);
-
-
-        /***********************************************************************
-
-            Section 3: unit-tests to check memory usage
-
-            this entire section is inside a conditional compilation block as it
-            does console output meant for human interpretation
-
-        ***********************************************************************/
-
-        debug ( ConfigParser )
-        {
-            const num_parses = 200;
-
-            // Repeated parsing of the same configuration.
-
-            Stdout.blue.formatln("Memory analysis of repeated parsing of the "
-                                 "same configuration").default_colour;
-
-            size_t memused1, memused2, memfree;
-
-            GC.usage(memused1, memfree);
-            Stdout.formatln("before parsing  : memused = {}", memused1);
-
             Config.parseString(str);
-
-            GC.usage(memused2, memfree);
-            Stdout.formatln("after parse # 1 : memused = {} (additional mem "
-                            "consumed = {})", memused2, (memused2 - memused1));
-
-            memused1 = memused2;
-
-            for (int i = 2; i < num_parses; ++i)
-            {
-                Config.parseString(str);
-            }
-
-            GC.usage(memused2, memfree);
-            Stdout.formatln("after parse # {} : memused = {} (additional mem "
-                            "consumed = {})", num_parses, memused2,
-                            (memused2 - memused1));
-            Stdout.formatln("");
         }
 
-        Config.resetParser();
+        GC.usage(memused2, memfree);
+        Stdout.formatln("after parse # {} : memused = {} (additional mem "
+                        "consumed = {})", num_parses, memused2,
+                        (memused2 - memused1));
+        Stdout.formatln("");
     }
+
+    Config.resetParser();
 }
 

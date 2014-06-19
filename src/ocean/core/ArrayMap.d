@@ -28,7 +28,7 @@ pragma(msg, "ocean.core.ArrayMap is deprecated: use ocean.util.container.map.* i
 
 *******************************************************************************/
 
-private     import      ocean.core.Exception: assertEx;
+private     import      ocean.core.Exception: enforce;
 
 private     import      ocean.core.Array: copy;
 
@@ -395,8 +395,8 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
     public this ( size_t default_size = 10_000, float load_factor = 0.75 )
     {
-        assertEx!(ArrayMapException)(default_size, "zero default size");
-        assertEx!(ArrayMapException)(0 <= load_factor, "load factor <= 0");
+        enforce!(ArrayMapException)(default_size, "zero default size");
+        enforce!(ArrayMapException)(0 <= load_factor, "load factor <= 0");
 
         this.default_size = default_size;
         this.load_factor  = load_factor;
@@ -471,11 +471,11 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
         this.loadKmap(input);
 
-        assertEx!(ArrayMapException)(this.k_map.length == this.buckets_length, "invalid key map length");
+        enforce!(ArrayMapException)(this.k_map.length == this.buckets_length, "invalid key map length");
 
         this.loadVmap(input);
 
-        assertEx!(ArrayMapException)(this.v_map.length == this.default_size, "invalid value map length");
+        enforce!(ArrayMapException)(this.v_map.length == this.default_size, "invalid value map length");
 
         static if (M)
         {
@@ -1161,7 +1161,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
     private V get_ ( size_t v )
     {
-        this.assertExists(v);
+        this.enforceExists(v);
 
         return this.v_map[v].value;
     }
@@ -1188,7 +1188,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
         private V get_ ( size_t v, ref V value )
         {
-            this.assertExists(v);
+            this.enforceExists(v);
 
             static if (M) synchronized (this)
             {
@@ -1237,9 +1237,9 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **************************************************************************/
 
-    private void assertExists ( size_t v )
+    private void enforceExists ( size_t v )
     {
-        assertEx!(ArrayMapException.NonExistingKey)(v != v.max, `key doesn't exist`);
+        enforce!(ArrayMapException.NonExistingKey)(v != v.max, `key doesn't exist`);
     }
 
     /***************************************************************************
@@ -1893,7 +1893,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
             size_t written = output.write((cast (void*) &item)[0 .. T.sizeof]);
         }
 
-        assertEx!(IOException)(written != output.Eof,
+        enforce!(IOException)(written != output.Eof,
                                typeof (this).stringof ~ ": end of flow whilst writing");
 
         return written;

@@ -245,7 +245,7 @@ private template SmartEnumCore ( BaseType )
     static public char[] opIndex ( BaseType code )
     {
         auto description = code in map;
-        assertEx(description, "code not found in SmartEnum " ~ typeof(this).stringof);
+        enforce(description, "code not found in SmartEnum " ~ typeof(this).stringof);
         return *description;
     }
 
@@ -268,7 +268,7 @@ private template SmartEnumCore ( BaseType )
     static public BaseType opIndex ( char[] description )
     {
         auto code = description in map;
-        assertEx(code, description ~ " not found in SmartEnum " ~ typeof(this).stringof);
+        enforce(code, description ~ " not found in SmartEnum " ~ typeof(this).stringof);
         return *code;
     }
 

@@ -1046,7 +1046,7 @@ version ( UnitTest )
 {
     import ocean.io.device.MemoryDevice,
            ocean.io.digest.Fnv1,
-           ocean.util.Unittest,
+           ocean.core.Test,
            ocean.util.container.map.model.StandardHash,
            ocean.util.container.map.Map,
            ocean.util.container.map.HashMap;
@@ -1173,9 +1173,15 @@ version ( UnitTest )
 
     ***************************************************************************/
 
-    void test ( K, V, KNew, VNew, char[] custom_dump = "" )
-              ( Unittest t, size_t iterations )
+    void testCombination ( K, V, KNew, VNew, char[] custom_dump = "" )
+              ( size_t iterations )
     {
+        auto t = new NamedTest("Combination {" ~
+            "K = " ~ K.stringof ~
+            ", V = " ~ V.stringof ~
+            ", KNew = " ~ KNew.stringof ~
+            ", VNew = " ~ VNew.stringof ~ "}"
+        );
         const ValueArraySize = 200;
 
         scope array = new MemoryDevice;
@@ -1256,16 +1262,18 @@ version ( UnitTest )
         // Check size of dump
         static if ( isDynamicArrayType!(V) )
         {
-            t.assertLog(array.bufferSize() ==
+            t.test(array.bufferSize() ==
                         (K.sizeof + size_t.sizeof +
                             ElementTypeOfArray!(V).sizeof * ValueArraySize) *
                                 iterations + header_size + size_t.sizeof,
-                    "Written size is not the expected value!", __LINE__);
+                    "Written size is not the expected value!");
         }
-        else t.assertLog(array.bufferSize() == (K.sizeof + V.sizeof) *
+        else
+        {
+            t.test(array.bufferSize() == (K.sizeof + V.sizeof) *
                     iterations + header_size + size_t.sizeof,
-                    "Written size is not the expected value!", __LINE__);
-
+                    "Written size is not the expected value!");
+        }
 
         // Check load function
         size_t amount_loaded = 0;
@@ -1275,27 +1283,30 @@ version ( UnitTest )
             static if ( isDynamicArrayType!(VNew) )
             {
                 foreach ( i, el; v )
-            t.assertLog(el.compare(&(*map.get(fromNew(k)))[i]), "Loaded item unequal saved item!",
-                      __LINE__);
-            } else
-            t.assertLog(v.compare(map.get(fromNew(k))), "Loaded item unequal saved item!",
-                      __LINE__);
+                {
+                    t.test(el.compare(&(*map.get(fromNew(k)))[i]),
+                        "Loaded item unequal saved item!");
+                }
+            }
+            else
+            {
+                t.test(v.compare(map.get(fromNew(k))),
+                    "Loaded item unequal saved item!");
+            }
         }
 
         array.seek(0);
         serializer.buffered_input.input(array);
         serializer.loadInternal!(KNew, VNew)(serializer.buffered_input, &checker);
 
-        t.assertLog(amount_loaded == map.bucket_info.length, "Amount of loaded "
-                  "items unequal amount of written items!", __LINE__);
+        t.test(amount_loaded == map.bucket_info.length, "Amount of loaded "
+                  "items unequal amount of written items!");
     }
 }
 
 unittest
 {
     const Iterations = 10_000;
-
-    scope Unittest t = new Unittest(__FILE__, "MapSerialier");
 
     const old_load_code =
           `scope bufout = new BufferedOutput(array, 2048);
@@ -1483,29 +1494,29 @@ unittest
 
 
     // Test same and old version
-    test!(hash_t, Test1, hash_t, Test2)(t, Iterations);
-    test!(hash_t, Test2, hash_t, Test2)(t, Iterations);
+    testCombination!(hash_t, Test1, hash_t, Test2)(Iterations);
+    testCombination!(hash_t, Test2, hash_t, Test2)(Iterations);
 
     // Test Arrays
-    test!(hash_t, Test2[], hash_t, Test2[])(t, Iterations);
+    testCombination!(hash_t, Test2[], hash_t, Test2[])(Iterations);
 
     // Test unversioned structs
-    test!(hash_t, TestNoVersion, hash_t, TestNoVersion)(t, Iterations);
+    testCombination!(hash_t, TestNoVersion, hash_t, TestNoVersion)(Iterations);
 
     // Test old versions
-    test!(hash_t, TestNoVersion, hash_t, TestNoVersion, old_load_code)(t, Iterations);
+    testCombination!(hash_t, TestNoVersion, hash_t, TestNoVersion, old_load_code)(Iterations);
 
     // Test conversion of old files to new ones
-    test!(hash_t, OldStruct, hash_t, NewStruct, old_load_code)(t, Iterations);
+    testCombination!(hash_t, OldStruct, hash_t, NewStruct, old_load_code)(Iterations);
 
     // Test conversion of old files with
     // different key versions to new ones
-    test!(OldKey, OldStruct, OldKey, OldStruct, old_load_code)(t, Iterations);
-    test!(OldKey, OldStruct, NewKey, OldStruct, old_load_code)(t, Iterations);
-    test!(OldKey, OldStruct, NewKey, OldStruct, old_load_code)(t, Iterations);
-    test!(OldKey, OldStruct, NewKey, NewStruct, old_load_code)(t, Iterations);
-    test!(OldKey, OldStruct, NewerKey, NewStruct, old_load_code)(t, Iterations);
-    test!(OldKey, OldStruct, NewerKey, NewerStruct,old_load_code)(t, Iterations);
+    testCombination!(OldKey, OldStruct, OldKey, OldStruct, old_load_code)(Iterations);
+    testCombination!(OldKey, OldStruct, NewKey, OldStruct, old_load_code)(Iterations);
+    testCombination!(OldKey, OldStruct, NewKey, OldStruct, old_load_code)(Iterations);
+    testCombination!(OldKey, OldStruct, NewKey, NewStruct, old_load_code)(Iterations);
+    testCombination!(OldKey, OldStruct, NewerKey, NewStruct, old_load_code)(Iterations);
+    testCombination!(OldKey, OldStruct, NewerKey, NewerStruct,old_load_code)(Iterations);
 }
 
 

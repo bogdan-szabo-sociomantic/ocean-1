@@ -47,7 +47,7 @@ private import ocean.core.Array: append, copy;
 
 private import ocean.text.utf.c.glib_unicode;
 
-private import ocean.util.Unittest;
+private import ocean.core.Test;
 
 /*******************************************************************************
 
@@ -254,31 +254,25 @@ body
 
 unittest
 {
-    scope t = new Unittest(
-        __FILE__,
-        "truncateAtWordBreak"
-    );
-
     char[] buffer;
 
-    void doTest ( char[] input, char[] expected_output, int length, int line )
+    void doTest ( char[] input, char[] expected_output, int length, int line = __LINE__ )
     {
         buffer.copy(input);
-        t.enforceRel!("==")(truncateAtWordBreak(buffer, length),
-            expected_output, line);
+        test!("==")(truncateAtWordBreak(buffer, length), expected_output, __FILE__, line);
     }
 
-    doTest("Hello World!", "Hello World!", "Hello World!".length, __LINE__);
+    doTest("Hello World!", "Hello World!", "Hello World!".length);
 
-    doTest("Hello World!", "Hello World!", "Hello World!".length + 5, __LINE__);
+    doTest("Hello World!", "Hello World!", "Hello World!".length + 5);
 
-    doTest("Hello World!", "Hello", 9, __LINE__);
+    doTest("Hello World!", "Hello", 9);
 
-    doTest("Hällö World!", "Hällö", 9, __LINE__);
+    doTest("Hällö World!", "Hällö", 9);
 
-    doTest("äöü", "äöü", 3, __LINE__);
+    doTest("äöü", "äöü", 3);
 
-    doTest("Hello  World!", "Hello", 9, __LINE__);
+    doTest("Hello  World!", "Hello", 9);
 }
 
 
@@ -324,40 +318,35 @@ body
 
 unittest
 {
-    scope t = new Unittest(
-        __FILE__,
-        "truncateAppendEnding"
-    );
-
     char[] buffer;
 
-    void doTest ( char[] input, char[] expected_output, int length, int line,
-        char[] ending = "..." )
+    void doTest ( char[] input, char[] expected_output, int length, 
+        char[] ending = "..." , int line = __LINE__ )
     {
         buffer.copy(input);
-        t.enforceRel!("==")(truncateAppendEnding(buffer, length, ending),
-            expected_output, line);
+        test!("==")(truncateAppendEnding(buffer, length, ending),
+            expected_output, __FILE__, line);
     }
 
-    doTest("Hello World!", "Hello World!", "Hello World!".length, __LINE__);
+    doTest("Hello World!", "Hello World!", "Hello World!".length);
 
-    doTest("Hello World!", "Hello World!", "Hello World!".length + 5, __LINE__);
+    doTest("Hello World!", "Hello World!", "Hello World!".length + 5);
 
-    doTest("Hello World!", "Hello...", 9, __LINE__);
+    doTest("Hello World!", "Hello...", 9);
 
-    doTest("Hällö World!", "Hällö...", 9, __LINE__);
+    doTest("Hällö World!", "Hällö...", 9);
 
-    doTest("äöü äöü", "ä...", 4, __LINE__);
+    doTest("äöü äöü", "ä...", 4);
 
-    doTest("Hello  World!", "Hello...", 9, __LINE__);
+    doTest("Hello  World!", "Hello...", 9);
 
     doTest("HelloW"  ~ cast (char) 0x81 ~ "rld!",
-        "HelloW"  ~ cast (char) 0x81 ~ "...", 10, __LINE__);
+        "HelloW"  ~ cast (char) 0x81 ~ "...", 10);
 
-    doTest("HelloWörld!", "HelloWörl+", 10, __LINE__, "+");
+    doTest("HelloWörld!", "HelloWörl+", 10, "+");
 
     doTest("Designstarker Couchtisch in hochwertiger Holznachbildung. Mit "
         "praktischem Ablagebogen in Kernnussbaumfarben oder Schwarz. "
         "Winkelfüße mit Alukante. B", "Designstarker Couchtisch in hochwertiger"
-        " Holznachbildung. Mit praktischem Ablagebogen...", 90, __LINE__);
+        " Holznachbildung. Mit praktischem Ablagebogen...", 90);
 }

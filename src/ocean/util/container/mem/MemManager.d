@@ -273,7 +273,7 @@ private class MallocMemManager ( bool gc_aware ) : IMemManager
     public ubyte[] create ( size_t dimension )
     {
         auto ptr = cast(ubyte*)malloc(dimension);
-        assertEx(ptr !is null, new OutOfMemoryException(__FILE__, __LINE__));
+        enforce!(OutOfMemoryException)(ptr !is null);
 
         static if ( gc_aware )
         {

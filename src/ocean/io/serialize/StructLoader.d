@@ -995,7 +995,7 @@ version ( UnitTest )
 
     ***************************************************************************/
 
-    import ocean.util.Unittest,
+    import ocean.core.Test,
            ocean.io.serialize.StructDumper,
            ocean.util.container.ConcatBuffer,
            ocean.util.log.Trace;
@@ -1056,10 +1056,10 @@ version ( UnitTest )
 
         additionally, New has to have
 
-            void compare ( ref Old old, Unittest t )
+            void compare ( ref Old old, NamedTest t )
 
-        to compare with old. It should simply use t.assertLog to make sure all
-        values are what the should be.
+        to compare with old. It should simply make sure all
+        values are what they should be.
 
         Template Params:
             Old = Struct version to write
@@ -1067,15 +1067,15 @@ version ( UnitTest )
             Loader = loader to use
 
         Params:
-            t = unittest instance
             iterations = amount of times to read/write this
 
     ***************************************************************************/
 
-    void test ( Old, New, Loader = StructLoader ) ( Unittest t, size_t iterations )
+    void testConv ( Old, New, Loader = StructLoader ) ( size_t iterations )
     {
         scope loader        = new Loader();
         scope struct_buffer = new ConcatBuffer!(void);
+        auto  t             = new NamedTest(Old.stringof ~ " -> " ~ New.stringof);
 
         void[] src;
         void[] dst;
@@ -1115,7 +1115,7 @@ version ( UnitTest )
         size_t now_used_memory, now_free_memory;
         GC.usage(now_used_memory, now_free_memory);
 
-        t.assertLog(now_used_memory == used_memory, "Unreasonable memory usage!");
+        test(now_used_memory == used_memory, "Unreasonable memory usage!");
     }
 
 
@@ -1174,11 +1174,11 @@ version ( UnitTest )
             return n;
         }
 
-        void compare ( ref NoVersion n, Unittest t )
+        void compare ( ref NoVersion n, NamedTest t )
         {
             with ( t ) foreach ( i, member; this.tupleof )
             {
-                assertLog(member == n.tupleof[i]);
+                test!("==")(member, n.tupleof[i]);
             }
         }
     }
@@ -1212,11 +1212,11 @@ version ( UnitTest )
             return t;
         }
 
-        void compare ( ref Test0 n, Unittest t )
+        void compare ( ref Test0 n, NamedTest t )
         {
             with ( t ) foreach ( i, member; this.tupleof )
             {
-                assertLog(member == n.tupleof[i]);
+                test!("==")(member, n.tupleof[i]);
             }
         }
     }
@@ -1245,35 +1245,35 @@ version ( UnitTest )
             this.b = n.none + 5;
         }
 
-        void compare ( ref StructPrevious n, Unittest t )
+        void compare ( ref StructPrevious n, NamedTest t )
         {
             with ( t )
             {
-                assertLog(none == n.none);
-                assertLog(a    == n.a);
-                assertLog(b    == n.none + 5);
-                assertLog(oi.length   == n.oi.length);
+                test!("==")(none, n.none);
+                test!("==")(a   , n.a);
+                test!("==")(b   , n.none + 5);
+                test!("==")(oi.length, n.oi.length);
 
                 foreach ( i, o; oi )
                 {
-                    assertLog(o.f == n.oi[i].f);
-                    assertLog(o.o == n.oi[i].f+1);
+                    test!("==")(o.f, n.oi[i].f);
+                    test!("==")(o.o, n.oi[i].f+1);
                 }
 
-                assertLog(chars.length   == n.chars.length);
+                test!("==")(chars.length, n.chars.length);
 
                 foreach ( i, o; chars )
                 {
-                    assertLog(o == n.chars[i]);
+                    test!("==")(o, n.chars[i]);
                 }
             }
         }
 
-        void compare ( ref Test1 n, Unittest t )
+        void compare ( ref Test1 n, NamedTest t )
         {
             with ( t ) foreach ( i, member; this.tupleof )
             {
-                assertLog(member == n.tupleof[i]);
+                test!("==")(member, n.tupleof[i]);
             }
         }
 
@@ -1318,58 +1318,58 @@ version ( UnitTest )
 
         void convert_c ( ref StructPrevious f ) { c = f.b+1; }
 
-        void compare ( ref StructPrevious n, Unittest t )
+        void compare ( ref StructPrevious n, NamedTest t )
         {
             with ( t )
             {
-                assertLog(none == n.none);
-                assertLog(a    == n.a);
-                assertLog(b    == n.b);
-                assertLog(c    == n.b+1);
-                assertLog(oi.length   == n.oi.length);
+                test!("==")(none, n.none);
+                test!("==")(a, n.a);
+                test!("==")(b, n.b);
+                test!("==")(c, n.b+1);
+                test!("==")(oi.length, n.oi.length);
 
                 foreach ( i, o; oi )
                 {
-                    assertLog(o.f == n.oi[i].f);
-                    assertLog(o.a == n.oi[i].o);
+                    test(o.f == n.oi[i].f);
+                    test(o.a == n.oi[i].o);
                 }
 
-                assertLog(chars.length   == n.chars.length);
+                test(chars.length   == n.chars.length);
 
                 foreach ( i, o; chars )
                 {
-                    assertLog(o == n.chars[i]);
+                    test(o == n.chars[i]);
                 }
             }
         }
 
-        void compare ( ref Test0 n, Unittest t )
+        void compare ( ref Test0 n, NamedTest t )
         {
             with ( t )
             {
-                assertLog(none == n.none);
-                assertLog(a    == n.a);
-                assertLog(oi.length   == n.oi.length);
+                test!("==")(none, n.none);
+                test!("==")(a, n.a);
+                test!("==")(oi.length, n.oi.length);
 
                 foreach ( i, o; oi )
                 {
-                    assertLog(o.f == n.oi[i].f);
+                    test!("==")(o.f, n.oi[i].f);
                 }
 
-                assertLog(chars.length   == n.chars.length);
+                test!("==")(chars.length, n.chars.length);
 
                 foreach ( i, o; chars )
                 {
-                    assertLog(o == n.chars[i]);
+                    test!("==")(o, n.chars[i]);
                 }
             }
         }
 
-        void compare ( ref typeof(*this) n, Unittest t )
+        void compare ( ref typeof(*this) n, NamedTest t )
         {
             with ( t ) foreach ( i, member; this.tupleof )
             {
-                assertLog(member == n.tupleof[i]);
+                test!("==")(member, n.tupleof[i]);
             }
         }
 
@@ -1397,23 +1397,21 @@ version ( UnitTest )
 unittest
 {
     const Iterations = 10_000;
-    scope t = new Unittest(__FILE__, "StructLoader");
 
-    t.assertLog(!StructVersionBase.canConvertStruct!(Test0), "Can convert struct .. ?");
-    t.assertLog(StructVersionBase.canConvertStruct!(Test1), "Can not convert struct");
-    t.assertLog(StructVersionBase.canConvertStruct!(Test2), "Can not convert struct");
+    test(!StructVersionBase.canConvertStruct!(Test0), "Can convert struct .. ?");
+    test( StructVersionBase.canConvertStruct!(Test1), "Can not convert struct");
+    test( StructVersionBase.canConvertStruct!(Test2), "Can not convert struct");
 
+    testConv!(Test0, Test0)(Iterations);
+    testConv!(Test0, Test1)(Iterations);
+    testConv!(Test0, Test2)(Iterations);
 
-    test!(Test0, Test0)(t, Iterations);
-    test!(Test0, Test1)(t, Iterations);
-    test!(Test0, Test2)(t, Iterations);
+    testConv!(Test1, Test1)(Iterations);
+    testConv!(Test1, Test2)(Iterations);
 
-    test!(Test1, Test1)(t, Iterations);
-    test!(Test1, Test2)(t, Iterations);
+    testConv!(Test2, Test2)(Iterations);
 
-    test!(Test2, Test2)(t, Iterations);
-
-    test!(NoVersion, NoVersion)(t, Iterations);
+    testConv!(NoVersion, NoVersion)(Iterations);
 
 
     debug ( PerformanceTest )
@@ -1423,40 +1421,36 @@ unittest
         const PerformanceIterations = 10_000;
 
         sw.start();
-        test!(Test2NoV, Test2NoV, StructLoaderCore)(t, PerformanceIterations);
+        test!(Test2NoV, Test2NoV, StructLoaderCore)(PerformanceIterations);
         auto original = sw.stop();
 
         sw.start();
-        test!(Test2, Test2)(t, PerformanceIterations);
+        test!(Test2, Test2)(PerformanceIterations);
         auto new_loader = sw.stop();
 
         sw.start();
-        test!(Test1, Test2)(t, PerformanceIterations);
+        test!(Test1, Test2)(PerformanceIterations);
         auto new_conv = sw.stop();
 
         sw.start();
-        test!(Test0, Test2)(t, PerformanceIterations);
+        test!(Test0, Test2)(PerformanceIterations);
         auto new_conv2 = sw.stop();
 
         sw.start();
-        test!(NoVersion, NoVersion, StructLoaderCore)(t, PerformanceIterations);
+        test!(NoVersion, NoVersion, StructLoaderCore)(PerformanceIterations);
         auto orig_no_version = sw.stop();
 
         sw.start();
-        test!(NoVersion, NoVersion)(t, PerformanceIterations);
+        test!(NoVersion, NoVersion)(PerformanceIterations);
         auto new_no_version = sw.stop();
 
         // Those numbers are for the average case, it can very well happen that
         // sometimes a few of those fail. Increase the iteration count to have
         // more reliable results.
-        t.assertLog(new_loader <= original*1.1, "Unexpected performance hit!",
-                    __LINE__);
-        t.assertLog(new_conv <= new_loader*2.5, "Unexpected performance hit!",
-                    __LINE__);
-        t.assertLog(new_conv2 <= new_conv2*1.4, "Unexpected performance hit!",
-                    __LINE__);
-        t.assertLog(new_no_version <= orig_no_version*1.05,
-                    "Unexpected performance hit!", __LINE__);
+        test(new_loader <= original*1.1, "Unexpected performance hit!");
+        test(new_conv <= new_loader*2.5, "Unexpected performance hit!");
+        test(new_conv2 <= new_conv2*1.4, "Unexpected performance hit!");
+        test(new_no_version <= orig_no_version*1.05, "Unexpected performance hit!");
 
         version ( None )
         {

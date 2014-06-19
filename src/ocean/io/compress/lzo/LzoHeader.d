@@ -39,7 +39,7 @@ private import ocean.io.compress.lzo.LzoCrc;
 
 private import ocean.io.compress.CompressException;
 
-private import ocean.core.Exception: assertEx;
+private import ocean.core.Exception: enforce;
 
 debug private import tango.util.log.Trace;
 
@@ -163,7 +163,7 @@ align (1) struct LzoHeader ( bool LengthInline = true )
             static assert ((*this).sizeof == SizeofTuple!(typeof (this.tupleof)),
                            this.ErrMsgSource ~ ": Bad data alignment");
 
-            assertEx!(CompressException)(chunk.length >= this.read_length,
+            enforce!(CompressException)(chunk.length >= this.read_length,
                                          this.ErrMsgSource ~ ": Chunk too short to write header");
 
             this.chunk_length = chunk.length - this.chunk_length.sizeof;
@@ -274,7 +274,7 @@ align (1) struct LzoHeader ( bool LengthInline = true )
         {
             this.read(chunk);
 
-            assertEx!(CompressException)(this.type == Type.Start || this.type == Type.Stop,
+            enforce!(CompressException)(this.type == Type.Start || this.type == Type.Stop,
                                          this.ErrMsgSource ~ ": Not a Start header as expected");
 
             return this;
@@ -408,10 +408,10 @@ align (1) struct LzoHeader ( bool LengthInline = true )
 
                 payload = this.strip(chunk);
 
-                assertEx!(CompressException)(this.lengthValid(chunk),
+                enforce!(CompressException)(this.lengthValid(chunk),
                                          this.ErrMsgSource ~ ": Chunk length mismatch");
 
-                assertEx!(CompressException)(this.crc32_ == this.crc32(payload),
+                enforce!(CompressException)(this.crc32_ == this.crc32(payload),
                                              this.ErrMsgSource ~ ": Chunk data corrupted (CRC32 mismatch)");
             }
 
@@ -566,7 +566,7 @@ align (1) struct LzoHeader ( bool LengthInline = true )
 
         static void[] strip ( void[] chunk )
         {
-            assertEx!(CompressException)(chunk.length >= this.read_length,
+            enforce!(CompressException)(chunk.length >= this.read_length,
                                          this.ErrMsgSource ~ ": Chunk too short to strip header");
 
             return chunk[this.read_length .. $];

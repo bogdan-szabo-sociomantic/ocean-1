@@ -57,7 +57,7 @@ private     import      ocean.io.compress.lzo.LzoHeader;
 
 private     import      ocean.io.compress.CompressException;
 
-private     import      ocean.core.Exception: assertEx;
+private     import      ocean.core.Exception: enforce;
 
 private     import      ocean.util.log.Trace;
 
@@ -211,7 +211,7 @@ class LzoChunk ( bool LengthInline = true )
 
         data.length = header.uncompressed_length;
 
-        assertEx!(CompressException)(header.type == header.type.LZO1X, "Not LZO1X");
+        enforce!(CompressException)(header.type == header.type.LZO1X, "Not LZO1X");
 
         this.lzo.uncompress(buf, data);
 

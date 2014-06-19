@@ -977,68 +977,63 @@ public abstract class EpollProcess
 
 version ( UnitTest )
 {
-    private import ocean.util.Unittest;
+    private import ocean.core.Test;
 }
 
 unittest
 {
-    scope t = new Unittest(__FILE__, "EpollProcessTest");
+    /* IMPORTANT NOTE:
+     * In this unittest block, do not do anything that would cause
+     * EpollProcess to be instantiated with the 'process_monitor' argument
+     * being null. Doing so would result in the singleton process monitor
+     * instance being created even before an application's main function is
+     * entered. This would preclude the application's ability to use the
+     * singleton process monitor instance, as there would be no way for the
+     * application to use the same EpollSelectDispatcher instance as that of
+     * the already created singleton process monitor. */
 
-    with (t)
+    class MyProcess : EpollProcess
     {
-        /* IMPORTANT NOTE:
-         * In this unittest block, do not do anything that would cause
-         * EpollProcess to be instantiated with the 'process_monitor' argument
-         * being null. Doing so would result in the singleton process monitor
-         * instance being created even before an application's main function is
-         * entered. This would preclude the application's ability to use the
-         * singleton process monitor instance, as there would be no way for the
-         * application to use the same EpollSelectDispatcher instance as that of
-         * the already created singleton process monitor. */
-
-        class MyProcess : EpollProcess
+        /* The 'process_monitor' argument of this constructor deliberately
+         * does not have a default value. This makes sure that a process
+         * monitor must be explicitly supplied to create an instance of this
+         * class, and thus prevents automatic creation of the singleton
+         * process monitor. */
+        public this ( EpollSelectDispatcher epoll,
+                      ProcessMonitor process_monitor )
         {
-            /* The 'process_monitor' argument of this constructor deliberately
-             * does not have a default value. This makes sure that a process
-             * monitor must be explicitly supplied to create an instance of this
-             * class, and thus prevents automatic creation of the singleton
-             * process monitor. */
-            public this ( EpollSelectDispatcher epoll,
-                          ProcessMonitor process_monitor )
-            {
-                super(epoll, process_monitor);
-            }
-            protected void stdout ( ubyte[] data ) { }
-            protected void stderr ( ubyte[] data ) { }
-            protected void finished ( bool exited_ok, int exit_code ) { }
+            super(epoll, process_monitor);
         }
+        protected void stdout ( ubyte[] data ) { }
+        protected void stderr ( ubyte[] data ) { }
+        protected void finished ( bool exited_ok, int exit_code ) { }
+    }
 
-        scope epoll1 = new EpollSelectDispatcher;
-        scope epoll2 = new EpollSelectDispatcher;
+    scope epoll1 = new EpollSelectDispatcher;
+    scope epoll2 = new EpollSelectDispatcher;
 
-        scope process_monitor1 = new EpollProcess.ProcessMonitor(epoll1);
-        scope process_monitor2 = new EpollProcess.ProcessMonitor(epoll2);
+    scope process_monitor1 = new EpollProcess.ProcessMonitor(epoll1);
+    scope process_monitor2 = new EpollProcess.ProcessMonitor(epoll2);
 
-        scope proc1 = new MyProcess(epoll1, process_monitor1);
+    scope proc1 = new MyProcess(epoll1, process_monitor1);
 
-        try
-        {
-            // should throw because of mismatch between epoll2 and
-            // process_monitor1.
-            scope proc2 = new MyProcess(epoll2, process_monitor1);
-            assertLog(false, "Expected exception was not thrown", __LINE__);
-        } catch { }
+    try
+    {
+        // should throw because of mismatch between epoll2 and
+        // process_monitor1.
+        scope proc2 = new MyProcess(epoll2, process_monitor1);
+        test(false, "Expected exception was not thrown");
+    } catch { }
 
-        try
-        {
-            // should not throw now because the instances of
-            // EpollSelectDispatcher now match.
-            scope proc2 = new MyProcess(epoll2, process_monitor2);
-        }
-        catch
-        {
-            assertLog(false, "Exception should not have been thrown", __LINE__);
-        }
+    try
+    {
+        // should not throw now because the instances of
+        // EpollSelectDispatcher now match.
+        scope proc2 = new MyProcess(epoll2, process_monitor2);
+    }
+    catch
+    {
+        test(false, "Exception should not have been thrown");
     }
 }
 

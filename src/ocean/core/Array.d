@@ -543,7 +543,7 @@ public T[] uniq ( T, bool sort = true ) ( T[] array )
 
 version ( UnitTest )
 {
-    private import ocean.util.Unittest;
+    private import ocean.core.Test;
 }
 
 /*******************************************************************************
@@ -569,21 +569,17 @@ bool startsWith ( T ) ( T[] arr, T[] prefix )
 
 unittest
 {
-    scope Unittest t = new Unittest(__FILE__, "startsWith");
-    with ( t )
-    {
-        assertLog( startsWith!(char)("abcd", "abc"), __LINE__);
-        assertLog( startsWith!(char)("abcd", "abcd"), __LINE__);
-        assertLog(!startsWith!(char)("ab", "abc"), __LINE__);
-        assertLog( startsWith!(char)("ab", null), __LINE__);
-        assertLog(!startsWith!(char)(null, "xx"), __LINE__);
+    test( startsWith!(char)("abcd", "abc"));
+    test( startsWith!(char)("abcd", "abcd"));
+    test(!startsWith!(char)("ab", "abc"));
+    test( startsWith!(char)("ab", null));
+    test(!startsWith!(char)(null, "xx"));
 
-        assertLog( startsWith!(uint)([1,2,3,4], [1,2,3]), __LINE__);
-        assertLog( startsWith!(uint)([1,2,3,4], [1,2,3,4]), __LINE__);
-        assertLog(!startsWith!(uint)([1,2], [1,2,3]), __LINE__);
-        assertLog( startsWith!(uint)([1,2], null), __LINE__);
-        assertLog(!startsWith!(uint)(null, [1,2]), __LINE__);
-    }
+    test( startsWith!(uint)([1,2,3,4], [1,2,3]));
+    test( startsWith!(uint)([1,2,3,4], [1,2,3,4]));
+    test(!startsWith!(uint)([1,2], [1,2,3]));
+    test( startsWith!(uint)([1,2], null));
+    test(!startsWith!(uint)(null, [1,2]));
 }
 
 /*******************************************************************************
@@ -609,21 +605,17 @@ bool endsWith ( T ) ( T[] arr, T[] suffix )
 
 unittest
 {
-    scope Unittest t = new Unittest(__FILE__, "endsWith");
-    with ( t )
-    {
-        assertLog( endsWith!(char)("abcd", "bcd"), __LINE__);
-        assertLog( endsWith!(char)("abcd", "abcd"), __LINE__);
-        assertLog(!endsWith!(char)("ab", "abc"), __LINE__);
-        assertLog( endsWith!(char)("ab", null), __LINE__);
-        assertLog(!endsWith!(char)(null, "xx"), __LINE__);
+    test( endsWith!(char)("abcd", "bcd"));
+    test( endsWith!(char)("abcd", "abcd"));
+    test(!endsWith!(char)("ab", "abc"));
+    test( endsWith!(char)("ab", null));
+    test(!endsWith!(char)(null, "xx"));
 
-        assertLog( endsWith!(uint)([1,2,3,4], [2,3,4]), __LINE__);
-        assertLog( endsWith!(uint)([1,2,3,4], [1,2,3,4]), __LINE__);
-        assertLog(!endsWith!(uint)([1,2], [1,2,3]), __LINE__);
-        assertLog( endsWith!(uint)([1,2], null), __LINE__);
-        assertLog(!endsWith!(uint)(null, [1,2]), __LINE__);
-    }
+    test( endsWith!(uint)([1,2,3,4], [2,3,4]));
+    test( endsWith!(uint)([1,2,3,4], [1,2,3,4]));
+    test(!endsWith!(uint)([1,2], [1,2,3]));
+    test( endsWith!(uint)([1,2], null));
+    test(!endsWith!(uint)(null, [1,2]));
 }
 
 /*******************************************************************************
@@ -651,30 +643,22 @@ public T[] removePrefix ( T ) ( T[] arr, T[] prefix )
 
 unittest
 {
-    scope Unittest t = new Unittest(__FILE__, "removePrefix");
-    with ( t )
-    {
-        assertLog(removePrefix!(char)("abcd", "abc") == "d", __LINE__);
-        assertLog(removePrefix!(char)("abcd", "abcd") == "", __LINE__);
-        assertLog(removePrefix!(char)("abcd", "abcde") == "abcd", __LINE__);
-        assertLog(removePrefix!(char)("abcd", null) == "abcd", __LINE__);
-        assertLog(removePrefix!(char)(null, "xx") == "", __LINE__);
-        assertLog("abcd".removePrefix("abc") == "d", __LINE__);
-        assertLog("abcd".removePrefix("abcd") == "", __LINE__);
-        assertLog("abcd".removePrefix("abcde") == "abcd", __LINE__);
-        assertLog("abcd".removePrefix("") == "abcd", __LINE__);
-        assertLog("".removePrefix("xx") == "", __LINE__);
+    test(removePrefix!(char)("abcd", "abc") == "d");
+    test(removePrefix!(char)("abcd", "abcd") == "");
+    test(removePrefix!(char)("abcd", "abcde") == "abcd");
+    test(removePrefix!(char)("abcd", null) == "abcd");
+    test(removePrefix!(char)(null, "xx") == "");
+    test("abcd".removePrefix("abc") == "d");
+    test("abcd".removePrefix("abcd") == "");
+    test("abcd".removePrefix("abcde") == "abcd");
+    test("abcd".removePrefix("") == "abcd");
+    test("".removePrefix("xx") == "");
 
-        assertLog(removePrefix!(uint)([1,2,3,4], [1,2,3]) == cast(uint[])[4],
-                  __LINE__);
-        assertLog(removePrefix!(uint)([1,2,3,4], [1,2,3,4]) == cast(uint[])[],
-                  __LINE__);
-        assertLog(removePrefix!(uint)([1,2], [1,2,3]) == cast(uint[])[1,2],
-                  __LINE__);
-        assertLog(removePrefix!(uint)([1,2], null) == cast(uint[])[1,2],
-                  __LINE__);
-        assertLog(removePrefix!(uint)(null, [1,2]) == cast(uint[])[], __LINE__);
-    }
+    test(removePrefix!(uint)([1,2,3,4], [1,2,3]) == cast(uint[])[4]);
+    test(removePrefix!(uint)([1,2,3,4], [1,2,3,4]) == cast(uint[])[]);
+    test(removePrefix!(uint)([1,2], [1,2,3]) == cast(uint[])[1,2]);
+    test(removePrefix!(uint)([1,2], null) == cast(uint[])[1,2]);
+    test(removePrefix!(uint)(null, [1,2]) == cast(uint[])[]);
 }
 
 /*******************************************************************************
@@ -702,30 +686,22 @@ public T[] removeSuffix ( T ) ( T[] arr, T[] suffix )
 
 unittest
 {
-    scope Unittest t = new Unittest(__FILE__, "removeSuffix");
-    with ( t )
-    {
-        assertLog(removeSuffix!(char)("abcd", "cd") == "ab", __LINE__);
-        assertLog(removeSuffix!(char)("abcd", "abcd") == "", __LINE__);
-        assertLog(removeSuffix!(char)("abcd", "abcde") == "abcd", __LINE__);
-        assertLog(removeSuffix!(char)("abcd", null) == "abcd", __LINE__);
-        assertLog(removeSuffix!(char)(null, "xx") == "", __LINE__);
-        assertLog("abcd".removeSuffix("cd") == "ab", __LINE__);
-        assertLog("abcd".removeSuffix("abcd") == "", __LINE__);
-        assertLog("abcd".removeSuffix("abcde") == "abcd", __LINE__);
-        assertLog("abcd".removeSuffix("") == "abcd", __LINE__);
-        assertLog("".removeSuffix("xx") == "", __LINE__);
+    test(removeSuffix!(char)("abcd", "cd") == "ab");
+    test(removeSuffix!(char)("abcd", "abcd") == "");
+    test(removeSuffix!(char)("abcd", "abcde") == "abcd");
+    test(removeSuffix!(char)("abcd", null) == "abcd");
+    test(removeSuffix!(char)(null, "xx") == "");
+    test("abcd".removeSuffix("cd") == "ab");
+    test("abcd".removeSuffix("abcd") == "");
+    test("abcd".removeSuffix("abcde") == "abcd");
+    test("abcd".removeSuffix("") == "abcd");
+    test("".removeSuffix("xx") == "");
 
-        assertLog(removeSuffix!(uint)([1,2,3,4], [2,3,4]) == cast(uint[])[1],
-                  __LINE__);
-        assertLog(removeSuffix!(uint)([1,2,3,4], [1,2,3,4]) == cast(uint[])[],
-                  __LINE__);
-        assertLog(removeSuffix!(uint)([1,2], [1,2,3]) == cast(uint[])[1,2],
-                  __LINE__);
-        assertLog(removeSuffix!(uint)([1,2], null) == cast(uint[])[1,2],
-                  __LINE__);
-        assertLog(removeSuffix!(uint)(null, [1,2]) == cast(uint[])[], __LINE__);
-    }
+    test(removeSuffix!(uint)([1,2,3,4], [2,3,4]) == cast(uint[])[1]);
+    test(removeSuffix!(uint)([1,2,3,4], [1,2,3,4]) == cast(uint[])[]);
+    test(removeSuffix!(uint)([1,2], [1,2,3]) == cast(uint[])[1,2]);
+    test(removeSuffix!(uint)([1,2], null) == cast(uint[])[1,2]);
+    test(removeSuffix!(uint)(null, [1,2]) == cast(uint[])[]);
 }
 
 /*******************************************************************************

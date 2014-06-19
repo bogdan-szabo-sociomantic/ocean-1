@@ -330,34 +330,29 @@ class MemoryDevice : IConduit
 version ( UnitTest )
 {
     import ocean.util.log.Trace;
-    import ocean.util.Unittest;
+    import ocean.core.Test;
 }
 
 unittest
 {
-    scope Unittest t = new Unittest(__FILE__, "MemoryDevice");
+    auto m = new MemoryDevice;
 
-    with ( t )
-    {
-        auto m = new MemoryDevice;
+    auto data = "This is a string";
 
-        auto data = "This is a string";
+    auto dst = new void[data.length];
 
-        auto dst = new void[data.length];
+    test!("==")(m.position, 0);
+    m.write(data);
+    test(m.data == cast(ubyte[])data);
+    test!("==")(m.position, data.length);
 
-        assertLog(m.position == 0);
-        m.write(data);
-        assertLog(m.data == cast(ubyte[])data);
-        assertLog(m.position == data.length);
+    m.seek(0);
+    m.read(dst);
+    test(dst == data);
+    test!("==")(m.position, data.length);
 
-        m.seek(0);
-        m.read(dst);
-        assertLog(dst == data);
-        assertLog(m.position == data.length);
-
-        m.seek(0);
-        m.write(data);
-        assertLog(m.data == cast(ubyte[])data);
-        assertLog(m.position == data.length);
-    }
+    m.seek(0);
+    m.write(data);
+    test(m.data == cast(ubyte[])data);
+    test!("==")(m.position, data.length);
 }

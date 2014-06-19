@@ -1020,7 +1020,7 @@ protected void readFields ( T, Source )
 
 debug ( OceanUnitTest )
 {
-    private import ocean.util.Unittest;
+    private import ocean.core.Test;
 
     class DummyParser : ConfigParser
     {
@@ -1046,11 +1046,9 @@ debug ( OceanUnitTest )
     {
         auto iter = iterate!(Dummy)("ROOT", new DummyParser);
 
-        scope t = new Unittest(__FILE__, "Config.ClassFiller");
-
         foreach ( name, conf; iter )
         {
-            t.assertLog(name == "valid", __LINE__);
+            test!("==")(name, "valid");
         }
 
 
@@ -1093,12 +1091,12 @@ float_arr = 10.2
         config_parser.parseString(config_text);
 
         readFields("Section", single_values, config_parser);
-        assert(single_values.string == "I'm a string",
+        test(single_values.string == "I'm a string",
                                              "classFiller: Wrong string parse");
-        assert(single_values.integer == -300, "classFiller: Wrong int parse");
-        assert(single_values.pi == cast(float)3.14,
+        test(single_values.integer == -300, "classFiller: Wrong int parse");
+        test(single_values.pi == cast(float)3.14,
                                               "classFiller: Wrong float parse");
-        assert(single_values.default_value == 99,
+        test(single_values.default_value == 99,
                                       "classFiller: wrong default value parse");
 
 
@@ -1112,15 +1110,15 @@ float_arr = 10.2
 
         auto array_values = new ArrayValues();
         readFields("SectionArray", array_values, config_parser);
-        assert(array_values.string_arr == ["Hello", "World"],
+        test(array_values.string_arr == ["Hello", "World"],
                                        "classFiller: Wrong string-array parse");
-        assert(array_values.int_arr == [30, 40, -60, 1111111111, 0x10],
+        test(array_values.int_arr == [30, 40, -60, 1111111111, 0x10],
                                           "classFiller: Wrong int-array parse");
         ulong[] ulong_array = [0, 50, ulong.max, 0xa123bcd];
-        assert(array_values.ulong_arr == ulong_array,
+        test(array_values.ulong_arr == ulong_array,
                                         "classFiller: Wrong ulong-array parse");
         float[] float_array = [10.2, -25.3, 90, 0.000000001];
-        assert(array_values.float_arr == float_array,
+        test(array_values.float_arr == float_array,
                                         "classFiller: Wrong float-array parse");
     }
 }

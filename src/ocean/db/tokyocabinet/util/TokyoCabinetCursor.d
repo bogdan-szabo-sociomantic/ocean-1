@@ -28,7 +28,7 @@ module ocean.db.tokyocabinet.util.TokyoCabinetCursor;
 
  ******************************************************************************/
 
-private import ocean.core.Exception: assertEx;
+private import ocean.core.Exception: enforce;
 
 private import ocean.db.tokyocabinet.c.util.tcxstr:  TCXSTR;
 private import ocean.db.tokyocabinet.c.bdb.tcbdbcur: BDBCUR,
@@ -278,7 +278,7 @@ class TokyoCabinetCursor
 
         char* key_ = cast (char*) tcbdbcurkey3(this.cursor, &len);
 
-        assertEx!(TokyoCabinetException.Cursor)(!!key_, This.stringof ~ ".get: key not found");
+        enforce!(TokyoCabinetException.Cursor)(!!key_, This.stringof ~ ".get: key not found");
 
         key = key_[0 .. len];
 
@@ -316,7 +316,7 @@ class TokyoCabinetCursor
     {
         bool ok = func(this.cursor, args);
 
-        assertEx!(TokyoCabinetException.Cursor)(ok, This.stringof ~ '.' ~ fname ~ ": key not found");
+        enforce!(TokyoCabinetException.Cursor)(ok, This.stringof ~ '.' ~ fname ~ ": key not found");
 
         return this;
     }

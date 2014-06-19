@@ -52,7 +52,7 @@ module ocean.io.serialize.SimpleSerializer;
 
 *******************************************************************************/
 
-private import ocean.core.Exception: assertEx;
+private import ocean.core.Exception: enforce;
 
 private import tango.core.Exception: IOException;
 
@@ -367,7 +367,7 @@ static:
 
             }
 
-            assertEx!(IOException)(ret != stream.Eof, "end of flow while " ~ act);
+            enforce!(IOException)(ret != stream.Eof, "end of flow while " ~ act);
 
             transmitted += ret;
         }

@@ -512,7 +512,7 @@ struct TwoWayMap ( A, B, bool Indexed = false )
         public size_t* indexOf ( A a )
         {
             auto index = a in this.a_to_index;
-            assertEx(index, typeof(this).stringof ~ ".indexOf - element not present in map");
+            enforce(index, typeof(this).stringof ~ ".indexOf - element not present in map");
             return index;
         }
     }
@@ -537,7 +537,7 @@ struct TwoWayMap ( A, B, bool Indexed = false )
         public size_t* indexOf ( B b )
         {
             auto index = b in this.b_to_index;
-            assertEx(index, typeof(this).stringof ~ ".indexOf - element not present in map");
+            enforce(index, typeof(this).stringof ~ ".indexOf - element not present in map");
             return index;
         }
     }
