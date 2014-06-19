@@ -467,6 +467,9 @@ If you have a test script, you can easily add the target to run that script to
 
 Then when you run ``make test`` both the *unittests* and your test will run.
 
+Skipping modules
+~~~~~~~~~~~~~~~~
+
 If you want to skip some module from the *unittest* run, you can add files to
 the special variable ``$(TEST_FILTER_OUT)``. This should be done in the
 Build.mak_ file normally. The contents of this variable are used as arguments
@@ -480,6 +483,28 @@ Examples::
                 $C/src/brokenpackage/%
 
 Always use ``+=``, there might be other predefined modules to skip.
+
+Adding specific flags for modules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some modules might need special flags for the unittest to compile it properly that 
+aren't part of the main flags, e.g. when it was overriden for specific targets.
+
+For those cases you can add module specific flags.
+
+Example::
+
+        $U/src/ocean/io/console/StructTable \
+        $U/src/ocean/io/console/Tables \
+        $U/src/ocean/text/url/PercentEncoding: \
+	        override LDFLAGS += -lglib-2.0
+
+Links those three modules with the glib-2.0 library.
+Often it can be convenient to use wildcards for this to cover whole folders.
+
+Example::
+
+        $U/src/mod/loganalyze/%: override LDFLAGS += -lglib-2.0
 
 
 
