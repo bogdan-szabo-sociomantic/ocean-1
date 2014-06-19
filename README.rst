@@ -27,16 +27,28 @@ New Features
 
 ``ocean.core.Exception``
   ``assertEx`` functions replaced with ``enforce`` with similar functionality but
-  different API. Check https://github.com/sociomantic/ocean/wiki/Standard-error-handling-and-testing for details.
-  Requires dmd1 package version 1.076.s2
+  different API. Requires dmd1 package version "1.076.s2".
+  Check https://github.com/sociomantic/ocean/wiki/Standard-error-handling-and-testing for details.
+
+``ocean.core.Test``
+  New module that defines standard exception type to be thrown from unit tests
+  and provides set of helper functions similar to ``enforce`` that throw exactly
+  this exception type. Also has ``NamedTest`` class for better error reporting
+  in complicated unit tests.
+  Check https://github.com/sociomantic/ocean/wiki/Standard-error-handling-and-testing for details.
 
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
 ``ocean.core.Exception``
-  Renamed ``assertEx`` to ``enforce``. If variadic argument list has been used, format
+  Rename ``assertEx`` to ``enforce``. If variadic argument list has been used, format
   it into single message argument at call site (this argument is lazy). You can also
   remove explicit mentions of __FILE__ and __LINE__ (not necessary but recommended).
+
+``ocean.util.Unittest``
+  This module is deprecated. Replace ``assertLog`` with ``ocean.core.Test.test``. Where
+  necessary, replace ``Unittest`` with ``NamedTest``. NB: ``NamedTest`` is NOT as scope
+  class.
 
 
 v1.14 (2014-06-20)

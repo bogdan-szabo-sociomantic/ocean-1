@@ -13,6 +13,9 @@
 
 module ocean.util.Unittest;
 
+pragma(msg, "ocean.util.Unittest is completely deprecated");
+pragma(msg, "   use ocean.core.Test instead.");
+
 /*******************************************************************************
 
     Imports
@@ -37,6 +40,7 @@ private import tango.text.convert.Format;
 
 *******************************************************************************/
 
+deprecated
 class TestException : Exception
 {
     /***************************************************************************
@@ -142,6 +146,7 @@ class TestException : Exception
 
 *******************************************************************************/
 
+deprecated
 scope class Unittest
 {
     /***************************************************************************
