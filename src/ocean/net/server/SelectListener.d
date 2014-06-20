@@ -20,8 +20,8 @@
         import tango.io.select.EpollSelector;
         import ocean.io.select.SelectDispatcher;
 
-        import ocean.io.select.SelectListener;
-        import ocean.io.select.model.IConnectionHandler;
+        import ocean.net.server.SelectListener;
+        import ocean.net.server.connection.IConnectionHandler;
 
         class MyConnectionHandler : IConnectionHandler
         {
@@ -100,7 +100,7 @@ private import tango.util.log.Log;
 static private Logger log;
 static this ( )
 {
-    log = Log.lookup("ocean.io.select.SelectListener");
+    log = Log.lookup("ocean.net.server.SelectListener");
 }
 
 /******************************************************************************
