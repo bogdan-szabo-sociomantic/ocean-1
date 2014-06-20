@@ -54,6 +54,11 @@ Migration Instructions
 ``ocean.util.app.ext.UnittestExt``
   These modules are deprecated, simply remove them from your application extensions.
 
+``ocean.core.Cache``
+``ocean.util.Main``
+  These modules are completely removed being deprecated for many ocean releases now.
+  You should have stopped using them long time ago.
+
 v1.14 (2014-06-20)
 ------------------
 
