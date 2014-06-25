@@ -77,6 +77,8 @@ alias                   UnixTime!(false)               UnixTimeLocal;
     time_t = gmt.now;
     ---
 
+    Note: Deprecated, use parseDateAndTime from tango.time.ISO8601 instead.
+
  ******************************************************************************/
 
 deprecated struct UnixTime( bool GMT = true )
