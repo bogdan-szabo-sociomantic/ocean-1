@@ -701,8 +701,6 @@ private template MixinCore ( T ... )
 
 public template SmartEnum ( char[] Name, T ... )
 {
-    pragma(msg, "Expanding SmartEnum template: " ~ Name);
-
     static if ( T.length > 0 )
     {
         const char[] SmartEnum = "class " ~ Name ~ " : ISmartEnum { " ~ DeclareEnum!(T) ~
