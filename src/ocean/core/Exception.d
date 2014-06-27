@@ -28,6 +28,7 @@ private import tango.text.convert.Format;
 
     Template Params:
         E = exception type to create and throw
+        T = type of expression to test
 
     Params:
         ok = result of expression
@@ -113,6 +114,10 @@ unittest
 
     In D2 we will be able to call this via UFCS:
         exception.enforce(1 == 1);
+
+    Template Params:
+        E = exception type to create and throw
+        T = type of expression to test
 
     Params:
         e = exception instance to throw in case of an error
@@ -212,9 +217,12 @@ unittest
     Template Params:
         op = binary operator string
         E = exception type to create and throw
+        T1 = type of left operand
+        T2 = type of right operand
 
     Params:
-        ok = result of expression
+        a = left operand
+        b = right operand
         file = file of origin
         line = line of origin
 
@@ -291,9 +299,16 @@ unittest
 
     ditto
 
+    Template Params:
+        op = binary operator string
+        E = exception type to create and throw
+        T1 = type of left operand
+        T2 = type of right operand
+
     Params:
         e = exception instance to throw in case of an error
-        ok = result of expression
+        a = left operand
+        b = right operand
         msg = optional custom message for exception
         file = file of origin
         line = line of origin
