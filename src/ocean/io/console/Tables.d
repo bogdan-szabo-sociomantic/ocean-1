@@ -1355,3 +1355,65 @@ public class Table
     }
 }
 
+version ( UnitTest ) private import tango.io.device.Array : Array, FormatOutput;
+
+unittest
+{
+    auto buffer = new Array(1024, 1024);
+
+    scope output = new FormatOutput!(char) (buffer);
+
+    scope table = new Table(4);
+
+    table.firstRow.setDivider();
+
+    table.nextRow.set(Table.Cell.Merged, Table.Cell.String("0xdb6db6e4 .. 0xedb6db76"),
+                      Table.Cell.Merged, Table.Cell.String("0xedb6db77 .. 0xffffffff"));
+
+    table.nextRow.setDivider();
+
+    table.nextRow.set(Table.Cell.String("Records"), Table.Cell.String("Bytes"),
+                      Table.Cell.String("Records"), Table.Cell.String("Bytes"));
+
+    table.nextRow.setDivider();
+
+    struct Node
+    {
+        int records1, records2, bytes1, bytes2;
+    }
+
+    const nodes =
+    [
+        Node(123456, 789012, 345678, 901234),
+        Node(901234, 123456, 789012, 345678),
+        Node(345678, 901234, 123456, 789012),
+    ];
+
+    foreach ( node; nodes )
+    {
+        table.nextRow.set(Table.Cell.Integer(node.records1), Table.Cell.Integer(node.bytes1),
+                          Table.Cell.Integer(node.records2), Table.Cell.Integer(node.bytes2));
+    }
+
+    table.nextRow.setDivider();
+
+    table.display(output);
+
+    // note: The string literal embeds escape characters, which are used by
+    // the table functions to set foreground/background colors in the console.
+const check =
+`------------------------------------------------------
+ 0xdb6db6e4 .. 0xedb6db76 [39m[49m| 0xedb6db77 .. 0xffffffff [39m[49m|
+------------------------------------------------------
+     Records [39m[49m|      Bytes [39m[49m|     Records [39m[49m|      Bytes [39m[49m|
+------------------------------------------------------
+     123,456 [39m[49m|    345,678 [39m[49m|     789,012 [39m[49m|    901,234 [39m[49m|
+     901,234 [39m[49m|    789,012 [39m[49m|     123,456 [39m[49m|    345,678 [39m[49m|
+     345,678 [39m[49m|    123,456 [39m[49m|     901,234 [39m[49m|    789,012 [39m[49m|
+------------------------------------------------------
+`;
+
+    auto result = cast(char[])buffer.slice();
+
+    assert(result == check, result);
+}
