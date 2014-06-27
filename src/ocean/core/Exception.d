@@ -126,7 +126,7 @@ unittest
 
 ******************************************************************************/
 
-public void enforce ( E : Exception, T ) ( ref E e, T ok, lazy char[] msg = "",
+public void enforce ( E : Exception, T ) ( E e, T ok, lazy char[] msg = "",
     char[] file = __FILE__, size_t line = __LINE__ )
 {
     if (!ok)
@@ -197,6 +197,9 @@ unittest
         assert(e.msg == "custom message");
         assert(e.line == __LINE__ - 7);
     }
+
+    // Check that enforce won't try to modify the exception reference
+    static assert(is(typeof(enforce(new Exception("test"), true))));
 }
 
 /******************************************************************************
@@ -300,7 +303,7 @@ unittest
 
 ******************************************************************************/
 
-public void enforce ( char[] op, E : Exception, T1, T2 ) ( ref E e, T1 a,
+public void enforce ( char[] op, E : Exception, T1, T2 ) ( E e, T1 a,
     T2 b, char[] file = __FILE__, size_t line = __LINE__ )
 {
     mixin("auto ok = a " ~ op ~ " b;");
@@ -341,6 +344,9 @@ unittest
         assert(e.msg == "expression '3 > 4' evaluates to false");
         assert(e.line == __LINE__ - 6);
     }
+
+    // Check that enforce won't try to modify the exception reference
+    static assert(is(typeof(enforce!("==")(new Exception("test"), 2, 3))));
 }
 
 /******************************************************************************
