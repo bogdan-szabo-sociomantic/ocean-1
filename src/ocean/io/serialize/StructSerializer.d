@@ -97,7 +97,7 @@ module ocean.io.serialize.StructSerializer;
 
 private import ocean.io.serialize.SimpleSerializer;
 
-private import ocean.core.Exception: assertEx;
+private import ocean.core.Exception;
 
 private import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
 
@@ -1211,7 +1211,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
     private void assertLongEnough ( size_t pos, size_t data_length )
     {
-        assertEx(pos <= data_length, typeof (*this).stringof ~ " input data too short");
+        enforce(pos <= data_length, typeof (*this).stringof ~ " input data too short");
     }
 
     /**************************************************************************
