@@ -1,7 +1,7 @@
 #!/bin/sh
 # Defaults
 rev_file=src/Version.d
-author="`id -un`"
+author="`git config user.name`"
 get_rev=`dirname $0`/git-rev-desc
 
 if which dmd1 > /dev/null
