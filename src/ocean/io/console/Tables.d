@@ -131,7 +131,7 @@ private import ocean.text.util.MetricPrefix;
 
 private import tango.io.stream.Format;
 
-private import tango.text.convert.Layout;
+private import ocean.text.convert.Layout;
 
 private import ocean.io.Stdout;
 
@@ -648,12 +648,6 @@ public class Table
                     Terminal.CSI.dup ~ Terminal.fg_colour_codes[Terminal.Colour.Default] ~
                     Terminal.CSI.dup ~ Terminal.bg_colour_codes[Terminal.Colour.Default];
 
-                uint layoutSink ( char[] s )
-                {
-                    content_buf ~= s;
-                    return s.length;
-                }
-
                 // set the colour of this cell
                 if ( this.fg_colour_string.length > 0 ||
                      this.bg_colour_string.length > 0 )
@@ -690,13 +684,13 @@ public class Table
 
                             if ( metric.prefix == ' ' )
                             {
-                                Layout!(char).instance().convert(&layoutSink,
+                                Layout!(char).print(content_buf,
                                     "{}      {}", cast(uint)metric.scaled,
                                     this.metric_string);
                             }
                             else
                             {
-                                Layout!(char).instance().convert(&layoutSink,
+                                Layout!(char).print(content_buf,
                                     "{} {}i{}", metric.scaled, metric.prefix,
                                     this.metric_string);
                             }
@@ -709,13 +703,13 @@ public class Table
 
                             if ( metric.prefix == ' ' )
                             {
-                                Layout!(char).instance().convert(&layoutSink,
+                                Layout!(char).print(content_buf,
                                     "{}     {}", cast(uint)metric.scaled,
                                     this.metric_string);
                             }
                             else
                             {
-                                Layout!(char).instance().convert(&layoutSink,
+                                Layout!(char).print(content_buf,
                                     "{} {}{}", metric.scaled, metric.prefix,
                                     this.metric_string);
                             }
@@ -725,7 +719,8 @@ public class Table
                             break;
                         case Type.Float:
                             content_buf.length = 0;
-                            Layout!(char).instance().convert(&layoutSink, "{}", this.contents.floating);
+                            Layout!(char).print(content_buf,
+                                    "{}", this.contents.floating);
                             break;
                         case Type.String:
                             content_buf = this.contents.string;
