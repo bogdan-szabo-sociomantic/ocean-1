@@ -26,7 +26,7 @@ $git rev-parse --git-dir > /dev/null || {
     echo "$0: $1 is not a git repository! Aborting..." >&2
     exit 1
 }
-branch=`$git describe --exact-match 2> /dev/null`
+branch=`$git describe --tag --exact-match 2> /dev/null`
 test -z "$branch" &&
     branch=`$git rev-parse --abbrev-ref HEAD`
 test "$branch" = HEAD &&
