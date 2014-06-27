@@ -303,6 +303,15 @@ public class AppStatus
         position so that the static lines are still at the bottom of the
         display.
 
+        Note:
+            A decrease in the number of static lines will result in one or more
+            blank lines appearing in the upper streaming portion of the output.
+            This is because on reducing the number of static lines, more space
+            is created for the streaming portion, but without anything to be
+            displayed there. The number of blank lines thus created will be
+            equal to the amount by which the number of static lines are being
+            reduced.
+
         Params:
             size = number of loglines that are to be displayed below the
                     title line
@@ -314,8 +323,36 @@ public class AppStatus
 
     public size_t num_static_lines ( size_t size )
     {
-        this.static_lines.length = size;
         this.resetStaticLines();
+
+        if ( this.static_lines.length > size )
+        {
+            // The number of static lines are being reduced
+
+            // First remove the already displayed static lines from the console
+            this.resetCursorPosition();
+
+            // ...and then remove the static lines header
+            Stdout.clearline.cr.flush.up;
+        }
+        else if ( this.static_lines.length < size )
+        {
+            // The number of static lines are being increased
+
+            // First remove the static lines header
+            Stdout.clearline.cr.flush.up;
+
+            // ...and then push up the streaming portion on the top by
+            //        the new number of static lines
+            //        + the static lines header
+            //        + the static lines footer
+            for ( auto i = 0; i < (size + 2); ++i )
+            {
+                Stdout.formatln("");
+            }
+        }
+
+        this.static_lines.length = size;
         this.resetCursorPosition();
         return this.static_lines.length;
     }
