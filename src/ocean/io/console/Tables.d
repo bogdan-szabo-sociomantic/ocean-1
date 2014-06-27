@@ -207,16 +207,19 @@ public class Table
 
                 Params:
                     integer = integer to put in cell
+                    use_thousands_separator = if true the integer will be
+                                              "thousands" comma-separated.
 
                 Returns:
                     new cell struct
 
             *******************************************************************/
 
-            static public Cell Integer ( ulong integer )
+            static public Cell Integer ( ulong integer,
+                bool use_thousands_separator = true )
             {
                 Cell cell;
-                cell.setInteger(integer);
+                cell.setInteger(integer, use_thousands_separator);
                 return cell;
             }
 
@@ -386,6 +389,16 @@ public class Table
 
             /*******************************************************************
 
+                When enabled and the type is an integer, the output will be
+                "thousands" comma-separated, e.g.: "1,234,567"
+
+            *******************************************************************/
+
+            private bool use_thousands_separator;
+
+
+            /*******************************************************************
+
                 Sets the cell to contain a string.
 
                 Params:
@@ -411,15 +424,19 @@ public class Table
 
                 Params:
                     num = integer to set
+                    use_thousands_separator = if true the integer will be
+                                              "thousands" comma-separated.
 
                 Returns:
                     this instance for method chaining
 
             *******************************************************************/
 
-            public typeof(this) setInteger ( ulong num )
+            public typeof(this) setInteger ( ulong num,
+                bool use_thousands_separator = true )
             {
                 this.type = Type.Integer;
+                this.use_thousands_separator = use_thousands_separator;
                 this.contents.integer = num;
 
                 return this;
@@ -616,7 +633,7 @@ public class Table
                         return this.floatWidth(metric.scaled) + 2 +
                             this.metric_string.length;
                     case Cell.Type.Integer:
-                        return DigitGrouping.length(this.contents.integer);
+                        return this.integerWidth(this.contents.integer);
                     case Cell.Type.Float:
                         return this.floatWidth(this.contents.floating);
                     case Cell.Type.String:
@@ -715,7 +732,16 @@ public class Table
                             }
                             break;
                         case Type.Integer:
-                            DigitGrouping.format(this.contents.integer, content_buf);
+                            if ( this.use_thousands_separator )
+                            {
+                                DigitGrouping.format(this.contents.integer, content_buf);
+                            }
+                            else
+                            {
+                                content_buf.length = 0;
+                                Layout!(char).print(content_buf,
+                                    "{}", this.contents.integer);
+                            }
                             break;
                         case Type.Float:
                             content_buf.length = 0;
@@ -740,6 +766,37 @@ public class Table
 
                     output.format("|");
                 }
+            }
+
+
+            /*******************************************************************
+
+                Calculates the number of characters required to display
+                an integer (the number of digits)
+
+                Params:
+                    i = integer to calculate width of
+
+                Returns:
+                    number of characters required to display i
+
+            *******************************************************************/
+
+            private size_t integerWidth ( ulong i )
+            {
+                if ( this.use_thousands_separator )
+                {
+                    return DigitGrouping.length(i);
+                }
+
+                size_t digits;
+                while (i)
+                {
+                    i /= 10;
+                    ++digits;
+                }
+
+                return digits;
             }
 
 
@@ -1384,10 +1441,15 @@ unittest
         Node(345678, 901234, 123456, 789012),
     ];
 
+    static bool use_thousands = true;
+    static bool dont_use_thousands = false;
+
     foreach ( node; nodes )
     {
-        table.nextRow.set(Table.Cell.Integer(node.records1), Table.Cell.Integer(node.bytes1),
-                          Table.Cell.Integer(node.records2), Table.Cell.Integer(node.bytes2));
+        table.nextRow.set(Table.Cell.Integer(node.records1),
+                          Table.Cell.Integer(node.bytes1, use_thousands),
+                          Table.Cell.Integer(node.records2, dont_use_thousands),
+                          Table.Cell.Integer(node.bytes2, dont_use_thousands));
     }
 
     table.nextRow.setDivider();
@@ -1402,9 +1464,9 @@ const check =
 ------------------------------------------------------
      Records [39m[49m|      Bytes [39m[49m|     Records [39m[49m|      Bytes [39m[49m|
 ------------------------------------------------------
-     123,456 [39m[49m|    345,678 [39m[49m|     789,012 [39m[49m|    901,234 [39m[49m|
-     901,234 [39m[49m|    789,012 [39m[49m|     123,456 [39m[49m|    345,678 [39m[49m|
-     345,678 [39m[49m|    123,456 [39m[49m|     901,234 [39m[49m|    789,012 [39m[49m|
+     123,456 [39m[49m|    345,678 [39m[49m|      789012 [39m[49m|     901234 [39m[49m|
+     901,234 [39m[49m|    789,012 [39m[49m|      123456 [39m[49m|     345678 [39m[49m|
+     345,678 [39m[49m|    123,456 [39m[49m|      901234 [39m[49m|     789012 [39m[49m|
 ------------------------------------------------------
 `;
 
