@@ -55,6 +55,11 @@ New Features
   New module with a struct for basic operations (overlaps, subset, superset,
   subtract, etc) over integer ranges.
 
+``ocean.io.console.Tables``
+  The Tables API now has an optional thousands comma separation for columns
+  with integer values. Previously comma separation was hardcoded-in, but is
+  now toggle-able. The new API preserves backwards compatibility.
+
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
