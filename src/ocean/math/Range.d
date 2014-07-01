@@ -765,3 +765,19 @@ public struct Range ( T )
     }
 }
 
+
+
+/*******************************************************************************
+
+    Unittest to instantiate the Range template with all supported types, in turn
+    running the unittests for each of them.
+
+*******************************************************************************/
+
+unittest
+{
+    Range!(ubyte) br;
+    Range!(ushort) sr;
+    Range!(ulong) lr;
+}
+
