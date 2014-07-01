@@ -51,6 +51,10 @@ New Features
   If received byte buffer has version with no matching ``StructPrevious`` or
   ``StructNext`` aliases for this struct, runtime error will happen.
 
+``ocean.math.Range``
+  New module with a struct for basic operations (overlaps, subset, superset,
+  subtract, etc) over integer ranges.
+
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
