@@ -221,8 +221,13 @@ public struct Range ( T )
 
     /***************************************************************************
 
+        Note that in non-release builds, the struct invariant ensures that
+        instances are always valid. This method can be called by user code to
+        explicitly check the validity of a range, for example when creating a
+        range from run-time data.
+
         Returns:
-            true if the range is valid (min <= max)
+            true if the range is valid (min < max, or empty)
 
     ***************************************************************************/
 
