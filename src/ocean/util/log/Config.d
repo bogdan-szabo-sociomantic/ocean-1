@@ -309,7 +309,7 @@ static this ( )
         Source = the type of the config parser
         FileLayout = layout to use for logging to file, defaults to LayoutDate
         ConsoleLayout = layout to use for logging to console, defaults to
-                        SimpleLayout
+                        LayoutSimple
 
     Params:
         config   = an instance of an class iterator for Config
