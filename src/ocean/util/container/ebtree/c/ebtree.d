@@ -255,9 +255,6 @@
 
 module ocean.util.container.ebtree.c.ebtree;
 
-/* Force linking to libzlo2 when using this module. */
-pragma (lib, "ebtree");
-
 
 /* This is the same as an eb_node pointer, except that the lower bit embeds
  * a tag. See eb_dotag()/eb_untag()/eb_gettag(). This tag has two meanings :

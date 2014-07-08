@@ -58,6 +58,7 @@ $U/src/ocean/db/tokyocabinet/TokyoCabinetH \
 $U/src/ocean/db/tokyocabinet/TokyoCabinetM: \
 	override LDFLAGS += -ltokyocabinet
 
-$U/src/ocean/io/compress/lzo/c/lzo_crc: \
+$U/src/ocean/io/compress/Lzo \
+$U/src/ocean/io/compress/lzo/%: \
 	override LDFLAGS += -llzo2
 

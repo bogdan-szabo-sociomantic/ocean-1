@@ -75,6 +75,11 @@ New Features
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
+``ocean.util.container.ebtree``, ``ocean.io.compress.lzo``
+  These modules don't use a ``pragma(lib, ...)`` anymore, so you need to
+  explicitly link using ``-lebtree`` or ``-llzo2`` now. Make sure to update
+  your Makefiles.
+
 ``ocean.core.Exception``
   Rename ``assertEx`` to ``enforce``. If variadic argument list has been used, format
   it into single message argument at call site (this argument is lazy). You can also
