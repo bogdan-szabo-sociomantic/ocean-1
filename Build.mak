@@ -42,22 +42,9 @@ $U/src/ocean/util/container/cache/CachingDataLoader \
 $U/src/ocean/util/container/cache/CachingStructLoader \
 $U/src/ocean/time/timeout/model/ExpiryRegistrationBase \
 $U/src/ocean/time/timeout/TimeoutManager \
-$U/src/ocean/io/select/event/Scheduler \
+$U/src/ocean/io/select/client/Scheduler \
 $U/src/ocean/io/select/timeout/TimerEventTimeoutManager \
-$U/src/ocean/db/ebtree/model/IEBTree \
-$U/src/ocean/db/ebtree/EBTree32 \
-$U/src/ocean/db/ebtree/EBTree64 \
-$U/src/ocean/db/ebtree/EBTree128 \
-$U/src/ocean/db/ebtree/c/eb64tree \
-$U/src/ocean/db/ebtree/c/ebnode \
-$U/src/ocean/db/ebtree/c/ebsttree \
-$U/src/ocean/db/ebtree/c/ebimtree \
-$U/src/ocean/db/ebtree/c/ebistree \
-$U/src/ocean/db/ebtree/c/ebpttree \
-$U/src/ocean/db/ebtree/c/ebmbtree \
-$U/src/ocean/db/ebtree/c/eb128tree \
-$U/src/ocean/db/ebtree/c/eb32tree \
-$U/src/ocean/db/ebtree/c/ebtree: \
+$U/src/ocean/util/container/ebtree/%: \
 	override LDFLAGS += -lebtree
 
 $U/src/ocean/db/tokyocabinet/c/tcbdb \
