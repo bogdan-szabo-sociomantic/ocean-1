@@ -39,11 +39,11 @@ struct StandardHash
         - If K is a dynamic or static array of a  primitive type, the hash value
           is calculated from the raw data of the key array content using the
           FNV1a hash function.
-        - If K is a class, struct or union, it is expected to implement toHash(),
-          which will be used.
-        - Other key types (arrays of non-primitive types, classes/structs/unions
-          which do not implement toHash(), pointers, function references,
-          delegates, associative arrays) are not supported.
+        - If K is a class, interface, struct or union, it is expected to
+          implement toHash(), which will be used.
+        - Other key types (arrays of non-primitive types, classes/interfaces/
+          structs/unions which do not implement toHash(), pointers, function
+          references, delegates, associative arrays) are not supported.
 
         Params:
             key = key to hash
@@ -69,10 +69,11 @@ struct StandardHash
         }
         else
         {
-            static assert (is (K == class) || is (K == struct) || is (K == union),
+            static assert (is (K == class) || is (K == interface)
+                        || is (K == struct) || is (K == union),
                            "only primitive value types, arrays of such and "
-                           "classes/structs/unions implementing toHash() "
-                           "supported, not '" ~ K.stringof ~ '\'');
+                           "classes/interfaces/structs/unions implementing "
+                           "toHash() supported, not '" ~ K.stringof ~ '\'');
 
             return key.toHash();
         }
