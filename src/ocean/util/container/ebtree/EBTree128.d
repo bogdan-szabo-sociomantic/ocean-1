@@ -33,6 +33,8 @@ private import ocean.util.container.ebtree.nodepool.NodePool;
 
 private import ocean.util.container.ebtree.c.ebtree: eb_node, eb_root;
 
+private import ocean.core.Test;
+
 /*******************************************************************************
 
     EBTree64 class template.
@@ -110,7 +112,7 @@ class EBTree128 ( bool signed = false ) : IEBTree
         {
             static if (signed)
             {
-                return eb128_cmp_264(this.lo, this.hi, other.lo, other.hi);
+                return eb128i_cmp_264(this.lo, this.hi, other.lo, other.hi);
             }
             else
             {
@@ -704,3 +706,38 @@ void eb128_node_getkey_264 ( eb128_node* node, ulong* lo, ulong* hi );
  ******************************************************************************/
 
 void eb128i_node_getkey_264 ( eb128_node* node, ulong* lo, long* hi );
+
+unittest
+{
+    EBTree128!(true).Key signed_a;
+    signed_a.hi = 0xFFFF_FFFF_FFFF_FFFF;
+    signed_a.lo = 0x1FFF_FFFF_FFFF_FFFF;
+
+    EBTree128!(true).Key signed_b;
+    signed_b.hi = 0x1;
+    signed_b.lo = 0x0;
+
+
+    // In signed arithmetics, a should be less than b
+    auto signed_result = signed_a.opCmp(&signed_b);
+    test!("<")(signed_result, 0);
+
+
+    EBTree128!().Key unsigned_a;
+    unsigned_a.hi = 0xFFFF_FFFF_FFFF_FFFF;
+    unsigned_a.lo = 0x1FFF_FFFF_FFFF_FFFF;
+
+    EBTree128!().Key unsigned_b;
+    unsigned_b.hi = 0x1;
+    unsigned_b.lo = 0x0;
+
+    // In unsigned arithmetics, a should be greatereater than b
+    auto unsigned_result = unsigned_a.opCmp(&unsigned_b);
+    test!(">")(unsigned_result, 0);
+
+
+    // And these two should definitivly be different values
+    test!("!=")(signed_result, unsigned_result);
+
+}
+
