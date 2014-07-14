@@ -139,21 +139,15 @@ Each flavor directory have a set of files and directories of its own:
 ``bin``
         This is where the generated binaries are left.
 
-``unittest``
-        This is where the unittest results and logs are left when you use the
-        built-in ``unittest`` target (see Testing_ for details). The project
-        directory structure is replicated inside this directory, except for the
-        directories specified by the ``BUILD_DIR_EXCLUDE`` variable (by default
-        the build directory itself, the ``.git`` directory and the submodule
-        directories).
-
-``obj``
+``tmp``
         This is where object files, dependencies files and any other temporary
         file is left. Usually after a build all the contents of this directory
         is trash and only works as a cache. If you remove this directory a new
         build will be triggered next time you run make though, even if nothing
-        changed. Same as with ``unittest`` the project directory structure is
-        replicated here.
+        changed. The project directory structure is replicated inside this
+        directory, except for the directories specified by the
+        ``BUILD_DIR_EXCLUDE`` variable (by default the build directory itself,
+        the ``.git`` directory and the submodule directories).
 
 ``build-d-flags``
         A signature file to keep track of building flags changes.
@@ -285,10 +279,8 @@ generated objects locations:
   variable to refer to local project files.
 * ``G`` is the base generated files directory, taking into account the flavor
   (for example ``build/devel``).
-* ``O`` is the objects/temporary directory (for example ``build/devel/obj``).
+* ``O`` is the objects/temporary directory (for example ``build/devel/tmp``).
 * ``B`` is the generated binaries directory (for example ``build/devel/bin``).
-* ``U`` is the generated unittests directory (for example
-  ``build/devel/unittest``).
 * ``D`` is the generated documentation directory (for example ``build/doc``).
 
 All these variables except for ``R`` are **absolute** paths. This is to work
@@ -484,27 +476,38 @@ Examples::
 
 Always use ``+=``, there might be other predefined modules to skip.
 
-Adding specific flags for modules
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Adding specific flags
+~~~~~~~~~~~~~~~~~~~~~
 
-Some modules might need special flags for the unittest to compile it properly that 
+Some modules might need special flags for the unittest to compile it properly that
 aren't part of the main flags, e.g. when it was overriden for specific targets.
 
-For those cases you can add module specific flags.
+For those cases you can add unittest specific flags, just remember the target
+is ``$O/unittests``.
 
 Example::
 
-        $U/src/ocean/io/console/StructTable \
-        $U/src/ocean/io/console/Tables \
-        $U/src/ocean/text/url/PercentEncoding: \
-	        override LDFLAGS += -lglib-2.0
+        $O/unittests: override LDFLAGS += -lglib-2.0
 
-Links those three modules with the glib-2.0 library.
-Often it can be convenient to use wildcards for this to cover whole folders.
+Links the unittests to the glib-2.0 library.
 
-Example::
+Re-running unittests manually
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        $U/src/mod/loganalyze/%: override LDFLAGS += -lglib-2.0
+Once you built and ran the unittests once, if you want, for some reason, repeat
+the tests, you can just run the generated ``unittests`` program. A reason to
+run it again could be to use different command-line options (it accepts a few,
+try ``build/last/unittests -h`` for help).
+
+For example, if you want to re-run the tests, but without stopping on the first
+failure, use::
+
+        build/last/unittests -k
+
+This option is used automatically if you run ``make -k``.
+
+Remember to re-run ``make`` if you change any sources, the ``unittests``
+program needs to be re-compiled in that case!
 
 
 

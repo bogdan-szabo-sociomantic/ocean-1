@@ -140,15 +140,12 @@ VD ?= $T/$(BUILD_DIR_NAME)
 # Generated files top directory
 G ?= $(VD)/$F
 
-# Objects (and other garbage like pre-compiled headers and dependency files)
-# directory
-O ?= $G/obj
+# Directory for temporary files, like objects, dependency files and other
+# generated intermediary files
+O ?= $G/tmp
 
 # Binaries directory
 B ?= $G/bin
-
-# Test result directory
-U ?= $G/unittest
 
 # Documentation directory
 D ?= $(VD)/doc
@@ -297,6 +294,15 @@ override DFLAGS += -version=WithDateTime -I./src \
 	$(foreach dep,$(SUBMODULES), -I./$(dep)/src)
 
 
+# Unittest files
+#################
+
+# Source files to run unittests to.
+# By default is all the D files in the `src` directory.
+# If $(TEST_FILTER_OUT) is defined, the files specified there will be excluded.
+TEST_SOURCES +=  $(call find_files,.d,,$C/src,$(TEST_FILTER_OUT))
+
+
 # Include the user's makefile, Build.mak
 #########################################
 
@@ -354,14 +360,22 @@ $I/bin/%:
 $I/sbin/%:
 	$(call install_file,0755)
 
-# Build the individual unittest binaries
-$U/%: $T/%.d $G/build-d-flags | $O/check_rdmd1
+# Create a file importing all the modules in the project
+$O/unittests.d: $(TEST_SOURCES) $G/build-d-flags | $O/check_rdmd1
+	$(call exec,printf 'module unittests;\nimport ocean.core.UnitTestRunner;\
+		\n$(foreach f,$(filter %.d,$^),\
+		import $(subst /,.,$(patsubst $C/src/%.d,%,$f));\n)' > \
+			$@,,gen)
+
+# Build all unittests as one binary
+$O/unittests: BUILD.d.depfile := $O/unittests.mak
+$O/unittests: $O/unittests.d $G/build-d-flags | $O/check_rdmd1
 	$(mkversion)
-	$(call exec,$(BUILD.d) --main -unittest -debug=UnitTest \
+	$(call exec,$(BUILD.d) -unittest -debug=UnitTest \
 		-version=UnitTest $(LOADLIBES) $(LDLIBS) -of$@ $< \
-		2>&1 > $@.log || { cat $@.log; false; },$<,test)
-# Add the unittest target (will be defined after processing Build.mak) to the
-# test special target
+		$(if $(findstring k,$(MAKEFLAGS)),-k) $(if $V,,-v),,test)
+# Add the unittest target (will be defined after processing Build.mak) to
+# the test special target
 test += unittest
 
 # Clean the whole build directory, uses $(clean) to remove extra files
@@ -378,15 +392,15 @@ uninstall:
 # Create build directory structure
 ###################################
 
-# Create $O, $B, $D and $U directories and replicate the directory
-# structure of the project into $O and $U. Create one symbolic link "last"
-# to the current build directory.
+# Create $O, $B and $D directories and replicate the directory structure of the
+# project into $O. Create one symbolic link "last" to the current build
+# directory.
 setup_build_dir__ := $(shell \
-	mkdir -p $O $B $D $U \
-		$(foreach t,$O $U,$(addprefix $t,$(patsubst $T%,%,\
+	mkdir -p $O $B $D \
+		$(addprefix $O,$(patsubst $T%,%,\
 		$(shell find $T -type d $(foreach d,$(BUILD_DIR_EXCLUDE), \
 			-not -path '$T/$d' -not -path '$T/$d/*' \
-			-not -path '$T/*/$d' -not -path '$T/*/$d/*'))))); \
+			-not -path '$T/*/$d' -not -path '$T/*/$d/*')))); \
 	rm -f $(VD)/last && ln -s $F $(VD)/last )
 
 
@@ -410,7 +424,7 @@ $(if $V,$(if $(setup_flag_files__), \
 # These targets need to be after processing the Build.mak so all the special
 # variables get populated.
 
-# Runs unittests for all D modules in a projects.
+# Runs unittests for all D modules in a projects as one test program.
 # If the variable TEST_FILTER_OUT is defined is used to exclude some modules.
 # The Make function $(filter-out) is used, which basically means you can
 # specify multple patterns separated by whitespaces and each pattern can have
@@ -418,8 +432,7 @@ $(if $V,$(if $(setup_flag_files__), \
 # documentation:
 # http://www.gnu.org/software/make/manual/make.html#Text-Functions
 .PHONY: unittest
-unittest: $(patsubst %.d,%,\
-		$(call find_files,.d,$U/src,$T/src,$(TEST_FILTER_OUT)))
+unittest: $O/unittests
 
 # Phony rule to make all the targets (sub-makefiles can append targets to build
 # to the $(all) variable).
@@ -440,6 +453,11 @@ doc: $(doc)
 # build and run tests to the $(test) variable).
 .PHONY: test
 test: $(test)
+
+# Phony rule to build and run all quick tests (sub-makefiles can append targets
+# to build and run tests to the $(test) variable).
+.PHONY: quick-test
+quick-test: $(quick-test)
 
 
 # Automatic dependency handling

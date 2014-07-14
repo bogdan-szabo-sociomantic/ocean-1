@@ -75,6 +75,29 @@ New Features
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
+Makd
+  The way how unittests are executed completely changed. Now all modules are
+  compiled into a single program. Because of this, how flags are passed to the
+  test program(s) changed, and now all flags need to be passed to a single
+  target, for example::
+
+    $O/unittests: override LDFLAGS += -lblah
+
+  Check ``script/Makd.README.rst`` for details.
+
+  Also, now the projects are **required** not to use the ``src`` directory as
+  a package name when defining ``module``\ s or ``import``\ ing modules for the
+  ``make unittest`` target to work .
+
+  Finally, some internal changes were made (you sholdn't be affected unless you
+  are playing with the guts of Makd):
+  
+  * The ``build/$F/unittest`` directory is not generated or used anymore, and
+    the ``$U`` variable was removed, ``$O`` is used for all temporary stuff. 
+
+  * ``$O`` now points to ``build/$F/tmp`` instead of ``build/$F/obj`` to make
+    it more explicit it is intended to hold any temporary files.
+
 ``ocean.util.container.ebtree``, ``ocean.io.compress.lzo``
   These modules don't use a ``pragma(lib, ...)`` anymore, so you need to
   explicitly link using ``-lebtree`` or ``-llzo2`` now. Make sure to update
