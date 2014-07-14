@@ -297,6 +297,15 @@ override DFLAGS += -version=WithDateTime -I./src \
 	$(foreach dep,$(SUBMODULES), -I./$(dep)/src)
 
 
+# Include the user's makefile, Build.mak
+#########################################
+
+# We do it before declaring the rules so some variables like TEST_FILTER_OUT
+# are used as prerequisites, so we need to define them before the rules are
+# declared.
+-include $T/Build.mak
+
+
 # Default rules
 ################
 
@@ -394,9 +403,6 @@ setup_flag_files__ := $(setup_flag_files__)$(call gen_rebuild_flags, \
 $(if $V,$(if $(setup_flag_files__), \
 	$(info !! Flags or commands changed:$(setup_flag_files__) re-building \
 			affected files...)))
-
-# Include the Build.mak for this directory
--include $T/Build.mak
 
 
 # Targets using special variables
