@@ -72,7 +72,7 @@
 
 *******************************************************************************/
 
-module io.serialize.XmlStructSerializer;
+module ocean.io.serialize.XmlStructSerializer;
 
 
 
