@@ -308,7 +308,8 @@ endif
 
 # This is not a rule, but is defined to match the LINK.* variables predefined
 # in Make and have a more Make-ish look & feel.
-BUILD.d = $(RDMD) $(RDMDFLAGS) --makedepfile=$O/$*.mak $(DFLAGS) \
+BUILD.d.depfile = $O/$*.mak
+BUILD.d = $(RDMD) $(RDMDFLAGS) --makedepfile=$(BUILD.d.depfile) $(DFLAGS) \
 		$($@.EXTRA_FLAGS) $(addprefix -L,$(LDFLAGS)) $(TARGET_ARCH)
 
 # Updates the git version information
