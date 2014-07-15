@@ -108,7 +108,8 @@ class ArgumentsExt : IApplicationExtension
         text will be displayed and then the program will exit.
 
         If argument parsing or validation fails (including extensions
-        validation), it also prints an error message and exits.
+        validation), it also prints an error message and exits. Note that if
+        argument parsing fails, validation is not performed.
 
     ***************************************************************************/
 
@@ -124,31 +125,34 @@ class ArgumentsExt : IApplicationExtension
             ext.setupArgs(app, args);
         }
 
+        char[][] errors;
         auto args_ok = args.parse(cl_args[1 .. $]);
 
-        if ( args.exists("help") )
+        if ( args_ok )
         {
-            args.displayHelp(Stdout);
-            app.exit(0);
-        }
-
-        if ( args.exists("version") )
-        {
-            auto ext = this.getExtension!(VersionArgsExt)();
-            if ( ext !is null )
+            if ( args.exists("help") )
             {
-                ext.displayVersion(app);
+                args.displayHelp(Stdout);
+                app.exit(0);
             }
-        }
 
-        char[][] errors;
-        foreach (ext; this.extensions)
-        {
-            char[] error = ext.validateArgs(app, args);
-            if (error != "")
+            if ( args.exists("version") )
             {
-                errors ~= error;
-                args_ok = false;
+                auto ext = this.getExtension!(VersionArgsExt)();
+                if ( ext !is null )
+                {
+                    ext.displayVersion(app);
+                }
+            }
+
+            foreach (ext; this.extensions)
+            {
+                char[] error = ext.validateArgs(app, args);
+                if (error != "")
+                {
+                    errors ~= error;
+                    args_ok = false;
+                }
             }
         }
 

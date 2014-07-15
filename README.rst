@@ -99,6 +99,17 @@ Migration Instructions
   These modules are completely removed being deprecated for many ocean releases now.
   You should have stopped using them long time ago.
 
+``ocean.util.app.ext.ArgumentsExt``
+  The behaviour of arguments parsing has slightly changed. Previously, the
+  arguments were parsed (``tango.text.Arguments : Arguments.parse``), then
+  validated (calling the ``validateArgs()`` methods of all app extensions), and
+  finally any error messages were output. This behaviour was, in some cases,
+  problematic, as validation functions are often written with the assumption
+  that any restrictions on arguments (number of parameters, restrictions on
+  acceptable parameters, conflicts with other arguments, etc) have already been
+  enforced. The logic has now changed so that, if arguments parsing fails,
+  validation will not be performed.
+
 v1.14 (2014-06-20)
 ------------------
 
