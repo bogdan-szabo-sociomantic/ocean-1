@@ -7,5 +7,5 @@ TEST_FILTER_OUT += \
 
 # Link unittests to all used libraries
 $O/unittests: override LDFLAGS += -lglib-2.0 -lpcre -lxslt -lebtree \
-		-ltokyocabinet -llzo2
+		-ltokyocabinet -llzo2 -lreadline -lhistory
 

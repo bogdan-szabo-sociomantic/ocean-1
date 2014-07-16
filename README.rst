@@ -156,6 +156,12 @@ New Features
   with integer values. Previously comma separation was hardcoded-in, but is
   now toggle-able. The new API preserves backwards compatibility.
 
+``ocean.io.console.readline.*``
+  Add wrappers around the GNU readline methods. To use these modules you need to link
+  with ``libreadline``. readline is a powerful library for reading the user-input
+  from the console. It provides many functionalities including browsing the input
+  history, text auto-completion and much more.
+
 v1.14 (2014-06-20)
 ------------------
 
