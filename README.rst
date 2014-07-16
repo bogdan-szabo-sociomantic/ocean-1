@@ -34,44 +34,6 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
-New Features
-^^^^^^^^^^^^
-
-``ocean.core.Exception``
-  ``assertEx`` functions replaced with ``enforce`` with similar functionality but
-  different API. Requires dmd1 package version "1.076.s2".
-  Check https://github.com/sociomantic/ocean/wiki/Standard-error-handling-and-testing for details.
-
-``ocean.core.Test``
-  New module that defines standard exception type to be thrown from unit tests
-  and provides set of helper functions similar to ``enforce`` that throw exactly
-  this exception type. Also has ``NamedTest`` class for better error reporting
-  in complicated unit tests.
-  Check https://github.com/sociomantic/ocean/wiki/Standard-error-handling-and-testing for details.
-
-``ocean.core.Traits``
-  New helper ``toDg`` creates a delegate from function pointer, useful when
-  method has signature expecting former and you have latter.
-
-``ocean.io.serialize.StructLoader``
-  Versioned structs are now capable of bi-directional conversion, both to
-  previous and next versions. Forward conversion only works if struct definition
-  has ``StructNext`` member alias and appropriate ``convert_x`` methods for
-  non-trivial field conversion. Multiple ``convert_x`` methods can be present
-  to support both directions, correct one is chosen based on argument type.
-
-  If received byte buffer has version with no matching ``StructPrevious`` or
-  ``StructNext`` aliases for this struct, runtime error will happen.
-
-``ocean.math.Range``
-  New module with a struct for basic operations (overlaps, subset, superset,
-  subtract, etc) over integer ranges.
-
-``ocean.io.console.Tables``
-  The Tables API now has an optional thousands comma separation for columns
-  with integer values. Previously comma separation was hardcoded-in, but is
-  now toggle-able. The new API preserves backwards compatibility.
-
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -132,6 +94,44 @@ Makd
   acceptable parameters, conflicts with other arguments, etc) have already been
   enforced. The logic has now changed so that, if arguments parsing fails,
   validation will not be performed.
+
+New Features
+^^^^^^^^^^^^
+
+``ocean.core.Exception``
+  ``assertEx`` functions replaced with ``enforce`` with similar functionality but
+  different API. Requires dmd1 package version "1.076.s2".
+  Check https://github.com/sociomantic/ocean/wiki/Standard-error-handling-and-testing for details.
+
+``ocean.core.Test``
+  New module that defines standard exception type to be thrown from unit tests
+  and provides set of helper functions similar to ``enforce`` that throw exactly
+  this exception type. Also has ``NamedTest`` class for better error reporting
+  in complicated unit tests.
+  Check https://github.com/sociomantic/ocean/wiki/Standard-error-handling-and-testing for details.
+
+``ocean.core.Traits``
+  New helper ``toDg`` creates a delegate from function pointer, useful when
+  method has signature expecting former and you have latter.
+
+``ocean.io.serialize.StructLoader``
+  Versioned structs are now capable of bi-directional conversion, both to
+  previous and next versions. Forward conversion only works if struct definition
+  has ``StructNext`` member alias and appropriate ``convert_x`` methods for
+  non-trivial field conversion. Multiple ``convert_x`` methods can be present
+  to support both directions, correct one is chosen based on argument type.
+
+  If received byte buffer has version with no matching ``StructPrevious`` or
+  ``StructNext`` aliases for this struct, runtime error will happen.
+
+``ocean.math.Range``
+  New module with a struct for basic operations (overlaps, subset, superset,
+  subtract, etc) over integer ranges.
+
+``ocean.io.console.Tables``
+  The Tables API now has an optional thousands comma separation for columns
+  with integer values. Previously comma separation was hardcoded-in, but is
+  now toggle-able. The new API preserves backwards compatibility.
 
 v1.14 (2014-06-20)
 ------------------
