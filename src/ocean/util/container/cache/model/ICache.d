@@ -448,6 +448,9 @@ abstract class ICache : ICacheInfo
                 }
             }
 
+            // Call the notifier method before actual removal
+            this.whenCacheItemDropped(index);
+
             // Remove old item in tree map
             this.time_to_index.remove(*oldest_time_node);
 
@@ -477,6 +480,21 @@ abstract class ICache : ICacheInfo
     ***************************************************************************/
 
     protected void whenEarlierThanOldestItem ( time_t now, time_t oldest ) { }
+
+    /***************************************************************************
+
+        Called when the oldest item is replaced in cache with a new one
+        because cache is full.
+        When the cache gets full, the oldest item will be replaced with the
+        new value. Before that happens, this method will be called, having
+        the item index passed as a argument.
+
+        Params:
+            index = index of the cache item that will be dropped.
+
+    ***************************************************************************/
+
+    protected void whenCacheItemDropped ( size_t index ) { }
 
     /***************************************************************************
 

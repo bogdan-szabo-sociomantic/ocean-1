@@ -32,11 +32,15 @@
     TODO: Extend the cache by making values visible to the GC by default and
     provide GC hiding as an option.
 
-    When a cache element is removed -- explicitly by calling remove() or
-    automatically if the cache is full and a new element is added --, the value
+    When a cache element is removed explicitly (by calling remove()), the value
     of the removed element is kept in the cache in a spare location. If required
     it is possible to erase the value by overriding Cache.replaceRemovedItem(),
     see the description of this method for an example.
+
+    When a cache element is removed automatically if the cache is full and a new
+    element is added, Cache.whenCacheItemDropped(size_t index) will be called. If
+    required it is possible to be notified of this occurrence by overriding
+    Cache.whenCacheItemDropped method.
 
     Cache.createRaw() and Cache.getOrCreateRaw() return a reference to a record
     value in the cache. Cache.getRaw() behaves like Cache.getOrCreateRaw() if
@@ -200,6 +204,7 @@ module ocean.util.container.cache.Cache;
 private import ocean.util.container.cache.model.ICache;
 private import ocean.util.container.cache.model.ITrackCreateTimesCache;
 private import tango.stdc.time: time_t;
+private import ocean.core.Test;
 
 debug private import ocean.io.Stdout;
 
@@ -1615,3 +1620,51 @@ debug ( OceanPerformanceTest )
 }
 
 version (CacheTest) void main ( ) { }
+
+
+unittest
+{
+    class CacheImpl: Cache!()
+    {
+        private bool* item_dropped;
+        private size_t* index;
+
+        public this (size_t max_items, bool* item_dropped)
+        {
+            super(max_items);
+            this.item_dropped = item_dropped;
+        }
+
+        protected void whenCacheItemDropped ( size_t index )
+        {
+            *item_dropped = true;
+        }
+    }
+
+
+   // Test if the whenCacheItemDropped is being called
+    const max_items = 10;
+    auto item_dropped = false;
+    size_t index = 0;
+
+    auto cache = new CacheImpl( max_items, &item_dropped );
+
+    for(int i = 0; i < max_items * 2; i++)
+    {
+        auto data = cache.createRaw(i);
+
+        if(i > max_items - 1)
+        {
+            // Test if it is being called
+            test(item_dropped);
+
+            // Test the next case
+            item_dropped = false;
+        }
+        else
+        {
+            test(!item_dropped);
+        }
+    }
+}
+
