@@ -62,8 +62,6 @@
 
 module ocean.text.url.PercentEncoding;
 
-pragma(msg, "Deprecated module. Use ocean.net.util.UrlDecoder.");
-
 
 
 /*******************************************************************************

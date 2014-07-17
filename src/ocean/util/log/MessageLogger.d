@@ -13,15 +13,6 @@
 module ocean.util.log.MessageLogger;
 
 
-// *****************************************************************************
-// *****************************************************************************
-// *****************************************************************************
-pragma(msg, "ocean.util.log.MessageLogger is deprecated: use ocean.util.app.* / tango.util.log.* instead");
-// *****************************************************************************
-// *****************************************************************************
-// *****************************************************************************
-
-
 /*******************************************************************************
 
     Imports
@@ -79,7 +70,7 @@ else
 
 *******************************************************************************/
 
-class MessageLogger
+deprecated class MessageLogger
 {
     /***************************************************************************
 
@@ -87,7 +78,7 @@ class MessageLogger
 
     ***************************************************************************/
 
-    public alias TangoLog.Logger TangoLogger;
+    deprecated public alias TangoLog.Logger TangoLogger;
 
 
     /***************************************************************************
@@ -96,7 +87,7 @@ class MessageLogger
 
     ***************************************************************************/
 
-    public bool enabled = true;
+    deprecated public bool enabled = true;
 
 
     /***************************************************************************
@@ -105,7 +96,7 @@ class MessageLogger
 
     ***************************************************************************/
 
-    public bool console_enabled = false;
+    deprecated public bool console_enabled = false;
 
 
     /***************************************************************************
@@ -154,7 +145,7 @@ class MessageLogger
 
     ***************************************************************************/
 
-    public this ( char[] file, char[] id )
+    deprecated public this ( char[] file, char[] id )
     in
     {
         assert(id.length > 0);
@@ -189,7 +180,7 @@ class MessageLogger
 
     ***************************************************************************/
 
-    public void write ( char[] fmt, ... )
+    deprecated public void write ( char[] fmt, ... )
     {
         version (DigitalMarsX64)
         {
@@ -221,7 +212,7 @@ class MessageLogger
 
     ***************************************************************************/
 
-    public void write ( char[] fmt, TypeInfo[] arguments, ArgList args )
+    deprecated public void write ( char[] fmt, TypeInfo[] arguments, ArgList args )
     {
         uint layoutSink ( char[] s )
         {
@@ -264,7 +255,7 @@ class MessageLogger
 
     ***************************************************************************/
 
-    public TangoLog.Logger getLogger ()
+    deprecated public TangoLog.Logger getLogger ()
     {
         return this.logger;
     }

@@ -42,14 +42,6 @@
 module ocean.util.TraceLog;
 
 
-// *****************************************************************************
-// *****************************************************************************
-// *****************************************************************************
-pragma(msg, "ocean.util.TraceLog is deprecated: use ocean.util.app.* / tango.util.log.* instead");
-// *****************************************************************************
-// *****************************************************************************
-// *****************************************************************************
-
 
 /*******************************************************************************
 
@@ -70,7 +62,7 @@ private     import      tango.core.Vararg;
 
 ********************************************************************************/
 
-class TraceLog
+deprecated class TraceLog
 {
     /***************************************************************************
 
@@ -78,7 +70,7 @@ class TraceLog
 
     ***************************************************************************/
 
-    public alias typeof(this) This;
+    deprecated public alias typeof(this) This;
 
 
     /***************************************************************************
@@ -96,7 +88,7 @@ class TraceLog
 
     ***************************************************************************/
 
-    static public bool enabled ( )
+    static deprecated public bool enabled ( )
     in
     {
         assert(This.logger !is null, This.stringof ~ ".enabled: logger not initialised, call init() before you use it!");
@@ -106,7 +98,7 @@ class TraceLog
         return This.logger.enabled;
     }
 
-    static public void enabled ( bool enabled )
+    static deprecated public void enabled ( bool enabled )
     in
     {
         assert(This.logger !is null, This.stringof ~ ".enabled: logger not initialised, call init() before you use it!");
@@ -123,7 +115,7 @@ class TraceLog
 
     ***************************************************************************/
 
-    static public bool console_enabled ( )
+    static deprecated public bool console_enabled ( )
     in
     {
         assert(This.logger !is null, This.stringof ~ ".console_enabled: logger not initialised, call init() before you use it!");
@@ -133,7 +125,7 @@ class TraceLog
         return This.logger.console_enabled;
     }
 
-    static public void console_enabled ( bool console_enabled )
+    static deprecated public void console_enabled ( bool console_enabled )
     in
     {
         assert(This.logger !is null, This.stringof ~ ".console_enabled: logger not initialised, call init() before you use it!");
@@ -164,7 +156,7 @@ class TraceLog
 
     ***************************************************************************/
 
-    static public void init ( char[] file, char[] id = "TraceLog" )
+    static deprecated public void init ( char[] file, char[] id = "TraceLog" )
     {
         This.logger = new MessageLogger(file, id);
     }
@@ -196,7 +188,7 @@ class TraceLog
 
     ***************************************************************************/
 
-    static public void write ( char[] fmt, ... )
+    static deprecated public void write ( char[] fmt, ... )
     in
     {
         assert(This.logger !is null, This.stringof ~ ".write: logger not initialised, call init() before you use it!");
@@ -237,7 +229,7 @@ class TraceLog
 
     ***************************************************************************/
 
-    static public MessageLogger.TangoLogger getLogger ( )
+    static deprecated public MessageLogger.TangoLogger getLogger ( )
     in
     {
         assert(This.logger !is null, This.stringof ~ ".getLogger: logger not initialised, call init() before you use it!");

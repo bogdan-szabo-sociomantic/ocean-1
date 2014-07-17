@@ -11,8 +11,7 @@
 
 module ocean.util.app.UnittestedApp;
 
-pragma(msg, "ocean.util.app.UnittestApp is deprecated:");
-pragma(msg, "   unit tests are not supposed to have any special handling");
+
 
 /*******************************************************************************
 
@@ -20,7 +19,7 @@ pragma(msg, "   unit tests are not supposed to have any special handling");
 
 *******************************************************************************/
 
-public import ocean.util.app.Application : Application;
+deprecated public import ocean.util.app.Application : Application;
 
 private import ocean.util.app.ext.UnittestExt;
 
@@ -70,7 +69,7 @@ abstract class UnittestedApp : Application
 
     ***************************************************************************/
 
-    public UnittestExt utest_ext;
+    deprecated public UnittestExt utest_ext;
 
 
     /***************************************************************************

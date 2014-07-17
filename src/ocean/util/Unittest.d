@@ -13,8 +13,7 @@
 
 module ocean.util.Unittest;
 
-pragma(msg, "ocean.util.Unittest is completely deprecated");
-pragma(msg, "   use ocean.core.Test instead.");
+
 
 /*******************************************************************************
 
@@ -57,7 +56,7 @@ class TestException : Exception
 
     ***************************************************************************/
 
-    public this ( char[] name, char[] msg, char[] file, size_t line )
+    deprecated public this ( char[] name, char[] msg, char[] file, size_t line )
     {
         super( msg, file, line );
         this.name = name;
@@ -69,7 +68,7 @@ class TestException : Exception
 
     ***************************************************************************/
 
-    public override char[] toString()
+    deprecated public override char[] toString()
     {
         return Format(
             "{}:{} : Test '{}' has failed ({})",
@@ -194,7 +193,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    public static bool check ( bool throw_ = true )
+    deprecated public static bool check ( bool throw_ = true )
     {
         if ( num_failed > 0 )
         {
@@ -220,7 +219,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    public this ( char[] file, char[] name, bool summary = true )
+    deprecated public this ( char[] file, char[] name, bool summary = true )
     {
         Unittest.num_all++;
 
@@ -257,7 +256,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    public void assertLog ( lazy bool ok, size_t line )
+    deprecated public void assertLog ( lazy bool ok, size_t line )
     {
         this.assertLog(ok, null, line );
     }
@@ -273,7 +272,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    public void assertLog ( lazy bool ok, char[] msg = null, size_t line = 0 )
+    deprecated public void assertLog ( lazy bool ok, char[] msg = null, size_t line = 0 )
     {
         void print ()
         {
@@ -325,7 +324,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    public void enforce (T) ( T ok, char[] msg = "", size_t line = 0 )
+    deprecated public void enforce (T) ( T ok, char[] msg = "", size_t line = 0 )
     {
         if (!ok)
         {
@@ -349,7 +348,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    public void enforce (T) ( T ok, size_t line )
+    deprecated public void enforce (T) ( T ok, size_t line )
     {
         this.enforce(ok, "", line);
     }
@@ -374,7 +373,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    public void enforceRel ( char[] op, T1, T2 ) ( T1 exp1, T2 exp2, size_t line )
+    deprecated public void enforceRel ( char[] op, T1, T2 ) ( T1 exp1, T2 exp2, size_t line )
     {
         mixin ("bool ok = exp1 " ~ op ~ " exp2;");
         if (!ok)
@@ -396,7 +395,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    public void output ( )
+    deprecated public void output ( )
     {
         Log.root.add(new AppendConsole);
     }

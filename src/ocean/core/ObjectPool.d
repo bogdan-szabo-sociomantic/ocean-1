@@ -78,14 +78,6 @@
 module ocean.core.ObjectPool;
 
 
-// *****************************************************************************
-// *****************************************************************************
-// *****************************************************************************
-pragma(msg, "ocean.core.ObjectPool is deprecated: use ocean.util.container.pool.* instead");
-// *****************************************************************************
-// *****************************************************************************
-// *****************************************************************************
-
 
 /*******************************************************************************
 
@@ -105,7 +97,7 @@ debug private import ocean.util.log.Trace;
 
 *******************************************************************************/
 
-public interface Resettable
+deprecated public interface Resettable
 {
     void reset ( );
 }
@@ -153,7 +145,7 @@ deprecated interface PoolItem
 
 *******************************************************************************/
 
-public interface IObjectPoolInfo
+deprecated public interface IObjectPoolInfo
 {
     /**************************************************************************
 
@@ -220,7 +212,7 @@ public interface IObjectPoolInfo
 
 *******************************************************************************/
 
-class ObjectPool ( T, Args ... ) : Pool!(T)
+deprecated class ObjectPool ( T, Args ... ) : Pool!(T)
 {
     static if (Args.length)
     {
@@ -338,7 +330,7 @@ class ObjectPool ( T, Args ... ) : Pool!(T)
 
 *******************************************************************************/
 
-class Pool ( T ) : PoolCore
+deprecated class Pool ( T ) : PoolCore
 {
     /***************************************************************************
 
@@ -448,7 +440,7 @@ class Pool ( T ) : PoolCore
 
         ***********************************************************************/
 
-        public T get ( lazy T new_item )
+        deprecated public T get ( lazy T new_item )
         out (item)
         {
             assert (item !is null);
@@ -478,7 +470,7 @@ class Pool ( T ) : PoolCore
 
          ***********************************************************************/
 
-        public uint limit ( uint limit, lazy T new_item )
+        deprecated public uint limit ( uint limit, lazy T new_item )
         {
             return super.limit_(limit, Item.from(new_item));
         }
@@ -500,7 +492,7 @@ class Pool ( T ) : PoolCore
 
         ***********************************************************************/
 
-        public ItemType get ( )
+        deprecated public ItemType get ( )
         out (item)
         {
             assert (item !is null);
@@ -528,7 +520,7 @@ class Pool ( T ) : PoolCore
 
          ***********************************************************************/
 
-        public uint limit ( uint limit )
+        deprecated public uint limit ( uint limit )
         {
             return super.limit_(limit, Item.from(new T));
         }
@@ -549,7 +541,7 @@ class Pool ( T ) : PoolCore
 
     **************************************************************************/
 
-    public ItemType opIndex ( uint n )
+    deprecated public ItemType opIndex ( uint n )
     /+out (obj)
     {
         assert (obj !is null);
@@ -571,7 +563,7 @@ class Pool ( T ) : PoolCore
 
     **************************************************************************/
 
-    public typeof (this) recycle ( ItemType item )
+    deprecated public typeof (this) recycle ( ItemType item )
     {
         super.recycle_(Item.from(item));
 
@@ -830,7 +822,7 @@ class Pool ( T ) : PoolCore
 
 *******************************************************************************/
 
-abstract class PoolCore : IObjectPoolInfo
+abstract deprecated class PoolCore : IObjectPoolInfo
 {
     /***************************************************************************
 
@@ -882,7 +874,7 @@ abstract class PoolCore : IObjectPoolInfo
 
      **************************************************************************/
 
-    public const uint unlimited = uint.max;
+    deprecated public const uint unlimited = uint.max;
 
     /**************************************************************************
 
@@ -891,7 +883,7 @@ abstract class PoolCore : IObjectPoolInfo
 
      **************************************************************************/
 
-    public bool limited = false;
+    deprecated public bool limited = false;
 
     /**************************************************************************
 
@@ -959,7 +951,7 @@ abstract class PoolCore : IObjectPoolInfo
 
      **************************************************************************/
 
-    public this ( )
+    deprecated public this ( )
     {
         this.limit_exception = this.new LimitExceededException;
     }
@@ -973,7 +965,7 @@ abstract class PoolCore : IObjectPoolInfo
 
      **************************************************************************/
 
-    public uint length ( )
+    deprecated public uint length ( )
     {
         return this.items.length;
     }
@@ -987,7 +979,7 @@ abstract class PoolCore : IObjectPoolInfo
 
      **************************************************************************/
 
-    public uint num_busy ( )
+    deprecated public uint num_busy ( )
     {
         return this.num_busy_;
     }
@@ -1001,7 +993,7 @@ abstract class PoolCore : IObjectPoolInfo
 
      **************************************************************************/
 
-    public uint num_idle ( )
+    deprecated public uint num_idle ( )
     {
         return this.items.length - this.num_busy_;
     }
@@ -1240,7 +1232,7 @@ abstract class PoolCore : IObjectPoolInfo
 
     **************************************************************************/
 
-    public PoolCore clear ( )
+    deprecated public PoolCore clear ( )
     in
     {
         assert (!this.unsafe_iterators_open, "cannot clear pool while iterating over items");
@@ -1378,7 +1370,7 @@ abstract class PoolCore : IObjectPoolInfo
 
             *******************************************************************/
 
-            public int opApply ( int delegate ( ref T item ) dg )
+            deprecated public int opApply ( int delegate ( ref T item ) dg )
             {
                 int ret = 0;
 

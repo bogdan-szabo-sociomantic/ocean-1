@@ -13,14 +13,6 @@
 module ocean.core.ArrayMap;
 
 
-// *****************************************************************************
-// *****************************************************************************
-// *****************************************************************************
-pragma(msg, "ocean.core.ArrayMap is deprecated: use ocean.util.container.map.* instead");
-// *****************************************************************************
-// *****************************************************************************
-// *****************************************************************************
-
 
 /*******************************************************************************
 
@@ -57,7 +49,7 @@ debug
 
  ******************************************************************************/
 
-class ArrayMapException : Exception
+deprecated class ArrayMapException : Exception
 {
     this ( char[] msg ) { super(msg); }
     this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
@@ -67,7 +59,7 @@ class ArrayMapException : Exception
         throw new ArrayMapException(args);
     }
 
-    static class NonExistingKey : ArrayMapException
+    static deprecated class NonExistingKey : ArrayMapException
     {
         this ( char[] msg ) { super(msg); }
         this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
@@ -88,7 +80,7 @@ class ArrayMapException : Exception
 
  ******************************************************************************/
 
-struct Mutex
+deprecated struct Mutex
 {
         const bool Enable  = true;
         const bool Disable = false;
@@ -171,7 +163,7 @@ struct Mutex
 
  ******************************************************************************/
 
-class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
+deprecated class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 {
     /***************************************************************************
 
@@ -179,8 +171,8 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **************************************************************************/
 
-    public alias V ValueType;
-    public alias K KeyType;
+    deprecated public alias V ValueType;
+    deprecated public alias K KeyType;
 
     /***************************************************************************
 
@@ -269,7 +261,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
     ***************************************************************************/
 
-    struct KeyVal
+    deprecated struct KeyVal
     {
         V value;
         K key;
@@ -335,36 +327,36 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **************************************************************************/
 
-    static class RwLock
+    static deprecated class RwLock
     {
         private pthread_rwlock_t _lock;
 
-        public this ( )
+        deprecated public this ( )
         {
             pthread_rwlock_init(&this._lock, null);
         }
 
-        public ~this ( )
+        deprecated public ~this ( )
         {
             pthread_rwlock_destroy(&this._lock);
         }
 
-        public void lock ( )
+        deprecated public void lock ( )
         {
             pthread_rwlock_rdlock(&this._lock);
         }
 
-        public void unlock ( )
+        deprecated public void unlock ( )
         {
             pthread_rwlock_unlock(&this._lock);
         }
 
-        public void writeLock()
+        deprecated public void writeLock()
         {
             pthread_rwlock_wrlock(&this._lock);
         }
 
-        public void writeUnlock()
+        deprecated public void writeUnlock()
         {
             pthread_rwlock_unlock(&this._lock);
         }
@@ -393,7 +385,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **************************************************************************/
 
-    public this ( size_t default_size = 10_000, float load_factor = 0.75 )
+    deprecated public this ( size_t default_size = 10_000, float load_factor = 0.75 )
     {
         enforce!(ArrayMapException)(default_size, "zero default size");
         enforce!(ArrayMapException)(0 <= load_factor, "load factor <= 0");
@@ -465,7 +457,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **************************************************************************/
 
-    public this ( InputStream input )
+    deprecated public this ( InputStream input )
     {
         this.loadParams(input);
 
@@ -507,7 +499,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **************************************************************************/
 
-    public V* put ( K key, V value, bool dup_arrays = false )
+    deprecated public V* put ( K key, V value, bool dup_arrays = false )
     {
         size_t p = this.getPutIndex(key);
 
@@ -556,7 +548,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
          **********************************************************************/
 
-        public void putcat ( in K key, in V value )
+        deprecated public void putcat ( in K key, in V value )
         {
             size_t p = this.getPutIndex(key);
 
@@ -579,7 +571,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
          **********************************************************************/
 
-        public V get ( K key, ref V value )
+        deprecated public V get ( K key, ref V value )
         {
             return this.get_(this.findValueSync(key), value);
         }
@@ -600,7 +592,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
          **********************************************************************/
 
-        public V get ( K key, hash_t hash, ref V value )
+        deprecated public V get ( K key, hash_t hash, ref V value )
         {
             return this.get_(this.findValueSync(key, hash % this.buckets_length), value);
         }
@@ -618,7 +610,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **************************************************************************/
 
-    public V get ( K key )
+    deprecated public V get ( K key )
     {
         return this.get_(this.findValueSync(key));
     }
@@ -643,7 +635,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **********************************************************************/
 
-    public V get ( K key, hash_t hash )
+    deprecated public V get ( K key, hash_t hash )
     {
         return this.get_(this.findValueSync(key, hash % this.buckets_length));
     }
@@ -662,7 +654,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **************************************************************************/
 
-    public bool remove ( K key )
+    deprecated public bool remove ( K key )
     {
         hash_t h = (toHash(key) % this.buckets_length);
 
@@ -679,7 +671,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **************************************************************************/
 
-    public void clear ()
+    deprecated public void clear ()
     {
         if ( this.len )
         {
@@ -699,7 +691,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **************************************************************************/
 
-    public void copy ( ref typeof (this) dst )
+    deprecated public void copy ( ref typeof (this) dst )
     {
         if (this.len)
         {
@@ -757,7 +749,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **************************************************************************/
 
-    public typeof (this) dup ( )
+    deprecated public typeof (this) dup ( )
     {
         auto array = new typeof (this)(1, 1);
 
@@ -815,7 +807,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **************************************************************************/
 
-    public void free ()
+    deprecated public void free ()
     {
         this.len = 0;
 
@@ -849,7 +841,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **************************************************************************/
 
-    public size_t length ()
+    deprecated public size_t length ()
     {
         return this.len;
     }
@@ -884,7 +876,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **************************************************************************/
 
-    public V* opIndexAssign ( V value, K key )
+    deprecated public V* opIndexAssign ( V value, K key )
     {
         return this.put(key, value);
     }
@@ -927,7 +919,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     }
     else
     {
-        public V* opIn_r ( K key )
+        deprecated public V* opIn_r ( K key )
         {
             size_t v = this.findValueSync(key);
 
@@ -950,7 +942,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
          **********************************************************************/
 
-        public V* getPut ( K key, lazy V val = V.init, bool dup_arrays = false )
+        deprecated public V* getPut ( K key, lazy V val = V.init, bool dup_arrays = false )
         {
             size_t v = this.findValueSync(key);
 
@@ -979,7 +971,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
       *************************************************************************/
 
-     public int opApply ( int delegate ( ref V value ) dg )
+     deprecated public int opApply ( int delegate ( ref V value ) dg )
      in
      {
          assert (this.len <= this.v_map.length);
@@ -997,7 +989,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
          return result;
      }
 
-     public int opApply ( int delegate ( ref K key, ref V value ) dg )
+     deprecated public int opApply ( int delegate ( ref K key, ref V value ) dg )
      {
          int result = 0;
 
@@ -1011,7 +1003,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
          return result;
      }
 
-     public int opApply ( int delegate ( ref size_t i, ref K key, ref V value ) dg )
+     deprecated public int opApply ( int delegate ( ref size_t i, ref K key, ref V value ) dg )
      {
          int result = 0;
 
@@ -1039,7 +1031,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
       *************************************************************************/
 
-     public void rehash ()
+     deprecated public void rehash ()
      {
          if ( this.len / this.buckets_length > 0.75 )
          {
@@ -1097,7 +1089,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
      **************************************************************************/
 
-    public size_t dump ( OutputStream output )
+    deprecated public size_t dump ( OutputStream output )
     {
         size_t total = 0;
 
@@ -1133,14 +1125,14 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
     static if (is (K : hash_t))
     {
-        public static hash_t toHash ( K key )
+        deprecated public static hash_t toHash ( K key )
         {
             return key;
         }
     }
     else
     {
-        public alias Fnv1a.fnv1 toHash;
+        deprecated public alias Fnv1a.fnv1 toHash;
     }
 
     /***************************************************************************
@@ -2026,7 +2018,7 @@ class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
 
 ******************************************************************************/
 
-class Set ( T )
+deprecated class Set ( T )
 {
     /***************************************************************************
 
@@ -2053,7 +2045,7 @@ class Set ( T )
 
      **************************************************************************/
 
-    public this ( size_t default_size = 10_000, float load_factor = 0.75 )
+    deprecated public this ( size_t default_size = 10_000, float load_factor = 0.75 )
     {
         this.map = new Map(default_size, load_factor);
     }
@@ -2071,7 +2063,7 @@ class Set ( T )
 
      **************************************************************************/
 
-    public void put ( T item )
+    deprecated public void put ( T item )
     {
         this.map.put(item, true);
     }
@@ -2089,7 +2081,7 @@ class Set ( T )
 
      **************************************************************************/
 
-    public bool remove ( T item )
+    deprecated public bool remove ( T item )
     {
         return this.map.remove(item);
     }
@@ -2104,7 +2096,7 @@ class Set ( T )
 
      **************************************************************************/
 
-    public size_t length ( )
+    deprecated public size_t length ( )
     {
         return this.map.length;
     }
@@ -2116,7 +2108,7 @@ class Set ( T )
 
      **************************************************************************/
 
-    public void clear ( )
+    deprecated public void clear ( )
     {
         this.map.clear;
     }
@@ -2134,7 +2126,7 @@ class Set ( T )
 
      **************************************************************************/
 
-    public bool opIn_r ( T item )
+    deprecated public bool opIn_r ( T item )
     {
         return (item in this.map) !is null;
     }
@@ -2146,7 +2138,7 @@ class Set ( T )
 
      **************************************************************************/
 
-    public int opApply ( int delegate ( ref T item ) dg )
+    deprecated public int opApply ( int delegate ( ref T item ) dg )
     {
         int ret;
 

@@ -10,8 +10,7 @@
 
 module ocean.util.app.ext.UnittestExt;
 
-pragma(msg, "ocean.util.app.ext.UnittestExt is deprecated:");
-pragma(msg, "   unit tests are not supposed to have any special handling");
+
 
 /*******************************************************************************
 
@@ -75,7 +74,7 @@ class UnittestExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public override int order ( )
+    deprecated public override int order ( )
     {
         return -1_000_000;
     }
@@ -87,7 +86,7 @@ class UnittestExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public void setupArgs ( IApplication app, Arguments args )
+    deprecated public void setupArgs ( IApplication app, Arguments args )
     {
         if (!this.omit_unittest)
         {
@@ -127,18 +126,18 @@ class UnittestExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public void postRun ( IApplication app, char[][] args, int status )
+    deprecated public void postRun ( IApplication app, char[][] args, int status )
     {
         // Unused
     }
 
-    public void atExit ( IApplication app, char[][] args, int status,
+    deprecated public void atExit ( IApplication app, char[][] args, int status,
             ExitException exception )
     {
         // Unused
     }
 
-    public ExitException onExitException ( IApplication app,
+    deprecated public ExitException onExitException ( IApplication app,
             char[][] args, ExitException exception )
     {
         // Unused
@@ -155,13 +154,13 @@ class UnittestExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public char[] validateArgs ( IApplication app, Arguments args )
+    deprecated public char[] validateArgs ( IApplication app, Arguments args )
     {
         // Unused
         return null;
     }
 
-    public void processArgs ( IApplication app, Arguments args )
+    deprecated public void processArgs ( IApplication app, Arguments args )
     {
         // Unused
     }

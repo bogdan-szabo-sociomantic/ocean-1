@@ -64,6 +64,21 @@ Makd
   This ancient and mysterious module was completely removed after being
   deprecated for a while. A long while.
 
+``ocean.core.ArrayMap``, ``ocean.core.ObjectPool``
+  These entire modules has been properly deprecated, expect more warnings if
+  you don't update. Use ``ocean.util.container.{map,pool}.*`` instead.
+
+``ocean.util.OceanException``, \
+``ocean.util.TraceLog``, \
+``ocean.util.log.MessageLogger``
+  These entire modules has been properly deprecated, expect more warnings if
+  you don't update. Use ``ocean.util.app.*`` / ``tango.util.log.*`` instead.
+
+``ocean.text.url.PercentEncoding``
+  This module was deprecated already, but the ``pragma(msg)`` with the
+  indication of how to replace it was removed, so now is probably a good moment
+  to update and start using ``ocean.net.util.UrlDecoder`` instead.
+
 ``ocean.util.container.ebtree``, ``ocean.io.compress.lzo``
   These modules don't use a ``pragma(lib, ...)`` anymore, so you need to
   explicitly link using ``-lebtree`` or ``-llzo2`` now. Make sure to update

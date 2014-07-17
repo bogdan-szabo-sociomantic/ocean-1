@@ -72,14 +72,6 @@
 module      ocean.util.OceanException;
 
 
-// *****************************************************************************
-// *****************************************************************************
-// *****************************************************************************
-pragma(msg, "ocean.util.OceanException is deprecated: use ocean.util.app.* / tango.util.log.* instead");
-// *****************************************************************************
-// *****************************************************************************
-// *****************************************************************************
-
 
 /*******************************************************************************
 
@@ -105,7 +97,7 @@ private     import      tango.core.Vararg;
 
 ********************************************************************************/
 
-class OceanException: Exception
+deprecated class OceanException: Exception
 {
     /***************************************************************************
 
@@ -113,7 +105,7 @@ class OceanException: Exception
 
     ***************************************************************************/
 
-    public              alias typeof(this)              This;
+    deprecated public   alias typeof(this)              This;
 
 
     /***************************************************************************
@@ -149,7 +141,7 @@ class OceanException: Exception
 
     ***************************************************************************/
 
-    public              static bool                     console_output = false;
+    deprecated public   static bool                     console_output = false;
 
 
     /***************************************************************************
@@ -197,7 +189,7 @@ class OceanException: Exception
 
     ***************************************************************************/
 
-    public static bool run( bool function(TypeInfo[] arguments, void* args) func, ... )
+    deprecated public static bool run( bool function(TypeInfo[] arguments, void* args) func, ... )
     {
         try
         {
@@ -249,7 +241,7 @@ class OceanException: Exception
 
     ***************************************************************************/
 
-    public static bool run( bool function(Tango.Arguments arguments) func,
+    deprecated public static bool run( bool function(Tango.Arguments arguments) func,
             Tango.Arguments arguments )
     {
         try
@@ -269,7 +261,7 @@ class OceanException: Exception
         return true;
     }
 
-    public static bool run( bool function(Arguments arguments) func,
+    deprecated public static bool run( bool function(Arguments arguments) func,
             Arguments arguments )
     {
         try
@@ -319,7 +311,7 @@ class OceanException: Exception
 
     ***************************************************************************/
 
-    public static bool run( bool function ( ) func )
+    deprecated public static bool run( bool function ( ) func )
     {
         try
         {
@@ -368,7 +360,7 @@ class OceanException: Exception
 
     ***************************************************************************/
 
-    public static bool run( bool delegate() func )
+    deprecated public static bool run( bool delegate() func )
     {
         try
         {
@@ -409,7 +401,7 @@ class OceanException: Exception
 
     ***************************************************************************/
 
-    public static void opCall ( char[] msg )
+    deprecated public static void opCall ( char[] msg )
     {
         if ( OceanException.isAppender() )
             OceanException.write(Logger.Level.Error, msg);
@@ -438,7 +430,7 @@ class OceanException: Exception
 
     ***************************************************************************/
 
-    public static void Critical ( char[] msg )
+    deprecated public static void Critical ( char[] msg )
     {
         OceanException(msg);
     }
@@ -466,7 +458,7 @@ class OceanException: Exception
 
     ***************************************************************************/
 
-    public static void Warn ( char[] fmt, ... )
+    deprecated public static void Warn ( char[] fmt, ... )
     {
         static char[] buffer;
 
@@ -509,7 +501,7 @@ class OceanException: Exception
 
     ***************************************************************************/
 
-    public static bool setOutput ( Appender ap )
+    deprecated public static bool setOutput ( Appender ap )
     {
         try
         {
@@ -537,7 +529,7 @@ class OceanException: Exception
 
     ***************************************************************************/
 
-    public static void setLoggerName( char[] name )
+    deprecated public static void setLoggerName( char[] name )
     {
         OceanException.loggerName = name;
     }
@@ -552,7 +544,7 @@ class OceanException: Exception
 
     ***************************************************************************/
 
-    public static Logger getLogger ( )
+    deprecated public static Logger getLogger ( )
     {
         return logger;
     }
