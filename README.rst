@@ -60,6 +60,10 @@ Makd
   * ``$O`` now points to ``build/$F/tmp`` instead of ``build/$F/obj`` to make
     it more explicit it is intended to hold any temporary files.
 
+``ocean.core.Version``
+  This ancient and mysterious module was completely removed after being
+  deprecated for a while. A long while.
+
 ``ocean.util.container.ebtree``, ``ocean.io.compress.lzo``
   These modules don't use a ``pragma(lib, ...)`` anymore, so you need to
   explicitly link using ``-lebtree`` or ``-llzo2`` now. Make sure to update
