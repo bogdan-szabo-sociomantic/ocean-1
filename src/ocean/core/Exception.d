@@ -286,6 +286,17 @@ unittest
         assert(e.line == __LINE__ - 6);
     }
 
+    try
+    {
+        enforce!("!is")(null, null);
+        assert(false);
+    }
+    catch (Exception e)
+    {
+        assert(e.msg == "expression '0 !is 0' evaluates to false");
+        assert(e.line == __LINE__ - 6);
+    }
+
     // Check that enforce won't try to modify the exception reference
     static assert(is(typeof(enforce!("==")(new Exception("test"), 2, 3))));
 }
