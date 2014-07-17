@@ -260,24 +260,16 @@ public void enforce ( char[] op, E : Exception = Exception, T1, T2 ) ( T1 a,
 
 unittest
 {
-    class MyException : Exception
-    {
-        this ( char[] msg, char[] file = __FILE__, size_t line = __LINE__ )
-        {
-            super ( msg, file, line );
-        }
-    }
+    // uses 'assert' to avoid dependency on itself
 
-    auto reusable = new MyException(null);
-
-    enforce!("==")(reusable, 2, 2);
+    enforce!("==")(2, 2);
 
     try
     {
-        enforce!("==")(reusable, 2, 3);
+        enforce!("==")(2, 3);
         assert(false);
     }
-    catch (MyException e)
+    catch (Exception e)
     {
         assert(e.msg == "expression '2 == 3' evaluates to false");
         assert(e.line == __LINE__ - 6);
@@ -285,15 +277,20 @@ unittest
 
     try
     {
-        enforce!("is")(reusable, cast(void*)43, cast(void*)42);
+        enforce!(">")(3, 4);
         assert(false);
     }
-    catch (MyException e)
+    catch (Exception e)
     {
-        assert(e.msg == "expression '2b is 2a' evaluates to false");
+        assert(e.msg == "expression '3 > 4' evaluates to false");
         assert(e.line == __LINE__ - 6);
     }
+
+    // Check that enforce won't try to modify the exception reference
+    static assert(is(typeof(enforce!("==")(new Exception("test"), 2, 3))));
 }
+
+
 
 /******************************************************************************
 
@@ -334,16 +331,24 @@ public void enforce ( char[] op, E : Exception, T1, T2 ) ( E e, T1 a,
 
 unittest
 {
-    // uses 'assert' to avoid dependency on itself
+    class MyException : Exception
+    {
+        this ( char[] msg, char[] file = __FILE__, size_t line = __LINE__ )
+        {
+            super ( msg, file, line );
+        }
+    }
 
-    enforce!("==")(2, 2);
+    auto reusable = new MyException(null);
+
+    enforce!("==")(reusable, 2, 2);
 
     try
     {
-        enforce!("==")(2, 3);
+        enforce!("==")(reusable, 2, 3);
         assert(false);
     }
-    catch (Exception e)
+    catch (MyException e)
     {
         assert(e.msg == "expression '2 == 3' evaluates to false");
         assert(e.line == __LINE__ - 6);
@@ -351,17 +356,14 @@ unittest
 
     try
     {
-        enforce!(">")(3, 4);
+        enforce!("is")(reusable, cast(void*)43, cast(void*)42);
         assert(false);
     }
-    catch (Exception e)
+    catch (MyException e)
     {
-        assert(e.msg == "expression '3 > 4' evaluates to false");
+        assert(e.msg == "expression '2b is 2a' evaluates to false");
         assert(e.line == __LINE__ - 6);
     }
-
-    // Check that enforce won't try to modify the exception reference
-    static assert(is(typeof(enforce!("==")(new Exception("test"), 2, 3))));
 }
 
 /******************************************************************************
