@@ -53,9 +53,9 @@ Makd
 
   Finally, some internal changes were made (you sholdn't be affected unless you
   are playing with the guts of Makd):
-  
+
   * The ``build/$F/unittest`` directory is not generated or used anymore, and
-    the ``$U`` variable was removed, ``$O`` is used for all temporary stuff. 
+    the ``$U`` variable was removed, ``$O`` is used for all temporary stuff.
 
   * ``$O`` now points to ``build/$F/tmp`` instead of ``build/$F/obj`` to make
     it more explicit it is intended to hold any temporary files.
