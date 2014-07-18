@@ -88,7 +88,7 @@ public class StructPool ( T ) : IAggregatePool!(T)
 
 
 
-debug ( OceanUnitTest )
+debug ( UnitTest )
 {
     struct Struct
     {
