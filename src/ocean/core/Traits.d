@@ -815,3 +815,94 @@ unittest
     static int bad(ref int x) { return x; }
     static assert(!is(typeof(toDg(&bad))));
 }
+
+/*******************************************************************************
+
+    Check if a class or struct type contains a method with the given
+    method name, and has the same signature as the given delegate.
+
+    Template params:
+        T = The class or struct type to check
+        name = The name of the method to look up
+        Dg = The delegate type with the signature of the method to look for
+
+    Evaluates to:
+        True if the given type contains the method, false otherwise
+
+*******************************************************************************/
+
+template hasMethod ( T, char[] name, Dg )
+{
+    static assert(is(T == struct) || is(T == class) || is(T == union));
+    static assert(isIdentifier(name));
+    static assert(is(Dg == delegate));
+
+    static if ( is(typeof( { Dg dg = mixin("&T.init." ~ name); } )) )
+    {
+        const bool hasMethod = true;
+    }
+    else
+    {
+        const bool hasMethod = false;
+    }
+}
+
+debug ( UnitTest )
+{
+    template Methods ( )
+    {
+        void reset ( ) { }
+        int retint ( ) { return 0; }
+        int retintargs ( int ) { return 0; }
+        int retintargs2 ( int, float, char ) { return 0; }
+    }
+
+    template Tests ( T )
+    {
+        static assert( hasMethod!(T, "reset", void delegate()) );
+        static assert( !hasMethod!(T, "reset", int delegate()) );
+        static assert( !hasMethod!(T, "reset", void delegate(int)) );
+        static assert( !hasMethod!(T, "whatever", void delegate()) );
+        static assert( hasMethod!(T, "retint", int delegate()) );
+        static assert( hasMethod!(T, "retintargs", int delegate(int)) );
+        static assert( hasMethod!(T, "retintargs2", int delegate(int, float, char)) );
+        static assert( !hasMethod!(T, "retintargs2", int delegate(char, float, int)) );
+    }
+}
+
+unittest
+{
+    struct Struct
+    {
+        mixin Methods;
+    }
+
+    mixin Tests!(Struct);
+
+    class Base
+    {
+        void baseMethodVoid ( ) { }
+        int baseMethodInt ( ) { return 0; }
+        int baseMethodIntArgs ( int, float, char ) { return 0; }
+    }
+
+    class Class : Base
+    {
+        mixin Methods;
+    }
+
+    mixin Tests!(Class);
+
+    static assert ( hasMethod!(Class, "baseMethodVoid", void delegate()) );
+    static assert ( !hasMethod!(Class, "baseMethodVoid", int delegate()) );
+    static assert ( !hasMethod!(Class, "baseMethodVoid", void delegate(int)) );
+    static assert ( hasMethod!(Class, "baseMethodInt", int delegate()) );
+    static assert ( hasMethod!(Class, "baseMethodIntArgs", int delegate(int, float, char)) );
+
+    union Union
+    {
+        mixin Methods;
+    }
+
+    mixin Tests!(Union);
+}
