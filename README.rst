@@ -60,6 +60,30 @@ Makd
   * ``$O`` now points to ``build/$F/tmp`` instead of ``build/$F/obj`` to make
     it more explicit it is intended to hold any temporary files.
 
+``ocean.util.container.ebtree``, ``ocean.io.compress.lzo``
+  These modules don't use a ``pragma(lib, ...)`` anymore, so you need to
+  explicitly link using ``-lebtree`` or ``-llzo2`` now. Make sure to update
+  your Makefiles.
+
+``ocean.core.Exception``
+  Rename ``assertEx`` to ``enforce``. If variadic argument list has been used, format
+  it into single message argument at call site (this argument is lazy). You can also
+  remove explicit mentions of __FILE__ and __LINE__ (not necessary but recommended).
+
+``ocean.util.app.ext.ArgumentsExt``
+  The behaviour of arguments parsing has slightly changed. Previously, the
+  arguments were parsed (``tango.text.Arguments : Arguments.parse``), then
+  validated (calling the ``validateArgs()`` methods of all app extensions), and
+  finally any error messages were output. This behaviour was, in some cases,
+  problematic, as validation functions are often written with the assumption
+  that any restrictions on arguments (number of parameters, restrictions on
+  acceptable parameters, conflicts with other arguments, etc) have already been
+  enforced. The logic has now changed so that, if arguments parsing fails,
+  validation will not be performed.
+
+Deprecations
+^^^^^^^^^^^^
+
 ``ocean.core.Version``
   This ancient and mysterious module was completely removed after being
   deprecated for a while. A long while.
@@ -79,16 +103,6 @@ Makd
   indication of how to replace it was removed, so now is probably a good moment
   to update and start using ``ocean.net.util.UrlDecoder`` instead.
 
-``ocean.util.container.ebtree``, ``ocean.io.compress.lzo``
-  These modules don't use a ``pragma(lib, ...)`` anymore, so you need to
-  explicitly link using ``-lebtree`` or ``-llzo2`` now. Make sure to update
-  your Makefiles.
-
-``ocean.core.Exception``
-  Rename ``assertEx`` to ``enforce``. If variadic argument list has been used, format
-  it into single message argument at call site (this argument is lazy). You can also
-  remove explicit mentions of __FILE__ and __LINE__ (not necessary but recommended).
-
 ``ocean.util.Unittest``
   This module is deprecated. Replace ``assertLog`` with ``ocean.core.Test.test``. Where
   necessary, replace ``Unittest`` with ``NamedTest``. NB: ``NamedTest`` is NOT as scope
@@ -100,17 +114,6 @@ Makd
 ``ocean.core.Cache``, ``ocean.util.Main``
   These modules are completely removed being deprecated for many ocean releases now.
   You should have stopped using them long time ago.
-
-``ocean.util.app.ext.ArgumentsExt``
-  The behaviour of arguments parsing has slightly changed. Previously, the
-  arguments were parsed (``tango.text.Arguments : Arguments.parse``), then
-  validated (calling the ``validateArgs()`` methods of all app extensions), and
-  finally any error messages were output. This behaviour was, in some cases,
-  problematic, as validation functions are often written with the assumption
-  that any restrictions on arguments (number of parameters, restrictions on
-  acceptable parameters, conflicts with other arguments, etc) have already been
-  enforced. The logic has now changed so that, if arguments parsing fails,
-  validation will not be performed.
 
 New Features
 ^^^^^^^^^^^^
