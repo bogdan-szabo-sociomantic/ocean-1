@@ -40,6 +40,8 @@ module ocean.util.container.pool.StructPool;
 
 private import ocean.util.container.pool.model.IAggregatePool;
 
+private import ocean.core.Traits : hasMethod;
+
 
 
 /*******************************************************************************
@@ -80,7 +82,9 @@ public class StructPool ( T ) : IAggregatePool!(T)
     {
         static if (is (typeof (T.reset) Reset))
         {
-            static assert (is (Reset == void function()), T.stringof ~ ".reset() must be 'void reset()'");
+            static assert(hasMethod!(T, "reset", void delegate()),
+                T.stringof ~ ".reset() must be 'void reset()'");
+
             this.fromItem(item).reset();
         }
     }
@@ -96,6 +100,11 @@ debug ( UnitTest )
 
         int i;
         char[] s;
+
+        void reset ( )
+        {
+
+        }
     }
 
     alias StructPool!(Struct) MyPool;
