@@ -118,6 +118,9 @@ Deprecations
 New Features
 ^^^^^^^^^^^^
 
+``ocean.util.app.ext.ConfigExt``
+  It's now possible to override several different config values instead of one.
+
 ``ocean.core.Exception``
   ``assertEx`` functions replaced with ``enforce`` with similar functionality but
   different API. Requires dmd1 package version "1.076.s2".
