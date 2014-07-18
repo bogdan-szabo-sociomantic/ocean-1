@@ -75,12 +75,10 @@ Makd
   necessary, replace ``Unittest`` with ``NamedTest``. NB: ``NamedTest`` is NOT as scope
   class.
 
-``ocean.util.app.UnittestedApp``
-``ocean.util.app.ext.UnittestExt``
+``ocean.util.app.UnittestedApp``, ``ocean.util.app.ext.UnittestExt``
   These modules are deprecated, simply remove them from your application extensions.
 
-``ocean.core.Cache``
-``ocean.util.Main``
+``ocean.core.Cache``, ``ocean.util.Main``
   These modules are completely removed being deprecated for many ocean releases now.
   You should have stopped using them long time ago.
 
@@ -214,8 +212,10 @@ Migration Instructions
   This module has been removed as it was only partly documented/working. See #33
   for discussion on a full asynchronous file I/O system.
 
-``ocean.io.serialize.StructLoader``, ``ocean.io.serialize.StructDumper``,
-``ocean.io.serialize.model.StructVersionBase``, ``ocean.io.serialize.model.StructLoaderBase``
+``ocean.io.serialize.StructLoader``, \
+``ocean.io.serialize.StructDumper``, \
+``ocean.io.serialize.model.StructVersionBase``, \
+``ocean.io.serialize.model.StructLoaderBase``
   StructLoader has been replaced by a interface-compatible class that adds
   support for struct versions. The original loader is still available at
   ``ocean.io.serialize.model.StructLoaderCore``.
@@ -238,7 +238,9 @@ Migration Instructions
 New Features
 ^^^^^^^^^^^^
 
-``ocean.util.app.LoggedCliApp``, ``ocean.util.app.VersionedLoggedCliApp``, ``ocean.util.app.VersionedLoggedStatsCliApp``
+``ocean.util.app.LoggedCliApp``, \
+``ocean.util.app.VersionedLoggedCliApp``, \
+``ocean.util.app.VersionedLoggedStatsCliApp``
   These application classes that support tango based logging out-of-the-box can
   now also specify the layouts for the log output. The layouts for the file logs
   and console logs can be specified individually using the keys ``file_layout``
