@@ -34,6 +34,8 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+:Dependency: tango v1.0.2
+
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -164,6 +166,11 @@ New Features
   with ``libreadline``. readline is a powerful library for reading the user-input
   from the console. It provides many functionalities including browsing the input
   history, text auto-completion and much more.
+
+``ocean.sys.GetIfAddrs``
+  New module with ``getAddressForInterface`` function to fetch the IP address
+  of the given interface as a string.
+
 
 v1.14 (2014-06-20)
 ------------------
