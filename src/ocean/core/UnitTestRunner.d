@@ -38,13 +38,11 @@ module ocean.core.UnitTestRunner;
 
 private import tango.stdc.stdio: printf, fprintf, stdout, stderr, FILE;
 private import tango.stdc.string: strdup, strlen;
+private import tango.stdc.posix.libgen: basename;
 private import tango.core.Runtime: Runtime;
 private import tango.core.Exception : AssertException;
 
 private import ocean.core.Test : TestException;
-
-// present in libgen.h, POSIX.1-2001.
-extern (C) char* basename(char* path);
 
 
 
