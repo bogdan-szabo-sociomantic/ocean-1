@@ -171,6 +171,8 @@ New Features
   New module with ``getAddressForInterface`` function to fetch the IP address
   of the given interface as a string.
 
+``ocean.util.Config.ClassFiller.LimitCmp``
+  This template now can accept arguments with type different than ``char[]``
 
 v1.14 (2014-06-20)
 ------------------

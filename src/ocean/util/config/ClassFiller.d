@@ -144,10 +144,14 @@ private import ocean.util.config.ConfigParser;
 
 private import ocean.util.log.Trace;
 
+private import tango.util.Convert;
+
 private import tango.core.Traits : DynamicArrayType, isStringType,
                                    isIntegerType, isRealType;
 
 debug ( OceanUnitTest ) private import ocean.text.convert.Layout;
+
+version (UnitTest) private import ocean.core.Test;
 
 /*******************************************************************************
 
@@ -558,11 +562,11 @@ struct LimitCmp ( T, T init = T.init, alias comp = defComp!(T), Set... )
 
         foreach ( el ; Set )
         {
-            allowed_vals ~= ", " ~ el ;
+            allowed_vals ~= ", " ~ to!(char[])(el);
         }
 
         throw new ConfigException(
-                "Value '" ~ Value(this.value) ~ "' "
+                "Value '" ~ to!(char[])(Value(this.value)) ~ "' "
                 "of configuration key " ~ group ~ "." ~ name ~ " "
                 "is not within the set of allowed values "
                 "(" ~ allowed_vals[2 ..$] ~ ")",
@@ -570,6 +574,12 @@ struct LimitCmp ( T, T init = T.init, alias comp = defComp!(T), Set... )
     }
 }
 
+
+unittest
+{
+    test(is(typeof({LimitCmp!(short, 1, defComp!(short), 0, 1) val; })));
+    test(is(typeof({ LimitCmp!(char[], "", defComp!(char[]), "red", "green") val; })));
+}
 
 /*******************************************************************************
 
