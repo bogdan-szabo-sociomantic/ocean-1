@@ -42,7 +42,7 @@ private import tango.stdc.stdarg;
 
 private import tango.core.Exception;
 
-debug private import tango.util.log.Trace;
+debug private import ocean.util.log.Trace;
 
 
 
