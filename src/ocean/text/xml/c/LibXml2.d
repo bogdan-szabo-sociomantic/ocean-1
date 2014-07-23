@@ -161,6 +161,14 @@ extern ( C )
 
     /***************************************************************************
 
+        Cleanup the last global error registered
+
+    ***************************************************************************/
+
+    void xmlResetLastError ( );
+
+    /***************************************************************************
+
         Signature of the function to use when there is an error and no
         parsing or validity context available
 

@@ -64,6 +64,11 @@ private void throwXmlErrors ( Exception exception )
     if ( err )
     {
         formatXmlErrorString(err, exception.msg);
+
+        // Ensure that we don't see this error again
+
+        xmlResetLastError();
+
         throw exception;
     }
 }
