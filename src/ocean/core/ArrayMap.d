@@ -1997,10 +1997,10 @@ deprecated class ArrayMap ( V, K = hash_t, bool M = Mutex.Disable )
     {
         data = input.load(len);
 
-        assertEx!(IOException)(!(data.length < len),
+        enforce!(IOException)(!(data.length < len),
                                typeof (this).stringof ~ ": end of flow whilst reading");
 
-        assertEx!(IOException)(data.length == len,
+        enforce!(IOException)(data.length == len,
                                typeof (this).stringof ~ ": got too much data");
 
         return len;
