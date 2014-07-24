@@ -120,7 +120,8 @@ unittest
         T = type of expression to test
 
     Params:
-        e = exception instance to throw in case of an error
+        e = exception instance to throw in case of an error (evaluated once in
+            case of an error, not evaluated otherwise)
         ok = result of expression
         msg = optional custom message for exception
         file = file of origin
@@ -131,27 +132,29 @@ unittest
 
 ******************************************************************************/
 
-public void enforce ( E : Exception, T ) ( E e, T ok, lazy char[] msg = "",
+public void enforce ( E : Exception, T ) ( lazy E e, T ok, lazy char[] msg = "",
     char[] file = __FILE__, size_t line = __LINE__ )
 {
     if (!ok)
     {
+        auto exception = e;
+
         if (msg.length)
         {
-            e.msg = msg;
+            exception.msg = msg;
         }
         else
         {
-            if (!e.msg.length)
+            if (!exception.msg.length)
             {
-                e.msg = "enforcement has failed";
+                exception.msg = "enforcement has failed";
             }
         }
 
-        e.file = file;
-        e.line = line;
+        exception.file = file;
+        exception.line = line;
 
-        throw e;
+        throw exception;
     }
 }
 
@@ -205,6 +208,45 @@ unittest
 
     // Check that enforce won't try to modify the exception reference
     static assert(is(typeof(enforce(new Exception("test"), true))));
+
+    // Check that enforce() with doesn't evaluate its lazy exception parameter
+    // if the sanity condition is true.
+
+    enforce(
+        delegate MyException()
+        {
+            assert(false,
+                   "enforce() evaluated its exception parameter without error");
+            return null;
+        }(),
+        true
+    );
+
+    // call enforce() with condition "2 != 2" and verify it does evaluate its
+    // lazy exception parameter exactly once
+
+    bool returned_reusable = false;
+
+    try
+    {
+        enforce(
+            {
+                assert(!returned_reusable,
+                       "enforce() evaluated its exception pararmeter more " ~
+                       "than once");
+                returned_reusable = true;
+                return reusable;
+            }(),
+            false
+        );
+    }
+    catch (Exception e)
+    {
+        assert(e is reusable, "expected enforce() to throw reusable");
+    }
+
+    assert(returned_reusable,
+           "enforce() didn't evaluate its exception parameter");
 }
 
 /******************************************************************************
@@ -314,7 +356,8 @@ unittest
         T2 = type of right operand
 
     Params:
-        e = exception instance to throw in case of an error
+        e = exception instance to throw in case of an error (evaluated once in
+            case of an error, not evaluated otherwise)
         a = left operand
         b = right operand
         msg = optional custom message for exception
@@ -326,17 +369,18 @@ unittest
 
 ******************************************************************************/
 
-public void enforce ( char[] op, E : Exception, T1, T2 ) ( E e, T1 a,
+public void enforce ( char[] op, E : Exception, T1, T2 ) ( lazy E e, T1 a,
     T2 b, char[] file = __FILE__, size_t line = __LINE__ )
 {
     mixin("auto ok = a " ~ op ~ " b;");
 
     if (!ok)
     {
-        e.msg = Format("expression '{} {} {}' evaluates to false", a, op, b);
-        e.file = file;
-        e.line = line;
-        throw e;
+        auto exception = e;
+        exception.msg = Format("expression '{} {} {}' evaluates to false", a, op, b);
+        exception.file = file;
+        exception.line = line;
+        throw exception;
     }
 }
 
@@ -375,6 +419,45 @@ unittest
         assert(e.msg == "expression '2b is 2a' evaluates to false");
         assert(e.line == __LINE__ - 6);
     }
+
+    // call enforce() with condition "2 == 2" and verify it doesn't evaluate its
+    // lazy exception parameter
+
+    enforce!("==")(
+        delegate MyException()
+        {
+            assert(false,
+                   "enforce() evaluated its exception parameter without error");
+            return null;
+        }(),
+        2, 2
+    );
+
+    // call enforce() with condition "2 != 2" and verify it does evaluate its
+    // lazy exception parameter exactly once
+
+    bool returned_reusable = false;
+
+    try
+    {
+        enforce!("!=")(
+            {
+                assert(!returned_reusable,
+                       "enforce() evaluated its exception pararmeter more " ~
+                       "than once");
+                returned_reusable = true;
+                return reusable;
+            }(),
+            2, 2
+        );
+    }
+    catch (Exception e)
+    {
+        assert(e is reusable, "expected enforce() to throw reusable");
+    }
+
+    assert(returned_reusable,
+           "enforce() didn't evaluate its exception parameter");
 }
 
 /******************************************************************************
