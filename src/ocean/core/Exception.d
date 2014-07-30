@@ -276,28 +276,33 @@ unittest
 public void enforce ( char[] op, E : Exception = Exception, T1, T2 ) ( T1 a,
     T2 b, char[] file = __FILE__, size_t line = __LINE__ )
 {
-    static if (is(typeof(new E((char[]).init, file, line))))
-    {
-        auto exception = new E(null, file, line);
-    }
-    else static if (is(typeof(new E(file, line))))
-    {
-        auto exception = new E(file, line);
-    }
-    else static if (is(typeof(new E((char[]).init))))
-    {
-        auto exception = new E(null);
-    }
-    else static if (is(typeof(new E())))
-    {
-        auto exception = new E();
-    }
-    else
-    {
-        static assert (false, "Unsupported constructor signature");
-    }
+    mixin("auto ok = a " ~ op ~ " b;");
 
-    enforce!(op, E, T1, T2)(exception, a, b, file, line);
+    if (!ok)
+    {
+        static if (is(typeof(new E((char[]).init, file, line))))
+        {
+            auto exception = new E(null, file, line);
+        }
+        else static if (is(typeof(new E(file, line))))
+        {
+            auto exception = new E(file, line);
+        }
+        else static if (is(typeof(new E((char[]).init))))
+        {
+            auto exception = new E(null);
+        }
+        else static if (is(typeof(new E())))
+        {
+            auto exception = new E();
+        }
+        else
+        {
+            static assert (false, "Unsupported constructor signature");
+        }
+
+        enforce!(op, E, T1, T2)(exception, a, b, file, line);
+    }
 }
 
 unittest
