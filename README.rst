@@ -169,6 +169,10 @@ Deprecations
   These modules are completely removed being deprecated for many ocean releases now.
   You should have stopped using them long time ago.
 
+``ocean.sys.GetIfAddrs.getAddressForInterface``
+  This method is deprecated in favour of ``getAddrsForInterface`` which allows to
+  specify the IP family and it returns all addresses in the family for the interface.
+
 New Features
 ^^^^^^^^^^^^
 
@@ -219,9 +223,9 @@ New Features
   from the console. It provides many functionalities including browsing the input
   history, text auto-completion and much more.
 
-``ocean.sys.GetIfAddrs``
-  New module with ``getAddressForInterface`` function to fetch the IP address
-  of the given interface as a string.
+``ocean.sys.getIfAddrs.getAddrsForInterface``
+  New method which returns all addresses for the interface and for the specified
+  address family. 
 
 ``ocean.util.Config.ClassFiller.LimitCmp``
   This template now can accept arguments with type different than ``char[]``
