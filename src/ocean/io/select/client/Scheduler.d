@@ -64,7 +64,7 @@ module ocean.io.select.client.Scheduler;
 
 *******************************************************************************/
 
-private import ocean.core.ObjectPool;
+private import ocean.util.container.pool.ObjectPool;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
@@ -255,7 +255,7 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
 
     ***************************************************************************/
 
-    private Pool!(Event) events;
+    private ObjectPool!(Event) events;
 
 
     /***************************************************************************
@@ -273,11 +273,11 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
     {
         this.epoll = epoll;
 
-        this.events = new Pool!(Event);
+        this.events = new ObjectPool!(Event);
 
         if ( max_events )
         {
-            this.events.limit(max_events, new Event);
+            this.events.setLimit(max_events);
         }
     }
 
@@ -351,4 +351,11 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
         super.stopTimeout();
         this.epoll.unregister(this.select_client);
     }
+}
+
+unittest
+{
+    // create instance to check if it compiles
+    class Dummy { }
+    Scheduler!(Dummy) scheduler;
 }
