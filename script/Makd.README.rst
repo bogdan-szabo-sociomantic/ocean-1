@@ -23,16 +23,17 @@ makefile for your project (or convert the old one).
 
 A typical Top-level ``Makefile`` should look like this::
 
-        # Default goal for building this directory
-        .DEFAULT_GOAL := all
-
         # Include the top-level makefile
         include submodules/ocean/script/Makd.mak
+
+        # Default goal for building this directory
+        .DEFAULT_GOAL := all
 
 Assuming your ocean installation is in ``submodules/ocean``.  ``DEFAULT_GOAL``
 is a special GNU Make variable to tell which target should be built when you
 just run ``make`` without arguments. This is optional, if you don't set it, it
-will default to ``all`` anyway.
+will default to ``all`` anyway, but if you set it, make sure you define it
+**after** including ``Makd.mak``, order is important.
 
 This file should be written only once and never touched again. But in your
 project you might have more than one Makefile, for example you could have one in

@@ -315,11 +315,9 @@ TEST_SOURCES +=  $(call find_files,.d,,$C/src,$(TEST_FILTER_OUT))
 # Default rules
 ################
 
-# By default we build the `all` target if we didn't get a exlicit default
-# before.
-ifeq ($(.DEFAULT_GOAL),)
+# By default we build the `all` target (it can be overriden at the end of the
+# user's Makefile)
 .DEFAULT_GOAL := all
-endif
 
 # This is not a rule, but is defined to match the LINK.* variables predefined
 # in Make and have a more Make-ish look & feel.
