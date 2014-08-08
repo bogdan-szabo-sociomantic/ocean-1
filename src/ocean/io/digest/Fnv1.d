@@ -24,7 +24,7 @@ private import tango.util.digest.Digest;
 
 private import tango.core.ByteSwap;
 
-debug private import ocean.util.log.Trace;
+version (UnitTestVerbose) private import ocean.util.log.Trace;
 
 
 /******************************************************************************
@@ -680,10 +680,10 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 **************************************************************************/
 
 
-debug ( OceanUnitTest )
+version ( UnitTest )
 {
     // Uncomment the next line to see UnitTest output
-    // debug = Verbose;
+    // version = UnitTestVerbose;
 
     private char[] errmsg ( char[] func, char[] str, bool is_text )
     {
@@ -700,7 +700,7 @@ debug ( OceanUnitTest )
 
     unittest
     {
-        debug (Verbose) Trace.formatln("Running ocean.io.digest.Fnv1 unittest");
+        version (UnitTestVerbose) Trace.formatln("Running ocean.io.digest.Fnv1 unittest");
 
         struct TestData
         {
@@ -789,7 +789,7 @@ debug ( OceanUnitTest )
             assert (fnv1a64.update(tdat.string).hexDigest == tdat.fnv1a_64_hex, errmsg("Fnv1a64.hexDigest", tdat.string, tdat.is_text));
         }
 
-        debug (Verbose) Trace.formatln("\nDone unittest\n");
+        version (UnitTestVerbose) Trace.formatln("\nDone unittest\n");
 
 
         assert ( StaticFnv1a32!("myString") == Fnv1a32("myString"), "CompileTime Fnv1a32 failed");

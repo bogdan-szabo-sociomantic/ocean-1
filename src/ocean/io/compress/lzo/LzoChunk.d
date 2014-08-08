@@ -264,7 +264,7 @@ class LzoChunk ( bool LengthInline = true )
     }
 }
 
-debug (OceanUnitTest) private:
+version (UnitTest) private:
 
 /*******************************************************************************
 
@@ -335,7 +335,7 @@ struct Terminator
 unittest
 {
     // Uncomment the next line to see UnitTest output
-    // debug = Verbose;
+    // version = UnitTestVerbose;
 
     debug (GcDisabled)
     {
@@ -348,7 +348,7 @@ unittest
     MetricPrefix pre_comp_sz, pre_uncomp_sz,
                  pre_comp_tm, pre_uncomp_tm, pre_crc_tm;
 
-    debug (Verbose) Trace.formatln("LzoChunk unittest: loading test data from file \"lzotest.dat\"");
+    version (UnitTestVerbose) Trace.formatln("LzoChunk unittest: loading test data from file \"lzotest.dat\"");
 
     File file;
 

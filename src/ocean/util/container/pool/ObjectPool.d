@@ -192,7 +192,7 @@ public class AutoCtorPool ( T, Args ... ) : ObjectPool!(T)
 
 
 
-debug ( OceanUnitTest )
+version ( UnitTest )
 {
     class Class
     {

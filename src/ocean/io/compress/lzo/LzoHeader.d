@@ -41,7 +41,7 @@ private import ocean.io.compress.CompressException;
 
 private import ocean.core.Exception: enforce;
 
-debug private import tango.util.log.Trace;
+version (UnitTestVerbose) private import tango.util.log.Trace;
 
 /******************************************************************************
 
@@ -637,7 +637,7 @@ template SizeofTuple ( T ... )
  ******************************************************************************/
 
 
-debug (OceanUnitTest) private:
+version (UnitTest) private:
 
 import tango.util.log.Trace;
 
@@ -682,7 +682,7 @@ struct Terminator
 unittest
 {
     // Uncomment the next line to see UnitTest output
-    // debug = Verbose;
+    // version = UnitTestVerbose;
 
     debug (GcDisabled)
     {
@@ -801,7 +801,7 @@ unittest
     us_try_read_start -= us_stop;
     us_stop           -= us_start;
 
-    debug (Verbose)  Trace.formatln("LzoHeader unittest results:\n\t"
+    version (UnitTestVerbose)  Trace.formatln("LzoHeader unittest results:\n\t"
                    "start():        1000 headers generated within {} ms\n\t"
                    "stop():         1000 headers generated within {} ms\n\t"
                    "tryReadStart(): 1000 headers checked   within {} ms\n\t"
@@ -855,5 +855,5 @@ unittest
         }
     }
 
-    debug (Verbose) Trace.formatln("\n\nCompressionHeader unittest finished\n");
+    version (UnitTestVerbose) Trace.formatln("\n\nCompressionHeader unittest finished\n");
 }

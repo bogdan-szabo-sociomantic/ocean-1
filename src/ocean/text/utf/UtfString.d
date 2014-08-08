@@ -66,11 +66,6 @@ module ocean.text.utf.UtfString;
 
 private import Utf = tango.text.convert.Utf;
 
-debug
-{
-    private import tango.util.log.Trace;
-}
-
 
 
 /*******************************************************************************
@@ -595,19 +590,15 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 
 
 
-debug ( OceanUnitTest )
+version ( UnitTest )
 {
     // TODO: only a very simple unittest for now!
     unittest
     {
-        Trace.formatln("Running ocean.text.utf.UtfString unittest");
-
         char[] str1 = "hello world ®"; // utf8 encoding
         dchar[] str2 = "hello world ®"; // utf32 encoding
 
         assert(utf_match(str1, str2));
-
-        Trace.formatln("\nDone unittest\n");
     }
 }
 

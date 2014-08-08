@@ -527,16 +527,16 @@ unittest
 
 *******************************************************************************/
 
-debug ( OceanUnitTest )
+version ( UnitTest )
 {
     // Uncomment the next line to see UnitTest output
-    // debug = Verbose;
+    // version = UnitTestVerbose;
 
     import tango.math.random.Random;
     import tango.time.StopWatch;
     import tango.core.Memory;
     import tango.io.FilePath;
-    import ocean.util.log.Trace;
+    version (UnitTestVerbose) import ocean.util.log.Trace;
 
     unittest
     {
@@ -561,7 +561,7 @@ debug ( OceanUnitTest )
 
         ***********************************************************************/
 
-        debug (Verbose)  Trace.formatln("\nRunning ocean.io.device.queue.FlexibleByteRingQueue wrapping stability test");
+        version (UnitTestVerbose)  Trace.formatln("\nRunning ocean.io.device.queue.FlexibleByteRingQueue wrapping stability test");
         {
             scope queue = new FlexibleByteRingQueue((1+FlexibleByteRingQueue.Header.sizeof)*3);
 

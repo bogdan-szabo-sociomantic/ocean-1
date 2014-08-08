@@ -55,7 +55,7 @@ private import ocean.util.container.map.model.MapIterator;
 
 private import ocean.util.container.map.model.StandardHash;
 
-debug private import ocean.io.Stdout;
+version (UnitTestVerbose) private import ocean.io.Stdout;
 
 /*******************************************************************************
 
@@ -63,9 +63,9 @@ debug private import ocean.io.Stdout;
 
 *******************************************************************************/
 
-//debug = UnittestVerbose;
+//version = UnitTestVerbose;
 
-debug ( UnittestVerbose )
+version ( UnitTestVerbose )
 {
     private import tango.io.Stdout;
 }

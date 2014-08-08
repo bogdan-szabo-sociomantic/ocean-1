@@ -52,11 +52,8 @@ private import ocean.crypt.misc.Bitwise;
 
 private import tango.util.digest.MerkleDamgard;
 
-debug
-{
-    private import tango.util.digest.Sha1;
-    private import ocean.util.log.Trace;
-}
+version (UnitTest) private import tango.util.digest.Sha1;
+
 
 
 /******************************************************************************
@@ -296,7 +293,7 @@ public class HMAC
 
     ***************************************************************************/
 
-    debug unittest
+    unittest
     {
         static char[][] test_keys = [
             "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",

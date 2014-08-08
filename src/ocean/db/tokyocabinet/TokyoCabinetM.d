@@ -45,7 +45,7 @@ private import ocean.db.tokyocabinet.c.tcmdb :
 
 private import tango.stdc.stdlib : free;
 
-debug private import ocean.util.log.Trace;
+version (UnitTestVerbose) private import ocean.util.log.Trace;
 
 /*******************************************************************************
 
@@ -501,9 +501,8 @@ public class TokyoCabinetM
 
 *******************************************************************************/
 
-debug (OceanUnitTest)
+version (UnitTest)
 {
-    import ocean.util.log.Trace;
     import tango.core.Memory;
     import tango.time.StopWatch;
     import tango.core.Thread;
@@ -511,7 +510,7 @@ debug (OceanUnitTest)
 
     unittest
     {
-        debug ( Verbose ) Trace.formatln("Running ocean.db.tokyocabinet.TokyoCabinetM unittest");
+        version ( UnitTestVerbose ) Trace.formatln("Running ocean.db.tokyocabinet.TokyoCabinetM unittest");
 
         const uint iterations  = 5;
         const uint inserts     = 1_000_000;
@@ -565,7 +564,6 @@ debug (OceanUnitTest)
 
 debug (OceanPerformanceTest)
 {
-    import ocean.util.log.Trace;
     import tango.core.Memory;
     import tango.time.StopWatch;
     import tango.core.Thread;
@@ -579,7 +577,7 @@ debug (OceanPerformanceTest)
 
          ***********************************************************************/
 
-        debug ( Verbose ) Trace.formatln("running mem test...");
+        version ( UnitTestVerbose ) Trace.formatln("running mem test...");
 
         char[] toHex ( uint n, char[8] hex )
         {
@@ -608,7 +606,7 @@ debug (OceanPerformanceTest)
                 map.put(hex, hex);
             }
 
-            debug ( Verbose ) Trace.formatln  ("[{}:{}-{}]\t{} adds with {}/s and {} bytes mem usage",
+            version ( UnitTestVerbose ) Trace.formatln  ("[{}:{}-{}]\t{} adds with {}/s and {} bytes mem usage",
                     r, ((inserts * r) - inserts), (inserts * r), map.numRecords(),
                     map.numRecords()/w.stop, GC.stats["poolSize"]);
         }
@@ -621,13 +619,15 @@ debug (OceanPerformanceTest)
         {
             if ( map.exists(toHex(i, hex)) ) hits++;
         }
-        debug ( Verbose ) Trace.formatln("inserts = {}, hits = {}", inserts, hits);
+        version ( UnitTestVerbose ) Trace.formatln("inserts = {}, hits = {}", inserts, hits);
         assert(inserts == hits);
 
-        debug ( Verbose ) Trace.format  ("{}/{} gets/hits with {}/s and ", map.numRecords(), hits, map.numRecords()/w.stop);
-        debug ( Verbose ) Trace.formatln("mem usage {} bytes", GC.stats["poolSize"]);
-
-        debug ( Verbose ) Trace.formatln("done unittest\n");
+        version ( UnitTestVerbose )
+        {
+            Trace.format  ("{}/{} gets/hits with {}/s and ", map.numRecords(), hits, map.numRecords()/w.stop);
+            Trace.formatln("mem usage {} bytes", GC.stats["poolSize"]);
+            Trace.formatln("done unittest\n");
+        }
     }
 }
 

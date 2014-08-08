@@ -58,7 +58,7 @@ private import tango.core.Exception: IOException;
 
 private import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
 
-debug private import ocean.util.log.Trace;
+version (UnitTestVerbose) private import ocean.util.log.Trace;
 
 
 
@@ -410,7 +410,7 @@ static:
 
 
 
-debug ( OceanUnitTest )
+version ( UnitTest )
 {
     private import ocean.io.Stdout;
     private import tango.io.device.TempFile;
@@ -425,13 +425,13 @@ debug ( OceanUnitTest )
         file.seek(0);
 
         SimpleSerializer.read(file, read);
-        debug ( Verbose ) Stdout.formatln("Wrote {} to conduit, read {}", write, read);
+        version ( UnitTestVerbose ) Stdout.formatln("Wrote {} to conduit, read {}", write, read);
         assert(read == write, "Error serializing " ~ T.stringof);
     }
 
     unittest
     {
-        debug (Verbose) Stdout.formatln("Running ocean.io.serialize.SimpleSerializer unittest");
+        version (UnitTestVerbose) Stdout.formatln("Running ocean.io.serialize.SimpleSerializer unittest");
 
         uint an_int = 23;
         test(an_int);
@@ -442,7 +442,7 @@ debug ( OceanUnitTest )
         char[][] a_string_array = ["hollow world", "journey to the centre", "of the earth"];
         test(a_string_array);
 
-        debug (Verbose) Stdout.formatln("done unittest\n");
+        version (UnitTestVerbose) Stdout.formatln("done unittest\n");
     }
 }
 

@@ -258,11 +258,11 @@ public class CSV
 
 /*******************************************************************************
 
-    Unittest
+    UnitTest
 
 *******************************************************************************/
 
-debug ( OceanUnittest )
+version ( UnitTest )
 {
     private import tango.io.device.Array;
 

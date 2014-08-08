@@ -250,10 +250,10 @@ class Lzo
 
  ******************************************************************************/
 
-debug (OceanUnitTest) private:
+version (UnitTest) private:
 
 // Uncomment the next line to see UnitTest output
-// debug = Verbose;
+// version = UnitTestVerbose;
 
 import ocean.util.log.Trace;
 import tango.io.device.File;
@@ -322,7 +322,7 @@ unittest
     MetricPrefix pre_comp_sz, pre_uncomp_sz,
                  pre_comp_tm, pre_uncomp_tm, pre_crc_tm;
 
-    debug (Verbose) Trace.formatln("LZO unittest: loading test data from file \"lzotest.dat\"");
+    version (UnitTestVerbose) Trace.formatln("LZO unittest: loading test data from file \"lzotest.dat\"");
 
     File file;
 

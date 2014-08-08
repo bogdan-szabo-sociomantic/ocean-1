@@ -89,21 +89,9 @@ module ocean.util.container.map.HashMap;
 
 private import ocean.util.container.map.Map;
 
-debug private import ocean.io.Stdout;
+version (UnitTestVerbose) private import ocean.io.Stdout;
 
 
-/*******************************************************************************
-
-    Debug switch for verbose unittest output (uncomment if desired)
-
-*******************************************************************************/
-
-//    debug = UnittestVerbose;
-
-debug ( UnittestVerbose )
-{
-    private import ocean.io.Stdout;
-}
 
 /*******************************************************************************
 
@@ -185,7 +173,7 @@ public class HashMap ( V ) : Map!(V, hash_t)
 
     unittest
     {
-        debug ( UnittestVerbose )
+        version ( UnitTestVerbose )
         {
             Stdout.formatln("{} unittest ---------------",
                 typeof(this).stringof);
@@ -195,7 +183,7 @@ public class HashMap ( V ) : Map!(V, hash_t)
 
         scope map = new typeof(this)(10);
 
-        debug ( UnittestVerbose ) void printState ( )
+        version ( UnitTestVerbose ) void printState ( )
         {
             Stdout.formatln("  ::  len={}, load={}, max_load={}",
                 map.bucket_info.length, map.bucket_info.load, map.bucket_info.max_load);
@@ -223,7 +211,7 @@ public class HashMap ( V ) : Map!(V, hash_t)
 
             *e = V.init;
 
-            debug ( UnittestVerbose )
+            version ( UnitTestVerbose )
             {
                 Stdout.format("put {}: {}", key, e);
                 printState();
@@ -260,7 +248,7 @@ public class HashMap ( V ) : Map!(V, hash_t)
             assert(((key in map) !is null) == should_exist);
 
             auto e = map.remove(key);
-            debug ( UnittestVerbose )
+            version ( UnitTestVerbose )
             {
                 Stdout.format("remove {}: {}", key, e);
                 printState();
@@ -276,7 +264,7 @@ public class HashMap ( V ) : Map!(V, hash_t)
             auto pool_len = map.bucket_info.num_buckets;
 
             map.clear();
-            debug ( UnittestVerbose )
+            version ( UnitTestVerbose )
             {
                 Stdout.format("clear");
                 printState();

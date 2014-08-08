@@ -149,9 +149,11 @@ private import tango.util.Convert;
 private import tango.core.Traits : DynamicArrayType, isStringType,
                                    isIntegerType, isRealType;
 
-debug ( OceanUnitTest ) private import ocean.text.convert.Layout;
-
-version (UnitTest) private import ocean.core.Test;
+version ( UnitTest )
+{
+    private import ocean.text.convert.Layout;
+    private import ocean.core.Test;
+}
 
 /*******************************************************************************
 
@@ -973,7 +975,6 @@ protected void readFields ( T, Source )
     foreach ( si, field; reference.tupleof )
     {
         alias BaseType!(typeof(field)) Type;
-        debug bool found = false;
 
         static assert ( IsSupported!(Type),
                         "ClassFiller.readFields: Type "
@@ -1028,7 +1029,7 @@ protected void readFields ( T, Source )
 }
 
 
-debug ( OceanUnitTest )
+version ( UnitTest )
 {
     private import ocean.core.Test;
 

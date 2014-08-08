@@ -103,7 +103,7 @@ private import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
 
 private import tango.core.Traits;
 
-debug private import ocean.util.log.Trace;
+debug (OceanPerformanceTest) private import ocean.util.log.Trace;
 
 
 /*******************************************************************************
@@ -1542,7 +1542,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
 *******************************************************************************/
 
-debug (OceanUnitTest)
+version (UnitTest)
 {
 
     /***************************************************************************

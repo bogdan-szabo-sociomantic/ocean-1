@@ -59,7 +59,7 @@ public alias MarkupEntityCodec!(XmlEntitySet) XmlEntityCodec;
 
 *******************************************************************************/
 
-debug ( OceanUnitTest )
+version ( UnitTest )
 {
     private import tango.util.log.Trace;
 

@@ -1415,7 +1415,7 @@ unittest
     assert (bs(arr, 5, n));
 }
 
-debug ( OceanUnitTest )
+version ( UnitTest )
 {
     import ocean.util.log.Trace;
 
@@ -1435,7 +1435,7 @@ debug ( OceanUnitTest )
 
     unittest
     {
-        debug (Verbose) Trace.formatln("\nRunning ocean.core.Array unittest");
+        version (UnitTestVerbose) Trace.formatln("\nRunning ocean.core.Array unittest");
 
         char[] dest;
         char[] str1 = "hello";
@@ -1464,7 +1464,7 @@ debug ( OceanUnitTest )
         const char[] conststr2 = "there";
         assert(concat_test(dest, conststr1, conststr2), "Const array concatenation test failed");
 
-        debug (Verbose) Trace.formatln("done unittest\n");
+        version (UnitTestVerbose) Trace.formatln("done unittest\n");
     }
 }
 

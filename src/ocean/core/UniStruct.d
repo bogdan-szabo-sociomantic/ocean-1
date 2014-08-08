@@ -461,7 +461,7 @@ struct UniStruct ( Types ... )
     }
 }
 
-debug (OceanUnitTest)
+version (UnitTest)
 {
     import tango.util.log.Trace;
 

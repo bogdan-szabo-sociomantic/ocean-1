@@ -48,7 +48,7 @@ module ocean.util.container.map.HashSet;
 
 private import ocean.util.container.map.Set;
 
-debug private import ocean.io.Stdout;
+version (UnitTestVerbose) private import ocean.io.Stdout;
 
 
 
@@ -58,9 +58,9 @@ debug private import ocean.io.Stdout;
 
 *******************************************************************************/
 
-//debug = UnittestVerbose;
+//version = UnitTestVerbose;
 
-debug ( UnittestVerbose )
+version ( UnitTestVerbose )
 {
     private import tango.io.Stdout;
 }
@@ -142,7 +142,7 @@ public class HashSet : Set!(hash_t)
 
     unittest
     {
-        debug ( UnittestVerbose )
+        version ( UnitTestVerbose )
         {
             Stdout.formatln("{} unittest ---------------",
                 typeof(this).stringof);
@@ -152,7 +152,7 @@ public class HashSet : Set!(hash_t)
 
         scope set = new typeof(this)(10);
 
-        debug ( UnittestVerbose ) void printState ( )
+        version ( UnitTestVerbose ) void printState ( )
         {
             Stdout.formatln("  ::  len={}, load={}, max_load={}, pool={} ({} busy)",
                 set.length, set.load, set.max_load,
@@ -178,7 +178,7 @@ public class HashSet : Set!(hash_t)
             assert(!!(key in set) == should_exist);
 
             auto e = set.put(key);
-            debug ( UnittestVerbose )
+            version ( UnitTestVerbose )
             {
                 Stdout.format("put {}: {}", key, e);
                 printState();
@@ -196,7 +196,7 @@ public class HashSet : Set!(hash_t)
             assert(!!(key in set) == should_exist);
 
             auto e = set.remove(key);
-            debug ( UnittestVerbose )
+            version ( UnitTestVerbose )
             {
                 Stdout.format("remove {}: {}", key, e);
                 printState();
@@ -212,7 +212,7 @@ public class HashSet : Set!(hash_t)
             auto pool_len = set.bucket_info.num_buckets;
 
             set.clear();
-            debug ( UnittestVerbose )
+            version ( UnitTestVerbose )
             {
                 Stdout.format("clear");
                 printState();
