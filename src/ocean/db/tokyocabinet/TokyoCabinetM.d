@@ -525,7 +525,7 @@ unittest
 
     StopWatch   w;
 
-    scope value = new char[0x100];
+    scope value = new char[256];
 
     scope map = new TokyoCabinetM(1_250_000);
 

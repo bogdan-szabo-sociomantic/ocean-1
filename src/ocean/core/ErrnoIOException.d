@@ -182,7 +182,7 @@ public class ErrnoIOException : IOException
 
         if (this.errnum)
         {
-            char[0x100] buf;
+            char[256] buf;
             char* e = strerror_r(errnum, buf.ptr, buf.length);
 
             if (super.msg.length)

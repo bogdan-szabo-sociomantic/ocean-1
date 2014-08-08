@@ -700,9 +700,9 @@ unittest
 
     const C = 10;
 
-    scope chunks4k  = new void[][](C, 0x1000);
-    scope chunks64k = new void[][](C, 0x1_0000);
-    scope chunks1M  = new void[][](C, 0x10_0000);
+    scope chunks4k  = new void[][](C, 4 * 1024);
+    scope chunks64k = new void[][](C, 64 * 1024);
+    scope chunks1M  = new void[][](C, 1024 * 1024);
 
     foreach (ref chunk; chunks4k)
     {
@@ -723,7 +723,7 @@ unittest
 
     for (uint i = 0; i < N; i++)
     {
-        start_header_data[i][] = cast (ubyte[]) header.start(0x1000).data;
+        start_header_data[i][] = cast (ubyte[]) header.start(4 * 1024).data;
     }
 
     ulong us_start = swatch.microsec();
@@ -836,7 +836,7 @@ unittest
     {
         for (uint i = 0; i < N; i++)
         {
-            start_header_data[i][] = cast (ubyte[]) header.start(0x1000).data;
+            start_header_data[i][] = cast (ubyte[]) header.start(4 * 1024).data;
             stop_header_data[i][] = cast (ubyte[]) header.stop().data;
 
             header.tryReadStart(start_header_data[i]);

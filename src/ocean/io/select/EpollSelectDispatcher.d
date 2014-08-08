@@ -86,7 +86,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
      **************************************************************************/
 
-    public const uint DefaultMaxEvents = 0x10;
+    public const uint DefaultMaxEvents = 16;
 
     /**************************************************************************
 

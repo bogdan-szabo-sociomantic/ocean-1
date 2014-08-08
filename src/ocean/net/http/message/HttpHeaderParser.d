@@ -185,8 +185,8 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    const uint DefaultSizeLimit  = 0x4000,
-               DefaultLinesLimit = 0x40;
+    const uint DefaultSizeLimit  = 16 * 1024,
+               DefaultLinesLimit = 64;
 
     /**************************************************************************
 

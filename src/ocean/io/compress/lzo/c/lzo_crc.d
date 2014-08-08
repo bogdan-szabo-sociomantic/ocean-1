@@ -73,7 +73,7 @@ extern (C)
     /**************************************************************************
     
         Returns the table of 32-bit CRC values of all byte values. The table has
-        a length of 0x100.
+        a length of 256.
         
         Returns:
             table of 32-bit CRC values of all byte values

@@ -23,9 +23,9 @@
 
             // preallocate lzo_chunk and uncompressed_chunk (optional)
 
-            lzo_chunk = new void[LzoChunk.maxChunkLength(0x1000)];
+            lzo_chunk = new void[LzoChunk.maxChunkLength(4096)];
 
-            uncompressed_chunk  = new void[0x1000];
+            uncompressed_chunk  = new void[4096];
 
             char[] data;
 

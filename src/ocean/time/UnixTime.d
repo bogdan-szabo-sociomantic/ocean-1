@@ -469,7 +469,7 @@ deprecated struct UnixTime( bool GMT = true )
     {
         int n = 0;
 
-        timestamp.length  = 0x20;
+        timestamp.length  = 32;
 
         if (ns)
         {

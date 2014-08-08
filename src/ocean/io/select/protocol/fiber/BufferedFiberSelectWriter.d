@@ -28,7 +28,7 @@ class BufferedFiberSelectWriter : FiberSelectWriter
 
      **************************************************************************/
 
-    public const default_buffer_size = 0x1_0000;
+    public const default_buffer_size = 64 * 1024;
 
     /**************************************************************************
 

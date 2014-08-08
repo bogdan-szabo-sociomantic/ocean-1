@@ -586,7 +586,7 @@ public class IFiberSocketConnection : IFiberSelectProtocol
 
                 debug ( ISelectClient )
                 {
-                    char[0x100] buffer;
+                    char[256] buffer;
                     Trace.formatln("[{}:{}]: {}",
                         this.address_, this.port_, this.socket_error.strerror(buffer, errnum));
                 }

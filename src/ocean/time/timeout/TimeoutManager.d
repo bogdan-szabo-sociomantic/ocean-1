@@ -250,7 +250,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
     ***************************************************************************/
 
-    protected this ( size_t n = 0x400 )
+    protected this ( size_t n = 1024 )
     {
         this.expiry_tree           = new ExpiryTree;
         this.expiry_to_client      = new ExpiryToClient(n);

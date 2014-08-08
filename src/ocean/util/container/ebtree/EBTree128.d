@@ -364,7 +364,7 @@ struct eb128_node
      */
 
     private eb_node node; /* the tree node, must be at the beginning */
-    private ubyte[0x10] key_;
+    private ubyte[16] key_;
 }
 
 extern (C):

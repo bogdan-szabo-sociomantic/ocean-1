@@ -107,7 +107,8 @@ class HttpResponse : HttpHeader
         super(HeaderFieldNames.Response.NameList,
               HeaderFieldNames.Entity.NameList);
 
-        this.append_header_lines = new AppendHeaderLines(this.content = new AppendBuffer!(char)(0x400));
+        this.append_header_lines = new AppendHeaderLines(
+                this.content = new AppendBuffer!(char)(1024));
     }
 
     /**************************************************************************

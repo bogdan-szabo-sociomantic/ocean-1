@@ -42,7 +42,7 @@ class FiberSelectReader : IFiberSelectProtocol
 
      **************************************************************************/
 
-    public const size_t default_buffer_size = 0x4000;
+    public const size_t default_buffer_size = 16 * 1024;
 
     /**************************************************************************
 

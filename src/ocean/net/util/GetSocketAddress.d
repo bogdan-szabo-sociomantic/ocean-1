@@ -392,7 +392,7 @@ class GetSocketAddress
 
             if (n)
             {
-                char[0x100] buf;
+                char[256] buf;
                 char* e = strerror_r(n, buf.ptr, buf.length);
 
                 if (super.msg.length)

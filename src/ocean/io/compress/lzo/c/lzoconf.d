@@ -98,7 +98,7 @@ extern (C)
 
      **************************************************************************/
 
-    const size_t Lzo1x1WorkmemSize = 0x4000 * (ubyte*).sizeof;
+    const size_t Lzo1x1WorkmemSize = 16 * 1024 * (ubyte*).sizeof;
 
     /**************************************************************************
 
@@ -225,7 +225,7 @@ extern (C)
     /**************************************************************************
 
         Returns the table of 32-bit CRC values of all byte values. The table has
-        a length of 0x100.
+        a length of 256.
 
         Returns:
             table of 32-bit CRC values of all byte values

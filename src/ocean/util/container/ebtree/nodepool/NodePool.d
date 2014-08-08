@@ -102,7 +102,7 @@ class NodePool ( Node ) : INodePool!(Node)
     protected Node* newNode ( )
     out (node)
     {
-        assert(!((cast(size_t)node) % 0x10),
+        assert((cast(size_t)node) % 16 == 0,
                "the node pointer must be an integer multiple of 16");
     }
     body

@@ -53,11 +53,11 @@ class TimeToIndex: EBTree128!()
 
         ***********************************************************************/
 
-        private ubyte[Node.sizeof % 0x10] pad;
+        private ubyte[Node.sizeof % 16] pad;
 
         /**********************************************************************/
 
-        static assert(!(typeof(*this).sizeof % 0x10),
+        static assert(typeof(*this).sizeof % 16 == 0,
                       typeof(*this).stringof ~ ".sizeof must be an integer "
                       "multiple of 16, not " ~ typeof(*this).sizeof.stringof);
     }

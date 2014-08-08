@@ -188,11 +188,11 @@ class Zlib
 
     static struct BufferSize
     {
-        static const                    CHUNK           = 0x1000,      // Chunk size for ZlibStream access
-                                        INPUT_INIT      = 0x1_0000,    // Initial input buffer size
-                                        INPUT_GROW      = 0x400,       // Size of which the input buffer will grow
-                                        OUTPUT_INIT     = 0x10_0000,   // Initial output buffer size
-                                        OUTPUT_GROW     = 0x8000;      // Size of which the output buffer will grow
+        static const                    CHUNK           =    4 * 1024,  // Chunk size for ZlibStream access
+                                        INPUT_INIT      =   64 * 1024,  // Initial input buffer size
+                                        INPUT_GROW      =    1 * 1024,  // Size of which the input buffer will grow
+                                        OUTPUT_INIT     = 1024 * 1024,  // Initial output buffer size
+                                        OUTPUT_GROW     =   32 * 1024;  // Size of which the output buffer will grow
     }
     /**************************************************************************
 
