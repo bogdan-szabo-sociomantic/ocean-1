@@ -1017,13 +1017,18 @@ unittest
 
     scope proc1 = new MyProcess(epoll1, process_monitor1);
 
+    bool thrown = false;
     try
     {
         // should throw because of mismatch between epoll2 and
         // process_monitor1.
         scope proc2 = new MyProcess(epoll2, process_monitor1);
-        test(false, "Expected exception was not thrown");
-    } catch { }
+    }
+    catch
+    {
+        thrown = true;
+    }
+    test(thrown, "Expected exception was not thrown");
 
     try
     {
