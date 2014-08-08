@@ -1114,3 +1114,70 @@ public abstract class Map ( size_t V, K ) : BucketSet!(V, K)
         return this;
     }
 }
+
+/******************************************************************************
+
+    Test key types smaller than size_t (or even equals) don't screw up the
+    alignment and makes impossible to the GC to scan pointers in the value.
+
+    See https://github.com/sociomantic/ocean/pull/369 for details.
+
+******************************************************************************/
+
+version (UnitTest)
+{
+    private import tango.core.Memory;
+    private import ocean.core.Test;
+
+    void test_key (T) ()
+    {
+        auto map = new StandardKeyHashingMap!(char[], T)(10);
+
+        for (T i = 0; i < 10; i++)
+        {
+            auto p = map.put(i);
+            *p = "Sociomantic".dup;
+        }
+
+        GC.collect();
+
+        for (T i = 0; i < 10; i++)
+        {
+            auto p = map.get(i);
+            test!("==")(*p, "Sociomantic");
+        }
+    }
+
+    void test_val (T) ()
+    {
+        auto map = new StandardKeyHashingMap!(T, char[])(10);
+
+        for (T i = 0; i < 10; i++)
+        {
+            auto p = map.put("Sociomantic" ~ cast(char) (0x30+i));
+            *p = i;
+        }
+
+        GC.collect();
+
+        for (T i = 0; i < 10; i++)
+        {
+            auto p = map.get("Sociomantic" ~ cast(char) (0x30+i));
+            test!("==")(*p, i);
+        }
+    }
+}
+
+unittest
+{
+    test_key!(byte);
+    test_key!(short);
+    test_key!(int);
+    test_key!(long);
+
+    test_val!(byte);
+    test_val!(short);
+    test_val!(int);
+    test_val!(long);
+}
+

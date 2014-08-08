@@ -72,6 +72,43 @@ public struct Bucket ( size_t V, K = hash_t )
     {
         /**********************************************************************
 
+            Element value, may be a dummy of zero size if no value is stored.
+
+            !!! WARNING !!!
+
+            Is extremely important that this "val" is at the top of the struct,
+            otherwise the struct can get into alignment issues that can cause
+            the GC to miss the pointers in the data.
+
+            Please see https://github.com/sociomantic/ocean/issues/369 for
+            details.
+
+         **********************************************************************/
+
+        public alias ubyte[V] Val;
+
+        public Val val;
+
+        /**********************************************************************
+
+            Make sure val is properly aligned.
+
+            See http://www.digitalmars.com/d/1.0/attribute.html#align
+
+         **********************************************************************/
+
+        static assert(val.offsetof % size_t.sizeof == 0);
+
+        /**********************************************************************
+
+            Add padding bytes to the struct to make sure the key is aligned too.
+
+         **********************************************************************/
+
+        private ubyte[(val.offsetof + V) % size_t.sizeof] _padding;
+
+        /**********************************************************************
+
             Key = bucket element key type
 
          **********************************************************************/
@@ -88,13 +125,11 @@ public struct Bucket ( size_t V, K = hash_t )
 
         /**********************************************************************
 
-            Element value, may be a dummy of zero size if no value is stored.
+            Make sure key is properly aligned.
 
          **********************************************************************/
 
-        public alias ubyte[V] Val;
-
-        public Val val;
+        static assert(key.offsetof % size_t.sizeof == 0);
 
         /**********************************************************************
 
