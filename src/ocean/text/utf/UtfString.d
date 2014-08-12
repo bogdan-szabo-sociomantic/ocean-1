@@ -589,10 +589,6 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 }
 
 
-
-version ( UnitTest )
-{
-    // TODO: only a very simple unittest for now!
     unittest
     {
         char[] str1 = "hello world ®"; // utf8 encoding
@@ -600,5 +596,4 @@ version ( UnitTest )
 
         assert(utf_match(str1, str2));
     }
-}
 

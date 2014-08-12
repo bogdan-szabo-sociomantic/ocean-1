@@ -215,7 +215,7 @@ version (UnitTest)
 
     *******************************************************************************/
 
-    version (UnitTest) void runTests ( T ) ( uint size, int test_iteration )
+    void runTests ( T ) ( uint size, int test_iteration )
     {
         assert(size > 2, "can only test SlidingAverages with at least 2 values");
 
