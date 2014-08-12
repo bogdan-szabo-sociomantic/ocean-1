@@ -1120,14 +1120,14 @@ class Cache ( T, bool TrackCreateTimes = false ) : Cache!(T.sizeof, TrackCreateT
 
 *******************************************************************************/
 
-import tango.stdc.posix.stdlib: srand48, mrand48, drand48;
-import tango.stdc.time: time;
-
-import tango.io.Stdout;
-
-import ocean.core.Array: shuffle;
-
-extern (C) int getpid();
+version (UnitTest)
+{
+    import tango.stdc.posix.stdlib: srand48, mrand48, drand48;
+    extern (C) int getpid();
+    import tango.stdc.time: time;
+    import tango.io.Stdout;
+    import ocean.core.Array: shuffle;
+}
 
 unittest
 {
