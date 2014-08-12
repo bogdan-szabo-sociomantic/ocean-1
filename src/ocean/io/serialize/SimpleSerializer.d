@@ -412,7 +412,7 @@ static:
 
 version ( UnitTest )
 {
-    private import ocean.io.Stdout;
+    version (UnitTestVerbose) private import ocean.io.Stdout;
     private import tango.io.device.TempFile;
 
     void test ( T ) ( T write )
