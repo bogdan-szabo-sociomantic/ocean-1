@@ -2245,7 +2245,7 @@ debug ( OceanPerformanceTest )
     import tango.util.Convert;
 
 
-    unittest
+    deprecated unittest
     {
         Stdout.formatln("Running ocean.core.ArrayMap unittest");
 

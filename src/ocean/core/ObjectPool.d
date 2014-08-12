@@ -1649,7 +1649,7 @@ version (none) // ( UnitTest )
     // Uncomment the next line to see UnitTest output
     // version = UnitTestVerbose;
 
-    class MyClass : Resettable
+    deprecated class MyClass : Resettable
     {
         uint object_pool_index;
         private char[] name;
@@ -1690,7 +1690,7 @@ version (none) // ( UnitTest )
     import tango.core.Memory;
     import tango.io.FilePath;
 
-    unittest
+    deprecated unittest
     {
         /***********************************************************************
 

@@ -630,7 +630,7 @@ version (UnitTest)
     import tango.time.StopWatch;
     import tango.core.Thread;
 
-    unittest
+    deprecated unittest
     {
         UnixTimeGMT gmt;
 
