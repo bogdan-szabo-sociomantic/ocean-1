@@ -305,118 +305,118 @@ public class HeadingsCSV
 version ( UnitTest )
 {
     private import tango.io.device.Array;
+}
 
-    unittest
+unittest
+{
+    class Tester
     {
-        class Tester
+        private HeadingsCSV.Field[][] expected;
+        private size_t test_row;
+
+        bool rowDg ( HeadingsCSV.Field[] parsed_fields )
         {
-            private HeadingsCSV.Field[][] expected;
-            private size_t test_row;
+            auto expected_fields = this.expected[this.test_row++];
 
-            bool rowDg ( HeadingsCSV.Field[] parsed_fields )
+            foreach ( i, f; parsed_fields )
             {
-                auto expected_fields = this.expected[this.test_row++];
-
-                foreach ( i, f; parsed_fields )
-                {
-                    assert(f.name == expected_fields[i].name);
-                    assert(f.value == expected_fields[i].value);
-                }
-
-                return true;
+                assert(f.name == expected_fields[i].name);
+                assert(f.value == expected_fields[i].value);
             }
 
-            void test ( HeadingsCSV csv, char[] str, HeadingsCSV.Field[][] expected )
-            {
-                this.expected = expected;
-                this.test_row = 0;
-
-                scope array = new Array(1024);
-                array.append(str);
-
-                csv.parse(array, &this.rowDg);
-            }
-
-            void test_inc ( HeadingsCSV csv, char[] str, char[][] included_headings,
-                HeadingsCSV.Field[][] expected )
-            {
-                this.expected = expected;
-                this.test_row = 0;
-
-                scope array = new Array(1024);
-                array.append(str);
-
-                csv.parse(array, included_headings, &this.rowDg);
-            }
+            return true;
         }
 
+        void test ( HeadingsCSV csv, char[] str, HeadingsCSV.Field[][] expected )
+        {
+            this.expected = expected;
+            this.test_row = 0;
 
-        scope csv = new HeadingsCSV;
-        scope tester = new Tester;
+            scope array = new Array(1024);
+            array.append(str);
 
-        // Headings + single row test
-        tester.test(csv,
+            csv.parse(array, &this.rowDg);
+        }
+
+        void test_inc ( HeadingsCSV csv, char[] str, char[][] included_headings,
+            HeadingsCSV.Field[][] expected )
+        {
+            this.expected = expected;
+            this.test_row = 0;
+
+            scope array = new Array(1024);
+            array.append(str);
+
+            csv.parse(array, included_headings, &this.rowDg);
+        }
+    }
+
+
+    scope csv = new HeadingsCSV;
+    scope tester = new Tester;
+
+    // Headings + single row test
+    tester.test(csv,
 `Heading1,Heading2,Heading3,Heading4,Heading5
 This,Time,With,Two,Rows`,
-           [[HeadingsCSV.Field("Heading1", "This"),
-            HeadingsCSV.Field("Heading2", "Time"),
-            HeadingsCSV.Field("Heading3", "With"),
-            HeadingsCSV.Field("Heading4", "Two"),
-            HeadingsCSV.Field("Heading5", "Rows")]]);
+       [[HeadingsCSV.Field("Heading1", "This"),
+        HeadingsCSV.Field("Heading2", "Time"),
+        HeadingsCSV.Field("Heading3", "With"),
+        HeadingsCSV.Field("Heading4", "Two"),
+        HeadingsCSV.Field("Heading5", "Rows")]]);
 
-        // Headings + longer row test
-        tester.test(csv,
+    // Headings + longer row test
+    tester.test(csv,
 `Heading1,Heading2,Heading3,Heading4,Heading5
 This,Time,With,Two,Rows,But,Longer`,
-           [[HeadingsCSV.Field("Heading1", "This"),
-            HeadingsCSV.Field("Heading2", "Time"),
-            HeadingsCSV.Field("Heading3", "With"),
-            HeadingsCSV.Field("Heading4", "Two"),
-            HeadingsCSV.Field("Heading5", "Rows"),
-            HeadingsCSV.Field("unknown", "But"),
-            HeadingsCSV.Field("unknown", "Longer")]]);
+       [[HeadingsCSV.Field("Heading1", "This"),
+        HeadingsCSV.Field("Heading2", "Time"),
+        HeadingsCSV.Field("Heading3", "With"),
+        HeadingsCSV.Field("Heading4", "Two"),
+        HeadingsCSV.Field("Heading5", "Rows"),
+        HeadingsCSV.Field("unknown", "But"),
+        HeadingsCSV.Field("unknown", "Longer")]]);
 
-        // Headings + two rows test
-        tester.test(csv,
+    // Headings + two rows test
+    tester.test(csv,
 `Heading1,Heading2,Heading3,Heading4,Heading5
 This,Time,With,Two,Rows
 Yes,There,Are,Really,Three`,
-           [[HeadingsCSV.Field("Heading1", "This"),
-            HeadingsCSV.Field("Heading2", "Time"),
-            HeadingsCSV.Field("Heading3", "With"),
-            HeadingsCSV.Field("Heading4", "Two"),
-            HeadingsCSV.Field("Heading5", "Rows")],
-            [HeadingsCSV.Field("Heading1", "Yes"),
-            HeadingsCSV.Field("Heading2", "There"),
-            HeadingsCSV.Field("Heading3", "Are"),
-            HeadingsCSV.Field("Heading4", "Really"),
-            HeadingsCSV.Field("Heading5", "Three")]]);
+       [[HeadingsCSV.Field("Heading1", "This"),
+        HeadingsCSV.Field("Heading2", "Time"),
+        HeadingsCSV.Field("Heading3", "With"),
+        HeadingsCSV.Field("Heading4", "Two"),
+        HeadingsCSV.Field("Heading5", "Rows")],
+        [HeadingsCSV.Field("Heading1", "Yes"),
+        HeadingsCSV.Field("Heading2", "There"),
+        HeadingsCSV.Field("Heading3", "Are"),
+        HeadingsCSV.Field("Heading4", "Really"),
+        HeadingsCSV.Field("Heading5", "Three")]]);
 
-        // Excluded headings
-        tester.test_inc(csv,
+    // Excluded headings
+    tester.test_inc(csv,
 `Heading1,Heading2,Heading3,Heading4,Heading5
 This,Time,With,Two,Rows
 Yes,There,Are,Really,Three`,
-            ["Heading2", "Heading4", "Heading5"],
-           [[HeadingsCSV.Field("Heading2", "Time"),
-            HeadingsCSV.Field("Heading4", "Two"),
-            HeadingsCSV.Field("Heading5", "Rows")],
-           [HeadingsCSV.Field("Heading2", "There"),
-            HeadingsCSV.Field("Heading4", "Really"),
-            HeadingsCSV.Field("Heading5", "Three")]]);
+        ["Heading2", "Heading4", "Heading5"],
+       [[HeadingsCSV.Field("Heading2", "Time"),
+        HeadingsCSV.Field("Heading4", "Two"),
+        HeadingsCSV.Field("Heading5", "Rows")],
+       [HeadingsCSV.Field("Heading2", "There"),
+        HeadingsCSV.Field("Heading4", "Really"),
+        HeadingsCSV.Field("Heading5", "Three")]]);
 
-        // Excluded headings + long row
-        tester.test_inc(csv,
+    // Excluded headings + long row
+    tester.test_inc(csv,
 `Heading1,Heading2,Heading3,Heading4,Heading5
 This,Time,With,Two,Rows
 Yes,There,Are,Really,Three,Some,Extra,Fields`,
-            ["Heading2", "Heading4", "Heading5"],
-           [[HeadingsCSV.Field("Heading2", "Time"),
-            HeadingsCSV.Field("Heading4", "Two"),
-            HeadingsCSV.Field("Heading5", "Rows")],
-           [HeadingsCSV.Field("Heading2", "There"),
-            HeadingsCSV.Field("Heading4", "Really"),
-            HeadingsCSV.Field("Heading5", "Three")]]);
-    }
+        ["Heading2", "Heading4", "Heading5"],
+       [[HeadingsCSV.Field("Heading2", "Time"),
+        HeadingsCSV.Field("Heading4", "Two"),
+        HeadingsCSV.Field("Heading5", "Rows")],
+       [HeadingsCSV.Field("Heading2", "There"),
+        HeadingsCSV.Field("Heading4", "Really"),
+        HeadingsCSV.Field("Heading5", "Three")]]);
 }
 

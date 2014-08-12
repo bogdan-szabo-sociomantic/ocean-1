@@ -265,52 +265,52 @@ public class CSV
 version ( UnitTest )
 {
     private import tango.io.device.Array;
+}
 
-    unittest
+unittest
+{
+    void test ( CSV csv, char[] str, char[][][] expected )
     {
-        void test ( CSV csv, char[] str, char[][][] expected )
+        scope array = new Array(1024);
+        array.append(str);
+
+        size_t test_row;
+        csv.parse(array,
+        ( char[][] parsed_fields )
         {
-            scope array = new Array(1024);
-            array.append(str);
+            auto fields = expected[test_row++];
 
-            size_t test_row;
-            csv.parse(array,
-            ( char[][] parsed_fields )
+            foreach ( i, f; parsed_fields )
             {
-                auto fields = expected[test_row++];
+                assert(f == fields[i]);
+            }
+            return true;
+        });
+    }
 
-                foreach ( i, f; parsed_fields )
-                {
-                    assert(f == fields[i]);
-                }
-                return true;
-            });
-        }
+    scope csv = new CSV;
 
-        scope csv = new CSV;
-
-        // Single row
-        test(csv,
+    // Single row
+    test(csv,
 `An,Example,Simple,CSV,Row`,
-            [["An", "Example", "Simple", "CSV", "Row"]]);
+        [["An", "Example", "Simple", "CSV", "Row"]]);
 
-        // Single row + quoted comma
-        test(csv,
+    // Single row + quoted comma
+    test(csv,
 `An,Example,"Quoted,Field",CSV,Row`,
-            [["An", "Example", "Quoted,Field", "CSV", "Row"]]);
+        [["An", "Example", "Quoted,Field", "CSV", "Row"]]);
 
-        // Single row + quoted newline
-        test(csv,
+    // Single row + quoted newline
+    test(csv,
 `An,Example,"Quoted
 Field",CSV,Row`,
-            [["An", "Example", "Quoted\nField", "CSV", "Row"]]);
+        [["An", "Example", "Quoted\nField", "CSV", "Row"]]);
 
-        // Two rows
-        test(csv,
+    // Two rows
+    test(csv,
 `An,Example,Simple,CSV,Row
 This,Time,With,Two,Rows`,
-            [["An", "Example", "Simple", "CSV", "Row"],
-             ["This","Time","With","Two","Rows"]]);
-    }
+        [["An", "Example", "Simple", "CSV", "Row"],
+         ["This","Time","With","Two","Rows"]]);
 }
 

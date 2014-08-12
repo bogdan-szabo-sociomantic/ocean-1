@@ -173,36 +173,23 @@ class StrSplitIterator : ISplitIterator
 
         return this.sf.match.length;
     }
+}
 
-    /**************************************************************************/
+unittest
+{
+    scope split = new StrSplitIterator("123");
 
-    unittest
+    split.collapse = true;
+
+    foreach (str; ["123""ab""123"     "cd""123""efg""123",
+                   "123""ab""123""123""cd""123""efg""123",
+                   "123""ab""123""123""cd""123""efg",
+                        "ab""123""123""cd""123""efg",
+
+                   "123""123""ab""123""123""cd""123""efg",
+                   "ab""123""123""cd""123""efg""123""123"])
     {
-        scope split = new typeof (this)("123");
-
-        split.collapse = true;
-
-        foreach (str; ["123""ab""123"     "cd""123""efg""123",
-                       "123""ab""123""123""cd""123""efg""123",
-                       "123""ab""123""123""cd""123""efg",
-                            "ab""123""123""cd""123""efg",
-
-                       "123""123""ab""123""123""cd""123""efg",
-                       "ab""123""123""cd""123""efg""123""123"])
-        {
-            foreach (element; split.reset(str))
-            {
-                const char[][] elements = ["ab", "cd", "efg"];
-
-                assert (split.n);
-                assert (split.n <= elements.length);
-                assert (element == elements[split.n - 1]);
-            }
-        }
-
-        split.collapse = false;
-
-        foreach (element; split.reset("ab""123""cd""123""efg"))
+        foreach (element; split.reset(str))
         {
             const char[][] elements = ["ab", "cd", "efg"];
 
@@ -210,23 +197,35 @@ class StrSplitIterator : ISplitIterator
             assert (split.n <= elements.length);
             assert (element == elements[split.n - 1]);
         }
-
-        foreach (element; split.reset("123""ab""123""cd""123""efg""123"))
-        {
-            const char[][] elements = ["", "ab", "cd", "efg", ""];
-
-            assert (split.n);
-            assert (split.n <= elements.length);
-            assert (element == elements[split.n - 1]);
-        }
-
-        split.reset("ab""123""cd""123""efg");
-
-        assert (split.next == "ab");
-        assert (split.next == "cd");
-        assert (split.next == "efg");
     }
+
+    split.collapse = false;
+
+    foreach (element; split.reset("ab""123""cd""123""efg"))
+    {
+        const char[][] elements = ["ab", "cd", "efg"];
+
+        assert (split.n);
+        assert (split.n <= elements.length);
+        assert (element == elements[split.n - 1]);
+    }
+
+    foreach (element; split.reset("123""ab""123""cd""123""efg""123"))
+    {
+        const char[][] elements = ["", "ab", "cd", "efg", ""];
+
+        assert (split.n);
+        assert (split.n <= elements.length);
+        assert (element == elements[split.n - 1]);
+    }
+
+    split.reset("ab""123""cd""123""efg");
+
+    assert (split.next == "ab");
+    assert (split.next == "cd");
+    assert (split.next == "efg");
 }
+
 
 /******************************************************************************
 

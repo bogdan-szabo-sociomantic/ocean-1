@@ -52,8 +52,6 @@ private import ocean.crypt.misc.Bitwise;
 
 private import tango.util.digest.MerkleDamgard;
 
-version (UnitTest) private import tango.util.digest.Sha1;
-
 
 
 /******************************************************************************
@@ -285,56 +283,63 @@ public class HMAC
     {
         return ByteConverter.hexEncode(this.digest(buffer));
     }
+}
 
 
-    /***************************************************************************
 
-        UnitTest
+/***************************************************************************
 
-    ***************************************************************************/
+    UnitTest
 
-    unittest
+***************************************************************************/
+
+version (UnitTest)
+{
+    private import tango.util.digest.Sha1;
+}
+
+unittest
+{
+    static char[][] test_keys = [
+        "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+        "4a656665", // Jefe?
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"~
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"~
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"~
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ];
+
+    static char[][] test_inputs = [
+        "4869205468657265",
+        "7768617420646f2079612077616e7420666f72206e6f7468696e673f",
+        "dd",
+        "54657374205573696e67204c6172676572205468616e20426c6f63"~
+        "6b2d53697a65204b6579202d2048617368204b6579204669727374"
+    ];
+
+    static int[] test_repeat = [
+        1, 1, 50, 1
+    ];
+
+    static char[][] test_results = [
+        "b617318655057264e28bc0b6fb378c8ef146be00",
+        "effcdf6ae5eb2fa2d27416d5f184df9c259a7c79",
+        "125d7342b9ac11cd91a39af48aa17b4f63f175d3",
+        "aa4ae5e15272d00e95705637ce8a3b55ed402112"
+    ];
+
+    ubyte[] buffer;
+
+    HMAC h = new HMAC(new Sha1());
+    foreach (uint i, char[] k; test_keys)
     {
-        static char[][] test_keys = [
-            "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
-            "4a656665", // Jefe?
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"~
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"~
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"~
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        ];
-
-        static char[][] test_inputs = [
-            "4869205468657265",
-            "7768617420646f2079612077616e7420666f72206e6f7468696e673f",
-            "dd",
-            "54657374205573696e67204c6172676572205468616e20426c6f63"~
-            "6b2d53697a65204b6579202d2048617368204b6579204669727374"
-        ];
-
-        static int[] test_repeat = [
-            1, 1, 50, 1
-        ];
-
-        static char[][] test_results = [
-            "b617318655057264e28bc0b6fb378c8ef146be00",
-            "effcdf6ae5eb2fa2d27416d5f184df9c259a7c79",
-            "125d7342b9ac11cd91a39af48aa17b4f63f175d3",
-            "aa4ae5e15272d00e95705637ce8a3b55ed402112"
-        ];
-
-        ubyte[] buffer;
-
-        HMAC h = new HMAC(new Sha1());
-        foreach (uint i, char[] k; test_keys)
-        {
-            h.init(ByteConverter.hexDecode(k), buffer);
-            for (int j = 0; j < test_repeat[i]; j++)
-                h.update(ByteConverter.hexDecode(test_inputs[i]));
-            char[] mac = h.hexDigest(buffer);
-            assert(mac == test_results[i],
-                    h.name~": ("~mac~") != ("~test_results[i]~")");
-        }
+        h.init(ByteConverter.hexDecode(k), buffer);
+        for (int j = 0; j < test_repeat[i]; j++)
+            h.update(ByteConverter.hexDecode(test_inputs[i]));
+        char[] mac = h.hexDigest(buffer);
+        assert(mac == test_results[i],
+                h.name~": ("~mac~") != ("~test_results[i]~")");
     }
 }
+

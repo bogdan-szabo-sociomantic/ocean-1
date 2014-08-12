@@ -209,12 +209,12 @@ struct HttpTimeFormatter
             }
         }
     }
-
-    /**************************************************************************/
-
-    unittest
-    {
-        char[this.ResultLength] buf;
-        assert (format(buf, 352716457) == "Fri, 06 Mar 1981 08:47:37 GMT");
-    }
 }
+
+
+unittest
+{
+    char[HttpTimeFormatter.ResultLength] buf;
+    assert (HttpTimeFormatter.format(buf, 352716457) == "Fri, 06 Mar 1981 08:47:37 GMT");
+}
+

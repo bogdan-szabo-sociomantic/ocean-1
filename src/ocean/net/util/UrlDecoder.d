@@ -508,22 +508,22 @@ class UrlDecoder
     {
         return true;
     }
-
-    /**************************************************************************/
-
-    unittest
-    {
-        scope decoder = new typeof (this)("%Die %uKatze %u221E%u221E tritt die Treppe %% krumm. %u2207%"),
-              decoded = new char[0];
-
-        foreach (chunk; decoder)
-        {
-            decoded ~= chunk;
-        }
-
-        assert (decoded == "%Die %uKatze ∞∞ tritt die Treppe % krumm. ∇%");
-
-        assert (decode("%Die %uKatze %u221E%u221E tritt die Treppe %% krumm. %u2207".dup) ==
-                       "%Die %uKatze ∞∞ tritt die Treppe % krumm. ∇");
-    }
 }
+
+
+unittest
+{
+    scope decoder = new UrlDecoder("%Die %uKatze %u221E%u221E tritt die Treppe %% krumm. %u2207%"),
+          decoded = new char[0];
+
+    foreach (chunk; decoder)
+    {
+        decoded ~= chunk;
+    }
+
+    assert (decoded == "%Die %uKatze ∞∞ tritt die Treppe % krumm. ∇%");
+
+    assert (UrlDecoder.decode("%Die %uKatze %u221E%u221E tritt die Treppe %% krumm. %u2207".dup) ==
+                   "%Die %uKatze ∞∞ tritt die Treppe % krumm. ∇");
+}
+

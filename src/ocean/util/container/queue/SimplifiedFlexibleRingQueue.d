@@ -537,170 +537,171 @@ version ( UnitTest )
     import tango.core.Memory;
     import tango.io.FilePath;
     version (UnitTestVerbose) import ocean.util.log.Trace;
-
-    unittest
-    {
-         scope random = new Random();
-
-        /***********************************************************************
-
-            Test for empty queue
-
-        ***********************************************************************/
-
-        {
-           auto caught = false;
-           try scope queue = new FlexibleByteRingQueue(0);
-           catch ( Exception e ) caught = true;
-           assert (caught == true);
-        }
-
-        /***********************************************************************
-
-            Test wrapping
-
-        ***********************************************************************/
-
-        version (UnitTestVerbose)  Trace.formatln("\nRunning ocean.io.device.queue.FlexibleByteRingQueue wrapping stability test");
-        {
-            scope queue = new FlexibleByteRingQueue((1+FlexibleByteRingQueue.Header.sizeof)*3);
-
-            assert(queue.read_from == 0);
-            assert(queue.write_to == 0);
-            // [___] r=0 w=0
-            assert(queue.push(cast(ubyte[])"1"));
-
-            assert(queue.read_from == 0);
-            assert(queue.write_to == 1+FlexibleByteRingQueue.Header.sizeof);
-            assert(queue.items == 1);
-            assert((cast(FlexibleByteRingQueue.Header*) queue.data.ptr).length == 1);
-
-            assert(queue.data[FlexibleByteRingQueue.Header.sizeof ..
-                              1+FlexibleByteRingQueue.Header.sizeof] ==
-                                  cast(ubyte[]) "1");
-
-            // [#__] r=0 w=5
-            assert(queue.push(cast(ubyte[])"2"));
-            assert(queue.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*2);
-
-            assert((cast(FlexibleByteRingQueue.Header*)
-                (queue.data.ptr + 1 + FlexibleByteRingQueue.Header.sizeof)).length == 1);
-
-            assert(queue.data[1+FlexibleByteRingQueue.Header.sizeof*2 ..
-                              1+FlexibleByteRingQueue.Header.sizeof*2+1] ==
-                                  cast(ubyte[]) "2");
-            //assert(queue.data[queue.write_to-1-FlexibleByteRingQueue.h .. ])
-
-
-
-            // [##_] r=0 w=10
-            assert(queue.push(cast(ubyte[])"3"));
-            assert(queue.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*3);
-
-            // [###] r=0 w=15
-            assert(!queue.push(cast(ubyte[])"4"));
-            assert(queue.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*3);
-            assert(queue.read_from == 0);
-
-            assert(queue.free_space == 0);
-            assert(queue.pop() == cast(ubyte[])"1");
-
-            assert(queue.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*3);
-            assert(queue.read_from == 1+FlexibleByteRingQueue.Header.sizeof);
-
-            // [_##] r=5 w=15
-            assert(queue.free_space() == 1+FlexibleByteRingQueue.Header.sizeof);
-
-            assert(queue.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*3);
-            assert(queue.read_from == 1+FlexibleByteRingQueue.Header.sizeof);
-
-            assert(queue.pop() == cast(ubyte[])"2");
-
-            // [__#] r=10 w=15
-            assert(queue.free_space() == (1+FlexibleByteRingQueue.Header.sizeof)*2);
-            assert(queue.write_to == queue.data.length);
-            assert(queue.push(cast(ubyte[])"1"));
-
-            // [#_#] r=10 w=5
-            assert(queue.free_space() == 1+FlexibleByteRingQueue.Header.sizeof);
-            assert(queue.write_to == queue.pushSize("2".length));
-            assert(queue.push(cast(ubyte[])"2"));
-           // Trace.formatln("gap is {}, free is {}, write is {}", queue.gap, queue.free_space(),queue.write_to);
-
-
-            // [###] r=10 w=10
-            assert(queue.free_space == 0);
-            assert(queue.pop() == cast(ubyte[])"3");
-
-            // [##_] r=15/0 w=10
-            assert(queue.free_space() == (1+FlexibleByteRingQueue.Header.sizeof)*1);
-            assert(queue.pop() == cast(ubyte[])"1");
-
-            // [_#_] r=5 w=10
-            assert(queue.pop() == cast(ubyte[])"2");
-
-            // [__] r=0 w=0
-            assert(queue.is_empty);
-            assert(queue.push(cast(ubyte[])"1"));
-
-            // [#__] r=0 w=5
-            assert(queue.push(cast(ubyte[])"2#"));
-
-            // [#$_] r=0 w=11 ($ = 2 bytes)
-            assert(queue.pop() == cast(ubyte[])"1");
-
-            // [_$_] r=5 w=11
-            assert(queue.push(cast(ubyte[])"1"));
-
-            // [#$_] r=5 w=5
-            assert(!queue.push(cast(ubyte[])"2"));
-            assert(queue.pop() == cast(ubyte[])"2#");
-
-            // [#__] r=11 w=5
-            assert(queue.push(cast(ubyte[])"2")); // this needs to be wrapped now
-
-            // [##_] r=11 w=10
-            assert(queue.gap == queue.read_from);
-        }
-
-        // https://github.com/sociomantic/ocean/issues/5
-        void bug5()
-        {
-            const Q_SIZE = 20;
-            FlexibleByteRingQueue q = new FlexibleByteRingQueue(Q_SIZE);
-
-            void push(size_t n)
-            {
-                for (size_t i = 0; i < n; i++)
-                {
-                    ubyte[] push_slice = q.push(1);
-                    if (push_slice is null)
-                        break;
-                    push_slice[] = cast(ubyte[]) [i];
-                }
-            }
-
-            void pop(size_t n)
-            {
-                for (size_t i = 0; i < n; i++)
-                {
-                    auto popped = q.pop();
-                    if (!popped.length)
-                        break;
-                    assert (popped[0] != Q_SIZE+1);
-                    popped[0] = Q_SIZE+1;
-                }
-            }
-
-            push(2);
-            pop(1);
-            push(2);
-            pop(1);
-            push(3);
-            pop(4);
-            pop(1);
-        }
-        bug5();
-
-    }
 }
+
+unittest
+{
+     scope random = new Random();
+
+    /***********************************************************************
+
+        Test for empty queue
+
+    ***********************************************************************/
+
+    {
+       auto caught = false;
+       try scope queue = new FlexibleByteRingQueue(0);
+       catch ( Exception e ) caught = true;
+       assert (caught == true);
+    }
+
+    /***********************************************************************
+
+        Test wrapping
+
+    ***********************************************************************/
+
+    version (UnitTestVerbose)  Trace.formatln("\nRunning ocean.io.device.queue.FlexibleByteRingQueue wrapping stability test");
+    {
+        scope queue = new FlexibleByteRingQueue((1+FlexibleByteRingQueue.Header.sizeof)*3);
+
+        assert(queue.read_from == 0);
+        assert(queue.write_to == 0);
+        // [___] r=0 w=0
+        assert(queue.push(cast(ubyte[])"1"));
+
+        assert(queue.read_from == 0);
+        assert(queue.write_to == 1+FlexibleByteRingQueue.Header.sizeof);
+        assert(queue.items == 1);
+        assert((cast(FlexibleByteRingQueue.Header*) queue.data.ptr).length == 1);
+
+        assert(queue.data[FlexibleByteRingQueue.Header.sizeof ..
+                          1+FlexibleByteRingQueue.Header.sizeof] ==
+                              cast(ubyte[]) "1");
+
+        // [#__] r=0 w=5
+        assert(queue.push(cast(ubyte[])"2"));
+        assert(queue.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*2);
+
+        assert((cast(FlexibleByteRingQueue.Header*)
+            (queue.data.ptr + 1 + FlexibleByteRingQueue.Header.sizeof)).length == 1);
+
+        assert(queue.data[1+FlexibleByteRingQueue.Header.sizeof*2 ..
+                          1+FlexibleByteRingQueue.Header.sizeof*2+1] ==
+                              cast(ubyte[]) "2");
+        //assert(queue.data[queue.write_to-1-FlexibleByteRingQueue.h .. ])
+
+
+
+        // [##_] r=0 w=10
+        assert(queue.push(cast(ubyte[])"3"));
+        assert(queue.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*3);
+
+        // [###] r=0 w=15
+        assert(!queue.push(cast(ubyte[])"4"));
+        assert(queue.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*3);
+        assert(queue.read_from == 0);
+
+        assert(queue.free_space == 0);
+        assert(queue.pop() == cast(ubyte[])"1");
+
+        assert(queue.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*3);
+        assert(queue.read_from == 1+FlexibleByteRingQueue.Header.sizeof);
+
+        // [_##] r=5 w=15
+        assert(queue.free_space() == 1+FlexibleByteRingQueue.Header.sizeof);
+
+        assert(queue.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*3);
+        assert(queue.read_from == 1+FlexibleByteRingQueue.Header.sizeof);
+
+        assert(queue.pop() == cast(ubyte[])"2");
+
+        // [__#] r=10 w=15
+        assert(queue.free_space() == (1+FlexibleByteRingQueue.Header.sizeof)*2);
+        assert(queue.write_to == queue.data.length);
+        assert(queue.push(cast(ubyte[])"1"));
+
+        // [#_#] r=10 w=5
+        assert(queue.free_space() == 1+FlexibleByteRingQueue.Header.sizeof);
+        assert(queue.write_to == queue.pushSize("2".length));
+        assert(queue.push(cast(ubyte[])"2"));
+       // Trace.formatln("gap is {}, free is {}, write is {}", queue.gap, queue.free_space(),queue.write_to);
+
+
+        // [###] r=10 w=10
+        assert(queue.free_space == 0);
+        assert(queue.pop() == cast(ubyte[])"3");
+
+        // [##_] r=15/0 w=10
+        assert(queue.free_space() == (1+FlexibleByteRingQueue.Header.sizeof)*1);
+        assert(queue.pop() == cast(ubyte[])"1");
+
+        // [_#_] r=5 w=10
+        assert(queue.pop() == cast(ubyte[])"2");
+
+        // [__] r=0 w=0
+        assert(queue.is_empty);
+        assert(queue.push(cast(ubyte[])"1"));
+
+        // [#__] r=0 w=5
+        assert(queue.push(cast(ubyte[])"2#"));
+
+        // [#$_] r=0 w=11 ($ = 2 bytes)
+        assert(queue.pop() == cast(ubyte[])"1");
+
+        // [_$_] r=5 w=11
+        assert(queue.push(cast(ubyte[])"1"));
+
+        // [#$_] r=5 w=5
+        assert(!queue.push(cast(ubyte[])"2"));
+        assert(queue.pop() == cast(ubyte[])"2#");
+
+        // [#__] r=11 w=5
+        assert(queue.push(cast(ubyte[])"2")); // this needs to be wrapped now
+
+        // [##_] r=11 w=10
+        assert(queue.gap == queue.read_from);
+    }
+
+    // https://github.com/sociomantic/ocean/issues/5
+    void bug5()
+    {
+        const Q_SIZE = 20;
+        FlexibleByteRingQueue q = new FlexibleByteRingQueue(Q_SIZE);
+
+        void push(size_t n)
+        {
+            for (size_t i = 0; i < n; i++)
+            {
+                ubyte[] push_slice = q.push(1);
+                if (push_slice is null)
+                    break;
+                push_slice[] = cast(ubyte[]) [i];
+            }
+        }
+
+        void pop(size_t n)
+        {
+            for (size_t i = 0; i < n; i++)
+            {
+                auto popped = q.pop();
+                if (!popped.length)
+                    break;
+                assert (popped[0] != Q_SIZE+1);
+                popped[0] = Q_SIZE+1;
+            }
+        }
+
+        push(2);
+        pop(1);
+        push(2);
+        pop(1);
+        push(3);
+        pop(4);
+        pop(1);
+    }
+    bug5();
+
+}
+

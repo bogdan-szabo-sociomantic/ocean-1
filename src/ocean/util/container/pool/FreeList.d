@@ -350,27 +350,26 @@ version ( UnitTest )
             assert(item.s[0] == cast(char)(i + 32), "item string content wrong");
         }
     }
+}
 
-
-    unittest
+unittest
+{
+    // String (arrays) free list test
     {
-        // String (arrays) free list test
-        {
-            scope fl = new StringFreeListTester;
-            fl.test();
-        }
+        scope fl = new StringFreeListTester;
+        fl.test();
+    }
 
-        // Struct free list test
-        {
-            scope fl = new StructFreeListTester;
-            fl.test();
-        }
+    // Struct free list test
+    {
+        scope fl = new StructFreeListTester;
+        fl.test();
+    }
 
-        // Class free list test
-        {
-            scope fl = new ClassFreeListTester;
-            fl.test();
-        }
+    // Class free list test
+    {
+        scope fl = new ClassFreeListTester;
+        fl.test();
     }
 }
 

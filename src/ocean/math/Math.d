@@ -112,38 +112,39 @@ T divRoundEven(T)(T a, T b)
 version (UnitTest)
 {
     private import tango.math.Math : rndlong;
+}
 
-    unittest
+unittest
+{
+    long roundDivCheat ( long a, long b )
     {
-        long roundDivCheat ( long a, long b )
+        real x = cast(real)a / cast(real)b;
+        return rndlong(x);
+    }
+
+    assert(divRoundEven(-3, 2)  == -2);
+    assert(divRoundEven(3, 2)   == 2);
+    assert(divRoundEven(-3, -2) == 2);
+    assert(divRoundEven(3, -2)  == -2);
+
+    assert(divRoundEven(7, 11) == 1);
+    assert(divRoundEven(11, 11) == 1);
+    assert(divRoundEven(16, 11) == 1);
+    assert(divRoundEven(-17, 11) == -2);
+    assert(divRoundEven(-17, 11) == -2);
+    assert(divRoundEven(-16, 11) == -1);
+
+    assert(divRoundEven(17, -11) == -2);
+    assert(divRoundEven(16, -11) == -1);
+    assert(divRoundEven(-17, -11) == 2);
+    assert(divRoundEven(-16, -11) == 1);
+
+    for (int i = -100; i <= 100; ++i) for (int j = -100; j <= 100; ++j)
+    {
+        if (j != 0)
         {
-            real x = cast(real)a / cast(real)b;
-            return rndlong(x);
-        }
-
-        assert(divRoundEven(-3, 2)  == -2);
-        assert(divRoundEven(3, 2)   == 2);
-        assert(divRoundEven(-3, -2) == 2);
-        assert(divRoundEven(3, -2)  == -2);
-
-        assert(divRoundEven(7, 11) == 1);
-        assert(divRoundEven(11, 11) == 1);
-        assert(divRoundEven(16, 11) == 1);
-        assert(divRoundEven(-17, 11) == -2);
-        assert(divRoundEven(-17, 11) == -2);
-        assert(divRoundEven(-16, 11) == -1);
-
-        assert(divRoundEven(17, -11) == -2);
-        assert(divRoundEven(16, -11) == -1);
-        assert(divRoundEven(-17, -11) == 2);
-        assert(divRoundEven(-16, -11) == 1);
-
-        for (int i = -100; i <= 100; ++i) for (int j = -100; j <= 100; ++j)
-        {
-            if (j != 0)
-            {
-                assert (divRoundEven(i,j) == roundDivCheat(i,j));
-            }
+            assert (divRoundEven(i,j) == roundDivCheat(i,j));
         }
     }
 }
+

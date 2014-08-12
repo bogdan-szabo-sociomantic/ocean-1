@@ -1432,39 +1432,39 @@ version ( UnitTest )
         }
         return dest == concat_result ;
     }
+}
 
-    unittest
-    {
-        version (UnitTestVerbose) Trace.formatln("\nRunning ocean.core.Array unittest");
+unittest
+{
+    version (UnitTestVerbose) Trace.formatln("\nRunning ocean.core.Array unittest");
 
-        char[] dest;
-        char[] str1 = "hello";
-        char[] str2 = "world";
-        char[] str3 = "something";
+    char[] dest;
+    char[] str1 = "hello";
+    char[] str2 = "world";
+    char[] str3 = "something";
 
-        // Check dynamic array concatenation
-        assert(concat_test(dest, str1, str2, str3), "Concatenation test failed");
+    // Check dynamic array concatenation
+    assert(concat_test(dest, str1, str2, str3), "Concatenation test failed");
 
-        // Check that modifying one of the concatenated strings doesn't modify the result
-        char[] result = dest.dup;
-        str1 = "goodbye";
-        assert(dest == result, "Modified concatenation test failed");
+    // Check that modifying one of the concatenated strings doesn't modify the result
+    char[] result = dest.dup;
+    str1 = "goodbye";
+    assert(dest == result, "Modified concatenation test failed");
 
-        // Check null concatenation
-        assert(concat_test(dest), "Null concatenation test 1 failed");
-        assert(concat_test(dest, "", ""), "Null concatenation test 2 failed");
+    // Check null concatenation
+    assert(concat_test(dest), "Null concatenation test 1 failed");
+    assert(concat_test(dest, "", ""), "Null concatenation test 2 failed");
 
-        // Check static array concatenation
-        char[3] staticstr1 = "hi ";
-        char[5] staticstr2 = "there";
-        assert(concat_test(dest, staticstr1, staticstr2), "Static array concatenation test failed");
+    // Check static array concatenation
+    char[3] staticstr1 = "hi ";
+    char[5] staticstr2 = "there";
+    assert(concat_test(dest, staticstr1, staticstr2), "Static array concatenation test failed");
 
-        // Check const array concatenation
-        const char[] conststr1 = "hi ";
-        const char[] conststr2 = "there";
-        assert(concat_test(dest, conststr1, conststr2), "Const array concatenation test failed");
+    // Check const array concatenation
+    const char[] conststr1 = "hi ";
+    const char[] conststr2 = "there";
+    assert(concat_test(dest, conststr1, conststr2), "Const array concatenation test failed");
 
-        version (UnitTestVerbose) Trace.formatln("done unittest\n");
-    }
+    version (UnitTestVerbose) Trace.formatln("done unittest\n");
 }
 

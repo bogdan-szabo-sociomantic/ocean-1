@@ -134,11 +134,11 @@ version ( UnitTest )
             assert(item.s[0] == cast(char)(i + 32), "item string content wrong");
         }
     }
+}
 
-    unittest
-    {
-        scope sp = new StructPoolTester;
-        sp.test();
-    }
+unittest
+{
+    scope sp = new StructPoolTester;
+    sp.test();
 }
 

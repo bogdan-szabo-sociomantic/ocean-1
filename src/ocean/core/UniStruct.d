@@ -455,7 +455,7 @@ struct UniStruct ( Types ... )
 
      **************************************************************************/
 
-   template Id ( Type )
+    template Id ( Type )
     {
         const Id = cast (TypeId) TU.Id!(Type);
     }
@@ -465,44 +465,41 @@ version (UnitTest)
 {
     import tango.util.log.Trace;
 
-
     class Empty { int me; this(int a) { me = a; } };
+}
+
+unittest
+{
+    UniStruct!(int,float,Object) test;
+
+    test.set!(float)(46);
+    assert(test.type_id() == test.TypeId.Float);
+
+    test.visit((float me) { assert(me == 46.0); } );
+
+    test.set(34);
+    assert(test.type_id == test.TypeId.Int);
 
 
+    test.visit((float me) { assert(false); },
+               (  int me) { assert(me == 34); });
 
-    unittest
+    test.set!(Object)(new Empty(3));
+    assert((cast(Empty)test.get!(test.TypeId.Object)()).me == 3);
+
+    test.set!(test.TypeId.Int)(cast(int)19.0);
+
     {
-        UniStruct!(int,float,Object) test;
-
-        test.set!(float)(46);
-        assert(test.type_id() == test.TypeId.Float);
-
-        test.visit((float me) { assert(me == 46.0); } );
-
-        test.set(34);
-        assert(test.type_id == test.TypeId.Int);
-
-
-        test.visit((float me) { assert(false); },
-                   (  int me) { assert(me == 34); });
-
-        test.set!(Object)(new Empty(3));
-        assert((cast(Empty)test.get!(test.TypeId.Object)()).me == 3);
-
-        test.set!(test.TypeId.Int)(cast(int)19.0);
-
-        {
-            bool catched=false;
-            try test.get!(test.TypeId.Float)();
-            catch (UniStructException e) catched = true;
-            assert(catched);
-        }
-
-        int tmp = void;
-        test.get(tmp);
-        assert(tmp == 19);
-
-
+        bool catched=false;
+        try test.get!(test.TypeId.Float)();
+        catch (UniStructException e) catched = true;
+        assert(catched);
     }
 
+    int tmp = void;
+    test.get(tmp);
+    assert(tmp == 19);
+
+
 }
+

@@ -235,55 +235,55 @@ class PercentEncoder
      ******************************************************************************/
 
     protected abstract bool encode ( char c );
+}
 
-    /**************************************************************************/
 
-    unittest
+unittest
+{
+    static void checkRange ( char first, char last )
     {
-        static void checkRange ( char first, char last )
-        {
-            for (char c = first; c <= last; c++)
-            {
-                assert (EncodeNonUnreserved.unreserved[c],
-                        "'" ~ c ~ "' is supposed to be unreserved");
-            }
-        }
-
-        checkRange('A', 'Z');
-        checkRange('a', 'z');
-        checkRange('0', '9');
-
-        foreach (c; "-_.~")
+        for (char c = first; c <= last; c++)
         {
             assert (EncodeNonUnreserved.unreserved[c],
                     "'" ~ c ~ "' is supposed to be unreserved");
         }
+    }
 
-        scope encoder = new EncodeNonUnreserved("For example, the octet "
-        "corresponding to the tilde (\"~\") character is often encoded as "
-        "\"%7E\" by older URI processing implementations; the \"%7E\" can be "
-        "replaced by \"~\" without chänging its interpretation.");
+    checkRange('A', 'Z');
+    checkRange('a', 'z');
+    checkRange('0', '9');
 
-        const char[][] chunks =
-        [
-            "For", "%20", "example", "%2C", "%20", "the", "%20", "octet", "%20",
-            "corresponding","%20", "to", "%20", "the", "%20", "tilde", "%20",
-            "%28", "%22", "~", "%22", "%29", "%20", "character", "%20", "is",
-            "%20", "often", "%20", "encoded", "%20", "as", "%20", "%22", "%25",
-            "7E", "%22", "%20", "by", "%20", "older", "%20", "URI", "%20",
-            "processing", "%20", "implementations", "%3B", "%20", "the", "%20",
-            "%22", "%25", "7E", "%22", "%20", "can", "%20", "be", "%20",
-            "replaced", "%20", "by", "%20", "%22", "~", "%22", "%20", "without",
-            "%20", "ch", "%C3", "%A4", "nging", "%20", "its", "%20",
-            "interpretation."
-        ];
+    foreach (c; "-_.~")
+    {
+        assert (EncodeNonUnreserved.unreserved[c],
+                "'" ~ c ~ "' is supposed to be unreserved");
+    }
 
-        size_t i = 0;
+    scope encoder = new EncodeNonUnreserved("For example, the octet "
+    "corresponding to the tilde (\"~\") character is often encoded as "
+    "\"%7E\" by older URI processing implementations; the \"%7E\" can be "
+    "replaced by \"~\" without chänging its interpretation.");
 
-        foreach (chunk; encoder)
-        {
-            assert (i < chunks.length);
-            assert (chunks[i++] == chunk);
-        }
+    const char[][] chunks =
+    [
+        "For", "%20", "example", "%2C", "%20", "the", "%20", "octet", "%20",
+        "corresponding","%20", "to", "%20", "the", "%20", "tilde", "%20",
+        "%28", "%22", "~", "%22", "%29", "%20", "character", "%20", "is",
+        "%20", "often", "%20", "encoded", "%20", "as", "%20", "%22", "%25",
+        "7E", "%22", "%20", "by", "%20", "older", "%20", "URI", "%20",
+        "processing", "%20", "implementations", "%3B", "%20", "the", "%20",
+        "%22", "%25", "7E", "%22", "%20", "can", "%20", "be", "%20",
+        "replaced", "%20", "by", "%20", "%22", "~", "%22", "%20", "without",
+        "%20", "ch", "%C3", "%A4", "nging", "%20", "its", "%20",
+        "interpretation."
+    ];
+
+    size_t i = 0;
+
+    foreach (chunk; encoder)
+    {
+        assert (i < chunks.length);
+        assert (chunks[i++] == chunk);
     }
 }
+

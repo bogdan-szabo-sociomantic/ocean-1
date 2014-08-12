@@ -133,115 +133,115 @@ public class HashSet : Set!(hash_t)
     {
         return key;
     }
+}
 
-    /***************************************************************************
+/***************************************************************************
 
-        HashSet unittest.
+    HashSet unittest.
 
-    ***************************************************************************/
+***************************************************************************/
 
-    unittest
+unittest
+{
+    version ( UnitTestVerbose )
     {
+        Stdout.formatln("{} unittest ---------------",
+            typeof(this).stringof);
+        scope ( exit ) Stdout.formatln("{} unittest ---------------",
+           typeof(this).stringof);
+    }
+
+    scope set = new HashSet(10);
+
+    version ( UnitTestVerbose ) void printState ( )
+    {
+        Stdout.formatln("  ::  len={}, load={}, max_load={}, pool={} ({} busy)",
+            set.length, set.load, set.max_load,
+            set.bucket_elements.length, set.bucket_elements.num_busy);
+    }
+
+    bool lengthIs ( int expected )
+    {
+        assert(set.bucket_info.length == expected);
+
+        int c;
+        foreach ( k; set )
+        {
+            c++;
+        }
+        return c == expected;
+    }
+
+    void put ( hash_t key, bool should_exist )
+    {
+        auto len = set.bucket_info.length;
+
+        assert(!!(key in set) == should_exist);
+
+        auto e = set.put(key);
         version ( UnitTestVerbose )
         {
-            Stdout.formatln("{} unittest ---------------",
-                typeof(this).stringof);
-            scope ( exit ) Stdout.formatln("{} unittest ---------------",
-               typeof(this).stringof);
+            Stdout.format("put {}: {}", key, e);
+            printState();
         }
 
-        scope set = new typeof(this)(10);
-
-        version ( UnitTestVerbose ) void printState ( )
-        {
-            Stdout.formatln("  ::  len={}, load={}, max_load={}, pool={} ({} busy)",
-                set.length, set.load, set.max_load,
-                set.bucket_elements.length, set.bucket_elements.num_busy);
-        }
-
-        bool lengthIs ( int expected )
-        {
-            assert(set.bucket_info.length == expected);
-
-            int c;
-            foreach ( k; set )
-            {
-                c++;
-            }
-            return c == expected;
-        }
-
-        void put ( hash_t key, bool should_exist )
-        {
-            auto len = set.bucket_info.length;
-
-            assert(!!(key in set) == should_exist);
-
-            auto e = set.put(key);
-            version ( UnitTestVerbose )
-            {
-                Stdout.format("put {}: {}", key, e);
-                printState();
-            }
-
-            assert(key in set);
-            assert(lengthIs(len + (should_exist ? 0 : 1)));
-        }
-
-        void remove ( hash_t key, bool should_exist )
-        {
-            auto len = set.bucket_info.length;
-            auto pool_len = set.bucket_info.num_buckets;
-
-            assert(!!(key in set) == should_exist);
-
-            auto e = set.remove(key);
-            version ( UnitTestVerbose )
-            {
-                Stdout.format("remove {}: {}", key, e);
-                printState();
-            }
-
-            assert(!(key in set));
-            assert(lengthIs(len - (should_exist ? 1 : 0)));
-            assert(pool_len == set.bucket_info.num_buckets);
-        }
-
-        void clear ( )
-        {
-            auto pool_len = set.bucket_info.num_buckets;
-
-            set.clear();
-            version ( UnitTestVerbose )
-            {
-                Stdout.format("clear");
-                printState();
-            }
-
-            assert(lengthIs(0));
-
-            assert(pool_len == set.bucket_info.num_buckets);
-        }
-
-        put(4711, false);   // put
-        put(4711, true);    // double put
-        put(23, false);     // put
-        put(12, false);     // put
-        remove(23, true);   // remove
-        remove(23, false);  // double remove
-        put(23, false);     // put
-        put(23, true);      // double put
-
-        clear();
-
-        put(4711, false);   // put
-        put(11, false);     // put
-        put(11, true);      // double put
-        put(12, false);     // put
-        remove(23, false);  // remove
-        put(23, false);     // put
-        put(23, true);      // double put
-
-        clear();
+        assert(key in set);
+        assert(lengthIs(len + (should_exist ? 0 : 1)));
     }
+
+    void remove ( hash_t key, bool should_exist )
+    {
+        auto len = set.bucket_info.length;
+        auto pool_len = set.bucket_info.num_buckets;
+
+        assert(!!(key in set) == should_exist);
+
+        auto e = set.remove(key);
+        version ( UnitTestVerbose )
+        {
+            Stdout.format("remove {}: {}", key, e);
+            printState();
+        }
+
+        assert(!(key in set));
+        assert(lengthIs(len - (should_exist ? 1 : 0)));
+        assert(pool_len == set.bucket_info.num_buckets);
+    }
+
+    void clear ( )
+    {
+        auto pool_len = set.bucket_info.num_buckets;
+
+        set.clear();
+        version ( UnitTestVerbose )
+        {
+            Stdout.format("clear");
+            printState();
+        }
+
+        assert(lengthIs(0));
+
+        assert(pool_len == set.bucket_info.num_buckets);
+    }
+
+    put(4711, false);   // put
+    put(4711, true);    // double put
+    put(23, false);     // put
+    put(12, false);     // put
+    remove(23, true);   // remove
+    remove(23, false);  // double remove
+    put(23, false);     // put
+    put(23, true);      // double put
+
+    clear();
+
+    put(4711, false);   // put
+    put(11, false);     // put
+    put(11, true);      // double put
+    put(12, false);     // put
+    remove(23, false);  // remove
+    put(23, false);     // put
+    put(23, true);      // double put
+
+    clear();
 }

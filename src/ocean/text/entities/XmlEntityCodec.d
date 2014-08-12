@@ -146,16 +146,16 @@ version ( UnitTest )
             decodeTest!(Char)(codec, t.before, t.after);
         }
     }
+}
 
-    unittest
-    {
-        Trace.formatln("Running ocean.text.entities.XmlEntityCodec unittest");
+unittest
+{
+    Trace.formatln("Running ocean.text.entities.XmlEntityCodec unittest");
 
-        test!(char)();
-        test!(wchar)();
-        test!(dchar)();
+    test!(char)();
+    test!(wchar)();
+    test!(dchar)();
 
-        Trace.formatln("\nDone unittest\n");
-    }
+    Trace.formatln("\nDone unittest\n");
 }
 

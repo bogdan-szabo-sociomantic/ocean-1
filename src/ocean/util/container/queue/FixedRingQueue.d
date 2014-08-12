@@ -521,75 +521,60 @@ abstract class FixedRingQueueBase ( IBaseQueue ) : IRingQueue!(IBaseQueue)
     }
 }
 
-/*******************************************************************************
-
-    Unit test; involves another unit test in class derived from FixedRingQueue
-    to provide access to protected members.
-
-*******************************************************************************/
-
 unittest
 {
-    static class Test : FixedRingQueue!(int)
+    static size_t pos ( size_t n )
     {
-        this ( ) { super (3); }
-
-        static size_t pos ( size_t n )
-        {
-            return n * int.sizeof;
-        }
-
-        unittest
-        {
-            scope queue = new typeof (this);
-
-            int n;
-
-            assert (queue.is_empty);
-            assert (!queue.pop());
-            assert (queue.is_empty);
-
-            assert (queue.push(1));
-            assert (queue.write_to  == pos(1));
-            assert (queue.read_from == pos(0));
-            assert (!queue.is_empty);
-
-            assert (queue.pop(n));
-            assert (n == 1);
-
-            assert (queue.is_empty);
-            assert (!queue.pop());
-            assert (queue.write_to == queue.read_from);
-
-            assert (queue.push(2));
-            assert (!queue.is_empty);
-            assert (queue.push(3));
-            assert (queue.push(4));
-            assert (!queue.push(5));
-            assert (queue.write_to == queue.read_from);
-
-            assert (queue.pop(n));
-            assert (n == 2);
-
-            assert (queue.pop(n));
-            assert (n == 3);
-
-            assert (queue.pop(n));
-            assert (n == 4);
-
-            assert (queue.is_empty);
-            assert (!queue.pop());
-            assert (queue.write_to == queue.read_from);
-
-            assert (queue.push(5));
-
-            assert (queue.pop(n));
-            assert (n == 5);
-
-            assert (queue.is_empty);
-            assert (!queue.pop());
-            assert (queue.write_to == queue.read_from);
-        }
+        return n * int.sizeof;
     }
+
+    scope queue = new FixedRingQueue!(int)(3);
+
+    int n;
+
+    assert (queue.is_empty);
+    assert (!queue.pop());
+    assert (queue.is_empty);
+
+    assert (queue.push(1));
+    assert (queue.write_to  == pos(1));
+    assert (queue.read_from == pos(0));
+    assert (!queue.is_empty);
+
+    assert (queue.pop(n));
+    assert (n == 1);
+
+    assert (queue.is_empty);
+    assert (!queue.pop());
+    assert (queue.write_to == queue.read_from);
+
+    assert (queue.push(2));
+    assert (!queue.is_empty);
+    assert (queue.push(3));
+    assert (queue.push(4));
+    assert (!queue.push(5));
+    assert (queue.write_to == queue.read_from);
+
+    assert (queue.pop(n));
+    assert (n == 2);
+
+    assert (queue.pop(n));
+    assert (n == 3);
+
+    assert (queue.pop(n));
+    assert (n == 4);
+
+    assert (queue.is_empty);
+    assert (!queue.pop());
+    assert (queue.write_to == queue.read_from);
+
+    assert (queue.push(5));
+
+    assert (queue.pop(n));
+    assert (n == 5);
+
+    assert (queue.is_empty);
+    assert (!queue.pop());
+    assert (queue.write_to == queue.read_from);
 }
 

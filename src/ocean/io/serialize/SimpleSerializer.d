@@ -428,21 +428,21 @@ version ( UnitTest )
         version ( UnitTestVerbose ) Stdout.formatln("Wrote {} to conduit, read {}", write, read);
         assert(read == write, "Error serializing " ~ T.stringof);
     }
+}
 
-    unittest
-    {
-        version (UnitTestVerbose) Stdout.formatln("Running ocean.io.serialize.SimpleSerializer unittest");
+unittest
+{
+    version (UnitTestVerbose) Stdout.formatln("Running ocean.io.serialize.SimpleSerializer unittest");
 
-        uint an_int = 23;
-        test(an_int);
+    uint an_int = 23;
+    test(an_int);
 
-        char[] a_string = "hollow world";
-        test(a_string);
+    char[] a_string = "hollow world";
+    test(a_string);
 
-        char[][] a_string_array = ["hollow world", "journey to the centre", "of the earth"];
-        test(a_string_array);
+    char[][] a_string_array = ["hollow world", "journey to the centre", "of the earth"];
+    test(a_string_array);
 
-        version (UnitTestVerbose) Stdout.formatln("done unittest\n");
-    }
+    version (UnitTestVerbose) Stdout.formatln("done unittest\n");
 }
 

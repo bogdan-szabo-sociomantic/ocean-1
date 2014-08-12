@@ -589,11 +589,11 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 }
 
 
-    unittest
-    {
-        char[] str1 = "hello world ®"; // utf8 encoding
-        dchar[] str2 = "hello world ®"; // utf32 encoding
+unittest
+{
+    char[] str1 = "hello world ®"; // utf8 encoding
+    dchar[] str2 = "hello world ®"; // utf32 encoding
 
-        assert(utf_match(str1, str2));
-    }
+    assert(utf_match(str1, str2));
+}
 

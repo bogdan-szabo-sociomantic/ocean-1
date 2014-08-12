@@ -507,52 +507,52 @@ version (UnitTest)
     import tango.time.StopWatch;
     import tango.core.Thread;
     import tango.util.container.HashMap;
+}
 
-    unittest
-    {
-        version ( UnitTestVerbose ) Trace.formatln("Running ocean.db.tokyocabinet.TokyoCabinetM unittest");
+unittest
+{
+    version ( UnitTestVerbose ) Trace.formatln("Running ocean.db.tokyocabinet.TokyoCabinetM unittest");
 
-        const uint iterations  = 5;
-        const uint inserts     = 1_000_000;
-        const uint num_threads = 1;
+    const uint iterations  = 5;
+    const uint inserts     = 1_000_000;
+    const uint num_threads = 1;
 
-        /***********************************************************************
+    /***********************************************************************
 
-            ArrayMapKV Assertion Test
+        ArrayMapKV Assertion Test
 
-         ***********************************************************************/
+     ***********************************************************************/
 
-        StopWatch   w;
+    StopWatch   w;
 
-        scope value = new char[0x100];
+    scope value = new char[0x100];
 
-        scope map = new TokyoCabinetM(1_250_000);
+    scope map = new TokyoCabinetM(1_250_000);
 
-        map.put("1", "1111");
-        map.put("2", "2222");
+    map.put("1", "1111");
+    map.put("2", "2222");
 
-        map.get("1", value);
-        assert(value == "1111");
+    map.get("1", value);
+    assert(value == "1111");
 
-        map.get("2", value);
-        assert(value == "2222");
+    map.get("2", value);
+    assert(value == "2222");
 
-        assert(map.exists("1"));
-        assert(map.exists("2"));
+    assert(map.exists("1"));
+    assert(map.exists("2"));
 
-        assert(map.numRecords() == 2);
+    assert(map.numRecords() == 2);
 
-        map.put("3", "3333");
+    map.put("3", "3333");
 
-        assert(map.numRecords() == 3);
+    assert(map.numRecords() == 3);
 
-        map.get("3", value);
-        assert(value == "3333");
+    map.get("3", value);
+    assert(value == "3333");
 
-        map.remove("3");
-        assert(!map.exists("3"));
-        assert(map.numRecords() == 2);
-    }
+    map.remove("3");
+    assert(!map.exists("3"));
+    assert(map.numRecords() == 2);
 }
 
 

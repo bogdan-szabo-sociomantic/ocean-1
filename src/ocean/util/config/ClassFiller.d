@@ -1052,18 +1052,19 @@ version ( UnitTest )
     }
 
     class Dummy {};
+}
 
-    unittest
+unittest
+{
+    auto iter = iterate!(Dummy)("ROOT", new DummyParser);
+
+    foreach ( name, conf; iter )
     {
-        auto iter = iterate!(Dummy)("ROOT", new DummyParser);
-
-        foreach ( name, conf; iter )
-        {
-            test!("==")(name, "valid");
-        }
+        test!("==")(name, "valid");
+    }
 
 
-        const config_text =
+    const config_text =
 `
 [Section]
 string = I'm a string
@@ -1072,64 +1073,64 @@ pi = 3.14
 
 [SectionArray]
 string_arr = Hello
-             World
+         World
 int_arr = 30
-          40
-          -60
-          1111111111
-          0x10
+      40
+      -60
+      1111111111
+      0x10
 ulong_arr = 0
-            50
-            18446744073709551615
-            0xa123bcd
+        50
+        18446744073709551615
+        0xa123bcd
 float_arr = 10.2
-            -25.3
-            90
-            0.000000001
+        -25.3
+        90
+        0.000000001
 `;
 
-        auto config_parser = new ConfigParser();
+    auto config_parser = new ConfigParser();
 
-        class SingleValues
-        {
-            char[] string;
-            int integer;
-            float pi;
-            uint default_value = 99;
-        }
-
-        auto single_values = new SingleValues();
-        config_parser.parseString(config_text);
-
-        readFields("Section", single_values, config_parser);
-        test(single_values.string == "I'm a string",
-                                             "classFiller: Wrong string parse");
-        test(single_values.integer == -300, "classFiller: Wrong int parse");
-        test(single_values.pi == cast(float)3.14,
-                                              "classFiller: Wrong float parse");
-        test(single_values.default_value == 99,
-                                      "classFiller: wrong default value parse");
-
-
-        class ArrayValues
-        {
-            char[][] string_arr;
-            int[] int_arr;
-            ulong[] ulong_arr;
-            float[] float_arr;
-        }
-
-        auto array_values = new ArrayValues();
-        readFields("SectionArray", array_values, config_parser);
-        test(array_values.string_arr == ["Hello", "World"],
-                                       "classFiller: Wrong string-array parse");
-        test(array_values.int_arr == [30, 40, -60, 1111111111, 0x10],
-                                          "classFiller: Wrong int-array parse");
-        ulong[] ulong_array = [0, 50, ulong.max, 0xa123bcd];
-        test(array_values.ulong_arr == ulong_array,
-                                        "classFiller: Wrong ulong-array parse");
-        float[] float_array = [10.2, -25.3, 90, 0.000000001];
-        test(array_values.float_arr == float_array,
-                                        "classFiller: Wrong float-array parse");
+    class SingleValues
+    {
+        char[] string;
+        int integer;
+        float pi;
+        uint default_value = 99;
     }
+
+    auto single_values = new SingleValues();
+    config_parser.parseString(config_text);
+
+    readFields("Section", single_values, config_parser);
+    test(single_values.string == "I'm a string",
+                                         "classFiller: Wrong string parse");
+    test(single_values.integer == -300, "classFiller: Wrong int parse");
+    test(single_values.pi == cast(float)3.14,
+                                          "classFiller: Wrong float parse");
+    test(single_values.default_value == 99,
+                                  "classFiller: wrong default value parse");
+
+
+    class ArrayValues
+    {
+        char[][] string_arr;
+        int[] int_arr;
+        ulong[] ulong_arr;
+        float[] float_arr;
+    }
+
+    auto array_values = new ArrayValues();
+    readFields("SectionArray", array_values, config_parser);
+    test(array_values.string_arr == ["Hello", "World"],
+                                   "classFiller: Wrong string-array parse");
+    test(array_values.int_arr == [30, 40, -60, 1111111111, 0x10],
+                                      "classFiller: Wrong int-array parse");
+    ulong[] ulong_array = [0, 50, ulong.max, 0xa123bcd];
+    test(array_values.ulong_arr == ulong_array,
+                                    "classFiller: Wrong ulong-array parse");
+    float[] float_array = [10.2, -25.3, 90, 0.000000001];
+    test(array_values.float_arr == float_array,
+                                    "classFiller: Wrong float-array parse");
 }
+

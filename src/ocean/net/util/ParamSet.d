@@ -631,6 +631,18 @@ class ParamSet
         assert (false, typeof (this).stringof ~ ".writeUint: dst too short");
     }
 
+    unittest
+    {
+        char[uint_dec_length] dec;
+
+        assert (dec.writeUint(4711)     == "4711");
+        assert (dec.writeUint(0)        == "0");
+
+        assert (dec.writeUint(uint.max) == "4294967295");
+
+        assert (strncasecmp("", "a") < 0);
+    }
+
     /**************************************************************************
 
         Converts str, which is expected to contain a decimal number, to the
@@ -688,19 +700,5 @@ class ParamSet
         }
 
         return src? src[$ .. $] : null;
-    }
-
-    /**************************************************************************/
-
-    unittest
-    {
-        char[uint_dec_length] dec;
-
-        assert (dec.writeUint(4711)     == "4711");
-        assert (dec.writeUint(0)        == "0");
-
-        assert (dec.writeUint(uint.max) == "4294967295");
-
-        assert (strncasecmp("", "a") < 0);
     }
 }

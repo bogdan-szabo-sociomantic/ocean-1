@@ -238,35 +238,35 @@ struct HttpVersionIds
 
         this.codes.rehash;
     }
-
-    /**************************************************************************/
-
-    unittest
-    {
-        static assert(this.list[HttpVersion.v1_1]     == "HTTP/1.1");
-        static assert(this.list[HttpVersion.v1_0]     == "HTTP/1.0");
-
-        assert(!this.list[HttpVersion.Undefined].length);
-
-        assert(this.list[HttpVersion.v1_1]     == "HTTP/1.1");
-        assert(this.list[HttpVersion.v1_0]     == "HTTP/1.0");
-
-        assert(typeof(*this)["HTTP/1.1"]     == HttpVersion.v1_1);
-        assert(typeof(*this)["HTTP/1.0"]     == HttpVersion.v1_0);
-        assert(typeof(*this)["SPAM"]         == HttpVersion.Undefined);
-        assert(typeof(*this)[""]             == HttpVersion.Undefined);
-        assert(typeof(*this)[null]           == HttpVersion.Undefined);
-
-        HttpVersion* v = "HTTP/1.1" in typeof(*this);
-        assert(v);
-        assert(*v == (*v).v1_1);
-
-        v = "HTTP/1.0" in typeof(*this);
-        assert(v);
-        assert(*v == (*v).v1_0);
-
-        assert(!("SPAM" in typeof(*this)));
-        assert(!(""     in typeof(*this)));
-        assert(!(null   in typeof(*this)));
-    }
 }
+
+
+unittest
+{
+    static assert(HttpVersionIds.list[HttpVersion.v1_1]     == "HTTP/1.1");
+    static assert(HttpVersionIds.list[HttpVersion.v1_0]     == "HTTP/1.0");
+
+    assert(!HttpVersionIds.list[HttpVersion.Undefined].length);
+
+    assert(HttpVersionIds.list[HttpVersion.v1_1]     == "HTTP/1.1");
+    assert(HttpVersionIds.list[HttpVersion.v1_0]     == "HTTP/1.0");
+
+    assert(HttpVersionIds["HTTP/1.1"]     == HttpVersion.v1_1);
+    assert(HttpVersionIds["HTTP/1.0"]     == HttpVersion.v1_0);
+    assert(HttpVersionIds["SPAM"]         == HttpVersion.Undefined);
+    assert(HttpVersionIds[""]             == HttpVersion.Undefined);
+    assert(HttpVersionIds[null]           == HttpVersion.Undefined);
+
+    HttpVersion* v = "HTTP/1.1" in HttpVersionIds;
+    assert(v);
+    assert(*v == (*v).v1_1);
+
+    v = "HTTP/1.0" in HttpVersionIds;
+    assert(v);
+    assert(*v == (*v).v1_0);
+
+    assert(!("SPAM" in HttpVersionIds));
+    assert(!(""     in HttpVersionIds));
+    assert(!(null   in HttpVersionIds));
+}
+

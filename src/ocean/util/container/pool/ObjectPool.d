@@ -229,11 +229,11 @@ version ( UnitTest )
             assert(item.s[0] == cast(char)(i + 32), "item string content wrong");
         }
     }
+}
 
-    unittest
-    {
-        scope op = new ObjectPoolTester;
-        op.test();
-    }
+unittest
+{
+    scope op = new ObjectPoolTester;
+    op.test();
 }
 

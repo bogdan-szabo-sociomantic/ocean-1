@@ -259,13 +259,13 @@ version (UnitTest)
         // Test a partially filled SlidingAverage
         assert(avg.average == 3, err_prefix ~ "test 4");
     }
+}
 
-    unittest
-    {
-        runTests!(ulong)(100, 1);
-        runTests!(int)(50, 2);
-        runTests!(double)(1000, 3);
-    }
+unittest
+{
+    runTests!(ulong)(100, 1);
+    runTests!(int)(50, 2);
+    runTests!(double)(1000, 3);
 }
 
 

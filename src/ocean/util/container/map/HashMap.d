@@ -433,5 +433,12 @@ public class HashMap ( V ) : Map!(V, hash_t)
 //            }
     }
 
+}
 
+unittest
+{
+    // Instantiate a couple of hashmaps to actually run the unittests in the
+    // class
+    HashMap!(int) hi;
+    HashMap!(char[]) hs;
 }
