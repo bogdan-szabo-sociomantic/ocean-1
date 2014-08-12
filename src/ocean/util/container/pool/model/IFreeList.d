@@ -106,7 +106,7 @@ public interface IFreeList ( T ) : IFreeListInfo
 
 
 
-debug ( UnitTest )
+version ( UnitTest )
 {
     import ocean.core.Array : pop;
 

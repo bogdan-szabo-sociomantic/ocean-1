@@ -847,7 +847,7 @@ template hasMethod ( T, char[] name, Dg )
     }
 }
 
-debug ( UnitTest )
+version ( UnitTest )
 {
     template Methods ( )
     {

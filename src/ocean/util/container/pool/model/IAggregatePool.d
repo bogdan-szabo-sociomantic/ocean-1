@@ -915,7 +915,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
 
 
-debug ( UnitTest )
+version ( UnitTest )
 {
     /***************************************************************************
 
