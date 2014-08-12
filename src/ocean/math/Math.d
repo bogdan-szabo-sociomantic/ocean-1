@@ -112,7 +112,6 @@ T divRoundEven(T)(T a, T b)
 version (UnitTest)
 {
     private import tango.math.Math : rndlong;
-    private import ocean.util.log.Trace;
 
     unittest
     {
