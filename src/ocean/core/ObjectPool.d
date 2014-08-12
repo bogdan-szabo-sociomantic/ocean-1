@@ -87,7 +87,7 @@ module ocean.core.ObjectPool;
 
 private import ocean.core.Array: copy, copyExtend;
 
-debug private import ocean.util.log.Trace;
+version (UnitTestVerbose) private import ocean.util.log.Trace;
 
 /*******************************************************************************
 
@@ -1640,12 +1640,14 @@ abstract deprecated class PoolCore : IObjectPoolInfo
 
     TODO: adapt to changes in ObjectPool/ObjectPoolImpl
 
+    The whole unittest is disabled because it corrupts memory as it is.
+
 *******************************************************************************/
 
-debug ( OceanUnitTest )
+version (none) // ( UnitTest )
 {
     // Uncomment the next line to see UnitTest output
-    // debug = Verbose;
+    // version = UnitTestVerbose;
 
     class MyClass : Resettable
     {
@@ -1697,7 +1699,7 @@ debug ( OceanUnitTest )
         ***********************************************************************/
 
         {
-            debug (Verbose) Trace.formatln("ObjectPool: Running general unittest");
+            version (UnitTestVerbose) Trace.formatln("ObjectPool: Running general unittest");
             bool reset=false, death = false;
 
             void resetFunc()
@@ -1814,7 +1816,7 @@ debug ( OceanUnitTest )
             assert (pool1.num_idle == 0);
             assert (pool1.num_busy == 5);
         }
-        debug (Verbose) Trace.formatln("Test finished");
+        version (UnitTestVerbose) Trace.formatln("Test finished");
     }
 }
 
