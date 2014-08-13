@@ -43,34 +43,6 @@ your ``src`` directory and another one in your ``test`` directory, so you can do
 ``test/Makefile`` can be ``test`` instead.
 
 
-Config.mak
-----------
-Makd has a lot of configuration variables available. This file lives in the
-top-level directory of the project and serves as a global configuration point.
-There is only one ``Config.mak`` per project, so the configuration defined here
-should make sense for all the ``Makefile``\s defined across the project. For
-example you could redefine the colors used here, or the default DMD binary to
-use. This is why this file, when present, should be always added to the version
-control system. But normally you shouldn't need to create this file.
-
-This file (and Config.local.mak_) should only define variables, as it's parsed
-before any other variables or functions are defined. All the predefined variable
-and functions available in Build.mak_ are not available here, except for
-``$F``, ``$T`` and ``$R``, so use with care (see `Predefined variables`_ for
-details).
-
-
-Config.local.mak
-----------------
-This is a local version of the Config.mak_, so users can customize the build
-system to their taste. Here is where you usually should define which Flavor_ to
-compile by default, or which colors to use, or the path to a non-conventional
-compiler location. This file should never be added to the version control
-system.
-
-This file is loaded **after** Config.mak_ so it overrides its values.
-
-
 Build.mak
 ---------
 This is the file where you define what your ``Makefile`` will actually do. Makd
@@ -111,6 +83,34 @@ Putting it all together, your file should look like::
         someapp: $B/someapp
         $B/someapp: $C/src/main/someapp.d
         all += someapp
+
+
+Config.mak
+----------
+Makd has a lot of configuration variables available. This file lives in the
+top-level directory of the project and serves as a global configuration point.
+There is only one ``Config.mak`` per project, so the configuration defined here
+should make sense for all the ``Makefile``\s defined across the project. For
+example you could redefine the colors used here, or the default DMD binary to
+use. This is why this file, when present, should be always added to the version
+control system. But normally you shouldn't need to create this file.
+
+This file (and Config.local.mak_) should only define variables, as it's parsed
+before any other variables or functions are defined. All the predefined variable
+and functions available in Build.mak_ are not available here, except for
+``$F``, ``$T`` and ``$R``, so use with care (see `Predefined variables`_ for
+details).
+
+
+Config.local.mak
+----------------
+This is a local version of the Config.mak_, so users can customize the build
+system to their taste. Here is where you usually should define which Flavor_ to
+compile by default, or which colors to use, or the path to a non-conventional
+compiler location. This file should never be added to the version control
+system.
+
+This file is loaded **after** Config.mak_ so it overrides its values.
 
 
 The build directory
