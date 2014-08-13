@@ -37,6 +37,14 @@ master
 New Features
 ^^^^^^^^^^^^
 
+Unit testing (``ocean.core.UnitTestRunner``)
+  The unit test runner now accepts a new option ``-p`` / ``--package`` to only
+  run the tests in a particular package or module (effectively any module with
+  a fully qualified name that starts with the passed argument).
+
+  The option can be used multiple times to run tests in several packages. If no
+  package is passed, it will run the unit tests for all the modules found.
+
 ``ocean.core.Test``
   ``testThrown`` helper has been added. It verifies that expression that was
   expected to throw exception type during evaluation has indeed done that.

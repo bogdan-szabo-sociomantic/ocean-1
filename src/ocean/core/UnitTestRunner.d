@@ -37,7 +37,7 @@ module ocean.core.UnitTestRunner;
 *******************************************************************************/
 
 private import tango.stdc.stdio: printf, fprintf, fflush, stdout, stderr, FILE;
-private import tango.stdc.string: strdup, strlen;
+private import tango.stdc.string: strdup, strlen, strncmp;
 private import tango.stdc.posix.libgen: basename;
 private import tango.core.Runtime: Runtime;
 private import tango.core.Exception : AssertException;
@@ -66,6 +66,7 @@ private scope class UnitTestRunner
     private bool verbose = false;
     private bool summary = false;
     private bool keep_going = false;
+    private char[][] packages = null;
 
 
     /**************************************************************************
@@ -122,6 +123,15 @@ private scope class UnitTestRunner
 
         foreach ( m; ModuleInfo )
         {
+            if (!this.shouldTest(m.name))
+            {
+                skipped++;
+                if (this.verbose)
+                    printf("%s: %.*s: skipped (not in packages to test)\n",
+                            this.prog.ptr, m.name.length, m.name.ptr);
+                continue;
+            }
+
             if (failed && !this.keep_going)
             {
                 skipped++;
@@ -230,6 +240,35 @@ private scope class UnitTestRunner
 
     /**************************************************************************
 
+        Check if a module with name `name` should be tested.
+
+        Params:
+            name = Name of the module to check if it should be tested.
+
+        Returns:
+            true if it should be tested, false otherwise.
+
+    ***************************************************************************/
+
+    bool shouldTest ( char[] name )
+    {
+        // No packages specified, matches all
+        if (this.packages.length == 0)
+            return true;
+
+        foreach (pkg; this.packages)
+        {
+            if (name.length >= pkg.length &&
+                    strncmp(pkg.ptr, name.ptr, pkg.length) == 0)
+                return true;
+        }
+
+        return false;
+    }
+
+
+    /**************************************************************************
+
         Parse command line arguments filling the internal options and program
         name.
 
@@ -253,8 +292,18 @@ private scope class UnitTestRunner
 
         char[][] unknown;
 
-        foreach (arg; args[1..$])
+        bool skip_next = false;
+
+        args = args[1..$];
+
+        foreach (i, arg; args)
         {
+            if (skip_next)
+            {
+                skip_next = false;
+                continue;
+            }
+
             switch (arg)
             {
             case "-h":
@@ -276,6 +325,19 @@ private scope class UnitTestRunner
             case "-k":
             case "--keep-going":
                 this.keep_going = true;
+                break;
+
+            case "-p":
+            case "--package":
+                if (args.length <= i+1)
+                {
+                    this.printUsage(stderr);
+                    fprintf(stderr, "\n%s: error: missing argument for %.*s\n",
+                            this.prog.ptr, arg.length, arg.ptr);
+                    return false;
+                }
+                this.packages ~= args[i+1];
+                skip_next = true;
                 break;
 
             default:
@@ -311,7 +373,8 @@ private scope class UnitTestRunner
 
     private void printUsage ( FILE* fp )
     {
-        fprintf(stderr, "Usage: %s [-h] [-v] [-s] [-k]\n", this.prog.ptr);
+        fprintf(stderr, "Usage: %s [-h] [-v] [-s] [-k] [-p PKG]\n",
+                this.prog.ptr);
     }
 
 
@@ -334,6 +397,10 @@ optional arguments:
   -s, --summary     print a summary with the passed, skipped and failed number
                     of tests
   -k, --keep-going  don't stop after the first module unittest failed
+  -p, --package PKG
+                    only run tests in the PKG package (effectively any module
+                    which fully qualified name starts with PKG), can be
+                    specified multiple times to indicate more packages to test
 `);
     }
 }
