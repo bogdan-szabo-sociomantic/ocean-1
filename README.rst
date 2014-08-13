@@ -34,6 +34,13 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+New Features
+^^^^^^^^^^^^
+
+``ocean.core.Test``
+  ``testThrown`` helper has been added. It verifies that expression that was
+  expected to throw exception type during evaluation has indeed done that.
+
 
 v1.15 (2014-07-24)
 ------------------

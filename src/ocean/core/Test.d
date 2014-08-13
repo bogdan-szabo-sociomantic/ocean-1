@@ -98,6 +98,82 @@ unittest
 
 /******************************************************************************
 
+    Verifies that given expression throws exception instance of expected type.
+
+    Params:
+        expr = expression that is expected to throw during evaluation
+        strict = if 'true', accepts only exact exception type, disallowing
+            polymorphic conversion
+        file = file of origin
+        line = line of origin
+
+    Template Params:
+        E = exception type to expect, Exception by default
+
+    Throws:
+        `TestException` if nothing has been thrown from `expr`
+        Propagates any thrown exception which is not `E`
+        In strict mode (default) also propagates any children of E (disables
+        polymorphic catching)
+
+******************************************************************************/
+
+public void testThrown ( E : Exception = Exception ) ( lazy void expr,
+    bool strict = true, char[] file = __FILE__, int line = __LINE__ )
+{
+    bool was_thrown = false;
+    try
+    {
+        expr;
+    }
+    catch (E e)
+    {
+        if (strict)
+        {
+            if (E.classinfo == e.classinfo)
+            {
+                was_thrown = true;
+            }
+            else
+            {
+                throw e;
+            }
+        }
+        else
+        {
+            was_thrown = true;
+        }
+    }
+
+    if (!was_thrown)
+    {
+        throw new TestException(
+            "Expected '" ~ E.stringof ~ "' to be thrown, but it wasn't",
+            file,
+            line
+        );
+    }
+}
+
+unittest
+{
+    void foo() { throw new Exception(""); }
+    testThrown(foo());
+
+    void test_foo() { throw new TestException("", "", 0); }
+    testThrown!(TestException)(test_foo());
+
+    // make sure only exact exception type is caught
+    testThrown!(TestException)(
+        testThrown!(Exception)(test_foo())
+    );
+
+    // .. unless strict matching is disabled
+    testThrown!(Exception)(test_foo(), false);
+}
+
+/******************************************************************************
+
     Utility class useful in scenarios where actual testing code is reused in
     different contexts and file+line information is not enough to uniquely
     identify failed case.
