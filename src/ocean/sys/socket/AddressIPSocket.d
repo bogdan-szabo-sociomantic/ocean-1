@@ -78,6 +78,25 @@ class AddressIPSocket ( bool IPv6 = false ) : IPSocket!(IPv6), IAddressIPSocketI
         return this.ip_address_[0 .. this.ip_address_len];
     }
 
+    /***************************************************************************
+
+        Asks the operation system what address & port this socket actual bound
+        to and updates the internal buffers accordingly.
+
+        This can be useful when you bind to port 0 which means that the OS will
+        choose a random port for you and you want to find out which one it bound
+        to.
+
+        Returns:
+            0 on success, -1 on failure
+
+    ***************************************************************************/
+
+    public int updateAddress ( )
+    {
+        return this.getsockname(this.in_address.addr);
+    }
+
     /**************************************************************************
 
         Obtains the port number most recently passed to bind() or connect() or

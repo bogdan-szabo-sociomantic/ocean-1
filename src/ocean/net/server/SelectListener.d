@@ -167,6 +167,9 @@ abstract class ISelectListener : ISelectClient
 
         this.e.assertExSock(!this.socket.listen(backlog),
                             "error listening on socket", __FILE__, __LINE__);
+
+        this.e.assertExSock(this.socket.updateAddress() == 0,
+                            "error updating address", __FILE__, __LINE__);
     }
 
     /**************************************************************************
@@ -190,6 +193,9 @@ abstract class ISelectListener : ISelectClient
 
         this.e.assertExSock(!this.socket.listen(backlog),
                             "error listening on socket", __FILE__, __LINE__);
+
+        this.e.assertExSock(this.socket.updateAddress() == 0,
+                            "error updating address", __FILE__, __LINE__);
     }
 
     /**************************************************************************
@@ -240,6 +246,20 @@ abstract class ISelectListener : ISelectClient
     public Handle fileHandle ( )
     {
         return this.socket.fileHandle;
+    }
+
+    /**************************************************************************
+
+        Obtains the port number this listener is listening on
+
+        Returns:
+            the current port number.
+
+     **************************************************************************/
+
+    public ushort port ( )
+    {
+        return this.socket.port();
     }
 
     /**************************************************************************
@@ -680,4 +700,55 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
         this.receiver_pool.recycle(cast (T) connection);
     }
+}
+
+version ( UnitTest )
+{
+    import ocean.core.Test;
+    import tango.util.log.Log;
+
+    class DummyConHandler : IConnectionHandler
+    {
+        this ( void delegate ( IConnectionHandler instance ) ) { super(null, null); }
+        override protected bool io_error() { return true; }
+        override public void handleConnection () {}
+    }
+
+    ushort testPort ( ushort port )
+    {
+        auto listener = new SelectListener!(DummyConHandler)(port);
+
+        scope (exit) listener.shutdown();
+
+        test(listener.port() != 0, "Did not correctly query bounded port from OS");
+
+        test(port == 0 || listener.port() == port,
+             "Didn't bind to expected port!");
+
+        return listener.port();
+    }
+}
+
+unittest
+{
+    auto port = testPort(0);
+
+    port++;
+
+    // If the port we're testing happens to be taken, try the next one
+    // give up after 10 tries
+    for ( size_t i = 0; i < 10; ++i ) try
+    {
+        port = testPort(port);
+        return;
+    }
+    catch ( SocketError e )
+    {
+        port += i;
+    }
+
+    Log.lookup("ocean.net.server.SelectListener").warn
+                  ("FLAKEY: "
+                   "Failed to perform test of binding to a "
+                   "specific port after 10 tries");
 }
