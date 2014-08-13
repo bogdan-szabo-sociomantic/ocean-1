@@ -138,41 +138,38 @@ private scope class UnitTestRunner
                 continue;
             }
 
-            if (m.unitTest)
-            {
-                if (this.test(m))
-                {
-                    passed++;
-                    if (this.verbose)
-                        printf("%s: %.*s: PASSED\n", this.prog.ptr,
-                                m.name.length, m.name.ptr);
-                }
-                else
-                {
-                    failed++;
-                    if (this.verbose)
-                        printf("%s: %.*s: FAILED", this.prog.ptr,
-                                m.name.length, m.name.ptr);
-
-                    if (this.keep_going)
-                    {
-                        if (this.verbose)
-                            printf(" (continuing, --keep-going used)\n");
-                    }
-                    else
-                    {
-                        if (this.verbose)
-                            printf("\n");
-                    }
-                }
-            }
-            else
+            if (m.unitTest is null)
             {
                 skipped++;
-                 if (this.verbose)
+                if (this.verbose)
                     printf("%s: %.*s: skipped (no unittests)\n", this.prog.ptr,
                             m.name.length, m.name.ptr);
+                continue;
             }
+
+            // we have a unittest, run it
+            if (this.test(m))
+            {
+                passed++;
+                if (this.verbose)
+                    printf("%s: %.*s: PASSED\n", this.prog.ptr,
+                            m.name.length, m.name.ptr);
+                continue;
+            }
+
+            failed++;
+            if (this.verbose)
+                printf("%s: %.*s: FAILED", this.prog.ptr,
+                        m.name.length, m.name.ptr);
+
+            if (!this.keep_going)
+            {
+                if (this.verbose)
+                    printf("\n");
+            }
+
+            if (this.verbose)
+                printf(" (continuing, --keep-going used)\n");
         }
 
         if (this.summary)
