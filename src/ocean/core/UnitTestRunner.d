@@ -36,7 +36,7 @@ module ocean.core.UnitTestRunner;
 
 *******************************************************************************/
 
-private import tango.stdc.stdio: printf, fprintf, stdout, stderr, FILE;
+private import tango.stdc.stdio: printf, fprintf, fflush, stdout, stderr, FILE;
 private import tango.stdc.string: strdup, strlen;
 private import tango.stdc.posix.libgen: basename;
 private import tango.core.Runtime: Runtime;
@@ -122,12 +122,6 @@ private scope class UnitTestRunner
 
         foreach ( m; ModuleInfo )
         {
-            if (this.verbose)
-            {
-                printf("%s: %.*s: testing ...\n", this.prog.ptr,
-                        m.name.length, m.name.ptr);
-            }
-
             if (failed && !this.keep_going)
             {
                 skipped++;
@@ -147,20 +141,25 @@ private scope class UnitTestRunner
                 continue;
             }
 
+            if (this.verbose)
+            {
+                printf("%s: %.*s: testing ...", this.prog.ptr,
+                        m.name.length, m.name.ptr);
+                fflush(stdout);
+            }
+
             // we have a unittest, run it
             if (this.test(m))
             {
                 passed++;
                 if (this.verbose)
-                    printf("%s: %.*s: PASSED\n", this.prog.ptr,
-                            m.name.length, m.name.ptr);
+                    printf(" PASSED\n");
                 continue;
             }
 
             failed++;
             if (this.verbose)
-                printf("%s: %.*s: FAILED", this.prog.ptr,
-                        m.name.length, m.name.ptr);
+                printf(" FAILED");
 
             if (!this.keep_going)
             {
