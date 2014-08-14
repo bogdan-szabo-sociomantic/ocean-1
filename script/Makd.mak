@@ -300,7 +300,9 @@ override DFLAGS += -version=WithDateTime -I./src \
 # Source files to run unittests to.
 # By default is all the D files in the `src` directory.
 # If $(TEST_FILTER_OUT) is defined, the files specified there will be excluded.
-TEST_SOURCES +=  $(call find_files,.d,,$C/src,$(TEST_FILTER_OUT))
+# All files called main.d are excluded too, it's assumed they'll have a main()
+# function on them.
+TEST_SOURCES +=  $(call find_files,.d,,$C/src,$(TEST_FILTER_OUT) $C/src/%/main.d)
 
 
 # Include the user's makefile, Build.mak

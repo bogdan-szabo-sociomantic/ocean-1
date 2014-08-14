@@ -34,6 +34,16 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
+
+Makd
+  Now files called ``main.d`` are automatically excluded from unit tests (is
+  like the pattern ``$T/src/%/main.d`` were added to the ``TEST_FILTER_OUT``
+  variable). You should remove your special rules to exclude the main if you are
+  following the new `project directory structure
+  <https://github.com/sociomantic/backend/wiki/Projects-Directory-Structure>`_.
+
 New Features
 ^^^^^^^^^^^^
 
