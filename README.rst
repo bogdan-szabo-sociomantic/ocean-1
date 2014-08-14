@@ -45,6 +45,9 @@ Unit testing (``ocean.core.UnitTestRunner``)
   The option can be used multiple times to run tests in several packages. If no
   package is passed, it will run the unit tests for all the modules found.
 
+  Makd now makes use of this to only test the packages and modules present in
+  the ``src/`` directory.
+
 ``ocean.core.Test``
   ``testThrown`` helper has been added. It verifies that expression that was
   expected to throw exception type during evaluation has indeed done that.
