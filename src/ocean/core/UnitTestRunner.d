@@ -63,7 +63,7 @@ private scope class UnitTestRunner
 
     private char[] prog;
     private bool help = false;
-    private bool verbose = false;
+    private size_t verbose = 0;
     private bool summary = false;
     private bool keep_going = false;
     private char[][] packages = null;
@@ -115,7 +115,7 @@ private scope class UnitTestRunner
         assert (prog);
 
         if (this.verbose)
-            printf("%s: unittest started\n", this.prog.ptr);
+            printf("%s: unit tests started\n", this.prog.ptr);
 
         size_t passed = 0;
         size_t failed = 0;
@@ -126,7 +126,7 @@ private scope class UnitTestRunner
             if (!this.shouldTest(m.name))
             {
                 skipped++;
-                if (this.verbose)
+                if (this.verbose > 1)
                     printf("%s: %.*s: skipped (not in packages to test)\n",
                             this.prog.ptr, m.name.length, m.name.ptr);
                 continue;
@@ -135,7 +135,7 @@ private scope class UnitTestRunner
             if (failed && !this.keep_going)
             {
                 skipped++;
-                if (this.verbose)
+                if (this.verbose > 2)
                     printf("%s: %.*s: skipped (one failed and no "
                             "--keep-going)\n", this.prog.ptr,
                             m.name.length, m.name.ptr);
@@ -145,7 +145,7 @@ private scope class UnitTestRunner
             if (m.unitTest is null)
             {
                 skipped++;
-                if (this.verbose)
+                if (this.verbose > 1)
                     printf("%s: %.*s: skipped (no unittests)\n", this.prog.ptr,
                             m.name.length, m.name.ptr);
                 continue;
@@ -177,13 +177,17 @@ private scope class UnitTestRunner
                     printf("\n");
             }
 
-            if (this.verbose)
+            if (this.verbose > 2)
                 printf(" (continuing, --keep-going used)\n");
         }
 
         if (this.summary)
-            printf("%s: %zu passed, %zu skipped, %zu failed\n",
-                    this.prog.ptr, passed, skipped, failed);
+        {
+            printf("%s: %zu passed, %zu failed", this.prog.ptr, passed, failed);
+            if (this.verbose > 1)
+                printf(" (%zu skipped)", skipped);
+            printf("\n");
+        }
 
         if (failed)
             return 1;
@@ -312,9 +316,15 @@ private scope class UnitTestRunner
                 this.printHelp(stdout);
                 return true;
 
+            case "-vvv":
+                this.verbose++;
+                goto case;
+            case "-vv":
+                this.verbose++;
+                goto case;
             case "-v":
             case "--verbose":
-                this.verbose = true;
+                this.verbose++;
                 break;
 
             case "-s":
@@ -393,7 +403,13 @@ private scope class UnitTestRunner
         fprintf(fp, `
 optional arguments:
   -h, --help        print this message and exit
-  -v, --verbose     print more information about unittest progress
+  -v, --verbose     print more information about unittest progress, can be
+                    specified multiple times (even as -vvv, 3 is the maximum),
+                    the first level only prints the executed tests, the second
+                    level print the tests skipped because there are no unit
+                    tests in the module or because it doesn't match the -p
+                    patterns, and the third level print also tests skipped
+                    because no -k is used and a test failed
   -s, --summary     print a summary with the passed, skipped and failed number
                     of tests
   -k, --keep-going  don't stop after the first module unittest failed

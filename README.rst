@@ -47,6 +47,9 @@ Unit testing (``ocean.core.UnitTestRunner``)
 
   Makd now makes use of this to only test the packages and modules present in
   the ``src/`` directory.
+  Also, 3 ``--verbose`` levels were added, you can ask for extra verboseness by
+  adding more ``--verbose`` / ``-v`` arguments (or the compact forms ``-vv`` or
+  ``-vvv``). See the help for more details on what is shown by each level.
 
 ``ocean.core.Test``
   ``testThrown`` helper has been added. It verifies that expression that was
