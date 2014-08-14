@@ -369,15 +369,19 @@ $O/unittests.d: $(TEST_SOURCES) $G/build-d-flags | $O/check_rdmd1
 $O/unittests: BUILD.d.depfile := $O/unittests.mak
 $O/unittests: $O/unittests.d $G/build-d-flags | $O/check_rdmd1
 	$(mkversion)
-	$(call exec,$(BUILD.d) -unittest -debug=UnitTest \
-		-version=UnitTest $(LOADLIBES) $(LDLIBS) -of$@ $< \
-		$(if $(findstring k,$(MAKEFLAGS)),-k) $(if $V,,-v -s) \
+	$(call exec,$(BUILD.d) --build-only -unittest -debug=UnitTest \
+		-version=UnitTest $(LOADLIBES) $(LDLIBS) -of$@ $<)
+
+# Build all unittests as one binary
+$O/unittests.stamp: $O/unittests
+	$(call exec,$< $(if $(findstring k,$(MAKEFLAGS)),-k) $(if $V,,-v -s) \
 		$(foreach p,$(patsubst %.d,%,$(notdir $(shell \
 			find $T/src -maxdepth 1 -mindepth 1 -name '*.d' -type f\
 			))),-p $p) \
 		$(foreach p,$(notdir $(shell \
 			find $T/src -maxdepth 1 -mindepth 1 -type d \
-			)),-p $p.) $(UTFLAGS),,test)
+			)),-p $p.) $(UTFLAGS),$<,run)
+	$Vtouch $@
 
 # Add the unittest target (will be defined after processing Build.mak) to
 # the test special target
@@ -437,7 +441,7 @@ $(if $V,$(if $(setup_flag_files__), \
 # documentation:
 # http://www.gnu.org/software/make/manual/make.html#Text-Functions
 .PHONY: unittest
-unittest: $O/unittests
+unittest: $O/unittests.stamp
 
 # Phony rule to make all the targets (sub-makefiles can append targets to build
 # to the $(all) variable).
