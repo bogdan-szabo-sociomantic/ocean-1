@@ -371,7 +371,7 @@ $O/unittests: $O/unittests.d $G/build-d-flags | $O/check_rdmd1
 	$(mkversion)
 	$(call exec,$(BUILD.d) -unittest -debug=UnitTest \
 		-version=UnitTest $(LOADLIBES) $(LDLIBS) -of$@ $< \
-		$(if $(findstring k,$(MAKEFLAGS)),-k) $(if $V,,-v) \
+		$(if $(findstring k,$(MAKEFLAGS)),-k) $(if $V,,-v -s) \
 		$(foreach p,$(patsubst %.d,%,$(notdir $(shell \
 			find $T/src -maxdepth 1 -mindepth 1 -name '*.d' -type f\
 			))),-p $p) \
