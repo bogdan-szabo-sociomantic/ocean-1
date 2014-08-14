@@ -377,7 +377,7 @@ $O/unittests: $O/unittests.d $G/build-d-flags | $O/check_rdmd1
 			))),-p $p) \
 		$(foreach p,$(notdir $(shell \
 			find $T/src -maxdepth 1 -mindepth 1 -type d \
-			)),-p $p.),,test)
+			)),-p $p.) $(UTFLAGS),,test)
 
 # Add the unittest target (will be defined after processing Build.mak) to
 # the test special target

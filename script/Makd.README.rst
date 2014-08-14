@@ -492,6 +492,20 @@ Example::
 
 Links the unittests to the glib-2.0 library.
 
+If you want to run the tests using some special options of the unit test runner
+(see ``build/last/unittests -h`` for a list of supported options), you can use
+the special variable ``UTFLAGS``, for example::
+
+        make unittest UTFLAGS="-v -s"
+
+This will print all the executed tests and a summary at the end with the number
+of passed tests, failed tests, etc.
+
+Some special options are passed automatically, for example if ``make -k`` is
+used, the ``-k`` option will be passed to the unit test runner too, and if
+``make V=1`` is used, the options ``-v -s`` will be passed to the unit test
+runner.
+
 Re-running unittests manually
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
