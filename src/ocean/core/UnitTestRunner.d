@@ -120,12 +120,14 @@ private scope class UnitTestRunner
         size_t passed = 0;
         size_t failed = 0;
         size_t skipped = 0;
+        size_t no_tests = 0;
+        size_t no_match = 0;
 
         foreach ( m; ModuleInfo )
         {
             if (!this.shouldTest(m.name))
             {
-                skipped++;
+                no_match++;
                 if (this.verbose > 1)
                     printf("%s: %.*s: skipped (not in packages to test)\n",
                             this.prog.ptr, m.name.length, m.name.ptr);
@@ -144,7 +146,7 @@ private scope class UnitTestRunner
 
             if (m.unitTest is null)
             {
-                skipped++;
+                no_tests++;
                 if (this.verbose > 1)
                     printf("%s: %.*s: skipped (no unittests)\n", this.prog.ptr,
                             m.name.length, m.name.ptr);
@@ -183,9 +185,12 @@ private scope class UnitTestRunner
 
         if (this.summary)
         {
-            printf("%s: %zu passed, %zu failed", this.prog.ptr, passed, failed);
+            printf("%s: %zu modules passed, %zu failed, %zu without unittests",
+                    this.prog.ptr, passed, failed, no_tests);
+            if (!this.keep_going && failed)
+                printf(", %zu skipped", skipped);
             if (this.verbose > 1)
-                printf(" (%zu skipped)", skipped);
+                printf(", %zu didn't match --package", no_match);
             printf("\n");
         }
 
