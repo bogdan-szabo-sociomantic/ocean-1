@@ -182,6 +182,7 @@ private scope class UnitTestRunner
             {
                 if (this.verbose)
                     printf("\n");
+                continue;
             }
 
             if (this.verbose > 2)
