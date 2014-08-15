@@ -34,6 +34,8 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+:Dependency: tango v1.0.4
+
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -60,6 +62,9 @@ Unit testing (``ocean.core.UnitTestRunner``)
   Also, 3 ``--verbose`` levels were added, you can ask for extra verboseness by
   adding more ``--verbose`` / ``-v`` arguments (or the compact forms ``-vv`` or
   ``-vvv``). See the help for more details on what is shown by each level.
+
+  When in verbose mode, now the time each module took to run the unit tests is
+  displayed, which can help to figure out if some tests are taking too long.
 
 ``ocean.core.Test``
   ``testThrown`` helper has been added. It verifies that expression that was

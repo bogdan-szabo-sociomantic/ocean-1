@@ -36,13 +36,15 @@ module ocean.core.UnitTestRunner;
 
 *******************************************************************************/
 
-private import tango.stdc.stdio: printf, fprintf, fflush, stdout, stderr, FILE;
+private import tango.stdc.stdio: snprintf, printf, fprintf, fflush,
+                                 stdout, stderr, FILE;
 private import tango.stdc.string: strdup, strlen, strncmp;
 private import tango.stdc.posix.libgen: basename;
+private import tango.stdc.posix.sys.time: gettimeofday, timeval, timersub;
 private import tango.core.Runtime: Runtime;
 private import tango.core.Exception : AssertException;
 
-private import ocean.core.Test : TestException;
+private import ocean.core.Test : TestException, test;
 
 
 
@@ -161,17 +163,20 @@ private scope class UnitTestRunner
             }
 
             // we have a unittest, run it
-            if (this.test(m))
+            timeval t;
+            bool success = this.timedTest(m, t);
+            auto elapsed = this.toHumanTime(t);
+            if (success)
             {
                 passed++;
                 if (this.verbose)
-                    printf(" PASSED\n");
+                    printf(" PASSED [%.*s]\n", elapsed.length, elapsed.ptr);
                 continue;
             }
 
             failed++;
             if (this.verbose)
-                printf(" FAILED");
+                printf(" FAILED [%.*s]", elapsed.length, elapsed.ptr);
 
             if (!this.keep_going)
             {
@@ -203,6 +208,89 @@ private scope class UnitTestRunner
 
     /**************************************************************************
 
+        Convert a timeval to a human readable string.
+
+        If it is in the order of hours, then "N.Nh" is used, if is in the order
+        of minutes, then "N.Nm" is used, and so on for seconds ("s" suffix),
+        milliseconds ("ms" suffix) and microseconds ("us" suffix).
+
+        Params:
+            tv = timeval to print
+
+        Returns:
+            string with the human readable form of tv.
+
+    ***************************************************************************/
+
+    private static char[] toHumanTime ( timeval tv )
+    {
+        char[] toFloatString ( double val, double divisor, char[] fmt )
+        {
+            auto b = new char[256];
+            auto n = val / divisor;
+            int format() { return snprintf(b.ptr, b.length, fmt, n); }
+            auto len = format();
+            if (len >= b.length)
+            {
+                b.length = len;
+                len = format();
+                assert (len < b.length);
+            }
+            return b[0 .. len];
+        }
+
+        if (tv.tv_sec >= 60*60)
+            return toFloatString(tv.tv_sec, 60*60, "%.1fh");
+
+        if (tv.tv_sec >= 60)
+            return toFloatString(tv.tv_sec, 60, "%.1fm");
+
+        if (tv.tv_sec > 0)
+            return toFloatString(tv.tv_sec + tv.tv_usec / 1_000_000.0, 1,
+                        "%.1fs");
+
+        if (tv.tv_usec >= 1000)
+            return toFloatString(tv.tv_usec, 1_000, "%.1fms");
+
+        return toFloatString(tv.tv_usec, 1, "%.0fus");
+    }
+
+    unittest
+    {
+        timeval tv;
+        test!("==")(toHumanTime(tv), "0us");
+        tv.tv_sec = 1;
+        test!("==")(toHumanTime(tv), "1.0s");
+        tv.tv_sec = 1;
+        test!("==")(toHumanTime(tv), "1.0s");
+        tv.tv_usec = 100_000;
+        test!("==")(toHumanTime(tv), "1.1s");
+        tv.tv_usec = 561_235;
+        test!("==")(toHumanTime(tv), "1.6s");
+        tv.tv_sec = 60;
+        test!("==")(toHumanTime(tv), "1.0m");
+        tv.tv_sec = 61;
+        test!("==")(toHumanTime(tv), "1.0m");
+        tv.tv_sec = 66;
+        test!("==")(toHumanTime(tv), "1.1m");
+        tv.tv_sec = 60*60;
+        test!("==")(toHumanTime(tv), "1.0h");
+        tv.tv_sec += 10;
+        test!("==")(toHumanTime(tv), "1.0h");
+        tv.tv_sec += 6*60;
+        test!("==")(toHumanTime(tv), "1.1h");
+        tv.tv_sec = 0;
+        test!("==")(toHumanTime(tv), "561.2ms");
+        tv.tv_usec = 1_235;
+        test!("==")(toHumanTime(tv), "1.2ms");
+        tv.tv_usec = 1_000;
+        test!("==")(toHumanTime(tv), "1.0ms");
+        tv.tv_usec = 235;
+        test!("==")(toHumanTime(tv), "235us");
+    }
+
+    /**************************************************************************
+
         Test a single module, catching and reporting any errors.
 
         Params:
@@ -213,8 +301,21 @@ private scope class UnitTestRunner
 
     ***************************************************************************/
 
-    private bool test ( ModuleInfo m )
+    private bool timedTest ( ModuleInfo m, out timeval tv )
     {
+        timeval start;
+        int e = 0;
+        e = gettimeofday(&start, null);
+        assert (e == 0, "gettimeofday returned != 0");
+
+        scope (exit)
+        {
+            timeval end;
+            e = gettimeofday(&end, null);
+            assert (e == 0, "gettimeofday returned != 0");
+            timersub(&end, &start, &tv);
+        }
+
         try
         {
             m.unitTest();
