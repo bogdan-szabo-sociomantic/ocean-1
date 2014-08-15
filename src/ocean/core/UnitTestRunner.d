@@ -25,6 +25,14 @@
     You can control the unittest execution, try ./tester -h for help on the
     available options.
 
+    Tester status codes:
+
+    0  - All tests passed
+    2  - Wrong command line arguments
+    4  - One or more tests failed
+    8  - One or more tests had errors (unexpected problems)
+    12 - There were both failed tests and tests with errors
+
 *******************************************************************************/
 
 module ocean.core.UnitTestRunner;
@@ -122,6 +130,7 @@ private scope class UnitTestRunner
 
         size_t passed = 0;
         size_t failed = 0;
+        size_t errored = 0;
         size_t skipped = 0;
         size_t no_tests = 0;
         size_t no_match = 0;
@@ -162,17 +171,29 @@ private scope class UnitTestRunner
 
             // we have a unittest, run it
             timeval t;
-            if (this.timedTest(m, t))
+            switch (this.timedTest(m, t))
             {
-                passed++;
-                if (this.verbose)
-                    Stdout.formatln(" PASSED [{}]", this.toHumanTime(t));
-                continue;
-            }
+                case Result.Pass:
+                    passed++;
+                    if (this.verbose)
+                        Stdout.formatln(" PASS [{}]", this.toHumanTime(t));
+                    continue;
 
-            failed++;
-            if (this.verbose)
-                Stdout.format(" FAILED [{}]", this.toHumanTime(t));
+                case Result.Fail:
+                    failed++;
+                    if (this.verbose)
+                        Stdout.format(" FAIL [{}]", this.toHumanTime(t));
+                    break;
+
+                case Result.Error:
+                    errored++;
+                    if (this.verbose)
+                        Stdout.format(" ERROR [{}]", this.toHumanTime(t));
+                    break;
+
+                default:
+                    assert(false);
+            }
 
             if (!this.keep_going)
             {
@@ -187,8 +208,9 @@ private scope class UnitTestRunner
 
         if (this.summary)
         {
-            Stdout.format("{}: {} modules passed, {} failed, {} without "
-                    "unittests", this.prog, passed, failed, no_tests);
+            Stdout.format("{}: {} modules passed, {} failed, "
+                    "{} with errors, {} without unittests",
+                    this.prog, passed, failed, errored, no_tests);
             if (!this.keep_going && failed)
                 Stdout.format(", {} skipped", skipped);
             if (this.verbose > 1)
@@ -196,10 +218,15 @@ private scope class UnitTestRunner
             Stdout.newline();
         }
 
-        if (failed)
-            return 1;
+        int ret = 0;
 
-        return 0;
+        if (errored)
+            ret |= 8;
+
+        if (failed)
+            ret |= 4;
+
+        return ret;
     }
 
 
@@ -272,6 +299,20 @@ private scope class UnitTestRunner
         test!("==")(toHumanTime(tv), "235us");
     }
 
+
+    /**************************************************************************
+
+        Possible test results.
+
+    ***************************************************************************/
+
+    enum Result
+    {
+        Pass,
+        Fail,
+        Error,
+    }
+
     /**************************************************************************
 
         Test a single module, catching and reporting any errors.
@@ -284,7 +325,7 @@ private scope class UnitTestRunner
 
     ***************************************************************************/
 
-    private bool timedTest ( ModuleInfo m, out timeval tv )
+    private Result timedTest ( ModuleInfo m, out timeval tv )
     {
         timeval start;
         int e = 0;
@@ -302,11 +343,12 @@ private scope class UnitTestRunner
         try
         {
             m.unitTest();
-            return true;
+            return Result.Pass;
         }
         catch (TestException e)
         {
             Stderr.formatln("{}:{}: test error: {}", e.file, e.line, e.msg);
+            return Result.Fail;
         }
         catch (AssertException e)
         {
@@ -322,7 +364,7 @@ private scope class UnitTestRunner
             Stderr.formatln("{}: unexpected unknown exception", m.name);
         }
 
-        return false;
+        return Result.Error;
     }
 
 
