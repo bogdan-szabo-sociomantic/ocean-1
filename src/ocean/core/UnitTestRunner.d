@@ -36,13 +36,14 @@ module ocean.core.UnitTestRunner;
 
 *******************************************************************************/
 
-private import tango.stdc.stdio: snprintf, printf, fprintf, fflush,
-                                 stdout, stderr, FILE;
 private import tango.stdc.string: strdup, strlen, strncmp;
 private import tango.stdc.posix.libgen: basename;
 private import tango.stdc.posix.sys.time: gettimeofday, timeval, timersub;
 private import tango.core.Runtime: Runtime;
 private import tango.core.Exception : AssertException;
+private import tango.io.Stdout: Stdout, Stderr;
+private import tango.io.stream.Format: FormatOutput;
+private import ocean.text.convert.Layout: Layout;
 
 private import ocean.core.Test : TestException, test;
 
@@ -117,7 +118,7 @@ private scope class UnitTestRunner
         assert (prog);
 
         if (this.verbose)
-            printf("%s: unit tests started\n", this.prog.ptr);
+            Stdout.formatln("{}: unit tests started", this.prog);
 
         size_t passed = 0;
         size_t failed = 0;
@@ -131,8 +132,8 @@ private scope class UnitTestRunner
             {
                 no_match++;
                 if (this.verbose > 1)
-                    printf("%s: %.*s: skipped (not in packages to test)\n",
-                            this.prog.ptr, m.name.length, m.name.ptr);
+                    Stdout.formatln("{}: {}: skipped (not in packages to test)",
+                            this.prog, m.name);
                 continue;
             }
 
@@ -140,9 +141,8 @@ private scope class UnitTestRunner
             {
                 skipped++;
                 if (this.verbose > 2)
-                    printf("%s: %.*s: skipped (one failed and no "
-                            "--keep-going)\n", this.prog.ptr,
-                            m.name.length, m.name.ptr);
+                    Stdout.formatln("{}: {}: skipped (one failed and no "
+                            "--keep-going)", this.prog, m.name);
                 continue;
             }
 
@@ -150,54 +150,50 @@ private scope class UnitTestRunner
             {
                 no_tests++;
                 if (this.verbose > 1)
-                    printf("%s: %.*s: skipped (no unittests)\n", this.prog.ptr,
-                            m.name.length, m.name.ptr);
+                    Stdout.formatln("{}: {}: skipped (no unittests)",
+                            this.prog, m.name);
                 continue;
             }
 
             if (this.verbose)
             {
-                printf("%s: %.*s: testing ...", this.prog.ptr,
-                        m.name.length, m.name.ptr);
-                fflush(stdout);
+                Stdout.format("{}: {}: testing ...", this.prog, m.name).flush();
             }
 
             // we have a unittest, run it
             timeval t;
-            bool success = this.timedTest(m, t);
-            auto elapsed = this.toHumanTime(t);
-            if (success)
+            if (this.timedTest(m, t))
             {
                 passed++;
                 if (this.verbose)
-                    printf(" PASSED [%.*s]\n", elapsed.length, elapsed.ptr);
+                    Stdout.formatln(" PASSED [{}]", this.toHumanTime(t));
                 continue;
             }
 
             failed++;
             if (this.verbose)
-                printf(" FAILED [%.*s]", elapsed.length, elapsed.ptr);
+                Stdout.format(" FAILED [{}]", this.toHumanTime(t));
 
             if (!this.keep_going)
             {
                 if (this.verbose)
-                    printf("\n");
+                    Stdout.newline();
                 continue;
             }
 
             if (this.verbose > 2)
-                printf(" (continuing, --keep-going used)\n");
+                Stdout.formatln(" (continuing, --keep-going used)");
         }
 
         if (this.summary)
         {
-            printf("%s: %zu modules passed, %zu failed, %zu without unittests",
-                    this.prog.ptr, passed, failed, no_tests);
+            Stdout.format("{}: {} modules passed, {} failed, {} without "
+                    "unittests", this.prog, passed, failed, no_tests);
             if (!this.keep_going && failed)
-                printf(", %zu skipped", skipped);
+                Stdout.format(", {} skipped", skipped);
             if (this.verbose > 1)
-                printf(", %zu didn't match --package", no_match);
-            printf("\n");
+                Stdout.format(", {} didn't match --package", no_match);
+            Stdout.newline();
         }
 
         if (failed)
@@ -225,35 +221,21 @@ private scope class UnitTestRunner
 
     private static char[] toHumanTime ( timeval tv )
     {
-        char[] toFloatString ( double val, double divisor, char[] fmt )
-        {
-            auto b = new char[256];
-            auto n = val / divisor;
-            int format() { return snprintf(b.ptr, b.length, fmt, n); }
-            auto len = format();
-            if (len >= b.length)
-            {
-                b.length = len;
-                len = format();
-                assert (len < b.length);
-            }
-            return b[0 .. len];
-        }
-
+        char[] buff;
         if (tv.tv_sec >= 60*60)
-            return toFloatString(tv.tv_sec, 60*60, "%.1fh");
+            return Layout!(char).print(buff, "{:f1}h", tv.tv_sec / 60.0 / 60.0);
 
         if (tv.tv_sec >= 60)
-            return toFloatString(tv.tv_sec, 60, "%.1fm");
+            return Layout!(char).print(buff, "{:f1}m", tv.tv_sec / 60.0);
 
         if (tv.tv_sec > 0)
-            return toFloatString(tv.tv_sec + tv.tv_usec / 1_000_000.0, 1,
-                        "%.1fs");
+            return Layout!(char).print(buff, "{:f1}s",
+                    tv.tv_sec + tv.tv_usec / 1_000_000.0);
 
         if (tv.tv_usec >= 1000)
-            return toFloatString(tv.tv_usec, 1_000, "%.1fms");
+            return Layout!(char).print(buff, "{:f1}ms", tv.tv_usec / 1_000.0);
 
-        return toFloatString(tv.tv_usec, 1, "%.0fus");
+        return Layout!(char).print(buff, "{}us", tv.tv_usec);
     }
 
     unittest
@@ -324,25 +306,20 @@ private scope class UnitTestRunner
         }
         catch (TestException e)
         {
-            fprintf(stderr, "%.*s:%zu: test error: %.*s\n",
-                    e.file.length, e.file.ptr, e.line, e.msg.length, e.msg.ptr);
+            Stderr.formatln("{}:{}: test error: {}", e.file, e.line, e.msg);
         }
         catch (AssertException e)
         {
-            fprintf(stderr, "%.*s:%zu: assert error: %.*s\n",
-                    e.file.length, e.file.ptr, e.line, e.msg.length, e.msg.ptr);
+            Stderr.formatln("{}:{}: assert error: {}", e.file, e.line, e.msg);
         }
         catch (Exception e)
         {
-            fprintf(stderr, "%.*s:%zu: unexpected exception %.*s: %.*s\n",
-                    e.file.length, e.file.ptr, e.line,
-                    e.classinfo.name.length, e.classinfo.name.ptr,
-                    e.msg.length, e.msg.ptr);
+            Stderr.formatln("{}:{}: unexpected exception {}: {}",
+                    e.file, e.line, e.classinfo.name, e.msg);
         }
         catch
         {
-            fprintf(stderr, "%.*s: unexpected unknown exception\n",
-                    m.name.length, m.name.ptr);
+            Stderr.formatln("{}: unexpected unknown exception", m.name);
         }
 
         return false;
@@ -420,7 +397,7 @@ private scope class UnitTestRunner
             case "-h":
             case "--help":
                 this.help = true;
-                this.printHelp(stdout);
+                this.printHelp(Stdout);
                 return true;
 
             case "-vvv":
@@ -448,9 +425,9 @@ private scope class UnitTestRunner
             case "--package":
                 if (args.length <= i+1)
                 {
-                    this.printUsage(stderr);
-                    fprintf(stderr, "\n%s: error: missing argument for %.*s\n",
-                            this.prog.ptr, arg.length, arg.ptr);
+                    this.printUsage(Stderr);
+                    Stderr.formatln("\n{}: error: missing argument for {}",
+                            this.prog, arg);
                     return false;
                 }
                 this.packages ~= args[i+1];
@@ -465,13 +442,13 @@ private scope class UnitTestRunner
 
         if (unknown.length)
         {
-            this.printUsage(stderr);
-            fprintf(stderr, "\n%s: error: Unknown arguments:", this.prog.ptr);
+            this.printUsage(Stderr);
+            Stderr.format("\n{}: error: Unknown arguments:", this.prog);
             foreach (arg; unknown)
             {
-                fprintf(stderr, " %s", arg.ptr);
+                Stderr.format(" {}", arg);
             }
-            fprintf(stderr, "\n");
+            Stderr.newline();
             return false;
         }
 
@@ -488,10 +465,9 @@ private scope class UnitTestRunner
 
     ***************************************************************************/
 
-    private void printUsage ( FILE* fp )
+    private void printUsage ( FormatOutput!(char) output )
     {
-        fprintf(stderr, "Usage: %s [-h] [-v] [-s] [-k] [-p PKG]\n",
-                this.prog.ptr);
+        output.formatln("Usage: {} [-h] [-v] [-s] [-k] [-p PKG]", this.prog);
     }
 
 
@@ -504,10 +480,10 @@ private scope class UnitTestRunner
 
     ***************************************************************************/
 
-    private void printHelp ( FILE* fp )
+    private void printHelp ( FormatOutput!(char) output )
     {
-        this.printUsage(fp);
-        fprintf(fp, `
+        this.printUsage(output);
+        output.print(`
 optional arguments:
   -h, --help        print this message and exit
   -v, --verbose     print more information about unittest progress, can be
