@@ -70,7 +70,7 @@ private import tango.core.Exception;
 
 private import ocean.math.Math : pow;
 
-version (UnitTest) private import ocean.util.log.Trace;
+version (UnitTestVerbose) private import ocean.io.Stdout;
 
 /*******************************************************************************
 
@@ -309,13 +309,13 @@ public class PHPSerializer
 
             void set ( ubyte offset, ubyte doSet )
             {
-              //  Trace.formatln("Set {}, {}", offset, doSet);
+              //  version (UnitTestVerbose) Stdout.formatln("Set {}, {}", offset, doSet);
                 if ( doSet != 0 ) bcd[offset/4] |= 1<< 3-offset%4;
             }
 
             for ( it = initial; it+10 <= len*8 ; it+=10 ) with ( Bits )
             {
-              //  Trace.formatln("It: {}", it);
+              //  version (UnitTestVerbose) Stdout.formatln("It: {}", it);
                 set(a, (~isSet(s) & isSet(v) & isSet(w)) |
                        (isSet(t) & isSet(v) & isSet(w) & isSet(x)) |
                        (isSet(v) & isSet(w) & ~isSet(x)));
@@ -364,11 +364,11 @@ public class PHPSerializer
                        bcd[1] * pow(10, decimal_spot++) +
                        bcd[0] * pow(10, decimal_spot++);
 
-            Trace.formatln("Decoded: {:b}, {}", bcd, bcd);
+            version (UnitTestVerbose) Stdout.formatln("Decoded: {:b}, {}", bcd, bcd);
                 bcd[] = 0;
             }
 
-          // Trace.formatln("Ret: {}", ret);
+          // version (UnitTestVerbose) Stdout.formatln("Ret: {}", ret);
 
             return ret;
         }
@@ -382,7 +382,7 @@ public class PHPSerializer
         for ( ulong i = 0; i <= ulong.max; i++ )
         {
             //if (i % 10000 == 0)
-         //       Trace.formatln("========== Testing {} (len: {})", i, output.length);
+         //       version (UnitTestVerbose) Stdout.formatln("========== Testing {} (len: {})", i, output.length);
 
             output.length = 0;
             s.writeBCD(i, output);
@@ -401,8 +401,8 @@ public class PHPSerializer
         }
 
 
-        Trace.formatln("Decoded: {}", fromDPD([161,201,156,126,149,35,78,177,5,64]));
-        Trace.formatln("Decoded: {}", fromDPD([126, 215, 96, 69, 133, 176, 4]));
+        version (UnitTestVerbose) Stdout.formatln("Decoded: {}", fromDPD([161,201,156,126,149,35,78,177,5,64]));
+        version (UnitTestVerbose) Stdout.formatln("Decoded: {}", fromDPD([126, 215, 96, 69, 133, 176, 4]));
 
         output.length = 0;
         s.writeBCD(1095216660735, output);

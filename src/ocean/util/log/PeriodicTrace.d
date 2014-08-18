@@ -76,9 +76,9 @@ module ocean.util.log.PeriodicTrace;
 
 private import ocean.util.log.StaticTrace;
 
-private import tango.stdc.stdarg;
+private import ocean.io.Stdout;
 
-private import ocean.util.log.Trace;
+private import tango.stdc.stdarg;
 
 private import tango.text.convert.Layout;
 
@@ -279,7 +279,7 @@ struct PeriodicTracer
             }
             else
             {
-                Trace.formatln("{}", this.formatted).flush;
+                Stderr.formatln("{}", this.formatted).flush;
             }
         }
 

@@ -30,7 +30,7 @@ private import tango.io.model.IConduit: InputStream, OutputStream;
 
 private import ocean.io.serialize.SimpleSerializer;
 
-debug private import ocean.util.log.Trace;
+debug private import ocean.io.Stdout;
 
 
 
@@ -87,7 +87,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     invariant ( )
     {
-        debug scope ( failure ) Trace.formatln(typeof(this).stringof ~ ".invariant failed with items = {}, read_from = {}, write_to = {}",
+        debug scope ( failure ) Stderr.formatln(typeof(this).stringof ~ ".invariant failed with items = {}, read_from = {}, write_to = {}",
                 super.items, super.read_from, super.write_to);
 
         assert (super.items || !(super.read_from || super.write_to),
@@ -681,7 +681,6 @@ version ( UnitTest )
     import tango.time.StopWatch;
     import tango.core.Memory;
     import tango.io.FilePath;
-    version (UnitTestVerbose) import ocean.util.log.Trace;
 }
 
 unittest
@@ -694,7 +693,6 @@ unittest
 
     ***********************************************************************/
 
-    version (UnitTestVerbose)  Trace.formatln("\nRunning ocean.io.device.queue.FlexibleByteRingQueue wrapping stability test");
     {
         scope queue = new FlexibleByteRingQueue((1+FlexibleByteRingQueue.Header.sizeof)*3);
 
@@ -736,7 +734,7 @@ unittest
         assert(queue.free_space() == 1+FlexibleByteRingQueue.Header.sizeof);
         assert(queue.write_to == queue.pushSize("2".length));
         assert(queue.push(cast(ubyte[])"2"));
-       // Trace.formatln("gap is {}, free is {}, write is {}", queue.gap, queue.free_space(),queue.write_to);
+       // Stdout.formatln("gap is {}, free is {}, write is {}", queue.gap, queue.free_space(),queue.write_to);
 
 
         // [###] r=10 w=10

@@ -42,7 +42,7 @@ private import ocean.core.Array: concat, append;
 
 private import ocean.text.util.ClassName;
 
-debug private import ocean.util.log.Trace;
+debug private import ocean.io.Stdout;
 
 debug private import ocean.text.convert.Layout;
 
@@ -237,7 +237,7 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable, ISelectClient
         {
             // Note: this should *never* happen! In case it ever does, here's
             // a helpful printout to notify the application programmer.
-            debug Trace.formatln("Very bad: Exception thrown from inside ISelectClient.error() delegate! -- {} ({}:{})", e.msg, e.file, e.line);
+            debug Stderr.formatln("Very bad: Exception thrown from inside ISelectClient.error() delegate! -- {} ({}:{})", e.msg, e.file, e.line);
         }
     }
 

@@ -53,6 +53,12 @@ Deprecations
   This method is deprecated in favour of ``getAddrsForInterface`` which allows to
   specify the IP family and it returns all addresses in the family for the interface.
 
+``ocean.util.log.Trace``
+  This module has been completely deprecated. If you just need to log stuff,
+  use ``tango.util.log`` module. If you need to output to stdout in a thread
+  safe manner, use ``tango.util.log.Trace``. If you need to pretty-print raw
+  memory, use the new module ``ocean.text.convert.Memory``.
+
 New Features
 ^^^^^^^^^^^^
 
@@ -93,6 +99,21 @@ Unit testing (``ocean.core.UnitTestRunner``)
 ``ocean.sys.getIfAddrs.getAddrsForInterface``
   New method which returns all addresses for the interface and for the specified
   address family.
+
+``ocean.text.convert.Memory``
+  Prints raw memory in a typical *hexdump* format. For example:
+
+  .. code:: D
+
+    auto mem = cast(ubyte[])
+               "\x23\x00\xffhello world\x32\xf1bye bye world!\x10\x07\00\01";
+    auto buf = memoryToHexAscii(mem);
+
+  Will get this into ``buf``::
+
+    000000:  23 00 FF 68  65 6C 6C 6F  20 77 6F 72  6C 64 32 F1  #..hello world2.
+    000010:  62 79 65 20  62 79 65 20  77 6F 72 6C  64 21 10 07  bye bye world!..
+    000020:  00 01                                               ..
 
 
 v1.15 (2014-07-24)
@@ -237,6 +258,7 @@ New Features
 
 ``ocean.util.Config.ClassFiller.LimitCmp``
   This template now can accept arguments with type different than ``char[]``
+
 
 v1.14 (2014-06-20)
 ------------------

@@ -255,7 +255,6 @@ version (UnitTest) private:
 // Uncomment the next line to see UnitTest output
 // version = UnitTestVerbose;
 
-import ocean.util.log.Trace;
 import tango.io.device.File;
 import tango.time.StopWatch;
 
@@ -309,11 +308,13 @@ struct Terminator
     }
 }
 
+version (UnitTestVerbose) private import ocean.io.Stdout;
+
 unittest
 {
     debug (GcDisabled)
     {
-        pragma (msg, "LZO unittest: garbage collector disabled");
+        version (UnitTestVerbose) Stdout.formatln("LZO unittest: garbage collector disabled");
         gc_disable();
     }
 
@@ -322,8 +323,9 @@ unittest
     MetricPrefix pre_comp_sz, pre_uncomp_sz,
                  pre_comp_tm, pre_uncomp_tm, pre_crc_tm;
 
-    version (UnitTestVerbose) Trace.formatln("LZO unittest: loading test data from file \"lzotest.dat\"");
+    version (UnitTestVerbose) Stdout.formatln("LZO unittest: loading test data from file \"lzotest.dat\"");
 
+    // FLAKEY: Avoid IO in unittests and specially fixed file names
     File file;
 
     try file = new File("lzotest.dat");
@@ -339,7 +341,7 @@ unittest
 
     file.close();
 
-    Trace.formatln("LZO unittest: loaded {} bytes of test data, compressing...", data.length);
+    version (UnitTestVerbose) Stdout.formatln("LZO unittest: loaded {} bytes of test data, compressing...", data.length);
 
     swatch.start();
 
@@ -369,7 +371,7 @@ unittest
     pre_uncomp_tm.dec(uncomp_us, -2);
     pre_crc_tm.dec(crc_us, -2);
 
-    Trace.formatln("LZO unittest results:\n\t"
+    version (UnitTestVerbose) Stdout.formatln("LZO unittest results:\n\t"
                    "uncompressed length: {} {}B\t({} bytes)\n\t"
                    "compressed length:   {} {}B\t({} bytes)\n\t"
                    "compression ratio:   {}%\n\t"
@@ -400,6 +402,4 @@ unittest
 
         lzo.uncompress(compressed, uncompressed);
     }
-
-    Trace.formatln("\n\nLZO unittest finished\n");
 }

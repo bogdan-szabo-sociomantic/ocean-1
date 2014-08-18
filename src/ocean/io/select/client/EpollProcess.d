@@ -155,10 +155,23 @@ private import tango.sys.Process;
 
 debug private import ocean.io.Stdout;
 
-private import ocean.util.log.Trace;
-
 private import tango.stdc.errno;
 
+private import tango.util.log.Log;
+
+
+
+/*******************************************************************************
+
+    Static module logger
+
+*******************************************************************************/
+
+static private Logger log;
+static this ( )
+{
+    log = Log.lookup("ocean.io.select.client.EpollProcess");
+}
 
 
 /*******************************************************************************
@@ -368,7 +381,7 @@ public abstract class EpollProcess
 
         protected override void error_ ( Exception exception, Event event )
         {
-            Trace.formatln("EPOLL error {} at {} {} event = {}", exception.msg,
+            log.error("EPOLL error {} at {} {} event = {}", exception.msg,
                            exception.file, exception.line, event);
         }
 

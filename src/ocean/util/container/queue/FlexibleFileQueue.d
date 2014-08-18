@@ -34,11 +34,25 @@ private import ocean.util.container.queue.model.IQueueInfo;
 
 private import ocean.util.container.queue.FlexibleRingQueue;
 
-private import ocean.util.log.Trace;
+private import tango.util.log.Log;
 
 private import tango.io.stream.Buffered,
                tango.io.device.File,
                Filesystem = tango.io.Path;
+
+
+
+/*******************************************************************************
+
+    Static module logger
+
+*******************************************************************************/
+
+static private Logger log;
+static this ( )
+{
+    log = Log.lookup("ocean.util.container.queue.FlexibleFileQueue");
+}
 
 
 
@@ -302,7 +316,7 @@ public class FlexibleFileQueue : IByteQueue
             try this.ext_out.flush();
             catch ( Exception e )
             {
-                Trace.formatln("## ERROR: Can't flush file buffer: {}", e.msg);
+                log.error("## ERROR: Can't flush file buffer: {}", e.msg);
                 return null;
             }
 
@@ -336,7 +350,7 @@ public class FlexibleFileQueue : IByteQueue
         }
         catch ( Exception e )
         {
-            Trace.formatln("## ERROR: Failsafe catch triggered by exception: {} ({}:{})",
+            log.error("## ERROR: Failsafe catch triggered by exception: {} ({}:{})",
                            e.msg, e.file, e.line);
         }
 
@@ -565,7 +579,7 @@ public class FlexibleFileQueue : IByteQueue
         }
         catch ( Exception e )
         {
-            Trace.formatln("## ERROR: Exception happened while writing to disk: {}", e.msg);
+            log.error("## ERROR: Exception happened while writing to disk: {}", e.msg);
             return false;
         }
     }

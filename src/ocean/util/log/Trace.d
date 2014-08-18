@@ -103,7 +103,7 @@ else
 *******************************************************************************/
 
 /// global trace instance
-public static SyncPrint Trace;
+deprecated public static SyncPrint Trace;
 
 static this()
 {
@@ -149,7 +149,7 @@ private class SyncPrint
 
         **********************************************************************/
 
-        final SyncPrint format (char[] fmt, ...)
+        deprecated final SyncPrint format (char[] fmt, ...)
         {
                 synchronized (mutex)
                 {
@@ -175,7 +175,7 @@ private class SyncPrint
 
         **********************************************************************/
 
-        final SyncPrint formatln ( char[] fmt, ... )
+        deprecated final SyncPrint formatln ( char[] fmt, ... )
         {
             synchronized (mutex)
             {
@@ -204,7 +204,7 @@ private class SyncPrint
 
         **********************************************************************/
 
-        final void flush ()
+        deprecated final void flush ()
         {
                 synchronized (mutex)
                               output.flush;
@@ -216,7 +216,7 @@ private class SyncPrint
 
         **********************************************************************/
 
-        private final uint sink (char[] s)
+        deprecated private final uint sink (char[] s)
         {
                 return output.write (s);
         }
@@ -236,7 +236,7 @@ private class SyncPrint
 
         **********************************************************************/
 
-        final SyncPrint memory (void[] mem)
+        deprecated final SyncPrint memory (void[] mem)
         {
             auto data = cast(ubyte[]) mem;
             synchronized (mutex)

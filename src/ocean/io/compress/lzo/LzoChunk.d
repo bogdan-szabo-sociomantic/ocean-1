@@ -59,8 +59,6 @@ private     import      ocean.io.compress.CompressException;
 
 private     import      ocean.core.Exception: enforce;
 
-private     import      ocean.util.log.Trace;
-
 /*******************************************************************************
 
     LzoChunk compressor/decompressor
@@ -332,6 +330,8 @@ struct Terminator
     }
 }
 
+version (UnitTestVerbose) private import ocean.io.Stdout;
+
 unittest
 {
     // Uncomment the next line to see UnitTest output
@@ -339,7 +339,8 @@ unittest
 
     debug (GcDisabled)
     {
-        pragma (msg, "LzoChunk unittest: garbage collector disabled");
+        version (UnitTestVerbose)
+            Stdout.formatln("LzoChunk unittest: garbage collector disabled");
         gc_disable();
     }
 
@@ -348,8 +349,11 @@ unittest
     MetricPrefix pre_comp_sz, pre_uncomp_sz,
                  pre_comp_tm, pre_uncomp_tm, pre_crc_tm;
 
-    version (UnitTestVerbose) Trace.formatln("LzoChunk unittest: loading test data from file \"lzotest.dat\"");
+    version (UnitTestVerbose)
+        Stdout.formatln("LzoChunk unittest: loading test data from file "
+                "\"lzotest.dat\"");
 
+    // FLAKEY: Avoid IO in unittests and specially fixed file names
     File file;
 
     try file = new File("lzotest.dat");
@@ -365,8 +369,6 @@ unittest
     file.read(data);
 
     file.close();
-
-    Trace.formatln("LzoChunk unittest: loaded {} bytes of test data, compressing...", data.length);
 
     swatch.start();
 
@@ -389,7 +391,9 @@ unittest
     pre_comp_tm.dec(compr_us, -2);
     pre_uncomp_tm.dec(uncomp_us, -2);
 
-    Trace.formatln("LzoChunk unittest results:\n\t"
+    version (UnitTestVerbose)
+    {
+        Stdout.formatln("LzoChunk unittest results:\n\t"
                    "uncompressed length: {} {}B\t({} bytes)\n\t"
                    "compressed length:   {} {}B\t({} bytes)\n\t"
                    "compression ratio:   {}%\n\t"
@@ -404,6 +408,7 @@ unittest
                    pre_comp_tm.scaled, pre_comp_tm.prefix, compr_us,
                    pre_uncomp_tm.scaled, pre_uncomp_tm.prefix, uncomp_us
                    );
+    }
 
     auto prev_sigint_handler = signal(SIGINT, &Terminator.terminate);
 
@@ -413,6 +418,4 @@ unittest
     {
         lzo.compress(data, compressed).uncompress(compressed, uncompressed);
     }
-
-    Trace.formatln("\n\nLzoChunk unittest finished\n");
 }

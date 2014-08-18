@@ -65,7 +65,6 @@
     -------
     import Class = ocean.util.config.ClassFiller;
     import ocean.util.Config;
-    import ocean.util.log.Trace;
 
     class ConfigParameters
     {
@@ -142,12 +141,12 @@ private import ocean.util.Config;
 
 private import ocean.util.config.ConfigParser;
 
-private import ocean.util.log.Trace;
-
 private import tango.util.Convert;
 
 private import tango.core.Traits : DynamicArrayType, isStringType,
                                    isIntegerType, isRealType;
+
+private import ocean.io.Stdout;
 
 version ( UnitTest )
 {
@@ -824,7 +823,7 @@ public T fill ( T : Object, Source = ConfigParser )
             {
                 throw new ConfigException(msg, __FILE__, __LINE__);
             }
-            else Trace.formatln("#### WARNING: {}", msg);
+            else Stderr.formatln("#### WARNING: {}", msg);
         }
     }
 
@@ -994,7 +993,7 @@ protected void readFields ( T, Source )
             }
 
 
-            debug (Config) Trace.formatln("Config Debug: {}.{} = {}", group,
+            debug (Config) Stdout.formatln("Config Debug: {}.{} = {}", group,
                              reference.tupleof[si]
                             .stringof["reference.".length  .. $],
                             Value(reference.tupleof[si]));
@@ -1006,7 +1005,7 @@ protected void readFields ( T, Source )
         }
         else
         {
-            debug (Config) Trace.formatln("Config Debug: {}.{} = {} (builtin)", group,
+            debug (Config) Stdout.formatln("Config Debug: {}.{} = {} (builtin)", group,
                              reference.tupleof[si]
                             .stringof["reference.".length  .. $],
                             Value(reference.tupleof[si]));
