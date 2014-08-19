@@ -1298,7 +1298,7 @@ version ( UnitTest )
         serializer.buffered_input.input(array);
         serializer.loadInternal!(KNew, VNew)(serializer.buffered_input, &checker);
 
-        t.test(amount_loaded == map.bucket_info.length, "Amount of loaded "
+        t.test(amount_loaded == map.length, "Amount of loaded "
                   "items unequal amount of written items!");
     }
 }

@@ -287,7 +287,7 @@ public abstract class EpollProcess
                 if (pid == -1)
                 {
                     assert( errno() == ECHILD );
-                    assert( this.processes.bucket_info.length == 0 );
+                    assert( this.processes.length == 0 );
                     return;
                 }
 
@@ -312,7 +312,7 @@ public abstract class EpollProcess
 
                     this.processes.remove(pid);
 
-                    if ( this.processes.bucket_info.length == 0 )
+                    if ( this.processes.length == 0 )
                     {
                         this.epoll.unregister(this.signal_event);
 

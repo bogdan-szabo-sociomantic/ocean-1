@@ -129,6 +129,23 @@ public abstract class IBucketSet
         delete this.bucket_info;
     }
 
+    /**************************************************************************
+
+        Get the length of the buckets.
+
+        Note: In the D2 port we should use subtyping via 'alias this' and
+        avoid these forwarding functions.
+
+        Returns:
+            the length of the buckets.
+
+     **************************************************************************/
+
+    public final size_t length ( )
+    {
+        return this.bucket_info.length;
+    }
+
     /***************************************************************************
 
         Removes all elements from all buckets.

@@ -162,7 +162,7 @@ unittest
 
     bool lengthIs ( int expected )
     {
-        assert(set.bucket_info.length == expected);
+        assert(set.length == expected);
 
         int c;
         foreach ( k; set )
@@ -174,7 +174,7 @@ unittest
 
     void put ( hash_t key, bool should_exist )
     {
-        auto len = set.bucket_info.length;
+        auto len = set.length;
 
         assert(!!(key in set) == should_exist);
 
@@ -191,7 +191,7 @@ unittest
 
     void remove ( hash_t key, bool should_exist )
     {
-        auto len = set.bucket_info.length;
+        auto len = set.length;
         auto pool_len = set.bucket_info.num_buckets;
 
         assert(!!(key in set) == should_exist);

@@ -186,12 +186,12 @@ public class HashMap ( V ) : Map!(V, hash_t)
         version ( UnitTestVerbose ) void printState ( )
         {
             Stdout.formatln("  ::  len={}, load={}, max_load={}",
-                map.bucket_info.length, map.bucket_info.load, map.bucket_info.max_load);
+                map.length, map.bucket_info.load, map.bucket_info.max_load);
         }
 
         bool lengthIs ( int expected )
         {
-            assert(map.bucket_info.length == expected);
+            assert(map.length == expected);
 
             int c;
             foreach ( k, v; map )
@@ -203,7 +203,7 @@ public class HashMap ( V ) : Map!(V, hash_t)
 
         void put ( hash_t key, bool should_exist )
         {
-            auto len = map.bucket_info.length;
+            auto len = map.length;
 
             assert(((key in map) !is null) == should_exist);
 
@@ -242,7 +242,7 @@ public class HashMap ( V ) : Map!(V, hash_t)
 
         void remove ( hash_t key, bool should_exist )
         {
-            auto len = map.bucket_info.length;
+            auto len = map.length;
             auto pool_len = map.bucket_info.num_buckets;
 
             assert(((key in map) !is null) == should_exist);

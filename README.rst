@@ -70,6 +70,12 @@ Unit testing (``ocean.core.UnitTestRunner``)
   ``testThrown`` helper has been added. It verifies that expression that was
   expected to throw exception type during evaluation has indeed done that.
 
+``ocean.util.container.map``
+  Added length() method to BucketSet. To get the count of the keys in a Set/
+  HashMap you would have to use ``hash.bucket_info.length``. This has now been
+  simplified with the introduction of the top-level ``length`` method,
+  usable as e.g. ``hash.length``.
+
 
 v1.15 (2014-07-24)
 ------------------
