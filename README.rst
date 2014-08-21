@@ -63,21 +63,27 @@ New Features
 ^^^^^^^^^^^^
 
 Unit testing (``ocean.core.UnitTestRunner``)
-  The unit test runner now accepts a new option ``-p`` / ``--package`` to only
-  run the tests in a particular package or module (effectively any module with
-  a fully qualified name that starts with the passed argument).
+  * The unit test runner now accepts a new option ``-p`` / ``--package`` to
+    only run the tests in a particular package or module (effectively any
+    module with a fully qualified name that starts with the passed argument).
 
-  The option can be used multiple times to run tests in several packages. If no
-  package is passed, it will run the unit tests for all the modules found.
+    The option can be used multiple times to run tests in several packages. If
+    no package is passed, it will run the unit tests for all the modules found.
 
-  Makd now makes use of this to only test the packages and modules present in
-  the ``src/`` directory.
-  Also, 3 ``--verbose`` levels were added, you can ask for extra verboseness by
-  adding more ``--verbose`` / ``-v`` arguments (or the compact forms ``-vv`` or
-  ``-vvv``). See the help for more details on what is shown by each level.
+    Makd now makes use of this to only test the packages and modules present in
+    the ``src/`` directory.
 
-  When in verbose mode, now the time each module took to run the unit tests is
-  displayed, which can help to figure out if some tests are taking too long.
+  * Three ``--verbose`` levels were added, you can ask for extra verboseness by
+    adding more ``--verbose`` / ``-v`` arguments (or the compact forms ``-vv``
+    or ``-vvv``). See the help for more details on what is shown by each level.
+
+    When in verbose mode, now the time each module took to run the unit tests is
+    displayed, which can help to figure out if some tests are taking too long.
+
+  * A new ``-x`` / ``-xml-file`` option is added to produce a JUnit / Jenkins
+    complatible XML report on the unit tests. User normally shouldn't use this
+    option, but there might be IDEs or tools to graphically visualize this
+    reports, so it could be useful at some point beyond Jenkins.
 
 ``ocean.core.Test``
   ``testThrown`` helper has been added. It verifies that expression that was

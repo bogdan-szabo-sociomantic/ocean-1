@@ -31,7 +31,11 @@
     2  - Wrong command line arguments
     4  - One or more tests failed
     8  - One or more tests had errors (unexpected problems)
-    12 - There were both failed tests and tests with errors
+    16 - Error writing to XML file
+
+    Status codes can be aggregated via ORing, so for example, a status of 12
+    means both failures and errors were encountered, and status of 20 means
+    failures were encountered and there was an error writing the XML file.
 
 *******************************************************************************/
 
@@ -45,14 +49,19 @@ module ocean.core.UnitTestRunner;
 *******************************************************************************/
 
 private import tango.stdc.string: strdup, strlen, strncmp;
+private import tango.stdc.posix.unistd: unlink;
 private import tango.stdc.posix.libgen: basename;
 private import tango.stdc.posix.sys.time: gettimeofday, timeval, timersub;
 private import tango.core.Runtime: Runtime;
 private import tango.core.Exception : AssertException;
 private import tango.io.Stdout: Stdout, Stderr;
 private import tango.io.stream.Format: FormatOutput;
-private import ocean.text.convert.Layout: Layout;
+private import tango.io.stream.TextFile: TextFileOutput;
+private import tango.text.xml.Document: Document;
+private import tango.text.xml.DocPrinter: DocPrinter;
 
+private import ocean.text.convert.Layout: Layout;
+private import ocean.text.util.StringC: StringC;
 private import ocean.core.Test : TestException, test;
 
 
@@ -78,6 +87,18 @@ private scope class UnitTestRunner
     private bool summary = false;
     private bool keep_going = false;
     private char[][] packages = null;
+    private char[] xml_file;
+
+
+    /**************************************************************************
+
+        Aliases for easier access to symbols with long and intricate names
+
+    ***************************************************************************/
+
+    private alias Document!(char)     XmlDoc;
+    private alias XmlDoc.Node         XmlNode; /// ditto
+    private alias Layout!(char).print sprint;  /// ditto
 
 
     /**************************************************************************
@@ -87,6 +108,15 @@ private scope class UnitTestRunner
     ***************************************************************************/
 
     private char[] buf;
+
+
+    /**************************************************************************
+
+        XML document used to produce the XML test results report
+
+    ***************************************************************************/
+
+    private XmlDoc xml_doc;
 
 
     /**************************************************************************
@@ -164,6 +194,7 @@ private scope class UnitTestRunner
                 if (this.verbose > 1)
                     Stdout.formatln("{}: {}: skipped (no unittests)",
                             this.prog, m.name);
+                this.xmlAddSkipped(m.name);
                 continue;
             }
 
@@ -173,6 +204,7 @@ private scope class UnitTestRunner
                 if (this.verbose > 2)
                     Stdout.formatln("{}: {}: skipped (one failed and no "
                             "--keep-going)", this.prog, m.name);
+                this.xmlAddSkipped(m.name);
                 continue;
             }
 
@@ -183,24 +215,31 @@ private scope class UnitTestRunner
 
             // we have a unittest, run it
             timeval t;
-            switch (this.timedTest(m, t))
+            // XXX: We can't use this.buf because it will be messed up when
+            //      calling toHumanTime() and the different xmlAdd*() methods
+            static char[] e;
+            e.length = 0;
+            switch (this.timedTest(m, t, e))
             {
                 case Result.Pass:
                     passed++;
                     if (this.verbose)
                         Stdout.formatln(" PASS [{}]", this.toHumanTime(t));
+                    this.xmlAddSuccess(m.name, t);
                     continue;
 
                 case Result.Fail:
                     failed++;
                     if (this.verbose)
                         Stdout.format(" FAIL [{}]", this.toHumanTime(t));
+                    this.xmlAddFailure(m.name, t, e);
                     break;
 
                 case Result.Error:
                     errored++;
                     if (this.verbose)
                         Stdout.format(" ERROR [{}]", this.toHumanTime(t));
+                    this.xmlAddFailure!("error")(m.name, t, e);
                     break;
 
                 default:
@@ -232,7 +271,14 @@ private scope class UnitTestRunner
             Stdout.formatln(" [{}]", this.toHumanTime(total_time));
         }
 
+        bool xml_ok = this.writeXml(
+                passed + failed + errored + no_tests + skipped,
+                no_tests + skipped, failed, errored, total_time);
+
         int ret = 0;
+
+        if (!xml_ok)
+            ret |= 16;
 
         if (errored)
             ret |= 8;
@@ -241,6 +287,180 @@ private scope class UnitTestRunner
             ret |= 4;
 
         return ret;
+    }
+
+
+    /**************************************************************************
+
+        Add a skipped test node to the XML document
+
+        Params:
+            name = name of the test to add to the XML document
+
+        Returns:
+            new XML node, suitable for call chaining
+
+    ***************************************************************************/
+
+    private XmlNode xmlAddSkipped ( char[] name )
+    {
+        if (this.xml_doc is null)
+            return null;
+
+        return this.xmlAddTestcase(name).element(null, "skipped");
+    }
+
+
+    /**************************************************************************
+
+        Add a successful test node to the XML document
+
+        Params:
+            name = name of the test to add to the XML document
+            tv = time it took the test to run
+
+        Returns:
+            new XML node, suitable for call chaining
+
+    ***************************************************************************/
+
+    private XmlNode xmlAddSuccess ( char[] name, timeval tv )
+    {
+        if (this.xml_doc is null)
+            return null;
+
+        return this.xmlAddTestcase(name)
+                .attribute(null, "time", toXmlTime(tv).dup);
+    }
+
+
+    /**************************************************************************
+
+        Add a failed test node to the XML document
+
+        Template params:
+            type = type of failure (either "failure" or "error")
+
+        Params:
+            name = name of the test to add to the XML document
+            tv = time it took the test to run
+            msg = reason why the test failed
+
+        Returns:
+            new XML node, suitable for call chaining
+
+    ***************************************************************************/
+
+    private XmlNode xmlAddFailure (char[] type = "failure") (
+            char[] name, timeval tv, char[] msg )
+    {
+        static assert (type == "failure" || type == "error");
+
+        if (this.xml_doc is null)
+            return null;
+
+        // TODO: capture test output
+        return this.xmlAddSuccess(name, tv)
+                .element(null, type)
+                        .attribute(null, "type", type)
+                        .attribute(null, "message", msg.dup);
+    }
+
+
+    /**************************************************************************
+
+        Add a test node to the XML document
+
+        Params:
+            name = name of the test to add to the XML document
+
+        Returns:
+            new XML node, suitable for call chaining
+
+    ***************************************************************************/
+
+    private XmlNode xmlAddTestcase ( char[] name )
+    {
+        return this.xml_doc.elements
+                .element(null, "testcase")
+                        .attribute(null, "classname", name)
+                        .attribute(null, "name", "unittest");
+    }
+
+
+    /**************************************************************************
+
+        Write the XML document to the file passed by command line arguments
+
+        Params:
+            tests = total amount of tests found
+            skipped = number of skipped tests
+            failures = number of failed tests
+            errors = number of errored tests
+            time = total time it took the tests to run
+
+        Returns:
+            true if the file was written successfully, false otherwise
+
+    ***************************************************************************/
+
+    private bool writeXml ( size_t tests, size_t skipped, size_t failures,
+            size_t errors, timeval time)
+    {
+        if (this.xml_doc is null)
+            return true;
+
+        this.xml_doc.elements // root node: <testsuite>
+                    .attribute(null, "tests", this.convert(tests).dup)
+                    .attribute(null, "skipped", this.convert(skipped).dup)
+                    .attribute(null, "failures", this.convert(failures).dup)
+                    .attribute(null, "errors", this.convert(errors).dup)
+                    .attribute(null, "time", this.toXmlTime(time).dup);
+
+        auto printer = new DocPrinter!(char);
+        try
+        {
+            auto output = new TextFileOutput(this.xml_file);
+            // At this point we don't care about errors anymore, is best effort
+            scope (failure) unlink(StringC.toCstring(this.xml_file));
+            scope (exit) output.close();
+            output(printer.print(this.xml_doc)).newline;
+        }
+        catch (Exception e)
+        {
+            Stderr.formatln("{}: error: writing XML file '{}': {}",
+                    this.prog, this.xml_file, e.msg);
+            return false;
+        }
+        catch
+        {
+            Stderr.formatln("{}: error: unknown error writing XML file '{}'",
+                    this.prog, this.xml_file);
+            return false;
+        }
+
+        return true;
+    }
+
+
+    /**************************************************************************
+
+        Convert a timeval to a string with a format suitable for the XML file
+
+        The format used is seconds, expressed as a floating point number, with
+        miliseconds resolution (i.e. 3 decimals precision).
+
+        Params:
+            tv = timeval to convert to string
+
+        Returns:
+            string with the XML compatible form of tv
+
+    ***************************************************************************/
+
+    private char[] toXmlTime ( timeval tv )
+    {
+        return this.convert(tv.tv_sec + tv.tv_usec / 1_000_000.0, "{:f3}");
     }
 
 
@@ -356,13 +576,17 @@ private scope class UnitTestRunner
 
         Params:
             m = module to be tested
+            tv = the time the test took to run will be written here
+            err = buffer where to write the error message if the test was
+                  unsuccessful (is only written if the return value is !=
+                  Result.Pass
 
         Returns:
-            true if the test passed, false otherwise.
+            the result of the test (passed, failure or error)
 
     ***************************************************************************/
 
-    private Result timedTest ( ModuleInfo m, out timeval tv )
+    private Result timedTest ( ModuleInfo m, out timeval tv, out char[] err )
     {
         timeval start = this.now();
         scope (exit) tv = elapsedTime(start);
@@ -374,21 +598,21 @@ private scope class UnitTestRunner
         }
         catch (TestException e)
         {
-            Stderr.formatln("{}:{}: test error: {}", e.file, e.line, e.msg);
+            sprint(err, "{}:{}: test error: {}", e.file, e.line, e.msg);
             return Result.Fail;
         }
         catch (AssertException e)
         {
-            Stderr.formatln("{}:{}: assert error: {}", e.file, e.line, e.msg);
+            sprint(err, "{}:{}: assert error: {}", e.file, e.line, e.msg);
         }
         catch (Exception e)
         {
-            Stderr.formatln("{}:{}: unexpected exception {}: {}",
-                    e.file, e.line, e.classinfo.name, e.msg);
+            sprint(err, "{}:{}: unexpected exception {}: {}", e.file, e.line,
+                    e.classinfo.name, e.msg);
         }
         catch
         {
-            Stderr.formatln("{}: unexpected unknown exception", m.name);
+            sprint(err, "{}: unexpected unknown exception", m.name);
         }
 
         return Result.Error;
@@ -491,6 +715,19 @@ private scope class UnitTestRunner
 
         args = args[1..$];
 
+        char[] getOptArg ( size_t i )
+        {
+            if (args.length <= i+1)
+            {
+                this.printUsage(Stderr);
+                Stderr.formatln("\n{}: error: missing argument for {}",
+                        this.prog, args[i]);
+                return null;
+            }
+            skip_next = true;
+            return args[i+1];
+        }
+
         foreach (i, arg; args)
         {
             if (skip_next)
@@ -530,15 +767,24 @@ private scope class UnitTestRunner
 
             case "-p":
             case "--package":
-                if (args.length <= i+1)
-                {
-                    this.printUsage(Stderr);
-                    Stderr.formatln("\n{}: error: missing argument for {}",
-                            this.prog, arg);
+                auto arg = getOptArg(i);
+                if (arg is null)
                     return false;
+                this.packages ~= arg;
+                break;
+
+            case "-x":
+            case "--xml-file":
+                this.xml_file = getOptArg(i);
+                if (this.xml_file is null)
+                    return false;
+                if (this.xml_doc is null)
+                {
+                    this.xml_doc = new XmlDoc;
+                    this.xml_doc.header();
+                    this.xml_doc.tree.element(null, "testsuite")
+                                          .attribute(null, "name", "unittests");
                 }
-                this.packages ~= args[i+1];
-                skip_next = true;
                 break;
 
             default:
@@ -574,7 +820,8 @@ private scope class UnitTestRunner
 
     private void printUsage ( FormatOutput!(char) output )
     {
-        output.formatln("Usage: {} [-h] [-v] [-s] [-k] [-p PKG]", this.prog);
+        output.formatln("Usage: {} [-h] [-v] [-s] [-k] [-p PKG] [-x FILE]",
+                this.prog);
     }
 
 
@@ -607,6 +854,9 @@ optional arguments:
                     only run tests in the PKG package (effectively any module
                     which fully qualified name starts with PKG), can be
                     specified multiple times to indicate more packages to test
+  -x, --xml-file FILE
+                    write test results in FILE in a XML format that Jenkins
+                    understands.
 `);
     }
 }
