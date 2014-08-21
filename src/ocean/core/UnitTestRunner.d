@@ -167,7 +167,7 @@ private scope class UnitTestRunner
                 continue;
             }
 
-            if (failed && !this.keep_going)
+            if ((failed || errored) && !this.keep_going)
             {
                 skipped++;
                 if (this.verbose > 2)
