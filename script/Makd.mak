@@ -374,7 +374,7 @@ $O/unittests: $O/unittests.d $G/build-d-flags | $O/check_rdmd1
 	$(call exec,$(BUILD.d) --build-only -unittest -debug=UnitTest \
 		-version=UnitTest $(LOADLIBES) $(LDLIBS) -of$@ $<)
 
-# Build all unittests as one binary
+# Run the unit tests binary
 $O/unittests.stamp: $O/unittests
 	$(call exec,$< $(if $(findstring k,$(MAKEFLAGS)),-k) $(if $V,,-v -s) \
 		$(foreach p,$(patsubst %.d,%,$(notdir $(shell \
