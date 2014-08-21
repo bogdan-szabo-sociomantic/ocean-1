@@ -76,6 +76,12 @@ Unit testing (``ocean.core.UnitTestRunner``)
   simplified with the introduction of the top-level ``length`` method,
   usable as e.g. ``hash.length``.
 
+``ocean.util.container.CachingDataLoader``
+  Added a race condition detection. With fibers it is possible that a program
+  does reentrant calls of CachingDataLoaderBase.load() while load() is fetching
+  data for a requested record from an external source. When a reentrant call
+  uses the same key as the pending call the reentrant call returned a wrong
+  value. Now reentrant calls to load() return null if it happens.
 
 v1.15 (2014-07-24)
 ------------------
