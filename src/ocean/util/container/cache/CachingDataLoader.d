@@ -22,6 +22,7 @@ module ocean.util.container.cache.CachingDataLoader;
 
 private import ocean.util.container.cache.ExpiringCache;
 private import ocean.util.container.cache.model.IExpiringCacheInfo;
+private import CacheValue = ocean.util.container.cache.model.Value;
 
 private import ocean.io.serialize.StructLoader: IBufferedStructLoader;
 
@@ -36,13 +37,73 @@ private import tango.stdc.time: time_t, time;
 
 abstract class CachingDataLoaderBase ( Loader )
 {
+    /***************************************************************************
+
+        The struct of data stored in the cache. It bundles the value to store
+        with a "pending" flag which is true for newly created cache element
+        where the value has not been filled in yet to detect and handle a race
+        condition of load().
+        In the future this "pending" flag might be replaced with a list of
+        objects that allow reentrant load() calls with the same key to wait
+        until the value has arrived.
+
+    ***************************************************************************/
+
+    private struct CacheValue
+    {
+        /***********************************************************************
+
+            The value to store.
+            "alias value this" would be nice.
+
+        ***********************************************************************/
+
+        mixin .CacheValue.Value!(0);
+        Value value;
+
+        /***********************************************************************
+
+            The "pending" flag.
+
+        ***********************************************************************/
+
+        bool pending;
+
+        /***********************************************************************
+
+            Casts a reference to a cache value as obtained from get/createRaw()
+            to a pointer to an instance of this struct.
+
+            Params:
+                data = data of an instance of this struct
+
+            Returns:
+                a pointer to an instance of this struct referencing data;
+                i.e. cast(typeof(this))data.ptr.
+
+            In:
+                data.length must match the size of this struct.
+
+         **********************************************************************/
+
+        static typeof(this) opCall ( void[] data )
+        in
+        {
+            assert(data.length == typeof(*this).sizeof);
+        }
+        body
+        {
+            return cast(typeof(this))data.ptr;
+        }
+    }
+
     /**************************************************************************
 
         Cache alias type definition
 
      **************************************************************************/
 
-    public alias ExpiringCache!(0) Cache;
+    public alias ExpiringCache!(CacheValue.sizeof) Cache;
 
     /**************************************************************************
 
@@ -139,12 +200,18 @@ abstract class CachingDataLoaderBase ( Loader )
         get_data found no value for key, it should return without calling the
         delegate.
 
+        If the caller and get_data use some sort of multitasking (fibers) it is
+        possible that while get_data is busy it does a reentrant call of this
+        method with the same key. In this case it will return null, even though
+        the record may exist.
+
         Params:
             key      = record key
             get_data = callback delegate to obtain the value if not in the cache
 
         Returns:
-            the record value or null if not found.
+            the record value or null if either not found or currently waiting
+            for get_data to fetch the value for this key.
 
      **************************************************************************/
 
@@ -161,21 +228,26 @@ abstract class CachingDataLoaderBase ( Loader )
 
             bool existed;
 
-            auto value_in_cache = this.cache_.getOrCreateRaw(key, existed);
+            auto value_in_cache = CacheValue(this.cache_.getOrCreateRaw(key, existed));
 
             if (existed)
             {
-                return this.loadRaw((*value_in_cache)[]);
+                return value_in_cache.pending?
+                    null:
+                    this.loadRaw(value_in_cache.value[]);
             }
             else
             {
                 void[] value_out = null;
 
+                value_in_cache.pending = true;
+
                 get_data((void[] data)
                          {
                              data = this.loadRaw(data);
                              this.onStoringData(data);
-                             value_out = this.store(key, data, *value_in_cache);
+                             value_out = this.store(key, data, value_in_cache.value);
+                             value_in_cache.pending = false;
                          });
 
                 return value_out;
@@ -183,15 +255,29 @@ abstract class CachingDataLoaderBase ( Loader )
         }
         else
         {
-            auto value_in_cache = this.cache_.getRaw(key);
+            auto value_in_cache = CacheValue(this.cache_.getRaw(key));
 
             if (value_in_cache)
             {
-                return this.loadRaw((*value_in_cache)[]);
+                return value_in_cache.pending?
+                    null:
+                    this.loadRaw(value_in_cache.value[]);
             }
             else
             {
                 void[] value_out = null;
+
+                /*
+                 * Reserve a cache entry to be able to detect reentrant calls
+                 * with the same key and delete it if it couldn't be fetched
+                 * from the external source. Assuming that get_data is usually
+                 * able to fetch the requested records this shouldn't
+                 * impact performance.
+                 */
+
+                auto value_in_cache = CacheValue(this.cache_.createRaw(key));
+
+                value_in_cache.pending = true;
 
                 get_data((void[] data)
                          {
@@ -199,9 +285,15 @@ abstract class CachingDataLoaderBase ( Loader )
                              {
                                  data = this.loadRaw(data);
                                  this.onStoringData(data);
-                                 value_out = this.store(key, data, *this.cache_.createRaw(key));
+                                 value_out = this.store(key, data, value_in_cache.value);
+                                 value_in_cache.pending = false;
                              }
                          });
+
+                if (value_in_cache.pending)
+                {
+                    this.cache_.remove(key);
+                }
 
                 return value_out;
             }
@@ -229,7 +321,7 @@ abstract class CachingDataLoaderBase ( Loader )
 
      **************************************************************************/
 
-    private void[] store ( hash_t key, void[] data, ref Cache.Value value_in_cache )
+    private void[] store ( hash_t key, void[] data, ref CacheValue.Value value_in_cache )
     {
         scope (failure) this.cache_.remove(key);
 
