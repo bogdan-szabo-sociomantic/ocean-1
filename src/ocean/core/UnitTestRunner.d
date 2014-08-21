@@ -125,8 +125,7 @@ private scope class UnitTestRunner
     {
         assert (prog);
 
-        if (this.verbose)
-            Stdout.formatln("{}: unit tests started", this.prog);
+        timeval start_time = this.now();
 
         size_t passed = 0;
         size_t failed = 0;
@@ -134,6 +133,9 @@ private scope class UnitTestRunner
         size_t skipped = 0;
         size_t no_tests = 0;
         size_t no_match = 0;
+
+        if (this.verbose)
+            Stdout.formatln("{}: unit tests started", this.prog);
 
         foreach ( m; ModuleInfo )
         {
@@ -206,6 +208,8 @@ private scope class UnitTestRunner
                 Stdout.formatln(" (continuing, --keep-going used)");
         }
 
+        timeval total_time = elapsedTime(start_time);
+
         if (this.summary)
         {
             Stdout.format("{}: {} modules passed, {} failed, "
@@ -215,7 +219,7 @@ private scope class UnitTestRunner
                 Stdout.format(", {} skipped", skipped);
             if (this.verbose > 1)
                 Stdout.format(", {} didn't match --package", no_match);
-            Stdout.newline();
+            Stdout.formatln(" [{}]", this.toHumanTime(total_time));
         }
 
         int ret = 0;
@@ -327,18 +331,8 @@ private scope class UnitTestRunner
 
     private Result timedTest ( ModuleInfo m, out timeval tv )
     {
-        timeval start;
-        int e = 0;
-        e = gettimeofday(&start, null);
-        assert (e == 0, "gettimeofday returned != 0");
-
-        scope (exit)
-        {
-            timeval end;
-            e = gettimeofday(&end, null);
-            assert (e == 0, "gettimeofday returned != 0");
-            timersub(&end, &start, &tv);
-        }
+        timeval start = this.now();
+        scope (exit) tv = elapsedTime(start);
 
         try
         {
@@ -365,6 +359,44 @@ private scope class UnitTestRunner
         }
 
         return Result.Error;
+    }
+
+
+    /**************************************************************************
+
+        Gets the elapsed time between start and now
+
+        Returns:
+            a timeval with the elapsed time
+
+    ***************************************************************************/
+
+    private static timeval elapsedTime ( timeval start )
+    {
+        timeval elapsed;
+        timeval end = now();
+        timersub(&end, &start, &elapsed);
+
+        return elapsed;
+    }
+
+
+    /**************************************************************************
+
+        Gets the current time with microseconds resolution
+
+        Returns:
+            a timeval representing the current date and time
+
+    ***************************************************************************/
+
+    private static timeval now ( )
+    {
+        timeval t;
+        int e = gettimeofday(&t, null);
+        assert (e == 0, "gettimeofday returned != 0");
+
+        return t;
     }
 
 
