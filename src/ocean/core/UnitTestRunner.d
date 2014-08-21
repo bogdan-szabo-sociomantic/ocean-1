@@ -146,21 +146,21 @@ private scope class UnitTestRunner
                 continue;
             }
 
-            if (failed && !this.keep_going)
-            {
-                skipped++;
-                if (this.verbose > 2)
-                    Stdout.formatln("{}: {}: skipped (one failed and no "
-                            "--keep-going)", this.prog, m.name);
-                continue;
-            }
-
             if (m.unitTest is null)
             {
                 no_tests++;
                 if (this.verbose > 1)
                     Stdout.formatln("{}: {}: skipped (no unittests)",
                             this.prog, m.name);
+                continue;
+            }
+
+            if (failed && !this.keep_going)
+            {
+                skipped++;
+                if (this.verbose > 2)
+                    Stdout.formatln("{}: {}: skipped (one failed and no "
+                            "--keep-going)", this.prog, m.name);
                 continue;
             }
 
