@@ -82,6 +82,15 @@ private scope class UnitTestRunner
 
     /**************************************************************************
 
+        Buffer used for text conversions
+
+    ***************************************************************************/
+
+    private char[] buf;
+
+
+    /**************************************************************************
+
         Static constructor replacing the default Tango unittest runner
 
     ***************************************************************************/
@@ -90,6 +99,7 @@ private scope class UnitTestRunner
     {
         Runtime.moduleUnitTester(&this.dummyUnitTestRunner);
     }
+
 
     /**************************************************************************
 
@@ -250,57 +260,80 @@ private scope class UnitTestRunner
 
     ***************************************************************************/
 
-    private static char[] toHumanTime ( timeval tv )
+    private char[] toHumanTime ( timeval tv )
     {
-        char[] buff;
         if (tv.tv_sec >= 60*60)
-            return Layout!(char).print(buff, "{:f1}h", tv.tv_sec / 60.0 / 60.0);
+            return this.convert(tv.tv_sec / 60.0 / 60.0, "{:f1}h");
 
         if (tv.tv_sec >= 60)
-            return Layout!(char).print(buff, "{:f1}m", tv.tv_sec / 60.0);
+            return this.convert(tv.tv_sec / 60.0, "{:f1}m");
 
         if (tv.tv_sec > 0)
-            return Layout!(char).print(buff, "{:f1}s",
-                    tv.tv_sec + tv.tv_usec / 1_000_000.0);
+            return this.convert(tv.tv_sec + tv.tv_usec / 1_000_000.0, "{:f1}s");
 
         if (tv.tv_usec >= 1000)
-            return Layout!(char).print(buff, "{:f1}ms", tv.tv_usec / 1_000.0);
+            return this.convert(tv.tv_usec / 1_000.0, "{:f1}ms");
 
-        return Layout!(char).print(buff, "{}us", tv.tv_usec);
+        return this.convert(tv.tv_usec, "{}us");
     }
 
     unittest
     {
+        scope t = new UnitTestRunner;
         timeval tv;
-        test!("==")(toHumanTime(tv), "0us");
+        test!("==")(t.toHumanTime(tv), "0us");
         tv.tv_sec = 1;
-        test!("==")(toHumanTime(tv), "1.0s");
+        test!("==")(t.toHumanTime(tv), "1.0s");
         tv.tv_sec = 1;
-        test!("==")(toHumanTime(tv), "1.0s");
+        test!("==")(t.toHumanTime(tv), "1.0s");
         tv.tv_usec = 100_000;
-        test!("==")(toHumanTime(tv), "1.1s");
+        test!("==")(t.toHumanTime(tv), "1.1s");
         tv.tv_usec = 561_235;
-        test!("==")(toHumanTime(tv), "1.6s");
+        test!("==")(t.toHumanTime(tv), "1.6s");
         tv.tv_sec = 60;
-        test!("==")(toHumanTime(tv), "1.0m");
+        test!("==")(t.toHumanTime(tv), "1.0m");
         tv.tv_sec = 61;
-        test!("==")(toHumanTime(tv), "1.0m");
+        test!("==")(t.toHumanTime(tv), "1.0m");
         tv.tv_sec = 66;
-        test!("==")(toHumanTime(tv), "1.1m");
+        test!("==")(t.toHumanTime(tv), "1.1m");
         tv.tv_sec = 60*60;
-        test!("==")(toHumanTime(tv), "1.0h");
+        test!("==")(t.toHumanTime(tv), "1.0h");
         tv.tv_sec += 10;
-        test!("==")(toHumanTime(tv), "1.0h");
+        test!("==")(t.toHumanTime(tv), "1.0h");
         tv.tv_sec += 6*60;
-        test!("==")(toHumanTime(tv), "1.1h");
+        test!("==")(t.toHumanTime(tv), "1.1h");
         tv.tv_sec = 0;
-        test!("==")(toHumanTime(tv), "561.2ms");
+        test!("==")(t.toHumanTime(tv), "561.2ms");
         tv.tv_usec = 1_235;
-        test!("==")(toHumanTime(tv), "1.2ms");
+        test!("==")(t.toHumanTime(tv), "1.2ms");
         tv.tv_usec = 1_000;
-        test!("==")(toHumanTime(tv), "1.0ms");
+        test!("==")(t.toHumanTime(tv), "1.0ms");
         tv.tv_usec = 235;
-        test!("==")(toHumanTime(tv), "235us");
+        test!("==")(t.toHumanTime(tv), "235us");
+    }
+
+
+    /**************************************************************************
+
+        Convert an arbitrary value to string using the internal temporary buffer
+
+        Note: the return value can only be used temporarily, as it is stored in
+              the internal, reusable, buffer.
+
+        Params:
+            val = value to convert to string
+            fmt = Tango format string used to convert the value to string
+
+        Returns:
+            string with the value as specified by fmt
+
+    ***************************************************************************/
+
+    private char[] convert ( T ) ( T val, char[] fmt = "{}" )
+    {
+        this.buf.length = 0;
+
+        return Layout!(char).print(this.buf, fmt, val);
     }
 
 
