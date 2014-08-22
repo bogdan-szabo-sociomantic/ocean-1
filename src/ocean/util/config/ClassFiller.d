@@ -148,11 +148,9 @@ private import tango.core.Traits : DynamicArrayType, isStringType,
 
 private import ocean.io.Stdout;
 
-version ( UnitTest )
-{
-    private import ocean.text.convert.Layout;
-    private import ocean.core.Test;
-}
+private import ocean.text.convert.Layout;
+
+version (UnitTest) private import ocean.core.Test;
 
 /*******************************************************************************
 
@@ -232,6 +230,14 @@ template WrapperStructCore ( T, T init = T.init )
     ***************************************************************************/
 
     private T value = init;
+
+    /**************************************************************************
+
+        Buffer for exception message.
+
+    ***************************************************************************/
+
+    private char[] exception_msg;
 
     /***************************************************************************
 
@@ -331,9 +337,12 @@ struct Required ( T )
     {
         if ( !found )
         {
-            throw new ConfigException("Mandatory variable " ~ group ~
-                                      "." ~ name ~
-                                      " not set", __FILE__, __LINE__);
+            Layout!(char).print(this.exception_msg,
+                "Mandatory variable {}.{} not set.",
+                group, name);
+
+            throw new ConfigException(this.exception_msg,
+                                      __FILE__, __LINE__);
         }
     }
 }
@@ -379,18 +388,22 @@ struct MinMax ( T, T min, T max, T init = T.init )
     {
         if ( Value(this.value) < min )
         {
-            throw new ConfigException(
-                                "Configuration key " ~ group ~ "." ~ name ~ " is smaller "
-                                "than allowed minimum of " ~ ctfe_i2a(min),
+            Layout!(char).print(this.exception_msg,
+                "Configuration key {}.{} is smaller than allowed minimum of {}",
+                group, name, min);
+
+            throw new ConfigException(this.exception_msg,
                                 __FILE__, __LINE__);
         }
 
 
         if ( Value(this.value) > max )
         {
-            throw new ConfigException(
-                                "Configuration key " ~ group ~ "." ~ name ~
-                                " is bigger than allowed maximum of " ~ ctfe_i2a(max),
+            Layout!(char).print(this.exception_msg,
+                "Configuration key {}.{} is bigger than allowed maximum of {}",
+                group, name, max);
+
+            throw new ConfigException(this.exception_msg,
                                 __FILE__, __LINE__);
         }
     }
@@ -435,9 +448,11 @@ struct Min ( T, T min, T init = T.init )
     {
         if ( Value(this.value) < min )
         {
-            throw new ConfigException(
-                    "Configuration key " ~ group ~ "." ~ name ~ " is smaller "
-                    "than allowed minimum of " ~ ctfe_i2a(min),
+            Layout!(char).print(this.exception_msg,
+                "Configuration key {}.{} is smaller than allowed minimum of {}",
+                group, name, min);
+
+            throw new ConfigException(this.exception_msg,
                     __FILE__, __LINE__);
         }
     }
@@ -483,9 +498,11 @@ struct Max ( T, T max, T init = T.init )
     {
         if ( Value(this.value) > max )
         {
-            throw new ConfigException(
-                    "Configuration key " ~ group ~ "." ~ name ~ " is bigger "
-                    "than allowed maximum of " ~ ctfe_i2a(max),
+            Layout!(char).print(this.exception_msg,
+                "Configuration key {}.{} is bigger than allowed maximum of {}",
+                group, name, max);
+
+            throw new ConfigException(this.exception_msg,
                     __FILE__, __LINE__);
         }
     }
@@ -566,11 +583,14 @@ struct LimitCmp ( T, T init = T.init, alias comp = defComp!(T), Set... )
             allowed_vals ~= ", " ~ to!(char[])(el);
         }
 
-        throw new ConfigException(
-                "Value '" ~ to!(char[])(Value(this.value)) ~ "' "
-                "of configuration key " ~ group ~ "." ~ name ~ " "
+        Layout!(char).print(this.exception_msg,
+                "Value '{}'"
+                "of configuration key {}.{} "
                 "is not within the set of allowed values "
-                "(" ~ allowed_vals[2 ..$] ~ ")",
+                "({})",
+                Value(this.value), group, name, allowed_vals[2 .. $]);
+
+        throw new ConfigException(this.exception_msg,
                 __FILE__, __LINE__);
     }
 }
