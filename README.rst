@@ -46,6 +46,13 @@ Makd
   following the new `project directory structure
   <https://github.com/sociomantic/backend/wiki/Projects-Directory-Structure>`_.
 
+Deprecations
+^^^^^^^^^^^^
+
+``ocean.sys.GetIfAddrs.getAddressForInterface``
+  This method is deprecated in favour of ``getAddrsForInterface`` which allows to
+  specify the IP family and it returns all addresses in the family for the interface.
+
 New Features
 ^^^^^^^^^^^^
 
@@ -82,6 +89,11 @@ Unit testing (``ocean.core.UnitTestRunner``)
   data for a requested record from an external source. When a reentrant call
   uses the same key as the pending call the reentrant call returned a wrong
   value. Now reentrant calls to load() return null if it happens.
+
+``ocean.sys.getIfAddrs.getAddrsForInterface``
+  New method which returns all addresses for the interface and for the specified
+  address family.
+
 
 v1.15 (2014-07-24)
 ------------------
@@ -169,10 +181,6 @@ Deprecations
   These modules are completely removed being deprecated for many ocean releases now.
   You should have stopped using them long time ago.
 
-``ocean.sys.GetIfAddrs.getAddressForInterface``
-  This method is deprecated in favour of ``getAddrsForInterface`` which allows to
-  specify the IP family and it returns all addresses in the family for the interface.
-
 New Features
 ^^^^^^^^^^^^
 
@@ -223,9 +231,9 @@ New Features
   from the console. It provides many functionalities including browsing the input
   history, text auto-completion and much more.
 
-``ocean.sys.getIfAddrs.getAddrsForInterface``
-  New method which returns all addresses for the interface and for the specified
-  address family. 
+``ocean.sys.GetIfAddrs``
+  New module with ``getAddressForInterface`` function to fetch the IP address
+  of the given interface as a string.
 
 ``ocean.util.Config.ClassFiller.LimitCmp``
   This template now can accept arguments with type different than ``char[]``
