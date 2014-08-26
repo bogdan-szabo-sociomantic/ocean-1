@@ -426,8 +426,7 @@ class MessageFiber
 
     /**************************************************************************
 
-        Starts or resumes the fiber coroutine and waits until it is suspended
-        or finishes.
+        Starts the fiber coroutine and waits until it is suspended or finishes.
 
         Params:
             msg = message to be returned by the next suspend() call.
