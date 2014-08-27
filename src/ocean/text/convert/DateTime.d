@@ -166,6 +166,11 @@ public bool timeToUnixTime ( char[] str, ref time_t time,
         return false;
     }
 
+    if ( !validTime(datetime.tm_hour, datetime.tm_min, datetime.tm_sec) )
+    {
+        return false;
+    }
+
     datetime.tm_year -= 1900;
     datetime.tm_mon--;
     datetime.tm_isdst = false;
@@ -238,6 +243,38 @@ private bool validDate ( uint day, uint month, uint year )
 
 /*******************************************************************************
 
+    Check that the time has valid values for hour, minute, and second.
+
+    Params:
+        hour = the hour of the day to check
+        minute = the minute of the hour to check
+        second = the second to check
+
+    Returns:
+        true if the time is valid
+
+*******************************************************************************/
+
+private bool validTime ( int hour, int minute, int second )
+{
+    if ( hour < 0 || hour > 23 )
+    {
+        return false;
+    }
+    if ( minute < 0 || minute > 59 )
+    {
+        return false;
+    }
+    if ( second < 0 || second > 59 )
+    {
+        return false;
+    }
+    return true;
+}
+
+
+/*******************************************************************************
+
     unittest for the date conversion
 
 *******************************************************************************/
@@ -289,4 +326,10 @@ unittest
     testConversion(10, "2013-13", 0, DateConversion.None, false);
 
     testConversion(11, "2013-12-01-", 0, DateConversion.None, false);
+
+    testConversion(12, "2013-09-05 24:44:01", 0, DateConversion.DateTime, false);
+
+    testConversion(13, "2013-09-05T14:61:17", 0, DateConversion.DateTimeT, false);
+
+    testConversion(14, "2013-09-05 24:44:80", 0, DateConversion.DateTime, false);
 }
