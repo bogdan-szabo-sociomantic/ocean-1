@@ -34,6 +34,10 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+
+v1.16 (2014-08-27)
+------------------
+
 :Dependency: tango v1.0.4
 
 Migration Instructions
