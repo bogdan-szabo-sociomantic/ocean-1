@@ -103,7 +103,6 @@ private import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
 
 private import tango.core.Traits;
 
-debug (OceanPerformanceTest) private import ocean.util.log.Trace;
 
 
 /*******************************************************************************

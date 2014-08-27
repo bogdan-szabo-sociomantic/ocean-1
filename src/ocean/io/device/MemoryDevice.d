@@ -329,7 +329,6 @@ class MemoryDevice : IConduit
 
 version ( UnitTest )
 {
-    import ocean.util.log.Trace;
     import ocean.core.Test;
 }
 

@@ -42,7 +42,6 @@
     ---
         module NotifyingQueueExample;
 
-        import ocean.util.log.Trace;
         import ocean.util.container.queue.NotifyingQueue;
 
         void main ( )
@@ -95,7 +94,6 @@ private import ocean.core.Array;
 
 private import ocean.util.container.AppendBuffer;
 
-debug private import ocean.util.log.Trace;
 
 
 /*******************************************************************************

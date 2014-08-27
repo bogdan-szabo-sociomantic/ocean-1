@@ -21,13 +21,14 @@ module ocean.util.Unittest;
 
 *******************************************************************************/
 
-private import ocean.util.log.Trace;
 
 private import Integer = tango.text.convert.Integer;
 
 private import tango.util.log.AppendConsole;
 
 private import tango.util.log.Log;
+
+private import tango.io.Stdout;
 
 private import tango.text.convert.Format;
 
@@ -285,11 +286,11 @@ scope class Unittest
 
             if ( line > 0 )
             {
-                Trace.formatln("{}:{} : Assertion failed{}", this.file, line, fmsg);
+                Stderr.formatln("{}:{} : Assertion failed{}", this.file, line, fmsg);
             }
             else
             {
-                Trace.formatln("{} : Assertion failed{}", this.file, fmsg);
+                Stderr.formatln("{} : Assertion failed{}", this.file, fmsg);
             }
         }
 
@@ -303,8 +304,8 @@ scope class Unittest
         {
             this.failed = true;
 
-            Trace.formatln("Caught exception while executing assert check: {}:{} {}",
-                           e.file, e.line, e.msg);
+            Stderr.formatln("Caught exception while executing assert check: {}:{} {}",
+                            e.file, e.line, e.msg);
             print();
         }
     }
@@ -412,7 +413,7 @@ scope class Unittest
     {
         if ( this.failed && this.summary )
         {
-            Trace.formatln("Test {} failed", this.name);
+            Stderr.formatln("Test {} failed", this.name);
         }
     }
 }

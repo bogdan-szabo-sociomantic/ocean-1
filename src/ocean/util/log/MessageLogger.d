@@ -26,7 +26,7 @@ private import tango.util.log.LayoutDate,
 
 private import tango.text.convert.Layout;
 
-private import ocean.util.log.Trace;
+private import tango.io.Stdout;
 
 
 /*******************************************************************************
@@ -240,7 +240,7 @@ deprecated class MessageLogger
 
             if ( console_output )
             {
-                Trace.formatln(out_str);
+                Stdout.formatln(out_str);
             }
         }
     }

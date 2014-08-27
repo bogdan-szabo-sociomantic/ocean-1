@@ -37,7 +37,6 @@ private import ocean.util.container.queue.model.IQueueInfo;
 
 private import ocean.util.container.queue.FlexibleRingQueue;
 
-private import ocean.util.log.Trace;
 
 private import tango.io.stream.Buffered,
                tango.io.device.File,

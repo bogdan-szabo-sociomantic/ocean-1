@@ -40,7 +40,6 @@ private     import      tango.stdc.posix.pthread: pthread_rwlock_t,
 
 debug
 {
-    private import ocean.util.log.Trace;
 }
 
 /******************************************************************************

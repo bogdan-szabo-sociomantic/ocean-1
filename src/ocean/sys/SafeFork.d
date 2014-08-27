@@ -93,7 +93,6 @@ private extern (C)
     Usage Example:
     -----
     private import ocean.sys.SafeFork;
-    private import ocean.util.log.Trace;
 
     void main ( )
     {

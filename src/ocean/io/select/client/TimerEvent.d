@@ -33,7 +33,6 @@ private import tango.stdc.posix.unistd: read, write, close;
 
 private import tango.stdc.errno: EAGAIN, EWOULDBLOCK, errno;
 
-private import ocean.util.log.Trace;
 private import ocean.text.convert.Layout;
 
 /// <sys/timerfd.h>

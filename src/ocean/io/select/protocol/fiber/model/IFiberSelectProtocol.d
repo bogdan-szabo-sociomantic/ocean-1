@@ -29,7 +29,6 @@ private import ocean.io.select.fiber.SelectFiber;
 
 private import ocean.io.select.protocol.generic.ErrnoIOException: IOError, IOWarning;
 
-debug private import ocean.util.log.Trace;
 
 /******************************************************************************/
 

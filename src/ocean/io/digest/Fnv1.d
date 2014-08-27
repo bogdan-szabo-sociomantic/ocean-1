@@ -24,7 +24,6 @@ private import tango.util.digest.Digest;
 
 private import tango.core.ByteSwap;
 
-version (UnitTestVerbose) private import ocean.util.log.Trace;
 
 
 /******************************************************************************

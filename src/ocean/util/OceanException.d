@@ -85,7 +85,7 @@ private     import      Tango = tango.text.Arguments;
 
 private     import      tango.util.log.Log, tango.util.log.LayoutDate;
 
-private     import      ocean.util.log.Trace;
+private     import      tango.io.Stdout;
 
 private     import      tango.text.convert.Layout;
 
@@ -204,7 +204,7 @@ deprecated class OceanException: Exception
                 OceanException.write(Logger.Level.Error, e.msg);
             }
 
-            Trace.formatln(e.msg);
+            Stderr.formatln(e.msg);
         }
 
         return true;
@@ -255,7 +255,7 @@ deprecated class OceanException: Exception
                 OceanException.write(Logger.Level.Error, e.msg);
             }
 
-            Trace.formatln(e.msg);
+            Stderr.formatln(e.msg);
         }
 
         return true;
@@ -275,7 +275,7 @@ deprecated class OceanException: Exception
                 OceanException.write(Logger.Level.Error, e.msg);
             }
 
-            Trace.formatln(e.msg);
+            Stderr.formatln(e.msg);
         }
 
         return true;
@@ -324,7 +324,7 @@ deprecated class OceanException: Exception
                 OceanException.write(Logger.Level.Error, e.msg);
             }
 
-            Trace.formatln(e.msg);
+            Stderr.formatln(e.msg);
         }
 
         return true;
@@ -373,7 +373,7 @@ deprecated class OceanException: Exception
                 OceanException.write(Logger.Level.Error, e.msg);
             }
 
-            Trace.formatln(e.msg);
+            Stderr.formatln(e.msg);
         }
 
         return true;
@@ -480,7 +480,7 @@ deprecated class OceanException: Exception
 
             if (console_output)
             {
-                Trace.formatln("OceanException.Warn: {}", buffer);
+                Stderr.formatln("OceanException.Warn: {}", buffer);
             }
         }
     }

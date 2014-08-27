@@ -1417,7 +1417,6 @@ unittest
 
 version ( UnitTest )
 {
-    import ocean.util.log.Trace;
 
     // Tests string concatenation function against results of the normal ~ operator
     bool concat_test ( char[][] strings ... )

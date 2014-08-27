@@ -45,7 +45,6 @@ private import ocean.db.tokyocabinet.c.tcmdb :
 
 private import tango.stdc.stdlib : free;
 
-version (UnitTestVerbose) private import ocean.util.log.Trace;
 
 /*******************************************************************************
 

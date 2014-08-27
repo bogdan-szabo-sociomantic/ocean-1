@@ -52,7 +52,6 @@ private import tango.util.compress.c.zlib;
 
 private import tango.io.stream.Zlib : ZlibException, ZlibInput;
 
-private import ocean.util.log.Trace;
 
 
 

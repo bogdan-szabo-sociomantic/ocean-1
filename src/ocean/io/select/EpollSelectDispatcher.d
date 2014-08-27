@@ -53,7 +53,6 @@ private import tango.stdc.stdlib: bsearch, qsort;
 
 private import tango.stdc.errno: errno, EINTR, ENOENT, EEXIST, ENOMEM, EINVAL;
 
-private import ocean.util.log.Trace;
 
 /*******************************************************************************
 

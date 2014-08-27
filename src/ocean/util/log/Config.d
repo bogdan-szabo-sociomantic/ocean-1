@@ -97,7 +97,6 @@ private import ocean.util.log.layout.LayoutSimple;
 private import tango.util.log.LayoutDate;
 private import tango.util.log.LayoutChainsaw;
 
-debug private import ocean.util.log.Trace;
 
 /*******************************************************************************
 

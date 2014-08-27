@@ -1122,8 +1122,7 @@ version ( UnitTest )
 
     import ocean.core.Test,
            ocean.io.serialize.StructDumper,
-           ocean.util.container.ConcatBuffer,
-           ocean.util.log.Trace;
+           ocean.util.container.ConcatBuffer;
 
     import tango.core.Memory,
            tango.core.Tuple,

@@ -51,7 +51,6 @@ private import ocean.sys.EventFD;
 
 private import ocean.io.select.client.model.IFiberSelectClient;
 
-debug private import ocean.util.log.Trace;
 
 /*******************************************************************************
 

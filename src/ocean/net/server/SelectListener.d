@@ -87,7 +87,6 @@ private import ocean.sys.socket.AddressIPSocket;
 
 private import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
 
-debug private import ocean.util.log.Trace;
 
 private import tango.util.log.Log;
 

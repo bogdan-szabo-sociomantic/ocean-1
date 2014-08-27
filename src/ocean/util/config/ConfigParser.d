@@ -43,7 +43,6 @@ private import tango.core.Exception;
 
 private import tango.core.Traits : DynamicArrayType;
 
-debug private import ocean.util.log.Trace;
 
 
 /******************************************************************************

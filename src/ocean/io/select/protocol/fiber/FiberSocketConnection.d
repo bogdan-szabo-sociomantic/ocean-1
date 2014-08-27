@@ -33,7 +33,6 @@ private import ocean.sys.socket.AddressIPSocket,
                ocean.sys.socket.InetAddress,
                ocean.sys.socket.IPSocket: IIPSocket;
 
-debug ( ISelectClient ) private import ocean.util.log.Trace;
 
 private import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
 

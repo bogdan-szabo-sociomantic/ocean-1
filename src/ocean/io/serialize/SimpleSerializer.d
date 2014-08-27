@@ -58,7 +58,6 @@ private import tango.core.Exception: IOException;
 
 private import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
 
-version (UnitTestVerbose) private import ocean.util.log.Trace;
 
 
 

@@ -23,7 +23,6 @@ module ocean.text.util.MetricPrefix;
 
 private import tango.stdc.math;
 
-debug private import ocean.util.log.Trace;
 
 
 
@@ -36,7 +35,6 @@ debug private import ocean.util.log.Trace;
     ---
 
         import ocean.text.util.MetricPrefix;
-        import ocean.util.log.Trace;
 
         // Number to display in metric prefixed mode.
         const number = 2876873683;
@@ -192,7 +190,6 @@ public struct MetricPrefix
     ---
 
         import ocean.text.util.MetricPrefix;
-        import ocean.util.log.Trace;
 
         // Number to split by binary prefix.
         const number = 2876873683;

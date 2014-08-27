@@ -30,7 +30,6 @@ private import ocean.io.device.IODevice: IInputDevice;
 
 private import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK, EINTR;
 
-debug private import ocean.util.log.Trace;
 
 /******************************************************************************/
 

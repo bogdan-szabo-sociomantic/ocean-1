@@ -39,7 +39,6 @@ else
     static assert(false, "module ocean.sys.SignalMask only supported in posix environments");
 }
 
-debug private import ocean.util.log.Trace;
 
 
 

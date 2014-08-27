@@ -21,7 +21,6 @@ module ocean.io.Terminal;
 
 private import tango.stdc.posix.signal;
 
-debug private import ocean.util.log.Trace;
 
 private
 {

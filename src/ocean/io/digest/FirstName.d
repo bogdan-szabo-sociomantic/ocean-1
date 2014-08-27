@@ -31,7 +31,6 @@ import ocean.io.digest.Fnv1;
     ---
 
     import ocean.io.digest.FirstName;
-    import ocean.util.log.Trace;
 
     MyClass myArray[] = ... ;
 

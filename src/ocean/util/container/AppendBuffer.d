@@ -29,7 +29,6 @@ private import tango.stdc.stdlib: malloc, realloc, free;
 
 private import tango.core.Exception: onOutOfMemoryError;
 
-debug private import ocean.util.log.Trace;
 
 /******************************************************************************
 

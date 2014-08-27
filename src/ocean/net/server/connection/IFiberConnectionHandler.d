@@ -36,7 +36,6 @@ private import ocean.sys.Epoll : epoll_event_t;
 
 private import tango.net.device.Socket : Socket;
 
-debug private import ocean.util.log.Trace;
 
 /*******************************************************************************
 

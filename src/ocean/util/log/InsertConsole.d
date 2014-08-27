@@ -33,7 +33,6 @@ private import tango.util.log.Log;
 
 private import tango.stdc.posix.signal;
 
-debug private import ocean.util.log.Trace;
 
 debug private import tango.core.Thread;
 

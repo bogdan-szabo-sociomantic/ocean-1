@@ -22,7 +22,6 @@
     ---
 
         import swarm.core.client.request.scheduler.Scheduler;
-        import ocean.util.log.Trace;
 
         // Struct associated with each event.
         struct EventParams
@@ -74,7 +73,6 @@ private import ocean.time.timeout.model.ITimeoutClient;
 
 debug private import ocean.text.convert.Layout;
 
-debug private import ocean.util.log.Trace;
 
 
 

@@ -34,7 +34,6 @@ private import ocean.io.select.EpollSelectDispatcher;
 
 private import tango.core.Exception: IOException;
 
-debug private import ocean.util.log.Trace;
 
 /******************************************************************************
 

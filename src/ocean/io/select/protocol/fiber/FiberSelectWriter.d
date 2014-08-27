@@ -36,7 +36,6 @@ private import tango.stdc.posix.netinet.in_: IPPROTO_TCP;
 
 extern (C) const int TCP_CORK = 3; /// <linux/tcp.h>
 
-debug private import ocean.util.log.Trace;
 
 /******************************************************************************/
 

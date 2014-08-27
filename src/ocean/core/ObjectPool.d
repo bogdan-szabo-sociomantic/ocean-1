@@ -87,7 +87,6 @@ module ocean.core.ObjectPool;
 
 private import ocean.core.Array: copy, copyExtend;
 
-version (UnitTestVerbose) private import ocean.util.log.Trace;
 
 /*******************************************************************************
 
