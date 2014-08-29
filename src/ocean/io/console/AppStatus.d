@@ -8,7 +8,7 @@
 
     Module to display application information in the terminal. Does not keep
     track of any values, only puts the information to the terminal in a style
-    similiar to the one originally used by propulsor and sonar.
+    similar to the one originally used by propulsor and sonar.
 
     Can display a set of static lines that stay at the bottom of the terminal
     as well as streaming lines that are scrolled above the static lines.
