@@ -10,6 +10,9 @@
     track of any values, only puts the information to the terminal in a style
     similar to the one originally used by propulsor and sonar.
 
+    This module is intended to be used with an InsertConsole Logger, otherwise
+    the log lines might be displayed in a messed up format.
+
     Can display a set of static lines that stay at the bottom of the terminal
     as well as streaming lines that are scrolled above the static lines.
 
