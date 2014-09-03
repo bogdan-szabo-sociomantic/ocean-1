@@ -61,12 +61,12 @@ private import ocean.util.app.ext.model.IArgumentsExtExtension;
                     "{0} [OPTIONS]", "This program is a simple test for the "
                     "CommandLineApp class, and this is a sample help text");
         }
-        public override void setupArgs( Application app, Arguments args )
+        public override void setupArgs( IApplication app, Arguments args )
         {
             args("return").aliased('r').params(1).smush().defaults("0")
                 .help("code to return to the OS");
         }
-        public override char[] validateArgs( Application app, Arguments args )
+        public override char[] validateArgs( IApplication app, Arguments args )
         {
             if (toInt(args("return").assigned[0]) < 0)
             {
@@ -74,7 +74,7 @@ private import ocean.util.app.ext.model.IArgumentsExtExtension;
             }
             return null;
         }
-        public override void processArgs( Application app, Arguments args )
+        public override void processArgs( IApplication app, Arguments args )
         {
             this.r = toInt(args("return").assigned[0]);
         }
