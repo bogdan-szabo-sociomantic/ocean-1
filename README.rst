@@ -45,6 +45,20 @@ Migration Instructions
   out it recommended to figure out any outstanding issues. Rationale for the
   change is explained in `wiki <https://github.com/sociomantic/ocean/wiki/Serialization-package-update>`_.
 
+``ocean.util.container.cache.CachingStructLoader``
+  This module has been re-implemented based on new serialization package. Delegate-based
+  ``load`` overload has been removed in favor of abstract method (``getData``). Callback
+  expects ``Contiguous!(S)`` instead of ``void[]`` as an argument. This also means that
+  deserilization / version stripping needs to be done in derivative classes, cache itself
+  always works with already contiguous data.
+
+Deprecations
+^^^^^^^^^^^^
+
+``ocean.util.container.cache.CachingDataLoader``
+  This module has been deprecaed in favor of ``ocean.util.container.cache.CachingStructLoader``. This means
+  that changing API to type-safe one which works with specific struct type will be necessary.
+
 New Features
 ^^^^^^^^^^^^
 

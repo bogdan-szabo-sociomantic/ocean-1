@@ -28,6 +28,10 @@ private import ocean.io.serialize.StructLoader: IBufferedStructLoader;
 
 private import tango.stdc.time: time_t, time;
 
+pragma(msg, "Deprecation: use CachingStructLoader instead of CachingDataLoader");
+
+deprecated:
+
 /*******************************************************************************
 
     Template Params:
