@@ -80,6 +80,9 @@ struct Contiguous( S )
     }
     body
     {
+        if (this.data.length == 0)
+            return null;
+
         return cast(S*) this.data.ptr;
     }
 
@@ -117,16 +120,15 @@ struct Contiguous( S )
 
     /***************************************************************************
 
-        Length setter.
+        Resets length to 0 allowing same buffer to be used as null indicator
+        without creating new GC allocation later
 
-        Params:
-            newlen = new length to set
-    
     ***************************************************************************/
 
-    public void length(size_t newlen)
+    public Contiguous!(S) reset()
     {
-        this.data.length = newlen;
+        this.data.length = 0;
+        return *this;
     }
 
     debug(ContiguousIntegrity)
@@ -154,7 +156,11 @@ unittest
 
     instance.enforceIntegrity();
 
-    assert(instance.data == [ cast(ubyte)42, 0, 0, 0 ]);
+    test!("==")(instance.data, [ cast(ubyte)42, 0, 0, 0 ]);
+
+    test!("==")(instance.length, 4);
+    instance.reset(); 
+    test!("==")(instance.length, 0);
 }
 
 /*******************************************************************************
