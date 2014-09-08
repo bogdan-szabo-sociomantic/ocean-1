@@ -75,6 +75,7 @@ debug ( MessageFiberDump )
     private import tango.time.Clock;
     private import tango.core.Array;
     private import tango.core.Memory;
+    private import tango.io.Stdout;
     debug = MessageFiberToken;
 }
 
@@ -102,7 +103,7 @@ debug ( MessageFiberDump ) extern(C) void dumpFibers()
 
         if ( fiber !is null )
         {
-            Trace.formatln("{,12}: State: {}; Token: {,12}; LastSuspend: {} ({}s ago); "
+            Stderr.formatln("{,12}: State: {}; Token: {,12}; LastSuspend: {} ({}s ago); "
                 "Addr: {}; Suspender: {}",
                 FirstName(fiber), state_str[fiber.fiber.state],
                 fiber.last.str, fiber.time,
