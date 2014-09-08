@@ -675,7 +675,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
     public void eventLoop ( )
     in
     {
-        assert (!this.in_event_loop);
+        assert (!this.in_event_loop, "Event loop has already been started.");
     }
     body
     {
