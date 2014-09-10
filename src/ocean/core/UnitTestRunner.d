@@ -219,12 +219,19 @@ private scope class UnitTestRunner
             //      calling toHumanTime() and the different xmlAdd*() methods
             static char[] e;
             e.length = 0;
+            scope (exit)
+            {
+                if (this.verbose)
+                    Stdout.newline();
+                if (e !is null)
+                    Stdout.formatln("{}", e);
+            }
             switch (this.timedTest(m, t, e))
             {
                 case Result.Pass:
                     passed++;
                     if (this.verbose)
-                        Stdout.formatln(" PASS [{}]", this.toHumanTime(t));
+                        Stdout.format(" PASS [{}]", this.toHumanTime(t));
                     this.xmlAddSuccess(m.name, t);
                     continue;
 
@@ -247,14 +254,10 @@ private scope class UnitTestRunner
             }
 
             if (!this.keep_going)
-            {
-                if (this.verbose)
-                    Stdout.newline();
                 continue;
-            }
 
             if (this.verbose > 2)
-                Stdout.formatln(" (continuing, --keep-going used)");
+                Stdout.format(" (continuing, --keep-going used)");
         }
 
         timeval total_time = elapsedTime(start_time);
