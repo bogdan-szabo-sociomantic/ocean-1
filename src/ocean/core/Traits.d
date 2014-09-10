@@ -131,7 +131,36 @@ public bool isIdentifier ( char[] string )
     return true;
 }
 
+/*******************************************************************************
 
+    If T is enum, aliases to its base type. Otherwise aliases to T.
+
+    Template Params
+        T = any type
+
+*******************************************************************************/
+
+public template StripEnum(T)
+{
+    static if (is(T U == enum))
+    {
+        alias U StripEnum;
+    }
+    else
+    {
+        alias T StripEnum;
+    }
+}
+
+unittest
+{
+    enum Test : int
+    {
+        field = 42
+    }
+
+    static assert (is(StripEnum!(typeof(Test.field)) == int));
+}
 
 /*******************************************************************************
 
@@ -145,43 +174,60 @@ public bool isIdentifier ( char[] string )
 
 public template hasIndirections ( T... )
 {
+    const hasIndirections = hasIndirectionsImpl!(T)();
+}
+
+private bool hasIndirectionsImpl ( T... )()
+{
     static if ( T.length == 0 )
     {
-        const hasIndirections = false;
-    }
-    else static if ( isAtomicType!(T[0]) )
-    {
-        const hasIndirections = hasIndirections!(T[1..$]);
-    }
-    else static if ( isStaticArrayType!(T[0]) )
-    {
-       const hasIndirections = hasIndirections!(ElementTypeOfArray!(T[0])) ||
-                               hasIndirections!(T[1..$]);
-    }
-    else static if ( is ( T[0] == struct ) || is ( T[0] == union ) )
-    {
-        static if ( TypeTuple!(T[0]).length == 0 )
-        {
-            const hasIndirections = hasIndirections!(T[1..$]);
-        }
-        else static if ( TypeTuple!(T[0]).length == 1 )
-        {
-            const hasIndirections = hasIndirections!(TypeTuple!(T)[0]) ||
-                                    hasIndirections!(T[1..$]);
-        }
-        else
-        {
-            const hasIndirections = hasIndirections!(TypeTuple!(T[0])[0]) ||
-                                    hasIndirections!(TypeTuple!(T[0])[1..$]) ||
-                                    hasIndirections!(T[1..$]);
-        }
+        return false;
     }
     else
     {
-        const hasIndirections = true;
+        alias StripEnum!(StripTypedef!(T[0])) Type;
+
+        static if ( isAtomicType!(Type) )
+        {
+            return hasIndirections!(T[1..$]);
+        }
+        else static if ( isStaticArrayType!(Type) )
+        {
+            return hasIndirections!(ElementTypeOfArray!(Type)) ||
+                   hasIndirections!(T[1..$]);
+        }
+        else static if ( is ( T[0] == struct ) || is ( T[0] == union ) )
+        {
+            static if ( TypeTuple!(Type).length == 0 )
+            {
+                return hasIndirections!(T[1..$]);
+            }
+            else static if ( TypeTuple!(Type).length == 1 )
+            {
+                return hasIndirections!(TypeTuple!(Type)) ||
+                       hasIndirections!(T[1..$]);
+            }
+            else
+            {
+                return hasIndirections!(TypeTuple!(Type)[0]) ||
+                       hasIndirections!(TypeTuple!(Type)[1..$]) ||
+                       hasIndirections!(T[1..$]);
+            }
+        }
+        else
+        {
+            return true;
+        }
     }
+
+    assert(false);
 }
 
+unittest
+{
+    static assert (hasIndirections!(int) == false);
+    static assert (hasIndirections!(int[int]) == true);
+}
 
 /*******************************************************************************
 
