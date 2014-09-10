@@ -62,6 +62,13 @@ Deprecations
 New Features
 ^^^^^^^^^^^^
 
+``ocean.io.SimpleSerializer``
+  The SimpleSerializer now supports dynamic arrays, available through the
+  SimpleSerializerArrays alias.
+
+``ocean.util.container.map.utils.MapSerializer``
+  Now supports structs with dynamic arrays
+
 ``ocean.io.console.AppStatus``
   Added a eraseStaticLines() method to clear all the lines of the app-status
   from the screen.

@@ -393,7 +393,7 @@ class MapSerializer
 
     ***************************************************************************/
 
-    private struct FileHeader ( K, V, ubyte VERSION = 3 )
+    private struct FileHeader ( K, V, ubyte VERSION = 4 )
     {
         /***********************************************************************
 
@@ -426,7 +426,7 @@ class MapSerializer
             ulong hash = TypeHash!(KeyValueStruct!(K,V));
         }
 
-        static if ( VERSION == 3 )
+        static if ( VERSION >= 3 )
         {
             static if ( StructVersionBase.hasVersion!(K)() )
             {
@@ -636,8 +636,8 @@ class MapSerializer
 
         void addKeyVal ( ref K key, ref V val )
         {
-            SimpleSerializer.write!(K)(buffered, key);
-            SimpleSerializer.write!(V)(buffered, val);
+            SimpleSerializerArrays.write!(K)(buffered, key);
+            SimpleSerializerArrays.write!(V)(buffered, val);
             nr_rec++;
         }
 
@@ -756,6 +756,8 @@ class MapSerializer
     private void loadInternal ( K, V ) ( BufferedInput buffered,
                                          PutterDg!(K, V) putter )
     {
+        bool raw_load = false;
+
         FileHeader!(K,V) fh_expected;
         FileHeader!(K,V) fh_actual;
 
@@ -777,9 +779,15 @@ class MapSerializer
             {
                 return this.loadOld!(K,V)(buffered, putter);
             }
-
-            throw new Exception("Version of file header "
-                                " does not match our version, aborting!");
+            if ( fh_actual.versionNumber == 3 )
+            {
+                raw_load = true;
+            }
+            else
+            {
+                throw new Exception("Version of file header "
+                                    " does not match our version, aborting!");
+            }
         }
 
         bool conv;
@@ -812,8 +820,6 @@ class MapSerializer
             }
         }
 
-        K key;
-        V value;
         size_t nr_rec;
 
         if ( buffered.readable < nr_rec.sizeof )
@@ -821,18 +827,30 @@ class MapSerializer
             buffered.compress();
             buffered.populate();
         }
-        SimpleSerializer.read(buffered, nr_rec);
+        SimpleSerializerArrays.read(buffered, nr_rec);
 
         for ( ulong i=0; i < nr_rec;i++ )
         {
+            K key;
+            V value;
+
             if ( buffered.readable < V.sizeof + K.sizeof )
             {
                 buffered.compress();
                 buffered.populate();
             }
 
-            SimpleSerializer.read!(K)(buffered, key);
-            SimpleSerializer.read!(V)(buffered, value);
+            if ( raw_load )
+            {
+                SimpleSerializer.read!(K)(buffered, key);
+                SimpleSerializer.read!(V)(buffered, value);
+            }
+            else
+            {
+                SimpleSerializerArrays.read!(K)(buffered, key);
+                SimpleSerializerArrays.read!(V)(buffered, value);
+            }
+
             putter(key, value);
         }
     }
@@ -967,8 +985,6 @@ class MapSerializer
     private void loadOld ( K, V ) ( BufferedInput buffered,
                                     void delegate ( ref K, ref V ) putter )
     {
-        K key;
-        V value;
         size_t nr_rec;
 
         FileHeader!(K,V,2) fh_expected;
@@ -1016,10 +1032,12 @@ class MapSerializer
             buffered.compress();
             buffered.populate();
         }
-        SimpleSerializer.read(buffered, nr_rec);
+        SimpleSerializerArrays.read(buffered, nr_rec);
 
         for ( ulong i=0; i < nr_rec;i++ )
         {
+            K key;
+            V value;
 
             if ( buffered.readable < V.sizeof + K.sizeof )
             {

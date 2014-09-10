@@ -56,18 +56,25 @@ private import ocean.core.Exception: enforce;
 
 private import tango.core.Exception: IOException;
 
+private import tango.core.Traits;
+
 private import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
 
 
-
+public alias SimpleSerializerT!(true) SimpleSerializerArrays;
+public alias SimpleSerializerT!(false) SimpleSerializer;
 
 /*******************************************************************************
 
     Simple serializer struct - just a namespace, all methods are static.
 
+    Template Params:
+        SerializeDynArrays = true: dynamic arrays in structs will be serialized
+                             false: not.
+
 *******************************************************************************/
 
-struct SimpleSerializer
+struct SimpleSerializerT ( bool SerializeDynArrays = true )
 {
 static:
 
@@ -282,6 +289,24 @@ static:
         {
             transmitted += transmitData(stream, data, A.sizeof);
         }
+        // Handle structs with arrays if enabled
+        else static if ( is ( T == struct ) && SerializeDynArrays )
+        {
+            foreach ( i, field; data.tupleof )
+            {
+                static if ( isStaticArrayType!(typeof(field)) )
+                {
+                    transmitted += transmitData(stream,
+                                                cast(void*)&data.tupleof[i],
+                                                typeof(field).sizeof);
+                }
+                else
+                {
+                    transmitted += transmit(stream, data.tupleof[i]);
+                }
+            }
+        }
+        // handle everything else, including structs if arrays are disabled
         else
         {
             transmitted += transmitData(stream, cast(void*)&data, T.sizeof);
@@ -421,10 +446,10 @@ version ( UnitTest )
 
         scope file = new MemoryDevice;
 
-        SimpleSerializer.write(file, write);
+        SimpleSerializerArrays.write(file, write);
         file.seek(0);
 
-        SimpleSerializer.read(file, read);
+        SimpleSerializerArrays.read(file, read);
         version ( UnitTestVerbose ) Stdout.formatln("Wrote {} to conduit, read {}", write, read);
         test!("==")(read, write, "Error serializing " ~ T.stringof);
     }
@@ -442,6 +467,39 @@ unittest
 
     char[][] a_string_array = ["hollow world", "journey to the centre", "of the earth"];
     testSerialization(a_string_array);
+
+    // Check structs with arrays
+    {
+        struct AStruct
+        {
+            struct Another
+            {
+                ulong first;
+                ushort second;
+                char[2] stat;
+            }
+
+            Another[] arr;
+        }
+
+        auto a_struct =
+            AStruct([AStruct.Another(1234,563, "ab"),
+                    AStruct.Another(643,53, "ec"),
+                    AStruct.Another(567,66, "ef")]);
+
+        AStruct read;
+
+        scope file = new MemoryDevice;
+
+        SimpleSerializerArrays.write(file, a_struct);
+        file.seek(0);
+
+        SimpleSerializerArrays.read(file, read);
+
+        test!("==")(a_struct.arr.length, read.arr.length, "Not equal!");
+        test!("!=")(a_struct.arr.ptr, read.arr.ptr,
+               "Deserialized pointer is the same!");
+    }
 
     version (UnitTestVerbose) Stdout.formatln("done unittest\n");
 }
