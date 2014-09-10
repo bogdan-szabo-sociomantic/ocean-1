@@ -413,8 +413,9 @@ version ( UnitTest )
 {
     version (UnitTestVerbose) private import ocean.io.Stdout;
     private import ocean.io.device.MemoryDevice;
+    private import ocean.core.Test;
 
-    void test ( T ) ( T write )
+    void testSerialization ( T ) ( T write )
     {
         T read;
 
@@ -425,7 +426,7 @@ version ( UnitTest )
 
         SimpleSerializer.read(file, read);
         version ( UnitTestVerbose ) Stdout.formatln("Wrote {} to conduit, read {}", write, read);
-        assert(read == write, "Error serializing " ~ T.stringof);
+        test!("==")(read, write, "Error serializing " ~ T.stringof);
     }
 }
 
@@ -434,13 +435,13 @@ unittest
     version (UnitTestVerbose) Stdout.formatln("Running ocean.io.serialize.SimpleSerializer unittest");
 
     uint an_int = 23;
-    test(an_int);
+    testSerialization(an_int);
 
     char[] a_string = "hollow world";
-    test(a_string);
+    testSerialization(a_string);
 
     char[][] a_string_array = ["hollow world", "journey to the centre", "of the earth"];
-    test(a_string_array);
+    testSerialization(a_string_array);
 
     version (UnitTestVerbose) Stdout.formatln("done unittest\n");
 }
