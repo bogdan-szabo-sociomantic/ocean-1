@@ -412,13 +412,13 @@ static:
 version ( UnitTest )
 {
     version (UnitTestVerbose) private import ocean.io.Stdout;
-    private import tango.io.device.TempFile;
+    private import ocean.io.device.MemoryDevice;
 
     void test ( T ) ( T write )
     {
         T read;
 
-        scope file = new TempFile;
+        scope file = new MemoryDevice;
 
         SimpleSerializer.write(file, write);
         file.seek(0);
