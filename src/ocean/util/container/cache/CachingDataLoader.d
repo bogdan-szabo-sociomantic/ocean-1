@@ -255,10 +255,10 @@ abstract class CachingDataLoaderBase ( Loader )
         }
         else
         {
-            auto value_in_cache = CacheValue(this.cache_.getRaw(key));
 
-            if (value_in_cache)
+            if (auto value_or_null = this.cache_.getRaw(key))
             {
+                auto value_in_cache = CacheValue(value_or_null);
                 return value_in_cache.pending?
                     null:
                     this.loadRaw(value_in_cache.value[]);
