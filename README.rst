@@ -34,6 +34,17 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+Migration Instructions
+^^^^^^^^^^^^^^^^^^^^^^
+
+``ocean.io.serialize.StructLoader``
+``ocean.io.serialize.StructDumper``
+  New package has been introduced (``ocean.util.serialize.contiguous``) that is
+  supposed to replace existing versioned loaders. There is no straightforward
+  migration path and old modules are not deprecate yet. However early trying
+  out it recommended to figure out any outstanding issues. Rationale for the
+  change is explained in `wiki <https://github.com/sociomantic/ocean/wiki/Serialization-package-update>`_.
+
 New Features
 ^^^^^^^^^^^^
 
@@ -41,6 +52,13 @@ New Features
   Added a eraseStaticLines() method to clear all the lines of the app-status
   from the screen.
 
+
+``ocean.util.serialize``
+  New serialization package defines standard interface for (de)serialization
+  and contains new implementation of binary serialization format used for storing
+  krill structs in DHT. It also provides tools for struct versioning support.
+  Check documentaton in relevant ``package_.d`` files for any detailed
+  instructions or explanation.
 
 v1.16 (2014-08-27)
 ------------------
