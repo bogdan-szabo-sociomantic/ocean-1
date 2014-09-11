@@ -302,7 +302,7 @@ override DFLAGS += -version=WithDateTime -I./src \
 # If $(TEST_FILTER_OUT) is defined, the files specified there will be excluded.
 # All files called main.d are excluded too, it's assumed they'll have a main()
 # function on them.
-TEST_SOURCES +=  $(call find_files,.d,,$C/src,$(TEST_FILTER_OUT) $C/src/%/main.d)
+TEST_SOURCES += $(call find_files,.d,,$C/src,$(TEST_FILTER_OUT) $C/src/%/main.d)
 
 
 # Include the user's makefile, Build.mak
