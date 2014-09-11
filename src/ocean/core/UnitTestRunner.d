@@ -426,7 +426,13 @@ private scope class UnitTestRunner
             auto output = new TextFileOutput(this.xml_file);
             // At this point we don't care about errors anymore, is best effort
             scope (failure) unlink(StringC.toCstring(this.xml_file));
-            scope (exit) output.close();
+            scope (exit)
+            {
+                // Workarround for:
+                // https://github.com/sociomantic/tango/issues/49
+                output.flush();
+                output.close();
+            }
             output(printer.print(this.xml_doc)).newline;
         }
         catch (Exception e)
