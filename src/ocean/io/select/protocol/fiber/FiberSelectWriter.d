@@ -34,7 +34,7 @@ private import tango.stdc.posix.sys.socket: setsockopt;
 
 private import tango.stdc.posix.netinet.in_: IPPROTO_TCP;
 
-extern (C) const int TCP_CORK = 3; /// <linux/tcp.h>
+private import tango.sys.linux.tcp: TCP_CORK;
 
 
 /******************************************************************************/
