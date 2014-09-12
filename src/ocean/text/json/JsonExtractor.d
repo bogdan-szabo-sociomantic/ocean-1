@@ -43,7 +43,8 @@
         `"device":`
         `{`
             `"ip":"192.168.0.1",`
-            `"ua":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/534.30 (KHTML, like Gecko) Chrome/12.0.742.53 Safari/534.30"`
+            `"ua":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/534.30 `
+                  `(KHTML, like Gecko) Chrome/12.0.742.53 Safari/534.30"`
         `},`
         `"cud":`
         `{`
@@ -81,8 +82,9 @@
 
     GetObject site = new GetObject(json, ["page": page]),
               user = new GetObject(json, ["uid": uid]),
-       imp_element = new GetObject(json, [cast (char[])                         // cast needed to prevent
-                                          "impid": impid, "w": w, "h": h]);     // array type inference error
+                            // cast needed to prevent array type inference error
+       imp_element = new GetObject(json, [cast (char[])
+                                          "impid": impid, "w": w, "h": h]);
 
 
     // Create one IterateArray instance for each JSON array that contains
@@ -123,7 +125,8 @@
     // pass the top level getters.
 
     Main main = new Main(json, [cast (char[])
-                                "id": id, "imp": imp, "site": site, "user": user]);
+                                "id": id, "imp": imp, "site": site,
+                                "user": user]);
 
     // Here we go.
 
@@ -153,11 +156,11 @@
 
 module ocean.text.json.JsonExtractor;
 
-/******************************************************************************
+/*******************************************************************************
 
     Imports
 
- ******************************************************************************/
+*******************************************************************************/
 
 private import ocean.text.json.JsonParserIter;
 private import ocean.core.Array;
@@ -176,7 +179,7 @@ struct JsonExtractor
 
     alias JsonParserIter!(false).Token Type;
 
-    /**************************************************************************
+    /***************************************************************************
 
         JSON main/top level object getter
 
@@ -184,7 +187,7 @@ struct JsonExtractor
 
     class Main : GetObject
     {
-        /**********************************************************************
+        /***********************************************************************
 
             JSON parser instance
 
@@ -192,7 +195,7 @@ struct JsonExtractor
 
         private const Parser json;
 
-        /**********************************************************************
+        /***********************************************************************
 
             Constructor, specifies getters for named and unnamed fields.
 
@@ -209,12 +212,13 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        this ( Parser json, GetField[char[]] get_named_fields, GetField[] get_indexed_fields ... )
+        public this ( Parser json, GetField[char[]] get_named_fields,
+                      GetField[] get_indexed_fields ... )
         {
             super(this.json = json, get_named_fields, get_indexed_fields);
         }
 
-        /**********************************************************************
+        /***********************************************************************
 
             Resets all type/value results and parses content, extracting types
             and values for the fields to extract.
@@ -246,7 +250,7 @@ struct JsonExtractor
         }
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         JSON field getter, extracts type and value of a field.
 
@@ -262,7 +266,7 @@ struct JsonExtractor
 
         Type type;
 
-        /**********************************************************************
+        /***********************************************************************
 
             Field value, meaningful only for certain types, especially
             Type.String and Type.Number. Corresponds to the value returned by
@@ -272,7 +276,7 @@ struct JsonExtractor
 
         public char[] value = null;
 
-        /**********************************************************************
+        /***********************************************************************
 
             Sets type and value for the field represented by this instance.
 
@@ -302,7 +306,7 @@ struct JsonExtractor
             this.reset_();
         }
 
-        /**********************************************************************
+        /***********************************************************************
 
             To be overridden, called when set() has finished.
 
@@ -310,7 +314,7 @@ struct JsonExtractor
 
         protected void set_ ( ) { }
 
-        /**********************************************************************
+        /***********************************************************************
 
             To be overridden, called when reset() has finished.
 
@@ -328,7 +332,7 @@ struct JsonExtractor
 
     class GetObject : IterateAggregate
     {
-        /**********************************************************************
+        /***********************************************************************
 
             If enabled, any unmatched field will result in an exception.
 
@@ -336,7 +340,7 @@ struct JsonExtractor
 
         public bool strict;
 
-        /**********************************************************************
+        /***********************************************************************
 
             List of getters for named fields, each associated with the name of a
             field.
@@ -345,7 +349,7 @@ struct JsonExtractor
 
         private const GetField[char[]] get_named_fields;
 
-        /**********************************************************************
+        /***********************************************************************
 
             List of getters for fields without name, may contain null elements
             to ignore fields.  If the i-th object field is not named and the
@@ -357,7 +361,7 @@ struct JsonExtractor
         private const GetField[]       get_indexed_fields;
 
 
-        /**********************************************************************
+        /***********************************************************************
 
             Thrown as indicator when strict behavior enforcement fails.
 
@@ -365,7 +369,7 @@ struct JsonExtractor
 
         private Exception field_unmatched;
 
-        /**********************************************************************
+        /***********************************************************************
 
             Constructor, specifies getters for named and unnamed fields.
 
@@ -382,7 +386,8 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        this ( Parser json, GetField[char[]] get_named_fields, GetField[] get_indexed_fields ... )
+        public this ( Parser json, GetField[char[]] get_named_fields,
+                      GetField[] get_indexed_fields ... )
         {
             super(json, Type.BeginObject, Type.EndObject);
 
@@ -391,7 +396,7 @@ struct JsonExtractor
             this.get_indexed_fields = get_indexed_fields;
         }
 
-        /**********************************************************************
+        /***********************************************************************
 
             Called by super.reset() to reset all field getters.
 
@@ -410,7 +415,7 @@ struct JsonExtractor
             }
         }
 
-        /**********************************************************************
+        /***********************************************************************
 
             Called by super.reset() to reset all field getters.
 
@@ -454,7 +459,7 @@ struct JsonExtractor
             }
         }
 
-        /**********************************************************************
+        /***********************************************************************
 
             Picks the field getter responsible for the field corresponding to
             name, or i if unnamed, and sets its type and value.
@@ -484,7 +489,7 @@ struct JsonExtractor
             return handle;
         }
 
-        /**********************************************************************
+        /***********************************************************************
 
             Picks the field getter responsible for the field corresponding to
             name, or i if unnamed.
@@ -520,7 +525,7 @@ struct JsonExtractor
 
     class GetArray : IterateArray
     {
-        /**********************************************************************
+        /***********************************************************************
 
             Iteration callback delegate type alias. The delegate must either use
             an appropriate GetField (or subclass) instance to handle and move
@@ -539,9 +544,9 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        alias bool delegate ( uint i, Type type, char[] value ) IteratorDg;
+        public alias bool delegate ( uint i, Type type,char[] value) IteratorDg;
 
-        /**********************************************************************
+        /***********************************************************************
 
             Iteration callback delegate
 
@@ -549,7 +554,7 @@ struct JsonExtractor
 
         private const IteratorDg iterator_dg;
 
-        /**********************************************************************
+        /***********************************************************************
 
             List of fields to reset when this.reset is called.
 
@@ -557,7 +562,7 @@ struct JsonExtractor
 
         private GetField[] fields_to_reset;
 
-        /**********************************************************************
+        /***********************************************************************
 
             Constructor
 
@@ -568,7 +573,8 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        public this ( Parser json, GetField[] fields_to_reset, IteratorDg iterator_dg )
+        public this ( Parser json, GetField[] fields_to_reset,
+                      IteratorDg iterator_dg )
         {
             super(json);
 
@@ -577,7 +583,7 @@ struct JsonExtractor
             this.iterator_dg = iterator_dg;
         }
 
-        /**********************************************************************
+        /***********************************************************************
 
             Invokes the iteration callback delegate.
 
@@ -598,7 +604,7 @@ struct JsonExtractor
         }
 
 
-        /**********************************************************************
+        /***********************************************************************
 
             Called by super.reset() to reset all field given by fields_to_reset.
 
@@ -623,7 +629,7 @@ struct JsonExtractor
 
     abstract class IterateArray : IterateAggregate
     {
-        /**********************************************************************
+        /***********************************************************************
 
             Constructor
 
@@ -647,7 +653,7 @@ struct JsonExtractor
 
     abstract class IterateAggregate : GetField
     {
-        /**********************************************************************
+        /***********************************************************************
 
             Start and end token type, usually BeginObject/EndObject or
             BeginArray/EndArray.
@@ -656,7 +662,7 @@ struct JsonExtractor
 
         public const Type start_type, end_type;
 
-        /**********************************************************************
+        /***********************************************************************
 
             JSON parser instance
 
@@ -664,7 +670,7 @@ struct JsonExtractor
 
         private const Parser json;
 
-        /**********************************************************************
+        /***********************************************************************
 
             Constructor
 
@@ -685,7 +691,7 @@ struct JsonExtractor
             this.json       = json;
         }
 
-        /**********************************************************************
+        /***********************************************************************
 
             Invoked by super.set() to iterate over the JSON object or array.
 
@@ -713,7 +719,7 @@ struct JsonExtractor
             }
         }
 
-        /**********************************************************************
+        /***********************************************************************
 
             Abstract iteration method, must either use an appropriate GetField
             (or subclass) instance to handle and move the parser to the end of
@@ -733,7 +739,8 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        abstract protected bool setField ( uint i, Type type, char[] name, char[] value );
+        abstract protected bool setField ( uint i, Type type, char[] name,
+                                           char[] value );
     }
 
     /**************************************************************************/
@@ -773,7 +780,8 @@ struct JsonExtractor
             `"device":`
             `{`
                 `"ip":"192.168.0.1",`
-                `"ua":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/534.30 (KHTML, like Gecko) Chrome/12.0.742.53 Safari/534.30"`
+                `"ua":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/534.30 `
+                     `(KHTML, like Gecko) Chrome/12.0.742.53 Safari/534.30"`
             `},`
             `"cud":`
             `{`
@@ -791,7 +799,8 @@ struct JsonExtractor
               w           = new GetField,
               site        = new GetObject(json, ["page": page]),
               user        = new GetObject(json, ["uid": uid]),
-              imp_element = new GetObject(json, [cast (char[]) "impid": impid, "w": w, "h": h]),
+              imp_element = new GetObject(json, [cast (char[]) "impid": impid,
+                                                 "w": w, "h": h]),
               imp         = new GetArray(json, [imp_element],
                                        (uint i, Type type, char[] value)
                                        {
@@ -805,7 +814,8 @@ struct JsonExtractor
 
                                            return handled;
                                        }),
-           main          = new Main(json, [cast (char[]) "id": id, "imp": imp, "site": site, "user": user]);
+           main          = new Main(json, [cast (char[]) "id": id, "imp": imp,
+                                           "site": site, "user": user]);
 
         bool ok = main.parse(content);
 
