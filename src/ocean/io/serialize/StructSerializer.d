@@ -1710,242 +1710,242 @@ version (UnitTest)
                 return a;
             }
     }
+}
 
 unittest
 {
-   with (StructSerializer!())
-   {
-       byte[] buf;
-       uint w=void;
-       {
-           Retargeting retargeting;
+    with (StructSerializer!())
+    {
+        byte[] buf;
+        uint w=void;
+        {
+            Retargeting retargeting;
 
-           retargeting.maxLength = 55;
+            retargeting.maxLength = 55;
 
-           for(uint i = 0; i < 55; ++i)
-               retargeting.push(RetargetingAction(i,i+2,3,4));
+            for(uint i = 0; i < 55; ++i)
+                retargeting.push(RetargetingAction(i,i+2,3,4));
 
-           w = retargeting.write;
-           dump(&retargeting,buf);
-           assert(length(&retargeting) == buf.length);
-       }
-       Retargeting newStruct;
+            w = retargeting.write;
+            dump(&retargeting,buf);
+            assert(length(&retargeting) == buf.length);
+        }
+        Retargeting newStruct;
 
-       load(&newStruct,buf);
+        load(&newStruct,buf);
 
-       assert(newStruct.maxLength == 55);
-       assert(newStruct.write == w);
+        assert(newStruct.maxLength == 55);
+        assert(newStruct.write == w);
 
-       foreach(i, el ; newStruct.elements)
-       {
-           assert(el.id == i);
-           assert(el.adpan_id == i+2);
-           assert(el.lastseen == 3 && el.action == 4);
-       }
+        foreach(i, el ; newStruct.elements)
+        {
+            assert(el.id == i);
+            assert(el.adpan_id == i+2);
+            assert(el.lastseen == 3 && el.action == 4);
+        }
 
 
-       {
-           Urls urls;
+        {
+            Urls urls;
 
-           for(uint i=0;i<40;++i)
-               urls.push("http://example.com/"~to!(char[])(i));
+            for(uint i=0;i<40;++i)
+                urls.push("http://example.com/"~to!(char[])(i));
 
-           buf.length = 0;
-          // dump(&urls,(void[] data){ buf~=cast(byte[])data; });
-           dump(&urls,buf);
-       }
-       Urls empty;
-       Urls* emptyp;
-       //load(&emptyp,
+            buf.length = 0;
+            // dump(&urls,(void[] data){ buf~=cast(byte[])data; });
+            dump(&urls,buf);
+        }
+        Urls empty;
+        Urls* emptyp;
+        //load(&emptyp,
         //   delegate void[] (void[] d, size_t len) { d[]=buf[0..d.length]; buf = buf[d.length..$]; return null; },
         //   false);
 
-       loadSlice(emptyp,buf);
+        loadSlice(emptyp,buf);
 
-       assert(emptyp.elements.length == 40);
+        assert(emptyp.elements.length == 40);
 
-       foreach(i, url ; emptyp.elements)
-           assert(url == "http://example.com/"~to!(char[])(i));
-
-
-
-       struct SerializeMe
-       {
-
-
-           MeToo!(4)[] structArray;
-       }
-
-       {
-           SerializeMe sm;
-           sm.structArray ~= MeToo!(4)(1,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
-           sm.structArray ~= MeToo!(4)(2,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
-           sm.structArray ~= MeToo!(4)(3,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
-           sm.structArray ~= MeToo!(4)(4,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
-
-
-           dump(&sm,buf);
-       }
-
-       SerializeMe dsm;
-       load(&dsm,buf);
-
-       assert(dsm.structArray.length == 4);
-
-       foreach(i, ar ; dsm.structArray)
-       {
-           assert(ar.a == i+1);
-           assert(ar.jo == "eins");
-           assert(ar.staticArray[0] == 2);
-           assert(ar.staticArray[1] == 3);
-           assert(ar.rec.a == 2);
-           assert(ar.rec.jo == "zwei");
-           assert(ar.rec.staticArray[0] == 2);
-           assert(ar.rec.staticArray[1] == 3);
-           assert(ar.rec.rec.a == 3);
-           assert(ar.rec.rec.jo == "drei");
-           assert(ar.rec.rec.staticArray[0] == 2);
-           assert(ar.rec.rec.staticArray[1] == 3);
-           assert(ar.rec.rec.rec.a == 4);
-           assert(ar.rec.rec.rec.jo == "");
-           assert(ar.rec.rec.rec.staticArray[0] == 2);
-           assert(ar.rec.rec.rec.staticArray[1] == 3);
-           assert(ar.rec.rec.rec.rec.a == 5);
-           assert(ar.rec.rec.rec.rec.jo == "");
-           assert(ar.rec.rec.rec.rec.staticArray[0] == 2);
-           assert(ar.rec.rec.rec.rec.staticArray[1] == 3);
-       }
-
-
-   StopWatch sw;
+        foreach(i, url ; emptyp.elements)
+            assert(url == "http://example.com/"~to!(char[])(i));
 
 
 
-   SerializeMe sm;
-   sm.structArray ~= MeToo!(4)(1,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
-   sm.structArray ~= MeToo!(4)(2,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
-   sm.structArray ~= MeToo!(4)(3,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
-   sm.structArray ~= MeToo!(4)(4,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
-
-   buf.length = length(&sm);
-
-   /****************************************************************************
-
-     Performance Test
-
-      Results for struct SerializeMe:
-       Writing with 4049768.36/s (worst 3.6m)
-       Reading with 7587750.42/s
-
-   ****************************************************************************/
+        struct SerializeMe
+        {
 
 
+            MeToo!(4)[] structArray;
+        }
 
-   debug ( OceanPerformanceTest )
-   {
-   Trace.formatln("SerializeMe Performance Test:");
-   sw.start;
-   for(uint i = 0;i<100_000_000; ++i)
-   {
-       dump(&sm,buf);
-   }
-   Trace.formatln("Writing with {}/s",100_000_000/sw.stop);
+        {
+            SerializeMe sm;
+            sm.structArray ~= MeToo!(4)(1,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
+            sm.structArray ~= MeToo!(4)(2,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
+            sm.structArray ~= MeToo!(4)(3,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
+            sm.structArray ~= MeToo!(4)(4,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
 
-   // FIXME !!: This causes a segfault:
-   /*
-    * Program received signal SIGSEGV, Segmentation fault.
-    __memcpy_ssse3 () at ../sysdeps/i386/i686/multiarch/memcpy-ssse3.S:1099
-    1099    ../sysdeps/i386/i686/multiarch/memcpy-ssse3.S: No such file or directory.
-        in ../sysdeps/i386/i686/multiarch/memcpy-ssse3.S
-    (gdb) bt
-    #0  __memcpy_ssse3 () at ../sysdeps/i386/i686/multiarch/memcpy-ssse3.S:1099
-    #1  0x08101d7c in _d_arraycopy ()
-    #2  0x080b30a9 in ocean.io.serialize.StructSerializer.StructSerializer.load!(SerializeMe,byte).load.__dgliteral32 (this=0xffffc670, chunk=581442738273124356)
-        at /home/mathias/workspace/includes/ocean/io/serialize/StructSerializer.d:197
-    #3  0x00000078 in ?? ()
-    #4  0xffffc4f0 in ?? ()
-    #5  0x080b1293 in ocean.io.serialize.StructSerializer.__unittest1 ()
-        at /home/mathias/workspace/includes/ocean/io/serialize/StructSerializer.d:1703
-    #6  0xd969d540 in ?? ()
-    */
 
-   sw.start;
-   for(uint i = 0;i<100_000_000; ++i)
-   {
-       load(&sm,buf);
-   }
-   Trace.formatln("Reading with {}/s",100_000_000/sw.stop);
+            dump(&sm,buf);
+        }
+
+        SerializeMe dsm;
+        load(&dsm,buf);
+
+        assert(dsm.structArray.length == 4);
+
+        foreach(i, ar ; dsm.structArray)
+        {
+            assert(ar.a == i+1);
+            assert(ar.jo == "eins");
+            assert(ar.staticArray[0] == 2);
+            assert(ar.staticArray[1] == 3);
+            assert(ar.rec.a == 2);
+            assert(ar.rec.jo == "zwei");
+            assert(ar.rec.staticArray[0] == 2);
+            assert(ar.rec.staticArray[1] == 3);
+            assert(ar.rec.rec.a == 3);
+            assert(ar.rec.rec.jo == "drei");
+            assert(ar.rec.rec.staticArray[0] == 2);
+            assert(ar.rec.rec.staticArray[1] == 3);
+            assert(ar.rec.rec.rec.a == 4);
+            assert(ar.rec.rec.rec.jo == "");
+            assert(ar.rec.rec.rec.staticArray[0] == 2);
+            assert(ar.rec.rec.rec.staticArray[1] == 3);
+            assert(ar.rec.rec.rec.rec.a == 5);
+            assert(ar.rec.rec.rec.rec.jo == "");
+            assert(ar.rec.rec.rec.rec.staticArray[0] == 2);
+            assert(ar.rec.rec.rec.rec.staticArray[1] == 3);
+        }
+
+
+        StopWatch sw;
 
 
 
-   Trace.formatln("Retargeting Performance Test:");
-   sw.start;
-   for(uint i = 0;i<100_000_000; ++i)
-   {
-       dump(&newStruct,buf);
-   }
-   Trace.formatln("Writing with {}/s",100_000_000/sw.stop);
+        SerializeMe sm;
+        sm.structArray ~= MeToo!(4)(1,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
+        sm.structArray ~= MeToo!(4)(2,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
+        sm.structArray ~= MeToo!(4)(3,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
+        sm.structArray ~= MeToo!(4)(4,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
 
+        buf.length = length(&sm);
 
-   sw.start;
-   for(uint i = 0;i<100_000_000; ++i)
-   {
-       load(&newStruct,buf);
-   }
-   Trace.formatln("Reading with {}/s",100_000_000/sw.stop);
+        /****************************************************************************
 
+          Performance Test
 
-   Trace.formatln("Urls Performance Test:");
+          Results for struct SerializeMe:
+          Writing with 4049768.36/s (worst 3.6m)
+          Reading with 7587750.42/s
 
-
-   {
-   byte buffer[]; buffer.length = length(emptyp);
-   sw.start;
-   for(uint i = 0;i<1_00000; ++i)
-   {
-       dump(emptyp,buffer );
-   }
-   Trace.formatln("{} Writing preallocated buf with",1_00000/sw.stop);
+        ****************************************************************************/
 
 
 
-   uint a=0;
-   sw.start;
-   for(uint i = 0;i<1_0000; ++i)
-   {
-       a=0;
-       dump(emptyp,(void[] data) {
+        debug ( OceanPerformanceTest )
+        {
+            Trace.formatln("SerializeMe Performance Test:");
+            sw.start;
+            for(uint i = 0;i<100_000_000; ++i)
+            {
+                dump(&sm,buf);
+            }
+            Trace.formatln("Writing with {}/s",100_000_000/sw.stop);
 
-           if(data.length+a > buffer.length)
-               assert(false);
+            // FIXME !!: This causes a segfault:
+            /*
+             * Program received signal SIGSEGV, Segmentation fault.
+             __memcpy_ssse3 () at ../sysdeps/i386/i686/multiarch/memcpy-ssse3.S:1099
+             1099    ../sysdeps/i386/i686/multiarch/memcpy-ssse3.S: No such file or directory.
+             in ../sysdeps/i386/i686/multiarch/memcpy-ssse3.S
+             (gdb) bt
+             #0  __memcpy_ssse3 () at ../sysdeps/i386/i686/multiarch/memcpy-ssse3.S:1099
+             #1  0x08101d7c in _d_arraycopy ()
+             #2  0x080b30a9 in ocean.io.serialize.StructSerializer.StructSerializer.load!(SerializeMe,byte).load.__dgliteral32 (this=0xffffc670, chunk=581442738273124356)
+             at /home/mathias/workspace/includes/ocean/io/serialize/StructSerializer.d:197
+             #3  0x00000078 in ?? ()
+             #4  0xffffc4f0 in ?? ()
+             #5  0x080b1293 in ocean.io.serialize.StructSerializer.__unittest1 ()
+             at /home/mathias/workspace/includes/ocean/io/serialize/StructSerializer.d:1703
+             #6  0xd969d540 in ?? ()
+             */
 
-           buffer[a..a+data.length] = cast(byte[])data[];
-           a+=data.length;
-           } );
-   }
-   Trace.formatln("{} Writing with own delegate",1_0000/sw.stop);
+            sw.start;
+            for(uint i = 0;i<100_000_000; ++i)
+            {
+                load(&sm,buf);
+            }
+            Trace.formatln("Reading with {}/s",100_000_000/sw.stop);
 
 
-   sw.start;
-   for(uint i = 0;i<1_000000; ++i)
-   {
-       load(emptyp,buffer);
-   }
-   Trace.formatln("{}/s Reading using slicing",1_000000/sw.stop);
 
-   sw.start;
-   for(uint i = 0;i<1_000000; ++i)
-   {
-       load(&empty,buffer);
-   }
-   Trace.formatln("{}/s Reading with",1_000000/sw.stop);
+            Trace.formatln("Retargeting Performance Test:");
+            sw.start;
+            for(uint i = 0;i<100_000_000; ++i)
+            {
+                dump(&newStruct,buf);
+            }
+            Trace.formatln("Writing with {}/s",100_000_000/sw.stop);
 
-   foreach(i, url ; empty.elements)
-       assert(url == "http://example.com/"~to!(char[])(i));
 
-   }
-   }
-   }
+            sw.start;
+            for(uint i = 0;i<100_000_000; ++i)
+            {
+                load(&newStruct,buf);
+            }
+            Trace.formatln("Reading with {}/s",100_000_000/sw.stop);
+
+
+            Trace.formatln("Urls Performance Test:");
+
+
+            {
+                byte buffer[]; buffer.length = length(emptyp);
+                sw.start;
+                for(uint i = 0;i<1_00000; ++i)
+                {
+                    dump(emptyp,buffer );
+                }
+                Trace.formatln("{} Writing preallocated buf with",1_00000/sw.stop);
+
+
+
+                uint a=0;
+                sw.start;
+                for(uint i = 0;i<1_0000; ++i)
+                {
+                    a=0;
+                    dump(emptyp,(void[] data) {
+
+                            if(data.length+a > buffer.length)
+                            assert(false);
+
+                            buffer[a..a+data.length] = cast(byte[])data[];
+                            a+=data.length;
+                            } );
+                }
+                Trace.formatln("{} Writing with own delegate",1_0000/sw.stop);
+
+
+                sw.start;
+                for(uint i = 0;i<1_000000; ++i)
+                {
+                    load(emptyp,buffer);
+                }
+                Trace.formatln("{}/s Reading using slicing",1_000000/sw.stop);
+
+                sw.start;
+                for(uint i = 0;i<1_000000; ++i)
+                {
+                    load(&empty,buffer);
+                }
+                Trace.formatln("{}/s Reading with",1_000000/sw.stop);
+
+                foreach(i, url ; empty.elements)
+                    assert(url == "http://example.com/"~to!(char[])(i));
+
+            }
+        }
+    }
 }
 
-}
