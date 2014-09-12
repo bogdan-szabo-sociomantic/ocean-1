@@ -1,9 +1,9 @@
 /*******************************************************************************
 
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-    
+
     version:        November 2010: Initial release
-    
+
     authors:        Gavin Norman
 
     D binding for C functions & structures in libxslt.
@@ -31,7 +31,7 @@ extern ( C )
     /***************************************************************************
 
         Xslt stylesheet struct & pointer type.
-    
+
     ***************************************************************************/
 
     struct xsltStylesheet;
@@ -43,7 +43,7 @@ extern ( C )
 
         Read a stylesheet from a parsed xml document (see
         ocean.text.xml.c.LibXml2.xmlParseDoc).
-    
+
     ***************************************************************************/
 
     xsltStylesheetPtr xsltParseStylesheetDoc ( xmlDocPtr doc );
@@ -52,7 +52,7 @@ extern ( C )
     /***************************************************************************
 
         Read a stylesheet from a file.
-    
+
     ***************************************************************************/
 
     xsltStylesheetPtr xsltParseStylesheetFile ( xmlChar* filename );
@@ -70,7 +70,7 @@ extern ( C )
     /***************************************************************************
 
         Saves a processed xml doc to a file. TODO (if we need it).
-    
+
     ***************************************************************************/
 
 //    int xsltSaveResultToFile ( FILE* file, xmlDocPtr result, xsltStylesheetPtr style );
@@ -80,7 +80,7 @@ extern ( C )
 
         Saves a processed xml doc to a string. A new string is malloced and the
         provided pointer is set to point to the resulting chunk of memory.
-    
+
     ***************************************************************************/
 
     int xsltSaveResultToString ( xmlChar** doc_txt_ptr, int* doc_txt_len, xmlDocPtr result, xsltStylesheetPtr style );
@@ -89,7 +89,7 @@ extern ( C )
     /***************************************************************************
 
         Frees any resources allocated for a stylesheet.
-    
+
     ***************************************************************************/
 
     void xsltFreeStylesheet ( xsltStylesheetPtr style );
@@ -98,7 +98,7 @@ extern ( C )
     /***************************************************************************
 
         Cleans up any global xslt allocations.
-    
+
     ***************************************************************************/
 
     void xsltCleanupGlobals ( );

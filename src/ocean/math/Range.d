@@ -590,7 +590,7 @@ public struct Range ( T )
         // overlaps
         assert(Range(0, 10).overlapAmount(Range(9, 20)) == 2);
         assert(Range(10, 20).overlapAmount(Range(0, 11)) == 2);
-        
+
         // no overlap
         assert(Range(0, 10).overlapAmount(Range(11, 20)) == 0);
         assert(Range(10, 20).overlapAmount(Range(0, 9)) == 0);

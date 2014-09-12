@@ -23,7 +23,7 @@ private import tango.text.convert.Format;
 /******************************************************************************
 
     Exception class to be thrown from unot tests blocks.
-  
+
 *******************************************************************************/
 
 class TestException : Exception
@@ -196,7 +196,7 @@ class NamedTest : TestException
     private char[] name;
 
     /**************************************************************************
-    
+
         Constructor
 
     ***************************************************************************/
@@ -228,7 +228,7 @@ class NamedTest : TestException
     /**************************************************************************
 
         Same as enforce!(TestException) but uses this.name for error message
-        formatting. 
+        formatting.
 
     ***************************************************************************/
 
@@ -247,7 +247,7 @@ class NamedTest : TestException
     /**************************************************************************
 
         Same as enforce!(op, TestException) but uses this.name for error message
-        formatting. 
+        formatting.
 
     ***************************************************************************/
 

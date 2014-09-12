@@ -83,7 +83,7 @@ char[][] getAddrsForInterface( char[] interface_name, bool ipv6 = false )
         (char[] address, int getnameinfo_status)
         {
             delegate_called = true;
-            
+
             if (getnameinfo_status != 0)
             {
                 throw new ResolveIPException(__FILE__, __LINE__,

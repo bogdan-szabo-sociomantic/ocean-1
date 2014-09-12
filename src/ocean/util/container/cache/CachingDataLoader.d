@@ -181,7 +181,7 @@ abstract class CachingDataLoaderBase ( Loader )
         nothing by default.
 
         If overriden this method must always modify data in-place
-        
+
         Params:
             data = deserialized element data, can be cast directly to cached
                 element pointer type

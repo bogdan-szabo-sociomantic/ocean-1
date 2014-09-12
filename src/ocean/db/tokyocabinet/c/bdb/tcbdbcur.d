@@ -10,7 +10,7 @@ extern (C):
  *************************************************************************************************/
 
 struct BDBCUR                           /* type of structure for a B+ tree cursor */
-{                         
+{
     TCBDB* bdb;                         /* database object */
     ulong clock;                        /* logical clock */
     ulong id;                           /* ID number of the leaf */

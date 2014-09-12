@@ -320,7 +320,7 @@ unittest
 {
     char[] buffer;
 
-    void doTest ( char[] input, char[] expected_output, int length, 
+    void doTest ( char[] input, char[] expected_output, int length,
         char[] ending = "..." , int line = __LINE__ )
     {
         buffer.copy(input);

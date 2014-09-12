@@ -563,7 +563,7 @@ class ConfigParser
     {
         enforce!(ConfigException)(
             exists(category, key),
-            "Critical Error: No configuration key '" ~ category 
+            "Critical Error: No configuration key '" ~ category
                 ~ ":" ~ key ~ "' found"
         );
         try

@@ -61,7 +61,7 @@ class CookiesHttpResponse : HttpResponse
     body
     {
         this.cookies = cookies.dup; // No .dup caused segfaults, apparently the
-                                    // array is then sliced. 
+                                    // array is then sliced.
         super.addKey(HeaderFieldNames.ResponseNames.SetCookie);
     }
 

@@ -32,11 +32,11 @@ abstract class ICache : ICacheInfo
     /***************************************************************************
 
         Alias required by the subclasses.
-    
+
     ***************************************************************************/
-    
+
     protected alias .TimeToIndex TimeToIndex;
-    
+
     /***************************************************************************
 
         Insert position into array of items.
@@ -64,7 +64,7 @@ abstract class ICache : ICacheInfo
             TimeToIndex.Key.lo = cache index.
 
     ***************************************************************************/
-    
+
     protected const TimeToIndex time_to_index;
 
 
@@ -74,7 +74,7 @@ abstract class ICache : ICacheInfo
         from an access time to the index of an elements in this.items).
 
     ***************************************************************************/
-    
+
     protected const KeyToNode key_to_node;
 
 
@@ -108,7 +108,7 @@ abstract class ICache : ICacheInfo
     protected this ( size_t max_items )
     {
         this.insert = 0;
-    
+
         this.max_items     = max_items;
         this.time_to_index = new TimeToIndex(max_items);
         this.key_to_node   = new KeyToNode(max_items);

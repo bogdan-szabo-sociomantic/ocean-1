@@ -330,7 +330,7 @@ struct JsonExtractor
     {
         /**********************************************************************
 
-            If enabled, any unmatched field will result in an exception.    
+            If enabled, any unmatched field will result in an exception.
 
          *********************************************************************/
 

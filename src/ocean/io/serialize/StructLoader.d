@@ -219,7 +219,7 @@ class StructLoader
 
                 return converter(conv_to_prev);
             }
-            
+
             UnknownVersionException.assertEx!(S, "Unknown version!")(
                 this.unknown_exception,
                 this.struct_version.getVersion(src) == version_,

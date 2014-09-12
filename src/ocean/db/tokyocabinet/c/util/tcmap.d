@@ -9,7 +9,7 @@ extern (C):
  *************************************************************************************************/
 
 struct TCMAP                                    /* type of structure for a map */
-{                         
+{
     TCMAPREC **buckets;                         /* bucket array */
     TCMAPREC *first;                            /* pointer to the first element */
     TCMAPREC *last;                             /* pointer to the last element */
@@ -33,7 +33,7 @@ struct TCMAP                                    /* type of structure for a map *
 
 
 struct _TCMAPREC                                /* type of structure for an element of a map */
-{               
+{
     int ksiz;                                   /* size of the region of the key */
     int vsiz;                                   /* size of the region of the value */
     _TCMAPREC* left;                            /* pointer to the left child */

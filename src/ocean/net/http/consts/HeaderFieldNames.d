@@ -81,7 +81,7 @@ struct HeaderFieldNames
                IfRange,             IfUnmodifiedSince,  MaxForwards,
                ProxyAuthorization,  Range,              Referer,
                TE,                  UserAgent;
-        
+
         alias HeaderFieldNames.RequestNames    Names;
         alias HeaderFieldNames.RequestNameList NameList;
     }
@@ -145,7 +145,7 @@ struct HeaderFieldNames
                ContentLength,       ContentLocation,    ContentMD5,
                ContentRange,        ContentType,        Expires,
                LastModified,        SetCookie;
-        
+
         alias HeaderFieldNames.ResponseNames    Names;
         alias HeaderFieldNames.ResponseNameList NameList;
     }

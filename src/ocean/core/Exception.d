@@ -253,7 +253,7 @@ unittest
 
     enforcement that builds error message string automatically based on value
     of operands and supplied "comparison" operation.
-    
+
     'op' can be any binary operation.
 
     Template Params:

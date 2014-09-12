@@ -7,13 +7,13 @@ extern (C):
  *************************************************************************************************/
 
 struct TCXSTR                                   /* type of structure for an extensible string object */
-{                         
+{
     char* ptr;                                  /* pointer to the region */
     int size;                                   /* size of the region */
     int asize;                                  /* size of the allocated region */
 };
 
-    
+
 /* Create an extensible string object.
    The return value is the new extensible string object. */
 TCXSTR* tcxstrnew();

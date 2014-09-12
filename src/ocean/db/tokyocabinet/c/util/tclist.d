@@ -6,14 +6,14 @@ extern (C):
  * List utility
  *************************************************************************************************/
 
-struct TCLISTDATUM                              /* type of structure for an element of a list */ 
-{                  
+struct TCLISTDATUM                              /* type of structure for an element of a list */
+{
     char*   ptr;                                /* pointer to the region */
     int     size;                               /* size of the effective region */
 };
 
 struct TCLIST                                   /* type of structure for an array list */
-{                         
+{
     TCLISTDATUM* array;                         /* array of data */
     int          anum;                          /* number of the elements of the array */
     int          start;                         /* start index of used elements */
@@ -22,7 +22,7 @@ struct TCLIST                                   /* type of structure for an arra
 
 //  List item comparison callback function used in tclistsortex
  alias int function (TCLISTDATUM*, TCLISTDATUM*) ListCmp;
-    
+
     /* Create a list object.
     The return value is the new list object. */
  TCLIST* tclistnew();

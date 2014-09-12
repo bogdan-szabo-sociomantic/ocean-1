@@ -17,7 +17,7 @@ extern (C):
 `op' specifies the pointer to the optional opaque object.
 The return value is true to continue iteration or false to stop iteration. */
 // bool (*TCITER)(void* kbuf, int ksiz, void* vbuf, int vsiz, void* op);
-alias bool function (void* kbuf, int ksiz, void* vbuf, int vsiz, void* op) TCITER;  
+alias bool function (void* kbuf, int ksiz, void* vbuf, int vsiz, void* op) TCITER;
 
 
 struct TCMDB
