@@ -258,7 +258,7 @@ version (UnitTest) private:
 import tango.io.device.File;
 import tango.time.StopWatch;
 
-debug (GcDisabled) import tango.core.internal.gcInterface: gc_disable;
+debug (GcDisabled) import tango.core.Memory;
 
 import ocean.text.util.MetricPrefix;
 
@@ -315,7 +315,7 @@ unittest
     debug (GcDisabled)
     {
         version (UnitTestVerbose) Stdout.formatln("LZO unittest: garbage collector disabled");
-        gc_disable();
+        GC.disable();
     }
 
     StopWatch swatch;

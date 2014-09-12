@@ -2163,7 +2163,7 @@ deprecated class Set ( T )
 debug ( OceanPerformanceTest )
 {
     import tango.util.log.Trace;
-    import ocean.core.Memory;
+    import tango.core.Memory;
     import tango.io.Stdout;
     import tango.time.StopWatch;
     import tango.core.Thread;

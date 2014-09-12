@@ -645,7 +645,7 @@ import tango.time.StopWatch;
 
 import ocean.text.util.MetricPrefix;
 
-debug (GcDisabled) import tango.core.internal.gcInterface: gc_disable;
+debug (GcDisabled) import tango.core.Memory;
 
 import tango.stdc.signal: signal, SIGINT;
 
@@ -687,7 +687,7 @@ unittest
     debug (GcDisabled)
     {
         pragma (msg, "LzoHeader unittest: garbage collector disabled");
-        gc_disable();
+        GC.disable();
     }
 
     StopWatch swatch;
