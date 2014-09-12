@@ -164,6 +164,17 @@ module ocean.text.json.JsonExtractor;
 
 private import ocean.text.json.JsonParserIter;
 private import ocean.core.Array;
+private import ocean.util.ReusableException;
+
+
+/*******************************************************************************
+
+    Exception which only can be thrown by JsonExtractor
+
+*******************************************************************************/
+
+private class JsonException : ReusableException {}
+
 
 struct JsonExtractor
 {
@@ -367,7 +378,7 @@ struct JsonExtractor
 
          *********************************************************************/
 
-        private Exception field_unmatched;
+        private JsonException field_unmatched;
 
         /***********************************************************************
 
@@ -391,7 +402,7 @@ struct JsonExtractor
         {
             super(json, Type.BeginObject, Type.EndObject);
 
-            this.field_unmatched = new Exception("");
+            this.field_unmatched = new JsonException();
             this.get_named_fields = get_named_fields.rehash;
             this.get_indexed_fields = get_indexed_fields;
         }

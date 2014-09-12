@@ -105,6 +105,9 @@ Deprecations
 New Features
 ^^^^^^^^^^^^
 
+``ocean.text.json.JsonExtractor``
+    The struct now throws JsonException instead of plain Exception.
+
 Unit testing (``ocean.core.UnitTestRunner``)
   * The unit test runner now accepts a new option ``-p`` / ``--package`` to
     only run the tests in a particular package or module (effectively any
