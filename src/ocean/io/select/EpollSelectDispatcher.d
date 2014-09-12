@@ -53,6 +53,8 @@ private import tango.stdc.stdlib: bsearch, qsort;
 
 private import tango.stdc.errno: errno, EINTR, ENOENT, EEXIST, ENOMEM, EINVAL;
 
+debug ( ISelectClient ) private import tango.util.log.Trace;
+
 
 /*******************************************************************************
 
@@ -792,15 +794,14 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
             debug ( ISelectClient )
             {
-                Trace.format("{} :: Epoll firing with events ", client);
+                Trace.formatln("{} :: Epoll firing with events:", client);
                 foreach ( event, name; epoll_event_t.event_to_name )
                 {
                     if ( key.events & event )
                     {
-                        Trace.format("{}", name);
+                        Trace.formatln("\t{}", name);
                     }
                 }
-                Trace.formatln("");
             }
 
             // Only handle clients which are registered. Clients may have
@@ -1036,13 +1037,8 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         {
             debug (ISelectClient)
             {
-                Trace.format("{} :: Error while finalizing client: '{}'",
-                    client, e.msg);
-                if ( e.line )
-                {
-                    Trace.format("@ {}:{}", e.file, e.line);
-                }
-                Trace.formatln("");
+                Trace.formatln("{} :: Error while finalizing client: "
+                        "'{}'@ {}:{}", client, e.msg, e.file, e.line);
             }
             this.clientError(client, Epoll.Event.None, e);
         }

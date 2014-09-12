@@ -47,7 +47,7 @@
         StructSerializer.serialize(&data, ser, xml);
 
         // Output resulting xml
-        Trace.formatln("Xml = {}", xml);
+        Stdout.formatln("Xml = {}", xml);
 
     ---
 

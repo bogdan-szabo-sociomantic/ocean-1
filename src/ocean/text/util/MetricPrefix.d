@@ -46,7 +46,7 @@ private import tango.stdc.math;
         metric.bin(number);
 
         // Output metric prefixed string (2.679297405Gb, in this case).
-        Trace.formatln("{}{}b", metric.scaled, metric.prefix);
+        Stdout.formatln("{}{}b", metric.scaled, metric.prefix);
 
     ---
 
@@ -197,7 +197,7 @@ public struct MetricPrefix
         // Delegate which receives the split info.
         void split ( char prefix, uint order, ulong order_val )
         {
-            Trace.formatln("Order {}: {}{}", order, order_val, prefix);
+            Stdout.formatln("Order {}: {}{}", order, order_val, prefix);
         }
 
         // Perform the split.

@@ -23,7 +23,6 @@
 module ocean.sys.SignalMask;
 
 
-
 /*******************************************************************************
 
     Imports
@@ -39,6 +38,7 @@ else
     static assert(false, "module ocean.sys.SignalMask only supported in posix environments");
 }
 
+debug ( SignalMask ) private import tango.util.log.Trace;
 
 
 

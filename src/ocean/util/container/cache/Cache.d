@@ -1443,6 +1443,8 @@ debug ( OceanPerformanceTest )
 
     private import tango.time.StopWatch;
 
+    private import tango.util.log.Trace;
+
     unittest
     {
         GC.disable;
@@ -1465,7 +1467,7 @@ debug ( OceanPerformanceTest )
         time_t time = 1;
 
         // Fill cache
-        Trace.format("Filling cache:        ");
+        Trace.formatln("Filling cache:");
         sw.start;
         for ( uint i; i < cache_size; i++ )
         {

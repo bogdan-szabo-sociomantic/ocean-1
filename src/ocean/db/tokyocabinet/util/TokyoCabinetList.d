@@ -606,8 +606,6 @@ class TokyoCabinetList
 
         int opApply ( int delegate ( ref char[] item ) dg )
         {
-            //debug Trace.formatln(typeof (*this).stringof ~ ": opApply");
-
             scope list = this.getPersistent();
 
             int result;
@@ -618,8 +616,6 @@ class TokyoCabinetList
 
                 if (result) break;
             }
-
-            //debug Trace.formatln(typeof (*this).stringof ~ ": opApply finished");
 
             return result;
         }

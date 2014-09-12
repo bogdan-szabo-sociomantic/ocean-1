@@ -58,7 +58,6 @@ private import ocean.sys.EventFD;
 
 private import ocean.io.select.client.model.ISelectClient;
 
-debug private import tango.util.log.Trace;
 
 
 

@@ -49,8 +49,6 @@ private import Integer = tango.text.convert.Integer;
 
 private import Float = tango.text.convert.Float;
 
-debug private import tango.util.log.Trace;
-
 
 
 /*******************************************************************************
@@ -88,7 +86,7 @@ interface Jsonizable
 
         Jsonize().close(json);
 
-        Trace.formatln("JSON = {}", json);
+        Stdout.formatln("JSON = {}", json);
 
     ---
 
@@ -106,7 +104,7 @@ interface Jsonizable
 
         Jsonize().close(json);
 
-        Trace.formatln("JSON = {}", json);
+        Stdout.formatln("JSON = {}", json);
 
     ---
 
@@ -137,7 +135,7 @@ interface Jsonizable
 
         Jsonize().close(json);
 
-        Trace.formatln("JSON = {}", json);
+        Stdout.formatln("JSON = {}", json);
 
     ---
 
@@ -178,7 +176,7 @@ interface Jsonizable
             close(json);
         }
 
-        Trace.formatln("JSON = {}", json);
+        Stdout.formatln("JSON = {}", json);
 
     ---
 

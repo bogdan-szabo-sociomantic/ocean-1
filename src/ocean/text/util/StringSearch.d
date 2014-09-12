@@ -29,9 +29,8 @@ private import cwctype = tango.stdc.wctype;
 private import cctype  = tango.stdc.ctype;
 private import cstring = tango.stdc.string;
 
-private import           tango.math.Math:   min;
+private import tango.math.Math:   min;
 
-private import           tango.util.log.Trace;
 
 /++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

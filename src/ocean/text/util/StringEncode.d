@@ -42,11 +42,6 @@ private import ocean.text.util.c.iconv;
 
 private import tango.stdc.errno;
 
-debug
-{
-    private import tango.util.log.Trace;
-}
-
 /******************************************************************************
 
     IconvException

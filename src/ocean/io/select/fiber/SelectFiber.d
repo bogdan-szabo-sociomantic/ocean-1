@@ -30,6 +30,8 @@ private import ocean.io.select.client.model.ISelectClientInfo;
 
 private import ocean.io.select.EpollSelectDispatcher;
 
+debug ( SelectFiber) private import tango.util.log.Trace;
+
 
 /******************************************************************************/
 

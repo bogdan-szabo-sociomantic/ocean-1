@@ -36,6 +36,7 @@ private import ocean.text.convert.Layout;
 
 private import tango.io.model.IConduit: ISelectable;
 
+debug ( ConnectionHandler ) private import tango.util.log.Trace;
 
 
 /*******************************************************************************

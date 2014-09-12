@@ -106,7 +106,6 @@ private import tango.stdc.posix.sys.types: ssize_t;
 
 private import tango.stdc.posix.unistd: read, write, close;
 
-debug private import tango.util.log.Trace;
 
 
 

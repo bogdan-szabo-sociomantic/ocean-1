@@ -26,6 +26,9 @@ import ocean.io.select.protocol.generic.ErrnoIOException;
 import tango.sys.linux.consts.errno;
 import tango.stdc.errno;
 
+debug (Raw)         private import tango.util.log.Trace;
+debug (SelectFiber) private import tango.util.log.Trace;
+
 /*******************************************************************************
 
     SelectReader without Fiber

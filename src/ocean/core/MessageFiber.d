@@ -67,6 +67,7 @@ private import ocean.io.digest.Fnv1;
 
 debug ( MessageFiber )
 {
+    private import tango.io.Stdout;
     debug = MessageFiberToken;
 }
 
@@ -516,7 +517,7 @@ class MessageFiber
         {
             this.msg = msg;
 
-            debug (MessageFiber) Trace.formatln("--FIBER {} SUSPENDED -- ({}:{})",
+            debug (MessageFiber) Stdout.formatln("--FIBER {} SUSPENDED -- ({}:{})",
                 FirstName(this), token.str, FirstName(identifier));
 
             debug ( MessageFiberDump )
@@ -616,7 +617,7 @@ class MessageFiber
 
         this.identifier = this.createIdentifier(token.hash, identifier);
 
-        debug (MessageFiber) Trace.formatln("--FIBER {} RESUMED -- ({}:{})",
+        debug (MessageFiber) Stdout.formatln("--FIBER {} RESUMED -- ({}:{})",
                 FirstName(this), token.str, FirstName(identifier));
 
         scope (exit) this.msg = msg;
@@ -657,7 +658,7 @@ class MessageFiber
     }
     body
     {
-        debug (MessageFiber) Trace.formatln("--FIBER {} KILLED -- ({}:{})",
+        debug (MessageFiber) Stdout.formatln("--FIBER {} KILLED -- ({}:{})",
                 FirstName(this), file, line);
 
         this.killed = true;

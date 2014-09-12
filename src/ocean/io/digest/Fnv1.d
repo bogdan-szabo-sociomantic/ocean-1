@@ -699,8 +699,6 @@ version ( UnitTest )
 
 unittest
 {
-    version (UnitTestVerbose) Trace.formatln("Running ocean.io.digest.Fnv1 unittest");
-
     struct TestData
     {
         /*
@@ -787,8 +785,6 @@ unittest
         assert (fnv1a32.update(tdat.string).hexDigest == tdat.fnv1a_32_hex, errmsg("Fnv1a32.hexDigest", tdat.string, tdat.is_text));
         assert (fnv1a64.update(tdat.string).hexDigest == tdat.fnv1a_64_hex, errmsg("Fnv1a64.hexDigest", tdat.string, tdat.is_text));
     }
-
-    version (UnitTestVerbose) Trace.formatln("\nDone unittest\n");
 
 
     assert ( StaticFnv1a32!("myString") == Fnv1a32("myString"), "CompileTime Fnv1a32 failed");

@@ -56,7 +56,7 @@
 
                     if ( popped !is null )
                     {
-                        Trace.formatln("Popped from the queue: {}", popped);
+                        Stdout.formatln("Popped from the queue: {}", popped);
                     }
                     else break;
                 }

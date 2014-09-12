@@ -60,7 +60,7 @@ module ocean.io.serialize.TraceStructSerializer;
 
 private import ocean.io.serialize.StructSerializer;
 private import ocean.io.serialize.StringStructSerializer;
-
+private import tango.util.log.Trace;
 
 
 

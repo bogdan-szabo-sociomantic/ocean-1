@@ -508,6 +508,8 @@ version (UnitTest)
     import tango.util.container.HashMap;
 }
 
+version (UnitTestVerbose) import tango.util.log.Trace;
+
 unittest
 {
     version ( UnitTestVerbose ) Trace.formatln("Running ocean.db.tokyocabinet.TokyoCabinetM unittest");

@@ -1435,8 +1435,6 @@ version ( UnitTest )
 
 unittest
 {
-    version (UnitTestVerbose) Trace.formatln("\nRunning ocean.core.Array unittest");
-
     char[] dest;
     char[] str1 = "hello";
     char[] str2 = "world";
@@ -1463,7 +1461,5 @@ unittest
     const char[] conststr1 = "hi ";
     const char[] conststr2 = "there";
     assert(concat_test(dest, conststr1, conststr2), "Const array concatenation test failed");
-
-    version (UnitTestVerbose) Trace.formatln("done unittest\n");
 }
 

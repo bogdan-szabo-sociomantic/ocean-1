@@ -78,11 +78,6 @@ version (Posix) private import tango.stdc.posix.signal: SIGALRM, SIGBUS,  SIGCHL
                                                         SIGTSTP, SIGTTIN, SIGTTOU,
                                                         SIGUSR1, SIGUSR2, SIGURG;
 
-debug
-{
-    private import tango.util.log.Trace;
-}
-
 
 
 class SignalHandler

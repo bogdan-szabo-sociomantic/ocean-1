@@ -46,7 +46,7 @@
         StructSerializer.serialize(&data, ser, json);
 
         // Output resulting json
-        Trace.formatln("Json = {}", json);
+        Stdout.formatln("Json = {}", json);
 
     ---
 
@@ -90,7 +90,6 @@ private import ocean.text.json.Jsonizer;
 
 private import tango.core.Traits : isCharType;
 
-debug private import tango.util.log.Trace;
 
 
 

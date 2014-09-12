@@ -29,11 +29,6 @@ module ocean.text.entities.model.IEntitySet;
 
 private import ocean.text.utf.UtfString : InvalidUnicode, utf_match;
 
-debug
-{
-    private import tango.util.log.Trace;
-}
-
 
 
 /*******************************************************************************

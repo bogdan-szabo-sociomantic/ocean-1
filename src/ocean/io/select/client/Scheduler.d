@@ -32,7 +32,7 @@
         // Delegate called when an event fired. Receives the associated struct.
         void fired ( ref EventParams p )
         {
-            Trace.formatln("{} fired", p.x);
+            Stdout.formatln("{} fired", p.x);
         }
 
         // Construct required objects.
@@ -45,9 +45,9 @@
         scheduler.schedule((ref EventParams p){p.x = 2;}, &fired, 6_000_000);
 
         // Set everything going by starting the epoll event loop.
-        Trace.formatln("Starting eventloop");
+        Stdout.formatln("Starting eventloop");
         epoll.eventLoop;
-        Trace.formatln("Event loop finished");
+        Stdout.formatln("Event loop finished");
 
     ---
 

@@ -1561,6 +1561,8 @@ version ( UnitTest )
 
 }
 
+version ( UnitTest ) debug ( PerformanceTest ) private import tango.util.log.Trace;
+
 unittest
 {
     const Iterations = 10_000;

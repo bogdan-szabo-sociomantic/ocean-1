@@ -695,7 +695,8 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
     }
     body
     {
-        debug ( ConnectionHandler ) Trace.formatln("[{}]: Returning to pool", connection.connection_id);
+        debug ( ConnectionHandler )
+            log.trace("[{}]: Returning to pool", connection.connection_id);
 
         this.receiver_pool.recycle(cast (T) connection);
     }
@@ -704,7 +705,6 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 version ( UnitTest )
 {
     import ocean.core.Test;
-    import tango.util.log.Log;
 
     class DummyConHandler : IConnectionHandler
     {

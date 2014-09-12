@@ -48,7 +48,6 @@ private import Integer = tango.text.convert.Integer;
 
 private import Float = tango.text.convert.Float;
 
-debug private import tango.util.log.Trace;
 
 /******************************************************************************/
 

@@ -44,7 +44,6 @@ private import ocean.db.tokyocabinet.c.tcbdb:        TCBDB;
 private import ocean.db.tokyocabinet.util.TokyoCabinetException;
 private import ocean.db.tokyocabinet.util.TokyoCabinetExtString;
 
-debug private import tango.util.log.Trace;
 
 /******************************************************************************
 

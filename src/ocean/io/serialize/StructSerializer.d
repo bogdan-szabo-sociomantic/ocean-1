@@ -1555,6 +1555,7 @@ version (UnitTest)
     import tango.util.Convert : to;
     import tango.time.StopWatch;
     import tango.core.Memory;
+    debug ( OceanPerformanceTest ) import tango.util.log.Trace;
 
     /***************************************************************************
 

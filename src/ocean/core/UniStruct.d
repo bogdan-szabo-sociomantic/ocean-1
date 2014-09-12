@@ -463,8 +463,6 @@ struct UniStruct ( Types ... )
 
 version (UnitTest)
 {
-    import tango.util.log.Trace;
-
     class Empty { int me; this(int a) { me = a; } };
 }
 

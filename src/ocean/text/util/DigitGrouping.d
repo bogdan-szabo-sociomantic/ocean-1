@@ -51,7 +51,6 @@ private import tango.text.convert.Layout;
 
 private import tango.core.Traits;
 
-debug private import tango.util.log.Trace;
 
 
 

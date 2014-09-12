@@ -21,6 +21,8 @@ module ocean.io.Terminal;
 
 private import tango.stdc.posix.signal;
 
+debug(Term) private import tango.io.Stdout;
+
 
 private
 {
@@ -57,7 +59,7 @@ private
     Example:
     -----
     // Move the cursor four lines up
-    Trace.formatln("{}4{}", Terminal.CSI, Terminal.CURSOR_UP);
+    Stdout.formatln("{}4{}", Terminal.CSI, Terminal.CURSOR_UP);
     -----
 
 ******************************************************************************/
@@ -286,7 +288,7 @@ static this ( )
     sigaction(SIGWINCH, &act, null);
     window_size_changed(0, null, null);
 
-    debug(Term) Trace.formatln("Termsize: {} {}", Terminal.rows, Terminal.columns);
+    debug(Term) Stdout.formatln("Termsize: {} {}", Terminal.rows, Terminal.columns);
 }
 
 /*******************************************************************************

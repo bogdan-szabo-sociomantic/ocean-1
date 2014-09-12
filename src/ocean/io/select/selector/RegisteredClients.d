@@ -25,6 +25,8 @@ private import ocean.io.select.client.model.ISelectClient;
 
 private import ocean.util.container.map.Set;
 
+debug ( ISelectClient ) private import tango.util.log.Trace;
+
 
 
 

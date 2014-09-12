@@ -37,7 +37,7 @@ import ocean.io.digest.Fnv1;
 
     foreach ( c; myArray )
     {
-        Trace.formatln("{}.property = {}", FirstName(cast(void*) c, c.property);
+        Stdout.formatln("{}.property = {}", FirstName(cast(void*) c, c.property);
     }
     ---
 

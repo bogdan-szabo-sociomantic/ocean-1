@@ -52,7 +52,7 @@
     ---
 
         import ocean.core.SmartEnum;
-        import tango.util.log.Trace;
+        import tango.io.Stdout;
 
         alias SmartEnumValue!(int) Code;
 
@@ -63,25 +63,25 @@
 
         // Getting descriptions of codes
         // (Note that the getter methods work like opIn, returning pointers.)
-        Trace.formatln("Description for code first = {}", *Commands.description(Commands.first));
-        Trace.formatln("Description for code 1 = {}", *Commands.description(1));
+        Stdout.formatln("Description for code first = {}", *Commands.description(Commands.first));
+        Stdout.formatln("Description for code 1 = {}", *Commands.description(1));
 
         // Getting codes by description
         // (Note that the getter methods work like opIn, returning pointers.)
-        Trace.formatln("Code for description 'first' = {}", *Commands.code("first"));
+        Stdout.formatln("Code for description 'first' = {}", *Commands.code("first"));
 
         // Testing whether codes exist
-        Trace.formatln("1 in enum? {}", !!(1 in Commands));
-        Trace.formatln("first in enum? {}", !!(Commands.first in Commands));
+        Stdout.formatln("1 in enum? {}", !!(1 in Commands));
+        Stdout.formatln("first in enum? {}", !!(Commands.first in Commands));
 
         // Testing whether codes exist by description
-        Trace.formatln("'first' in enum? {}", !!("first" in Commands));
-        Trace.formatln("'third' in enum? {}", !!("third" in Commands));
+        Stdout.formatln("'first' in enum? {}", !!("first" in Commands));
+        Stdout.formatln("'third' in enum? {}", !!("third" in Commands));
 
         // Iteration over enum
         foreach ( code, descr; Commands )
         {
-            Trace.formatln("{} -> {}", code, descr);
+            Stdout.formatln("{} -> {}", code, descr);
         }
 
     ---

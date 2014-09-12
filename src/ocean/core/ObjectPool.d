@@ -1698,7 +1698,6 @@ version (none) // ( UnitTest )
         ***********************************************************************/
 
         {
-            version (UnitTestVerbose) Trace.formatln("ObjectPool: Running general unittest");
             bool reset=false, death = false;
 
             void resetFunc()
@@ -1815,7 +1814,6 @@ version (none) // ( UnitTest )
             assert (pool1.num_idle == 0);
             assert (pool1.num_busy == 5);
         }
-        version (UnitTestVerbose) Trace.formatln("Test finished");
     }
 }
 

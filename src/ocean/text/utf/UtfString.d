@@ -30,7 +30,7 @@
 
         foreach ( width, i, c; utfstr )
         {
-            Trace.formatln("Character {} is {} and it's {} wide", i, c, width);
+            Stdout.formatln("Character {} is {} and it's {} wide", i, c, width);
         }
 
     ---

@@ -42,6 +42,8 @@ private import tango.stdc.errno: errno, EINPROGRESS, EINTR, EALREADY, EISCONN;
 
 debug ( EpollTiming ) private import tango.time.StopWatch;
 
+debug ( ISelectClient ) private import tango.util.log.Trace;
+
 
 
 public class FiberSocketConnection ( bool IPv6 = false ) : IFiberSocketConnection

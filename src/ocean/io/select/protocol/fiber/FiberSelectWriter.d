@@ -36,6 +36,9 @@ private import tango.stdc.posix.netinet.in_: IPPROTO_TCP;
 
 private import tango.sys.linux.tcp: TCP_CORK;
 
+debug (Raw) private import tango.util.log.Trace;
+
+
 
 /******************************************************************************/
 

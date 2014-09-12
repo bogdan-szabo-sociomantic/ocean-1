@@ -92,7 +92,7 @@ private import Integer = tango.text.convert.Integer;
 
 private import tango.text.json.JsonParser;
 
-debug private import tango.util.log.Trace;
+debug ( Json ) private import tango.util.log.Trace;
 
 
 /*******************************************************************************

@@ -102,17 +102,17 @@ private extern (C)
 
         if ( !dont_block.call() )
         {
-            Trace("blocking function is currently running and not done yet!");
+            Stdout("blocking function is currently running and not done yet!");
         }
 
         while ( dont_block.isRunning() )
         {
-            Trace("blocking function is still running!");
+            Stdout("blocking function is still running!");
         }
 
         if ( !dont_block.call() )
         {
-            Trace("blocking function is currently running and not done yet!");
+            Stdout("blocking function is currently running and not done yet!");
         }
 
         dont_block.call(true); // wait for a unfinished fork and then call
