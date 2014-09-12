@@ -34,6 +34,13 @@ version **v1.4** and finally the steps in version **v1.5**.
 master
 ------
 
+New Features
+^^^^^^^^^^^^
+
+``ocean.io.console.AppStatus``
+  Added a eraseStaticLines() method to clear all the lines of the app-status
+  from the screen.
+
 
 v1.16 (2014-08-27)
 ------------------

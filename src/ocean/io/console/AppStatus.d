@@ -301,6 +301,42 @@ public class AppStatus
 
     /***************************************************************************
 
+        Clear all the app status lines from the console (including header and
+        footer).
+
+        This method is useful for when something needs to be printed on the
+        console (e.g a log message) and without calling this method the traces
+        of the app status might interfere with the printed line.
+
+        P.s: The caller need to make sure that the app status is already
+        displayed before calling this method, otherwise unintended lines might
+        be deleted.
+
+    ***************************************************************************/
+
+    public void eraseStaticLines ( )
+    {
+        // Add +2: One for header and one for footer
+        for (size_t i = 0; i < this.static_lines.length + 2; i++)
+        {
+            Stdout.clearline.newline;
+        }
+
+        // Each iteration in the previous loop moves the cursor one line to
+        // the bottom. We need to return it to the right position again.
+        // We can't combine both loops or we will be clearing and overwriting
+        // the same first line over and over.
+        for (size_t i = 0; i < this.static_lines.length + 2; i++)
+        {
+            Stdout.up;
+        }
+
+        Stdout.flush;
+    }
+
+
+    /***************************************************************************
+
         Resizes the number of lines in the app status static display and clears
         the current content of the static lines. Also resets the cursor
         position so that the static lines are still at the bottom of the
