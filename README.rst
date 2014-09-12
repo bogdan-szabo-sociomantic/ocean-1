@@ -106,7 +106,7 @@ New Features
 ^^^^^^^^^^^^
 
 ``ocean.text.json.JsonExtractor``
-    The struct now throws JsonException instead of plain Exception.
+    The struct now throws JsonException instead of plain Exception and AssertException.
 
 Unit testing (``ocean.core.UnitTestRunner``)
   * The unit test runner now accepts a new option ``-p`` / ``--package`` to

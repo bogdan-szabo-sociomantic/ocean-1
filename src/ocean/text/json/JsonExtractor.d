@@ -164,6 +164,7 @@ module ocean.text.json.JsonExtractor;
 
 private import ocean.text.json.JsonParserIter;
 private import ocean.core.Array;
+private import ocean.core.Exception : enforce;
 private import ocean.util.ReusableException;
 
 
@@ -683,6 +684,14 @@ struct JsonExtractor
 
         /***********************************************************************
 
+            Exception throw to indicate errors during parsing.
+
+         **********************************************************************/
+
+        protected const JsonException exception;
+
+        /***********************************************************************
+
             Constructor
 
             Params:
@@ -700,6 +709,7 @@ struct JsonExtractor
             this.start_type = start_type;
             this.end_type   = end_type;
             this.json       = json;
+            this.exception  = new JsonException();
         }
 
         /***********************************************************************
@@ -707,13 +717,15 @@ struct JsonExtractor
             Invoked by super.set() to iterate over the JSON object or array.
 
             Throws:
-                assert()s that the type of the current token is the start type.
+                JsonException if the type of the current token is not the start
+                type.
 
          **********************************************************************/
 
         protected override void set_ ( )
         {
-            assert (super.type == this.start_type);
+            enforce(this.exception, super.type == this.start_type,
+                    "type mismatch");
 
             uint i = 0;
 
