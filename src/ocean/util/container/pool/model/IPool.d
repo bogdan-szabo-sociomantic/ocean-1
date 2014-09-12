@@ -292,7 +292,7 @@ public abstract class IPool : IPoolInfo, ILimitable
     {
         debug (ObjectPoolConsistencyCheck) foreach (item; this.items)
         {
-            assert (item !is null);
+            assert (item.ptr !is null);
         }
     }
     body
