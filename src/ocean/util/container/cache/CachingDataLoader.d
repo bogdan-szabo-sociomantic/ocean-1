@@ -99,11 +99,31 @@ abstract class CachingDataLoaderBase ( Loader )
 
     /**************************************************************************
 
-        Cache alias type definition
+        The cache class. We need to enable GC scanning of the values stored in
+        the cache because they contain references.
 
      **************************************************************************/
 
-    public alias ExpiringCache!(CacheValue.sizeof) Cache;
+    public static class Cache: ExpiringCache!(CacheValue.sizeof)
+    {
+        /***********************************************************************
+
+            Constructor.
+
+            Params:
+                max_items = maximum number of items in the cache, set once,
+                            cannot be changed
+                lifetime  = life time for all items in seconds; may be changed
+                            at any time. This value must be at least 1.
+
+        ***********************************************************************/
+
+        public this ( size_t max_items, time_t lifetime )
+        {
+            super(max_items, lifetime);
+            this.enableGcValueScanning();
+        }
+    }
 
     /**************************************************************************
 

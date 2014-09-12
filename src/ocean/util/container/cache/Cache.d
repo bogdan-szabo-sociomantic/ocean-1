@@ -207,6 +207,8 @@ private import ocean.util.container.cache.model.Value;
 private import tango.stdc.time: time_t;
 private import ocean.core.Test;
 
+private import tango.core.Memory;
+
 debug private import ocean.io.Stdout;
 
 debug (CacheTimes)
@@ -801,6 +803,30 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
         cache_item.key = key;
 
         return cache_item;
+    }
+
+    /***************************************************************************
+
+        Makes the GC scan the cache items. Should be called by the subclass
+        constructor if it stores values that contain GC references.
+        This method should be called after the constructor of this class has
+        returned.
+
+    ***************************************************************************/
+
+    static if (!is_dynamic)
+    {
+        protected void enableGcValueScanning ( )
+        in
+        {
+            assert(this.items,
+                   "please call enableGcValueScanning() *after* the super
+                    constructor");
+        }
+        body
+        {
+            GC.clrAttr(this.items.ptr, GC.BlkAttr.NO_SCAN);
+        }
     }
 
     debug (CacheTimes)
