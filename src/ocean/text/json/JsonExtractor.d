@@ -582,13 +582,16 @@ struct JsonExtractor
                 json            = JSON parser
                 fields_to_reset = fields to reset when this.reset is called
                 iterator_dg     = iteration callback delegate
+                skip_null       = should a potential null value be skipped? If
+                                  false and a null value is found an
+                                  AssertException will be thrown.
 
          **********************************************************************/
 
         public this ( Parser json, GetField[] fields_to_reset,
-                      IteratorDg iterator_dg )
+                      IteratorDg iterator_dg, bool skip_null = false )
         {
-            super(json);
+            super(json, skip_null);
 
             this.fields_to_reset = fields_to_reset;
 
@@ -648,12 +651,15 @@ struct JsonExtractor
             Params:
                 type = expected parameter type
                 key  = parameter name
+                skip_null  = should a potential null value be skipped? If false
+                             and a null value is found an AssertException will
+                             be thrown.
 
          **********************************************************************/
 
-        public this ( Parser json )
+        public this ( Parser json, bool skip_null = false )
         {
-            super(json, Type.BeginArray, Type.EndArray);
+            super(json, Type.BeginArray, Type.EndArray, skip_null);
         }
     }
 
@@ -665,7 +671,16 @@ struct JsonExtractor
 
     abstract class IterateAggregate : GetField
     {
+
         /***********************************************************************
+
+            Skip null value?
+
+         **********************************************************************/
+
+        private const bool skip_null;
+
+        /**********************************************************************
 
             Start and end token type, usually BeginObject/EndObject or
             BeginArray/EndArray.
@@ -700,16 +715,21 @@ struct JsonExtractor
                              iterates over (usually BeginObject or BeginArray)
                 end_type   = closing token type of the aggregate this instance
                              iterates over (usually EndObject or EndArray)
+                skip_null  = should a potential null value be skipped? If false
+                             and a null value is found an AssertException will
+                             be thrown.
 
          **********************************************************************/
 
-        public this ( Parser json, Type start_type, Type end_type )
+        public this ( Parser json, Type start_type, Type end_type,
+                      bool skip_null = false )
         {
             assert(json !is null);
             this.start_type = start_type;
             this.end_type   = end_type;
             this.json       = json;
             this.exception  = new JsonException();
+            this.skip_null  = skip_null;
         }
 
         /***********************************************************************
@@ -724,6 +744,11 @@ struct JsonExtractor
 
         protected override void set_ ( )
         {
+            if ( this.skip_null && super.type == Type.Null )
+            {
+                return;
+            }
+
             enforce(this.exception, super.type == this.start_type,
                     "type mismatch");
 
@@ -883,5 +908,30 @@ struct JsonExtractor
 
         assert (w.value == null);
         assert (w.type  == Type.Empty);
+
+        const content2 = `{"imp":null}`;
+
+        try
+        {
+            main.parse(content2);
+            assert (false);
+        }
+        catch (JsonException e)
+        {
+            assert(e.msg == "type mismatch");
+        }
+
+        bool fun (uint i, Type type, char[] value)
+        {
+            return false;
+        }
+
+        scope imp2  = new GetArray(json, null, &fun, true),
+              main2 = new Main(json, ["imp": imp2]);
+
+        ok = main2.parse(content2);
+
+        assert (ok);
+
     }
 }

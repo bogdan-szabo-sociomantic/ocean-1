@@ -107,6 +107,7 @@ New Features
 
 ``ocean.text.json.JsonExtractor``
     The struct now throws JsonException instead of plain Exception and AssertException.
+    GetArrays can now,via an constructor parameter, accept the value null.
 
 Unit testing (``ocean.core.UnitTestRunner``)
   * The unit test runner now accepts a new option ``-p`` / ``--package`` to
