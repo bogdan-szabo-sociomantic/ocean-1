@@ -165,6 +165,7 @@ module ocean.text.json.JsonExtractor;
 private import ocean.text.json.JsonParserIter;
 private import ocean.core.Array;
 private import ocean.core.Exception : enforce;
+private import ocean.core.Test;
 private import ocean.util.ReusableException;
 
 
@@ -838,6 +839,9 @@ struct JsonExtractor
             `}`
         `}`;
 
+        auto t = new NamedTest("JsonExtractor");
+
+
         scope json        = new Parser,
               id          = new GetField,
               impid       = new GetField,
@@ -856,7 +860,8 @@ struct JsonExtractor
 
                                            if (handled)
                                            {
-                                               assert (type == type.BeginObject);
+                                               t.test!("==")(type,
+                                                             type.BeginObject);
                                                imp_element.set(type);
                                            }
 
@@ -867,58 +872,58 @@ struct JsonExtractor
 
         bool ok = main.parse(content);
 
-        assert (ok);
+        t.test(ok, "parse didn't return true");
 
-        assert (id.type  == Type.String);
-        assert (id.value == "8c97472e-098e-4baa-aa63-4a3f2aab10c6");
+        t.test!("==")(id.type, Type.String);
+        t.test!("==")(id.value, "8c97472e-098e-4baa-aa63-4a3f2aab10c6");
 
-        assert (impid.type  == Type.String);
-        assert (impid.value == "7682f6f1-810c-49b0-8388-f91ba4a00c1d");
+        t.test!("==")(impid.type, Type.String);
+        t.test!("==")(impid.value, "7682f6f1-810c-49b0-8388-f91ba4a00c1d");
 
-        assert (page.type  == Type.String);
-        assert (page.value == "http://www.example.com/");
+        t.test!("==")(page.type, Type.String);
+        t.test!("==")(page.value, "http://www.example.com/");
 
-        assert (uid.type  == Type.String);
-        assert (uid.value == "45FB778");
+        t.test!("==")(uid.type, Type.String);
+        t.test!("==")(uid.value, "45FB778");
 
-        assert (h.type  == Type.Number);
-        assert (h.value == "480");
+        t.test!("==")(h.type, Type.Number);
+        t.test!("==")(h.value, "480");
 
-        assert (w.type  == Type.Number);
-        assert (w.value == "640");
+        t.test!("==")(w.type, Type.Number);
+        t.test!("==")(w.value, "640");
 
         ok = main.parse("{}");
 
-        assert (ok);
+        t.test(ok, "parse didn't return true");
 
-        assert (id.value == null);
-        assert (id.type  == Type.Empty);
+        t.test!("==")(id.value, "");
+        t.test!("==")(id.type, Type.Empty);
 
-        assert (impid.value == null);
-        assert (impid.type  == Type.Empty);
+        t.test!("==")(impid.value, "");
+        t.test!("==")(impid.type, Type.Empty);
 
-        assert (page.value == null);
-        assert (page.type  == Type.Empty);
+        t.test!("==")(page.value, "");
+        t.test!("==")(page.type, Type.Empty);
 
-        assert (uid.value == null);
-        assert (uid.type  == Type.Empty);
+        t.test!("==")(uid.value, "");
+        t.test!("==")(uid.type, Type.Empty);
 
-        assert (h.value == null);
-        assert (h.type  == Type.Empty);
+        t.test!("==")(h.value, "");
+        t.test!("==")(h.type, Type.Empty);
 
-        assert (w.value == null);
-        assert (w.type  == Type.Empty);
+        t.test!("==")(w.value, "");
+        t.test!("==")(w.type, Type.Empty);
 
         const content2 = `{"imp":null}`;
 
         try
         {
             main.parse(content2);
-            assert (false);
+            t.test(false, "parse didn't throw");
         }
         catch (JsonException e)
         {
-            assert(e.msg == "type mismatch");
+            t.test!("==")(e.msg, "type mismatch");
         }
 
         bool fun (uint i, Type type, char[] value)
@@ -931,7 +936,7 @@ struct JsonExtractor
 
         ok = main2.parse(content2);
 
-        assert (ok);
+        t.test(ok, "parse didn't return true");
 
     }
 }
