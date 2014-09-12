@@ -1595,27 +1595,27 @@ unittest
         const PerformanceIterations = 10_000;
 
         sw.start();
-        test!(Test2NoV, Test2NoV, StructLoaderCore)(PerformanceIterations);
+        testConv!(Test2NoV, Test2NoV, StructLoaderCore)(PerformanceIterations);
         auto original = sw.stop();
 
         sw.start();
-        test!(Test2, Test2)(PerformanceIterations);
+        testConv!(Test2, Test2)(PerformanceIterations);
         auto new_loader = sw.stop();
 
         sw.start();
-        test!(Test1, Test2)(PerformanceIterations);
+        testConv!(Test1, Test2)(PerformanceIterations);
         auto new_conv = sw.stop();
 
         sw.start();
-        test!(Test0, Test2)(PerformanceIterations);
+        testConv!(Test0, Test2)(PerformanceIterations);
         auto new_conv2 = sw.stop();
 
         sw.start();
-        test!(NoVersion, NoVersion, StructLoaderCore)(PerformanceIterations);
+        testConv!(NoVersion, NoVersion, StructLoaderCore)(PerformanceIterations);
         auto orig_no_version = sw.stop();
 
         sw.start();
-        test!(NoVersion, NoVersion)(PerformanceIterations);
+        testConv!(NoVersion, NoVersion)(PerformanceIterations);
         auto new_no_version = sw.stop();
 
         // Those numbers are for the average case, it can very well happen that
