@@ -776,10 +776,10 @@ private scope class UnitTestRunner
 
             case "-p":
             case "--package":
-                auto arg = getOptArg(i);
-                if (arg is null)
+                auto opt_arg = getOptArg(i);
+                if (opt_arg is null)
                     return false;
-                this.packages ~= arg;
+                this.packages ~= opt_arg;
                 break;
 
             case "-x":
