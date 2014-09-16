@@ -23,7 +23,7 @@ private import ocean.sys.TimerFD;
 
 private import ocean.io.select.client.model.IFiberSelectClient;
 
-private import tango.math.Math : floor;
+private import tango.stdc.math: modf;
 
 
 
@@ -110,22 +110,6 @@ public class FiberTimerEvent : IFiberSelectClient
 
     /***************************************************************************
 
-        Sets the timer to a round number of seconds, registers it, and suspends
-        the fiber until it fires.
-
-        Params:
-            s = number of seconds to suspend fiber for
-
-    ***************************************************************************/
-
-    public void wait ( uint s )
-    {
-        this.wait(s, 0);
-    }
-
-
-    /***************************************************************************
-
         Sets the timer to a number of seconds and milliseconds approximating the
         floating point value specified, registers it, and suspends the fiber
         until it fires.
@@ -133,14 +117,23 @@ public class FiberTimerEvent : IFiberSelectClient
         Params:
             s = number of seconds to suspend fiber for
 
+        In:
+            s must be at least 0, which implies it must not be NaN. +∞ is
+            tolerated and uses the highest possible timer value.
+
     ***************************************************************************/
 
     public void wait ( double s )
+    in
     {
-        auto ms = cast(uint)(s - floor(s));
-        this.wait(cast(uint)floor(s), ms);
+        assert(s >= 0); // tolerate +∞
     }
-
+    body
+    {
+        double int_s;
+        auto ms = cast(uint)(modf(s, &int_s) * 1000);
+        this.wait(cast(uint)int_s, ms);
+    }
 
     /***************************************************************************
 
@@ -151,11 +144,11 @@ public class FiberTimerEvent : IFiberSelectClient
 
         Params:
             s = number of seconds to suspend fiber for
-            ms = number of milliseconds to suspend fiber for
+            ms = number of additional milliseconds to suspend fiber for
 
     ***************************************************************************/
 
-    private void wait ( uint s, uint ms )
+    public void wait ( uint s, uint ms = 0 )
     {
         if ( s == 0 && ms == 0 ) return;
 
