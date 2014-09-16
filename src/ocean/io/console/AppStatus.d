@@ -7,8 +7,15 @@
     authors:        Ben Palmer
 
     Module to display application information in the terminal. Does not keep
-    track of any values, only puts the information to the terminal in a style
-    similar to the one originally used by propulsor and sonar.
+    track of any values, only puts the information to the terminal in two
+    separate portions - a static portion in the bottom and a streaming portion
+    on top.
+
+    Generally, the static portion contains only a few lines used to display the
+    progress/health of the application while the larger streaming portion is
+    used to output logs or other application output. However, this is not a rule
+    and applications are free to display whatever is needed in the static and
+    streaming portions.
 
     Since almost all applications that use this module also use Tango's logging
     facility, a separate appender (ocean.util.log.InsertConsole) has been
@@ -19,8 +26,22 @@
     newly created space. The existing static lines are not touched during this
     process.
 
-    Can display a set of static lines that stay at the bottom of the terminal
-    as well as streaming lines that are scrolled above the static lines.
+    The AppStatus + InsertConsole combination provides a convenient way to track
+    the status of a long running command-line application in a friendly manner.
+    However, there are few things that should be noted when using this module:
+
+        1. Once content in the streaming portion scrolls past the top of the
+           terminal, it cannot be retrieved by scrolling up using a mouse or the
+           scrollbar.
+        2. Content sent to the terminal cannot be redirected to a file from the
+           command-line using ">" (this results in strange binary characters
+           being sent to the file)
+        3. Content sent to the top streaming portion should not have tab
+           characters or embedded newline characters. These would cause the
+           streaming portion to spill over into the static portion, thus messing
+           up the display.
+        4. Regular Stdout/Stderr calls should not be used as this would also
+           cause the streaming portion to spill over into the static portion.
 
     Usage Example:
 
@@ -307,16 +328,17 @@ public class AppStatus
 
     /***************************************************************************
 
-        Clear all the app status lines from the console (including header and
+        Clear all the bottom static lines from the console (including header and
         footer).
 
-        This method is useful for when something needs to be printed on the
-        console (e.g a log message) and without calling this method the traces
-        of the app status might interfere with the printed line.
+        This method is useful for erasing the bottom static lines when there is
+        nothing meaningful to be shown there anymore. This generally happens
+        close to the end of an application's run, and is thus expected to be
+        called only a single time.
 
-        P.s: The caller need to make sure that the app status is already
-        displayed before calling this method, otherwise unintended lines might
-        be deleted.
+        Note that the caller needs to make sure that the static lines are
+        already displayed before calling this method, otherwise unintended lines
+        might be deleted.
 
     ***************************************************************************/
 
