@@ -365,7 +365,6 @@ unittest
             case of an error, not evaluated otherwise)
         a = left operand
         b = right operand
-        msg = optional custom message for exception
         file = file of origin
         line = line of origin
 

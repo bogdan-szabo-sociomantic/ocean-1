@@ -80,12 +80,12 @@ class AddressIPSocket ( bool IPv6 = false ) : IPSocket!(IPv6), IAddressIPSocketI
 
     /***************************************************************************
 
-        Asks the operation system what address & port this socket actual bound
-        to and updates the internal buffers accordingly.
+        Asks the operating system what address & port this socket is actually
+        bound to and updates the internal buffers accordingly.
 
         This can be useful when you bind to port 0 which means that the OS will
-        choose a random port for you and you want to find out which one it bound
-        to.
+        choose a random port for you and you want to find out which one was
+        chosen.
 
         Returns:
             0 on success, -1 on failure
