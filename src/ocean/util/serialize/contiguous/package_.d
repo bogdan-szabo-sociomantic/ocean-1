@@ -271,6 +271,31 @@ unittest
 
 /******************************************************************************
 
+    Extra unused bytes in source
+
+******************************************************************************/
+
+unittest
+{
+    auto t = new NamedTest("Basic + Copy");
+    auto s = defaultS();
+    void[] buffer;
+
+    Serializer.serialize(s, buffer);
+
+    // emulate left-over bytes from previous deserializations
+    buffer.length = buffer.length * 2;
+
+    Contiguous!(S) destination;
+    auto cont_S = Deserializer.deserialize!(S)(buffer, destination);
+    cont_S.enforceIntegrity();
+
+    t.test(cont_S.ptr is destination.ptr);
+    testS(t, *cont_S.ptr);
+}
+
+/******************************************************************************
+
     Some arrays set to null
 
 ******************************************************************************/

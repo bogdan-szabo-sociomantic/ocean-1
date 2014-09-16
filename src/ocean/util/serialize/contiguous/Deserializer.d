@@ -348,6 +348,12 @@ struct Deserializer
         {
             dst.data.length = total_length;
         }
+        if (src.length > total_length)
+        {
+            // ignore tail bytes not used in deserialization
+            src.length = total_length;
+        }
+
         dst.data[0 .. src.length] = src[0 .. $];
         (cast(ubyte[]) dst.data)[total_length .. $] = 0;
 
