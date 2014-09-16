@@ -3,7 +3,12 @@
     InsertConsole
 
     An appender for the tango logger which writes the output _above_ the
-    current cursor position, breaking the line automatically
+    current cursor position, breaking the line automatically.
+
+    This appender was developed in order to allow applications using
+    ocean.io.console.AppStatus to split the output console to send logs to the
+    top streaming portion without affecting the bottom static portion. For more
+    details, please refer to the documentation in the AppStatus module.
 
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
 

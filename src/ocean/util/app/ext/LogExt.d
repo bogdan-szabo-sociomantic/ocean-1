@@ -56,7 +56,9 @@ class LogExt : IConfigExtExtension
 
     /***************************************************************************
 
-        True if the insert appender should be used instead of the regular one
+        True if the InsertConsole appender should be used instead of the regular
+        one. The InsertConsole appender is needed when using the AppStatus
+        module.
 
     ***************************************************************************/
 
@@ -68,8 +70,8 @@ class LogExt : IConfigExtExtension
         Constructor.
 
         Params:
-            use_insert_appender = true if the insert appender should be used
-                                  instead of the regular one
+            use_insert_appender = true if the InsertConsole appender should be
+                                  used (needed when using the AppStatus module)
 
     ***************************************************************************/
 

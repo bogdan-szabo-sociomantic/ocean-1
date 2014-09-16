@@ -10,8 +10,14 @@
     track of any values, only puts the information to the terminal in a style
     similar to the one originally used by propulsor and sonar.
 
-    This module is intended to be used with an InsertConsole Logger, otherwise
-    the log lines might be displayed in a messed up format.
+    Since almost all applications that use this module also use Tango's logging
+    facility, a separate appender (ocean.util.log.InsertConsole) has been
+    developed to allow for application logs to be correctly displayed in the
+    streaming portion. The InsertConsole appender moves the cursor just above
+    the static lines, creates space by scrolling-up previously displayed content
+    in the streaming portion, and then "inserts" the given log message in the
+    newly created space. The existing static lines are not touched during this
+    process.
 
     Can display a set of static lines that stay at the bottom of the terminal
     as well as streaming lines that are scrolled above the static lines.

@@ -43,8 +43,8 @@ interface ILogExtExtension : IExtension
             config = configuration parser
             loose_config_parsing = true if errors shouldn't be triggered on
                                    unknown configuration options
-            use_insert_appender = true if the insert appender should be used
-                                  instead of the regular one
+            use_insert_appender = true if the InsertConsole appender should be
+                                  used (needed when using the AppStatus module)
 
     ***************************************************************************/
 
@@ -61,8 +61,8 @@ interface ILogExtExtension : IExtension
             config = configuration parser
             loose_config_parsing = true if errors shouldn't be triggered on
                                    unknown configuration options
-            use_insert_appender = true if the insert appender should be used
-                                  instead of the regular one
+            use_insert_appender = true if the InsertConsole appender should be
+                                  used (needed when using the AppStatus module)
 
     ***************************************************************************/
 

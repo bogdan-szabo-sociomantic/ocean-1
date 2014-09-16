@@ -128,8 +128,8 @@ abstract class LoggedCliApp : ConfiguredCliApp, ILogExtExtension
                          one line only, preferably less than 80 characters)
             usage = How the program is supposed to be invoked
             help = Long description of what the program does and how to use it
-            use_insert_appender = true if the insert appender should be used
-                                  instead of the regular one
+            use_insert_appender = true if the InsertConsole appender should be
+                                  used (needed when using the AppStatus module)
             loose_config_parsing = if true, configuration files will be parsed
                                    in a more relaxed way
             default_configs = default configuration files to parse
@@ -161,8 +161,8 @@ abstract class LoggedCliApp : ConfiguredCliApp, ILogExtExtension
         Params:
             name = name of the application
             desc = short description of the application
-            use_insert_appender = true if the insert appender should be used
-                                  instead of the regular one
+            use_insert_appender = true if the InsertConsole appender should be
+                                  used (needed when using the AppStatus module)
             loose_config_parsing = if true, configuration files will be parsed
                                    in a more relaxed way
             default_configs = default configuration files to parse
