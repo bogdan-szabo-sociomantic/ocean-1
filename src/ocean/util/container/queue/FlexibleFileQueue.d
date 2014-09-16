@@ -706,7 +706,7 @@ version (UnitTest)
     import ocean.text.util.StringC;
     import ocean.io.Stdout;
     import tango.stdc.posix.unistd;
-    extern (C) char* mkdtemp(char*);
+    import tango.stdc.posix.stdlib: mkdtemp;
 }
 
 unittest
