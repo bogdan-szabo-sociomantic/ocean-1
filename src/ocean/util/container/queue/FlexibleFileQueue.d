@@ -711,6 +711,7 @@ version (UnitTest)
 
 unittest
 {
+    // TODO Remove I/O from this test
     auto test_dir = StringC.toDString(mkdtemp("Dunittest-XXXXXX\0".dup.ptr));
     if (test_dir.length == 0)
     {
@@ -720,8 +721,11 @@ unittest
     }
     scope (exit) rmdir(test_dir.ptr);
 
-    auto test_file = (test_dir ~ "testfile\0")[0..$-1];
+    auto test_file = (test_dir ~ "/testfile\0")[0..$-1];
     scope (exit) unlink(test_file.ptr);
+
+    auto test_file_index = (test_dir ~ "/testfile.index\0")[0..$-1];
+    scope (exit) unlink(test_file_index.ptr);
 
     for ( int open_existing = 0; open_existing < 2; open_existing++ )
     {
