@@ -33,9 +33,9 @@
         1. Once content in the streaming portion scrolls past the top of the
            terminal, it cannot be retrieved by scrolling up using a mouse or the
            scrollbar.
-        2. Content sent to the terminal cannot be redirected to a file from the
-           command-line using ">" (this results in strange binary characters
-           being sent to the file)
+        2. When redirecting to a file from the command-line using ">", only the
+           contents of the streaming portion will be sent to the file, and not
+           the contents of the static portion.
         3. Content sent to the top streaming portion should not have tab
            characters or embedded newline characters. These would cause the
            streaming portion to spill over into the static portion, thus messing
@@ -389,6 +389,13 @@ public class AppStatus
     {
         this.resetStaticLines();
 
+        if ( Cout.redirected )
+        {
+            this.static_lines.length = size;
+
+            return;
+        }
+
         if ( this.static_lines.length > size )
         {
             // The number of static lines are being reduced
@@ -417,6 +424,7 @@ public class AppStatus
         }
 
         this.static_lines.length = size;
+
         this.resetCursorPosition();
     }
 
@@ -450,10 +458,18 @@ public class AppStatus
         the footer and move up. Then in reverse order print a line and move the
         cursor up. When all the lines have been printed, print the heading line.
 
+        Note: This method doesn't do anything if the console output is being
+              redirected from the command-line.
+
     ***************************************************************************/
 
     public void displayStaticLines ( )
     {
+        if ( Cout.redirected )
+        {
+            return;
+        }
+
         this.checkCursorPosition();
 
         foreach ( line; this.static_lines )
@@ -545,6 +561,13 @@ public class AppStatus
 
     public void displayStreamingLine ( )
     {
+        if ( Cout.redirected )
+        {
+            Cout.append(this.msg[]).newline.flush;
+
+            return;
+        }
+
         Hierarchy host_;
         Level level_;
         LogEvent event;

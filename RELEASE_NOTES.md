@@ -127,3 +127,13 @@ New Features
   New module that contains utilities built on top of (de)serializer. New `copy`
   overload was added here that can copy any "normal" structure `S` to
   `Contiguous!(S)`
+
+* `ocean.io.console.AppStatus`
+
+  Previously, attempting to redirect the output of an application using
+  `AppStatus` to a file from the command line (using `>` or `>>`) resulted in
+  strange binary characters to be saved in the file. This is no longer the case.
+  The output of the application can now be redirected to a file, but only the
+  contents of the top streaming portion would be saved to the file, whereas the
+  contents of the bottom static portion would simply be ignored.
+
