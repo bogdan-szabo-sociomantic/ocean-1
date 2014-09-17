@@ -37,7 +37,7 @@ private import tango.io.Console;
 
 private import tango.text.convert.Layout;
 
-version (Posix) private import tango.stdc.posix.unistd : isatty;
+
 
 /*******************************************************************************
 
