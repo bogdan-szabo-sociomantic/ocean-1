@@ -55,6 +55,13 @@ Migration Instructions
     If your code passes file/line explicitly, switch to `enforceImpl` instead which
     matches old signature.
 
+* `ocean.io.console.AppStatus`
+
+  The method `num_static_lines` earlier returned the 'new' number of static
+  lines, but now doesn't return anything. A separate getter method - also called
+  `num_static_lines` can be used instead to get the current number of static
+  lines.
+
 Deprecations
 ============
 

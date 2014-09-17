@@ -383,12 +383,9 @@ public class AppStatus
             size = number of loglines that are to be displayed below the
                     title line
 
-        Returns:
-            the updated number of static lines
-
     ***************************************************************************/
 
-    public size_t num_static_lines ( size_t size )
+    public void num_static_lines ( size_t size )
     {
         this.resetStaticLines();
 
@@ -421,6 +418,21 @@ public class AppStatus
 
         this.static_lines.length = size;
         this.resetCursorPosition();
+    }
+
+
+    /***************************************************************************
+
+        Gets the current number of lines in the app status static display.
+
+        Returns:
+            The current number of lines in the static bottom portion of the
+            split console.
+
+    ***************************************************************************/
+
+    public size_t num_static_lines ( )
+    {
         return this.static_lines.length;
     }
 
