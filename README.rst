@@ -59,6 +59,10 @@ Deprecations
   This module has been deprecaed in favor of ``ocean.util.container.cache.CachingStructLoader``. This means
   that changing API to type-safe one which works with specific struct type will be necessary.
 
+``ocean.io.serialize.TraceStructSerializer``
+  This module has been deprecated, is just an outdated wrapper of
+  ``StringStructSerializer``, so just use that class directly instead.
+
 New Features
 ^^^^^^^^^^^^
 

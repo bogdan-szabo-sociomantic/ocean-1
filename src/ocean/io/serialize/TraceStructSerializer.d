@@ -50,6 +50,10 @@
 
 module ocean.io.serialize.TraceStructSerializer;
 
+pragma(msg, "Deprecation: ocean.io.serialize.TraceStructSerializer is "
+        "deprecated, please use StringStructSerializer directly instead");
+
+deprecated:
 
 
 /*******************************************************************************
