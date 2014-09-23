@@ -36,7 +36,7 @@ private import tango.stdc.time : time_t;
 
 /*******************************************************************************
 
-    Periodically writes values of a struct to a logger using a timer event
+    Periodically writes values of an aggregate to a logger using a timer event
     registered with epoll. Uses the statslog format which is:
 
         date key:value, key:value
@@ -45,8 +45,9 @@ private import tango.stdc.time : time_t;
     ocean.util.log.layout.LayoutStatsLog.)
 
     Template Params:
-        T = a struct which contains the values that should be written to the
-            file, the tuple of the struct's members is iterated and each printed
+        T = an aggregate which contains the values that should be written to the
+            file, the tuple of the aggregate's members is iterated and each
+            printed
 
     Usage example:
 
@@ -117,8 +118,8 @@ public class PeriodicStatsLog ( T ) : IPeriodicStatsLog
 {
     /***************************************************************************
 
-        Delegate to get a pointer to a struct containing the values that are to
-        be written.
+        Delegate to get a pointer to an aggregate containing the values that are
+        to be written.
 
     ***************************************************************************/
 
@@ -143,11 +144,11 @@ public class PeriodicStatsLog ( T ) : IPeriodicStatsLog
         Constructor. Registers an update timer with the provided epoll selector.
         The timer first fires 5 seconds after construction, then periodically
         as specified. Each time the timer fires, it calls the user-provided
-        delegate, value_dg, which should return a pointer to a struct of type T
-        containing the values to be written to the next line in the log. Once
+        delegate, value_dg, which should return a pointer to an aggregate of type
+        T containing the values to be written to the next line in the log. Once
         the log line has been written, the optional post_log_dg is called (if
         provided), which may be used to implement special behaviour in the user
-        code, such as resetting transient values in the logged struct.
+        code, such as resetting transient values in the logged aggregate.
 
         Params:
             epoll    = epoll select dispatcher
@@ -172,11 +173,11 @@ public class PeriodicStatsLog ( T ) : IPeriodicStatsLog
         Constructor. Registers an update timer with the provided epoll selector.
         The timer first fires 5 seconds after construction, then periodically
         as specified. Each time the timer fires, it calls the user-provided
-        delegate, value_dg, which should return a pointer to a struct of type T
-        containing the values to be written to the next line in the log. Once
-        the log line has been written, the optional post_log_dg is called (if
-        provided), which may be used to implement special behaviour in the user
-        code, such as resetting transient values in the logged struct.
+        delegate, value_dg, which should return a pointer to an aggregate of
+        type T containing the values to be written to the next line in the log.
+        Once the log line has been written, the optional post_log_dg is called
+        (if provided), which may be used to implement special behaviour in the
+        user code, such as resetting transient values in the logged aggregate.
 
         Params:
             epoll    = epoll select dispatcher
@@ -209,11 +210,11 @@ public class PeriodicStatsLog ( T ) : IPeriodicStatsLog
 
         The timer first fires 5 seconds after construction, then periodically
         as specified. Each time the timer fires, it calls the user-provided
-        delegate, value_dg, which should return a pointer to a struct of type T
-        containing the values to be written to the next line in the log. Once
-        the log line has been written, the optional post_log_dg is called (if
-        provided), which may be used to implement special behaviour in the user
-        code, such as resetting transient values in the logged struct or
+        delegate, value_dg, which should return a pointer to an aggregate of
+        type T containing the values to be written to the next line in the log.
+        Once the log line has been written, the optional post_log_dg is called
+        (if provided), which may be used to implement special behaviour in the
+        user code, such as resetting transient values in the logged aggregate or
         addition of further values using the StatsLog.add methods. The stats
         values will be written to file after post_log_dg returned.
 
@@ -411,7 +412,7 @@ public abstract class IPeriodicStatsLog
 
 /*******************************************************************************
 
-    Writes values of a struct to a logger. Uses the statslog format which is:
+   Writes values of an aggregate to a logger. Uses the statslog format which is:
 
         date key: value, key: value
 
@@ -425,7 +426,8 @@ public abstract class IPeriodicStatsLog
         size_t bytes_in, bytes_out, awesomeness;
     }
 
-    auto stats_log = new StatsLog(new IStatsLog.Config("log/stats.log", 10_000, 5));
+    auto stats_log = new StatsLog(new IStatsLog.Config("log/stats.log",
+        10_000, 5));
 
     MyStats stats;
 
@@ -510,18 +512,19 @@ public class StatsLog : IStatsLog
         limits of template deduction. This function is equivalent to the
         following three functions:
 
-        *************************************************************************
-        * Adds the values of the given struct to the stats log. Each member of
-        * the struct will be output as <member name>:<member value>.
+        ************************************************************************
+        * Adds the values of the given aggregate to the stats log. Each member
+        * of the aggregate will be output as <member name>:<member value>.
         *
         * Params:
-        *     values = struct containing values to write to the log. Passed as ref
-        *         purely to avoid making a copy -- the struct is not modified.
+        *     values = aggregate containing values to write to the log. Passed
+        *         as ref purely to avoid making a copy -- the aggregate is not
+        *         modified.
         * ---
         * public typeof(this) add ( T ) ( T values )
         * ---
 
-        *************************************************************************
+        ************************************************************************
         * Add another value to the stats
         *
         * Params:
@@ -531,7 +534,7 @@ public class StatsLog : IStatsLog
         * public typeof(this) add ( T ) ( char[] name, T value )
         * ---
 
-        *************************************************************************
+        ************************************************************************
         * Add values from an associative array to the stats
         *
         * Params:
@@ -556,12 +559,12 @@ public class StatsLog : IStatsLog
     public typeof(this) add ( T... ) ( T parameters )
     {
         static if ( T.length == 1 )
-        {   // only parameter a struct
-            static if ( is ( T[0] == struct ) )
+        {   // only parameter an aggregate
+            static if ( is ( T[0] == struct ) || is ( T[0] == class ) )
             {
                 this.format(parameters[0]);
             }
-            else // only parameter not a struct, assumed AA
+            else // only parameter not an aggregate, assumed AA
             {
                 this.formatAssocArray(parameters[0], this.add_separator);
             }
@@ -582,7 +585,7 @@ public class StatsLog : IStatsLog
 
     /***************************************************************************
 
-        Adds a set of values (denoted by either a struct or an associative
+        Adds a set of values (denoted by either an aggregate or an associative
         array) to be output to the stats log. The specified string is appended
         to the name of each value written.
 
@@ -590,19 +593,21 @@ public class StatsLog : IStatsLog
         of template deduction. This function is equivalent to the following two
         functions:
 
-        *************************************************************************
-        * Adds the values of the given struct to the stats log. Each member of
-        * the struct will be output as <member name><suffix>:<member value>.
+        ************************************************************************
+        * Adds the values of the given aggregate to the stats log. Each member
+        * of the aggregate will be output as
+        * <member name><suffix>:<member value>.
         *
         * Params:
-        *     values = struct containing values to write to the log. Passed as ref
-        *         purely to avoid making a copy -- the struct is not modified.
+        *     values = aggregate containing values to write to the log. Passed
+        *         as ref purely to avoid making a copy -- the aggregate is not
+        *         modified.
         *     suffix = suffix to append to the values' names
         * ---
         * public typeof(this) add ( T ) ( T values )
         * ---
 
-        *************************************************************************
+        ************************************************************************
         * Add values from an associative array to the stats
         *
         * Params:
@@ -621,12 +626,12 @@ public class StatsLog : IStatsLog
 
     public typeof(this) addSuffix ( T ) ( T parameter, char[] suffix )
     {
-        // only parameter a struct
-        static if ( is ( T == struct ) )
+        // only parameter an aggregate
+        static if ( is ( T == struct ) || is ( T == class ) )
         {
-            this.formatStruct(parameter, suffix);
+            this.formatAggregate(parameter, suffix);
         }
-        else // only parameter not a struct, assumed AA
+        else // only parameter not an aggregate, assumed AA
         {
             this.formatAssocArray(parameter, this.add_separator, suffix);
         }
@@ -653,13 +658,16 @@ public class StatsLog : IStatsLog
 
     /***************************************************************************
 
-        Formats the values from the provided struct to the internal string
-        buffer. Each member of the struct is formatted as
+        Formats the values from the provided aggregate to the internal string
+        buffer. Each member of the aggregate is formatted as
         <member name>:<member value>.
 
+        Note: When the aggregate is a class, the members of the super class
+        are not iterated over.
+
         Params:
-            values = struct containing values to format. Passed as ref purely to
-                avoid making a copy -- the struct is not modified.
+            values = aggregate containing values to format. Passed as ref purely
+                to avoid making a copy -- the aggregate is not modified.
 
         Returns:
             formatted string
@@ -668,7 +676,7 @@ public class StatsLog : IStatsLog
 
     private char[] format ( T ) ( ref T values )
     {
-        this.formatStruct(values);
+        this.formatAggregate(values);
 
         return this.layout[];
     }
@@ -676,17 +684,22 @@ public class StatsLog : IStatsLog
 
     /***************************************************************************
 
-        Writes the values from the provided struct to the format_buffer member.
-        Each member of the struct is output as <member name>:<member value>.
+        Writes the values from the provided aggregate to the format_buffer
+        member. Each member of the aggregate is output as
+        <member name>:<member value>.
+
+        Note: When the aggregate is a class, the members of the super class
+        are not iterated over.
 
         Params:
-            values = struct containing values to write to the log. Passed as ref
-                purely to avoid making a copy -- the struct is not modified.
+            values = aggregate containing values to write to the log. Passed as
+                ref purely to avoid making a copy -- the aggregate is not
+                modified.
             suffix = optional suffix to append to the values' names
 
     ***************************************************************************/
 
-    private void formatStruct ( T ) ( ref T values, char[] suffix = null )
+    private void formatAggregate ( T ) ( ref T values, char[] suffix = null )
     {
         foreach ( i, value; values.tupleof )
         {
@@ -854,4 +867,3 @@ public abstract class IStatsLog
         }
     }
 }
-
