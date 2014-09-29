@@ -442,7 +442,7 @@ deprecated class Pool ( T ) : PoolCore
         deprecated public T get ( lazy T new_item )
         out (item)
         {
-            assert (item.ptr !is null);
+            assert (item !is null);
         }
         body
         {
@@ -494,7 +494,7 @@ deprecated class Pool ( T ) : PoolCore
         deprecated public ItemType get ( )
         out (item)
         {
-            assert (item.ptr !is null);
+            assert (item !is null);
         }
         body
         {
