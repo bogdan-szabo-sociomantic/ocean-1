@@ -37,8 +37,7 @@ master
 Migration Instructions
 ^^^^^^^^^^^^^^^^^^^^^^
 
-``ocean.io.serialize.StructLoader``
-``ocean.io.serialize.StructDumper``
+``ocean.io.serialize.StructLoader`` ``ocean.io.serialize.StructDumper``
   New package has been introduced (``ocean.util.serialize.contiguous``) that is
   supposed to replace existing versioned loaders. There is no straightforward
   migration path and old modules are not deprecate yet. However early trying
