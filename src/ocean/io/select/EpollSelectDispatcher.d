@@ -128,19 +128,6 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
     /***************************************************************************
 
-        Re-useable list of keys to be handled. After a select is performed, this
-        list is filled by the seperateClientLists() method. Note that any
-        clients which have timed out will *not* be included in this list (and
-        thus will not be handled).
-
-     **************************************************************************/
-
-    private alias AppendBuffer!(epoll_event_t) SelectedKeysList;
-
-    private SelectedKeysList selected_keys;
-
-    /***************************************************************************
-
         Re-useable set of timed out clients. After a select is performed, this
         list is filled by the seperateClientLists() method. Note that any
         clients in this list will *not* be handled, even if they have fired.
@@ -249,7 +236,6 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
         this.shutdown_event = new SelectEvent(&this.shutdownTrigger);
 
-        this.selected_keys     = new SelectedKeysList(max_events);
         this.timed_out_clients = new TimedOutClientList(max_events);
         this.events            = new epoll_event_t[max_events];
     }
@@ -689,9 +675,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
         while ( this.registered_clients.length && !this.shutdown_triggered )
         {
-            this.handleSelectedKeys(this.select());
-
-            this.handleTimedOutClients();
+            this.select();
         }
     }
 
@@ -722,11 +706,11 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         Executes an epoll select.
 
         Returns:
-            a list of the epoll keys for which an event was reported.
+            the number of epoll keys for which an event was reported.
 
      **************************************************************************/
 
-    protected epoll_event_t[] select ( )
+    protected uint select ( )
     {
         debug ( ISelectClient )
         {
@@ -768,7 +752,9 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
                 auto selected_set = events[0 .. n];
 
-                return have_timeout? this.separateClientLists(selected_set) : selected_set;
+                this.handleClients(selected_set, have_timeout);
+
+                return n;
             }
             else
             {
@@ -792,90 +778,71 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
      **************************************************************************/
 
-    protected void handleSelectedKeys ( epoll_event_t[] selected_keys )
+    protected void handleSelectedKey ( epoll_event_t key )
     {
-        foreach ( key; selected_keys )
-        {
-            ISelectClient client = cast (ISelectClient) key.data.ptr;
+        ISelectClient client = cast (ISelectClient) key.data.ptr;
 
-            debug ( ISelectClient )
+        debug ( ISelectClient )
+        {
+            Trace.format("{} :: Epoll firing with events ", client);
+            foreach ( event, name; epoll_event_t.event_to_name )
             {
-                Trace.formatln("{} :: Epoll firing with events:", client);
-                foreach ( event, name; epoll_event_t.event_to_name )
+                if ( key.events & event )
                 {
-                    if ( key.events & event )
-                    {
-                        Trace.formatln("\t{}", name);
-                    }
+                    Trace.format("{}", name);
                 }
             }
+            Trace.formatln("");
+        }
 
-            // Only handle clients which are registered. Clients may have
-            // already been unregistered (presumably deliberately), as a side-
-            // effect of handling previous clients, so we don't unregister them
-            // again or call their finalizers.
-            if ( client.is_registered )
+        // Only handle clients which are registered. Clients may have
+        // already been unregistered (presumably deliberately), as a side-
+        // effect of handling previous clients, so we don't unregister them
+        // again or call their finalizers.
+        if ( client.is_registered )
+        {
+            bool unregister_key = true,
+                 error          = false;
+
+            try
             {
-                bool unregister_key = true,
-                     error          = false;
+                this.checkKeyError(client, key.events);
 
-                try
+                unregister_key = !client.handle(key.events);
+
+                debug ( ISelectClient ) if ( unregister_key )
                 {
-                    this.checkKeyError(client, key.events);
-
-                    unregister_key = !client.handle(key.events);
-
-                    debug ( ISelectClient ) if ( unregister_key )
-                    {
-                        Trace.formatln("{} :: Handled, unregistering fd", client);
-                    }
-                    else
-                    {
-                        Trace.formatln("{} :: Handled, leaving fd registered", client);
-                    }
+                    Trace.formatln("{} :: Handled, unregistering fd", client);
                 }
-                catch (Exception e)
+                else
                 {
-                    debug (ISelectClient)
-                    {
-                        // FIXME: printing on separate lines for now as a workaround
-                        // for a dmd bug with varargs
-                        Trace.formatln("{} :: ISelectClient handle exception:", client);
-                        Trace.formatln("    '{}'", e.msg);
-                        Trace.formatln("    @{}:{}", e.file, e.line);
-    //                    Trace.formatln("{} :: ISelectClient handle exception: '{}' @{}:{}",
-    //                        client, e.msg, e.file, e.line);
-                    }
-
-                    this.clientError(client, key.events, e);
-                    error = true;
-                }
-
-                if (unregister_key)
-                {
-                    this.unregisterAndFinalize(client,
-                                               error? client.FinalizeStatus.Error :
-                                                      client.FinalizeStatus.Success);
+                    Trace.formatln("{} :: Handled, leaving fd registered", client);
                 }
             }
+            catch (Exception e)
+            {
+                debug (ISelectClient)
+                {
+                    // FIXME: printing on separate lines for now as a workaround
+                    // for a dmd bug with varargs
+                    Trace.formatln("{} :: ISelectClient handle exception:", client);
+                    Trace.formatln("    '{}'", e.msg);
+                    Trace.formatln("    @{}:{}", e.file, e.line);
+//                    Trace.formatln("{} :: ISelectClient handle exception: '{}' @{}:{}",
+//                        client, e.msg, e.file, e.line);
+                }
+
+                this.clientError(client, key.events, e);
+                error = true;
+            }
+
+            if (unregister_key)
+            {
+                this.unregisterAndFinalize(client,
+                                           error? client.FinalizeStatus.Error :
+                                                  client.FinalizeStatus.Success);
+            }
         }
-    }
-
-    /***************************************************************************
-
-        Finalizes all timed out clients (as determined by
-        separateClientLists()).
-
-    ***************************************************************************/
-
-    protected void handleTimedOutClients ( )
-    {
-        foreach ( client; this.timed_out_clients[] )
-        {
-            this.unregisterAndFinalize(client, client.FinalizeStatus.Timeout);
-        }
-
-        this.timed_out_clients.clear();
     }
 
     /***************************************************************************
@@ -931,61 +898,82 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
         Params:
             selected_set = the result list of epoll_wait()
+            have_timeout = indicates whether there are events registered with
+                the timeout manager (which will need to be checked to see if a
+                timeout has actually occurred)
 
         Returns:
             selected_set or a copy of it with the timed out keys removed
 
     ***************************************************************************/
 
-    private epoll_event_t[] separateClientLists ( epoll_event_t[] selected_set )
+    private void handleClients ( epoll_event_t[] selected_set, bool have_timeout )
     {
-        this.timeout_manager.checkTimeouts((ITimeoutClient timeout_client)
+        if (have_timeout)
         {
-            auto client = cast (ISelectClient)timeout_client;
-
-            assert (client !is null, "timeout client is not a select client");
-
-            debug ( ISelectClient )
-                Trace.formatln("{} :: Client timed out, unregistering", client);
-
-            this.timed_out_clients ~= client;
-
-            return true;
-        });
-
-        auto timed_out_clients = this.timed_out_clients[];
-
-        if (timed_out_clients.length)
-        {
-            this.selected_keys.clear();
-
-            /*
-             * Sort the list of timed out clients to allow for lookup using
-             * bsearch().
-             * This will sort this.timed_out_clients[] in-place.
-             */
-
-            qsort(timed_out_clients.ptr, timed_out_clients.length,
-                  timed_out_clients[0].sizeof, &cmpPtr!(false));
-
-            foreach (key; selected_set)
+            this.timeout_manager.checkTimeouts((ITimeoutClient timeout_client)
             {
-                ISelectClient client = cast (ISelectClient) key.data.ptr;
+                auto client = cast (ISelectClient)timeout_client;
 
-                assert (client !is null);
+                assert (client !is null, "timeout client is not a select client");
 
-                if (!bsearch(cast (void*) client, timed_out_clients.ptr,
-                             timed_out_clients.length, timed_out_clients[0].sizeof, &cmpPtr!(true)))
+                debug ( ISelectClient )
+                    Trace.formatln("{} :: Client timed out, unregistering", client);
+
+                this.timed_out_clients ~= client;
+
+                return true;
+            });
+
+            auto timed_out_clients = this.timed_out_clients[];
+
+            if (timed_out_clients.length)
+            {
+                /*
+                 * Handle the clients in the selected set that didn't time out.
+                 * To do so, look up every timed out client in the selected set
+                 * using bsearch and handle it if it didn't time.
+                 */
+
+                qsort(timed_out_clients.ptr, timed_out_clients.length,
+                      timed_out_clients[0].sizeof, &cmpPtr!(false));
+
+                foreach (key; selected_set)
                 {
-                    this.selected_keys ~= key;
+                    ISelectClient client = cast (ISelectClient) key.data.ptr;
+
+                    assert (client !is null);
+
+                    if (!bsearch(cast (void*) client, timed_out_clients.ptr,
+                                 timed_out_clients.length, timed_out_clients[0].sizeof, &cmpPtr!(true)))
+                    {
+                        this.handleSelectedKey(key);
+                    }
                 }
+
+                foreach ( client; this.timed_out_clients[] )
+                {
+                    this.unregisterAndFinalize(client, client.FinalizeStatus.Timeout);
+                }
+
+                this.timed_out_clients.clear();
+
+                /*
+                 * The selected set and the timed out clients are handled:
+                 * We're done.
+                 */
+
+                return;
             }
 
-            return this.selected_keys[];
+            /*
+             * No client timed out: Handle the selected set normally.
+             */
         }
-        else
+
+        foreach (key; selected_set)
         {
-            return selected_set;
+            this.handleSelectedKey(key);
         }
     }
 
