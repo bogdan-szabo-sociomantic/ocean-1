@@ -9,7 +9,7 @@
 module ocean.util.serialize.model.Version;
 
 /*******************************************************************************
-    
+
     Imports
 
 *******************************************************************************/
@@ -17,7 +17,7 @@ module ocean.util.serialize.model.Version;
 version(UnitTest) import ocean.core.Test;
 
 /*******************************************************************************
-    
+
     Tag type that denotes missing version type for either next or previous
     version of a struct.
 
@@ -29,7 +29,7 @@ public struct MissingVersion
 }
 
 /*******************************************************************************
-    
+
     Namespace struct is desired because most of symbols have very common and
     generic names.
 
@@ -38,7 +38,7 @@ public struct MissingVersion
 struct Version
 {
     /***************************************************************************
-        
+
         The type of the version number tag that is prepended to serialised data.
 
     ***************************************************************************/
@@ -73,7 +73,7 @@ struct Version
         {
             static assert (
                 S.StructVersion <= Version.Type.max,
-                S.stringof ~ ".StructVersion == " ~ 
+                S.stringof ~ ".StructVersion == " ~
                 S.StructVersion.stringof ~
                 ", but it must be lower than Version.Type.max"
             );
@@ -89,7 +89,7 @@ struct Version
             }
             else
             {
-                alias MissingVersion next; // dummy 
+                alias MissingVersion next; // dummy
             }
 
             static if (is(S.StructPrevious))
@@ -144,7 +144,7 @@ struct Version
     }
 
     /***************************************************************************
-        
+
         Assumes that input is versioned struct chunk and extracts version number
         from it. Otherwise will return garbage
 
@@ -174,12 +174,12 @@ struct Version
         void[] data = [ V, 1, 1 ];
         Version.Type ver;
         auto data_unver = extract(data, ver);
-        test!("==")(ver, V); 
-        test!("==")(data_unver.length, 2); 
+        test!("==")(ver, V);
+        test!("==")(data_unver.length, 2);
     }
 
     /***************************************************************************
-        
+
         Writes version data in the beginning of provided data buffer. Grows buffer
         if it is too small. Call this function before actually writing any useful
         payload to the buffer or it will be overwritten.

@@ -126,7 +126,7 @@ struct S
     S_1 s1;
 
     S_2 s2;
-    S_2[1] s2_static_array; 
+    S_2[1] s2_static_array;
 
     S_3 s3;
 
@@ -179,8 +179,8 @@ S defaultS()
 }
 
 /******************************************************************************
-    
-    Does series of tests on `checked` to verify that it is equal to struct 
+
+    Does series of tests on `checked` to verify that it is equal to struct
     returned by `defaultS()`
 
 
@@ -312,7 +312,7 @@ unittest
     auto cont_S = Deserializer.deserialize!(S)(buffer);
     cont_S.enforceIntegrity();
 
-    t.test!("==")(cont_S.ptr.s2.a.length, 0);    
+    t.test!("==")(cont_S.ptr.s2.a.length, 0);
     auto s_ = cont_S.ptr;      // hijack the invariant
     s_.s2.a = defaultS().s2.a; // revert the difference
     testS(t, *s_);             // check the rest
@@ -335,7 +335,7 @@ unittest
     auto cont_S = Deserializer.deserialize!(S)(buffer);
     cont_S.enforceIntegrity();
 
-    t.test!("==")(cont_S.ptr.s2.b[0].length, 0);    
+    t.test!("==")(cont_S.ptr.s2.b[0].length, 0);
     auto s_ = cont_S.ptr;            // hijack the invariant
     s_.s2.b[0] = defaultS().s2.b[0]; // revert the difference
     testS(t, *s_);                   // check the rest
@@ -374,7 +374,7 @@ unittest
 }
 
 /******************************************************************************
-    
+
     Recursie static arrays
 
 ******************************************************************************/

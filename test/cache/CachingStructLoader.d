@@ -57,7 +57,7 @@ class TestCache(S) : CachingStructLoader!(S)
     }
 
     override protected void getData ( hash_t key, void delegate ( Contiguous!(S) data ) got )
-    {   
+    {
         auto data = key in this.source;
         if (data)
         {
@@ -68,7 +68,7 @@ class TestCache(S) : CachingStructLoader!(S)
         {
             got(Contiguous!(S)(null));
         }
-    } 
+    }
 }
 
 /******************************************************************************

@@ -227,21 +227,21 @@ struct Deserializer
         debug (DeserializationTrace)
         {
             Stdout.formatln("< deserialize!({})({}) : {}", S.stringof,
-                src.ptr, s.ptr); 
+                src.ptr, s.ptr);
         }
     }
     body
     {
         debug (DeserializationTrace)
         {
-            Stdout.formatln("> deserialize!({})({})", S.stringof, src.ptr); 
+            Stdout.formatln("> deserialize!({})({})", S.stringof, src.ptr);
         }
 
         size_t slices_len = 0,
                data_len   = This.countRequiredSize!(S)(src, slices_len);
 
         debug (DeserializationTrace)
-            Stdout.formatln("  data_len = {}, slices_len = {}", data_len, slices_len); 
+            Stdout.formatln("  data_len = {}, slices_len = {}", data_len, slices_len);
 
         size_t total_length = data_len + slices_len;
 
@@ -261,7 +261,7 @@ struct Deserializer
     }
 
     /***************************************************************************
-        
+
         Identical to contiguous.Deserializer.deserialize but instead of
         modifying input buffer copies the deserialized data to provided
         Contiguous wrapper.
@@ -287,7 +287,7 @@ struct Deserializer
         debug (DeserializationTrace)
         {
             Stdout.formatln("< deserialize!({})({}, {}) : {}", S.stringof,
-                src.ptr, dst.ptr, s.ptr); 
+                src.ptr, dst.ptr, s.ptr);
         }
     }
     body
@@ -295,7 +295,7 @@ struct Deserializer
         debug (DeserializationTrace)
         {
             Stdout.formatln("> deserialize!({})({}, {})", S.stringof,
-                src.ptr, dst.ptr); 
+                src.ptr, dst.ptr);
         }
 
         This.e.enforceInputSize!(S)(src.length, S.sizeof);
@@ -355,8 +355,8 @@ struct Deserializer
             S = struct type `instance` is assumed to contain
 
         Params:
-            instance = serialized struct buffer to calculate data for 
- 
+            instance = serialized struct buffer to calculate data for
+
         Returns:
             required array size, total
 
@@ -376,7 +376,7 @@ struct Deserializer
         debug (DeserializationTrace)
         {
             Stdout.formatln("> countStructArraySizes!({})({})", S.stringof,
-                instance.ptr); 
+                instance.ptr);
         }
 
         size_t extra;
@@ -397,7 +397,7 @@ struct Deserializer
             S = struct type
 
         Params:
-            data        = struct slice to calculate data for 
+            data        = struct slice to calculate data for
             extra_bytes = extra space needed for branched arrays, this number
                 is consequently accumulated through recursive calls to count*
                 methods (which is why it is not `out` parameter)
@@ -412,7 +412,7 @@ struct Deserializer
     out (size)
     {
         assert (size >= S.sizeof);
-        
+
         debug (DeserializationTrace)
         {
             Stdout.formatln("< countRequiredSize!({})({}, {}) : {}",
@@ -490,7 +490,7 @@ struct Deserializer
                 S.stringof,
                 data.ptr,
                 extra_bytes
-            ); 
+            );
         }
 
         size_t pos = 0;
@@ -507,7 +507,7 @@ struct Deserializer
             {
                 static if (is (Element[] == Field))
                 {
-                    // dynamic array 
+                    // dynamic array
 
                     This.e.enforceInputSize!(S)(data.length, pos);
 
@@ -529,7 +529,7 @@ struct Deserializer
     }
 
     /***************************************************************************
-        
+
         Calculates number of bytes needed to deserialize an array.
         Additionally calculates number of extra bytes needed to store
         deserialized branched arrays (as per `sliceArray()` algorithm).
@@ -728,7 +728,7 @@ struct Deserializer
             src slice for deserialized data, branched part not included (as it
             may be in a different memory chunk). Adjust it to also include
             branched array if necessary at the call site
-    
+
     ***************************************************************************/
 
     private static void[] handleBranching ( S ) ( void[] src,

@@ -25,7 +25,7 @@ private struct _Dummy
 /*******************************************************************************
 
     Checks if given type statically conforms to the serialization API.
-    
+
     Any serializer must:
     1) define static `serialize` method that takes two arguemnts : any struct
         and output void[] buffer. It must return the very same buffer slice
@@ -40,7 +40,7 @@ private struct _Dummy
 
 template isSerializer(T)
 {
-    public const isSerializer = 
+    public const isSerializer =
         is(typeof({
             _Dummy input;
             void[] buffer;
@@ -77,14 +77,14 @@ version(UnitTest)
     Checks if given type statically conforms to the deserialization API.
 
     Any deserializer must:
-    1) define two static `deserialize` methods. One takes single void[] 
+    1) define two static `deserialize` methods. One takes single void[]
         argument and deserialized it in-place. Another takes additional
         argument of the same type as return type and uses it tp copy
         deserialized data to.
         Exact return types are implementation-defined but expected to be
         buffer wrappers f some sort.
     2) define static `countRequiredSize` method that calculates size of the
-        buffer needed to store deserialized struct instance 
+        buffer needed to store deserialized struct instance
 
     Template Params:
         T = type to check

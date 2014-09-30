@@ -28,7 +28,7 @@
       actual modules to be used by applications. ``pkgname`` here represents
       specific serialization format, one sub-package for each new format. There can
       be more modules exposed to applications depending on specific format but
-      those are minimal ones you should expect. Decorator implementation count may 
+      those are minimal ones you should expect. Decorator implementation count may
       vary from 0 to many depending on actual needs.
 
     ``ocean.util.serialize.pgkname.model.*``

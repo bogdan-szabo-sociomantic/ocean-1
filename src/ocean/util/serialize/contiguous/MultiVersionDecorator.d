@@ -2,7 +2,7 @@
 
     copyright:      Copyright (c) 2014 sociomantic labs. All rights reserved
 
-    Enhancement to VersionDecorator that allows converting through multiple 
+    Enhancement to VersionDecorator that allows converting through multiple
     struct versions at once. It is kept separate from core implementation
     because additional overhead may be not suitable for real-time apps
 
@@ -11,7 +11,7 @@
 module ocean.util.serialize.contiguous.MultiVersionDecorator;
 
 /*******************************************************************************
-    
+
     Imports
 
 *******************************************************************************/
@@ -35,14 +35,14 @@ private import ocean.util.serialize.contiguous.Serializer,
 version (UnitTest) import ocean.core.Test;
 
 /*******************************************************************************
-    
+
     Alternative contiguous version decorator implementation for usage in less
     performance critical applications. Is capable of converting through
     multiple struct versions in one go for added convenience.
 
     Amount of allowed conversions for single call is set via constructor
     argument, 10 by default
-    
+
 *******************************************************************************/
 
 class VersionDecorator
@@ -74,7 +74,7 @@ class VersionDecorator
     public alias .Serializer  Serializer;
 
     /***************************************************************************
-    
+
         ditto
 
     ***************************************************************************/
@@ -82,7 +82,7 @@ class VersionDecorator
     public alias .Deserializer Deserializer;
 
     /***************************************************************************
-    
+
         Reused exception instance
 
     ***************************************************************************/
@@ -90,7 +90,7 @@ class VersionDecorator
     protected VersionHandlingException e;
 
     /***************************************************************************
-    
+
         Allowed difference between struct versions to be converted in one go
 
     ***************************************************************************/
@@ -98,7 +98,7 @@ class VersionDecorator
     private size_t conversion_limit;
 
     /***************************************************************************
-    
+
         Constructor
 
         Params:

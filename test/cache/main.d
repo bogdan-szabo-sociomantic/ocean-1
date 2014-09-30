@@ -4,10 +4,10 @@
     environment setup.
 
     Copyright: Copyright (c) 2014 sociomantic labs. All rights reserved
-    
+
 *******************************************************************************/
 
-module test.cache.main; 
+module test.cache.main;
 
 /******************************************************************************
 

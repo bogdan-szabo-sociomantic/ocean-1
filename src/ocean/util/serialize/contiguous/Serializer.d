@@ -77,7 +77,7 @@ struct Serializer
         debug (SerializationTrace)
         {
             Stdout.formatln("< serialize!({})(<src>, {}) : {}", S.stringof,
-                dst.ptr, data.ptr); 
+                dst.ptr, data.ptr);
         }
     }
     body
@@ -454,7 +454,7 @@ struct Serializer
                                 s.tupleof[i].length);
                         }
 
-                        data = This.dumpStaticArray(s.tupleof[i][], data); 
+                        data = This.dumpStaticArray(s.tupleof[i][], data);
                     }
                 }
                 else static if (is (T == union))

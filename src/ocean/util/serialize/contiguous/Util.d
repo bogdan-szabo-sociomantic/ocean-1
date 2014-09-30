@@ -18,7 +18,7 @@ private import ocean.util.serialize.contiguous.Contiguous,
                ocean.util.serialize.contiguous.Serializer,
                ocean.util.serialize.contiguous.Deserializer;
 
-private import ocean.core.Test;               
+private import ocean.core.Test;
 
 /*******************************************************************************
 
@@ -40,7 +40,7 @@ private import ocean.core.Test;
 
 public Contiguous!(S) copy(S) ( Contiguous!(S) src, ref Contiguous!(S) dst )
 {
-    Deserializer.deserialize!(S)(src.data, dst); 
+    Deserializer.deserialize!(S)(src.data, dst);
     return dst;
 }
 
@@ -61,7 +61,7 @@ public Contiguous!(S) copy(S) ( Contiguous!(S) src, ref Contiguous!(S) dst )
 public Contiguous!(S) copy(S) ( ref S src, ref Contiguous!(S) dst )
 {
     Serializer.serialize!(S)(src, dst.data);
-    dst = Deserializer.deserialize!(S)(dst.data); 
+    dst = Deserializer.deserialize!(S)(dst.data);
     return dst;
 }
 

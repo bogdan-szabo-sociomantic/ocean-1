@@ -20,11 +20,11 @@ module ocean.util.serialize.contiguous.model.LoadCopyMixin;
 template LoadCopyMethod(alias exception_field)
 {
     /***************************************************************************
-    
+
         Loads versioned struct from `buffer` and stores resulting data
         in `copy_buffer`, leaving `buffer` untouched.
 
-        If deserialized struct is of different version than requested one, 
+        If deserialized struct is of different version than requested one,
         converts it iteratively, one version increment/decrement at time.
 
         Params:
@@ -47,12 +47,12 @@ template LoadCopyMethod(alias exception_field)
         );
 
         exception_field.enforceInputLength!(S)(buffer.length);
-        
+
         Version.Type input_version;
         auto unversioned = Version.extract(buffer, input_version);
         copy_buffer.data.length = unversioned.length;
         copy_buffer.data[0 .. unversioned.length] = unversioned[];
-        
+
         return this.handleVersion!(S)(copy_buffer.data, input_version);
     }
 }

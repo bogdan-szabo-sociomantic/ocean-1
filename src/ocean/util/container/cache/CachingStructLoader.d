@@ -140,7 +140,7 @@ class CachingStructLoader ( S )
 
     /**************************************************************************
 
-        Cached element is copied in this buffer before being returned. If 
+        Cached element is copied in this buffer before being returned. If
         fiber-local instances of CachingStructLoader are used this will
         guarantee that all pointers remain good between context switches.
 
@@ -194,7 +194,7 @@ class CachingStructLoader ( S )
         Params:
             key  = cache element key
             data = data to store in the cache
-            cache_slot = cache slot to store copy data to 
+            cache_slot = cache slot to store copy data to
 
         Returns:
             this.fiber_local_copy
@@ -271,7 +271,7 @@ class CachingStructLoader ( S )
         nothing by default which is most common case for exsting caches.
 
         If overriden this method must always modify data in-place
-        
+
         Params:
             data = deserialized element data, use `data.ptr` to access it as S*
 
@@ -306,7 +306,7 @@ class CachingStructLoader ( S )
     protected Contiguous!(S) load ( hash_t key )
     {
         CacheValue* cached_value;
-        bool value_is_cached = false; 
+        bool value_is_cached = false;
 
         if (this.add_empty_values)
         {

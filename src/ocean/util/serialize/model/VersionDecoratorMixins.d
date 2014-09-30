@@ -10,7 +10,7 @@
 module ocean.util.serialize.model.VersionDecoratorMixins;
 
 /*******************************************************************************
-    
+
     Imports
 
 *******************************************************************************/
@@ -43,7 +43,7 @@ version (UnitTest) import ocean.core.Test;
 template StoreMethod(Serializer)
 {
     /***************************************************************************
-    
+
         Serializes `input` with This.Serializer and prepends version number
         before struct data in the buffer.
 
@@ -95,10 +95,10 @@ template StoreMethod(Serializer)
 template LoadMethod (Deserializer, alias exception_field)
 {
     /***************************************************************************
-    
+
         Loads versioned struct from `buffer` in-place
-        
-        If deserialized struct is of different version than requested one, 
+
+        If deserialized struct is of different version than requested one,
         converts it iteratively, one version increment/decrement at time.
 
         Params:
@@ -119,12 +119,12 @@ template LoadMethod (Deserializer, alias exception_field)
             "Trying to use " ~ This.stringof ~ " with unversioned struct "
                 ~ S.stringof
         );
-        
+
         exception_field.enforceInputLength!(S)(buffer.length);
-        
+
         Version.Type input_version;
         auto unversioned = Version.extract(buffer, input_version);
-        // can't just do `buffer = unversioned` because it will create new 
+        // can't just do `buffer = unversioned` because it will create new
         // gc root and slowly leak memory with each load
         memmove(buffer.ptr, unversioned.ptr, unversioned.length);
 
@@ -210,7 +210,7 @@ template HandleVersionMethod(Deserializer, alias exception_field)
 template ConvertMethod(Serializer, Deserializer)
 {
     /***************************************************************************
-    
+
         Persistent buffer reused for temporary allocations needed for struct
         conversions between different versions
 
@@ -219,7 +219,7 @@ template ConvertMethod(Serializer, Deserializer)
     private ConcatBuffer!(void) convert_buffer;
 
     /***************************************************************************
-    
+
         Struct buffer for copy of deserialized data needed for in-place
         deserialization with conversion
 
@@ -269,8 +269,8 @@ template ConvertMethod(Serializer, Deserializer)
 }
 
 /*******************************************************************************
-    
-    Generic implementation of Loader with versioning support. It does not 
+
+    Generic implementation of Loader with versioning support. It does not
     conform to `isLoader` trait because of missing `loadCopy` method (see
     ocean.util.serialize.Traits for details). "Real" implementation must
     add it too.
@@ -281,7 +281,7 @@ template ConvertMethod(Serializer, Deserializer)
 
     This class serves exclusively as example of usage of mixins defines in this
     module. It is not intended to be used or derived from.
-    
+
     Template Params:
         Srlz  = Serializer to use
         Dsrlz = Deserializer to use
@@ -308,7 +308,7 @@ private class VersionDecoratorExample(Srlz, Dsrlz)
     public alias Srlz  Serializer;
 
     /***************************************************************************
-    
+
         ditto
 
     ***************************************************************************/
@@ -316,7 +316,7 @@ private class VersionDecoratorExample(Srlz, Dsrlz)
     public alias Dsrlz Deserializer;
 
     /***************************************************************************
-    
+
         Reused exception instance
 
     ***************************************************************************/
@@ -324,7 +324,7 @@ private class VersionDecoratorExample(Srlz, Dsrlz)
     protected VersionHandlingException e;
 
     /***************************************************************************
-    
+
         Constructor
 
         Params:
@@ -414,7 +414,7 @@ unittest
 class VersionHandlingException : Exception
 {
     /***************************************************************************
-    
+
         No-op constructor, all actual data gets set up by throwing methods
 
     ***************************************************************************/

@@ -1,12 +1,12 @@
 /******************************************************************************
 
     Common objects / utilities needed to emulate application environment
-    
+
     Copyright: Copyright (c) 2014 sociomantic labs. All rights reserved
-    
+
 *******************************************************************************/
 
-module test.cache.common.Environment; 
+module test.cache.common.Environment;
 
 /******************************************************************************
 
@@ -47,7 +47,7 @@ void wait(long seconds)
     );
 
     timer.set( timespec(seconds) );
-    epoll.register(timer); 
+    epoll.register(timer);
     epoll.eventLoop();
 }
 

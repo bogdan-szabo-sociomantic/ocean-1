@@ -11,7 +11,7 @@
 module ocean.util.serialize.contiguous.VersionDecorator;
 
 /*******************************************************************************
-    
+
     Imports
 
 *******************************************************************************/
@@ -24,20 +24,20 @@ private import ocean.util.serialize.model.Traits,
                ocean.util.serialize.model.Version,
                ocean.util.serialize.model.VersionDecoratorMixins;
 
-private import ocean.util.serialize.contiguous.Deserializer,               
+private import ocean.util.serialize.contiguous.Deserializer,
                ocean.util.serialize.contiguous.Serializer,
                ocean.util.serialize.contiguous.Contiguous,
                ocean.util.serialize.contiguous.model.LoadCopyMixin;
 
-private import tango.text.convert.Format,              
+private import tango.text.convert.Format,
                tango.stdc.string : memmove;
 
 /*******************************************************************************
-    
+
     Decorator that wraps contiguous (de)serializer and adds struct versioning
     support on top. Similar to VersionDecoratorExample but also with
     `loadCopy` method tuned for `Contiguous!(S)` return type.
-    
+
 *******************************************************************************/
 
 class VersionDecorator
@@ -69,7 +69,7 @@ class VersionDecorator
     public alias .Serializer  Serializer;
 
     /***************************************************************************
-    
+
         ditto
 
     ***************************************************************************/
@@ -77,7 +77,7 @@ class VersionDecorator
     public alias .Deserializer Deserializer;
 
     /***************************************************************************
-    
+
         Reused exception instance
 
     ***************************************************************************/
@@ -85,7 +85,7 @@ class VersionDecorator
     protected VersionHandlingException e;
 
     /***************************************************************************
-    
+
         Constructor
 
         Params:
@@ -109,7 +109,7 @@ class VersionDecorator
 }
 
 /*******************************************************************************
-    
+
     Testing. Decorator can be defined by a simple alias but its functionality needs
     extensive test coverage.
 
@@ -123,7 +123,7 @@ private import tango.core.Array,
                tango.core.Memory;
 
 /*******************************************************************************
-    
+
     No conversion. More extensively covered by (de)serializer base tests in
     package_test.d
 
@@ -136,7 +136,7 @@ unittest
         const StructVersion = 1;
 
         int    a = 42;
-        double b = 2.0; 
+        double b = 2.0;
     }
 
     auto loader = new VersionDecorator;
@@ -158,7 +158,7 @@ unittest
 }
 
 /*******************************************************************************
-    
+
     Error handling
 
 *******************************************************************************/
@@ -167,7 +167,7 @@ unittest
 {
     auto loader = new VersionDecorator;
     void[] buffer = null;
-  
+
     // must not accept non-versioned
 
     struct NoVersion { }
@@ -184,7 +184,7 @@ unittest
         loader.loadCopy!(Dummy)(buffer, dst));
 
     // must detect if conversion is not defined
-    
+
     struct Dummy2 { const StructVersion = 2; }
 
     loader.store(Dummy2.init, buffer);
@@ -195,7 +195,7 @@ unittest
 }
 
 /*******************************************************************************
-    
+
     Conversion from higher version, trivial struct
 
 *******************************************************************************/
@@ -212,7 +212,7 @@ struct Test1
         {
             this.a = src.a + 1;
         }
-        
+
         int a;
     }
 
@@ -244,7 +244,7 @@ unittest
 }
 
 /*******************************************************************************
-    
+
     Conversion from lower version, trivial struct
 
 *******************************************************************************/
@@ -254,7 +254,7 @@ struct Test2
     struct Version1
     {
         const StructVersion = 1;
-        
+
         int a;
     }
 
@@ -293,7 +293,7 @@ unittest
 }
 
 /*******************************************************************************
-    
+
     Chained bi-directional conversions
 
 *******************************************************************************/

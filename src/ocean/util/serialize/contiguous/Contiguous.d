@@ -32,7 +32,7 @@ version(UnitTest)
     operations on such structs preserve the contiguous data layout
 
     Template Params:
-        S = type of the wrapped struct 
+        S = type of the wrapped struct
 
 *******************************************************************************/
 
@@ -56,7 +56,7 @@ struct Contiguous( S )
 
         --------
         struct S { int a; }
-        Contiguous!(S) s = getS(); 
+        Contiguous!(S) s = getS();
         s.ptr.a = 42;
         --------
 
@@ -149,7 +149,7 @@ struct Contiguous( S )
 unittest
 {
     struct S { int x; }
-    
+
     Contiguous!(S) instance;
     instance.data = (cast(void*) new S)[0..S.sizeof];
     instance.ptr.x = 42;
@@ -159,7 +159,7 @@ unittest
     test!("==")(instance.data, [ cast(ubyte)42, 0, 0, 0 ]);
 
     test!("==")(instance.length, 4);
-    instance.reset(); 
+    instance.reset();
     test!("==")(instance.length, 0);
 }
 
@@ -262,7 +262,7 @@ unittest
 
         struct S3 { int a; }
         S3* ptr;
-    }   
+    }
 
     // prepare data
     void[] buffer = new void[100];
