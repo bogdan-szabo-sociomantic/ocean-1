@@ -689,9 +689,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
         while ( this.registered_clients.length && !this.shutdown_triggered )
         {
-            this.select();
-
-            this.handleSelectedKeys();
+            this.handleSelectedKeys(this.select());
 
             this.handleTimedOutClients();
         }
@@ -724,12 +722,11 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         Executes an epoll select.
 
         Returns:
-            The amount of conduits that have received events; 0 if no conduits
-            have received events within the timeout.
+            a list of the epoll keys for which an event was reported.
 
      **************************************************************************/
 
-    protected uint select ( )
+    protected epoll_event_t[] select ( )
     {
         debug ( ISelectClient )
         {
@@ -767,11 +764,11 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
                             typeof(this).stringof, us_left);
                 }
 
-                this.separateClientLists(events[0 .. n], have_timeout);
-
                 version ( EpollCounters ) if ( n == 0 ) this.counters.timeouts++;
 
-                return n;
+                auto selected_set = events[0 .. n];
+
+                return have_timeout? this.separateClientLists(selected_set) : selected_set;
             }
             else
             {
@@ -789,11 +786,15 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
         Calls the handle() method of all selected clients.
 
+        Params:
+            selected_keys = a list of the epoll keys where each one contains a
+                           client to be handled and the reported event
+
      **************************************************************************/
 
-    protected void handleSelectedKeys ( )
+    protected void handleSelectedKeys ( epoll_event_t[] selected_keys )
     {
-        foreach ( key; this.selected_keys[] )
+        foreach ( key; selected_keys )
         {
             ISelectClient client = cast (ISelectClient) key.data.ptr;
 
@@ -873,6 +874,8 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         {
             this.unregisterAndFinalize(client, client.FinalizeStatus.Timeout);
         }
+
+        this.timed_out_clients.clear();
     }
 
     /***************************************************************************
@@ -923,60 +926,66 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
     /***************************************************************************
 
-        After a call to this.selector.select(), separates registered clients
-        into two lists:
-            1. Clients which have timed out (added to this.timed_out_clients)
-            2. Clients which have fired (added to this.timed_out_clients)
+        After a call to this.selector.select(), populates this.timed_out_clients
+        with the clients that timed out and removes these from selected_set.
 
         Params:
-            have_timeout = tells whether select was passed a timeout value
+            selected_set = the result list of epoll_wait()
+
+        Returns:
+            selected_set or a copy of it with the timed out keys removed
 
     ***************************************************************************/
 
-    private void separateClientLists ( epoll_event_t[] selected_set, bool have_timeout )
+    private epoll_event_t[] separateClientLists ( epoll_event_t[] selected_set )
     {
-        this.selected_keys.clear();
-        this.timed_out_clients.clear();
-
-        if ( have_timeout )
+        this.timeout_manager.checkTimeouts((ITimeoutClient timeout_client)
         {
-            this.timeout_manager.checkTimeouts((ITimeoutClient timeout_client)
-            {
-                auto client = cast (ISelectClient)timeout_client;
+            auto client = cast (ISelectClient)timeout_client;
 
-                assert (client !is null, "timeout client is not a select client");
+            assert (client !is null, "timeout client is not a select client");
 
-                debug ( ISelectClient )
-                    Trace.formatln("{} :: Client timed out, unregistering", client);
+            debug ( ISelectClient )
+                Trace.formatln("{} :: Client timed out, unregistering", client);
 
-                this.timed_out_clients ~= client;
+            this.timed_out_clients ~= client;
 
-                return true;
-            });
-        }
+            return true;
+        });
 
         auto timed_out_clients = this.timed_out_clients[];
 
-        /*
-         * Sort the list of timed out clients to allow for lookup using
-         * bsearch().
-         * This will sort this.timed_out_clients[] in-place.
-         */
-
-        qsort(timed_out_clients.ptr, timed_out_clients.length,
-              timed_out_clients[0].sizeof, &cmpPtr!(false));
-
-        foreach (key; selected_set)
+        if (timed_out_clients.length)
         {
-            ISelectClient client = cast (ISelectClient) key.data.ptr;
+            this.selected_keys.clear();
 
-            assert (client !is null);
+            /*
+             * Sort the list of timed out clients to allow for lookup using
+             * bsearch().
+             * This will sort this.timed_out_clients[] in-place.
+             */
 
-            if (!bsearch(cast (void*) client, timed_out_clients.ptr,
-                         timed_out_clients.length, timed_out_clients[0].sizeof, &cmpPtr!(true)))
+            qsort(timed_out_clients.ptr, timed_out_clients.length,
+                  timed_out_clients[0].sizeof, &cmpPtr!(false));
+
+            foreach (key; selected_set)
             {
-                this.selected_keys ~= key;
+                ISelectClient client = cast (ISelectClient) key.data.ptr;
+
+                assert (client !is null);
+
+                if (!bsearch(cast (void*) client, timed_out_clients.ptr,
+                             timed_out_clients.length, timed_out_clients[0].sizeof, &cmpPtr!(true)))
+                {
+                    this.selected_keys ~= key;
+                }
             }
+
+            return this.selected_keys[];
+        }
+        else
+        {
+            return selected_set;
         }
     }
 
