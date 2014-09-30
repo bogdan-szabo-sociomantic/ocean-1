@@ -92,6 +92,18 @@ IMODE ?= 0644
 # Default install flags
 IFLAGS ?= -D
 
+# The files specified in this variable will be excluded from the generated
+# unit tests targets and from the integration test main files.
+# By default all files called main.d in $C/src/ are excluded too, it's assumed
+# they'll have a main() function in them.
+# Paths must be absolute (specify them with the $C/ prefix).
+# The contents of this variable will be passed to the Make function
+# $(filter-out), meaning you can specify multple patterns separated by
+# whitespaces and each pattern can have one '%' that's used as a wildcard.
+# For more information refer to the documentation:
+# http://www.gnu.org/software/make/manual/make.html#Text-Functions
+TEST_FILTER_OUT := $C/src/%/main.d
+
 
 # Default compiler flags
 #########################
@@ -294,17 +306,6 @@ override DFLAGS += -version=WithDateTime -I./src \
 	$(foreach dep,$(SUBMODULES), -I./$(dep)/src)
 
 
-# Unittest files
-#################
-
-# Source files to run unittests to.
-# By default is all the D files in the `src` directory.
-# If $(TEST_FILTER_OUT) is defined, the files specified there will be excluded.
-# All files called main.d are excluded too, it's assumed they'll have a main()
-# function on them.
-TEST_SOURCES += $(call find_files,.d,,$C/src,$(TEST_FILTER_OUT) $C/src/%/main.d)
-
-
 # Include the user's makefile, Build.mak
 #########################################
 
@@ -360,35 +361,6 @@ $I/bin/%:
 $I/sbin/%:
 	$(call install_file,0755)
 
-# Create a file importing all the modules in the project
-$O/unittests.d: $(TEST_SOURCES) $G/build-d-flags | $O/check_rdmd1
-	$(call exec,printf 'module unittests;\nimport ocean.core.UnitTestRunner;\
-		\n$(foreach f,$(filter %.d,$^),\
-		import $(subst /,.,$(patsubst $C/src/%.d,%,$f));\n)' > \
-			$@,,gen)
-
-# Build all unittests as one binary
-$O/unittests: BUILD.d.depfile := $O/unittests.mak
-$O/unittests: $O/unittests.d $G/build-d-flags | $O/check_rdmd1
-	$(mkversion)
-	$(call exec,$(BUILD.d) --build-only -unittest -debug=UnitTest \
-		-version=UnitTest $(LOADLIBES) $(LDLIBS) -of$@ $<)
-
-# Run the unit tests binary
-$O/unittests.stamp: $O/unittests
-	$(call exec,$< $(if $(findstring k,$(MAKEFLAGS)),-k) $(if $V,,-v -s) \
-		$(foreach p,$(patsubst %.d,%,$(notdir $(shell \
-			find $T/src -maxdepth 1 -mindepth 1 -name '*.d' -type f\
-			))),-p $p) \
-		$(foreach p,$(notdir $(shell \
-			find $T/src -maxdepth 1 -mindepth 1 -type d \
-			)),-p $p.) $(UTFLAGS),$<,run)
-	$Vtouch $@
-
-# Add the unittest target (will be defined after processing Build.mak) to
-# the test special target
-test += unittest
-
 # Clean the whole build directory, uses $(clean) to remove extra files
 .PHONY: clean
 clean:
@@ -398,6 +370,96 @@ clean:
 .PHONY: uninstall
 uninstall:
 	$V$(foreach i,$(install),$(call vexec,$(RM) $i,$i);)
+
+
+# Unit tests rules
+###################
+
+# These are divided in 2 types: fast and slow.
+# Unittests are considered fast unless stated otherwise, and the way to say
+# a test is slow is by putting it in a file with the suffx _slowtest.d.
+# Normally that should be appended to the file of the module that's being
+# tested.
+# All modules to be passed to the unit tester (fast or slow) are filtered
+# through the $(TEST_FILTER_OUT) variable contents (using the Make function
+# $(filter-out)).
+# The target fastunittest build only the fast unit tests, the target
+# allunittest builds both fast and slow unit tests, and the target unittest is
+# an alias for allunittest.
+.PHONY: fastunittest allunittest unittest
+fastunittest: $O/fastunittests.stamp
+allunittest: $O/allunittests.stamp
+unittest: allunittest
+
+# Add fastunittest to fasttest and unittest to test general targets
+fasttest += fastunittest
+test += unittest
+
+# Files to be tested in unittests, the user could potentially add more
+UNITTEST_FILES += $(call find_files,.d,,$C/src,$(TEST_FILTER_OUT))
+
+# Files to test when using fast or all unit tests
+$O/fastunittests.d: $(filter-out %_slowtest.d,$(UNITTEST_FILES))
+$O/allunittests.d: $(UNITTEST_FILES)
+
+# General rule to build the unittest program using the UnitTestRunner
+$O/%unittests.d: $G/build-d-flags | $O/check_rdmd1
+	$(call exec,printf 'module $(patsubst $O/%.d,%,$@);\n\
+		import ocean.core.UnitTestRunner;\
+		\n$(foreach f,$(filter %.d,$^),\
+		import $(subst /,.,$(patsubst $C/src/%.d,%,$f));\n)' > \
+			$@,,gen)
+
+# Configure dependencies files specific to each special unittests target
+$O/fastunittests: BUILD.d.depfile := $O/fastunittests.mak
+$O/allunittests: BUILD.d.depfile := $O/allunittests.mak
+
+# General rule to build the generated unittest program
+$O/%unittests: $O/%unittests.d $G/build-d-flags | $O/check_rdmd1
+	$(mkversion)
+	$(call exec,$(BUILD.d) --build-only -unittest -debug=UnitTest \
+		-version=UnitTest $(LOADLIBES) $(LDLIBS) -of$@ $<)
+
+# General rule to run the unit tests binaries
+$O/%unittests.stamp: $O/%unittests
+	$(call exec,$< $(if $(findstring k,$(MAKEFLAGS)),-k) $(if $V,,-v -s) \
+		$(foreach p,$(patsubst %.d,%,$(notdir $(shell \
+			find $T/src -maxdepth 1 -mindepth 1 -name '*.d' -type f\
+			))),-p $p) \
+		$(foreach p,$(notdir $(shell \
+			find $T/src -maxdepth 1 -mindepth 1 -type d \
+			)),-p $p.) $(UTFLAGS),$<,run)
+	$Vtouch $@
+
+# Integration tests rules
+##########################
+
+# Integration tests are assumed to be standalone programs, so we just search
+# for files test/%/main.d and assume they are the entry point of the program
+# (and each subdirectory in test/ is a separate program).
+# The sources list is filtered through the $(TEST_FILTER_OUT) variable contents
+# (using the Make function $(filter-out)), so you can exclude an integration
+# test by adding the location of the main.d (as an absolute path using $C) by
+# adding it to this variable.
+# The target integrationtest builds and runs all the integration tests.
+.PHONY: integrationtest
+integrationtest: $(patsubst $T/test/%/main.d,$O/test-%.stamp,\
+		$(filter-out $(TEST_FILTER_OUT),$(wildcard $T/test/*/main.d)))
+
+# Add integrationtest to the test general target
+test += integrationtest
+
+# General rule to build integration tests programs, this is the same as
+# building any other binary but including unittests too.
+$O/test-%: $T/test/%/main.d $G/build-d-flags | $O/check_rdmd1
+	$(mkversion)
+	$(call exec,$(BUILD.d) --build-only -unittest -debug=UnitTest \
+		-version=UnitTest $(LOADLIBES) $(LDLIBS) -of$@ $<)
+
+# General rule to Run the test suite binaries
+$O/test-%.stamp: $O/test-%
+	$(call exec,$< $(ITFLAGS),$<,run)
+	$Vtouch $@
 
 
 # Create build directory structure
@@ -435,16 +497,6 @@ $(if $V,$(if $(setup_flag_files__), \
 # These targets need to be after processing the Build.mak so all the special
 # variables get populated.
 
-# Runs unittests for all D modules in a projects as one test program.
-# If the variable TEST_FILTER_OUT is defined is used to exclude some modules.
-# The Make function $(filter-out) is used, which basically means you can
-# specify multple patterns separated by whitespaces and each pattern can have
-# one '%' that's used as a wildcard. For more information refer to the
-# documentation:
-# http://www.gnu.org/software/make/manual/make.html#Text-Functions
-.PHONY: unittest
-unittest: $O/unittests.stamp
-
 # Phony rule to make all the targets (sub-makefiles can append targets to build
 # to the $(all) variable).
 .PHONY: all
@@ -465,10 +517,10 @@ doc: $(doc)
 .PHONY: test
 test: $(test)
 
-# Phony rule to build and run all quick tests (sub-makefiles can append targets
-# to build and run tests to the $(test) variable).
-.PHONY: quick-test
-quick-test: $(quick-test)
+# Phony rule to build and run all fast tests (sub-makefiles can append targets
+# to build and run tests to the $(fasttest) variable).
+.PHONY: fasttest
+fasttest: $(fasttest)
 
 
 # Automatic dependency handling

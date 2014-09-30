@@ -444,59 +444,111 @@ particular target. This is a corner case and hopefully you won't need to use it.
 
 Testing
 -------
-Makd support testing generally by the special variable ``$(test)`` and the
-``test`` target, and adds automatic *unittest* support on top of that, that can
-be ran by using the predefined ``unittest`` target. The ``unittest`` target is
-automatically added to ``$(test)``, so when you run ``make test`` the unittests
-are run.
+Makd support testing generally by the special variables ``$(test)`` and
+``$(fasttest)``. You can add any custom target to this variables to be executed
+when you use the corresponding ``test`` and ``fasttest`` targets.
+
+Automatic *unittest* and integration tests support is added on top of that.
+
+All the tests are built using these extra options::
+
+        -unittest -debug=UnitTest -version=UnitTest
 
 If you have a test script, you can easily add the target to run that script to
-``$(test)`` too. For example::
+``$(test)`` too (or ``$(fasttest))`` and ``$(test)`` if it's really fast).
+For example::
 
         .PHONY: supertest
         supertest:
                 ./super-test.sh
         test += supertest
 
-Then when you run ``make test`` both the *unittests* and your test will run.
+Then when you run ``make test`` all the *unittests*, integration tests and your
+test will run.
 
-Skipping modules
-~~~~~~~~~~~~~~~~
+Unit tests
+~~~~~~~~~~
 
-If you want to skip some module from the *unittest* run, you can add files to
-the special variable ``$(TEST_FILTER_OUT)``. This should be done in the
-Build.mak_ file normally. The contents of this variable are used as arguments
-to the Make ``$(filter-out)`` function. This means you can use a single ``%``
-as a wildcard, useful for example if you want to skip a whole package.
+Only *unittest* that live in the ``src/`` directory are built and run
+automatically, the ``unittest`` target will scan for all the files with the
+``.d`` suffix there.
 
-Examples::
+There are two different categories of *unittest* though: fast and slow. Tests
+are assumed to be fast unless they are separated to a different file, with the
+suffic ``_slowtest.d``. Usually all the slow tests for module ``m`` should be
+moved to ``m_slowtest.d``, but this is just a convention.
+
+The general ``unittest`` target is just an alias for the more specific target
+``allunittest`` and it will run all the unit tests (fast and slow). This target
+is automatically added to the ``$(test)`` special variable, so they will be run
+when using the ``test`` target too. On the other hand, the ``fastunittest``
+target will only run the fast unit tests, leaving the slow out, and is added to
+the ``fasttest`` target.
+
+Integration tests
+~~~~~~~~~~~~~~~~~
+
+Integration tests are expected to live in the ``test/`` directory, and it is
+expected that each subdirectory there is a separate test program, with
+a ``main.d`` file as the entry point.
+
+The ``integrationtest`` target scan for those individual programs (specifically
+for files with the pattern: ``test/*/main.d``) and builds them and runs them.
+
+It is also expected that the integration tests are slow, so by default they are
+only added to the ``test`` target, but you can manually add them (all or just
+a few) to the ``fasttest`` target too (``fasttest += integrationtest`` should be
+enought to add them all).
+
+Skipping tests
+~~~~~~~~~~~~~~
+
+The ``$(TEST_FILTER_OUT)`` variable is used to exclude some tests. The contents
+of this variable will always be applied to the list of files to use in the tests
+throught the Make ``$(filter-out)`` function.  This means you can use a single
+``%`` as a wildcard. You should always use absolute paths (which can be easily
+done by applying the prefix ``$C/`` to files). Adding files to the
+``$(TEST_FILTER_OUT)`` variable should be done in the Build.mak_ file. Always
+use ``+=``, there might be other predefined modules to skip.
+
+For `Unit tests`_, you just have to add the individual files you want to exclude
+from the tests. You can use a single ``%`` as a wildcard to exclude a whole
+package for example::
 
         TEST_FILTER_OUT += \
                 $C/src/brokenmodule.d \
                 $C/src/brokenpackage/%
 
-Always use ``+=``, there might be other predefined modules to skip.
+For `Integration tests`_, you can only skip a full test program, to do that just
+exclude the ``main.d`` for that program. For example::
+
+        TEST_FILTER_OUT += $C/test/brokenprog/main.d
 
 Adding specific flags
 ~~~~~~~~~~~~~~~~~~~~~
 
-Some modules might need special flags for the unittest to compile it properly that
-aren't part of the main flags, e.g. when it was overriden for specific targets.
+Some tests might need special flags for the unittest to compile, like when you
+need to link to external libraries.
 
-For those cases you can add unittest specific flags, just remember the target
-is ``$O/unittests``.
+For `Unit tests`_ you can add unittest specific flags by using the following
+syntax::
 
-Example::
+        $O/%unittests: override LDFLAGS += -lglib-2.0
 
-        $O/unittests: override LDFLAGS += -lglib-2.0
+This will link all the unittests to the glib-2.0 library, both ``fastunittest``
+and ``allunittest``. To apply flags to an individual test use a more specific
+target, for example::
 
-Links the unittests to the glib-2.0 library.
+        $O/allunittests: override LDFLAGS += -lextra
+
+This will link the *extra* library only to the full unit tests, but not to the
+fast ones.
 
 If you want to run the tests using some special options of the unit test runner
-(see ``build/last/unittests -h`` for a list of supported options), you can use
+(see ``build/last/*unittests -h`` for a list of supported options), you can use
 the special variable ``UTFLAGS``, for example::
 
-        make unittest UTFLAGS="-v -s"
+        make allunittest UTFLAGS="-v -s"
 
 This will print all the executed tests and a summary at the end with the number
 of passed tests, failed tests, etc.
@@ -506,23 +558,48 @@ used, the ``-k`` option will be passed to the unit test runner too, and if
 ``make V=1`` is used, the options ``-v -s`` will be passed to the unit test
 runner.
 
+For `Integration tests`_ the way to pass special flags is similar, but not the
+same. Use the following syntax::
+
+        $O/test-feature: override LDFLAGS += -lglib-2.0
+
+The targets for individual integration test programs are defined following this
+pattern: ``$O/test-%``. The previous example will link the program at
+``test/feature/main.d`` against glib-2.0 as expected.
+
+To pass flags to the test program execution, you can use the special variable
+``$(ITFLAGS)``.  Unfortunately, unless you are running a specific integration
+test, the only way to do this for individual suites is to write it in the makefile,
+otherwise the same flags will be used to run **all** the integration tests.
+To run the *feature* integration test with the flag ``--verbose``, for example,
+you can do this (pay attention to the ``.stamp`` suffix, it is necessary)::
+
+        $O/test-feature.stamp: override ITFLAGS += --verbose
+
+If you want to run **all** the integration test programs with the same flags,
+you can still use::
+
+        make integrationtest ITFLAGS=--verbose
+
 Re-running unittests manually
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once you built and ran the unittests once, if you want, for some reason, repeat
-the tests, you can just run the generated ``unittests`` program. A reason to
-run it again could be to use different command-line options (it accepts a few,
-try ``build/last/unittests -h`` for help).
+the tests, you can just run the generated ``*unittests`` and ``test-*``
+programs. All the programs are built in the ``build/last/tmp`` directory (``$O``
+more specifically).
 
-For example, if you want to re-run the tests, but without stopping on the first
-failure, use::
+A reason to run it again could be to use different command-line options (the
+unit tests runner accepts a few, try ``build/last/tmp/allunittests -h`` for
+help). For example, if you want to re-run the tests, but without stopping on the
+first failure, use::
 
-        build/last/unittests -k
+        build/last/tmp/allunittests -k
 
 This option is used automatically if you run ``make -k``.
 
-Remember to re-run ``make`` if you change any sources, the ``unittests``
-program needs to be re-compiled in that case!
+Remember to re-run ``make`` if you change any sources, the test programs need to
+be re-compiled in that case!
 
 
 
