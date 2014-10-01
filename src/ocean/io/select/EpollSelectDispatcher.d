@@ -195,11 +195,8 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         Params:
             timeout_manager = timeout manager instance (null disables the
                               timeout feature)
-            size            = value that provides a hint for the maximum amount
-                              of conduits that will be registered
-            max_events      = value that provides a hint for the maximum amount
-                              of conduit events that will be returned in the
-                              selection set per call to select.
+            max_events      = sets the maximum number of events that will be
+                              returned in the selection set per call to select.
 
         Throws:
             EpollException on error obtaining a new epoll instance.
@@ -242,11 +239,8 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         Constructor; disables the timeout feature.
 
         Params:
-            size            = value that provides a hint for the maximum amount
-                              of conduits that will be registered
-            max_events      = value that provides a hint for the maximum amount
-                              of conduit events that will be returned in the
-                              selection set per call to select.
+            max_events      = sets the maximum number of events that will be
+                              returned in the selection set per call to select.
 
      **************************************************************************/
 
