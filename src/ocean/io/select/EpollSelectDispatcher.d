@@ -34,6 +34,12 @@ module ocean.io.select.EpollSelectDispatcher;
 import ocean.io.select.selector.IEpollSelectDispatcherInfo;
 import ocean.io.select.client.model.ISelectClient;
 
+import ocean.io.select.selector.model.ISelectedKeysHandler;
+
+import ocean.io.select.selector.SelectedKeysHandler,
+       ocean.io.select.selector.TimeoutSelectedKeysHandler,
+       ocean.io.select.selector.EpollException;
+
 import ocean.io.select.client.SelectEvent;
 
 import ocean.io.select.selector.RegisteredClients;
@@ -42,10 +48,7 @@ import ocean.core.Array : copy;
 
 import ocean.util.container.AppendBuffer;
 
-import ocean.time.timeout.model.ITimeoutClient,
-       ocean.time.timeout.model.ITimeoutManager: ITimeoutManager;
-
-import ocean.core.ErrnoIOException;
+import ocean.time.timeout.model.ITimeoutManager;
 
 import ocean.sys.Epoll;
 
@@ -54,7 +57,6 @@ import tango.stdc.stdlib: bsearch, qsort;
 import tango.stdc.errno: errno, EINTR, ENOENT, EEXIST, ENOMEM, EINVAL;
 
 debug ( ISelectClient ) import tango.util.log.Trace;
-
 
 /*******************************************************************************
 
@@ -128,22 +130,6 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
     /***************************************************************************
 
-        Re-useable set of timed out clients. After a select is performed, this
-        list is filled by the seperateClientLists() method. Note that any
-        clients in this list will *not* be handled, even if they have fired.
-
-        The list of timed out clients is sorted by the object references so that
-        clients which have fired after select can use bsearch() to check whether
-        they've timed out.
-
-     **************************************************************************/
-
-    private alias AppendBuffer!(ISelectClient) TimedOutClientList;
-
-    private TimedOutClientList timed_out_clients;
-
-    /***************************************************************************
-
         Timeout manager instance; null disables the timeout feature.
 
      **************************************************************************/
@@ -196,6 +182,14 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
     /***************************************************************************
 
+        Client handler.
+
+     **************************************************************************/
+
+    private const ISelectedKeysHandler handle;
+
+    /***************************************************************************
+
         Constructor
 
         Params:
@@ -236,8 +230,11 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
         this.shutdown_event = new SelectEvent(&this.shutdownTrigger);
 
-        this.timed_out_clients = new TimedOutClientList(max_events);
         this.events            = new epoll_event_t[max_events];
+
+        this.handle = this.timeout_enabled?
+            new TimeoutSelectedKeysHandler(&this.unregister, this.e, this.timeout_manager, max_events) :
+            new SelectedKeysHandler(&this.unregister, this.e);
     }
 
     /***************************************************************************
@@ -681,28 +678,6 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
     /***************************************************************************
 
-        Converts a microseconds value to milliseconds for use in select().
-        It is crucial that this conversion always rounds up. Otherwise the
-        timeout manager might not find a timed out client after select() has
-        reported a timeout.
-
-        Params:
-            us = time value in microseconds
-
-        Returns:
-            nearest time value in milliseconds that is not less than us.
-
-     **************************************************************************/
-
-    private static ulong usToMs ( ulong us )
-    {
-        ulong ms = us / 1000;
-
-        return ms + ((us - ms * 1000) != 0);
-    }
-
-    /***************************************************************************
-
         Executes an epoll select.
 
         Returns:
@@ -752,7 +727,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
                 auto selected_set = events[0 .. n];
 
-                this.handleClients(selected_set, have_timeout);
+                this.handle(selected_set);
 
                 return n;
             }
@@ -765,284 +740,6 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
                     throw this.e(errnum, "error waiting for epoll events", __FILE__, __LINE__);
                 }
             }
-        }
-    }
-
-    /***************************************************************************
-
-        Calls the handle() method of all selected clients.
-
-        Params:
-            selected_keys = a list of the epoll keys where each one contains a
-                           client to be handled and the reported event
-
-     **************************************************************************/
-
-    protected void handleSelectedKey ( epoll_event_t key )
-    {
-        ISelectClient client = cast (ISelectClient) key.data.ptr;
-
-        debug ( ISelectClient )
-        {
-            Trace.format("{} :: Epoll firing with events ", client);
-            foreach ( event, name; epoll_event_t.event_to_name )
-            {
-                if ( key.events & event )
-                {
-                    Trace.format("{}", name);
-                }
-            }
-            Trace.formatln("");
-        }
-
-        // Only handle clients which are registered. Clients may have
-        // already been unregistered (presumably deliberately), as a side-
-        // effect of handling previous clients, so we don't unregister them
-        // again or call their finalizers.
-        if ( client.is_registered )
-        {
-            bool unregister_key = true,
-                 error          = false;
-
-            try
-            {
-                this.checkKeyError(client, key.events);
-
-                unregister_key = !client.handle(key.events);
-
-                debug ( ISelectClient ) if ( unregister_key )
-                {
-                    Trace.formatln("{} :: Handled, unregistering fd", client);
-                }
-                else
-                {
-                    Trace.formatln("{} :: Handled, leaving fd registered", client);
-                }
-            }
-            catch (Exception e)
-            {
-                debug (ISelectClient)
-                {
-                    // FIXME: printing on separate lines for now as a workaround
-                    // for a dmd bug with varargs
-                    Trace.formatln("{} :: ISelectClient handle exception:", client);
-                    Trace.formatln("    '{}'", e.msg);
-                    Trace.formatln("    @{}:{}", e.file, e.line);
-//                    Trace.formatln("{} :: ISelectClient handle exception: '{}' @{}:{}",
-//                        client, e.msg, e.file, e.line);
-                }
-
-                this.clientError(client, key.events, e);
-                error = true;
-            }
-
-            if (unregister_key)
-            {
-                this.unregisterAndFinalize(client,
-                                           error? client.FinalizeStatus.Error :
-                                                  client.FinalizeStatus.Success);
-            }
-        }
-    }
-
-    /***************************************************************************
-
-        Checks if a selection key error has occurred by checking events and
-        querying a socket error.
-
-        Hangup states are not checked here, for the following reasons:
-            1. The hangup event is not an error on its own and may be expected
-               to happen, e.g. when short term connections are used. In that
-               case it is also possible and expectable that hangup combined with
-               the read event when the remote closed the connection after having
-               data sent, and that data have not been read from the socket yet.
-            2. Experience shows that, when epoll reports a combination of read
-               and hangup event, it will keep reporting that combination even if
-               there are actually no data pending to read from the socket. In
-               that case the only way of determining whether there are data
-               pending is calling read() and comparing the return value against
-               EOF. An application that relies on an exception thrown here will
-               then run into an endless turbo event loop.
-            3. Only the application knows whether hangup events are expected or
-               exceptions. If it expects them, it may want its handler to be
-               invoked which will not happen if checkKeyError() throws an
-               exception. If it treats hangup events as exceptions, it will want
-               an exception to be thrown even if it was combined with a read or
-               write event.
-
-        Params:
-            events = reported events
-
-        Returns:
-            events
-
-        Throws:
-            IOException if a selection key error has occurred or SocketException
-            if a socket error is reported. (SocketException is derived from
-            IOException.)
-
-     **************************************************************************/
-
-    protected void checkKeyError ( ISelectClient client, Epoll.Event events )
-    {
-        if (events & events.EPOLLERR)
-        {
-            throw this.e(client.error_code, "error event reported", __FILE__, __LINE__);
-        }
-    }
-
-    /***************************************************************************
-
-        After a call to this.selector.select(), populates this.timed_out_clients
-        with the clients that timed out and removes these from selected_set.
-
-        Params:
-            selected_set = the result list of epoll_wait()
-            have_timeout = indicates whether there are events registered with
-                the timeout manager (which will need to be checked to see if a
-                timeout has actually occurred)
-
-        Returns:
-            selected_set or a copy of it with the timed out keys removed
-
-    ***************************************************************************/
-
-    private void handleClients ( epoll_event_t[] selected_set, bool have_timeout )
-    {
-        if (have_timeout)
-        {
-            this.timeout_manager.checkTimeouts((ITimeoutClient timeout_client)
-            {
-                auto client = cast (ISelectClient)timeout_client;
-
-                assert (client !is null, "timeout client is not a select client");
-
-                debug ( ISelectClient )
-                    Trace.formatln("{} :: Client timed out, unregistering", client);
-
-                this.timed_out_clients ~= client;
-
-                return true;
-            });
-
-            auto timed_out_clients = this.timed_out_clients[];
-
-            if (timed_out_clients.length)
-            {
-                /*
-                 * Handle the clients in the selected set that didn't time out.
-                 * To do so, look up every timed out client in the selected set
-                 * using bsearch and handle it if it didn't time.
-                 */
-
-                qsort(timed_out_clients.ptr, timed_out_clients.length,
-                      timed_out_clients[0].sizeof, &cmpPtr!(false));
-
-                foreach (key; selected_set)
-                {
-                    ISelectClient client = cast (ISelectClient) key.data.ptr;
-
-                    assert (client !is null);
-
-                    if (!bsearch(cast (void*) client, timed_out_clients.ptr,
-                                 timed_out_clients.length, timed_out_clients[0].sizeof, &cmpPtr!(true)))
-                    {
-                        this.handleSelectedKey(key);
-                    }
-                }
-
-                foreach ( client; this.timed_out_clients[] )
-                {
-                    this.unregisterAndFinalize(client, client.FinalizeStatus.Timeout);
-                }
-
-                this.timed_out_clients.clear();
-
-                /*
-                 * The selected set and the timed out clients are handled:
-                 * We're done.
-                 */
-
-                return;
-            }
-
-            /*
-             * No client timed out: Handle the selected set normally.
-             */
-        }
-
-        foreach (key; selected_set)
-        {
-            this.handleSelectedKey(key);
-        }
-    }
-
-    /***************************************************************************
-
-        Compares the pointer referred to by a_ to that referred to by b_.
-
-        Template params:
-            searching = false: a_ points to the pointer to compare (called from
-                        qsort()), true: a_ is the pointer to compare (called
-                        from bsearch).
-
-        Params:
-            a_ = either the pointer (searching = true) or a pointer to the
-                 pointer (searching = false) to compare against the pointer
-                 pointed to by b_
-            b_ = pointer to the pointer to compare against a_ or the pointer a_
-                 points to
-
-        Returns:
-            a value greater 0 if a_ compares greater than b_, a value less than
-            0 if less or 0 if a_ and b_ compare equal.
-
-    ***************************************************************************/
-
-    extern (C) private static int cmpPtr ( bool searching ) ( void* a_, void* b_ )
-    {
-        static if (searching)
-        {
-            alias a_ a;
-        }
-        else
-        {
-            void* a = *cast (void**) a_;
-        }
-
-        void* b = *cast (void**) b_;
-
-        return (a >= b)? a > b : -1;
-    }
-
-    /***************************************************************************
-
-        Unregisters and finalizes a select client. Any errors which occur while
-        calling the client's finalizer are caught and reported to the client's
-        error() method.
-
-        Params:
-            client = client to finalize
-
-    ***************************************************************************/
-
-    private void unregisterAndFinalize ( ISelectClient client,
-                                         ISelectClient.FinalizeStatus status )
-    {
-        this.unregister(client);
-
-        try
-        {
-            client.finalize(status);
-        }
-        catch ( Exception e )
-        {
-            debug (ISelectClient)
-            {
-                Trace.formatln("{} :: Error while finalizing client: "
-                        "'{}'@ {}:{}", client, e.msg, e.file, e.line);
-            }
-            this.clientError(client, Epoll.Event.None, e);
         }
     }
 
@@ -1066,43 +763,24 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
     /***************************************************************************
 
-        Called when an exception is thrown while handling a client (either the
-        handle() or finalize() method).
-
-        Calls the client's error() method, and in debug builds ouputs a message.
+        Converts a microseconds value to milliseconds for use in select().
+        It is crucial that this conversion always rounds up. Otherwise the
+        timeout manager might not find a timed out client after select() has
+        reported a timeout.
 
         Params:
-            client = client which threw exception
-            events = epoll events which fired for client
-            e = exception thrown
+            us = time value in microseconds
+
+        Returns:
+            nearest time value in milliseconds that is not less than us.
 
      **************************************************************************/
 
-    private void clientError ( ISelectClient client, Epoll.Event events, Exception e )
+    private static ulong usToMs ( ulong us )
     {
-        debug (ISelectClient)
-        {
-            // FIXME: printing on separate lines for now as a workaround for a
-            // dmd bug with varargs
-            Trace.formatln("{} :: Error during handle:", client);
-            Trace.formatln("    '{}'", e.msg);
-//            Trace.format("{} :: Error during handle: '{}'",
-//                client, e.msg);
-            if ( e.line )
-            {
-                Trace.formatln("    @ {}:{}", e.file, e.line);
-            }
-        }
+        ulong ms = us / 1000;
 
-        client.error(e, events);
+        return ms + ((us - ms * 1000) != 0);
     }
-
-    /***************************************************************************
-
-        Key exception -- thrown when a select key is in an erroneous state.
-
-     **************************************************************************/
-
-    static class EpollException : ErrnoIOException { }
 }
 
