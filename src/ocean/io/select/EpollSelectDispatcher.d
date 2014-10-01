@@ -56,7 +56,7 @@ import tango.stdc.stdlib: bsearch, qsort;
 
 import tango.stdc.errno: errno, EINTR, ENOENT, EEXIST, ENOMEM, EINVAL;
 
-debug ( ISelectClient ) import tango.util.log.Trace;
+debug ( ISelectClient ) import ocean.io.Stdout;
 
 /*******************************************************************************
 
@@ -323,7 +323,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         {
             debug ( ISelectClient )
             {
-                Trace.formatln("{} :: Error during register: '{}' @{}:{}",
+                Stderr.formatln("{} :: Error during register: '{}' @{}:{}",
                     client, e.msg, e.file, e.line);
             }
             throw e;
@@ -388,7 +388,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         {
             debug ( ISelectClient )
             {
-                Trace.formatln("{} :: Error during unregister: '{}' @{}:{}",
+                Stderr.formatln("{} :: Error during unregister: '{}' @{}:{}",
                     client, e.msg, e.file, e.line);
             }
             throw e;
@@ -439,17 +439,17 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         {
             if (current.fileHandle != next.fileHandle)
             {
-                Trace.formatln("Error during changeClient: current.fileHandle != next.fileHandle");
+                Stderr.formatln("Error during changeClient: current.fileHandle != next.fileHandle");
             }
 
             if (!current.is_registered)
             {
-                Trace.formatln("Error during changeClient: !current.is_registered");
+                Stderr.formatln("Error during changeClient: !current.is_registered");
             }
 
             if (next.is_registered)
             {
-                Trace.formatln("Error during changeClient: next.is_registered");
+                Stderr.formatln("Error during changeClient: next.is_registered");
             }
         }
 
@@ -470,9 +470,9 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
             {
                 debug ( ISelectClient )
                 {
-                    Trace.formatln("Changed clients for fd:");
-                    Trace.formatln("  Replaced {}", current);
-                    Trace.formatln("  with     {}", next);
+                    Stderr.formatln("Changed clients for fd:");
+                    Stderr.formatln("  Replaced {}", current);
+                    Stderr.formatln("  with     {}", next);
                 }
 
                 this.registered_clients -= current;
@@ -485,7 +485,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         {
             debug ( ISelectClient )
             {
-                Trace.formatln("Error during changeClient: '{}' @{}:{}",
+                Stderr.formatln("Error during changeClient: '{}' @{}:{}",
                     e.msg, e.file, e.line);
             }
             throw e;
@@ -689,12 +689,12 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
     {
         debug ( ISelectClient )
         {
-            Trace.formatln("{}.select ({} clients registered):",
+            Stderr.formatln("{}.select ({} clients registered):",
                 typeof(this).stringof, this.registered_clients.length);
             size_t i;
             foreach ( client; cast(ClientSet)this.registered_clients )
             {
-                Trace.formatln("   {,3}: {}", i++, client);
+                Stderr.formatln("   {,3}: {}", i++, client);
             }
         }
 
@@ -719,7 +719,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
             {
                 debug ( ISelectClient ) if ( !n )
                 {
-                    Trace.formatln("{}.select: timed out after {}microsec",
+                    Stderr.formatln("{}.select: timed out after {}microsec",
                             typeof(this).stringof, us_left);
                 }
 

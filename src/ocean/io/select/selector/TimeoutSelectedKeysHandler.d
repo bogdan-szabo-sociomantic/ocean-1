@@ -29,6 +29,8 @@ private import ocean.util.container.AppendBuffer: AppendBuffer;
 
 private import tango.stdc.stdlib: bsearch, qsort;
 
+debug (ISelectClient) private import ocean.io.Stdout;
+
 /******************************************************************************/
 
 class TimeoutSelectedKeysHandler: SelectedKeysHandler
@@ -106,7 +108,7 @@ class TimeoutSelectedKeysHandler: SelectedKeysHandler
                 assert (client !is null, "timeout client is not a select client");
 
                 debug ( ISelectClient )
-                    Trace.formatln("{} :: Client timed out, unregistering", client);
+                    Stderr.formatln("{} :: Client timed out, unregistering", client);
 
                 this.timed_out_clients ~= client;
 

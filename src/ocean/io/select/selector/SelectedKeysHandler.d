@@ -24,7 +24,7 @@ private import ocean.sys.Epoll;
 
 private import ocean.io.select.selector.EpollException;
 
-debug (ISelectClient) private import ocean.util.log.Trace;
+debug (ISelectClient) private import ocean.io.Stdout;
 
 /******************************************************************************/
 
@@ -229,13 +229,13 @@ class SelectedKeysHandler: ISelectedKeysHandler
         {
             debug (ISelectClient)
             {
-                Trace.format("{} :: Error while finalizing client: '{}'",
+                Stderr.format("{} :: Error while finalizing client: '{}'",
                     client, e.msg);
                 if ( e.line )
                 {
-                    Trace.format("@ {}:{}", e.file, e.line);
+                    Stderr.format("@ {}:{}", e.file, e.line);
                 }
-                Trace.formatln("");
+                Stderr.formatln("");
             }
             this.clientError(client, Epoll.Event.None, e);
         }
@@ -261,13 +261,13 @@ class SelectedKeysHandler: ISelectedKeysHandler
         {
             // FIXME: printing on separate lines for now as a workaround for a
             // dmd bug with varargs
-            Trace.formatln("{} :: Error during handle:", client);
-            Trace.formatln("    '{}'", e.msg);
-//            Trace.format("{} :: Error during handle: '{}'",
+            Stderr.formatln("{} :: Error during handle:", client);
+            Stderr.formatln("    '{}'", e.msg);
+//            Stderr.format("{} :: Error during handle: '{}'",
 //                client, e.msg);
             if ( e.line )
             {
-                Trace.formatln("    @ {}:{}", e.file, e.line);
+                Stderr.formatln("    @ {}:{}", e.file, e.line);
             }
         }
 
@@ -276,7 +276,7 @@ class SelectedKeysHandler: ISelectedKeysHandler
 
     /***************************************************************************
 
-        Trace logging functions.
+        Debug console output functions.
 
     ***************************************************************************/
 
@@ -294,15 +294,15 @@ class SelectedKeysHandler: ISelectedKeysHandler
 
     private static void logEvents ( ISelectClient client, epoll_event_t.Event events )
     {
-        Trace.format("{} :: Epoll firing with events ", client);
+        Stderr.format("{} :: Epoll firing with events ", client);
         foreach ( event, name; epoll_event_t.event_to_name )
         {
             if ( events & event )
             {
-                Trace.format("{}", name);
+                Stderr.format("{}", name);
             }
         }
-        Trace.formatln("");
+        Stderr.formatln("");
     }
 
     /***************************************************************************
@@ -320,11 +320,11 @@ class SelectedKeysHandler: ISelectedKeysHandler
     {
         if ( unregister_key )
         {
-            Trace.formatln("{} :: Handled, unregistering fd", client);
+            Stderr.formatln("{} :: Handled, unregistering fd", client);
         }
         else
         {
-            Trace.formatln("{} :: Handled, leaving fd registered", client);
+            Stderr.formatln("{} :: Handled, leaving fd registered", client);
         }
     }
 
@@ -346,14 +346,14 @@ class SelectedKeysHandler: ISelectedKeysHandler
 
         version (none)
         {
-             Trace.formatln("{} :: ISelectClient handle exception: '{}' @{}:{}",
+             Stderr.formatln("{} :: ISelectClient handle exception: '{}' @{}:{}",
                  client, e.msg, e.file, e.line);
         }
         else
         {
-            Trace.formatln("{} :: ISelectClient handle exception:", client);
-            Trace.formatln("    '{}'", e.msg);
-            Trace.formatln("    @{}:{}", e.file, e.line);
+            Stderr.formatln("{} :: ISelectClient handle exception:", client);
+            Stderr.formatln("    '{}'", e.msg);
+            Stderr.formatln("    @{}:{}", e.file, e.line);
         }
     }
 }
