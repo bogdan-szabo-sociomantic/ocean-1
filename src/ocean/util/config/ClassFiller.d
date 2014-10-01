@@ -595,7 +595,13 @@ unittest
 
 template LimitInit ( T, T init = T.init, Set... )
 {
-    alias LimitCmp!(T, init, defComp!(T), Set) Limit;
+    alias LimitCmp!(T, init, defComp!(T), Set) LimitInit;
+}
+
+unittest
+{
+    test(is(typeof({LimitInit!(short, 1, 0, 1) val;})));
+    test(is(typeof({LimitInit!(char[], "green", "red", "green") val;})));
 }
 
 
