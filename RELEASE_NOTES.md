@@ -15,3 +15,7 @@ Deprecations
 New Features
 ============
 
+* `ocean.io.device.DirectIO`
+  `BufferedDirectReadFile` has a new protected method, `newFile()`, just like
+  `BufferedDirectWriteFile`, so subclasses can change what `File` subclass to use.
+

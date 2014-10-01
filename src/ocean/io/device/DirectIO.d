@@ -584,9 +584,25 @@ public class BufferedDirectReadFile: InputStream
     {
         this.setBuffer(buffer);
         this.pending_index = 0;
-        this.file = new DirectReadFile;
+        this.file = this.newFile();
         if (path.length > 0)
             this.file.open(path);
+    }
+
+    /***************************************************************************
+
+        Instantiates the file object to be used to read from. This method may be
+        overridden by derived classes, allowing different types of file to be
+        used with this class.
+
+        Returns:
+            file object to read from
+
+    ***************************************************************************/
+
+    protected DirectReadFile newFile ( )
+    {
+        return new DirectReadFile;
     }
 
     /***************************************************************************
