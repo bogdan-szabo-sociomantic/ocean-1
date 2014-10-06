@@ -23,7 +23,9 @@ import ocean.util.app.model.IApplicationExtension;
 import ocean.util.app.ext.model.IArgumentsExtExtension;
 
 import ocean.text.Arguments;
-import ocean.io.Stdout;
+import ocean.io.Stdout : Stdout, Stderr;
+
+import tango.io.stream.Format : FormatOutput;
 
 
 
@@ -53,6 +55,24 @@ class ArgumentsExt : IApplicationExtension
 
     /***************************************************************************
 
+        Formatted output stream to use to print normal messages.
+
+    ***************************************************************************/
+
+    protected FormatOutput!(char) stdout;
+
+
+    /***************************************************************************
+
+        Formatted output stream to use to print error messages.
+
+    ***************************************************************************/
+
+    protected FormatOutput!(char) stderr;
+
+
+    /***************************************************************************
+
         Command line arguments parser and storage.
 
     ***************************************************************************/
@@ -72,12 +92,18 @@ class ArgumentsExt : IApplicationExtension
                          one line only, preferably less than 80 characters)
             usage = How the program is supposed to be invoked
             help = Long description of what the program does and how to use it
+            stdout = Formatted output stream to use to print normal messages
+            stderr = Formatted output stream to use to print error messages
 
     ***************************************************************************/
 
     public this ( char[] name = null, char[] desc = null,
-            char[] usage = null, char[] help = null )
+            char[] usage = null, char[] help = null,
+            FormatOutput!(char) stdout = Stdout,
+            FormatOutput!(char) stderr = Stderr )
     {
+        this.stdout = stdout;
+        this.stderr = stderr;
         this.args = new Arguments(name, desc, usage, help);
     }
 
@@ -135,7 +161,7 @@ class ArgumentsExt : IApplicationExtension
 
         if ( args.exists("help") )
         {
-            args.displayHelp(Stdout);
+            args.displayHelp(this.stdout);
             app.exit(0);
         }
 
@@ -154,14 +180,17 @@ class ArgumentsExt : IApplicationExtension
 
         if (!args_ok)
         {
-            Stderr.red;
-            args.displayErrors(Stderr);
+            auto ocean_stderr = cast (typeof(Stderr)) this.stderr;
+            if (ocean_stderr !is null)
+                ocean_stderr.red;
+            args.displayErrors(this.stderr);
             foreach (error; errors)
             {
-                Stderr(error).newline;
+                this.stderr(error).newline;
             }
-            Stderr.default_colour;
-            Stderr.formatln("\nType {} -h for help", app.name);
+            if (ocean_stderr !is null)
+                ocean_stderr.default_colour;
+            this.stderr.formatln("\nType {} -h for help", app.name);
             app.exit(2);
         }
 
@@ -199,5 +228,78 @@ class ArgumentsExt : IApplicationExtension
         return exception;
     }
 
+}
+
+
+
+/*******************************************************************************
+
+    Tests
+
+*******************************************************************************/
+
+version (UnitTest)
+{
+    import ocean.core.Test;
+    import ocean.util.app.Application;
+    import ocean.io.device.MemoryDevice;
+    import tango.io.stream.Text : TextOutput;
+    import tango.core.Array : find;
+
+    class App : Application
+    {
+        this ( ) { super("app", "A test application"); }
+        protected override int run ( char[][] args ) { return 10; }
+    }
+}
+
+
+/*******************************************************************************
+
+    Test --help can be used even when required arguments are not specified
+
+*******************************************************************************/
+
+unittest
+{
+
+    auto stdout_dev = new MemoryDevice;
+    auto stdout = new TextOutput(stdout_dev);
+
+    auto stderr_dev = new MemoryDevice;
+    auto stderr = new TextOutput(stderr_dev);
+
+    auto usage_text = "test: usage";
+    auto help_text = "test: help";
+    auto arg = new ArgumentsExt("test-name", "test-desc", usage_text, help_text,
+            stdout, stderr);
+    arg.args("--required").params(1).required;
+
+    auto app = new App;
+
+    try
+    {
+        arg.preRun(app, ["./app", "--help"]);
+        test(false, "An ExitException should have been thrown");
+    }
+    catch (ExitException e)
+    {
+        // Status should be 0 (success)
+        test!("==")(e.status, 0);
+        // No errors should be printed
+        test!("==")(stderr_dev.bufferSize, 0);
+        // Help should be printed to stdout
+        auto s = stdout_dev.toString();
+        test(s.length > 0,
+                "Stdout should have some help message but it's empty");
+        test(s.find(arg.args.desc) < s.length,
+             "No application description found in help message:\n" ~ s);
+        test(s.find(usage_text) < s.length,
+             "No usage text found in help message:\n" ~ s);
+        test(s.find(help_text) < s.length,
+             "No help text found in help message:\n" ~ s);
+        test(s.find("--help") < s.length,
+             "--help should be found in help message:\n" ~ s);
+    }
 }
 
