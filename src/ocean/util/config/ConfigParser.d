@@ -2,13 +2,7 @@
 
     Load Configuration from Config File
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        Jan 2009: initial release
-                    May 2010: revised version with struct opIndex support
-
-    authors:        Lars Kirchhoff, Thomas Nicolai, David Eckardt,
-                    Gavin Norman, Mathias Baumann
+    copyright:      Copyright (c) 2014 sociomantic labs. All rights reserved
 
 *******************************************************************************/
 
@@ -514,8 +508,8 @@ class ConfigParser
         Checks if Key exists in Category
 
         Params:
-            category = category to get key from
-            key      = name of the property to get
+            category = category in which to look for the key
+            key      = key to be checked
 
         Returns:
             true if the configuration key exists in this category
@@ -549,7 +543,7 @@ class ConfigParser
 
         Params:
             category = category to get key from
-            key = name of the key to get
+            key = key whose value is to be got
 
         Throws:
             if the specified key does not exist
@@ -608,7 +602,7 @@ class ConfigParser
         Params:
             value = output for config value
             category = category to get key from
-            key = name of the key to get
+            key = key whose value is to be got
 
         Throws:
             if the specified key does not exist
@@ -646,7 +640,7 @@ class ConfigParser
 
         Params:
             category = category to get key from
-            key = name of the key to get
+            key = key whose value is to be got
             default_value = default value to use if missing in the config
 
         Returns:
@@ -690,7 +684,7 @@ class ConfigParser
         Params:
             value = output for config value
             category = category to get key from
-            key = name of the key to get
+            key = key whose value is to be got
             default_value = default value to use if missing in the config
 
         TODO: perhaps we should discuss removing the other version of
@@ -715,8 +709,8 @@ class ConfigParser
         If the value is a single line, the list has one element.
 
         Params:
-            category = key category name
-            key      = key name
+            category = category to get key from
+            key = key whose value is to be got
 
         Throws:
             if the specified key does not exist
@@ -747,8 +741,8 @@ class ConfigParser
         If the value is a single line, the output list has one element.
 
         Params:
-            category = key category name
-            key      = key name
+            category = category to get key from
+            key = key whose value is to be got
             default_value = default list to use if missing in the config
 
         Returns:
@@ -782,8 +776,8 @@ class ConfigParser
         ---
 
         Params:
-            category = category to get key from
-            key      = name of the property to get
+            category = category to be set
+            key      = key to be set
             value    = value of the property
 
     ***************************************************************************/
@@ -827,7 +821,7 @@ class ConfigParser
             property = string to extract boolean value from
 
         Throws:
-            if the string does not match one of the possible boolen strings
+            if the string does not match one of the possible boolean strings
 
         Returns:
             boolean value interpreted from string

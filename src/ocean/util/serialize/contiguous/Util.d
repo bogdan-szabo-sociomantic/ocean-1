@@ -46,12 +46,12 @@ public Contiguous!(S) copy(S) ( Contiguous!(S) src, ref Contiguous!(S) dst )
 
 /*******************************************************************************
 
-    Deep copies any struct to its contigous representation. Effectively does
+    Deep copies any struct to its contiguous representation. Effectively does
     serialization and deserialization in one go.
 
     Params:
         src = any struct instance
-        dst = contigous struct to be filled with same values as src
+        dst = contiguous struct to be filled with same values as src
 
     Returns:
         `dst` by value

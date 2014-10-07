@@ -61,7 +61,7 @@ private import ocean.core.Array : removeShift;
     Usage example:
     ---
 
-        import ocean.core.ConcatBuffer;
+        import ocean.util.container.ConcatBuffer;
 
         // Create a concat buffer
         auto buff = new ConcatBuffer!(char);
@@ -214,7 +214,7 @@ public class ConcatBuffer ( T )
 
     ---
 
-        import ocean.core.ConcatBuffer;
+        import ocean.util.container.ConcatBuffer;
 
         // Create a slice buffer
         auto buff = new SliceBuffer!(char);

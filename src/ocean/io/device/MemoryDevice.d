@@ -10,7 +10,7 @@
     authors:        Mathias Baumann
 
     This was created as an alternative to tango.io.device.Array, whose write()
-    function has the unresonable limitation of always appending instead of
+    function has the unreasonable limitation of always appending instead of
     respecting the current seek position and thus not properly simulating a file
 
 *******************************************************************************/
@@ -293,7 +293,7 @@ class MemoryDevice : IConduit
 
     /***************************************************************************
 
-        Used by FormatOuput and other streams.
+        Used by FormatOutput and other streams.
 
     ***************************************************************************/
 
