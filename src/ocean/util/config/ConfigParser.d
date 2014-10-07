@@ -29,6 +29,8 @@ private import tango.text.convert.Integer: toLong;
 
 private import tango.text.convert.Float: toFloat;
 
+private import tango.text.convert.Format;
+
 private import tango.text.Util: locate, trim, delimit, lines;
 
 private import tango.text.convert.Utf;
@@ -557,8 +559,8 @@ class ConfigParser
     {
         enforce!(ConfigException)(
             exists(category, key),
-            "Critical Error: No configuration key '" ~ category
-                ~ ":" ~ key ~ "' found"
+            Format("Critical Error: No configuration key '{}:{}' found",
+                   category, key)
         );
         try
         {
@@ -568,8 +570,10 @@ class ConfigParser
         }
         catch ( IllegalArgumentException )
         {
-            throw new ConfigException("Critical Error: Configuration key '" ~ category ~
-                ":" ~ key ~ "' appears not to be of type '" ~ T.stringof ~ "'");
+            throw new ConfigException(
+                          Format("Critical Error: Configuration key '{}:{}' "
+                                 "appears not to be of type '{}'",
+                                 category, key, T.stringof));
         }
 
         assert(0);
@@ -880,8 +884,9 @@ class ConfigParser
         {
             return fromString8!(U)(property, null);
         }
-        else static assert(false, __FILE__ ~ " : get(): type '" ~
-                                 T.stringof ~ "' is not supported");
+        else static assert(false,
+                           Format("{} : get(): type '{}' is not supported",
+                                  __FILE__, T.stringof));
     }
 }
 
