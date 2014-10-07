@@ -29,7 +29,7 @@ private import tango.text.convert.Integer: toLong;
 
 private import tango.text.convert.Float: toFloat;
 
-private import tango.text.Util: locate, trim, delimit, splitLines;
+private import tango.text.Util: locate, trim, delimit, lines;
 
 private import tango.text.convert.Utf;
 
@@ -392,7 +392,7 @@ class ConfigParser
 
     public void parseString ( char[] str )
     {
-        foreach ( line; splitLines(str) )
+        foreach ( line; lines(str) )
         {
             this.parseLine(line);
         }
