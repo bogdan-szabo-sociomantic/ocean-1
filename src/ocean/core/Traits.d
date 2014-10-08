@@ -829,6 +829,8 @@ unittest
     Helper function to wrap any callable type in a delegate. Most useful when
     you need to pass function pointer as a delegate argument.
 
+    This function allocates a closure class for a delegate.
+
     NB! toDg does not preserve any argument attributes of Func such as ref or
     lazy.
 
@@ -846,10 +848,27 @@ ReturnTypeOf!(Func) delegate (ParameterTupleOf!(Func)) toDg ( Func ) ( Func f )
         is(Func == ReturnTypeOf!(Func) function (ParameterTupleOf!(Func))),
         "toDg does not preserve argument attributes!"
     );
-    ReturnTypeOf!(Func) delegate (ParameterTupleOf!(Func)) dg;
-    dg.funcptr = f;
-    dg.ptr = null;
-    return dg;
+
+    alias ParameterTupleOf!(Func) ParameterTypes;
+
+    class Closure
+    {
+        private Func func;
+
+        this (Func func)
+        {
+            this.func = func;
+        }
+
+        ReturnTypeOf!(Func) call (ParameterTypes args)
+        {
+            return this.func(args);
+        }
+    }
+
+    auto closure = new Closure(f);
+
+    return &closure.call;
 }
 
 unittest
@@ -857,6 +876,15 @@ unittest
     static int foo() { return 42; }
     static assert (is(typeof(toDg(&foo)) == int delegate()));
     assert (toDg(&foo)() == 42);
+
+
+    static void bar(int a, int b)
+    {
+        assert (a == 3);
+        assert (b == 4);
+    }
+
+    toDg(&bar)(3, 4);
 
     static int bad(ref int x) { return x; }
     static assert(!is(typeof(toDg(&bad))));
