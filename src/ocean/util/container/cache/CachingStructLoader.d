@@ -20,9 +20,7 @@ private import ocean.util.container.cache.ExpiringCache,
                ocean.util.container.cache.model.IExpiringCacheInfo;
 private import CacheValue = ocean.util.container.cache.model.Value;
 
-private import ocean.util.serialize.contiguous.Contiguous,
-               ocean.util.serialize.contiguous.Serializer,
-               ocean.util.serialize.contiguous.Deserializer;
+private import ocean.util.serialize.contiguous.package_;
 
 private import tango.stdc.time: time_t, time;
 

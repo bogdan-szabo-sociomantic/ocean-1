@@ -27,31 +27,6 @@ debug (DeserializationTrace) import tango.io.Stdout;
 
 /*******************************************************************************
 
-    Copies struct data to other chunk and adjusts all internal pointers
-    to reference new buffer. It is located in Deserializer module because
-    of implementation details (to avoid circular dependencies)
-
-    Params:
-        src = source struct (must be already contiguous)
-        dst = target struct chunk to copy data to. Will grow if current
-            length is smaller than src.data.length
-
-    Returns:
-        `dst` by value
-
-    Throws:
-        DeserializationException if src is not well-formed
-
-/******************************************************************************/
-
-public Contiguous!(S) copy(S) ( Contiguous!(S) src, ref Contiguous!(S) dst )
-{
-    Deserializer.deserialize!(S)(src.data, dst); 
-    return dst;
-}
-
-/*******************************************************************************
-
     Indicates a problem during deserialization process, most often some sort
     of data corruption
 

@@ -76,7 +76,8 @@ module ocean.util.serialize.contiguous.package_;
 
 public import ocean.util.serialize.contiguous.Contiguous,
               ocean.util.serialize.contiguous.Deserializer,
-              ocean.util.serialize.contiguous.Serializer;
+              ocean.util.serialize.contiguous.Serializer,
+              ocean.util.serialize.contiguous.Util;
 
 version(UnitTest):
 
