@@ -170,38 +170,38 @@ class ConfigParser
 
     private struct ParsingContext
     {
-        /***************************************************************************
+        /***********************************************************************
 
           Current category being parsed
 
-         ***************************************************************************/
+        ***********************************************************************/
 
         char[] category;
 
 
-        /***************************************************************************
+        /***********************************************************************
 
           Current key being parsed
 
-         ***************************************************************************/
+        ***********************************************************************/
 
         char[] key;
 
 
-        /***************************************************************************
+        /***********************************************************************
 
           Current value being parsed
 
-         ***************************************************************************/
+        ***********************************************************************/
 
         char[] value;
 
 
-        /***************************************************************************
+        /***********************************************************************
 
           True if we are at the first multiline value when parsing
 
-         ***************************************************************************/
+        ***********************************************************************/
 
         bool multiline_first = true;
     }
@@ -520,7 +520,8 @@ class ConfigParser
 
     public bool exists ( char[] category, char[] key )
     {
-        return (category in this.properties) && (key in this.properties[category]);
+        return ((category in this.properties) &&
+                (key in this.properties[category]));
     }
 
 
@@ -849,7 +850,8 @@ class ConfigParser
             if ( property == id[1] ) return true;
         }
 
-        throw new IllegalArgumentException("Config.toBool :: invalid boolean value");
+        throw new IllegalArgumentException(
+                                      "Config.toBool :: invalid boolean value");
     }
 
 
@@ -908,11 +910,11 @@ unittest
 {
     scope Config = new ConfigParser();
 
-    /***********************************************************************
+    /***************************************************************************
 
         Section 1: unit-tests to confirm correct parsing of config files
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     auto str =
 `
@@ -945,45 +947,39 @@ bool_arr = true
     Config.parseString(str);
 
     test(Config.isEmpty == false,
-              "Config is incorrectly marked as being empty");
+         "Config is incorrectly marked as being empty");
 
     scope l = Config.getListStrict("Section1", "multiline");
 
-    test(l.length == 4,
-              "Incorrect number of elements in multiline");
+    test(l.length == 4, "Incorrect number of elements in multiline");
 
     test(l[0] == "a" && l[1] == "b" && l[2] == "c" && l[3] == "d",
-            "Multiline value was not parsed as expected");
+         "Multiline value was not parsed as expected");
 
     scope ints = Config.getListStrict!(int)("Section1", "int_arr");
-    test(ints == [30, 40, -60, 1111111111, 0x10], "Wrong multi-line "
-                                             "int-array parsing");
+    test(ints == [30, 40, -60, 1111111111, 0x10],
+         "Wrong multi-line int-array parsing");
 
     scope ulong_arr = Config.getListStrict!(ulong)("Section1", "ulong_arr");
     ulong[] ulong_array = [0, 50, ulong.max, 0xa123bcd];
-    test(ulong_arr == ulong_array, "Wrong multi-line ulong-array "
-                                        "parsing");
+    test(ulong_arr == ulong_array, "Wrong multi-line ulong-array parsing");
 
     scope float_arr = Config.getListStrict!(float)("Section1", "float_arr");
     float[] float_array = [10.2, -25.3, 90, 0.000000001];
-    test(float_arr == float_array, "Wrong multi-line float-array "
-                                        "parsing");
+    test(float_arr == float_array, "Wrong multi-line float-array parsing");
 
     scope bool_arr = Config.getListStrict!(bool)("Section1", "bool_arr");
     bool[] bool_array = [true, false];
-    test(bool_arr == bool_array, "Wrong multi-line bool-array "
-                                      "parsing");
+    test(bool_arr == bool_array, "Wrong multi-line bool-array parsing");
 
     try
     {
-        scope w_bool_arr = Config.getListStrict!(bool)("Section1",
-                                                       "int_arr");
+        scope w_bool_arr = Config.getListStrict!(bool)("Section1", "int_arr");
     }
     catch ( IllegalArgumentException e )
     {
         test((e.msg == "Config.toBool :: invalid boolean value"),
-                  "invalid conversion to bool "
-                  "was not reported as a problem");
+             "invalid conversion to bool was not reported as a problem");
     }
 
     // Manually set a property (new category).
@@ -991,30 +987,24 @@ bool_arr = true
 
     char[] new_val;
     Config.getStrict(new_val, "Section2", "set_key");
-    test(new_val == "set_value",
-              "New value not added correctly");
+    test(new_val == "set_value", "New value not added correctly");
 
     // Manually set a property (existing category, new key).
     Config.set("Section2", "another_set_key", "another_set_value");
 
     Config.getStrict(new_val, "Section2", "another_set_key");
-    test(new_val == "another_set_value",
-              "New value not added correctly");
+    test(new_val == "another_set_value", "New value not added correctly");
 
     // Manually set a property (existing category, existing key).
     Config.set("Section2", "set_key", "new_set_value");
 
     Config.getStrict(new_val, "Section2", "set_key");
-    test(new_val == "new_set_value",
-              "New value not added correctly");
+    test(new_val == "new_set_value", "New value not added correctly");
 
     // Check if the 'exists' function works as expected.
-    test( Config.exists("Section1", "int_arr"),
-              "exists API failure");
-    test(!Config.exists("Section420", "int_arr"),
-              "exists API failure");
-    test(!Config.exists("Section1", "key420"),
-              "exists API failure");
+    test( Config.exists("Section1", "int_arr"), "exists API failure");
+    test(!Config.exists("Section420", "int_arr"), "exists API failure");
+    test(!Config.exists("Section1", "key420"), "exists API failure");
 
     debug ( ConfigParser )
     {
@@ -1022,11 +1012,11 @@ bool_arr = true
     }
 
 
-    /***********************************************************************
+    /***************************************************************************
 
         Section 2: unit-tests to confirm correct working of iterators
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     char[][] expected_categories = [ "Section1",
                                      "Section2" ];
@@ -1052,19 +1042,18 @@ bool_arr = true
     }
 
     test(obtained_categories.sort == expected_categories.sort,
-              "category iteration failure");
-    test(obtained_keys.sort == expected_keys.sort,
-              "key iteration failure");
+         "category iteration failure");
+    test(obtained_keys.sort == expected_keys.sort, "key iteration failure");
 
 
-    /***********************************************************************
+    /***************************************************************************
 
         Section 3: unit-tests to check memory usage
 
         this entire section is inside a conditional compilation block as it
         does console output meant for human interpretation
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     debug ( ConfigParser )
     {
@@ -1072,8 +1061,8 @@ bool_arr = true
 
         // Repeated parsing of the same configuration.
 
-        Stdout.blue.formatln("Memory analysis of repeated parsing of the "
-                             "same configuration").default_colour;
+        Stdout.blue.formatln("Memory analysis of repeated parsing of the same "
+                             "configuration").default_colour;
 
         size_t memused1, memused2, memfree;
 
