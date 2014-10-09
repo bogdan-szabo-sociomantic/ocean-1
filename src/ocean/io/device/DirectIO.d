@@ -370,13 +370,12 @@ public class BufferedDirectWriteFile: OutputStream
     /***************************************************************************
 
         Returns:
-            the path of the open file
+            what File.toString() returns for the underlying File instance
 
     ***************************************************************************/
 
     public char[] path ( )
     {
-        assert(this.file.fileHandle != -1, "cannot get path of non-open file");
         return this.file.path();
     }
 
