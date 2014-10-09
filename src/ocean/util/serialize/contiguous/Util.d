@@ -23,8 +23,7 @@ private import ocean.core.Test;
 /*******************************************************************************
 
     Copies struct data to other chunk and adjusts all internal pointers
-    to reference new buffer. It is located in Deserializer module because
-    of implementation details (to avoid circular dependencies)
+    to reference new buffer.
 
     Params:
         src = source struct (must be already contiguous)
