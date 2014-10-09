@@ -908,6 +908,45 @@ version ( UnitTest )
 
 unittest
 {
+    struct ConfigSanity
+    {
+        uint num_categories;
+
+        char[][] categories;
+
+        char[][] keys;
+    }
+
+    void parsedConfigSanityCheck ( ConfigParser config, ConfigSanity expected,
+                                   char[] test_name )
+    {
+        auto t = new NamedTest(test_name);
+        char[][] obtained_categories;
+        char[][] obtained_keys;
+
+        t.test(config.isEmpty == (expected.num_categories == 0),
+               "emptiness error");
+
+        foreach ( category; config )
+        {
+            obtained_categories ~= category;
+
+            foreach ( key; config.iterateCategory(category) )
+            {
+                obtained_keys ~= key;
+            }
+        }
+
+        t.test(obtained_categories.length == expected.num_categories,
+               "mismatch in number of categories");
+
+        t.test(obtained_categories.sort == expected.categories.sort,
+               "mismatch in categories");
+
+        t.test(obtained_keys.sort == expected.keys.sort,
+               "mismatch in keys");
+    }
+
     scope Config = new ConfigParser();
 
     /***************************************************************************
@@ -942,12 +981,14 @@ float_arr = 10.2
 bool_arr = true
        false
 `;
-
+    ConfigSanity str_expectations =
+        { 1,
+          [ "Section1" ],
+          [ "multiline", "int_arr", "ulong_arr", "float_arr", "bool_arr" ]
+        };
 
     Config.parseString(str);
-
-    test(Config.isEmpty == false,
-         "Config is incorrectly marked as being empty");
+    parsedConfigSanityCheck(Config, str_expectations, "basic string");
 
     scope l = Config.getListStrict("Section1", "multiline");
 
@@ -1006,49 +1047,18 @@ bool_arr = true
     test(!Config.exists("Section420", "int_arr"), "exists API failure");
     test(!Config.exists("Section1", "key420"), "exists API failure");
 
-    debug ( ConfigParser )
-    {
-        Config.print();
-    }
+    ConfigSanity new_str_expectations =
+        { 2,
+          [ "Section1", "Section2" ],
+          [ "multiline", "int_arr", "ulong_arr", "float_arr", "bool_arr",
+            "set_key", "another_set_key" ]
+        };
+    parsedConfigSanityCheck(Config, new_str_expectations, "modified string");
 
 
     /***************************************************************************
 
-        Section 2: unit-tests to confirm correct working of iterators
-
-    ***************************************************************************/
-
-    char[][] expected_categories = [ "Section1",
-                                     "Section2" ];
-    char[][] expected_keys = [ "multiline",
-                               "int_arr",
-                               "ulong_arr",
-                               "float_arr",
-                               "bool_arr",
-
-                               "set_key",
-                               "another_set_key" ];
-    char[][] obtained_categories;
-    char[][] obtained_keys;
-
-    foreach ( category; Config )
-    {
-        obtained_categories ~= category;
-
-        foreach ( key; Config.iterateCategory(category) )
-        {
-            obtained_keys ~= key;
-        }
-    }
-
-    test(obtained_categories.sort == expected_categories.sort,
-         "category iteration failure");
-    test(obtained_keys.sort == expected_keys.sort, "key iteration failure");
-
-
-    /***************************************************************************
-
-        Section 3: unit-tests to check memory usage
+        Section 2: unit-tests to check memory usage
 
         this entire section is inside a conditional compilation block as it
         does console output meant for human interpretation
