@@ -431,17 +431,17 @@ class ConfigParser
     {
         auto ctx = &this.context;
 
-        ctx.value = trim(line);
+        line = trim(line);
 
-        if ( ctx.value.length == 0 )
+        if ( line.length == 0 )
         {
             // Ignore empty lines.
             return;
         }
 
-        bool slash_comment = ctx.value.length >= 2 && ctx.value[0 .. 2] == "//";
-        bool hash_comment = ctx.value[0] == '#';
-        bool semicolon_comment = ctx.value[0] == ';';
+        bool slash_comment = line.length >= 2 && line[0 .. 2] == "//";
+        bool hash_comment = line[0] == '#';
+        bool semicolon_comment = line[0] == ';';
 
         if ( slash_comment || semicolon_comment || hash_comment )
         {
@@ -449,30 +449,30 @@ class ConfigParser
             return;
         }
 
-        int pos = locate(ctx.value, '['); // category present in line?
+        int pos = locate(line, '['); // category present in line?
 
         if ( pos == 0 )
         {
-            ctx.category = ctx.value[pos + 1 .. locate(ctx.value, ']')].dup;
+            ctx.category = line[pos + 1 .. locate(line, ']')].dup;
 
             ctx.key = "";
         }
         else
         {
-            pos = locate(ctx.value, '='); // check for key value pair
+            pos = locate(line, '='); // check for key value pair
 
-            if ( pos < ctx.value.length )
+            if ( pos < line.length )
             {
-                ctx.key = trim(ctx.value[0 .. pos]).dup;
+                ctx.key = trim(line[0 .. pos]).dup;
 
-                ctx.value = trim(ctx.value[pos + 1 .. $]).dup;
+                ctx.value = trim(line[pos + 1 .. $]).dup;
 
                 this.properties[ctx.category][ctx.key] = ctx.value;
                 ctx.multiline_first = !ctx.value.length;
             }
             else
             {
-                ctx.value = trim(ctx.value).dup;
+                ctx.value = trim(line).dup;
 
                 if ( ctx.value.length )
                 {
