@@ -15,6 +15,8 @@ module ocean.util.config.ConfigParser;
 
 *******************************************************************************/
 
+private import ocean.core.Array : copy;
+
 public  import ocean.core.Exception : enforce;
 
 private import ocean.io.Stdout;
@@ -336,9 +338,9 @@ class ConfigParser
     {
         auto ctx = &this.context;
 
-        ctx.value           = "";
-        ctx.category        = "";
-        ctx.key             = "";
+        ctx.value.length    = 0;
+        ctx.category.length = 0;
+        ctx.key.length      = 0;
         ctx.multiline_first = true;
     }
 
@@ -462,9 +464,6 @@ class ConfigParser
 
         ---
 
-        FIXME: this method does a fair bit of 'new'ing and '.dup'ing. If we ever
-        need to repeatedly read a config file, this should be reworked.
-
         Params:
             line = line to parse
 
@@ -498,9 +497,9 @@ class ConfigParser
         {
             this.saveFromContext();
 
-            ctx.category = line[pos + 1 .. locate(line, ']')].dup;
+            ctx.category.copy(line[pos + 1 .. locate(line, ']')]);
 
-            ctx.key = "";
+            ctx.key.length = 0;
         }
         else
         {
@@ -510,9 +509,9 @@ class ConfigParser
             {
                 this.saveFromContext();
 
-                ctx.key = trim(line[0 .. pos]).dup;
+                ctx.key.copy(trim(line[0 .. pos]));
 
-                ctx.value = trim(line[pos + 1 .. $]).dup;
+                ctx.value.copy(trim(line[pos + 1 .. $]));
 
                 ctx.multiline_first = !ctx.value.length;
             }
@@ -523,7 +522,7 @@ class ConfigParser
                     ctx.value ~= '\n';
                 }
 
-                ctx.value ~= line.dup;
+                ctx.value ~= line;
 
                 ctx.multiline_first = false;
             }
@@ -973,18 +972,21 @@ class ConfigParser
         {
             ValueNode * value_node = &this.properties[ctx.category][ctx.key];
 
-            value_node.value = ctx.value;
+            if ( value_node.value != ctx.value )
+            {
+                value_node.value.copy(ctx.value);
+            }
 
             value_node.present_in_config = true;
         }
         else
         {
-            ValueNode value_node = { ctx.value, true };
+            ValueNode value_node = { ctx.value.dup, true };
 
-            this.properties[ctx.category][ctx.key] = value_node;
+            this.properties[ctx.category.dup][ctx.key.dup] = value_node;
         }
 
-        ctx.value = "";
+        ctx.value.length = 0;
     }
 
 
@@ -1286,10 +1288,18 @@ three = teen
 
         Section 2: unit-tests to check memory usage
 
-        this entire section is inside a conditional compilation block as it
-        does console output meant for human interpretation
-
     ***************************************************************************/
+
+    // Test to ensure that an additional parse of the same configuration does
+    // not allocate at all.
+
+    size_t memused1, memused2, memfree;
+
+    Config.parseString(str2);
+    GC.usage(memused1, memfree);
+    Config.parseString(str2);
+    GC.usage(memused2, memfree);
+    test!("==")(memused1, memused2);
 
     debug ( ConfigParser )
     {
@@ -1299,8 +1309,6 @@ three = teen
 
         Stdout.blue.formatln("Memory analysis of repeated parsing of the same "
                              "configuration").default_colour;
-
-        size_t memused1, memused2, memfree;
 
         GC.usage(memused1, memfree);
         Stdout.formatln("before parsing  : memused = {}", memused1);

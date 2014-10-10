@@ -30,6 +30,13 @@ Deprecations
 New Features
 ============
 
+* `ocean.util.config.ConfigParser`
+
+  The ConfigParser is now capable of repeatedly parsing an unchanged
+  configuration without any additional memory allocation, and a different
+  configuration with only minimal extra allocation as needed. This enhancement
+  does not require any changes to applications using the ConfigParser module.
+
 * Makd
 
   Makd learned how to automatically build and run integration tests. If the
