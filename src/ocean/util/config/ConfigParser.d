@@ -472,19 +472,16 @@ class ConfigParser
             }
             else
             {
-                ctx.value = trim(line).dup;
+                ctx.value = line.dup;
 
-                if ( ctx.value.length )
+                if ( ! ctx.multiline_first )
                 {
-                    if ( ! ctx.multiline_first )
-                    {
-                        this.properties[ctx.category][ctx.key] ~= '\n';
-                    }
-
-                    this.properties[ctx.category][ctx.key] ~= ctx.value;
-
-                    ctx.multiline_first = false;
+                    this.properties[ctx.category][ctx.key] ~= '\n';
                 }
+
+                this.properties[ctx.category][ctx.key] ~= ctx.value;
+
+                ctx.multiline_first = false;
             }
         }
     }
