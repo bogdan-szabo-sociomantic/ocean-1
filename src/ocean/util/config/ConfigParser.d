@@ -132,7 +132,7 @@ class ConfigParser
 
     public struct VarIterator
     {
-        char[][char[]]* vars;
+        ValueNode[char[]]* vars;
 
 
         /***********************************************************************
@@ -211,12 +211,46 @@ class ConfigParser
 
     /***************************************************************************
 
+        Structure representing a single value node in the configuration.
+
+    ***************************************************************************/
+
+    private struct ValueNode
+    {
+        /***********************************************************************
+
+            The actual value.
+
+        ***********************************************************************/
+
+        char[] value;
+
+
+        /***********************************************************************
+
+            Flag used to allow a config file to be parsed, even when a different
+            configuration has already been parsed in the past.
+
+            At the start of every new parse, the flags of all value nodes in an
+            already parsed configuration are set to false. If this value node is
+            found during the parse, its flag is set to true. All new value nodes
+            added will also have the flag set to true. At the end of the parse,
+            all value nodes that have the flag set to false are removed.
+
+        **********************************************************************/
+
+        bool present_in_config;
+    }
+
+
+    /***************************************************************************
+
         Config Keys and Properties
 
     ***************************************************************************/
 
     alias char[] String;
-    private String[String][String] properties;
+    private ValueNode[String][String] properties;
 
 
     /***************************************************************************
@@ -358,16 +392,14 @@ class ConfigParser
     {
         this.configFile = filePath;
 
-        if ( clean_old )
-        {
-            this.resetParser();
-            this.properties = null;
-        }
+        this.performPreParsing(clean_old);
 
         foreach ( line; new Lines!(char) (new File(this.configFile)) )
         {
             this.parseLine(line);
         }
+
+        this.performPostParsing();
     }
 
 
@@ -401,16 +433,14 @@ class ConfigParser
 
     public void parseString ( char[] str, bool clean_old = true )
     {
-        if ( clean_old )
-        {
-            this.resetParser();
-            this.properties = null;
-        }
+        this.performPreParsing(clean_old);
 
         foreach ( line; lines(str) )
         {
             this.parseLine(line);
         }
+
+        this.performPostParsing();
     }
 
 
@@ -466,6 +496,8 @@ class ConfigParser
 
         if ( pos == 0 )
         {
+            this.saveFromContext();
+
             ctx.category = line[pos + 1 .. locate(line, ']')].dup;
 
             ctx.key = "";
@@ -476,23 +508,22 @@ class ConfigParser
 
             if ( pos < line.length )
             {
+                this.saveFromContext();
+
                 ctx.key = trim(line[0 .. pos]).dup;
 
                 ctx.value = trim(line[pos + 1 .. $]).dup;
 
-                this.properties[ctx.category][ctx.key] = ctx.value;
                 ctx.multiline_first = !ctx.value.length;
             }
             else
             {
-                ctx.value = line.dup;
-
                 if ( ! ctx.multiline_first )
                 {
-                    this.properties[ctx.category][ctx.key] ~= '\n';
+                    ctx.value ~= '\n';
                 }
 
-                this.properties[ctx.category][ctx.key] ~= ctx.value;
+                ctx.value ~= line.dup;
 
                 ctx.multiline_first = false;
             }
@@ -575,9 +606,9 @@ class ConfigParser
         );
         try
         {
-            char[] property = this.properties[category][key];
+            auto value_node = this.properties[category][key];
 
-            return conv!(T)(property);
+            return conv!(T)(value_node.value);
         }
         catch ( IllegalArgumentException )
         {
@@ -799,7 +830,21 @@ class ConfigParser
 
     public void set ( char[] category, char[] key, char[] value )
     {
-        this.properties[category][key] = value;
+        if ( category == "" || key == "" || value == "" )
+        {
+            return;
+        }
+
+        if ( this.exists(category, key) )
+        {
+            (this.properties[category][key]).value = value;
+        }
+        else
+        {
+            ValueNode value_node = { value, true };
+
+            this.properties[category][key] = value_node;
+        }
     }
 
 
@@ -818,9 +863,14 @@ class ConfigParser
 
     public void print ( FormatOutput!(char) output = Stdout )
     {
-        foreach ( key, val; this.properties )
+        foreach ( category, key_value_pairs; this.properties )
         {
-            output.formatln("{} = {}\n", key, val);
+            output.formatln("{}", category);
+
+            foreach ( key, value_node; key_value_pairs )
+            {
+                output.formatln("    {} = {}", key, value_node.value);
+            }
         }
     }
 
@@ -900,6 +950,150 @@ class ConfigParser
                            Format("{} : get(): type '{}' is not supported",
                                   __FILE__, T.stringof));
     }
+
+
+    /***************************************************************************
+
+        Saves the current contents of the context into the configuration.
+
+    ***************************************************************************/
+
+    private void saveFromContext ( )
+    {
+        auto ctx = &this.context;
+
+        if ( ctx.category.length == 0 ||
+             ctx.key.length == 0 ||
+             ctx.value.length == 0 )
+        {
+            return;
+        }
+
+        if ( this.exists(ctx.category, ctx.key) )
+        {
+            ValueNode * value_node = &this.properties[ctx.category][ctx.key];
+
+            value_node.value = ctx.value;
+
+            value_node.present_in_config = true;
+        }
+        else
+        {
+            ValueNode value_node = { ctx.value, true };
+
+            this.properties[ctx.category][ctx.key] = value_node;
+        }
+
+        ctx.value = "";
+    }
+
+
+    /***************************************************************************
+
+        Performs operations needed before an upcoming parse.
+
+        Params:
+            clean_old = true if the existing configuration should be overwritten
+                        with the result of the current parse, false if the
+                        current parse should only add to or update the existing
+                        configuration. (defaults to true)
+
+    ***************************************************************************/
+
+    private void performPreParsing ( bool clean_old )
+    {
+        this.resetParser();
+
+        if ( clean_old )
+        {
+            this.clearAllValueNodeFlags();
+        }
+    }
+
+
+    /***************************************************************************
+
+        Performs operations needed immediately after a parse has completed.
+
+    ***************************************************************************/
+
+    private void performPostParsing ( )
+    {
+        this.saveFromContext();
+
+        this.pruneConfiguration();
+
+        this.resetParser();
+    }
+
+
+    /***************************************************************************
+
+        Clears the 'present_in_config' flags associated with all value nodes in
+        the configuration.
+
+    ***************************************************************************/
+
+    private void clearAllValueNodeFlags ( )
+    {
+        foreach ( category, key_value_pairs; this.properties )
+        {
+            foreach ( key, ref value_node; key_value_pairs )
+            {
+                value_node.present_in_config = false;
+            }
+        }
+    }
+
+
+    /***************************************************************************
+
+        Prunes the configuration removing all keys whose value nodes have the
+        'present_in_config' flag set to false. Also removes all categories that
+        have no keys.
+
+    ***************************************************************************/
+
+    private void pruneConfiguration ( )
+    {
+        char[][] keys_to_remove;
+        char[][] categories_to_remove;
+
+        // Remove obsolete keys
+
+        foreach ( category, ref key_value_pairs; this.properties )
+        {
+            foreach ( key, value_node; key_value_pairs )
+            {
+                if ( ! value_node.present_in_config )
+                {
+                    keys_to_remove ~= key;
+                }
+            }
+
+            foreach ( key; keys_to_remove )
+            {
+                key_value_pairs.remove(key);
+            }
+
+            keys_to_remove.length = 0;
+        }
+
+        // Remove categories that have no keys
+
+        foreach ( category, key_value_pairs; this.properties )
+        {
+            if ( key_value_pairs.length == 0 )
+            {
+                categories_to_remove ~= category;
+            }
+        }
+
+        foreach ( category; categories_to_remove )
+        {
+            this.properties.remove(category);
+        }
+    }
 }
 
 
@@ -965,7 +1159,7 @@ unittest
 
     ***************************************************************************/
 
-    auto str =
+    auto str1 =
 `
 [Section1]
 multiline = a
@@ -991,14 +1185,14 @@ float_arr = 10.2
 bool_arr = true
        false
 `;
-    ConfigSanity str_expectations =
+    ConfigSanity str1_expectations =
         { 1,
           [ "Section1" ],
           [ "multiline", "int_arr", "ulong_arr", "float_arr", "bool_arr" ]
         };
 
-    Config.parseString(str);
-    parsedConfigSanityCheck(Config, str_expectations, "basic string");
+    Config.parseString(str1);
+    parsedConfigSanityCheck(Config, str1_expectations, "basic string");
 
     scope l = Config.getListStrict("Section1", "multiline");
 
@@ -1057,13 +1251,35 @@ bool_arr = true
     test(!Config.exists("Section420", "int_arr"), "exists API failure");
     test(!Config.exists("Section1", "key420"), "exists API failure");
 
-    ConfigSanity new_str_expectations =
+    ConfigSanity new_str1_expectations =
         { 2,
           [ "Section1", "Section2" ],
           [ "multiline", "int_arr", "ulong_arr", "float_arr", "bool_arr",
             "set_key", "another_set_key" ]
         };
-    parsedConfigSanityCheck(Config, new_str_expectations, "modified string");
+    parsedConfigSanityCheck(Config, new_str1_expectations, "modified string");
+
+    // Parse a new configuration
+
+    auto str2 =
+`
+[German]
+one = eins
+two = zwei
+three = drei
+[Hindi]
+one = ek
+two = do
+three = teen
+`;
+    ConfigSanity str2_expectations =
+        { 2,
+          [ "German", "Hindi" ],
+          [ "one", "two", "three", "one", "two", "three" ],
+        };
+
+    Config.parseString(str2);
+    parsedConfigSanityCheck(Config, str2_expectations, "new string");
 
 
     /***************************************************************************
@@ -1089,7 +1305,7 @@ bool_arr = true
         GC.usage(memused1, memfree);
         Stdout.formatln("before parsing  : memused = {}", memused1);
 
-        Config.parseString(str);
+        Config.parseString(str1);
 
         GC.usage(memused2, memfree);
         Stdout.formatln("after parse # 1 : memused = {} (additional mem "
@@ -1099,7 +1315,7 @@ bool_arr = true
 
         for (int i = 2; i < num_parses; ++i)
         {
-            Config.parseString(str);
+            Config.parseString(str1);
         }
 
         GC.usage(memused2, memfree);

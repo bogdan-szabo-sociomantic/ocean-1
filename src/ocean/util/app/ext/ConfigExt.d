@@ -185,16 +185,15 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     public void processOverrides ( Arguments args )
     {
+        char[] category;
+        char[] key;
+        char[] value;
+
         foreach (opt; args("override-config").assigned)
         {
-            this.config.resetParser();
+            this.parseOverride(opt, category, key, value);
 
-            auto section_end = locate(opt, ']');
-            auto section = opt[0 .. section_end];
-            this.config.parseLine(section);
-
-            auto remaining = opt[section_end + 1 .. $];
-            this.config.parseString(remaining, false);
+            this.config.set(category, key, value);
         }
     }
 
@@ -322,6 +321,35 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
     {
         // Unused
         return exception;
+    }
+
+
+    /***************************************************************************
+
+        Parses an overriden config.
+
+        Params:
+            opt = the overriden config as specified on the command-line
+            category = buffer to be filled with the parsed category
+            key = buffer to be filled with the parsed key
+            value = buffer to be filled with the parsed value
+
+    ***************************************************************************/
+
+    private void parseOverride ( char[] opt, ref char[] category,
+                                 ref char[] key, ref char[] value )
+    {
+        category.length = 0;
+        key.length      = 0;
+        value.length    = 0;
+
+        auto category_end = locate(opt, ']');
+        category = opt[1 .. category_end];
+
+        auto key_end = locate(opt, '=');
+        key = opt[category_end + 1 .. key_end];
+
+        value = opt[key_end + 1 .. $];
     }
 
 }
