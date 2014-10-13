@@ -8,7 +8,3 @@ TEST_FILTER_OUT += \
 # Link unittests to all used libraries
 $O/%unittests: override LDFLAGS += -lglib-2.0 -lpcre -lxml2 -lxslt -lebtree \
 		-ltokyocabinet -llzo2 -lreadline -lhistory
-
-# Link test suites to the libraries they need
-$O/test-cache: override LDFLAGS += -lebtree
-

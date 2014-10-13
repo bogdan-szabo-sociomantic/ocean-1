@@ -1,16 +1,13 @@
 /******************************************************************************
 
-    Tests for CachingStructLoader abstract base class.
-
-    Most are plain unit tests but for timeout verification spawning epoll is
-    desired so all cases are moved to higher level tests folder
-    (also to keep ocean clean from mocks)
+    Kept with "_slowtest" suffix because sleep is used to ensure cache
+    invalidation timeout works.
 
     Copyright: Copyright (c) 2014 sociomantic labs. All rights reserved
 
 *******************************************************************************/
 
-module test.cache.CachingStructLoader;
+module ocean.util.container.cache.CachingStructLoader_slowtest;
 
 /******************************************************************************
 
@@ -18,16 +15,58 @@ module test.cache.CachingStructLoader;
 
 ******************************************************************************/
 
-private import ocean.util.container.cache.CachingStructLoader;
-private import ocean.util.container.cache.ExpiringCache;
-private import ocean.util.serialize.contiguous.Contiguous,
-               ocean.util.serialize.contiguous.Serializer,
-               ocean.util.serialize.contiguous.Deserializer;
+private import ocean.util.container.cache.CachingStructLoader,
+               ocean.util.container.cache.ExpiringCache;
+private import ocean.util.serialize.contiguous.package_;
+
+private import ocean.io.select.EpollSelectDispatcher,
+               ocean.io.select.client.TimerEvent;
 
 private import ocean.core.Test;
 
-private import test.cache.common.Data : Trivial;
-private import env = test.cache.common.Environment;
+private import tango.stdc.posix.time;
+
+/******************************************************************************
+
+    Trivial struct type to imitate stored value
+
+******************************************************************************/
+
+struct Trivial
+{
+    int field;
+}
+
+/******************************************************************************
+
+    Shared event loop
+
+******************************************************************************/
+
+EpollSelectDispatcher epoll;
+
+/******************************************************************************
+
+    Used instead of "sleep" to keep event loop running
+
+    Params:
+        seconds = amount of seconds to wait
+
+******************************************************************************/
+
+void wait(long seconds)
+{
+    auto timer = new TimerEvent(
+        () {
+            epoll.shutdown();
+            return false;
+        }
+    );
+
+    timer.set( timespec(seconds) );
+    epoll.register(timer);
+    epoll.eventLoop();
+}
 
 /******************************************************************************
 
@@ -85,6 +124,7 @@ private const Cache cache;
 
 static this()
 {
+    epoll = new EpollSelectDispatcher();
     cache_storage = new Cache.Cache(5, 1); // max 5 items, 1 second
     cache = new Cache(cache_storage);
 }
@@ -150,7 +190,7 @@ unittest
     cache.addToSource(42, Trivial(42));
     result = 42 in cache;
 
-    env.wait(2);
+    wait(2);
     result = 42 in cache;
     test!("!is")(result, null);
     test!("==")(result.field, 42);
