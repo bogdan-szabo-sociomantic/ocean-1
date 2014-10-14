@@ -415,9 +415,6 @@ example::
 Usually the ``override`` option is needed, if you want to still add these
 special flags even if the user passes a ``DFLAGS=-flag`` to Make.
 
-To define a *new* flavor just use a new name, no other special treatment is
-needed.
-
 To compile the project using a particular flavor, just pass the ``F`` variable
 to make, for example::
 
