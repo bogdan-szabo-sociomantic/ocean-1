@@ -3,7 +3,8 @@ Makd
 ====
 
 Makd (pronounced "maked") is a GNU Make library/framework based on Makeit_,
-adapted for D and in particular to Sociomantic's projects layout.
+adapted for D and in particular to Sociomantic's projects layout (although when
+possible the dependency on these conventions are kept as minimal as possible).
 
 It combines the power of Make and rdmd to provide a lot of free functionality,
 like implicit rules to compile binaries (only when necessary), tracking if any
