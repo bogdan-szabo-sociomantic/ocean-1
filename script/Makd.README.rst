@@ -95,7 +95,7 @@ Config.mak
 Makd has a lot of configuration variables available. This file lives in the
 top-level directory of the project and serves as a global configuration point.
 There is only one ``Config.mak`` per project, so the configuration defined here
-should make sense for all the ``Makefile``\s defined across the project. For
+should make sense for all the ``Makefile``\ s defined across the project. For
 example you could redefine the colors used here, or the default DMD binary to
 use. This is why this file, when present, should be always added to the version
 control system. But normally you shouldn't need to create this file.
@@ -242,7 +242,7 @@ you can add more too by using the ``fasttest`` special variable.
 
 See the Testing_ section for more details.
 
-The ``clean`` target just removes `The build directory`_ recursively. Just
+The ``clean`` target simply removes `The build directory`_ recursively. Just
 remember to put all your generated files there and the clean target will always
 work ;). If you can't do that (because you generated a source file for example),
 you can use the special variable ``clean`` too (``clean += src/trash.d
