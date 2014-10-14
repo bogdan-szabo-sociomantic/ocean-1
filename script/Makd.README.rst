@@ -109,11 +109,11 @@ details).
 
 Config.local.mak
 ----------------
-This is a local version of the Config.mak_, so users can customize the build
-system to their taste. Here is where you usually should define which Flavor_ to
-compile by default, or which colors to use, or the path to a non-conventional
-compiler location. This file should never be added to the version control
-system.
+This is a local (personal) version of the Config.mak_, so users can customize
+the build system to their taste. Here is where you usually should define which
+Flavor_ to compile by default, or which colors to use, or the path to
+a non-conventional compiler location. This file should never be added to the
+version control system.
 
 This file is loaded **after** Config.mak_ so it overrides its values.
 
