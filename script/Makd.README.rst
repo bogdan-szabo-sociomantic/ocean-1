@@ -19,29 +19,33 @@ Files / Quickstart
 
 Top-level Makefile
 ------------------
-To get started you need to have ocean as a submodule and create a top-level
-makefile for your project (or convert the old one).
+To get started you need to have ocean as a submodule (or copy it to your
+project) and create a top-level makefile for your project (or convert the old
+one).
 
 A typical Top-level ``Makefile`` should look like this::
 
         # Include the top-level makefile
-        include submodules/ocean/script/Makd.mak
+        include submodules/ocean/Makd.mak
+
+Assuming your ocean installation is in ``submodules/ocean``. By default, the
+default target when typing just ``make`` is ``all``, and you can add targets to
+it, which will be explained later.
+
+You can change this default target by explicitly overriding the
+``.DEFAULT_GOAL`` variable, which tells GNU Make which target should be built
+when you just run ``make`` without arguments. If you set it, make sure you
+define it **after** including ``Makd.mak``, order is important in this case::
 
         # Default goal for building this directory
-        .DEFAULT_GOAL := all
+        .DEFAULT_GOAL := some-target
 
-Assuming your ocean installation is in ``submodules/ocean``.  ``DEFAULT_GOAL``
-is a special GNU Make variable to tell which target should be built when you
-just run ``make`` without arguments. This is optional, if you don't set it, it
-will default to ``all`` anyway, but if you set it, make sure you define it
-**after** including ``Makd.mak``, order is important.
-
-This file should be written only once and never touched again. But in your
-project you might have more than one Makefile, for example you could have one in
-your ``src`` directory and another one in your ``test`` directory, so you can do
-``make`` in ``src`` without specifying ``-C ..``. Also, probably your
-``DEFAULT_GOAL`` in the ``src/Makefile`` will be ``all`` while the one in
-``test/Makefile`` can be ``test`` instead.
+This ``Makefile`` file should be written only once and never touched again (most
+likely). But in your project you might have more than one Makefile, for example
+you could have one in your ``src`` directory and another one in your ``test``
+directory, so you can do ``make`` in ``src`` without specifying ``-C ..``. Also,
+probably your ``.DEFAULT_GOAL`` in the ``src/Makefile`` will be ``all`` while
+the one in ``test/Makefile`` can be ``test`` instead.
 
 
 Build.mak
@@ -70,7 +74,7 @@ Usually you want a shortcut to type less, so you might want to add::
 
 Now you can simply write ``make someapp`` to build it. Simple.
 
-But maybe you want to type just ``make``. Since the ``DEFAULT_GOAL`` defined in
+But maybe you want to type just ``make``. Since the ``.DEFAULT_GOAL`` defined in
 your ``Makefile`` is ``all``, you can use the special ``all`` variable to add
 targets to build when is called::
 
