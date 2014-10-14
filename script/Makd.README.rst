@@ -9,8 +9,8 @@ possible the dependency on these conventions are kept as minimal as possible).
 It combines the power of Make and rdmd to provide a lot of free functionality,
 like implicit rules to compile binaries (only when necessary), tracking if any
 of the source files changed, it improves considerably Make's output, it provides
-a default test target that runs unittests, it detects if you change the
-compilation flags and recompile if necessary, etc.
+a default test target that runs unittests and arbitrary integration tests, it
+detects if you change the compilation flags and recompile if necessary, etc.
 
 
 
@@ -211,7 +211,11 @@ whole set of predefined targets are:
 * ``all``
 * ``clean``
 * ``test``
+* ``fasttest``
 * ``unittest``
+* ``allunittest``
+* ``fastunittest``
+* ``integrationtest``
 * ``doc``
 * ``install``
 * ``uninstall``
@@ -224,10 +228,15 @@ special target behaves the same. But for now we'll probably won't use the
 (``un``)\ ``install`` targets and in a near future a built-in ``doc`` target
 will be provided, so you'll probably won't use that one for now either.
 
-The built-in ``unittest`` target will compile and run the unittests in every
-``.d`` file found in the ``src`` directory. Each module will be run
-independently. The ``test`` also is fed by the ``test`` variable, but the
-``unittest`` target is already added (``test += unittest`` is done by Makd).
+The built-in ``*unittest`` target will compile and run the unittests in every
+``.d`` file found in the ``src`` directory. The ``integrationtest`` target will
+compile and run every test program in ``test/``. The ``test`` target includes
+the ``allunittest`` and ``integrationtest`` targets by default, but you can add
+more by using the ``test`` special variable (``test += mytest``). The
+``fasttest`` target will only run the ``fastunittest`` target by default, but
+you can add more too by using the ``fasttest`` special variable.
+
+See the Testing_ section for more details.
 
 The ``clean`` target just removes `The build directory`_ recursively. Just
 remember to put all your generated files there and the clean target will always
@@ -264,6 +273,8 @@ Variables you might want to override
 * ``D_GC`` to change the default (cdgc) GC implementation to use.
 * Less likely you might want to override the ``DFLAGS`` or ``RDMDFLAGS``, but
   usually there are better methods to do that instead.
+* ``TEST_FILTER_OUT`` to exclude some files from the unit tests or integration
+  tests.
 
 Some of this variables are typically overridden in the Config.mak_ file, others
 in the Build.mak_ file, others in the Config.local.mak_ or directly in the
