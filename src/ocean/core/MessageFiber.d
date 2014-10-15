@@ -102,6 +102,8 @@ debug ( MessageFiberDump ) extern(C) void dumpFibers()
     {
         auto fiber = cast(MessageFiber) GC.weakPointerGet(wpFiber);
 
+        wpFiber = null;
+
         if ( fiber !is null )
         {
             Stderr.formatln("{,12}: State: {}; Token: {,12}; LastSuspend: {} ({}s ago); "
