@@ -856,7 +856,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    private void saveFromContext ( )
+    private void saveFromParsingContext ( )
     {
         auto ctx = &this.context;
 
@@ -903,7 +903,7 @@ class ConfigParser
 
     private void performPreParsing ( bool clean_old )
     {
-        this.resetParser();
+        this.clearParsingContext();
 
         if ( clean_old )
         {
@@ -920,11 +920,11 @@ class ConfigParser
 
     private void performPostParsing ( )
     {
-        this.saveFromContext();
+        this.saveFromParsingContext();
 
         this.pruneConfiguration();
 
-        this.resetParser();
+        this.clearParsingContext();
     }
 
 
@@ -999,11 +999,11 @@ class ConfigParser
 
     /***************************************************************************
 
-        Reset the parser internal state
+        Clears the current parsing context.
 
     ***************************************************************************/
 
-    private void resetParser ( )
+    private void clearParsingContext ( )
     {
         auto ctx = &this.context;
 
@@ -1063,7 +1063,7 @@ class ConfigParser
 
         if ( pos == 0 )
         {
-            this.saveFromContext();
+            this.saveFromParsingContext();
 
             ctx.category.copy(line[pos + 1 .. locate(line, ']')]);
 
@@ -1075,7 +1075,7 @@ class ConfigParser
 
             if ( pos < line.length )
             {
-                this.saveFromContext();
+                this.saveFromParsingContext();
 
                 ctx.key.copy(trim(line[0 .. pos]));
 
@@ -1333,6 +1333,6 @@ three = teen
         Stdout.formatln("");
     }
 
-    Config.resetParser();
+    Config.clearParsingContext();
 }
 
