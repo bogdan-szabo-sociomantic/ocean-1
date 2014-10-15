@@ -346,12 +346,15 @@ class ConfigParser
 
         Params:
             filePath = string that contains the path to the configuration file
-            clean_old = true if old values should be cleared before starting
+            clean_old = true if the existing configuration should be overwritten
+                        with the result of the current parse, false if the
+                        current parse should only add to or update the existing
+                        configuration. (defaults to true)
 
     ***************************************************************************/
 
     public void parse ( char[] filePath = "etc/config.ini",
-            bool clean_old = true )
+                        bool clean_old = true )
     {
         this.configFile = filePath;
 
@@ -389,11 +392,21 @@ class ConfigParser
 
         Params:
             str = string to parse
+            clean_old = true if the existing configuration should be overwritten
+                        with the result of the current parse, false if the
+                        current parse should only add to or update the existing
+                        configuration. (defaults to true)
 
     ***************************************************************************/
 
-    public void parseString ( char[] str )
+    public void parseString ( char[] str, bool clean_old = true )
     {
+        if ( clean_old )
+        {
+            this.resetParser();
+            this.properties = null;
+        }
+
         foreach ( line; lines(str) )
         {
             this.parseLine(line);

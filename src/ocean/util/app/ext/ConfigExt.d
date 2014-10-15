@@ -194,7 +194,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
             this.config.parseLine(section);
 
             auto remaining = opt[section_end + 1 .. $];
-            this.config.parseString(remaining);
+            this.config.parseString(remaining, false);
         }
     }
 
