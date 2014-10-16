@@ -377,14 +377,9 @@ class ConfigParser
     {
         this.configFile = filePath;
 
-        this.performPreParsing(clean_old);
+        auto get_line = new Lines!(char) (new File(this.configFile));
 
-        foreach ( line; new Lines!(char) (new File(this.configFile)) )
-        {
-            this.parseLine(line);
-        }
-
-        this.performPostParsing();
+        this.parseIter(get_line, clean_old);
     }
 
 
@@ -418,14 +413,21 @@ class ConfigParser
 
     public void parseString ( char[] str, bool clean_old = true )
     {
-        this.performPreParsing(clean_old);
-
-        foreach ( line; lines(str) )
+        int get_line ( int delegate ( ref char[] x ) dg )
         {
-            this.parseLine(line);
+            int result = 0;
+
+            foreach ( ref line; lines(str) )
+            {
+                result = dg(line);
+
+                if ( result ) break;
+            }
+
+            return result;
         }
 
-        this.performPostParsing();
+        this.parseIter(&get_line, clean_old);
     }
 
 
@@ -775,6 +777,45 @@ class ConfigParser
 
     /***************************************************************************
 
+        Actually performs parsing of the lines of a config file or a string.
+        Each line to be parsed is obtained via an iterator.
+
+        Template Params:
+            I = type of the iterator that will supply lines to be parsed
+
+        Params:
+            iter = iterator that will supply lines to be parsed
+            clean_old = true if the existing configuration should be overwritten
+                        with the result of the current parse, false if the
+                        current parse should only add to or update the existing
+                        configuration.
+
+    ***************************************************************************/
+
+    private void parseIter ( I ) ( I iter, bool clean_old )
+    {
+        this.clearParsingContext();
+
+        if ( clean_old )
+        {
+            this.clearAllValueNodeFlags();
+        }
+
+        foreach ( ref char[] line; iter )
+        {
+            this.parseLine(line);
+        }
+
+        this.saveFromParsingContext();
+
+        this.pruneConfiguration();
+
+        this.clearParsingContext();
+    }
+
+
+    /***************************************************************************
+
         Converts a string to a boolean value. The following string values are
         accepted:
 
@@ -886,45 +927,6 @@ class ConfigParser
         }
 
         ctx.value.length = 0;
-    }
-
-
-    /***************************************************************************
-
-        Performs operations needed before an upcoming parse.
-
-        Params:
-            clean_old = true if the existing configuration should be overwritten
-                        with the result of the current parse, false if the
-                        current parse should only add to or update the existing
-                        configuration. (defaults to true)
-
-    ***************************************************************************/
-
-    private void performPreParsing ( bool clean_old )
-    {
-        this.clearParsingContext();
-
-        if ( clean_old )
-        {
-            this.clearAllValueNodeFlags();
-        }
-    }
-
-
-    /***************************************************************************
-
-        Performs operations needed immediately after a parse has completed.
-
-    ***************************************************************************/
-
-    private void performPostParsing ( )
-    {
-        this.saveFromParsingContext();
-
-        this.pruneConfiguration();
-
-        this.clearParsingContext();
     }
 
 
