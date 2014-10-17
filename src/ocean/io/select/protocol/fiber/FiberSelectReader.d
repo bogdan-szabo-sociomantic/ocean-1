@@ -30,7 +30,7 @@ private import ocean.io.device.IODevice: IInputDevice;
 
 private import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK, EINTR;
 
-debug (Raw) private import tango.util.log.Trace;
+debug (Raw) private import tango.io.Stdout: Stderr;
 
 
 /******************************************************************************/
@@ -525,7 +525,7 @@ class FiberSelectReader : IFiberSelectProtocol
         }
         else
         {
-            debug (Raw) Trace.formatln("[{}] Read  {:X2} ({} bytes)",
+            debug (Raw) Stderr.formatln("[{}] Read  {:X2} ({} bytes)",
                 super.conduit.fileHandle,
                 this.data[this.available .. this.available + n], n);
 
