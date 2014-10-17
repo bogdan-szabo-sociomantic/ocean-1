@@ -389,16 +389,16 @@ class FiberSelectReader : IFiberSelectProtocol
 
     /**************************************************************************
 
-        Reads data from the input conduit, appends them to the data buffer and
-        invokes consume with the data that are currently available and haven't
+        Reads data from the input conduit, appends it to the data buffer and
+        invokes consume with the data that is currently available and hasn't
         yet been consumed.
         If consume feels that the amount of data passed to it is sufficient,
-        it must return the number of bytes it consumed. Otherwise if comsume
-        consumed all data and needs more input data to be read from the I/O
-        device, it must return a value greater than length of the the data
-        passed to it. The fiber is then suspended to wait for more data to be
-        available from the input device, and consume is invoked again with the
-        newly available data.
+        it must return the number of bytes it consumed. Otherwise if consume
+        consumed all the data and still needs more input data to be read from
+        the I/O device, it must return a value greater than length of the the
+        data passed to it. The fiber is then suspended to wait for more data
+        to be available from the input device, and consume is invoked again
+        with the newly available data.
 
         Params:
             consume = consumer callback delegate
@@ -407,9 +407,9 @@ class FiberSelectReader : IFiberSelectProtocol
             this instance
 
         Throws:
-            IOException if no data were received and won't arrive later:
+            IOException if no data was received and none will arrive later:
                 - IOWarning on end-of-flow condition or if the remote hung up,
-                - IOError (IOWarning subclass) on I/O error.
+                - IOError (IOWarning subclass) on an I/O error.
 
      **************************************************************************/
 
