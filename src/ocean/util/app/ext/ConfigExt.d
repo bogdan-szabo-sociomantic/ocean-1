@@ -28,8 +28,9 @@ private import ocean.util.app.ext.ArgumentsExt;
 private import ocean.util.Config;
 private import ocean.util.config.ConfigParser;
 private import ocean.text.Arguments;
+private import ocean.io.Stdout : Stderr;
 
-private import tango.text.Util : join, locate;
+private import tango.text.Util : join, locate, locatePrior, trim;
 private import tango.core.Exception : IOException;
 
 
@@ -191,7 +192,10 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
         foreach (opt; args("override-config").assigned)
         {
-            this.parseOverride(opt, category, key, value);
+            auto error = this.parseOverride(opt, category, key, value);
+            assert (error is null || error == "OLD FORMAT",
+                    "Unexpected error while processing overrides, errors " ~
+                    "should have been caught by the validateArgs() method");
 
             this.config.set(category, key, value);
         }
@@ -209,24 +213,24 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
         char[][] errors;
         foreach (opt; args("override-config").assigned)
         {
-            int pos = locate(opt, ']');
-            if (pos >= opt.length)
+            char[] cat;
+            char[] key;
+            char[] val;
+
+            auto error = this.parseOverride(opt, cat, key, val);
+
+            if (error == "OLD FORMAT")
             {
-                errors ~= "bad override '" ~ opt ~ "', no section found";
+                Stderr.yellow.formatln("Deprecation: Old config override " ~
+                        "syntax detected for '{}', please use '{}.{}={}' " ~
+                        "instead.", opt, cat, key, val).default_colour.flush;
                 continue;
             }
-            int pos2 = locate(opt, '=');
-            if (pos2 >= opt.length)
-            {
-                errors ~= "bad override '" ~ opt ~ "', no key found";
+
+            if (error is null)
                 continue;
-            }
-            if (pos2 < pos)
-            {
-                errors ~= "bad override '" ~ opt ~ "', section expected "
-                        "before key";
-                continue;
-            }
+
+            errors ~= error;
         }
 
         return join(errors, ", ");
@@ -329,7 +333,81 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
         Category, key and value are filled with slices to the original opt
         string, so if you need to store them you probably want to dup() them.
+        No allocations are performed for those variables, although some
+        allocations are performed in case of errors (but only on errors).
+
+        For now it accepts both the new format (category.key=value) and the old
+        format ([category]key=value), but it returns an error "OLD FORMAT" if
+        the old format is used. This is transitional, of course, and it will be
+        removed in the future.
+
+        Since keys can't have a dot ("."), cate.gory.key=value will be
+        interpreted as category="cate.gory", key="key" and value="value".
+
+        Params:
+            opt = the overriden config as specified on the command-line
+            category = buffer to be filled with the parsed category
+            key = buffer to be filled with the parsed key
+            value = buffer to be filled with the parsed value
+
+        Returns:
+            null if parsing was successful, an error message if there was an
+            error.
+
+    ***************************************************************************/
+
+    private char[] parseOverride ( char[] opt, out char[] category,
+            out char[] key, out char[] value )
+    {
+        opt = trim(opt);
+
+        if (opt.length == 0)
+            return "Option can't be empty";
+
+        // Check for old format
+        if (opt[0] == '[')
+        {
+            this.parseOldOverride(opt, category, key, value);
+            return "OLD FORMAT";
+        }
+
+        auto key_end = locate(opt, '=');
+        if (key_end == opt.length)
+            return "No value separator ('=') found for config option " ~
+                    "override: " ~ opt;
+
+        value = trim(opt[key_end + 1 .. $]);
+        if (value.length == 0)
+            return "Empty value for config option override: " ~ opt;
+
+        auto cat_key = opt[0 .. key_end];
+        auto category_end = locatePrior(cat_key, '.');
+        if (category_end == cat_key.length)
+            return "No category separator ('.') found before the value " ~
+                    "separator ('=') for config option override: " ~ opt;
+
+        category = trim(cat_key[0 .. category_end]);
+        if (category.length == 0)
+            return "Empty category for config option override: " ~ opt;
+
+        key = trim(cat_key[category_end + 1 .. $]);
+        if (key.length == 0)
+            return "Empty key for config option override: " ~ opt;
+
+        return null;
+    }
+
+
+    /***************************************************************************
+
+        Parses an overriden config in the old [category]key=value format.
+
+        All category, key and value are filled with slices to the original opt
+        string, so if you need to store them you probably want to dup() them.
         No allocations are performed.
+
+        XXX: This method will be gone after some time, when the old format is
+             not supported anymore.
 
         Params:
             opt = the overriden config as specified on the command-line
@@ -339,8 +417,14 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    private void parseOverride ( char[] opt, out char[] category,
-                                 out char[] key, out char[] value )
+    private void parseOldOverride ( char[] opt, ref char[] category,
+            ref char[] key, ref char[] value )
+    in
+    {
+        assert(opt.length > 0);
+        assert(opt[0] == '[');
+    }
+    body
     {
         auto category_end = locate(opt, ']');
         category = trim(opt[1 .. category_end]);
@@ -351,5 +435,85 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
         value = trim(opt[key_end + 1 .. $]);
     }
 
+}
+
+
+
+/*******************************************************************************
+
+    Unit tests
+
+*******************************************************************************/
+
+version (UnitTest)
+{
+    import ocean.core.Test : NamedTest;
+    import ocean.core.Array : startsWith;
+}
+
+unittest
+{
+    auto ext = new ConfigExt;
+
+    // Errors are compared only with startsWith(), not the whole error
+    void testParser ( char[] opt, char[] exp_cat, char[] exp_key,
+            char[] exp_val, char[] expected_error = null )
+    {
+        char[] cat;
+        char[] key;
+        char[] val;
+
+        auto t = new NamedTest(opt);
+
+        auto error = ext.parseOverride(opt, cat, key, val);
+
+        if (expected_error is null)
+        {
+            t.test!("==")(error, null);
+        }
+        else
+        {
+            t.test(error.startsWith(expected_error), "Error message " ~
+                    "mismatch, expected an error starting with '" ~
+                    expected_error ~ "', got '" ~ error ~ "'");
+        }
+
+        if (exp_cat is null && exp_key is null && exp_val is null)
+            return;
+
+        t.test!("==")(cat, exp_cat);
+        t.test!("==")(key, exp_key);
+        t.test!("==")(val, exp_val);
+    }
+
+    // Shortcut to test expected errors
+    void testParserError ( char[] opt, char[] expected_error )
+    {
+        testParser(opt, null, null, null, expected_error);
+    }
+
+    // Old format
+    testParser("[cat]key=value", "cat", "key", "value", "OLD FORMAT");
+    testParser(" [cat]key=value", "cat", "key", "value", "OLD FORMAT");
+    testParser(" [ cat ] key = value", "cat", "key", "value", "OLD FORMAT");
+    // Old format handle errors very badly, throwing exceptions (if lucky)
+
+    // New format
+    testParser("cat.key=value", "cat", "key", "value");
+    testParser("cat.key = value", "cat", "key", "value");
+    testParser("cat.key= value", "cat", "key", "value");
+    testParser("cat.key =value", "cat", "key", "value");
+    testParser("cat.key = value  ", "cat", "key", "value");
+    testParser("  cat.key = value  ", "cat", "key", "value");
+    testParser("  cat . key = value \t ", "cat", "key", "value");
+
+    // New format errors
+    testParserError("cat.key value", "No value separator ");
+    testParserError("key = value", "No category separator ");
+    testParserError("cat key value", "No value separator ");
+    testParserError(" . empty = cat\t ", "Empty category ");
+    testParserError("  empty .  = key\t ", "Empty key ");
+    testParserError("  empty . val = \t ", "Empty value ");
+    testParserError("  .   = \t ", "Empty ");
 }
 

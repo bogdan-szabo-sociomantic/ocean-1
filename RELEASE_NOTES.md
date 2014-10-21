@@ -19,6 +19,13 @@ Migration Instructions
   to the rule before `unittest`. For example: `$O/%unittest: override LDFLAGS
   += -lm`.
 
+* Command-line config overrides / `ocean.util.app.ext.ConfigExt`
+
+  This is really a user-visible change, not an API change.  The format of how
+  configuration overrides can be passed to a program through the command-line
+  has changed. The new format is simpler: category.key=value.  The old format is
+  still supported, but a warning is printed when the old format is used.
+
 * `ocean.util.config.ConfigParser`
 
   Now the `[category]` in config files will be trimmed, so `[ category ]` and
