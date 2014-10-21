@@ -327,6 +327,10 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
         Parses an overriden config.
 
+        Category, key and value are filled with slices to the original opt
+        string, so if you need to store them you probably want to dup() them.
+        No allocations are performed.
+
         Params:
             opt = the overriden config as specified on the command-line
             category = buffer to be filled with the parsed category
@@ -335,13 +339,9 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    private void parseOverride ( char[] opt, ref char[] category,
-                                 ref char[] key, ref char[] value )
+    private void parseOverride ( char[] opt, out char[] category,
+                                 out char[] key, out char[] value )
     {
-        category.length = 0;
-        key.length      = 0;
-        value.length    = 0;
-
         auto category_end = locate(opt, ']');
         category = opt[1 .. category_end];
 
