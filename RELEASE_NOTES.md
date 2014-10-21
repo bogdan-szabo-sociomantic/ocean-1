@@ -9,12 +9,6 @@ dmd1       | v1.076.s2
 Migration Instructions
 ======================
 
-* `ocean.util.config.ConfigParser`
-
-  ConfigParser used to earlier expose public functions `resetParser` and
-  `parseLine`, both of which have now been made private. Applications using the
-  ConfigParser do not need to call these functions.
-
 * Makd
 
   Now the `test/` directory is expected to have some particular structure.
@@ -24,6 +18,12 @@ Migration Instructions
   If you were specifying flags to the unittest program, you need to add a `%`
   to the rule before `unittest`. For example: `$O/%unittest: override LDFLAGS
   += -lm`.
+
+* `ocean.util.config.ConfigParser`
+
+  ConfigParser used to earlier expose public functions `resetParser` and
+  `parseLine`, both of which have now been made private. Applications using the
+  ConfigParser do not need to call these functions.
 
 * `ocean.util.serialize.contiguous.Deserializer.copy`
 
@@ -41,13 +41,6 @@ Deprecations
 
 New Features
 ============
-
-* `ocean.util.config.ConfigParser`
-
-  The ConfigParser is now capable of repeatedly parsing an unchanged
-  configuration without any additional memory allocation, and a different
-  configuration with only minimal extra allocation as needed. This enhancement
-  does not require any changes to applications using the ConfigParser module.
 
 * Makd
 
@@ -71,6 +64,13 @@ New Features
   Please take a look at the [Makd README](https://github.com/sociomantic/ocean/blob/master/script/Makd.README.rst#testing)
   and the [Projects Directory Structure](https://github.com/sociomantic/backend/wiki/Projects-Directory-Structure#test)
   documents for details.
+
+* `ocean.util.config.ConfigParser`
+
+  The ConfigParser is now capable of repeatedly parsing an unchanged
+  configuration without any additional memory allocation, and a different
+  configuration with only minimal extra allocation as needed. This enhancement
+  does not require any changes to applications using the ConfigParser module.
 
 * `ocean.io.device.DirectIO`
 
