@@ -33,6 +33,12 @@ Migration Instructions
 Deprecations
 ============
 
+* `ocean.util.config.ConfigParser`
+
+  The function `parse` used for parsing config files is now deprecated.
+  Applications should henceforth use the `parseFile` function for this. The
+  function signature remains unchanged.
+
 New Features
 ============
 

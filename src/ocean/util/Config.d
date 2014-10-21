@@ -9,7 +9,7 @@
     authors:        Mathias Baumann
 
     Note that the instance should be filled before usage,
-    using the .parse function
+    using the .parseFile function
 
 *******************************************************************************/
 
@@ -44,3 +44,4 @@ static this ( )
 {
     Config = new ConfigParser();
 }
+

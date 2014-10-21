@@ -272,7 +272,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
         {
             try
             {
-                this.config.parse(config_file, false);
+                this.config.parseFile(config_file, false);
             }
             catch (IOException e)
             {

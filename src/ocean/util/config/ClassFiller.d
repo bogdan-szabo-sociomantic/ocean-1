@@ -78,7 +78,7 @@
 
     void main ( char[][] argv )
     {
-        Config.parse(argv[1]);
+        Config.parseFile(argv[1]);
 
         auto iter = Class.iterate!(ConfigParameters)("Example");
 

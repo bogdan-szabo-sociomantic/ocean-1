@@ -97,7 +97,7 @@ class ConfigException : Exception
     ---
 
         // Read config file from disk
-        Config.parse("etc/my_config.ini");
+        Config.parseFile("etc/my_config.ini");
 
         // Read a single value
         char[] value = Config.Char["category", "key"];
@@ -110,7 +110,7 @@ class ConfigException : Exception
 
     ---
 
-    The parse() method only needs to be called once, though may be called
+    The parseFile() method only needs to be called once, though may be called
     multiple times if the config file needs to be re-read from the file on disk.
 
     TODO:
@@ -285,7 +285,7 @@ class ConfigParser
 
     public this ( char[] config )
     {
-        this.parse(config);
+        this.parseFile(config);
     }
 
 
@@ -359,7 +359,7 @@ class ConfigParser
 
         ---
 
-            Config.parse("etc/config.ini");
+            Config.parseFile("etc/config.ini");
 
         ---
 
@@ -372,8 +372,8 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public void parse ( char[] filePath = "etc/config.ini",
-                        bool clean_old = true )
+    public void parseFile ( char[] filePath = "etc/config.ini",
+                            bool clean_old = true )
     {
         this.configFile = filePath;
 
@@ -382,12 +382,14 @@ class ConfigParser
         this.parseIter(get_line, clean_old);
     }
 
+    deprecated alias parseFile parse;
+
 
     /***************************************************************************
 
         Parse a string
 
-        See parse() for details on the parsed syntax.
+        See parseFile() for details on the parsed syntax.
 
         Usage Example:
 
@@ -478,7 +480,7 @@ class ConfigParser
 
         ---
 
-            Config.parse("some-config.ini");
+            Config.parseFile("some-config.ini");
             // throws if not found
             auto str = Config.getStrict!(char[])("some-cat", "some-key");
             auto n = Config.getStrict!(int)("some-cat", "some-key");
@@ -535,7 +537,7 @@ class ConfigParser
 
         ---
 
-            Config.parse("some-config.ini");
+            Config.parseFile("some-config.ini");
             // throws if not found
             char[] str;
             int n;
@@ -578,7 +580,7 @@ class ConfigParser
 
         ---
 
-            Config.parse("some-config.ini");
+            Config.parseFile("some-config.ini");
             char[] str = Config.get("some-cat", "some-key", "my_default_value");
             int n = Config.get("some-cat", "some-int", 5);
 
@@ -618,7 +620,7 @@ class ConfigParser
 
         ---
 
-            Config.parse("some-config.ini");
+            Config.parseFile("some-config.ini");
             char[] str;
             int n;
 
@@ -715,7 +717,7 @@ class ConfigParser
 
         ---
 
-            Config.parse(`etc/config.ini`);
+            Config.parseFile(`etc/config.ini`);
 
             Config.set(`category`, `key`, `value`);
 
@@ -1020,7 +1022,7 @@ class ConfigParser
 
         Parse a line
 
-        See parse() for details on the parsed syntax. This method only makes
+        See parseFile() for details on the parsed syntax. This method only makes
         sense to do partial parsing of a string.
 
         Usage Example:
