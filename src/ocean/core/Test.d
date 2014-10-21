@@ -43,9 +43,9 @@ class TestException : Exception
 /******************************************************************************
 
     Effectively partial specialization alias:
-        test = enforce!(TestException)
+        test = enforceImpl!(TestException)
 
-    Same arguments as enforce.
+    Same arguments as enforceImpl.
 
 ******************************************************************************/
 
@@ -56,7 +56,7 @@ public void test ( T ) ( T ok, char[] msg = "",
     {
         msg = "unit test has failed";
     }
-    enforce!(TestException)(ok, msg, file, line);
+    enforceImpl!(TestException, T)(ok, msg, file, line);
 }
 
 /******************************************************************************
@@ -68,7 +68,7 @@ public void test ( T ) ( T ok, char[] msg = "",
 public void test ( char[] op, T1, T2 ) ( T1 a,
     T2 b, char[] file = __FILE__, size_t line = __LINE__ )
 {
-    enforce!(op, TestException)(a, b, file, line);
+    enforceImpl!(op, TestException)(a, b, file, line);
 }
 
 unittest
@@ -227,36 +227,36 @@ class NamedTest : TestException
 
     /**************************************************************************
 
-        Same as enforce!(TestException) but uses this.name for error message
-        formatting.
+        Same as enforceImpl!(TestException) but uses this.name for error message
+        formatting. 
 
     ***************************************************************************/
 
     public void test ( T ) ( T ok, char[] msg = "", char[] file = __FILE__,
         size_t line = __LINE__ )
     {
-        // uses `enforce` instead of `test` so that pre-constructed
+        // uses `enforceImpl` instead of `test` so that pre-constructed
         // exception instance can be used.
         if (!msg.length)
         {
             msg = "unit test has failed";
         }
-        enforce(this, ok, msg, file, line);
+        enforceImpl(this, ok, msg, file, line);
     }
 
     /**************************************************************************
 
-        Same as enforce!(op, TestException) but uses this.name for error message
-        formatting.
+        Same as enforceImpl!(op, TestException) but uses this.name for error message
+        formatting. 
 
     ***************************************************************************/
 
     public void test ( char[] op, T1, T2 ) ( T1 a, T2 b,
         char[] file = __FILE__, size_t line = __LINE__ )
     {
-        // uses `enforce` instead of `test` so that pre-constructed
+        // uses `enforceImpl` instead of `test` so that pre-constructed
         // exception instance can be used.
-        enforce!(op)(this, a, b, file, line);
+        enforceImpl!(op)(this, a, b, file, line);
     }
 }
 

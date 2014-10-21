@@ -53,6 +53,15 @@ Deprecations
   Applications should henceforth use the `parseFile` function for this. The
   function signature remains unchanged.
 
+Migration Instructions
+======================
+
+* `ocean.core.Exception`
+
+    `enforce` now takes file/line as template arguments instead of runtime ones.
+    If your code passes file/line explicitly, switch to `enforceImpl` instead which
+    matches old signature.
+
 New Features
 ============
 

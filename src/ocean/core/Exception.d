@@ -41,8 +41,8 @@ private import tango.text.convert.Format;
 
 ******************************************************************************/
 
-public void enforce ( E : Exception = Exception, T ) ( T ok, lazy char[] msg = "",
-    char[] file = __FILE__, size_t line = __LINE__ )
+public void enforceImpl ( E : Exception = Exception, T ) (
+    T ok, lazy cstring msg, istring file, size_t line )
 {
     // duplicate msg/file/line mention to both conform Exception cnstructor
     // signature and fit our reusable exceptions.
@@ -73,7 +73,20 @@ public void enforce ( E : Exception = Exception, T ) ( T ok, lazy char[] msg = "
         }
     }
 
-    enforce!(E, T)(exception, ok, msg, file, line);
+    enforceImpl!(T)(exception, ok, msg, file, line);
+}
+
+/******************************************************************************
+
+    Thin wrapper for enforceImpl that deduces file/line as template arguments
+    to avoid ambiguity between overloads.
+
+******************************************************************************/
+
+public void enforce ( E : Exception = Exception, T,
+    istring file = __FILE__, int line = __LINE__ ) ( T ok, lazy cstring msg = "" )
+{
+    enforceImpl!(E, T)(ok, msg, file, line);
 }
 
 unittest
@@ -132,8 +145,8 @@ unittest
 
 ******************************************************************************/
 
-public void enforce ( E : Exception, T ) ( lazy E e, T ok, lazy char[] msg = "",
-    char[] file = __FILE__, size_t line = __LINE__ )
+public void enforceImpl ( T ) ( lazy Exception e, T ok, lazy cstring msg,
+    istring file, int line)
 {
     if (!ok)
     {
@@ -156,6 +169,19 @@ public void enforce ( E : Exception, T ) ( lazy E e, T ok, lazy char[] msg = "",
 
         throw exception;
     }
+}
+
+/******************************************************************************
+
+    Thin wrapper for enforceImpl that deduces file/line as template arguments
+    to avoid ambiguity between overloads.
+
+******************************************************************************/
+
+public void enforce ( T, E : Exception, istring file = __FILE__,
+    int line = __LINE__ ) ( lazy E e, T ok, lazy cstring msg = "" )
+{
+    enforceImpl!(T)(e, ok, msg, file, line);
 }
 
 unittest
@@ -273,8 +299,8 @@ unittest
 
 ******************************************************************************/
 
-public void enforce ( char[] op, E : Exception = Exception, T1, T2 ) ( T1 a,
-    T2 b, char[] file = __FILE__, size_t line = __LINE__ )
+public void enforceImpl ( istring op, E : Exception = Exception, T1, T2 ) (
+    T1 a, T2 b, cstring file, int line )
 {
     mixin("auto ok = a " ~ op ~ " b;");
 
@@ -301,8 +327,21 @@ public void enforce ( char[] op, E : Exception = Exception, T1, T2 ) ( T1 a,
             static assert (false, "Unsupported constructor signature");
         }
 
-        enforce!(op, E, T1, T2)(exception, a, b, file, line);
+        enforceImpl!(op, T1, T2)(exception, a, b, file, line);
     }
+}
+
+/******************************************************************************
+
+    Thin wrapper for enforceImpl that deduces file/line as template arguments
+    to avoid ambiguity between overloads.
+
+******************************************************************************/
+
+public void enforce ( istring op, E : Exception = Exception, T1, T2,
+    istring file = __FILE__ , int line = __LINE__) ( T1 a, T2 b )
+{
+    enforceImpl!(op, E, T1, T2)(a, b, file, line);
 }
 
 unittest
@@ -373,8 +412,8 @@ unittest
 
 ******************************************************************************/
 
-public void enforce ( char[] op, E : Exception, T1, T2 ) ( lazy E e, T1 a,
-    T2 b, char[] file = __FILE__, size_t line = __LINE__ )
+public void enforceImpl ( char[] op, T1, T2 ) ( lazy Exception e, T1 a,
+    T2 b, cstring file, int line )
 {
     mixin("auto ok = a " ~ op ~ " b;");
 
@@ -386,6 +425,19 @@ public void enforce ( char[] op, E : Exception, T1, T2 ) ( lazy E e, T1 a,
         exception.line = line;
         throw exception;
     }
+}
+
+/******************************************************************************
+
+    Thin wrapper for enforceImpl that deduces file/line as template arguments
+    to avoid ambiguity between overloads.
+
+******************************************************************************/
+
+public void enforce ( istring op, E : Exception, T1, T2, istring file = __FILE__,
+    int line = __LINE__  ) ( lazy E e, T1 a, T2 b )
+{
+    enforceImpl!(op, T1, T2)(e, a, b, file, line);
 }
 
 unittest
@@ -401,6 +453,7 @@ unittest
     auto reusable = new MyException(null);
 
     enforce!("==")(reusable, 2, 2);
+    enforce!("==")(reusable, "2", "2");
 
     try
     {

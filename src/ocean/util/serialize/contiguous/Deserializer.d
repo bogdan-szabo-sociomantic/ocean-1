@@ -64,7 +64,7 @@ class DeserializationException : Exception
     void enforceSizeLimit ( S ) ( size_t len, size_t max,
         char[] file = __FILE__, int line = __LINE__ )
     {
-        enforce(
+        enforceImpl(
             this, len <= max,
             Format("Error deserializing '{}' : length {} exceeds limit {}",
                 S.stringof, len, max),
@@ -91,7 +91,7 @@ class DeserializationException : Exception
     void enforceInputSize ( S ) ( size_t len, size_t required,
         char[] file = __FILE__, int line = __LINE__ )
     {
-        enforce(
+        enforceImpl(
             this, len >= required,
             Format("Error deserializing '{}' : input data length {} < required {}",
                 S.stringof, len, required),
