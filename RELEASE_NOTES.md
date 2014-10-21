@@ -9,6 +9,12 @@ dmd1       | v1.076.s2
 Migration Instructions
 ======================
 
+* `ocean.util.config.ConfigParser`
+
+  ConfigParser used to earlier expose public functions `resetParser` and
+  `parseLine`, both of which have now been made private. Applications using the
+  ConfigParser do not need to call these functions.
+
 * Makd
 
   Now the `test/` directory is expected to have some particular structure.

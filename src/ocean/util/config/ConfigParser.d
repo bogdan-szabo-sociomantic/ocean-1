@@ -330,23 +330,6 @@ class ConfigParser
 
     /***************************************************************************
 
-        Reset the parser internal state
-
-    ***************************************************************************/
-
-    public void resetParser ( )
-    {
-        auto ctx = &this.context;
-
-        ctx.value.length    = 0;
-        ctx.category.length = 0;
-        ctx.key.length      = 0;
-        ctx.multiline_first = true;
-    }
-
-
-    /***************************************************************************
-
         Read Config File
 
         Reads the content of the configuration file and copies to a static
@@ -443,90 +426,6 @@ class ConfigParser
         }
 
         this.performPostParsing();
-    }
-
-
-    /***************************************************************************
-
-        Parse a line
-
-        See parse() for details on the parsed syntax. This method only makes
-        sense to do partial parsing of a string.
-
-        Usage Example:
-
-        ---
-
-            Config.parseLine("[section]");
-            Config.parseLine("key = value1\n");
-            Config.parseLine("      value2\n");
-            Config.parseLine("      value3\n");
-
-        ---
-
-        Params:
-            line = line to parse
-
-    ***************************************************************************/
-
-    public void parseLine ( char[] line )
-    {
-        auto ctx = &this.context;
-
-        line = trim(line);
-
-        if ( line.length == 0 )
-        {
-            // Ignore empty lines.
-            return;
-        }
-
-        bool slash_comment = line.length >= 2 && line[0 .. 2] == "//";
-        bool hash_comment = line[0] == '#';
-        bool semicolon_comment = line[0] == ';';
-
-        if ( slash_comment || semicolon_comment || hash_comment )
-        {
-            // Ignore comment lines.
-            return;
-        }
-
-        int pos = locate(line, '['); // category present in line?
-
-        if ( pos == 0 )
-        {
-            this.saveFromContext();
-
-            ctx.category.copy(line[pos + 1 .. locate(line, ']')]);
-
-            ctx.key.length = 0;
-        }
-        else
-        {
-            pos = locate(line, '='); // check for key value pair
-
-            if ( pos < line.length )
-            {
-                this.saveFromContext();
-
-                ctx.key.copy(trim(line[0 .. pos]));
-
-                ctx.value.copy(trim(line[pos + 1 .. $]));
-
-                ctx.multiline_first = !ctx.value.length;
-            }
-            else
-            {
-                if ( ! ctx.multiline_first )
-                {
-                    ctx.value ~= '\n';
-                }
-
-                ctx.value ~= line;
-
-                ctx.multiline_first = false;
-            }
-        }
     }
 
 
@@ -1094,6 +993,107 @@ class ConfigParser
         foreach ( category; categories_to_remove )
         {
             this.properties.remove(category);
+        }
+    }
+
+
+    /***************************************************************************
+
+        Reset the parser internal state
+
+    ***************************************************************************/
+
+    private void resetParser ( )
+    {
+        auto ctx = &this.context;
+
+        ctx.value.length    = 0;
+        ctx.category.length = 0;
+        ctx.key.length      = 0;
+        ctx.multiline_first = true;
+    }
+
+
+    /***************************************************************************
+
+        Parse a line
+
+        See parse() for details on the parsed syntax. This method only makes
+        sense to do partial parsing of a string.
+
+        Usage Example:
+
+        ---
+
+            Config.parseLine("[section]");
+            Config.parseLine("key = value1\n");
+            Config.parseLine("      value2\n");
+            Config.parseLine("      value3\n");
+
+        ---
+
+        Params:
+            line = line to parse
+
+    ***************************************************************************/
+
+    private void parseLine ( char[] line )
+    {
+        auto ctx = &this.context;
+
+        line = trim(line);
+
+        if ( line.length == 0 )
+        {
+            // Ignore empty lines.
+            return;
+        }
+
+        bool slash_comment = line.length >= 2 && line[0 .. 2] == "//";
+        bool hash_comment = line[0] == '#';
+        bool semicolon_comment = line[0] == ';';
+
+        if ( slash_comment || semicolon_comment || hash_comment )
+        {
+            // Ignore comment lines.
+            return;
+        }
+
+        int pos = locate(line, '['); // category present in line?
+
+        if ( pos == 0 )
+        {
+            this.saveFromContext();
+
+            ctx.category.copy(line[pos + 1 .. locate(line, ']')]);
+
+            ctx.key.length = 0;
+        }
+        else
+        {
+            pos = locate(line, '='); // check for key value pair
+
+            if ( pos < line.length )
+            {
+                this.saveFromContext();
+
+                ctx.key.copy(trim(line[0 .. pos]));
+
+                ctx.value.copy(trim(line[pos + 1 .. $]));
+
+                ctx.multiline_first = !ctx.value.length;
+            }
+            else
+            {
+                if ( ! ctx.multiline_first )
+                {
+                    ctx.value ~= '\n';
+                }
+
+                ctx.value ~= line;
+
+                ctx.multiline_first = false;
+            }
         }
     }
 }
