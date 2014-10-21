@@ -343,7 +343,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
                                  out char[] key, out char[] value )
     {
         auto category_end = locate(opt, ']');
-        category = opt[1 .. category_end];
+        category = trim(opt[1 .. category_end]);
 
         auto key_end = locate(opt, '=');
         key = trim(opt[category_end + 1 .. key_end]);

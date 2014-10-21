@@ -21,6 +21,13 @@ Migration Instructions
 
 * `ocean.util.config.ConfigParser`
 
+  Now the `[category]` in config files will be trimmed, so `[ category ]` and
+  `[category]` will be parsed both as `category`. This is done to match the
+  behaviour of keys and values, which are trimmed too. For now a warning is
+  printed if the trimming of the string yielded a different result, so updating
+  configuration files should be easy, but please **pay attention to these
+  warnings!**
+
   ConfigParser used to earlier expose public functions `resetParser` and
   `parseLine`, both of which have now been made private. Applications using the
   ConfigParser do not need to call these functions.

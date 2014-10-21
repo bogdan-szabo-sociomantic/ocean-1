@@ -1069,7 +1069,24 @@ class ConfigParser
         {
             this.saveFromParsingContext();
 
-            ctx.category.copy(line[pos + 1 .. locate(line, ']')]);
+            auto cat = line[pos + 1 .. locate(line, ']')];
+
+            // XXX: This code should be adapted to remove the warning at some
+            //      point (introduced on Tue Oct 21 18:07:51 CEST 2014)
+            auto trimmed_cat = trim(cat);
+
+            if ( trimmed_cat != cat && this._warn_trimmed_categories )
+            {
+                Stderr.yellow;
+                Stderr.formatln("Warning: Category name '{}' will be " ~
+                        "trimmed, becoming '{}' instead.", cat, trimmed_cat);
+                Stderr.formatln("         Please update your configuration " ~
+                        "file to omit the spaces for now, until this " ~
+                        "warning is disabled.");
+                Stderr.default_colour.flush;
+            }
+
+            ctx.category.copy(trimmed_cat);
 
             ctx.key.length = 0;
         }
@@ -1100,6 +1117,12 @@ class ConfigParser
             }
         }
     }
+
+    // XXX: This should be removed at some point, it was introduced on
+    //      Tue Oct 21 18:07:51 CEST 2014 to warn about trimmed categories while
+    //      parsing lines. Should only be disabled (set to false) to silence
+    //      output during tests.
+    public bool _warn_trimmed_categories = true;
 }
 
 
@@ -1158,6 +1181,11 @@ unittest
     }
 
     scope Config = new ConfigParser();
+
+    // XXX: This should be removed at some point, it was introduced on
+    //      Tue Oct 21 18:07:51 CEST 2014 to skip the warning about trimmed
+    //      categories while parsing lines in tests.
+    Config._warn_trimmed_categories = false;
 
     /***************************************************************************
 
@@ -1264,6 +1292,70 @@ bool_arr = true
             "set_key", "another_set_key" ]
         };
     parsedConfigSanityCheck(Config, new_str1_expectations, "modified string");
+
+    // Whitespaces handling
+
+    char[] white_str =
+`
+[ Section1 ]
+key = val
+`;
+    ConfigSanity white_str_expectations =
+        { 1,
+          [ "Section1" ],
+          [ "key" ]
+        };
+
+    Config.parseString(white_str);
+    parsedConfigSanityCheck(Config, white_str_expectations, "white spaces 1");
+
+    white_str =
+`
+[Section1 ]
+key = val
+`;
+    Config.parseString(white_str);
+    parsedConfigSanityCheck(Config, white_str_expectations, "white spaces 2");
+
+    white_str =
+`
+[	       Section1]
+key = val
+`;
+    Config.parseString(white_str);
+    parsedConfigSanityCheck(Config, white_str_expectations, "white spaces 3");
+
+    white_str =
+`
+[Section1]
+key =		   val
+`;
+    Config.parseString(white_str);
+    parsedConfigSanityCheck(Config, white_str_expectations, "white spaces 4");
+
+    white_str =
+`
+[Section1]
+key	     = val
+`;
+    Config.parseString(white_str);
+    parsedConfigSanityCheck(Config, white_str_expectations, "white spaces 5");
+
+    white_str =
+`
+[Section1]
+	  key	     = val
+`;
+    Config.parseString(white_str);
+    parsedConfigSanityCheck(Config, white_str_expectations, "white spaces 6");
+
+    white_str =
+`
+[	       Section1   ]
+	  key	     =		       val
+`;
+    Config.parseString(white_str);
+    parsedConfigSanityCheck(Config, white_str_expectations, "white spaces 6");
 
     // Parse a new configuration
 
