@@ -21,6 +21,8 @@ module ocean.util.log.Stats;
 
 *******************************************************************************/
 
+private import ocean.core.Traits : FieldName;
+
 private import ocean.io.select.EpollSelectDispatcher;
 
 private import ocean.io.select.client.TimerEvent;
@@ -705,8 +707,8 @@ public class StatsLog : IStatsLog
         {
             // stringof results in something like "values.somename", we want
             // only "somename"
-            this.formatValue(values.tupleof[i].stringof["values.".length .. $],
-                             value, this.add_separator, suffix);
+            this.formatValue(FieldName!(i, T), value, this.add_separator,
+                             suffix);
             this.add_separator = true;
         }
     }
