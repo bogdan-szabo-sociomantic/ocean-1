@@ -214,7 +214,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     /***************************************************************************
 
-        Show the version information and exits.
+        Print the version information to Stdout and exit.
 
         Params:
             app = the application instance
@@ -267,7 +267,8 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     /***************************************************************************
 
-        If --version is specified, show the version information and exits.
+        Print the version information to the log if the ConfigExt and LogExt are
+        present.
 
         Params:
             app = the application instance
