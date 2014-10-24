@@ -135,14 +135,14 @@ class ArgumentsExt : IApplicationExtension
         char[][] errors;
         auto args_ok = args.parse(cl_args[1 .. $]);
 
+        if ( args.exists("help") )
+        {
+            args.displayHelp(Stdout);
+            app.exit(0);
+        }
+
         if ( args_ok )
         {
-            if ( args.exists("help") )
-            {
-                args.displayHelp(Stdout);
-                app.exit(0);
-            }
-
             if ( args.exists("version") )
             {
                 auto ext = this.getExtension!(VersionArgsExt)();
