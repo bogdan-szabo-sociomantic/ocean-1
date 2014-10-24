@@ -21,8 +21,6 @@ module ocean.util.app.ext.ArgumentsExt;
 import ocean.util.app.model.ExtensibleClassMixin;
 import ocean.util.app.model.IApplicationExtension;
 import ocean.util.app.ext.model.IArgumentsExtExtension;
-//import ocean.util.app.model.IApplication;
-import ocean.util.app.ext.VersionArgsExt;
 
 import ocean.text.Arguments;
 import ocean.io.Stdout;
@@ -143,15 +141,6 @@ class ArgumentsExt : IApplicationExtension
 
         if ( args_ok )
         {
-            if ( args.exists("version") )
-            {
-                auto ext = this.getExtension!(VersionArgsExt)();
-                if ( ext !is null )
-                {
-                    ext.displayVersion(app);
-                }
-            }
-
             foreach (ext; this.extensions)
             {
                 char[] error = ext.validateArgs(app, args);

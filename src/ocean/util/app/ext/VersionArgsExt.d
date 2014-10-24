@@ -195,11 +195,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     /***************************************************************************
 
-        Unused ILogExtExtension methods.
-
-        We just need to provide an "empty" implementation to satisfy the
-        interface. The version information is display through the displayVersion
-        method and will be called from the ArgumentsExt class.
+        Just print the version number and exit if --version is present.
 
         Params:
             app = the application instance
@@ -209,7 +205,8 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     public void processArgs ( IApplication app, Arguments args )
     {
-        // Unused
+        if (args.exists("version"))
+            this.displayVersion(app);
     }
 
     /***************************************************************************
