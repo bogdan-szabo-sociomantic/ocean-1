@@ -9,6 +9,11 @@ dmd1       | v1.076.s2
 Migration Instructions
 ======================
 
+* `ocean.io.serialize.StructDumper`
+
+  Most struct parameters have been changed to ref to optimize the stack usage.
+  This means that lvalues are no longer possible.
+
 * Makd
 
   Now the `test/` directory is expected to have some particular structure.

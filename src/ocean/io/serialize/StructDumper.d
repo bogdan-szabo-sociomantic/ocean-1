@@ -61,7 +61,7 @@ class StructDumper
 
     ***************************************************************************/
 
-    void[] opCall ( S ) ( ref void[] buffer, S s )
+    void[] opCall ( S ) ( ref void[] buffer, ref S s )
     {
         return this.dump(buffer, s, this.extend_only);
     }
@@ -87,7 +87,7 @@ class StructDumper
 
      **************************************************************************/
 
-    static void[] dump ( S ) ( ref void[] buffer, S s, bool extend_only = false )
+    static void[] dump ( S ) ( ref void[] buffer, ref S s, bool extend_only = false )
     {
         static if ( StructVersionBase.hasVersion!(S)() )
         {
@@ -125,7 +125,7 @@ class StructDumper
 
     ***************************************************************************/
 
-    static size_t length ( S ) ( S input )
+    static size_t length ( S ) ( ref S input )
     {
         static if ( StructVersionBase.hasVersion!(S)() )
         {
@@ -265,7 +265,7 @@ class BufferedStructDumper : StructDumper
 
      **************************************************************************/
 
-    public void[] opCall ( S ) ( S s )
+    public void[] opCall ( S ) ( ref S s )
     {
         return this.data_ = super.opCall(this.buffer, s);
     }
@@ -351,7 +351,7 @@ struct DumpArrays
 
      **************************************************************************/
 
-    size_t arraysLength ( S ) ( S s )
+    size_t arraysLength ( S ) ( ref S s )
     {
         size_t len = 0;
 
@@ -508,7 +508,7 @@ struct DumpArrays
 
      **************************************************************************/
 
-    void[] dump ( S ) ( S s, void[] data )
+    void[] dump ( S ) ( ref S s, void[] data )
     in
     {
         assert (data.length >= length(s), "Destination buffer too small!");
