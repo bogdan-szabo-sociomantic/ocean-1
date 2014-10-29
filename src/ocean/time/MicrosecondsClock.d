@@ -18,9 +18,9 @@ module ocean.time.MicrosecondsClock;
 
  ******************************************************************************/
 
-private import ocean.time.model.IMicrosecondsClock;
+import ocean.time.model.IMicrosecondsClock;
 
-private import tango.stdc.posix.sys.time: timeval, gettimeofday;
+import tango.stdc.posix.sys.time: timeval, gettimeofday;
 
 /******************************************************************************/
 

@@ -21,8 +21,8 @@ module ocean.util.container.pool.model.IPoolInfo;
 
 *******************************************************************************/
 
-private import ocean.util.container.pool.model.IFreeList;
-private import ocean.util.container.pool.model.ILimitable;
+import ocean.util.container.pool.model.IFreeList;
+import ocean.util.container.pool.model.ILimitable;
 
 
 

@@ -55,11 +55,11 @@ module ocean.util.log.Trace;
 *******************************************************************************/
 
 
-private import tango.io.Console;
+import tango.io.Console;
 
-private import tango.io.model.IConduit;
+import tango.io.model.IConduit;
 
-private import tango.text.convert.Layout;
+import tango.text.convert.Layout;
 
 /*******************************************************************************
 
@@ -69,21 +69,21 @@ private import tango.text.convert.Layout;
 
 version (GNU)
 {
-    private import tango.core.Vararg;
+    import tango.core.Vararg;
 
     alias void* Arg;
     alias va_list ArgList;
 }
 else version (LDC)
 {
-    private import tango.core.Vararg;
+    import tango.core.Vararg;
 
     alias void* Arg;
     alias va_list ArgList;
 }
 else version (DigitalMars)
 {
-    private import tango.core.Vararg;
+    import tango.core.Vararg;
 
     alias void* Arg;
     alias va_list ArgList;

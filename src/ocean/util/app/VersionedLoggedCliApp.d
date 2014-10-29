@@ -22,8 +22,8 @@ public import ocean.util.app.Application : Application;
 public import ocean.util.config.ConfigParser : ConfigParser;
 public import ocean.text.Arguments : Arguments;
 
-private import ocean.util.app.LoggedCliApp;
-private import ocean.util.app.ext.VersionArgsExt;
+import ocean.util.app.LoggedCliApp;
+import ocean.util.app.ext.VersionArgsExt;
 
 
 

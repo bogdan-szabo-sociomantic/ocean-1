@@ -10,7 +10,7 @@
 module ocean.text.convert.Memory;
 
 
-private import ocean.text.convert.Layout;
+import ocean.text.convert.Layout;
 
 
 
@@ -84,7 +84,7 @@ public char[] memoryToHexAscii ( void[] mem, char[] output = null )
 
 version (UnitTest)
 {
-    private import ocean.core.Test;
+    import ocean.core.Test;
 }
 
 unittest

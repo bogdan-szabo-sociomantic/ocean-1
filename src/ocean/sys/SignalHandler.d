@@ -27,7 +27,7 @@
 
     ---
 
-    private import ocean.sys.SignalHandler;
+    import ocean.sys.SignalHandler;
 
     class MyClass
     {
@@ -66,17 +66,17 @@ module ocean.sys.SignalHandler;
 
  ******************************************************************************/
 
-private import tango.stdc.signal: signal, raise, SIGABRT, SIGFPE,  SIGILL,
-                                          SIGINT,  SIGSEGV, SIGTERM, SIG_DFL;
+import tango.stdc.signal: signal, raise, SIGABRT, SIGFPE,  SIGILL,
+                                  SIGINT,  SIGSEGV, SIGTERM, SIG_DFL;
 
-private import ocean.core.UniStruct,
-               ocean.core.SmartEnum;
+import ocean.core.UniStruct,
+       ocean.core.SmartEnum;
 
-version (Posix) private import tango.stdc.posix.signal: SIGALRM, SIGBUS,  SIGCHLD,
-                                                        SIGCONT, SIGHUP,  SIGKILL,
-                                                        SIGPIPE, SIGQUIT, SIGSTOP,
-                                                        SIGTSTP, SIGTTIN, SIGTTOU,
-                                                        SIGUSR1, SIGUSR2, SIGURG;
+version (Posix) import tango.stdc.posix.signal: SIGALRM, SIGBUS,  SIGCHLD,
+                                                SIGCONT, SIGHUP,  SIGKILL,
+                                                SIGPIPE, SIGQUIT, SIGSTOP,
+                                                SIGTSTP, SIGTTIN, SIGTTOU,
+                                                SIGUSR1, SIGUSR2, SIGURG;
 
 
 

@@ -21,9 +21,9 @@ module ocean.io.serialize.StructDumper;
 
  ******************************************************************************/
 
-private import ocean.core.Traits: ContainsDynamicArray;
+import ocean.core.Traits: ContainsDynamicArray;
 
-private import ocean.io.serialize.model.StructVersionBase;
+import ocean.io.serialize.model.StructVersionBase;
 
 /******************************************************************************
 

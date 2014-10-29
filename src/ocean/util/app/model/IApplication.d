@@ -20,7 +20,7 @@ module ocean.util.app.model.IApplication;
 
 *******************************************************************************/
 
-private import ocean.util.app.model.IApplicationExtension;
+import ocean.util.app.model.IApplicationExtension;
 
 
 

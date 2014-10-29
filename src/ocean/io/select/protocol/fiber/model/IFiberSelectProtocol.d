@@ -21,15 +21,15 @@ module ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
  ******************************************************************************/
 
-private import ocean.core.MessageFiber;
+import ocean.core.MessageFiber;
 
-private import ocean.io.select.client.model.IFiberSelectClient;
+import ocean.io.select.client.model.IFiberSelectClient;
 
-private import ocean.io.select.fiber.SelectFiber;
+import ocean.io.select.fiber.SelectFiber;
 
-private import ocean.io.select.protocol.generic.ErrnoIOException: IOError, IOWarning;
+import ocean.io.select.protocol.generic.ErrnoIOException: IOError, IOWarning;
 
-debug ( SelectFiber ) private import tango.util.log.Trace;
+debug ( SelectFiber ) import tango.util.log.Trace;
 
 
 /******************************************************************************/

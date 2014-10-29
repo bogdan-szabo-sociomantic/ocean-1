@@ -23,14 +23,14 @@ module ocean.io.select.fiber.SelectFiber;
 
  ******************************************************************************/
 
-private import ocean.core.MessageFiber;
+import ocean.core.MessageFiber;
 
-private import ocean.io.select.client.model.ISelectClient;
-private import ocean.io.select.client.model.ISelectClientInfo;
+import ocean.io.select.client.model.ISelectClient;
+import ocean.io.select.client.model.ISelectClientInfo;
 
-private import ocean.io.select.EpollSelectDispatcher;
+import ocean.io.select.EpollSelectDispatcher;
 
-debug ( SelectFiber) private import tango.util.log.Trace;
+debug ( SelectFiber) import tango.util.log.Trace;
 
 
 /******************************************************************************/

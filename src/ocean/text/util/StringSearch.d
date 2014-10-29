@@ -24,12 +24,12 @@ module ocean.text.util.StringSearch;
 
  ******************************************************************************/
 
-private import cstddef = tango.stdc.stddef: wchar_t;
-private import cwctype = tango.stdc.wctype;
-private import cctype  = tango.stdc.ctype;
-private import cstring = tango.stdc.string;
+import cstddef = tango.stdc.stddef: wchar_t;
+import cwctype = tango.stdc.wctype;
+import cctype  = tango.stdc.ctype;
+import cstring = tango.stdc.string;
 
-private import tango.math.Math:   min;
+import tango.math.Math:   min;
 
 
 /++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

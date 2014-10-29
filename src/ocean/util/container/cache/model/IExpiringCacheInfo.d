@@ -20,7 +20,7 @@ module ocean.util.container.cache.model.IExpiringCacheInfo;
 
 *******************************************************************************/
 
-private import ocean.util.container.cache.model.ICacheInfo;
+import ocean.util.container.cache.model.ICacheInfo;
 
 interface IExpiringCacheInfo : ICacheInfo
 {

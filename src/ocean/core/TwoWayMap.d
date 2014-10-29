@@ -52,11 +52,11 @@ module ocean.core.TwoWayMap;
 
 *******************************************************************************/
 
-private import ocean.core.Exception;
+import ocean.core.Exception;
 
-private import tango.core.Array : find;
+import tango.core.Array : find;
 
-private import tango.core.Traits : isAssocArrayType;
+import tango.core.Traits : isAssocArrayType;
 
 
 

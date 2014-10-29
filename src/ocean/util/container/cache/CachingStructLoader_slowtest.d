@@ -15,16 +15,16 @@ module ocean.util.container.cache.CachingStructLoader_slowtest;
 
 ******************************************************************************/
 
-private import ocean.util.container.cache.CachingStructLoader,
-               ocean.util.container.cache.ExpiringCache;
-private import ocean.util.serialize.contiguous.package_;
+import ocean.util.container.cache.CachingStructLoader,
+       ocean.util.container.cache.ExpiringCache;
+import ocean.util.serialize.contiguous.package_;
 
-private import ocean.io.select.EpollSelectDispatcher,
-               ocean.io.select.client.TimerEvent;
+import ocean.io.select.EpollSelectDispatcher,
+       ocean.io.select.client.TimerEvent;
 
-private import ocean.core.Test;
+import ocean.core.Test;
 
-private import tango.stdc.posix.time;
+import tango.stdc.posix.time;
 
 /******************************************************************************
 

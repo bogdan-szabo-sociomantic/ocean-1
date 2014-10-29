@@ -20,7 +20,7 @@ module ocean.net.server.connection.IConnectionHandlerInfo;
 
 *******************************************************************************/
 
-private import ocean.sys.socket.model.IAddressIPSocketInfo;
+import ocean.sys.socket.model.IAddressIPSocketInfo;
 
 
 

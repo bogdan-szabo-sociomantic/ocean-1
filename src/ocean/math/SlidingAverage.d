@@ -202,7 +202,7 @@ public class SlidingAverage ( T )
 
 version (UnitTest)
 {
-    private import tango.util.Convert: to;
+    import tango.util.Convert: to;
 
     /*******************************************************************************
 

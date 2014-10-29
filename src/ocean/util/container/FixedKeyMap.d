@@ -62,9 +62,9 @@ module ocean.util.container.FixedKeyMap;
 
 *******************************************************************************/
 
-private import ocean.core.Array: copy, bsearch;
+import ocean.core.Array: copy, bsearch;
 
-debug private import ocean.io.Stdout;
+debug import ocean.io.Stdout;
 
 
 

@@ -28,19 +28,19 @@ module    ocean.db.tokyocabinet.util.TokyoCabinetList;
 
  ******************************************************************************/
 
-private   import ocean.db.tokyocabinet.c.util.tclist:
-                                TCLIST,        ListCmp,
-                                tclistnew,     tclistnew2,      tclistload,
-                                tclistdup,     tclistdump,
-                                tclistclear,   tclistdel,
-                                tclistval,     tclistnum,
-                                tclistpush,    tclistpop,
-                                tclistshift,   tclistunshift,
-                                tclistinsert,  tclistover,      tclistremove,
-                                tclistlsearch, tclistbsearch,
-                                tclistsort,    tclistsortex,    tclistinvert;
+import ocean.db.tokyocabinet.c.util.tclist:
+           TCLIST,        ListCmp,
+           tclistnew,     tclistnew2,      tclistload,
+           tclistdup,     tclistdump,
+           tclistclear,   tclistdel,
+           tclistval,     tclistnum,
+           tclistpush,    tclistpop,
+           tclistshift,   tclistunshift,
+           tclistinsert,  tclistover,      tclistremove,
+           tclistlsearch, tclistbsearch,
+           tclistsort,    tclistsortex,    tclistinvert;
 
-private   import tango.stdc.stdlib: free;
+import tango.stdc.stdlib: free;
 
 /*******************************************************************************
 

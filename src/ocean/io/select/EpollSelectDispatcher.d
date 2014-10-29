@@ -31,29 +31,29 @@ module ocean.io.select.EpollSelectDispatcher;
 
 *******************************************************************************/
 
-private import ocean.io.select.selector.IEpollSelectDispatcherInfo;
-private import ocean.io.select.client.model.ISelectClient;
+import ocean.io.select.selector.IEpollSelectDispatcherInfo;
+import ocean.io.select.client.model.ISelectClient;
 
-private import ocean.io.select.client.SelectEvent;
+import ocean.io.select.client.SelectEvent;
 
-private import ocean.io.select.selector.RegisteredClients;
+import ocean.io.select.selector.RegisteredClients;
 
-private import ocean.core.Array : copy;
+import ocean.core.Array : copy;
 
-private import ocean.util.container.AppendBuffer;
+import ocean.util.container.AppendBuffer;
 
-private import ocean.time.timeout.model.ITimeoutClient,
-               ocean.time.timeout.model.ITimeoutManager: ITimeoutManager;
+import ocean.time.timeout.model.ITimeoutClient,
+       ocean.time.timeout.model.ITimeoutManager: ITimeoutManager;
 
-private import ocean.core.ErrnoIOException;
+import ocean.core.ErrnoIOException;
 
-private import ocean.sys.Epoll;
+import ocean.sys.Epoll;
 
-private import tango.stdc.stdlib: bsearch, qsort;
+import tango.stdc.stdlib: bsearch, qsort;
 
-private import tango.stdc.errno: errno, EINTR, ENOENT, EEXIST, ENOMEM, EINVAL;
+import tango.stdc.errno: errno, EINTR, ENOENT, EEXIST, ENOMEM, EINVAL;
 
-debug ( ISelectClient ) private import tango.util.log.Trace;
+debug ( ISelectClient ) import tango.util.log.Trace;
 
 
 /*******************************************************************************

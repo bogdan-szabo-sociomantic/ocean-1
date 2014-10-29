@@ -24,9 +24,9 @@ module ocean.text.entities.model.IEntityCodec;
 
 *******************************************************************************/
 
-private import ocean.text.entities.model.IEntitySet;
+import ocean.text.entities.model.IEntitySet;
 
-private import Utf = tango.text.convert.Utf;
+import Utf = tango.text.convert.Utf;
 
 
 /*******************************************************************************

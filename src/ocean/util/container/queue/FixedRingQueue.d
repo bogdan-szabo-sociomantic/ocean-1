@@ -23,13 +23,13 @@ module ocean.util.container.queue.FixedRingQueue;
 
 *******************************************************************************/
 
-private import ocean.util.container.queue.model.IRingQueue;
+import ocean.util.container.queue.model.IRingQueue;
 
-private import ocean.util.container.queue.model.IQueue;
+import ocean.util.container.queue.model.IQueue;
 
-private import ocean.util.container.queue.model.IByteQueue;
+import ocean.util.container.queue.model.IByteQueue;
 
-private import ocean.util.container.mem.MemManager;
+import ocean.util.container.mem.MemManager;
 
 
 

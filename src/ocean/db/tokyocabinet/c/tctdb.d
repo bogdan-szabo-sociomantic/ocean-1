@@ -14,21 +14,21 @@
  *************************************************************************************************/
 module ocean.db.tokyocabinet.c.tctdb;
 
-private import ocean.db.tokyocabinet.c.tcutil;
+import ocean.db.tokyocabinet.c.tcutil;
 
-private import ocean.db.tokyocabinet.c.util.tcxstr;
+import ocean.db.tokyocabinet.c.util.tcxstr;
 
-private import ocean.db.tokyocabinet.c.util.tcmap;
+import ocean.db.tokyocabinet.c.util.tcmap;
 
-private import ocean.db.tokyocabinet.c.util.tclist;
+import ocean.db.tokyocabinet.c.util.tclist;
 
-private import ocean.db.tokyocabinet.c.tchdb;
+import ocean.db.tokyocabinet.c.tchdb;
 
-private import ocean.db.tokyocabinet.c.tcmdb;
+import ocean.db.tokyocabinet.c.tcmdb;
 
-private import ocean.db.tokyocabinet.c.tcbdb;
+import ocean.db.tokyocabinet.c.tcbdb;
 
-private import tango.stdc.time : time_t;
+import tango.stdc.time : time_t;
 
 /*************************************************************************************************
  * API

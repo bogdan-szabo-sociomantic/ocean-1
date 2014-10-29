@@ -39,26 +39,26 @@ module ocean.time.timeout.TimeoutManager;
 
 *******************************************************************************/
 
-private import ocean.time.timeout.model.ITimeoutManager,
-               ocean.time.timeout.model.ITimeoutClient,
-               ocean.time.timeout.model.IExpiryRegistration,
-               ocean.time.timeout.model.ExpiryRegistrationBase;                 // ExpiryTree, Expiry, ExpiryRegistrationBase
+import ocean.time.timeout.model.ITimeoutManager,
+       ocean.time.timeout.model.ITimeoutClient,
+       ocean.time.timeout.model.IExpiryRegistration,
+       ocean.time.timeout.model.ExpiryRegistrationBase;                 // ExpiryTree, Expiry, ExpiryRegistrationBase
 
-private import ocean.time.model.IMicrosecondsClock,
-               ocean.time.MicrosecondsClock;
+import ocean.time.model.IMicrosecondsClock,
+       ocean.time.MicrosecondsClock;
 
-private import ocean.util.container.AppendBuffer;
+import ocean.util.container.AppendBuffer;
 
 
-private import ocean.util.container.map.Map,
-               ocean.util.container.map.model.StandardHash;
+import ocean.util.container.map.Map,
+       ocean.util.container.map.model.StandardHash;
 
 
 debug
 {
-    private import tango.io.Stdout;
-    private import tango.stdc.time: time_t, ctime;
-    private import tango.stdc.string: strlen;
+    import tango.io.Stdout;
+    import tango.stdc.time: time_t, ctime;
+    import tango.stdc.string: strlen;
 }
 
 /*******************************************************************************

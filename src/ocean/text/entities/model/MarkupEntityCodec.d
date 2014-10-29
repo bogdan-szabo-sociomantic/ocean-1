@@ -45,20 +45,20 @@ module ocean.text.entities.model.MarkupEntityCodec;
 
 *******************************************************************************/
 
-private import ocean.core.Array;
+import ocean.core.Array;
 
-private import ocean.text.entities.model.IEntityCodec;
-private import ocean.text.entities.model.IEntitySet;
+import ocean.text.entities.model.IEntityCodec;
+import ocean.text.entities.model.IEntitySet;
 
-private import ocean.text.utf.UtfString;
+import ocean.text.utf.UtfString;
 
-private import ocean.text.util.StringSearch;
+import ocean.text.util.StringSearch;
 
-private import Utf = tango.text.convert.Utf;
+import Utf = tango.text.convert.Utf;
 
-private import Math = tango.math.Math: min;
+import Math = tango.math.Math: min;
 
-private import Integer = tango.text.convert.Integer: toInt;
+import Integer = tango.text.convert.Integer: toInt;
 
 
 

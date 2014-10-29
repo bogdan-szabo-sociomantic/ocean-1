@@ -26,20 +26,20 @@ module ocean.util.log.InsertConsole;
 
 *******************************************************************************/
 
-private import ocean.io.Terminal;
+import ocean.io.Terminal;
 
-private import tango.io.Console;
+import tango.io.Console;
 
-private import Integer = tango.text.convert.Integer;
+import Integer = tango.text.convert.Integer;
 
-private import tango.io.model.IConduit;
+import tango.io.model.IConduit;
 
-private import tango.util.log.Log;
+import tango.util.log.Log;
 
-private import tango.stdc.posix.signal;
+import tango.stdc.posix.signal;
 
 
-debug private import tango.core.Thread;
+debug import tango.core.Thread;
 
 
 /*******************************************************************************

@@ -27,11 +27,11 @@ module ocean.net.http.HttpException;
 
  ******************************************************************************/
 
-private import ocean.net.http.consts.StatusCodes;
+import ocean.net.http.consts.StatusCodes;
 
-private import tango.net.http.HttpConst: HttpResponseCode;
+import tango.net.http.HttpConst: HttpResponseCode;
 
-private import ocean.core.Array: copy, concat;
+import ocean.core.Array: copy, concat;
 
 /******************************************************************************/
 

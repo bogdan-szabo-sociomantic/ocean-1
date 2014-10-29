@@ -20,11 +20,11 @@ module ocean.net.email.EmailSender;
 
 *******************************************************************************/
 
-private import ocean.core.Array : append;
-private import ocean.io.Stdout;
+import ocean.core.Array : append;
+import ocean.io.Stdout;
 
-private import tango.sys.Process;
-private import tango.core.Exception : ProcessException;
+import tango.sys.Process;
+import tango.core.Exception : ProcessException;
 
 
 class EmailSender

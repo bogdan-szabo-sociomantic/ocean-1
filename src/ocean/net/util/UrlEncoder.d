@@ -20,7 +20,7 @@ module ocean.net.util.UrlEncoder;
 
  **************************************************************************/
 
-private import tango.stdc.ctype: isgraph;
+import tango.stdc.ctype: isgraph;
 
 /******************************************************************************
 

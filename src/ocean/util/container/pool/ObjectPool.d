@@ -43,8 +43,8 @@ module ocean.util.container.pool.ObjectPool;
 
 *******************************************************************************/
 
-private import ocean.util.container.pool.model.IAggregatePool;
-private import ocean.util.container.pool.model.IResettable;
+import ocean.util.container.pool.model.IAggregatePool;
+import ocean.util.container.pool.model.IResettable;
 
 
 

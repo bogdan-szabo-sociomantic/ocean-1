@@ -20,17 +20,17 @@ module ocean.util.container.queue.FlexibleRingQueue;
 
 *******************************************************************************/
 
-private import ocean.util.container.queue.model.IRingQueue;
+import ocean.util.container.queue.model.IRingQueue;
 
-private import ocean.util.container.queue.model.IByteQueue;
+import ocean.util.container.queue.model.IByteQueue;
 
-private import ocean.util.container.mem.MemManager;
+import ocean.util.container.mem.MemManager;
 
-private import tango.io.model.IConduit: InputStream, OutputStream;
+import tango.io.model.IConduit: InputStream, OutputStream;
 
-private import ocean.io.serialize.SimpleSerializer;
+import ocean.io.serialize.SimpleSerializer;
 
-debug private import ocean.io.Stdout;
+debug import ocean.io.Stdout;
 
 
 

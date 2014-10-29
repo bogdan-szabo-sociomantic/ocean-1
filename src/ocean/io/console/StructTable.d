@@ -15,7 +15,7 @@
 
     ---
 
-        private import ocean.io.console.StructTable;
+        import ocean.io.console.StructTable;
 
         struct Test
         {
@@ -61,7 +61,7 @@
 
     ---
 
-        private import ocean.text.convert.Layout;
+        import ocean.text.convert.Layout;
 
         class TestTable : StructTable!(Test)
         {
@@ -109,11 +109,11 @@ module ocean.io.console.StructTable;
 
 *******************************************************************************/
 
-private import ocean.core.Traits;
+import ocean.core.Traits;
 
-private import ocean.io.console.Tables;
+import ocean.io.console.Tables;
 
-private import ocean.text.convert.Layout;
+import ocean.text.convert.Layout;
 
 
 

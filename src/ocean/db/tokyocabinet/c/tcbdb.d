@@ -16,14 +16,14 @@ module ocean.db.tokyocabinet.c.tcbdb;
  *************************************************************************************************/
 
 
-private import ocean.db.tokyocabinet.c.tcutil:      TCERRCODE, TCCODEC, TCCMP;
+import ocean.db.tokyocabinet.c.tcutil:      TCERRCODE, TCCODEC, TCCMP;
 
-private import ocean.db.tokyocabinet.c.tchdb:       TCHDB, HDBFLAGS;
+import ocean.db.tokyocabinet.c.tchdb:       TCHDB, HDBFLAGS;
 
-private import ocean.db.tokyocabinet.c.util.tcxstr: TCXSTR;
-private import ocean.db.tokyocabinet.c.util.tclist: TCLIST, tclistnew;
-private import ocean.db.tokyocabinet.c.util.tcmap:  TCMAP, TCPDPROC;
-private import ocean.db.tokyocabinet.c.tcmdb:       TCITER;
+import ocean.db.tokyocabinet.c.util.tcxstr: TCXSTR;
+import ocean.db.tokyocabinet.c.util.tclist: TCLIST, tclistnew;
+import ocean.db.tokyocabinet.c.util.tcmap:  TCMAP, TCPDPROC;
+import ocean.db.tokyocabinet.c.tcmdb:       TCITER;
 
 extern (C):
 

@@ -20,9 +20,9 @@ module ocean.time.model.IMicrosecondsClock;
 
 *******************************************************************************/
 
-private import tango.stdc.posix.sys.time : timeval;
-private import tango.stdc.time : tm, time_t;
-private import tango.time.Time;
+import tango.stdc.posix.sys.time : timeval;
+import tango.stdc.time : tm, time_t;
+import tango.time.Time;
 
 
 

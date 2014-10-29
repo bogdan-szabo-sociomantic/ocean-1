@@ -34,11 +34,11 @@ module ocean.net.util.ParamSet;
 
  ******************************************************************************/
 
-private import ocean.text.util.SplitIterator: ISplitIterator;
+import ocean.text.util.SplitIterator: ISplitIterator;
 
-private import tango.stdc.ctype:  tolower;
+import tango.stdc.ctype:  tolower;
 
-private import tango.core.Exception: ArrayBoundsException;
+import tango.core.Exception: ArrayBoundsException;
 
 /******************************************************************************
 

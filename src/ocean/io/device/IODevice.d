@@ -23,10 +23,10 @@ module ocean.io.device.IODevice;
 
  ******************************************************************************/
 
-private import tango.io.model.IConduit: ISelectable;
+import tango.io.model.IConduit: ISelectable;
 
-private import tango.stdc.posix.unistd: read, write;
-private import tango.stdc.posix.sys.types: ssize_t;
+import tango.stdc.posix.unistd: read, write;
+import tango.stdc.posix.sys.types: ssize_t;
 
 /******************************************************************************
 

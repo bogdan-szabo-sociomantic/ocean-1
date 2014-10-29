@@ -37,7 +37,7 @@ module ocean.util.container.map.model.Bucket;
 
 *******************************************************************************/
 
-private import tango.core.Traits: isStaticArrayType;
+import tango.core.Traits: isStaticArrayType;
 
 /*******************************************************************************
 

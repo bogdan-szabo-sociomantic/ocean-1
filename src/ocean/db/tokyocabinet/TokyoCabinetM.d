@@ -31,19 +31,19 @@ module ocean.db.tokyocabinet.TokyoCabinetM;
 
 *******************************************************************************/
 
-private import ocean.db.tokyocabinet.model.ITokyoCabinet: TokyoCabinetIterator;
+import ocean.db.tokyocabinet.model.ITokyoCabinet: TokyoCabinetIterator;
 
-private import ocean.core.Array;
+import ocean.core.Array;
 
-private import ocean.db.tokyocabinet.c.tcmdb :
-                        TCMDB,
-                        tcmdbnew, tcmdbnew2, tcmdbvanish, tcmdbdel,
-                        tcmdbput, tcmdbputkeep, tcmdbputcat,
-                        tcmdbget, tcmdbforeach,
-                        tcmdbout, tcmdbrnum, tcmdbmsiz, tcmdbvsiz,
-                        tcmdbiterinit, tcmdbiterinit2, tcmdbiternext;
+import ocean.db.tokyocabinet.c.tcmdb :
+           TCMDB,
+           tcmdbnew, tcmdbnew2, tcmdbvanish, tcmdbdel,
+           tcmdbput, tcmdbputkeep, tcmdbputcat,
+           tcmdbget, tcmdbforeach,
+           tcmdbout, tcmdbrnum, tcmdbmsiz, tcmdbvsiz,
+           tcmdbiterinit, tcmdbiterinit2, tcmdbiternext;
 
-private import tango.stdc.stdlib : free;
+import tango.stdc.stdlib : free;
 
 
 /*******************************************************************************

@@ -42,31 +42,31 @@ module ocean.db.tokyocabinet.TokyoCabinetB;
 
  ******************************************************************************/
 
-private     import  ocean.core.Array;
+import  ocean.core.Array;
 
-private     import  ocean.db.tokyocabinet.util.TokyoCabinetCursor;
-private     import  ocean.db.tokyocabinet.util.TokyoCabinetException;
-private     import  ocean.db.tokyocabinet.util.TokyoCabinetList;
-private     import  ocean.db.tokyocabinet.util.TokyoCabinetExtString;
+import  ocean.db.tokyocabinet.util.TokyoCabinetCursor;
+import  ocean.db.tokyocabinet.util.TokyoCabinetException;
+import  ocean.db.tokyocabinet.util.TokyoCabinetList;
+import  ocean.db.tokyocabinet.util.TokyoCabinetExtString;
 
-private     import  ocean.db.tokyocabinet.c.tcbdb:
-                        TCBDB,       BDBOPT,          BDBOMODE,
-                        tcbdbnew,    tcbdbdel,        tcbdbopen,     tcbdbclose,
-                        tcbdbtune,   tcbdbsetmutex,   tcbdbsetcache, tcbdbsetxmsiz,
-                        tcbdbput,    tcbdbputkeep,    tcbdbputcat,
-                        tcbdbputdup, tcbdbputdupback,
-                        tcbdbget3,   tcbdbget5,       tcbdbrange,    tcbdbforeach,
-                        tcbdbout,    tcbdbvsiz,       tcbdbvnum,     tcbdbrnum,
-                        tcbdbfsiz,   tcbdbsync,       tcbdbecode,    tcbdberrmsg,
-                        tcbdbvanish;
+import  ocean.db.tokyocabinet.c.tcbdb:
+            TCBDB,       BDBOPT,          BDBOMODE,
+            tcbdbnew,    tcbdbdel,        tcbdbopen,     tcbdbclose,
+            tcbdbtune,   tcbdbsetmutex,   tcbdbsetcache, tcbdbsetxmsiz,
+            tcbdbput,    tcbdbputkeep,    tcbdbputcat,
+            tcbdbputdup, tcbdbputdupback,
+            tcbdbget3,   tcbdbget5,       tcbdbrange,    tcbdbforeach,
+            tcbdbout,    tcbdbvsiz,       tcbdbvnum,     tcbdbrnum,
+            tcbdbfsiz,   tcbdbsync,       tcbdbecode,    tcbdberrmsg,
+            tcbdbvanish;
 
-private     import  ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
+import  ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
 
-private     import  ocean.db.tokyocabinet.model.ITokyoCabinet;
+import  ocean.db.tokyocabinet.model.ITokyoCabinet;
 
-private     import  ocean.text.util.StringC;
+import  ocean.text.util.StringC;
 
-debug private     import  tango.util.log.Trace;
+debug import  tango.util.log.Trace;
 
 /*******************************************************************************
 
@@ -1069,9 +1069,9 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
 /*
 //required for testCmp()
 
-private import Cstdlib = tango.stdc.posix.stdlib:   srand48, drand48;
-private import Ctime   = tango.stdc.posix.sys.time: timeval, gettimeofday;
+import Cstdlib = tango.stdc.posix.stdlib:   srand48, drand48;
+import Ctime   = tango.stdc.posix.sys.time: timeval, gettimeofday;
 
-private import tango.stdc.stdio: printf, fflush, stdout;
-private import ocean.db.tokyocabinet.UnixTime;
+import tango.stdc.stdio: printf, fflush, stdout;
+import ocean.db.tokyocabinet.UnixTime;
 */

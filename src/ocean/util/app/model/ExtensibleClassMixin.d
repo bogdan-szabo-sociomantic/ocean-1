@@ -21,7 +21,7 @@ module ocean.util.app.model.ExtensibleClassMixin;
 
 *******************************************************************************/
 
-// TODO: private import ocean.util.app.model.IExtension;
+// TODO: import ocean.util.app.model.IExtension;
 
 
 
@@ -76,7 +76,7 @@ template ExtensibleClassMixin ( ExtensionClass )
 
      *******************************************************************************/
 
-    private import tango.core.Array : mixin_sort = sort;
+    import tango.core.Array : mixin_sort = sort;
 
 
     /***************************************************************************

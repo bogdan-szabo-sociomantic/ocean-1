@@ -28,19 +28,19 @@ module ocean.sys.SafeFork;
 
 *******************************************************************************/
 
-private import ocean.util.ReusableException;
+import ocean.util.ReusableException;
 
-private import tango.stdc.posix.stdlib : exit;
+import tango.stdc.posix.stdlib : exit;
 
-private import tango.stdc.posix.unistd : fork;
+import tango.stdc.posix.unistd : fork;
 
-private import tango.stdc.posix.sys.wait;
+import tango.stdc.posix.sys.wait;
 
-private import tango.stdc.posix.signal;
+import tango.stdc.posix.signal;
 
-private import tango.stdc.errno;
+import tango.stdc.errno;
 
-private import tango.stdc.string;
+import tango.stdc.string;
 
 
 
@@ -52,9 +52,9 @@ private import tango.stdc.string;
 
 version ( TimeFork )
 {
-    private import ocean.io.Stdout;
+    import ocean.io.Stdout;
 
-    private import tango.time.StopWatch;
+    import tango.time.StopWatch;
 }
 
 
@@ -92,7 +92,7 @@ private extern (C)
 
     Usage Example:
     -----
-    private import ocean.sys.SafeFork;
+    import ocean.sys.SafeFork;
 
     void main ( )
     {

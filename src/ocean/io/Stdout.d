@@ -27,15 +27,15 @@ module ocean.io.Stdout;
 
 *******************************************************************************/
 
-private import ocean.io.Terminal;
+import ocean.io.Terminal;
 
-private import tango.io.device.Conduit;
+import tango.io.device.Conduit;
 
-private import tango.io.stream.Format;
+import tango.io.stream.Format;
 
-private import tango.io.Console;
+import tango.io.Console;
 
-private import tango.text.convert.Layout;
+import tango.text.convert.Layout;
 
 
 
@@ -47,21 +47,21 @@ private import tango.text.convert.Layout;
 
 version (GNU)
 {
-    private import tango.core.Vararg;
+    import tango.core.Vararg;
 
     alias void* Arg;
     alias va_list ArgList;
 }
 else version (LDC)
 {
-    private import tango.core.Vararg;
+    import tango.core.Vararg;
 
     alias void* Arg;
     alias va_list ArgList;
 }
 else version (DigitalMars)
 {
-    private import tango.core.Vararg;
+    import tango.core.Vararg;
 
     alias void* Arg;
     alias va_list ArgList;

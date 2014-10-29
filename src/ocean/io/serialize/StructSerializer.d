@@ -95,13 +95,13 @@ module ocean.io.serialize.StructSerializer;
 
 *******************************************************************************/
 
-private import ocean.io.serialize.SimpleSerializer;
+import ocean.io.serialize.SimpleSerializer;
 
-private import ocean.core.Exception;
+import ocean.core.Exception;
 
-private import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
+import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
 
-private import tango.core.Traits;
+import tango.core.Traits;
 
 
 

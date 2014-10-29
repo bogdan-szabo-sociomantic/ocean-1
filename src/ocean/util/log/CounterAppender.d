@@ -13,7 +13,7 @@
 
 module ocean.util.log.CounterAppender;
 
-private import tango.util.log.Log;
+import tango.util.log.Log;
 
 /*******************************************************************************
 

@@ -22,9 +22,9 @@ module ocean.util.app.ConfiguredApp;
 public import ocean.util.app.Application : Application;
 public import ocean.util.config.ConfigParser : ConfigParser;
 
-private import ocean.util.app.Application;
-private import ocean.util.app.ext.model.IConfigExtExtension;
-private import ocean.util.app.ext.ConfigExt;
+import ocean.util.app.Application;
+import ocean.util.app.ext.model.IConfigExtExtension;
+import ocean.util.app.ext.ConfigExt;
 
 
 

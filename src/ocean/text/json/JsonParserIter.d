@@ -40,13 +40,13 @@ module ocean.text.json.JsonParserIter;
 
  ******************************************************************************/
 
-private import tango.text.json.JsonParser;
+import tango.text.json.JsonParser;
 
-private import tango.core.Traits;
+import tango.core.Traits;
 
-private import Integer = tango.text.convert.Integer;
+import Integer = tango.text.convert.Integer;
 
-private import Float = tango.text.convert.Float;
+import Float = tango.text.convert.Float;
 
 
 /******************************************************************************/

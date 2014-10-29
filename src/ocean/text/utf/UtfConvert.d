@@ -84,13 +84,13 @@ module ocean.text.utf.UtfConvert;
 
  ******************************************************************************/
 
-private import ocean.text.utf.GlibUnicode;
+import ocean.text.utf.GlibUnicode;
 
-private import Utf = tango.text.convert.Utf: toString, toString16, toString32;
+import Utf = tango.text.convert.Utf: toString, toString16, toString32;
 
-private import ocean.text.util.StringReplace;
+import ocean.text.util.StringReplace;
 
-private import ocean.text.util.StringSearch;
+import ocean.text.util.StringSearch;
 
 
 /*******************************************************************************

@@ -31,14 +31,14 @@ module ocean.sys.SignalMask;
 
 version ( Posix )
 {
-    private import tango.stdc.posix.signal;
+    import tango.stdc.posix.signal;
 }
 else
 {
     static assert(false, "module ocean.sys.SignalMask only supported in posix environments");
 }
 
-debug ( SignalMask ) private import tango.util.log.Trace;
+debug ( SignalMask ) import tango.util.log.Trace;
 
 
 

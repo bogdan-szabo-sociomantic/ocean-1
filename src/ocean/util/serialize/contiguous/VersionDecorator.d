@@ -16,21 +16,21 @@ module ocean.util.serialize.contiguous.VersionDecorator;
 
 *******************************************************************************/
 
-private import ocean.core.Exception,
-               ocean.util.container.ConcatBuffer,
-               ocean.core.StructConverter : structCopy;
+import ocean.core.Exception,
+       ocean.util.container.ConcatBuffer,
+       ocean.core.StructConverter : structCopy;
 
-private import ocean.util.serialize.model.Traits,
-               ocean.util.serialize.model.Version,
-               ocean.util.serialize.model.VersionDecoratorMixins;
+import ocean.util.serialize.model.Traits,
+       ocean.util.serialize.model.Version,
+       ocean.util.serialize.model.VersionDecoratorMixins;
 
-private import ocean.util.serialize.contiguous.Deserializer,
-               ocean.util.serialize.contiguous.Serializer,
-               ocean.util.serialize.contiguous.Contiguous,
-               ocean.util.serialize.contiguous.model.LoadCopyMixin;
+import ocean.util.serialize.contiguous.Deserializer,
+       ocean.util.serialize.contiguous.Serializer,
+       ocean.util.serialize.contiguous.Contiguous,
+       ocean.util.serialize.contiguous.model.LoadCopyMixin;
 
-private import tango.text.convert.Format,
-               tango.stdc.string : memmove;
+import tango.text.convert.Format,
+       tango.stdc.string : memmove;
 
 /*******************************************************************************
 
@@ -117,10 +117,10 @@ class VersionDecorator
 
 version(UnitTest):
 
-private import ocean.core.Test;
+import ocean.core.Test;
 
-private import tango.core.Array,
-               tango.core.Memory;
+import tango.core.Array,
+       tango.core.Memory;
 
 /*******************************************************************************
 

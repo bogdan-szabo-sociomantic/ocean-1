@@ -1,6 +1,6 @@
 module ocean.db.tokyocabinet.c.util.tcmap;
 
-private import ocean.db.tokyocabinet.c.util.tclist: TCLIST;
+import ocean.db.tokyocabinet.c.util.tclist: TCLIST;
 
 extern (C):
 

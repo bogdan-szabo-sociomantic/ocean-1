@@ -131,26 +131,26 @@ public  import ocean.core.Exception: assertEx;
 
 public import ocean.util.config.ConfigParser: ConfigException;
 
-private import ocean.core.Traits;
+import ocean.core.Traits;
 
-private import tango.core.Exception;
+import tango.core.Exception;
 
-private import tango.core.Traits;
+import tango.core.Traits;
 
-private import ocean.util.Config;
+import ocean.util.Config;
 
-private import ocean.util.config.ConfigParser;
+import ocean.util.config.ConfigParser;
 
-private import tango.util.Convert;
+import tango.util.Convert;
 
-private import tango.core.Traits : DynamicArrayType, isStringType,
-                                   isIntegerType, isRealType;
+import tango.core.Traits : DynamicArrayType, isStringType,
+                           isIntegerType, isRealType;
 
-private import ocean.io.Stdout;
+import ocean.io.Stdout;
 
-private import ocean.text.convert.Layout;
+import ocean.text.convert.Layout;
 
-version (UnitTest) private import ocean.core.Test;
+version (UnitTest) import ocean.core.Test;
 
 /*******************************************************************************
 
@@ -1056,7 +1056,7 @@ protected void readFields ( T, Source )
 
 version ( UnitTest )
 {
-    private import ocean.core.Test;
+    import ocean.core.Test;
 
     class DummyParser : ConfigParser
     {

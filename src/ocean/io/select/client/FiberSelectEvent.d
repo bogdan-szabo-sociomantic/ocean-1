@@ -45,11 +45,11 @@ module ocean.io.select.client.FiberSelectEvent;
 
 *******************************************************************************/
 
-private import ocean.core.MessageFiber;
+import ocean.core.MessageFiber;
 
-private import ocean.sys.EventFD;
+import ocean.sys.EventFD;
 
-private import ocean.io.select.client.model.IFiberSelectClient;
+import ocean.io.select.client.model.IFiberSelectClient;
 
 
 /*******************************************************************************

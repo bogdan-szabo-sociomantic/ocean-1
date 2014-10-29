@@ -42,11 +42,11 @@ module ocean.sys.CmdPath;
 
  ******************************************************************************/
 
-private import tango.sys.Environment;
+import tango.sys.Environment;
 
-private import tango.io.FilePath;
+import tango.io.FilePath;
 
-private import PathUtil = tango.io.Path: normalize;
+import PathUtil = tango.io.Path: normalize;
 
 /******************************************************************************
 

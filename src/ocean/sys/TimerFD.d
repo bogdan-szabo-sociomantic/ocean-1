@@ -16,18 +16,17 @@ module ocean.sys.TimerFD;
 
 *******************************************************************************/
 
-private import ocean.core.ErrnoIOException;
+import ocean.core.ErrnoIOException;
 
-private import tango.io.model.IConduit: ISelectable;
+import tango.io.model.IConduit: ISelectable;
 
-private import tango.stdc.posix.time: time_t, timespec, itimerspec,
-    CLOCK_REALTIME;
+import tango.stdc.posix.time: time_t, timespec, itimerspec, CLOCK_REALTIME;
 
-private import tango.stdc.posix.sys.types: ssize_t;
+import tango.stdc.posix.sys.types: ssize_t;
 
-private import tango.stdc.posix.unistd: read, close;
+import tango.stdc.posix.unistd: read, close;
 
-private import tango.stdc.errno: EAGAIN, EWOULDBLOCK, errno;
+import tango.stdc.errno: EAGAIN, EWOULDBLOCK, errno;
 
 
 

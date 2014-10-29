@@ -35,13 +35,13 @@ module ocean.util.container.pool.FreeList;
 
 *******************************************************************************/
 
-private import ocean.util.container.pool.model.IFreeList;
+import ocean.util.container.pool.model.IFreeList;
 
-private import ocean.core.Array : pop;
+import ocean.core.Array : pop;
 
-private import ocean.core.Traits : StripTypedef;
+import ocean.core.Traits : StripTypedef;
 
-private import tango.core.Traits;
+import tango.core.Traits;
 
 
 

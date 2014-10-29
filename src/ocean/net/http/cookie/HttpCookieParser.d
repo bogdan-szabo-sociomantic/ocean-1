@@ -23,7 +23,7 @@ module ocean.net.http.cookie.HttpCookieParser;
 
  ******************************************************************************/
 
-private import ocean.net.util.QueryParams: QueryParamSet;
+import ocean.net.util.QueryParams: QueryParamSet;
 
 /******************************************************************************/
 

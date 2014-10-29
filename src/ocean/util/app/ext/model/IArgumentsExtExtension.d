@@ -21,7 +21,7 @@ module ocean.util.app.ext.model.IArgumentsExtExtension;
 public import ocean.util.app.model.IApplication;
 public import ocean.text.Arguments : Arguments;
 
-private import ocean.util.app.model.IExtension;
+import ocean.util.app.model.IExtension;
 
 
 

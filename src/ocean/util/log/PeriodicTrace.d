@@ -24,7 +24,7 @@
 
     ---
 
-        private import ocean.util.log.PeriodicTrace;
+        import ocean.util.log.PeriodicTrace;
 
         const ulong trace_interval = 500_000; // only update display after at least half a second has passed
 
@@ -43,7 +43,7 @@
 
     ---
 
-        private import ocean.util.log.PeriodicTrace;
+        import ocean.util.log.PeriodicTrace;
 
         PeriodicTrace trace1;
         trace1.interval = 500_000; // only update display after at least half a second has passed
@@ -74,15 +74,15 @@ module ocean.util.log.PeriodicTrace;
 
 *******************************************************************************/
 
-private import ocean.util.log.StaticTrace;
+import ocean.util.log.StaticTrace;
 
-private import ocean.io.Stdout;
+import ocean.io.Stdout;
 
-private import tango.stdc.stdarg;
+import tango.stdc.stdarg;
 
-private import tango.text.convert.Layout;
+import tango.text.convert.Layout;
 
-private import tango.time.StopWatch;
+import tango.time.StopWatch;
 
 
 

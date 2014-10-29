@@ -20,9 +20,9 @@
 
 module ocean.util.container.ebtree.c.ebpttree;
 
-private import ocean.util.container.ebtree.c.ebtree;
-private import ocean.util.container.ebtree.c.eb32tree;
-private import ocean.util.container.ebtree.c.eb64tree;
+import ocean.util.container.ebtree.c.ebtree;
+import ocean.util.container.ebtree.c.eb32tree;
+import ocean.util.container.ebtree.c.eb64tree;
 
 /* This structure carries a node, a leaf, and a key. It must start with the
  * eb_node so that it can be cast into an eb_node. We could also have put some

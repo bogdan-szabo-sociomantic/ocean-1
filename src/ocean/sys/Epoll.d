@@ -18,7 +18,7 @@ module ocean.sys.Epoll;
 
  *****************************************************************************/
 
-private import tango.stdc.posix.unistd: close;
+import tango.stdc.posix.unistd: close;
 
 /*****************************************************************************
 

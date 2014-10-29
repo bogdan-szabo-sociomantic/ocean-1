@@ -21,13 +21,13 @@ module ocean.util.container.mem.MemManager;
 
 *******************************************************************************/
 
-private import ocean.core.Exception;
+import ocean.core.Exception;
 
-private import tango.core.Exception : OutOfMemoryException;
+import tango.core.Exception : OutOfMemoryException;
 
-private import tango.stdc.stdlib : malloc, free;
+import tango.stdc.stdlib : malloc, free;
 
-private import tango.core.Memory;
+import tango.core.Memory;
 
 /*******************************************************************************
 

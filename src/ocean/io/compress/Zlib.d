@@ -125,19 +125,19 @@ module ocean.io.compress.Zlib;
 
  ******************************************************************************/
 
-private     import      tango.io.stream.Zlib : ZlibInput, ZlibOutput;
+import      tango.io.stream.Zlib : ZlibInput, ZlibOutput;
 
-private     import      tango.io.device.Array;
+import      tango.io.device.Array;
 
-private     import      tango.io.model.IConduit: InputStream, OutputStream;
+import      tango.io.model.IConduit: InputStream, OutputStream;
 
-private     import      Integer = tango.text.convert.Integer: toInt;
+import      Integer = tango.text.convert.Integer: toInt;
 
-private     import      tango.math.Math: min;
+import      tango.math.Math: min;
 
-private     import      ocean.io.compress.CompressException;
+import      ocean.io.compress.CompressException;
 
-private import ocean.io.serialize.SimpleSerializer;
+import      ocean.io.serialize.SimpleSerializer;
 
 
 

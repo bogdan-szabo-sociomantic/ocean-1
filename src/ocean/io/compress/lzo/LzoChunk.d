@@ -51,13 +51,13 @@ module ocean.io.compress.lzo.LzoChunk;
 
  ******************************************************************************/
 
-private     import      ocean.io.compress.Lzo;
+import      ocean.io.compress.Lzo;
 
-private     import      ocean.io.compress.lzo.LzoHeader;
+import      ocean.io.compress.lzo.LzoHeader;
 
-private     import      ocean.io.compress.CompressException;
+import      ocean.io.compress.CompressException;
 
-private     import      ocean.core.Exception: enforce;
+import      ocean.core.Exception: enforce;
 
 /*******************************************************************************
 
@@ -330,7 +330,7 @@ struct Terminator
     }
 }
 
-version (UnitTestVerbose) private import ocean.io.Stdout;
+version (UnitTestVerbose) import ocean.io.Stdout;
 
 unittest
 {

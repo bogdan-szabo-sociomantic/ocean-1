@@ -39,15 +39,15 @@ module ocean.text.utf.UtfUtil;
 
 *******************************************************************************/
 
-private import tango.core.Exception: onUnicodeError;
+import tango.core.Exception: onUnicodeError;
 
-private import tango.stdc.string: memrchr;
+import tango.stdc.string: memrchr;
 
-private import ocean.core.Array: append, copy;
+import ocean.core.Array: append, copy;
 
-private import ocean.text.utf.c.glib_unicode;
+import ocean.text.utf.c.glib_unicode;
 
-private import ocean.core.Test;
+import ocean.core.Test;
 
 /*******************************************************************************
 

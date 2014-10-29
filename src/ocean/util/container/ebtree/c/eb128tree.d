@@ -50,7 +50,7 @@
 
 module ocean.util.container.ebtree.c.eb128tree;
 
-private import ocean.util.container.ebtree.c.ebtree: eb_root, eb_node;
+import ocean.util.container.ebtree.c.ebtree: eb_root, eb_node;
 
 /******************************************************************************
 

@@ -38,9 +38,9 @@ module ocean.util.container.pool.StructPool;
 
 *******************************************************************************/
 
-private import ocean.util.container.pool.model.IAggregatePool;
+import ocean.util.container.pool.model.IAggregatePool;
 
-private import ocean.core.Traits : hasMethod;
+import ocean.core.Traits : hasMethod;
 
 
 

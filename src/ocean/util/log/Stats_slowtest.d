@@ -8,10 +8,10 @@
 
 module ocean.util.log.Stats_slowtest;
 
-private import ocean.core.Test,
-               ocean.util.log.Stats;
+import ocean.core.Test,
+       ocean.util.log.Stats;
 
-private import tango.io.device.TempFile;
+import tango.io.device.TempFile;
 
 unittest
 {

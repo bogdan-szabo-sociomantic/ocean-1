@@ -20,8 +20,8 @@ module ocean.util.app.model.IApplicationExtension;
 
 public import ocean.util.app.ExitException : ExitException;
 
-private import ocean.util.app.model.IExtension;
-private import ocean.util.app.model.IApplication;
+import ocean.util.app.model.IExtension;
+import ocean.util.app.model.IApplication;
 
 
 

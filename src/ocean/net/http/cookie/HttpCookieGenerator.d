@@ -23,13 +23,13 @@ module ocean.net.http.cookie.HttpCookieGenerator;
 
  ******************************************************************************/
 
-private import ocean.net.util.ParamSet;
+import ocean.net.util.ParamSet;
 
-private import ocean.net.http.consts.CookieAttributeNames;
+import ocean.net.http.consts.CookieAttributeNames;
 
-private import ocean.net.http.time.HttpTimeFormatter;
+import ocean.net.http.time.HttpTimeFormatter;
 
-private import tango.stdc.time: time_t;
+import tango.stdc.time: time_t;
 
 /******************************************************************************/
 

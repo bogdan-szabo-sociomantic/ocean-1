@@ -12,11 +12,11 @@
 
 module ocean.io.select.protocol.fiber.BufferedFiberSelectWriter;
 
-private import ocean.io.select.protocol.fiber.FiberSelectWriter;
+import ocean.io.select.protocol.fiber.FiberSelectWriter;
 
-private import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
+import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
-private import ocean.util.container.AppendBuffer;
+import ocean.util.container.AppendBuffer;
 
 /******************************************************************************/
 

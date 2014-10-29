@@ -19,24 +19,24 @@ module ocean.net.server.connection.IFiberConnectionHandler;
 
 *******************************************************************************/
 
-private import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol,
-               ocean.io.select.protocol.fiber.FiberSelectReader,
-               ocean.io.select.protocol.fiber.FiberSelectWriter,
-               ocean.io.select.protocol.fiber.BufferedFiberSelectWriter,
-               ocean.io.select.protocol.generic.ErrnoIOException: IOWarning;
+import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol,
+       ocean.io.select.protocol.fiber.FiberSelectReader,
+       ocean.io.select.protocol.fiber.FiberSelectWriter,
+       ocean.io.select.protocol.fiber.BufferedFiberSelectWriter,
+       ocean.io.select.protocol.generic.ErrnoIOException: IOWarning;
 
-private import ocean.net.server.connection.IConnectionHandler;
+import ocean.net.server.connection.IConnectionHandler;
 
-private import ocean.io.select.fiber.SelectFiber;
-private import ocean.core.MessageFiber : MessageFiberControl;
-private import ocean.util.container.pool.model.IResettable;
-private import ocean.text.convert.Layout;
+import ocean.io.select.fiber.SelectFiber;
+import ocean.core.MessageFiber : MessageFiberControl;
+import ocean.util.container.pool.model.IResettable;
+import ocean.text.convert.Layout;
 
-private import ocean.sys.Epoll : epoll_event_t;
+import ocean.sys.Epoll : epoll_event_t;
 
-private import tango.net.device.Socket : Socket;
+import tango.net.device.Socket : Socket;
 
-debug ( ConnectionHandler ) private import tango.util.log.Trace;
+debug ( ConnectionHandler ) import tango.util.log.Trace;
 
 
 /*******************************************************************************

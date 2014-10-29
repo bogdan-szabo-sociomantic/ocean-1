@@ -96,20 +96,20 @@ else
     static assert(false, "module ocean.sys.SignalFD only supported in posix environments");
 }
 
-private import ocean.core.ErrnoIOException;
+import ocean.core.ErrnoIOException;
 
-private import ocean.sys.SignalMask;
+import ocean.sys.SignalMask;
 
-private import tango.io.model.IConduit;
+import tango.io.model.IConduit;
 
-private import tango.stdc.posix.signal;
-private import tango.stdc.posix.unistd : read, close;
+import tango.stdc.posix.signal;
+import tango.stdc.posix.unistd : read, close;
 
-private import tango.stdc.errno : EAGAIN, EWOULDBLOCK, errno;
+import tango.stdc.errno : EAGAIN, EWOULDBLOCK, errno;
 
-private import tango.sys.linux.consts.fcntl : O_NONBLOCK;
+import tango.sys.linux.consts.fcntl : O_NONBLOCK;
 
-debug private import ocean.io.Stdout;
+debug import ocean.io.Stdout;
 
 
 extern ( C )

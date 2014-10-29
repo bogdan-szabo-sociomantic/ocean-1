@@ -24,9 +24,9 @@ module ocean.net.http.message.HttpHeaderParser;
 
  ******************************************************************************/
 
-private import ocean.text.util.SplitIterator: ChrSplitIterator, ISplitIterator;
+import ocean.text.util.SplitIterator: ChrSplitIterator, ISplitIterator;
 
-private import ocean.net.http.HttpException: HttpParseException;
+import ocean.net.http.HttpException: HttpParseException;
 
 static if (is (size_t == uint))
 {

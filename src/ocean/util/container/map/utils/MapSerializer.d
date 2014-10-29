@@ -29,23 +29,23 @@ module ocean.util.container.map.utils.MapSerializer;
 
 *******************************************************************************/
 
-private import ocean.io.digest.Fnv1,
-               ocean.io.serialize.StructLoader,
-               ocean.io.serialize.StructDumper,
-               ocean.io.serialize.SimpleSerializer,
-               ocean.io.serialize.TypeId,
-               ocean.io.serialize.model.StructVersionBase,
-               ocean.util.container.map.Map,
-               ocean.core.Traits : ContainsDynamicArray;
-private import ocean.core.Array : copy;
+import ocean.io.digest.Fnv1,
+       ocean.io.serialize.StructLoader,
+       ocean.io.serialize.StructDumper,
+       ocean.io.serialize.SimpleSerializer,
+       ocean.io.serialize.TypeId,
+       ocean.io.serialize.model.StructVersionBase,
+       ocean.util.container.map.Map,
+       ocean.core.Traits : ContainsDynamicArray;
+import ocean.core.Array : copy;
 
-private import tango.core.Exception    : IOException;
-private import tango.io.model.IConduit : IOStream;
+import tango.core.Exception    : IOException;
+import tango.io.model.IConduit : IOStream;
 
-private import tango.core.Traits,
-               tango.core.Tuple,
-               tango.io.stream.Buffered,
-               tango.io.device.File;
+import tango.core.Traits,
+       tango.core.Tuple,
+       tango.io.stream.Buffered,
+       tango.io.device.File;
 
 /*******************************************************************************
 

@@ -28,21 +28,21 @@ module ocean.db.tokyocabinet.util.TokyoCabinetCursor;
 
  ******************************************************************************/
 
-private import ocean.core.Exception: enforce;
+import ocean.core.Exception: enforce;
 
-private import ocean.db.tokyocabinet.c.util.tcxstr:  TCXSTR;
-private import ocean.db.tokyocabinet.c.bdb.tcbdbcur: BDBCUR,
-                                                     tcbdbcurnew,   tcbdbcurdel,
-                                                     tcbdbcurfirst, tcbdbcurlast,
-                                                     tcbdbcurjump,  tcbdbcurjumpback,
-                                                     tcbdbcurprev,  tcbdbcurnext,
-                                                     tcbdbcurout,   tcbdbcurrec,
-                                                     tcbdbcurkey3;
+import ocean.db.tokyocabinet.c.util.tcxstr:  TCXSTR;
+import ocean.db.tokyocabinet.c.bdb.tcbdbcur: BDBCUR,
+                                             tcbdbcurnew,   tcbdbcurdel,
+                                             tcbdbcurfirst, tcbdbcurlast,
+                                             tcbdbcurjump,  tcbdbcurjumpback,
+                                             tcbdbcurprev,  tcbdbcurnext,
+                                             tcbdbcurout,   tcbdbcurrec,
+                                             tcbdbcurkey3;
 
-private import ocean.db.tokyocabinet.c.tcbdb:        TCBDB;
+import ocean.db.tokyocabinet.c.tcbdb:        TCBDB;
 
-private import ocean.db.tokyocabinet.util.TokyoCabinetException;
-private import ocean.db.tokyocabinet.util.TokyoCabinetExtString;
+import ocean.db.tokyocabinet.util.TokyoCabinetException;
+import ocean.db.tokyocabinet.util.TokyoCabinetExtString;
 
 
 /******************************************************************************

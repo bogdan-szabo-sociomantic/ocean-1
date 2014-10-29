@@ -14,11 +14,11 @@ module ocean.util.serialize.contiguous.Util;
 
 *******************************************************************************/
 
-private import ocean.util.serialize.contiguous.Contiguous,
-               ocean.util.serialize.contiguous.Serializer,
-               ocean.util.serialize.contiguous.Deserializer;
+import ocean.util.serialize.contiguous.Contiguous,
+       ocean.util.serialize.contiguous.Serializer,
+       ocean.util.serialize.contiguous.Deserializer;
 
-private import ocean.core.Test;
+import ocean.core.Test;
 
 /*******************************************************************************
 

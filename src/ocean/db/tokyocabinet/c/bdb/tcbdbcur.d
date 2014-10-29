@@ -1,7 +1,7 @@
 module ocean.db.tokyocabinet.c.bdb.tcbdbcur;
 
-private import ocean.db.tokyocabinet.c.tcbdb:       TCBDB;
-private import ocean.db.tokyocabinet.c.util.tcxstr: TCXSTR;
+import ocean.db.tokyocabinet.c.tcbdb:       TCBDB;
+import ocean.db.tokyocabinet.c.util.tcxstr: TCXSTR;
 
 extern (C):
 

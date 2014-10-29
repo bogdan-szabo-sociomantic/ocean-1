@@ -48,9 +48,9 @@ module ocean.io.compress.ZlibStream;
 
 *******************************************************************************/
 
-private import tango.util.compress.c.zlib;
+import tango.util.compress.c.zlib;
 
-private import tango.io.stream.Zlib : ZlibException, ZlibInput;
+import tango.io.stream.Zlib : ZlibException, ZlibInput;
 
 
 

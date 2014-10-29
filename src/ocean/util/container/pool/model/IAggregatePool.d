@@ -91,10 +91,10 @@ module ocean.util.container.pool.model.IAggregatePool;
 
 *******************************************************************************/
 
-private import ocean.util.container.pool.model.IPool;
-private import ocean.util.container.pool.model.IFreeList;
+import ocean.util.container.pool.model.IPool;
+import ocean.util.container.pool.model.IFreeList;
 
-private import ocean.core.Array: copyExtend;
+import ocean.core.Array: copyExtend;
 
 
 

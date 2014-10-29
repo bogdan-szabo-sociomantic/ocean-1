@@ -47,12 +47,12 @@ module ocean.text.regex.PCRE;
 
 *******************************************************************************/
 
-private import ocean.core.Array : copy, concat;
-private import ocean.text.convert.Layout;
-private import ocean.text.util.StringC;
-private import ocean.text.regex.c.pcre;
+import ocean.core.Array : copy, concat;
+import ocean.text.convert.Layout;
+import ocean.text.util.StringC;
+import ocean.text.regex.c.pcre;
 
-private import tango.stdc.stdlib : free;
+import tango.stdc.stdlib : free;
 
 
 

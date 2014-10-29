@@ -15,14 +15,14 @@
 
 module ocean.util.log.layout.LayoutStatsLog;
 
-private import  tango.text.Util;
+import  tango.text.Util;
 
-private import  tango.time.Clock,
-                tango.time.WallClock;
+import  tango.time.Clock,
+        tango.time.WallClock;
 
-private import  tango.util.log.Log;
+import  tango.util.log.Log;
 
-private import  Integer = tango.text.convert.Integer;
+import  Integer = tango.text.convert.Integer;
 
 /*******************************************************************************
 

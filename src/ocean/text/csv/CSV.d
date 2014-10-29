@@ -51,9 +51,9 @@ module ocean.text.csv.CSV;
 
 *******************************************************************************/
 
-private import ocean.util.container.AppendBuffer;
+import ocean.util.container.AppendBuffer;
 
-private import tango.io.model.IConduit;
+import tango.io.model.IConduit;
 
 
 
@@ -264,7 +264,7 @@ public class CSV
 
 version ( UnitTest )
 {
-    private import tango.io.device.Array;
+    import tango.io.device.Array;
 }
 
 unittest

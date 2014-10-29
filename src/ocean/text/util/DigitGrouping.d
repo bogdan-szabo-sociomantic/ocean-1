@@ -41,15 +41,15 @@ module ocean.text.util.DigitGrouping;
 
 *******************************************************************************/
 
-private import ocean.core.Array;
+import ocean.core.Array;
 
-private import ocean.text.util.MetricPrefix;
+import ocean.text.util.MetricPrefix;
 
-private import Ocean = ocean.text.convert.Layout;
+import Ocean = ocean.text.convert.Layout;
 
-private import tango.text.convert.Layout;
+import tango.text.convert.Layout;
 
-private import tango.core.Traits;
+import tango.core.Traits;
 
 
 

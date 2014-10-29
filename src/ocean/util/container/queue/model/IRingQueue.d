@@ -20,9 +20,9 @@ module ocean.util.container.queue.model.IRingQueue;
 
 *******************************************************************************/
 
-private import ocean.util.container.queue.model.IQueueInfo;
+import ocean.util.container.queue.model.IQueueInfo;
 
-private import ocean.util.container.mem.MemManager;
+import ocean.util.container.mem.MemManager;
 
 
 

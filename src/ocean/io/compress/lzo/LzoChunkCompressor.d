@@ -21,11 +21,11 @@ module ocean.io.compress.lzo.LzoChunkCompressor;
 
 *******************************************************************************/
 
-private import ocean.io.compress.Lzo;
+import ocean.io.compress.Lzo;
 
-private import ocean.io.compress.lzo.LzoChunk;
+import ocean.io.compress.lzo.LzoChunk;
 
-private import ocean.io.compress.lzo.LzoHeader;
+import ocean.io.compress.lzo.LzoHeader;
 
 
 

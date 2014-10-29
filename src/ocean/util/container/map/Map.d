@@ -33,7 +33,7 @@
 
     ---
 
-        private import ocean.util.container.map.HashMap;
+        import ocean.util.container.map.HashMap;
 
         // Mapping from hash_t -> int
         auto map = new HashMap!(int);
@@ -84,15 +84,15 @@ module ocean.util.container.map.Map;
 
 *******************************************************************************/
 
-private import ocean.util.container.map.model.BucketSet;
+import ocean.util.container.map.model.BucketSet;
 
-private import ocean.util.container.map.model.Bucket;
+import ocean.util.container.map.model.Bucket;
 
-private import ocean.util.container.map.model.MapIterator;
+import ocean.util.container.map.model.MapIterator;
 
-private import ocean.util.container.map.model.StandardHash;
+import ocean.util.container.map.model.StandardHash;
 
-version (UnitTestVerbose) private import ocean.io.Stdout;
+version (UnitTestVerbose) import ocean.io.Stdout;
 
 
 
@@ -106,7 +106,7 @@ version (UnitTestVerbose) private import ocean.io.Stdout;
 
 version ( UnitTestVerbose )
 {
-    private import ocean.io.Stdout;
+    import ocean.io.Stdout;
 }
 
 /*******************************************************************************
@@ -1126,8 +1126,8 @@ public abstract class Map ( size_t V, K ) : BucketSet!(V, K)
 
 version (UnitTest)
 {
-    private import tango.core.Memory;
-    private import ocean.core.Test;
+    import tango.core.Memory;
+    import ocean.core.Test;
 
     void test_key (T) ()
     {

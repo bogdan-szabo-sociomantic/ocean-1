@@ -37,17 +37,17 @@ module ocean.core.Array;
 
 *******************************************************************************/
 
-private import ocean.core.Traits: ReturnAndArgumentTypesOf;
+import ocean.core.Traits: ReturnAndArgumentTypesOf;
 
-private import tango.core.Traits;
+import tango.core.Traits;
 
-private import tango.stdc.string : memmove, memset;
+import tango.stdc.string : memmove, memset;
 
-private import tango.stdc.posix.sys.types : ssize_t;
+import tango.stdc.posix.sys.types : ssize_t;
 
-private import tango.text.Util : patterns;
+import tango.text.Util : patterns;
 
-private import tango.stdc.math: fabs;
+import tango.stdc.math: fabs;
 
 /*******************************************************************************
 
@@ -543,7 +543,7 @@ public T[] uniq ( T, bool sort = true ) ( T[] array )
 
 version ( UnitTest )
 {
-    private import ocean.core.Test;
+    import ocean.core.Test;
 }
 
 /*******************************************************************************

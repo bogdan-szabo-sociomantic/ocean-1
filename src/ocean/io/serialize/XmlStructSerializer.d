@@ -82,17 +82,17 @@ module ocean.io.serialize.XmlStructSerializer;
 
 *******************************************************************************/
 
-private import ocean.core.Array;
+import ocean.core.Array;
 
-private import ocean.io.serialize.StructSerializer;
+import ocean.io.serialize.StructSerializer;
 
-private import tango.core.Array;
+import tango.core.Array;
 
-private import tango.core.Traits;
+import tango.core.Traits;
 
-private import Integer = tango.text.convert.Integer;
+import Integer = tango.text.convert.Integer;
 
-private import Float = tango.text.convert.Float;
+import Float = tango.text.convert.Float;
 
 
 

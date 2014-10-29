@@ -22,15 +22,15 @@ module ocean.util.Unittest;
 *******************************************************************************/
 
 
-private import Integer = tango.text.convert.Integer;
+import Integer = tango.text.convert.Integer;
 
-private import tango.util.log.AppendConsole;
+import tango.util.log.AppendConsole;
 
-private import tango.util.log.Log;
+import tango.util.log.Log;
 
-private import tango.io.Stdout;
+import tango.io.Stdout;
 
-private import tango.text.convert.Format;
+import tango.text.convert.Format;
 
 /*******************************************************************************
 

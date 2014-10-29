@@ -30,7 +30,7 @@ module ocean.util.container.ConcatBuffer;
 
 *******************************************************************************/
 
-private import ocean.core.Array : removeShift;
+import ocean.core.Array : removeShift;
 
 
 

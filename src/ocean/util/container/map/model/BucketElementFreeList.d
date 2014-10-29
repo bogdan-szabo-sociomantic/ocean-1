@@ -20,9 +20,9 @@ module ocean.util.container.map.model.BucketElementFreeList;
 
  ******************************************************************************/
 
-private import ocean.util.container.map.model.IAllocator;
+import ocean.util.container.map.model.IAllocator;
 
-private import ocean.core.Array: clear;
+import ocean.core.Array: clear;
 
 /*******************************************************************************
 

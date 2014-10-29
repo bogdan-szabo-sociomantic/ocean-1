@@ -12,7 +12,7 @@
 
     ---
 
-        private import ocean.io.serialize.SimpleSerializer;
+        import ocean.io.serialize.SimpleSerializer;
 
         scope file = new File("myfile.dat", File.WriteCreate);
 
@@ -28,7 +28,7 @@
 
     ---
 
-        private import ocean.io.serialize.SimpleSerializer;
+        import ocean.io.serialize.SimpleSerializer;
 
         scope file = new File("myfile.dat", File.ReadExisting);
 
@@ -52,13 +52,13 @@ module ocean.io.serialize.SimpleSerializer;
 
 *******************************************************************************/
 
-private import ocean.core.Exception: enforce;
+import ocean.core.Exception: enforce;
 
-private import tango.core.Exception: IOException;
+import tango.core.Exception: IOException;
 
-private import tango.core.Traits;
+import tango.core.Traits;
 
-private import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
+import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
 
 
 public alias SimpleSerializerT!(true) SimpleSerializerArrays;
@@ -436,9 +436,9 @@ static:
 
 version ( UnitTest )
 {
-    version (UnitTestVerbose) private import ocean.io.Stdout;
-    private import ocean.io.device.MemoryDevice;
-    private import ocean.core.Test;
+    version (UnitTestVerbose) import ocean.io.Stdout;
+    import ocean.io.device.MemoryDevice;
+    import ocean.core.Test;
 
     void testSerialization ( T ) ( T write )
     {

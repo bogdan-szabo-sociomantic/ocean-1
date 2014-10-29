@@ -26,8 +26,8 @@ module ocean.time.timeout.model.ITimeoutManager;
 
 *******************************************************************************/
 
-private import ocean.time.timeout.model.ITimeoutClient,
-               ocean.time.timeout.model.IExpiryRegistration : IExpiryRegistration;
+import ocean.time.timeout.model.ITimeoutClient,
+       ocean.time.timeout.model.IExpiryRegistration : IExpiryRegistration;
 
 /******************************************************************************/
 

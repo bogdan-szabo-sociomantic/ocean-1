@@ -54,9 +54,9 @@ module ocean.io.select.client.SelectEvent;
 
 *******************************************************************************/
 
-private import ocean.sys.EventFD;
+import ocean.sys.EventFD;
 
-private import ocean.io.select.client.model.ISelectClient;
+import ocean.io.select.client.model.ISelectClient;
 
 
 

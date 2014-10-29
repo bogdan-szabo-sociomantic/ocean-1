@@ -21,7 +21,7 @@ module ocean.core.ContextUnion;
 
 *******************************************************************************/
 
-private import ocean.core.SmartUnion;
+import ocean.core.SmartUnion;
 
 
 

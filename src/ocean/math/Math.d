@@ -111,7 +111,7 @@ T divRoundEven(T)(T a, T b)
 
 version (UnitTest)
 {
-    private import tango.math.Math : rndlong;
+    import tango.math.Math : rndlong;
 }
 
 unittest

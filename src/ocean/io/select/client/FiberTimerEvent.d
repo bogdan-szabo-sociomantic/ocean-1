@@ -17,13 +17,13 @@ module ocean.io.select.client.FiberTimerEvent;
 
 *******************************************************************************/
 
-private import ocean.core.MessageFiber;
+import ocean.core.MessageFiber;
 
-private import ocean.sys.TimerFD;
+import ocean.sys.TimerFD;
 
-private import ocean.io.select.client.model.IFiberSelectClient;
+import ocean.io.select.client.model.IFiberSelectClient;
 
-private import tango.stdc.math: modf;
+import tango.stdc.math: modf;
 
 
 
@@ -205,8 +205,8 @@ public class FiberTimerEvent : IFiberSelectClient
     debug
     {
         private char[] time_buffer;
-        private import ocean.core.Array : copy;
-        private import ocean.text.convert.Layout;
+        import ocean.core.Array : copy;
+        import ocean.text.convert.Layout;
 
         public override char[] id ( )
         {

@@ -19,7 +19,7 @@ module ocean.core.Exception;
 
 *******************************************************************************/
 
-private import tango.text.convert.Format;
+import tango.text.convert.Format;
 
 /******************************************************************************
 

@@ -27,8 +27,8 @@ module ocean.io.console.readline.History;
 
 *******************************************************************************/
 
-private import C = ocean.io.console.readline.c.history;
-private import ocean.text.util.StringC;
+import C = ocean.io.console.readline.c.history;
+import ocean.text.util.StringC;
 
 static this()
 {

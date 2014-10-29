@@ -91,9 +91,9 @@ module ocean.io.Retry;
 
 *******************************************************************************/
 
-private import Ctime = tango.stdc.posix.time : nanosleep, timespec;
+import Ctime = tango.stdc.posix.time : nanosleep, timespec;
 
-private import tango.stdc.time : time_t;
+import tango.stdc.time : time_t;
 
 
 

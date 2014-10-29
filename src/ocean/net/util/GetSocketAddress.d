@@ -29,19 +29,19 @@ module ocean.net.util.GetSocketAddress;
 
  ******************************************************************************/
 
-private import tango.io.model.IConduit: ISelectable;
+import tango.io.model.IConduit: ISelectable;
 
-private import tango.stdc.posix.sys.socket: getsockname, getpeername, socklen_t, sockaddr;
+import tango.stdc.posix.sys.socket: getsockname, getpeername, socklen_t, sockaddr;
 
-private import tango.stdc.posix.arpa.inet: ntohs, inet_ntop, INET_ADDRSTRLEN, INET6_ADDRSTRLEN;
+import tango.stdc.posix.arpa.inet: ntohs, inet_ntop, INET_ADDRSTRLEN, INET6_ADDRSTRLEN;
 
-private import tango.stdc.posix.netinet.in_: sa_family_t, in_port_t, sockaddr_in, sockaddr_in6, in_addr, in6_addr;
+import tango.stdc.posix.netinet.in_: sa_family_t, in_port_t, sockaddr_in, sockaddr_in6, in_addr, in6_addr;
 
-private import tango.stdc.errno;
+import tango.stdc.errno;
 
-private import consts = tango.sys.linux.consts.socket;
+import consts = tango.sys.linux.consts.socket;
 
-private import tango.stdc.string: strlen;
+import tango.stdc.string: strlen;
 
 extern (C) private char* strerror_r(int n, char* dst, size_t dst_length);
 

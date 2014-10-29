@@ -22,8 +22,8 @@
 
 module ocean.util.container.ebtree.c.ebsttree;
 
-private import ocean.util.container.ebtree.c.ebtree;
-private import ocean.util.container.ebtree.c.ebmbtree;
+import ocean.util.container.ebtree.c.ebtree;
+import ocean.util.container.ebtree.c.ebmbtree;
 
 extern (C):
 

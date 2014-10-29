@@ -41,10 +41,10 @@ module ocean.util.container.pool.model.IPool;
 
 *******************************************************************************/
 
-private import ocean.util.container.pool.model.IPoolInfo;
-private import ocean.util.container.pool.model.ILimitable;
+import ocean.util.container.pool.model.IPoolInfo;
+import ocean.util.container.pool.model.ILimitable;
 
-private import ocean.core.Array: copy;
+import ocean.core.Array: copy;
 
 
 

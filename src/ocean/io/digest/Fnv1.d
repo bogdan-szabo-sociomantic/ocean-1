@@ -20,9 +20,9 @@ module  ocean.io.digest.Fnv1;
 
 *******************************************************************************/
 
-private import tango.util.digest.Digest;
+import tango.util.digest.Digest;
 
-private import tango.core.ByteSwap;
+import tango.core.ByteSwap;
 
 
 

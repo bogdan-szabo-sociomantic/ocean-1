@@ -21,9 +21,9 @@ module ocean.net.server.connpool.ISelectListenerPoolInfo;
 
 *******************************************************************************/
 
-private import ocean.net.server.connection.IConnectionHandlerInfo;
+import ocean.net.server.connection.IConnectionHandlerInfo;
 
-private import ocean.util.container.pool.model.IPoolInfo;
+import ocean.util.container.pool.model.IPoolInfo;
 
 
 

@@ -16,13 +16,13 @@ module ocean.util.container.cache.CachingStructLoader;
 
 *******************************************************************************/
 
-private import ocean.util.container.cache.ExpiringCache,
-               ocean.util.container.cache.model.IExpiringCacheInfo;
-private import CacheValue = ocean.util.container.cache.model.Value;
+import ocean.util.container.cache.ExpiringCache,
+       ocean.util.container.cache.model.IExpiringCacheInfo;
+import CacheValue = ocean.util.container.cache.model.Value;
 
-private import ocean.util.serialize.contiguous.package_;
+import ocean.util.serialize.contiguous.package_;
 
-private import tango.stdc.time: time_t, time;
+import tango.stdc.time: time_t, time;
 
 /*******************************************************************************
 

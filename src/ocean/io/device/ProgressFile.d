@@ -42,7 +42,7 @@ module ocean.io.device.ProgressFile;
 
 *******************************************************************************/
 
-private import tango.io.device.File;
+import tango.io.device.File;
 
 
 

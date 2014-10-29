@@ -20,7 +20,7 @@ module ocean.util.container.queue.model.IByteQueue;
 
 *******************************************************************************/
 
-private import ocean.util.container.queue.model.IQueueInfo;
+import ocean.util.container.queue.model.IQueueInfo;
 
 
 

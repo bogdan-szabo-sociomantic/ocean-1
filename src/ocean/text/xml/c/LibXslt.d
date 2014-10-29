@@ -20,9 +20,9 @@ module ocean.text.xml.c.LibXslt;
 
 *******************************************************************************/
 
-private import ocean.text.xml.c.LibXml2;
+import ocean.text.xml.c.LibXml2;
 
-private import tango.stdc.stdio;
+import tango.stdc.stdio;
 
 
 

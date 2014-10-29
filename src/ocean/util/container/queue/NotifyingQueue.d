@@ -82,17 +82,17 @@ module ocean.util.container.queue.NotifyingQueue;
 
 *******************************************************************************/
 
-private import ocean.util.container.queue.FlexibleRingQueue;
+import ocean.util.container.queue.FlexibleRingQueue;
 
-private import ocean.util.container.queue.model.IByteQueue;
+import ocean.util.container.queue.model.IByteQueue;
 
-private import ocean.util.container.queue.model.IQueueInfo;
+import ocean.util.container.queue.model.IQueueInfo;
 
-private import ocean.io.serialize.StructSerializer;
+import ocean.io.serialize.StructSerializer;
 
-private import ocean.core.Array;
+import ocean.core.Array;
 
-private import ocean.util.container.AppendBuffer;
+import ocean.util.container.AppendBuffer;
 
 
 

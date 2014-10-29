@@ -64,18 +64,18 @@ module ocean.io.select.client.IntervalClock;
 
  ******************************************************************************/
 
-private import ocean.io.select.client.TimerEvent;
+import ocean.io.select.client.TimerEvent;
 
-private import ocean.time.model.IMicrosecondsClock,
-               ocean.time.MicrosecondsClock;
+import ocean.time.model.IMicrosecondsClock,
+       ocean.time.MicrosecondsClock;
 
-private import tango.stdc.stdlib: div;
+import tango.stdc.stdlib: div;
 
-private import tango.stdc.posix.sys.time: timeval, timespec, gettimeofday;
-private import tango.stdc.posix.time:     gmtime_r, localtime_r;
-private import tango.stdc.time:           gmtime, tm, time_t;
+import tango.stdc.posix.sys.time: timeval, timespec, gettimeofday;
+import tango.stdc.posix.time:     gmtime_r, localtime_r;
+import tango.stdc.time:           gmtime, tm, time_t;
 
-private import tango.time.Time;
+import tango.time.Time;
 
 public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
 {

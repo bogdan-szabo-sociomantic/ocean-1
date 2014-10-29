@@ -18,9 +18,9 @@
 
 module @MODULE@;
 
-private import ocean.core.VersionIdentifiers;
-private import ocean.util.app.ext.VersionInfo;
-private import tango.core.Version: getVersionString;
+import ocean.core.VersionIdentifiers;
+import ocean.util.app.ext.VersionInfo;
+import tango.core.Version: getVersionString;
 
 public VersionInfo Version;
 

@@ -18,12 +18,12 @@ module ocean.util.container.cache.model.ICache;
 
 *******************************************************************************/
 
-private import ocean.util.container.cache.model.ICacheInfo;
+import ocean.util.container.cache.model.ICacheInfo;
 
-private import ocean.util.container.cache.model.containers.TimeToIndex;
-private import ocean.util.container.cache.model.containers.KeyToNode;
+import ocean.util.container.cache.model.containers.TimeToIndex;
+import ocean.util.container.cache.model.containers.KeyToNode;
 
-private import tango.stdc.time: time_t, time;
+import tango.stdc.time: time_t, time;
 
 /******************************************************************************/
 

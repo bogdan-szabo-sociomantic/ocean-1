@@ -31,16 +31,16 @@ module ocean.util.container.queue.QueueChain;
 
 *******************************************************************************/
 
-private import ocean.util.container.queue.model.IByteQueue;
+import ocean.util.container.queue.model.IByteQueue;
 
-private import ocean.util.container.queue.model.IQueueInfo;
+import ocean.util.container.queue.model.IQueueInfo;
 
-private import ocean.util.container.queue.FlexibleRingQueue;
+import ocean.util.container.queue.FlexibleRingQueue;
 
 
-private import tango.io.stream.Buffered,
-               tango.io.device.File,
-               Filesystem = tango.io.Path;
+import tango.io.stream.Buffered,
+       tango.io.device.File,
+       Filesystem = tango.io.Path;
 
 
 

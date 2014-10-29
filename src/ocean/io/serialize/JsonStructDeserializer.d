@@ -80,19 +80,19 @@ module ocean.io.serialize.JsonStructDeserializer;
 
 *******************************************************************************/
 
-private import ocean.core.Array;
+import ocean.core.Array;
 
-private import ocean.core.Exception;
+import ocean.core.Exception;
 
-private import tango.core.Traits : isCharType, isRealType, isIntegerType, isStaticArrayType;
+import tango.core.Traits : isCharType, isRealType, isIntegerType, isStaticArrayType;
 
-private import Float = tango.text.convert.Float;
+import Float = tango.text.convert.Float;
 
-private import Integer = tango.text.convert.Integer;
+import Integer = tango.text.convert.Integer;
 
-private import tango.text.json.JsonParser;
+import tango.text.json.JsonParser;
 
-debug ( Json ) private import tango.util.log.Trace;
+debug ( Json ) import tango.util.log.Trace;
 
 
 /*******************************************************************************

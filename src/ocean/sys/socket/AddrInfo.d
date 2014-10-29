@@ -18,19 +18,18 @@ module ocean.sys.socket.AddrInfo;
 
 *******************************************************************************/
 
-private import tango.stdc.posix.netinet.in_:
-                                    sockaddr, socklen_t,
-                                    sockaddr_in,  AF_INET,  INET_ADDRSTRLEN,
-                                    sockaddr_in6, AF_INET6, INET6_ADDRSTRLEN,
-                                    SOCK_STREAM, IPPROTO_TCP;
+import tango.stdc.posix.netinet.in_: sockaddr, socklen_t,
+                                     sockaddr_in,  AF_INET,  INET_ADDRSTRLEN,
+                                     sockaddr_in6, AF_INET6, INET6_ADDRSTRLEN,
+                                     SOCK_STREAM, IPPROTO_TCP;
 
-private import tango.stdc.posix.arpa.inet: inet_ntop, inet_pton, ntohs, htons, htonl;
+import tango.stdc.posix.arpa.inet: inet_ntop, inet_pton, ntohs, htons, htonl;
 
-private import tango.stdc.errno: errno, EAFNOSUPPORT;
+import tango.stdc.errno: errno, EAFNOSUPPORT;
 
-private import tango.stdc.string: strlen;
+import tango.stdc.string: strlen;
 
-private import ocean.core.Array: concat;
+import ocean.core.Array: concat;
 
 /*******************************************************************************
 

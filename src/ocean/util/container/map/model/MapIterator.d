@@ -15,7 +15,7 @@
 
 module ocean.util.container.map.model.MapIterator;
 
-private import ocean.util.container.map.model.Bucket;
+import ocean.util.container.map.model.Bucket;
 
 /*******************************************************************************
 

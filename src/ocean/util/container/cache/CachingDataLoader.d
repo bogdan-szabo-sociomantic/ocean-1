@@ -20,13 +20,13 @@ module ocean.util.container.cache.CachingDataLoader;
 
  ******************************************************************************/
 
-private import ocean.util.container.cache.ExpiringCache;
-private import ocean.util.container.cache.model.IExpiringCacheInfo;
-private import CacheValue = ocean.util.container.cache.model.Value;
+import ocean.util.container.cache.ExpiringCache;
+import ocean.util.container.cache.model.IExpiringCacheInfo;
+import CacheValue = ocean.util.container.cache.model.Value;
 
-private import ocean.io.serialize.StructLoader: IBufferedStructLoader;
+import ocean.io.serialize.StructLoader: IBufferedStructLoader;
 
-private import tango.stdc.time: time_t, time;
+import tango.stdc.time: time_t, time;
 
 pragma(msg, "Deprecation: use CachingStructLoader instead of CachingDataLoader");
 

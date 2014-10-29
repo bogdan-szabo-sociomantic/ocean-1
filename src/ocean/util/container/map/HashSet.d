@@ -13,7 +13,7 @@
 
     ---
 
-        private import ocean.util.container.map.HashSet;
+        import ocean.util.container.map.HashSet;
 
         // A set of hash_t's
         auto set = new HashSet;
@@ -46,9 +46,9 @@ module ocean.util.container.map.HashSet;
 
 *******************************************************************************/
 
-private import ocean.util.container.map.Set;
+import ocean.util.container.map.Set;
 
-version (UnitTestVerbose) private import ocean.io.Stdout;
+version (UnitTestVerbose) import ocean.io.Stdout;
 
 
 
@@ -62,7 +62,7 @@ version (UnitTestVerbose) private import ocean.io.Stdout;
 
 version ( UnitTestVerbose )
 {
-    private import tango.io.Stdout;
+    import tango.io.Stdout;
 }
 
 /*******************************************************************************

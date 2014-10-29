@@ -15,12 +15,12 @@ module ocean.util.serialize.contiguous.Contiguous;
 
 *******************************************************************************/
 
-private import ocean.core.Exception,
-               ocean.core.Traits;
+import ocean.core.Exception,
+       ocean.core.Traits;
 
 version(UnitTest)
 {
-    private import ocean.core.Test;
+    import ocean.core.Test;
 
     debug = ContiguousIntegrity;
 }

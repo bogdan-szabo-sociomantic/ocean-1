@@ -20,9 +20,9 @@ module ocean.db.tokyocabinet.model.ITokyoCabinet;
 
  ******************************************************************************/
 
-private import ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
-private import ocean.text.util.StringC;
-private import tango.stdc.stdlib: free;
+import ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
+import ocean.text.util.StringC;
+import tango.stdc.stdlib: free;
 
 
 /******************************************************************************

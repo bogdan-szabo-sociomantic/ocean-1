@@ -20,11 +20,11 @@ module ocean.text.xml.c.LibXml2;
 
 *******************************************************************************/
 
-private import ocean.core.Array;
+import ocean.core.Array;
 
-private import tango.stdc.string;
+import tango.stdc.string;
 
-private import tango.stdc.stdarg;
+import tango.stdc.stdarg;
 
 
 

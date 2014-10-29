@@ -43,14 +43,14 @@ module ocean.net.http.HttpResponse;
 
  ******************************************************************************/
 
-private import ocean.net.http.message.HttpHeader;
+import ocean.net.http.message.HttpHeader;
 
-private import ocean.net.http.consts.StatusCodes: StatusCode, StatusPhrases;
-private import ocean.net.http.consts.HttpVersion: HttpVersion, HttpVersionIds;
+import ocean.net.http.consts.StatusCodes: StatusCode, StatusPhrases;
+import ocean.net.http.consts.HttpVersion: HttpVersion, HttpVersionIds;
 
-private import ocean.net.http.time.HttpTimeFormatter;
+import ocean.net.http.time.HttpTimeFormatter;
 
-private import ocean.util.container.AppendBuffer;
+import ocean.util.container.AppendBuffer;
 
 /******************************************************************************/
 

@@ -100,11 +100,11 @@ module ocean.sys.EventFD;
 
 *******************************************************************************/
 
-private import tango.io.model.IConduit;
+import tango.io.model.IConduit;
 
-private import tango.stdc.posix.sys.types: ssize_t;
+import tango.stdc.posix.sys.types: ssize_t;
 
-private import tango.stdc.posix.unistd: read, write, close;
+import tango.stdc.posix.unistd: read, write, close;
 
 
 

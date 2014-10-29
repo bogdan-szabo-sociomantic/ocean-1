@@ -18,7 +18,7 @@ module ocean.net.http.consts.HttpVersion;
 
  ******************************************************************************/
 
-private import tango.stdc.ctype: isdigit;
+import tango.stdc.ctype: isdigit;
 
 /******************************************************************************
 

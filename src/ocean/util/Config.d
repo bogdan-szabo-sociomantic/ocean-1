@@ -22,7 +22,7 @@ module ocean.util.Config;
 
 *******************************************************************************/
 
-private import ocean.util.config.ConfigParser;
+import ocean.util.config.ConfigParser;
 
 
 /*******************************************************************************

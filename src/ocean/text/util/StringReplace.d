@@ -48,9 +48,9 @@ module ocean.text.util.StringReplace;
 
  ******************************************************************************/
 
-private import ocean.text.util.StringSearch;
+import ocean.text.util.StringSearch;
 
-private import ocean.text.convert.Layout;
+import ocean.text.convert.Layout;
 
 /******************************************************************************
 

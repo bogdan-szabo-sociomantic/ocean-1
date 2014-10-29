@@ -38,11 +38,11 @@ module ocean.text.entities.HtmlEntityCodec;
 
 *******************************************************************************/
 
-private import ocean.text.entities.model.MarkupEntityCodec;
+import ocean.text.entities.model.MarkupEntityCodec;
 
-private import ocean.text.entities.HtmlEntitySet;
+import ocean.text.entities.HtmlEntitySet;
 
-private import ocean.text.util.StringReplace;
+import ocean.text.util.StringReplace;
 
 
 

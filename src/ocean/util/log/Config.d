@@ -78,24 +78,24 @@ module ocean.util.log.Config;
 
 *******************************************************************************/
 
-private import ocean.io.Stdout;
-private import ocean.core.Array : removePrefix, removeSuffix;
-private import ocean.util.Config;
-private import ocean.util.config.ClassFiller;
-private import ocean.util.config.ConfigParser;
-private import ocean.text.util.StringSearch;
+import ocean.io.Stdout;
+import ocean.core.Array : removePrefix, removeSuffix;
+import ocean.util.Config;
+import ocean.util.config.ClassFiller;
+import ocean.util.config.ConfigParser;
+import ocean.text.util.StringSearch;
 
-private import tango.util.log.Log;
-private import tango.util.log.AppendSyslog;
-private import ocean.util.log.InsertConsole;
-private import tango.util.log.AppendConsole;
+import tango.util.log.Log;
+import tango.util.log.AppendSyslog;
+import ocean.util.log.InsertConsole;
+import tango.util.log.AppendConsole;
 
 // Log layouts
-private import ocean.util.log.layout.LayoutMessageOnly;
-private import ocean.util.log.layout.LayoutStatsLog;
-private import ocean.util.log.layout.LayoutSimple;
-private import tango.util.log.LayoutDate;
-private import tango.util.log.LayoutChainsaw;
+import ocean.util.log.layout.LayoutMessageOnly;
+import ocean.util.log.layout.LayoutStatsLog;
+import ocean.util.log.layout.LayoutSimple;
+import tango.util.log.LayoutDate;
+import tango.util.log.LayoutChainsaw;
 
 
 /*******************************************************************************

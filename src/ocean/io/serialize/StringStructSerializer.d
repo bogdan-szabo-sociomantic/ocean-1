@@ -58,13 +58,13 @@ module ocean.io.serialize.StringStructSerializer;
 
 *******************************************************************************/
 
-private import ocean.core.Array;
+import ocean.core.Array;
 
-private import ocean.io.serialize.StructSerializer;
+import ocean.io.serialize.StructSerializer;
 
-private import ocean.text.convert.Layout;
+import ocean.text.convert.Layout;
 
-private import tango.core.Traits;
+import tango.core.Traits;
 
 
 

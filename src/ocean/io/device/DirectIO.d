@@ -62,13 +62,13 @@ module ocean.io.device.DirectIO;
 
 *******************************************************************************/
 
-private import tango.io.model.IConduit;
+import tango.io.model.IConduit;
 
-private import tango.io.device.File;
+import tango.io.device.File;
 
-private import tango.core.Exception: IOException;
+import tango.core.Exception: IOException;
 
-private import tango.stdc.posix.fcntl : O_DIRECT; // Linux only
+import tango.stdc.posix.fcntl : O_DIRECT; // Linux only
 
 
 

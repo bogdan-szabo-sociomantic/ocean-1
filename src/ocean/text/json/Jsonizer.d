@@ -37,17 +37,17 @@ module ocean.text.json.Jsonizer;
 
 *******************************************************************************/
 
-private import ocean.core.Array;
+import ocean.core.Array;
 
-private import tango.core.Array;
+import tango.core.Array;
 
-private import tango.core.Traits : isRealType, isIntegerType;
+import tango.core.Traits : isRealType, isIntegerType;
 
-private import tango.math.IEEE : isNaN;
+import tango.math.IEEE : isNaN;
 
-private import Integer = tango.text.convert.Integer;
+import Integer = tango.text.convert.Integer;
 
-private import Float = tango.text.convert.Float;
+import Float = tango.text.convert.Float;
 
 
 

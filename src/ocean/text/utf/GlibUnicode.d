@@ -22,10 +22,10 @@ module ocean.text.utf.GlibUnicode;
 
  ******************************************************************************/
 
-private import ocean.text.utf.c.glib_unicode: g_unichar_to_utf8,
-                                              g_unichar_tolower,
-                                              g_unichar_toupper,
-                                              g_unichar_totitle;
+import ocean.text.utf.c.glib_unicode: g_unichar_to_utf8,
+                                      g_unichar_tolower,
+                                      g_unichar_toupper,
+                                      g_unichar_totitle;
 
 public  import ocean.text.utf.c.glib_unicode: GUtf8Validation;
 

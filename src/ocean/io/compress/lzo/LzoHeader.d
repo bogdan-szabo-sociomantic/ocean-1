@@ -35,13 +35,13 @@
 
 module ocean.io.compress.lzo.LzoHeader;
 
-private import ocean.io.compress.lzo.LzoCrc;
+import ocean.io.compress.lzo.LzoCrc;
 
-private import ocean.io.compress.CompressException;
+import ocean.io.compress.CompressException;
 
-private import ocean.core.Exception: enforce;
+import ocean.core.Exception: enforce;
 
-version (UnitTestVerbose) private import tango.util.log.Trace;
+version (UnitTestVerbose) import tango.util.log.Trace;
 
 /******************************************************************************
 

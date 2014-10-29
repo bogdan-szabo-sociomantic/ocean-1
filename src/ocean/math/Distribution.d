@@ -100,9 +100,9 @@ module ocean.math.Distribution;
 
 *******************************************************************************/
 
-private import ocean.core.Array : bsearch;
+import ocean.core.Array : bsearch;
 
-private import ocean.util.container.AppendBuffer;
+import ocean.util.container.AppendBuffer;
 
 
 

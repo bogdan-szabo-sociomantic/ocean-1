@@ -19,9 +19,9 @@ module ocean.io.Terminal;
 
 ******************************************************************************/
 
-private import tango.stdc.posix.signal;
+import tango.stdc.posix.signal;
 
-debug(Term) private import tango.io.Stdout;
+debug(Term) import tango.io.Stdout;
 
 
 private

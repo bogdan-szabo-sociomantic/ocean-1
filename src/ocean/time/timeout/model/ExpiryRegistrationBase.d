@@ -22,10 +22,10 @@ module ocean.time.timeout.model.ExpiryRegistrationBase;
 
 *******************************************************************************/
 
-private import ocean.time.timeout.model.IExpiryRegistration,
-               ocean.time.timeout.model.ITimeoutClient;
+import ocean.time.timeout.model.IExpiryRegistration,
+       ocean.time.timeout.model.ITimeoutClient;
 
-debug private import tango.io.Stdout;
+debug import tango.io.Stdout;
 
 /*******************************************************************************
 
@@ -36,7 +36,7 @@ debug private import tango.io.Stdout;
 
 *******************************************************************************/
 
-private import ocean.util.container.ebtree.EBTree64;
+import ocean.util.container.ebtree.EBTree64;
 
 alias EBTree64!() ExpiryTree;
 

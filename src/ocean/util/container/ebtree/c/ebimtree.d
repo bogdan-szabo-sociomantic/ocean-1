@@ -20,8 +20,8 @@
 
 module ocean.util.container.ebtree.c.ebimtree;
 
-private import ocean.util.container.ebtree.c.ebtree;
-private import ocean.util.container.ebtree.c.ebpttree;
+import ocean.util.container.ebtree.c.ebtree;
+import ocean.util.container.ebtree.c.ebpttree;
 
 extern (C):
 

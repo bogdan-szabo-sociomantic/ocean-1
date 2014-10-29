@@ -137,27 +137,27 @@ module ocean.io.select.client.EpollProcess;
 
 *******************************************************************************/
 
-private import ocean.util.container.map.Map;
+import ocean.util.container.map.Map;
 
-private import ocean.io.select.client.model.ISelectClient;
+import ocean.io.select.client.model.ISelectClient;
 
-private import ocean.io.select.EpollSelectDispatcher;
+import ocean.io.select.EpollSelectDispatcher;
 
-private import ocean.sys.SignalHandler;
+import ocean.sys.SignalHandler;
 
-private import ocean.io.select.client.SignalEvent;
+import ocean.io.select.client.SignalEvent;
 
-private import tango.io.model.IConduit;
+import tango.io.model.IConduit;
 
-private import tango.stdc.posix.sys.wait;
+import tango.stdc.posix.sys.wait;
 
-private import tango.sys.Process;
+import tango.sys.Process;
 
-debug private import ocean.io.Stdout;
+debug import ocean.io.Stdout;
 
-private import tango.stdc.errno;
+import tango.stdc.errno;
 
-private import tango.util.log.Log;
+import tango.util.log.Log;
 
 
 
@@ -990,7 +990,7 @@ public abstract class EpollProcess
 
 version ( UnitTest )
 {
-    private import ocean.core.Test;
+    import ocean.core.Test;
 }
 
 unittest

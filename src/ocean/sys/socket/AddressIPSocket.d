@@ -14,15 +14,15 @@
 
 module ocean.sys.socket.AddressIPSocket;
 
-private import ocean.sys.socket.model.IAddressIPSocketInfo;
+import ocean.sys.socket.model.IAddressIPSocketInfo;
 
-private import ocean.sys.socket.IPSocket,
-               ocean.sys.socket.InetAddress,
-               ocean.sys.socket.AddrInfo;
+import ocean.sys.socket.IPSocket,
+       ocean.sys.socket.InetAddress,
+       ocean.sys.socket.AddrInfo;
 
-private import tango.io.device.Conduit: ISelectable;
+import tango.io.device.Conduit: ISelectable;
 
-private import tango.stdc.string: strlen;
+import tango.stdc.string: strlen;
 
 
 /******************************************************************************

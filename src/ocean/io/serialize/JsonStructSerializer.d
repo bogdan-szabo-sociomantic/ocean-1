@@ -82,13 +82,13 @@ module ocean.io.serialize.JsonStructSerializer;
 
 *******************************************************************************/
 
-private import ocean.core.Array;
+import ocean.core.Array;
 
-private import ocean.io.serialize.StructSerializer;
+import ocean.io.serialize.StructSerializer;
 
-private import ocean.text.json.Jsonizer;
+import ocean.text.json.Jsonizer;
 
-private import tango.core.Traits : isCharType;
+import tango.core.Traits : isCharType;
 
 
 

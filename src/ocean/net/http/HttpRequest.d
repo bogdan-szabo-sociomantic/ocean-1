@@ -44,20 +44,20 @@ module ocean.net.http.HttpRequest;
 
  ******************************************************************************/
 
-private import ocean.net.http.message.HttpHeader;
+import ocean.net.http.message.HttpHeader;
 
-private import ocean.net.http.message.HttpHeaderParser,
-               ocean.net.http.consts.HttpMethod,
-               ocean.net.http.consts.StatusCodes: StatusCode;
+import ocean.net.http.message.HttpHeaderParser,
+       ocean.net.http.consts.HttpMethod,
+       ocean.net.http.consts.StatusCodes: StatusCode;
 
-private import ocean.net.http.consts.HttpVersion: HttpVersionIds;
+import ocean.net.http.consts.HttpVersion: HttpVersionIds;
 
-private import ocean.net.http.HttpException: HttpException, HeaderParameterException;
+import ocean.net.http.HttpException: HttpException, HeaderParameterException;
 
-private import tango.net.Uri: Uri;
+import tango.net.Uri: Uri;
 
-private import tango.net.http.HttpConst: HttpResponseCode;
-private import ocean.net.http.time.HttpTimeParser;
+import tango.net.http.HttpConst: HttpResponseCode;
+import ocean.net.http.time.HttpTimeParser;
 
 /******************************************************************************/
 

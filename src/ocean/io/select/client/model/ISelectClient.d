@@ -29,22 +29,22 @@ module ocean.io.select.client.model.ISelectClient;
 
  ******************************************************************************/
 
-private import ocean.io.select.client.model.ISelectClientInfo;
+import ocean.io.select.client.model.ISelectClientInfo;
 
-private import ocean.sys.Epoll;
+import ocean.sys.Epoll;
 
-private import tango.io.model.IConduit: ISelectable;
+import tango.io.model.IConduit: ISelectable;
 
-private import ocean.time.timeout.model.ITimeoutClient,
-               ocean.time.timeout.model.IExpiryRegistration: IExpiryRegistration;
+import ocean.time.timeout.model.ITimeoutClient,
+       ocean.time.timeout.model.IExpiryRegistration: IExpiryRegistration;
 
-private import ocean.core.Array: concat, append;
+import ocean.core.Array: concat, append;
 
-private import ocean.text.util.ClassName;
+import ocean.text.util.ClassName;
 
-debug private import ocean.io.Stdout;
+debug import ocean.io.Stdout;
 
-debug private import ocean.text.convert.Layout;
+debug import ocean.text.convert.Layout;
 
 /******************************************************************************
 

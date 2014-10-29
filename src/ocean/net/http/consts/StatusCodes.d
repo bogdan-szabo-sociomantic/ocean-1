@@ -20,7 +20,7 @@ module ocean.net.http.consts.StatusCodes;
 
  ******************************************************************************/
 
-private import tango.net.http.HttpConst: HttpHeader, HttpResponseCode;
+import tango.net.http.HttpConst: HttpHeader, HttpResponseCode;
 
 /******************************************************************************
 

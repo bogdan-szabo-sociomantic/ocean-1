@@ -38,9 +38,9 @@ module ocean.text.entities.XmlEntityCodec;
 
 *******************************************************************************/
 
-private import ocean.text.entities.model.MarkupEntityCodec;
+import ocean.text.entities.model.MarkupEntityCodec;
 
-private import ocean.text.entities.XmlEntitySet;
+import ocean.text.entities.XmlEntitySet;
 
 
 
@@ -61,7 +61,7 @@ public alias MarkupEntityCodec!(XmlEntitySet) XmlEntityCodec;
 
 version ( UnitTest )
 {
-    private import tango.util.log.Trace;
+    import tango.util.log.Trace;
 
     void encodeTest ( Char ) ( XmlEntityCodec codec, Char[] string, Char[] expected_result )
     {

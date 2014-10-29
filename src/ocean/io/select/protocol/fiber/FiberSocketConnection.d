@@ -23,26 +23,26 @@ module ocean.io.select.protocol.fiber.FiberSocketConnection;
 
 *******************************************************************************/
 
-private import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
+import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
-private import ocean.io.select.EpollSelectDispatcher;
+import ocean.io.select.EpollSelectDispatcher;
 
-private import ocean.core.Array : copy;
+import ocean.core.Array : copy;
 
-private import ocean.sys.socket.AddressIPSocket,
-               ocean.sys.socket.InetAddress,
-               ocean.sys.socket.IPSocket: IIPSocket;
+import ocean.sys.socket.AddressIPSocket,
+       ocean.sys.socket.InetAddress,
+       ocean.sys.socket.IPSocket: IIPSocket;
 
 
-private import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
+import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
 
-private import tango.stdc.posix.sys.socket: SOL_SOCKET, IPPROTO_TCP, SO_KEEPALIVE;
+import tango.stdc.posix.sys.socket: SOL_SOCKET, IPPROTO_TCP, SO_KEEPALIVE;
 
-private import tango.stdc.errno: errno, EINPROGRESS, EINTR, EALREADY, EISCONN;
+import tango.stdc.errno: errno, EINPROGRESS, EINTR, EALREADY, EISCONN;
 
-debug ( EpollTiming ) private import tango.time.StopWatch;
+debug ( EpollTiming ) import tango.time.StopWatch;
 
-debug ( ISelectClient ) private import tango.util.log.Trace;
+debug ( ISelectClient ) import tango.util.log.Trace;
 
 
 

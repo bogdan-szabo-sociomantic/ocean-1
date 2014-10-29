@@ -117,7 +117,7 @@ public struct IncrementalAverage
 
 version (UnitTest)
 {
-    private import tango.math.IEEE;
+    import tango.math.IEEE;
 }
 
 unittest

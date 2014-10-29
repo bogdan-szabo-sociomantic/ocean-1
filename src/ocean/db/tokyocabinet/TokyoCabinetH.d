@@ -44,27 +44,27 @@ module ocean.db.tokyocabinet.TokyoCabinetH;
 
 protected   import  ocean.db.tokyocabinet.util.TokyoCabinetException;
 
-private     import  ocean.db.tokyocabinet.model.ITokyoCabinet;
+import  ocean.db.tokyocabinet.model.ITokyoCabinet;
 
-private     import  ocean.db.tokyocabinet.c.tchdb:
-                        TCHDB,      HDBOPT,        HDBOMODE,
-                        tchdbnew,   tchdbdel,      tchdbopen,     tchdbclose,
-                        tchdbtune,  tchdbsetmutex, tchdbsetcache, tchdbsetxmsiz,
-                        tchdbput,   tchdbputasync, tchdbputkeep,  tchdbputcat,
-                        tchdbget,   tchdbget3,     tchdbforeach,  tchdbsync,
-                        tchdbout,   tchdbrnum,     tchdbvsiz,     tchdbfsiz,
-                        tchdbecode, tchdberrmsg,   tchdbpath,     tchdbvanish;
+import  ocean.db.tokyocabinet.c.tchdb:
+            TCHDB,      HDBOPT,        HDBOMODE,
+            tchdbnew,   tchdbdel,      tchdbopen,     tchdbclose,
+            tchdbtune,  tchdbsetmutex, tchdbsetcache, tchdbsetxmsiz,
+            tchdbput,   tchdbputasync, tchdbputkeep,  tchdbputcat,
+            tchdbget,   tchdbget3,     tchdbforeach,  tchdbsync,
+            tchdbout,   tchdbrnum,     tchdbvsiz,     tchdbfsiz,
+            tchdbecode, tchdberrmsg,   tchdbpath,     tchdbvanish;
 
-private     import  ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
+import  ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
 
-private     import  ocean.text.util.StringC;
+import  ocean.text.util.StringC;
 
-private     import  tango.stdc.stdlib;
+import  tango.stdc.stdlib;
 
 
 debug
 {
-    private import  tango.util.log.Trace;
+    import  tango.util.log.Trace;
 }
 
 

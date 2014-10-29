@@ -21,7 +21,7 @@ module ocean.util.log.layout.LayoutMessageOnly;
 
 *******************************************************************************/
 
-private import  tango.util.log.Log;
+import  tango.util.log.Log;
 
 
 

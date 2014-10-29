@@ -21,7 +21,7 @@
 
     ---
 
-        private import ocean.util.TraceLog;
+        import ocean.util.TraceLog;
 
         TraceLog.init("etc/my_config.ini");
 
@@ -49,11 +49,11 @@ module ocean.util.TraceLog;
 
 *******************************************************************************/
 
-private import ocean.util.log.MessageLogger;
+import ocean.util.log.MessageLogger;
 
 
 
-private     import      tango.core.Vararg;
+import      tango.core.Vararg;
 
 /*******************************************************************************
 

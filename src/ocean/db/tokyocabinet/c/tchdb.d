@@ -15,17 +15,17 @@ module ocean.db.tokyocabinet.c.tchdb;
  * Boston, MA 02111-1307 USA.
  *************************************************************************************************/
 
-private import ocean.db.tokyocabinet.c.tcutil:      TCCODEC, TCERRCODE;
+import ocean.db.tokyocabinet.c.tcutil:      TCCODEC, TCERRCODE;
 
-private import ocean.db.tokyocabinet.c.util.tcxstr: TCXSTR;
-private import ocean.db.tokyocabinet.c.util.tclist: TCLIST, TCLISTDATUM, ListCmp;
-private import ocean.db.tokyocabinet.c.util.tcmap:  TCMAP;
+import ocean.db.tokyocabinet.c.util.tcxstr: TCXSTR;
+import ocean.db.tokyocabinet.c.util.tclist: TCLIST, TCLISTDATUM, ListCmp;
+import ocean.db.tokyocabinet.c.util.tcmap:  TCMAP;
 
-private import ocean.db.tokyocabinet.c.tcmdb:       TCMDB;
+import ocean.db.tokyocabinet.c.tcmdb:       TCMDB;
 
-private import ocean.db.tokyocabinet.c.util.tcmap:  TCPDPROC;
+import ocean.db.tokyocabinet.c.util.tcmap:  TCPDPROC;
 
-private import ocean.db.tokyocabinet.c.tcmdb:       TCITER;
+import ocean.db.tokyocabinet.c.tcmdb:       TCITER;
 
 extern (C):
 

@@ -33,7 +33,7 @@
 
 module ocean.util.container.ebtree.c.eb32tree;
 
-private import ocean.util.container.ebtree.c.ebtree: eb_root, eb_node;
+import ocean.util.container.ebtree.c.ebtree: eb_root, eb_node;
 
 /**
  * This structure carries a node, a leaf, and a key. It must start with the

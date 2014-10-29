@@ -1,7 +1,7 @@
 module ocean.db.tokyocabinet.c.tcmdb;
 
-private import ocean.db.tokyocabinet.c.util.tclist: TCLIST;
-private import ocean.db.tokyocabinet.c.util.tcmap:  TCMAP, TCPDPROC;
+import ocean.db.tokyocabinet.c.util.tclist: TCLIST;
+import ocean.db.tokyocabinet.c.util.tcmap:  TCMAP, TCPDPROC;
 
 /*************************************************************************************************
  * On-memory hash database

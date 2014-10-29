@@ -19,14 +19,14 @@ module ocean.util.log.MessageLogger;
 
 *******************************************************************************/
 
-private import TangoLog = tango.util.log.Log;
+import TangoLog = tango.util.log.Log;
 
-private import tango.util.log.LayoutDate,
-               tango.util.log.AppendFile;
+import tango.util.log.LayoutDate,
+       tango.util.log.AppendFile;
 
-private import tango.text.convert.Layout;
+import tango.text.convert.Layout;
 
-private import tango.io.Stdout;
+import tango.io.Stdout;
 
 
 /*******************************************************************************
@@ -37,21 +37,21 @@ private import tango.io.Stdout;
 
 version (GNU)
 {
-    private import tango.core.Vararg;
+    import tango.core.Vararg;
 
     alias void* Arg;
     alias va_list ArgList;
 }
 else version (LDC)
 {
-    private import tango.core.Vararg;
+    import tango.core.Vararg;
 
     alias void* Arg;
     alias va_list ArgList;
 }
 else version (DigitalMars)
 {
-    private import tango.core.Vararg;
+    import tango.core.Vararg;
 
     alias void* Arg;
     alias va_list ArgList;

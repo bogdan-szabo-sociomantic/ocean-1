@@ -20,7 +20,7 @@
 
 module ocean.util.container.ebtree.c.ebnode;
 
-private import ocean.util.container.ebtree.c.ebtree;
+import ocean.util.container.ebtree.c.ebtree;
 
 /*****************************************************************************
 

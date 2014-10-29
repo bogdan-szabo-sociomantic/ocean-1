@@ -20,7 +20,7 @@ module ocean.math.Range;
 
 *******************************************************************************/
 
-private import tango.core.Traits : isUnsignedIntegerType;
+import tango.core.Traits : isUnsignedIntegerType;
 
 
 

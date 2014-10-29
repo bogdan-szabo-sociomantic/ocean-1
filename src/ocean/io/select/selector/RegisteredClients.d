@@ -21,11 +21,11 @@ module ocean.io.select.selector.RegisteredClients;
 
 *******************************************************************************/
 
-private import ocean.io.select.client.model.ISelectClient;
+import ocean.io.select.client.model.ISelectClient;
 
-private import ocean.util.container.map.Set;
+import ocean.util.container.map.Set;
 
-debug ( ISelectClient ) private import tango.util.log.Trace;
+debug ( ISelectClient ) import tango.util.log.Trace;
 
 
 

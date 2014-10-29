@@ -30,15 +30,15 @@ module ocean.core.DeepCopy;
 
 *******************************************************************************/
 
-private import ocean.core.Array : copy;
+import ocean.core.Array : copy;
 
-private import ocean.core.Traits : isTypedef, StripTypedef;
+import ocean.core.Traits : isTypedef, StripTypedef;
 
-private import tango.core.Traits;
+import tango.core.Traits;
 
 version (UnitTest)
 {
-    private import tango.text.convert.Format;
+    import tango.text.convert.Format;
 }
 
 

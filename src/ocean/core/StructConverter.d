@@ -15,8 +15,8 @@
 
 module ocean.core.StructConverter;
 
-private import ocean.core.Traits,
-               tango.core.Traits;
+import ocean.core.Traits,
+       tango.core.Traits;
 
 /***************************************************************************
 

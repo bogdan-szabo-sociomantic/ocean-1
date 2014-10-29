@@ -57,14 +57,14 @@ module ocean.text.csv.HeadingsCSV;
 
 *******************************************************************************/
 
-private import ocean.text.csv.CSV;
+import ocean.text.csv.CSV;
 
-private import ocean.util.container.AppendBuffer;
-private import ocean.util.container.ConcatBuffer : SliceBuffer;
+import ocean.util.container.AppendBuffer;
+import ocean.util.container.ConcatBuffer : SliceBuffer;
 
-private import tango.core.Array : contains, find;
+import tango.core.Array : contains, find;
 
-private import tango.io.model.IConduit;
+import tango.io.model.IConduit;
 
 
 
@@ -304,7 +304,7 @@ public class HeadingsCSV
 
 version ( UnitTest )
 {
-    private import tango.io.device.Array;
+    import tango.io.device.Array;
 }
 
 unittest

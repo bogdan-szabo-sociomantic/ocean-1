@@ -87,8 +87,8 @@ version(UnitTest):
 
 ******************************************************************************/
 
-private import ocean.core.Test,
-               ocean.core.DeepCopy;
+import ocean.core.Test,
+       ocean.core.DeepCopy;
 
 /******************************************************************************
 

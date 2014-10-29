@@ -16,9 +16,9 @@ module ocean.core.Test;
 
 ********************************************************************************/
 
-private import ocean.core.Exception;
+import ocean.core.Exception;
 
-private import tango.text.convert.Format;
+import tango.text.convert.Format;
 
 /******************************************************************************
 

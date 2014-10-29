@@ -21,7 +21,7 @@ module ocean.util.app.UnittestedApp;
 
 deprecated public import ocean.util.app.Application : Application;
 
-private import ocean.util.app.ext.UnittestExt;
+import ocean.util.app.ext.UnittestExt;
 
 
 

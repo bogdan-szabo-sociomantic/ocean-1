@@ -21,20 +21,20 @@ module ocean.util.log.Stats;
 
 *******************************************************************************/
 
-private import ocean.core.Traits : FieldName;
+import ocean.core.Traits : FieldName;
 
-private import ocean.io.select.EpollSelectDispatcher;
+import ocean.io.select.EpollSelectDispatcher;
 
-private import ocean.io.select.client.TimerEvent;
+import ocean.io.select.client.TimerEvent;
 
-private import ocean.text.convert.Layout: StringLayout;
+import ocean.text.convert.Layout: StringLayout;
 
-private import ocean.util.log.layout.LayoutStatsLog;
+import ocean.util.log.layout.LayoutStatsLog;
 
-private import tango.util.log.Log;
-private import tango.util.log.AppendSyslog;
+import tango.util.log.Log;
+import tango.util.log.AppendSyslog;
 
-private import tango.stdc.time : time_t;
+import tango.stdc.time : time_t;
 
 /*******************************************************************************
 

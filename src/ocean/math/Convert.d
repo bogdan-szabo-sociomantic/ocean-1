@@ -33,9 +33,9 @@ module ocean.math.Convert;
 
 *******************************************************************************/
 
-private import tango.stdc.fenv;
+import tango.stdc.fenv;
 
-private import tango.stdc.math;
+import tango.stdc.math;
 
 /*******************************************************************************
 

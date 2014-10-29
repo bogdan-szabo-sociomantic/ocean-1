@@ -39,15 +39,15 @@ module ocean.util.container.map.model.BucketSet;
 
 *******************************************************************************/
 
-private import ocean.util.container.map.model.Bucket,
-               ocean.util.container.map.model.BucketInfo,
-               ocean.util.container.map.model.IAllocator;
+import ocean.util.container.map.model.Bucket,
+       ocean.util.container.map.model.BucketInfo,
+       ocean.util.container.map.model.IAllocator;
 
-private import ocean.core.Array: clear, isClearable;
+import ocean.core.Array: clear, isClearable;
 
-private import tango.core.BitManip: bsr;
+import tango.core.BitManip: bsr;
 
-private import ocean.util.container.map.model.IBucketElementGCAllocator;
+import ocean.util.container.map.model.IBucketElementGCAllocator;
 
 /******************************************************************************
 

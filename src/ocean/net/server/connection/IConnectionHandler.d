@@ -20,23 +20,23 @@ module ocean.net.server.connection.IConnectionHandler;
 
 *******************************************************************************/
 
-private import ocean.io.select.EpollSelectDispatcher;
+import ocean.io.select.EpollSelectDispatcher;
 
-private import ocean.net.server.connection.IConnectionHandlerInfo;
-private import ocean.io.select.client.model.ISelectClient : IAdvancedSelectClient;
+import ocean.net.server.connection.IConnectionHandlerInfo;
+import ocean.io.select.client.model.ISelectClient : IAdvancedSelectClient;
 
-private import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
+import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
 
-private import ocean.sys.socket.IPSocket;
-private import ocean.sys.socket.AddressIPSocket;
+import ocean.sys.socket.IPSocket;
+import ocean.sys.socket.AddressIPSocket;
 
-private import ocean.io.device.IODevice: IInputDevice, IOutputDevice;
+import ocean.io.device.IODevice: IInputDevice, IOutputDevice;
 
-private import ocean.text.convert.Layout;
+import ocean.text.convert.Layout;
 
-private import tango.io.model.IConduit: ISelectable;
+import tango.io.model.IConduit: ISelectable;
 
-debug ( ConnectionHandler ) private import tango.util.log.Trace;
+debug ( ConnectionHandler ) import tango.util.log.Trace;
 
 
 /*******************************************************************************

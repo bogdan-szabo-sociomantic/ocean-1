@@ -16,11 +16,11 @@
 
 module ocean.util.container.cache.ExpiringCache;
 
-private import ocean.util.container.cache.model.IExpiringCacheInfo;
+import ocean.util.container.cache.model.IExpiringCacheInfo;
 
-private import ocean.util.container.cache.Cache;
+import ocean.util.container.cache.Cache;
 
-private import tango.stdc.time: time_t;
+import tango.stdc.time: time_t;
 
 /*******************************************************************************
 

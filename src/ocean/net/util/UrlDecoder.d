@@ -24,9 +24,9 @@ module ocean.net.util.UrlDecoder;
 
  ******************************************************************************/
 
-private import ocean.text.util.SplitIterator: ChrSplitIterator;
+import ocean.text.util.SplitIterator: ChrSplitIterator;
 
-private import tango.stdc.string: memmove;
+import tango.stdc.string: memmove;
 
 extern (C) private
 {

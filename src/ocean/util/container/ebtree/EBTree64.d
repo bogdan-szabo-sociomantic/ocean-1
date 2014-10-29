@@ -56,14 +56,14 @@ module ocean.util.container.ebtree.EBTree64;
 
 *******************************************************************************/
 
-private import ocean.util.container.ebtree.model.IEBTree,
-               ocean.util.container.ebtree.model.Node,
-               ocean.util.container.ebtree.model.KeylessMethods,
-               ocean.util.container.ebtree.model.Iterators;
+import ocean.util.container.ebtree.model.IEBTree,
+       ocean.util.container.ebtree.model.Node,
+       ocean.util.container.ebtree.model.KeylessMethods,
+       ocean.util.container.ebtree.model.Iterators;
 
-private import ocean.util.container.ebtree.nodepool.NodePool;
+import ocean.util.container.ebtree.nodepool.NodePool;
 
-private import ocean.util.container.ebtree.c.ebtree: eb_node, eb_root;
+import ocean.util.container.ebtree.c.ebtree: eb_node, eb_root;
 
 /*******************************************************************************
 

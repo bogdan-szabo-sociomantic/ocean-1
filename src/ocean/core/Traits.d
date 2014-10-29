@@ -20,13 +20,13 @@ module ocean.core.Traits;
 
 *******************************************************************************/
 
-private import tango.core.Tuple: Tuple;
+import tango.core.Tuple: Tuple;
 
-private import tango.core.Traits : isReferenceType, isDynamicArrayType,
-                                   isStaticArrayType, isAtomicType,
-                                   ElementTypeOfArray;
+import tango.core.Traits : isReferenceType, isDynamicArrayType,
+                           isStaticArrayType, isAtomicType,
+                           ElementTypeOfArray;
 
-private import tango.core.Traits : ReturnTypeOf, ParameterTupleOf;
+import tango.core.Traits : ReturnTypeOf, ParameterTupleOf;
 
 /*******************************************************************************
 

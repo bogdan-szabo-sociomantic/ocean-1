@@ -22,14 +22,14 @@ module ocean.text.util.SplitIterator;
 
 ******************************************************************************/
 
-private import ocean.core.Array: concat, copy;
+import ocean.core.Array: concat, copy;
 
-private import tango.stdc.string: strlen, memchr, strcspn;
-private import tango.stdc.ctype: isspace;
+import tango.stdc.string: strlen, memchr, strcspn;
+import tango.stdc.ctype: isspace;
 
-private import tango.stdc.posix.sys.types: ssize_t;
+import tango.stdc.posix.sys.types: ssize_t;
 
-private import tango.io.Stdout;
+import tango.io.Stdout;
 
 /*
  * SearchFruct in tango.text.Search is declared private but that protection
@@ -38,7 +38,7 @@ private import tango.io.Stdout;
  * @see http://www.digitalmars.com/webnews/newsgroups.php?art_group=digitalmars.D&article_id=87915
  */
 
-private import tango.text.Search: SearchFruct, search;
+import tango.text.Search: SearchFruct, search;
 
 /******************************************************************************
 

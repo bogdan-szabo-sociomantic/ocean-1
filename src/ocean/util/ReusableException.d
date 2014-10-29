@@ -18,7 +18,7 @@ module ocean.util.ReusableException;
 
  ******************************************************************************/
 
-private import ocean.core.Array: copy;
+import ocean.core.Array: copy;
 
 /******************************************************************************/
 

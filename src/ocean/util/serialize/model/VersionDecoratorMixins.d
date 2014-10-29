@@ -15,15 +15,15 @@ module ocean.util.serialize.model.VersionDecoratorMixins;
 
 *******************************************************************************/
 
-private import ocean.core.Exception,
-               ocean.util.container.ConcatBuffer,
-               ocean.core.StructConverter;
+import ocean.core.Exception,
+       ocean.util.container.ConcatBuffer,
+       ocean.core.StructConverter;
 
-private import ocean.util.serialize.model.Version,
-               ocean.util.serialize.model.Traits;
+import ocean.util.serialize.model.Version,
+       ocean.util.serialize.model.Traits;
 
-private import tango.text.convert.Format,
-               tango.stdc.string;
+import tango.text.convert.Format,
+       tango.stdc.string;
 
 
 version (UnitTest) import ocean.core.Test;

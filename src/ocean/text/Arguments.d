@@ -58,13 +58,13 @@ module ocean.text.Arguments;
 
 *******************************************************************************/
 
-private import Tango = tango.text.Arguments;
+import Tango = tango.text.Arguments;
 
-private import tango.io.Stdout;
+import tango.io.Stdout;
 
-private import tango.math.Math : max;
+import tango.math.Math : max;
 
-private import Integer = tango.text.convert.Integer;
+import Integer = tango.text.convert.Integer;
 
 
 

@@ -201,21 +201,21 @@ module ocean.util.container.cache.Cache;
 
 *******************************************************************************/
 
-private import ocean.util.container.cache.model.ICache;
-private import ocean.util.container.cache.model.ITrackCreateTimesCache;
-private import ocean.util.container.cache.model.Value;
-private import tango.stdc.time: time_t;
-private import ocean.core.Test;
+import ocean.util.container.cache.model.ICache;
+import ocean.util.container.cache.model.ITrackCreateTimesCache;
+import ocean.util.container.cache.model.Value;
+import tango.stdc.time: time_t;
+import ocean.core.Test;
 
-private import tango.core.Memory;
+import tango.core.Memory;
 
-debug private import ocean.io.Stdout;
+debug import ocean.io.Stdout;
 
 debug (CacheTimes)
 {
-    private import ocean.core.Array: concat;
-    private import tango.stdc.stdio: FILE, fopen, fclose, fprintf, perror;
-    private import tango.stdc.posix.time: ctime_r;
+    import ocean.core.Array: concat;
+    import tango.stdc.stdio: FILE, fopen, fclose, fprintf, perror;
+    import tango.stdc.posix.time: ctime_r;
 }
 
 
@@ -1463,13 +1463,13 @@ unittest
 
 debug ( OceanPerformanceTest )
 {
-    private import tango.core.Memory;
+    import tango.core.Memory;
 
-    private import tango.math.random.Random;
+    import tango.math.random.Random;
 
-    private import tango.time.StopWatch;
+    import tango.time.StopWatch;
 
-    private import tango.util.log.Trace;
+    import tango.util.log.Trace;
 
     unittest
     {

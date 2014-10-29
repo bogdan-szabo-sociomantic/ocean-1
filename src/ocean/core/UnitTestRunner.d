@@ -48,21 +48,21 @@ module ocean.core.UnitTestRunner;
 
 *******************************************************************************/
 
-private import tango.stdc.string: strdup, strlen, strncmp;
-private import tango.stdc.posix.unistd: unlink;
-private import tango.stdc.posix.libgen: basename;
-private import tango.stdc.posix.sys.time: gettimeofday, timeval, timersub;
-private import tango.core.Runtime: Runtime;
-private import tango.core.Exception : AssertException;
-private import tango.io.Stdout: Stdout, Stderr;
-private import tango.io.stream.Format: FormatOutput;
-private import tango.io.stream.TextFile: TextFileOutput;
-private import tango.text.xml.Document: Document;
-private import tango.text.xml.DocPrinter: DocPrinter;
+import tango.stdc.string: strdup, strlen, strncmp;
+import tango.stdc.posix.unistd: unlink;
+import tango.stdc.posix.libgen: basename;
+import tango.stdc.posix.sys.time: gettimeofday, timeval, timersub;
+import tango.core.Runtime: Runtime;
+import tango.core.Exception : AssertException;
+import tango.io.Stdout: Stdout, Stderr;
+import tango.io.stream.Format: FormatOutput;
+import tango.io.stream.TextFile: TextFileOutput;
+import tango.text.xml.Document: Document;
+import tango.text.xml.DocPrinter: DocPrinter;
 
-private import ocean.text.convert.Layout: Layout;
-private import ocean.text.util.StringC: StringC;
-private import ocean.core.Test : TestException, test;
+import ocean.text.convert.Layout: Layout;
+import ocean.text.util.StringC: StringC;
+import ocean.core.Test : TestException, test;
 
 
 

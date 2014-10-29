@@ -27,7 +27,7 @@ module ocean.text.convert.Hash;
 
 *******************************************************************************/
 
-private import Integer = ocean.text.convert.Integer;
+import Integer = ocean.text.convert.Integer;
 
 
 

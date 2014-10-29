@@ -22,21 +22,21 @@
 
 module ocean.io.select.protocol.fiber.FiberSelectWriter;
 
-private import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
+import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
-private import ocean.io.select.client.model.ISelectClient;
+import ocean.io.select.client.model.ISelectClient;
 
-private import ocean.io.device.IODevice: IOutputDevice;
+import ocean.io.device.IODevice: IOutputDevice;
 
-private import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK, EINTR;
+import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK, EINTR;
 
-private import tango.stdc.posix.sys.socket: setsockopt;
+import tango.stdc.posix.sys.socket: setsockopt;
 
-private import tango.stdc.posix.netinet.in_: IPPROTO_TCP;
+import tango.stdc.posix.netinet.in_: IPPROTO_TCP;
 
-private import tango.sys.linux.tcp: TCP_CORK;
+import tango.sys.linux.tcp: TCP_CORK;
 
-debug (Raw) private import tango.util.log.Trace;
+debug (Raw) import tango.util.log.Trace;
 
 
 

@@ -26,13 +26,13 @@ module ocean.io.select.client.model.IFiberSelectClient;
 
  ******************************************************************************/
 
-private import ocean.io.select.client.model.ISelectClient;
+import ocean.io.select.client.model.ISelectClient;
 
-private import ocean.io.select.fiber.SelectFiber;
+import ocean.io.select.fiber.SelectFiber;
 
-private import ocean.io.select.EpollSelectDispatcher;
+import ocean.io.select.EpollSelectDispatcher;
 
-private import tango.core.Exception: IOException;
+import tango.core.Exception: IOException;
 
 
 /******************************************************************************

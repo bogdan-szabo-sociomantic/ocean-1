@@ -15,13 +15,13 @@ module ocean.util.serialize.contiguous.Deserializer;
 
 *******************************************************************************/
 
-private import ocean.util.serialize.contiguous.Contiguous;
-private import ocean.util.serialize.model.Traits;
+import ocean.util.serialize.contiguous.Contiguous;
+import ocean.util.serialize.model.Traits;
 
-private import ocean.core.Exception;
-private import ocean.core.Traits;
+import ocean.core.Exception;
+import ocean.core.Traits;
 
-private import tango.text.convert.Format;
+import tango.text.convert.Format;
 
 debug (DeserializationTrace) import tango.io.Stdout;
 

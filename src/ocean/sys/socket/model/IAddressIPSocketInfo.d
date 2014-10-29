@@ -20,7 +20,7 @@ module ocean.sys.socket.model.IAddressIPSocketInfo;
 
 *******************************************************************************/
 
-private import tango.io.device.Conduit: ISelectable;
+import tango.io.device.Conduit: ISelectable;
 
 
 

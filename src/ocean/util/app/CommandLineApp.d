@@ -22,8 +22,8 @@ module ocean.util.app.CommandLineApp;
 public import ocean.util.app.Application;
 public import ocean.text.Arguments : Arguments;
 
-private import ocean.util.app.ext.ArgumentsExt;
-private import ocean.util.app.ext.model.IArgumentsExtExtension;
+import ocean.util.app.ext.ArgumentsExt;
+import ocean.util.app.ext.model.IArgumentsExtExtension;
 
 
 

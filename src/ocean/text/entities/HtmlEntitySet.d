@@ -19,9 +19,9 @@ module ocean.text.entities.HtmlEntitySet;
 
 *******************************************************************************/
 
-private import ocean.text.entities.model.IEntitySet;
+import ocean.text.entities.model.IEntitySet;
 
-private import ocean.text.entities.XmlEntitySet;
+import ocean.text.entities.XmlEntitySet;
 
 
 

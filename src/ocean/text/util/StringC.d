@@ -42,8 +42,8 @@ module ocean.text.util.StringC;
 
 *******************************************************************************/
 
-private import  tango.stdc.string: strlen, wcslen;
-private import  tango.stdc.stddef: wchar_t;
+import  tango.stdc.string: strlen, wcslen;
+import  tango.stdc.stddef: wchar_t;
 
 
 class StringC

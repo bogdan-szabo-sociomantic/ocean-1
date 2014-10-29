@@ -14,8 +14,8 @@
 
     ---
 
-        private import ocean.crypt.HMAC;
-        private import tango.util.digest.Sha1;
+        import ocean.crypt.HMAC;
+        import tango.util.digest.Sha1;
 
         auto sha = new Sha1;
         auto hmac = new HMAC(sha);
@@ -44,13 +44,13 @@ module ocean.crypt.HMAC;
 
 *******************************************************************************/
 
-private import ocean.core.Exception;
+import ocean.core.Exception;
 
-private import ocean.crypt.misc.ByteConverter;
+import ocean.crypt.misc.ByteConverter;
 
-private import ocean.crypt.misc.Bitwise;
+import ocean.crypt.misc.Bitwise;
 
-private import tango.util.digest.MerkleDamgard;
+import tango.util.digest.MerkleDamgard;
 
 
 
@@ -295,7 +295,7 @@ public class HMAC
 
 version (UnitTest)
 {
-    private import tango.util.digest.Sha1;
+    import tango.util.digest.Sha1;
 }
 
 unittest

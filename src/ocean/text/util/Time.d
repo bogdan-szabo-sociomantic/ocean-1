@@ -46,11 +46,11 @@ module ocean.text.util.Time;
 
 *******************************************************************************/
 
-private import ocean.text.convert.Layout;
+import ocean.text.convert.Layout;
 
-private import ocean.core.Array : copy;
+import ocean.core.Array : copy;
 
-private import tango.stdc.time : gmtime, strftime, time_t, tm;
+import tango.stdc.time : gmtime, strftime, time_t, tm;
 
 
 

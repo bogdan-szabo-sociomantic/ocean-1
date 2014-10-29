@@ -33,7 +33,7 @@
 
     ---
 
-        private import ocean.util.container.map.HashMap;
+        import ocean.util.container.map.HashMap;
 
         // Mapping from hash_t -> int
         auto map = new HashMap!(int);
@@ -87,9 +87,9 @@
 
 module ocean.util.container.map.HashMap;
 
-private import ocean.util.container.map.Map;
+import ocean.util.container.map.Map;
 
-version (UnitTestVerbose) private import ocean.io.Stdout;
+version (UnitTestVerbose) import ocean.io.Stdout;
 
 
 

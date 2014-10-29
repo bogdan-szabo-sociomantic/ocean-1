@@ -30,17 +30,17 @@ module ocean.text.xml.Xslt;
 
 *******************************************************************************/
 
-private import ocean.core.Array;
+import ocean.core.Array;
 
-private import ocean.text.xml.c.LibXml2,
-               ocean.text.xml.c.LibXslt;
+import ocean.text.xml.c.LibXml2,
+       ocean.text.xml.c.LibXslt;
 
-private import tango.stdc.stdio,
-               tango.stdc.stdlib;
+import tango.stdc.stdio,
+       tango.stdc.stdlib;
 
-private import tango.stdc.stdarg;
+import tango.stdc.stdarg;
 
-private import tango.core.Exception;
+import tango.core.Exception;
 
 
 

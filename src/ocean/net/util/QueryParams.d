@@ -26,11 +26,11 @@ module ocean.net.util.QueryParams;
 
  ******************************************************************************/
 
-private import ocean.net.util.ParamSet;
+import ocean.net.util.ParamSet;
 
-private import ocean.text.util.SplitIterator: ChrSplitIterator;
+import ocean.text.util.SplitIterator: ChrSplitIterator;
 
-private import ocean.util.container.AppendBuffer: AppendBuffer, IAppendBufferReader;
+import ocean.util.container.AppendBuffer: AppendBuffer, IAppendBufferReader;
 
 /******************************************************************************
 

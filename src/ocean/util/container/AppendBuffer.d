@@ -25,9 +25,9 @@ module ocean.util.container.AppendBuffer;
 
  ******************************************************************************/
 
-private import tango.stdc.stdlib: malloc, realloc, free;
+import tango.stdc.stdlib: malloc, realloc, free;
 
-private import tango.core.Exception: onOutOfMemoryError;
+import tango.core.Exception: onOutOfMemoryError;
 
 
 /******************************************************************************

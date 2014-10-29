@@ -15,14 +15,14 @@
 module ocean.io.serialize.StructLoader;
 
 
-private import ocean.core.StructConverter,
-               ocean.core.Array : copy;
+import ocean.core.StructConverter,
+       ocean.core.Array : copy;
 
-private import ocean.util.container.ConcatBuffer;
+import ocean.util.container.ConcatBuffer;
 
-private import ocean.io.serialize.StructDumper,
-               ocean.io.serialize.model.StructVersionBase,
-               ocean.io.serialize.model.StructLoaderCore;
+import ocean.io.serialize.StructDumper,
+       ocean.io.serialize.model.StructVersionBase,
+       ocean.io.serialize.model.StructLoaderCore;
 
 public import ocean.io.serialize.model.StructLoaderCore;
 
@@ -1561,7 +1561,7 @@ version ( UnitTest )
 
 }
 
-version ( UnitTest ) debug ( PerformanceTest ) private import tango.util.log.Trace;
+version ( UnitTest ) debug ( PerformanceTest ) import tango.util.log.Trace;
 
 unittest
 {

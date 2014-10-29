@@ -121,10 +121,10 @@ module ocean.core.SmartEnum;
 public import ocean.core.TwoWayMap;
 public import ocean.core.Exception;
 
-private import ocean.core.Traits;
+import ocean.core.Traits;
 
-private import tango.core.Traits;
-private import tango.core.Tuple;
+import tango.core.Traits;
+import tango.core.Tuple;
 
 
 

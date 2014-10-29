@@ -83,7 +83,7 @@ module ocean.io.serialize.TypeId;
 
  ******************************************************************************/
 
-private import ocean.io.digest.Fnv1: StaticFnv1a64, Fnv164Const;
+import ocean.io.digest.Fnv1: StaticFnv1a64, Fnv164Const;
 
 /******************************************************************************
 

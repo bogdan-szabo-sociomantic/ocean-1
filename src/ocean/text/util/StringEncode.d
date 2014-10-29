@@ -38,9 +38,9 @@ module ocean.text.util.StringEncode;
 
 *******************************************************************************/
 
-private import ocean.text.util.c.iconv;
+import ocean.text.util.c.iconv;
 
-private import tango.stdc.errno;
+import tango.stdc.errno;
 
 /******************************************************************************
 

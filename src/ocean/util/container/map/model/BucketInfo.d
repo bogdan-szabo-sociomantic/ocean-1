@@ -19,7 +19,7 @@ module ocean.util.container.map.model.BucketInfo;
 
 *******************************************************************************/
 
-private import ocean.core.Array: clear;
+import ocean.core.Array: clear;
 
 debug (BucketInfo) import tango.io.Stdout;
 

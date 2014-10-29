@@ -12,10 +12,10 @@
 
 module ocean.io.serialize.model.StructVersionBase;
 
-private import ocean.util.container.ConcatBuffer,
-               ocean.io.serialize.StructDumper,
-               ocean.core.StructConverter,
-               ocean.core.Array : copy;
+import ocean.util.container.ConcatBuffer,
+       ocean.io.serialize.StructDumper,
+       ocean.core.StructConverter,
+       ocean.core.Array : copy;
 
 
 class StructVersionBase

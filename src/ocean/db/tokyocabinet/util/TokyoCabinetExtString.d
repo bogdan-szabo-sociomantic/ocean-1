@@ -20,11 +20,11 @@ module ocean.db.tokyocabinet.util.TokyoCabinetExtString;
 
  ******************************************************************************/
 
-private import ocean.db.tokyocabinet.c.util.tcxstr: TCXSTR,
-                                                    tcxstrnew, tcxstrnew3,
-                                                    tcxstrdel, tcxstrclear,
-                                                    tcxstrdup, tcxstrcat,
-                                                    tcxstrptr, tcxstrsize;
+import ocean.db.tokyocabinet.c.util.tcxstr: TCXSTR,
+                                            tcxstrnew, tcxstrnew3,
+                                            tcxstrdel, tcxstrclear,
+                                            tcxstrdup, tcxstrcat,
+                                            tcxstrptr, tcxstrsize;
 
 /******************************************************************************
 

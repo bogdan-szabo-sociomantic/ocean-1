@@ -18,9 +18,9 @@ module ocean.text.util.EscapeChars;
 
  ******************************************************************************/
 
-private import ocean.core.Array: concat;
+import ocean.core.Array: concat;
 
-private import tango.stdc.string: strcspn, memmove, memcpy, memchr, strlen;
+import tango.stdc.string: strcspn, memmove, memcpy, memchr, strlen;
 
 /******************************************************************************/
 

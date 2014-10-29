@@ -20,23 +20,23 @@ module ocean.core.ArrayMap;
 
 *******************************************************************************/
 
-private     import      ocean.core.Exception: enforce;
+import      ocean.core.Exception: enforce;
 
-private     import      ocean.core.Array: copy;
+import      ocean.core.Array: copy;
 
-private     import      ocean.io.digest.Fnv1;
+import      ocean.io.digest.Fnv1;
 
-private     import      tango.io.model.IConduit:  InputStream,   OutputStream;
+import      tango.io.model.IConduit:  InputStream,   OutputStream;
 
-private     import      tango.core.Exception: IOException;
+import      tango.core.Exception: IOException;
 
-private     import      tango.stdc.posix.pthread: pthread_rwlock_t,
-                                                  pthread_rwlockattr_t,
-                                                  pthread_rwlock_init,
-                                                  pthread_rwlock_destroy,
-                                                  pthread_rwlock_rdlock,
-                                                  pthread_rwlock_wrlock,
-                                                  pthread_rwlock_unlock;
+import      tango.stdc.posix.pthread: pthread_rwlock_t,
+                                      pthread_rwlockattr_t,
+                                      pthread_rwlock_init,
+                                      pthread_rwlock_destroy,
+                                      pthread_rwlock_rdlock,
+                                      pthread_rwlock_wrlock,
+                                      pthread_rwlock_unlock;
 
 debug
 {
@@ -2170,7 +2170,7 @@ debug ( OceanPerformanceTest )
     import tango.util.container.HashMap;
     //import tango.io.Buffer;
     import tango.util.container.HashMap;
-    private import  tango.math.random.Random;
+    import tango.math.random.Random;
 
 
     struct slowdown

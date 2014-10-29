@@ -36,12 +36,12 @@ module ocean.io.console.readline.Readline;
 
 *******************************************************************************/
 
-private import C = ocean.io.console.readline.c.readline;
-private import ocean.core.Array : copy;
-private import ocean.text.util.StringC;
+import C = ocean.io.console.readline.c.readline;
+import ocean.core.Array : copy;
+import ocean.text.util.StringC;
 
-private import tango.stdc.string: strlen;
-private import tango.stdc.stdlib : free;
+import tango.stdc.string: strlen;
+import tango.stdc.stdlib : free;
 
 /*******************************************************************************
 

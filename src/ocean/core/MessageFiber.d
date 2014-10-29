@@ -57,32 +57,32 @@ module ocean.core.MessageFiber;
 
  ******************************************************************************/
 
-private import tango.core.Thread : Fiber;
+import tango.core.Thread : Fiber;
 
-private import ocean.core.Array: copy;
+import ocean.core.Array: copy;
 
-private import ocean.core.SmartUnion;
+import ocean.core.SmartUnion;
 
-private import ocean.io.digest.Fnv1;
+import ocean.io.digest.Fnv1;
 
 debug ( MessageFiber )
 {
-    private import tango.io.Stdout;
+    import tango.io.Stdout;
     debug = MessageFiberToken;
 }
 
 debug ( MessageFiberDump )
 {
-    private import tango.time.Clock;
-    private import tango.core.Array;
-    private import tango.core.Memory;
-    private import tango.io.Stdout;
+    import tango.time.Clock;
+    import tango.core.Array;
+    import tango.core.Memory;
+    import tango.io.Stdout;
     debug = MessageFiberToken;
 }
 
 debug ( MessageFiberToken )
 {
-    private import ocean.io.digest.FirstName;
+    import ocean.io.digest.FirstName;
 }
 
 

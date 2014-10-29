@@ -44,18 +44,18 @@ module ocean.sys.socket.InetAddress;
 
  ******************************************************************************/
 
-private import tango.stdc.posix.sys.socket: sockaddr;
+import tango.stdc.posix.sys.socket: sockaddr;
 
-private import tango.stdc.posix.netinet.in_:
-                           sockaddr_in,  AF_INET,  INET_ADDRSTRLEN,  INADDR_ANY,
-                           sockaddr_in6, AF_INET6, INET6_ADDRSTRLEN;
+import tango.stdc.posix.netinet.in_:
+           sockaddr_in,  AF_INET,  INET_ADDRSTRLEN,  INADDR_ANY,
+           sockaddr_in6, AF_INET6, INET6_ADDRSTRLEN;
 
 
-private import tango.stdc.posix.arpa.inet: inet_ntop, inet_pton, ntohs, htons, htonl;
+import tango.stdc.posix.arpa.inet: inet_ntop, inet_pton, ntohs, htons, htonl;
 
-private import tango.stdc.string: strlen;
+import tango.stdc.string: strlen;
 
-private import tango.stdc.errno: errno, EAFNOSUPPORT;
+import tango.stdc.errno: errno, EAFNOSUPPORT;
 
 /******************************************************************************
 

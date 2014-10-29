@@ -16,21 +16,21 @@ module ocean.util.serialize.contiguous.MultiVersionDecorator;
 
 *******************************************************************************/
 
-private import tango.stdc.string : memmove;
-private import tango.math.Math;
+import tango.stdc.string : memmove;
+import tango.math.Math;
 
-private import ocean.core.Exception,
-               ocean.util.container.ConcatBuffer,
-               ocean.core.StructConverter : structCopy;
+import ocean.core.Exception,
+       ocean.util.container.ConcatBuffer,
+       ocean.core.StructConverter : structCopy;
 
-private import ocean.util.serialize.model.Traits,
-               ocean.util.serialize.model.Version,
-               ocean.util.serialize.model.VersionDecoratorMixins;
+import ocean.util.serialize.model.Traits,
+       ocean.util.serialize.model.Version,
+       ocean.util.serialize.model.VersionDecoratorMixins;
 
-private import ocean.util.serialize.contiguous.Serializer,
-               ocean.util.serialize.contiguous.Deserializer,
-               ocean.util.serialize.contiguous.Contiguous,
-               ocean.util.serialize.contiguous.model.LoadCopyMixin;
+import ocean.util.serialize.contiguous.Serializer,
+       ocean.util.serialize.contiguous.Deserializer,
+       ocean.util.serialize.contiguous.Contiguous,
+       ocean.util.serialize.contiguous.model.LoadCopyMixin;
 
 version (UnitTest) import ocean.core.Test;
 

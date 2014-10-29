@@ -85,7 +85,7 @@ module ocean.core.ObjectPool;
 
 *******************************************************************************/
 
-private import ocean.core.Array: copy, copyExtend;
+import ocean.core.Array: copy, copyExtend;
 
 
 /*******************************************************************************

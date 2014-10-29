@@ -22,9 +22,9 @@ module ocean.net.http.time.HttpTimeFormatter;
 
  ******************************************************************************/
 
-private import tango.stdc.time:       time_t, tm, time;
-private import tango.stdc.posix.time: gmtime_r, localtime_r;
-private import tango.stdc.stdlib:     lldiv;
+import tango.stdc.time:       time_t, tm, time;
+import tango.stdc.posix.time: gmtime_r, localtime_r;
+import tango.stdc.stdlib:     lldiv;
 
 /******************************************************************************/
 

@@ -58,19 +58,19 @@ module ocean.io.serialize.PHPSerializer;
 
 *******************************************************************************/
 
-private import ocean.core.Array;
+import ocean.core.Array;
 
-private import ocean.io.serialize.StructSerializer;
+import ocean.io.serialize.StructSerializer;
 
-private import ocean.text.convert.Layout;
+import ocean.text.convert.Layout;
 
-private import tango.core.Traits;
+import tango.core.Traits;
 
-private import tango.core.Exception;
+import tango.core.Exception;
 
-private import ocean.math.Math : pow;
+import ocean.math.Math : pow;
 
-version (UnitTestVerbose) private import ocean.io.Stdout;
+version (UnitTestVerbose) import ocean.io.Stdout;
 
 /*******************************************************************************
 

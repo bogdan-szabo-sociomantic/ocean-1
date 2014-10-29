@@ -18,11 +18,11 @@ module ocean.io.FilePath;
 
 *******************************************************************************/
 
-private import tango.io.FilePath;
+import tango.io.FilePath;
 
-private import tango.io.Path : FS;
+import tango.io.Path : FS;
 
-private import tango.stdc.posix.unistd : link;
+import tango.stdc.posix.unistd : link;
 
 
 

@@ -20,7 +20,7 @@ module ocean.util.container.ebtree.model.IEBTree;
 
  ******************************************************************************/
 
-private import ocean.util.container.ebtree.c.ebtree: eb_root;
+import ocean.util.container.ebtree.c.ebtree: eb_root;
 
 /******************************************************************************/
 

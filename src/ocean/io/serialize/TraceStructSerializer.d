@@ -62,9 +62,9 @@ deprecated:
 
 *******************************************************************************/
 
-private import ocean.io.serialize.StructSerializer;
-private import ocean.io.serialize.StringStructSerializer;
-private import tango.util.log.Trace;
+import ocean.io.serialize.StructSerializer;
+import ocean.io.serialize.StringStructSerializer;
+import tango.util.log.Trace;
 
 
 

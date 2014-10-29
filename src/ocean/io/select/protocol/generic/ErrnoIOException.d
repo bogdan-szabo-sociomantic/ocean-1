@@ -18,13 +18,13 @@ module ocean.io.select.protocol.generic.ErrnoIOException;
 
  ******************************************************************************/
 
-private import ocean.core.ErrnoIOException;
+import ocean.core.ErrnoIOException;
 
-private import ocean.sys.socket.IPSocket: IIPSocket;
+import ocean.sys.socket.IPSocket: IIPSocket;
 
-private import tango.io.model.IConduit: ISelectable;
+import tango.io.model.IConduit: ISelectable;
 
-private import tango.stdc.errno: errno;
+import tango.stdc.errno: errno;
 
 /******************************************************************************
 

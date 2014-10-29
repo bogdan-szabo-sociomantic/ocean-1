@@ -70,11 +70,11 @@ module ocean.text.url.PercentEncoding;
 
 *******************************************************************************/
 
-private import ocean.core.Array;
+import ocean.core.Array;
 
-private import tango.stdc.string : strlen;
+import tango.stdc.string : strlen;
 
-private import tango.stdc.stdlib : free;
+import tango.stdc.stdlib : free;
 
 
 

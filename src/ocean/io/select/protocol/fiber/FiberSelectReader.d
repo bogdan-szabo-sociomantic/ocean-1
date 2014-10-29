@@ -24,13 +24,13 @@ module ocean.io.select.protocol.fiber.FiberSelectReader;
 
  ******************************************************************************/
 
-private import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
+import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
-private import ocean.io.device.IODevice: IInputDevice;
+import ocean.io.device.IODevice: IInputDevice;
 
-private import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK, EINTR;
+import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK, EINTR;
 
-debug (Raw) private import tango.io.Stdout: Stderr;
+debug (Raw) import tango.io.Stdout: Stderr;
 
 
 /******************************************************************************/

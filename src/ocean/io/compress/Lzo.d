@@ -18,16 +18,16 @@ module ocean.io.compress.Lzo;
 
  ******************************************************************************/
 
-private import ocean.io.compress.lzo.c.lzo1x: lzo1x_1_compress,
-                                                     lzo1x_decompress, lzo1x_decompress_safe,
-                                                     lzo1x_max_compressed_length, lzo_init,
-                                                     Lzo1x1WorkmemSize, LzoStatus;
+import ocean.io.compress.lzo.c.lzo1x: lzo1x_1_compress,
+                                      lzo1x_decompress, lzo1x_decompress_safe,
+                                      lzo1x_max_compressed_length, lzo_init,
+                                      Lzo1x1WorkmemSize, LzoStatus;
 
-private import ocean.io.compress.lzo.LzoCrc;
+import ocean.io.compress.lzo.LzoCrc;
 
-private import ocean.io.compress.CompressException;
+import ocean.io.compress.CompressException;
 
-private import ocean.core.Exception: enforce;
+import ocean.core.Exception: enforce;
 
 /******************************************************************************
 
@@ -308,7 +308,7 @@ struct Terminator
     }
 }
 
-version (UnitTestVerbose) private import ocean.io.Stdout;
+version (UnitTestVerbose) import ocean.io.Stdout;
 
 unittest
 {

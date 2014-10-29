@@ -64,7 +64,7 @@ module ocean.text.utf.UtfString;
 
 *******************************************************************************/
 
-private import Utf = tango.text.convert.Utf;
+import Utf = tango.text.convert.Utf;
 
 
 

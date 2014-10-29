@@ -15,9 +15,9 @@ module ocean.util.serialize.contiguous.Serializer;
 
 *******************************************************************************/
 
-private import ocean.util.serialize.model.Traits;
+import ocean.util.serialize.model.Traits;
 
-private import ocean.core.Traits : ContainsDynamicArray;
+import ocean.core.Traits : ContainsDynamicArray;
 
 debug(SerializationTrace) import tango.io.Stdout;
 

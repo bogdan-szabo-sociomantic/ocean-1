@@ -24,9 +24,9 @@ module ocean.util.container.cache.model.containers.ArrayPool;
 
 *******************************************************************************/
 
-private import tango.stdc.stdlib: malloc, free;
+import tango.stdc.stdlib: malloc, free;
 
-private import tango.core.Exception: onOutOfMemoryError;
+import tango.core.Exception: onOutOfMemoryError;
 
 /******************************************************************************/
 
