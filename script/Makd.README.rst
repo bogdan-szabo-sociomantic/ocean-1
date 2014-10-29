@@ -26,7 +26,7 @@ one).
 A typical Top-level ``Makefile`` should look like this::
 
         # Include the top-level makefile
-        include submodules/ocean/Makd.mak
+        include submodules/ocean/script/Makd.mak
 
 Assuming your ocean installation is in ``submodules/ocean``. By default, the
 default target when typing just ``make`` is ``all``, and you can add targets to
