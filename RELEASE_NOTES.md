@@ -44,6 +44,12 @@ Migration Instructions
   `copy` was moved from `Deserializer` module to new `Util` module. Update your
   imports unless you use `package_.d`
 
+* `ocean.core.Exception`
+
+    `enforce` now takes file/line as template arguments instead of runtime ones.
+    If your code passes file/line explicitly, switch to `enforceImpl` instead which
+    matches old signature.
+
 Deprecations
 ============
 
@@ -52,15 +58,6 @@ Deprecations
   The function `parse` used for parsing config files is now deprecated.
   Applications should henceforth use the `parseFile` function for this. The
   function signature remains unchanged.
-
-Migration Instructions
-======================
-
-* `ocean.core.Exception`
-
-    `enforce` now takes file/line as template arguments instead of runtime ones.
-    If your code passes file/line explicitly, switch to `enforceImpl` instead which
-    matches old signature.
 
 New Features
 ============
