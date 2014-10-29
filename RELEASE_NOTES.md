@@ -62,6 +62,14 @@ Migration Instructions
   `num_static_lines` can be used instead to get the current number of static
   lines.
 
+* `ocean.util.contaner.cache.CachingStructLoader`
+
+  `add_empty_values` field is not used in CachingStructLoader anymore.
+  If your child class did set `this.add_empty_values = true`, ensure you call
+  callback delegate even when data is empty. If your child class did set
+  `this.add_empty_values = false`, ensure you DON'T call delegate when 
+  data is empty.
+
 Deprecations
 ============
 

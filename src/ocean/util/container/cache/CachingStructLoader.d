@@ -43,14 +43,7 @@ class CachingStructLoader ( S )
 {
     /***************************************************************************
 
-        The struct of data stored in the cache. It bundles the value to store
-        with a "pending" flag which is true for newly created cache element
-        where the value has not been filled in yet to detect and handle a race
-        condition of load().
-
-        In the future this "pending" flag might be replaced with a list of
-        objects that allow reentrant load() calls with the same key to wait
-        until the value has arrived.
+        The struct of data stored in the cache. 
 
     ***************************************************************************/
 
@@ -65,14 +58,6 @@ class CachingStructLoader ( S )
 
         mixin .CacheValue.Value!(0);
         Value value;
-
-        /***********************************************************************
-
-            The "pending" flag.
-
-        ***********************************************************************/
-
-        bool pending;
 
         /***********************************************************************
 
@@ -150,6 +135,10 @@ class CachingStructLoader ( S )
 
     /**************************************************************************
 
+        DEPRECATED: don't call `got` delegate from child class if value is empty
+        instead of setting this field to "false". Call delegate with
+        default-initialized struct data if it was set to "true".
+
         Flag to determine whether empty values returned by the value getter
         delegate passed to load() are added to the cache or not.
 
@@ -158,6 +147,7 @@ class CachingStructLoader ( S )
 
     ***************************************************************************/
 
+    deprecated
     protected bool add_empty_values = true;
 
     /**************************************************************************
@@ -283,14 +273,10 @@ class CachingStructLoader ( S )
 
     /**************************************************************************
 
-        Gets the record value corresponding to key. If it is not in the cache,
-        this.getData is called with a callback delegate as argument. `getData`
-        should then call the delegate passed to it with the obtained value. If
-        `getData` found no value for key, it should return without calling the
-        delegate.
+        Gets the record value corresponding to key.
 
         If the caller and `getData` use some sort of multitasking (fibers) it is
-        possible that while get_data is busy it does a reentrant call of this
+        possible that while `getData` is busy it does a reentrant call of this
         method with the same key. In this case it will return null, even though
         the record may exist.
 
@@ -299,41 +285,18 @@ class CachingStructLoader ( S )
 
         Returns:
             the record value or null if either not found or currently waiting
-            for get_data to fetch the value for this key.
+            for `getData` to fetch the value for this key.
 
      **************************************************************************/
 
     protected Contiguous!(S) load ( hash_t key )
     {
         CacheValue* cached_value;
-        bool value_is_cached = false;
 
-        if (this.add_empty_values)
+        auto value_or_null = this.cache_.getRaw(key);
+        if (value_or_null !is null)
         {
-            /*
-             * If any value is stored in the map, even an empty value if the
-             * element was not found in the external source, we can save a
-             * lookup by using  getOrCreateRaw().
-             */
-            cached_value = CacheValue(this.cache_.getOrCreateRaw(key, value_is_cached));
-        }
-        else
-        {
-            auto value_or_null = this.cache_.getRaw(key);
-            if (value_or_null !is null)
-            {
-                value_is_cached = true;
-                cached_value = CacheValue(value_or_null);
-            }
-        }
-
-        if (value_is_cached)
-        {
-            if (cached_value.pending)
-            {
-                // pretend data does not exist to prevent the fiber race
-                return this.fiber_local_copy.reset();
-            }
+            cached_value = CacheValue(value_or_null);
 
             return this.copy(cached_value.value[]);
         }
@@ -342,31 +305,15 @@ class CachingStructLoader ( S )
 
         this.fiber_local_copy.reset();
 
-        if (!this.add_empty_values)
-        {
-            cached_value = CacheValue(this.cache_.createRaw(key));
-            // .. for other case value is aready created because of `getOrCreateRaw`
-        }
-
-        cached_value.pending = true;
-
         this.getData(
             key,
             (Contiguous!(S) data)
             {
-                if (data.length || this.add_empty_values)
-                {
-                    this.onStoringData(data);
-                    this.store(key, data, cached_value.value);
-                    cached_value.pending = false;
-                }
+                this.onStoringData(data);
+                cached_value = CacheValue(this.cache_.createRaw(key));
+                this.store(key, data, cached_value.value);
             }
         );
-
-        if (cached_value.pending && !this.add_empty_values)
-        {
-            this.cache_.remove(key);
-        }
 
         return this.fiber_local_copy;
     }
@@ -374,8 +321,9 @@ class CachingStructLoader ( S )
 
     /**************************************************************************
 
-        Looks up the record value corresponding to key and invokes got with that
-        value if found. If not found, returns without calling got.
+        Looks up the record value corresponding to key and invokes got with
+        either that value, if found, or empty data if not found.
+        Should return without calling got if unable to look up the value.
 
         Params:
             key = record key

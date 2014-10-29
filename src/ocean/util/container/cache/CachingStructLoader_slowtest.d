@@ -79,6 +79,8 @@ class TestCache(S) : CachingStructLoader!(S)
     // data source for missing records
     void[][hash_t] source;
 
+    bool add_empty;
+
     void addToSource(hash_t key, S value)
     {
         Serializer.serialize(value, this.source[key]);
@@ -87,12 +89,12 @@ class TestCache(S) : CachingStructLoader!(S)
     this (Cache cache)
     {
         super(cache);
-        this.add_empty_values = true;
+        this.add_empty = true; 
     }
 
     void addEmptyValues(bool newval)
     {
-        this.add_empty_values = newval;
+        this.add_empty = newval;
     }
 
     override protected void getData ( hash_t key, void delegate ( Contiguous!(S) data ) got )
@@ -105,7 +107,10 @@ class TestCache(S) : CachingStructLoader!(S)
         }
         else
         {
-            got(Contiguous!(S)(null));
+            if (this.add_empty)
+            {
+                got(Contiguous!(S)(null));
+            }
         }
     }
 }
