@@ -86,6 +86,9 @@ class LogExt : IConfigExtExtension
         Extension order. This extension uses -1_000 because it should be
         called early, but after the ConfigExt extension.
 
+        Returns:
+            the extension order
+
     ***************************************************************************/
 
     public override int order ( )
@@ -97,6 +100,10 @@ class LogExt : IConfigExtExtension
     /***************************************************************************
 
         Parse the configuration file options to set up the loggers.
+
+        Params:
+            app = the application instance
+            config = configuration instance
 
     ***************************************************************************/
 
@@ -129,12 +136,32 @@ class LogExt : IConfigExtExtension
         We just need to provide an "empty" implementation to satisfy the
         interface.
 
+        Params:
+            app = the application instance
+            config = configuration instance
+
     ***************************************************************************/
 
     public void preParseConfig ( IApplication app, ConfigParser config )
     {
         // Unused
     }
+
+
+    /***************************************************************************
+
+        Function to filter the list of configuration files to parse.
+        Only present to satisfy the interface
+
+        Params:
+            app = the application instance
+            config = configuration instance
+            files = current list of configuration files to parse
+
+        Returns:
+            new list of configuration files to parse
+
+    ***************************************************************************/
 
     public char[][] filterConfigFiles ( IApplication app,
             ConfigParser config, char[][] files )

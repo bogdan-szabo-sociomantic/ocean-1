@@ -8,8 +8,7 @@
 
     authors:        Gavin Norman, Leandro Lucarella
 
-    See tango.text.Arguments - this class just adds a single public method to
-    the interface of that class.
+    This module extends the 'tango.text.Arguments' module.
 
     Usage example:
 
@@ -279,7 +278,7 @@ class Arguments : Tango.Arguments
 
     ***************************************************************************/
 
-    public bool getBool( char[] name )
+    public bool getBool ( char[] name )
     {
         auto arg = this.get(name);
         if ( arg )
@@ -388,13 +387,11 @@ class Arguments : Tango.Arguments
         aliases and long names.
 
         Params:
-            long_name = argument long name
-            aliases = argument aliases
-            help = argument help text (ignored)
+            arg = the argument instance
 
     ***************************************************************************/
 
-    private void calculateSpacing ( Argument arg ) //char[] long_name, char[] aliases, char[] help )
+    private void calculateSpacing ( Argument arg )
     {
         this.long_name_width = max(this.long_name_width, arg.name.length);
         this.aliases_width = max(this.aliases_width,

@@ -89,6 +89,9 @@ class ArgumentsExt : IApplicationExtension
         Extension order. This extension uses -100_000 because it should be
         called very early.
 
+        Returns:
+            the extension order
+
     ***************************************************************************/
 
     public override int order ( )
@@ -101,15 +104,19 @@ class ArgumentsExt : IApplicationExtension
 
         Setup, parse, validate and process command line args (Application hook).
 
-        This function do all the extension processing invoking all the
-        extensions hooks. It also adds the --help option, and if it's present in
-        the arguments, shows the help and exits the program. If the version
-        argument is present and the version extension is in use, the version
-        text will be displayed and then the program will exit.
+        This function does all the extension processing invoking all the
+        extension hooks. It also adds the --help option, which when present,
+        shows the help and exits the program.
+        If the version argument is present and the version extension is in use,
+        the program will exit after displaying the version text.
 
         If argument parsing or validation fails (including extensions
         validation), it also prints an error message and exits. Note that if
         argument parsing fails, validation is not performed.
+
+        Params:
+            app = the application instance
+            cl_args = command line arguments
 
     ***************************************************************************/
 

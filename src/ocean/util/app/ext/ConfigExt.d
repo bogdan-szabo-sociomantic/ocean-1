@@ -123,6 +123,9 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
         Extension order. This extension uses -10_000 because it should be
         called pretty early, but after the ArgumentsExt extension.
 
+        Returns:
+            the extension order
+
     ***************************************************************************/
 
     public override int order ( )
@@ -136,6 +139,10 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
         Setup command line arguments (ArgumentsExt hook).
 
         Adds --config/-c option and --loose-config-parsing if appropriate.
+
+        Params:
+            app = the application instance
+            args = parsed command line arguments
 
     ***************************************************************************/
 
@@ -167,6 +174,10 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
         Overrides the loose_config_parsing variable if appropriate.
 
+        Params:
+            app = the application instance
+            args = parsed command line arguments
+
     ***************************************************************************/
 
     public void processArgs ( IApplication app, Arguments args )
@@ -181,6 +192,9 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
     /***************************************************************************
 
         Process overridden config options
+
+        Params:
+            args = parsed command line arguments
 
     ***************************************************************************/
 
@@ -205,6 +219,13 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
     /***************************************************************************
 
         Do a simple validation over override-config arguments
+
+        Params:
+            app = the application instance
+            args = parsed command line arguments
+
+        Returns:
+            error text if any
 
     ***************************************************************************/
 
@@ -250,6 +271,10 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
         Note:
             This is not done in processArgs() method because it can be used
             without being registered as a ArgumentsExt extension.
+
+        Params:
+            app = the application instance
+            cl_args = command line arguments
 
     ***************************************************************************/
 

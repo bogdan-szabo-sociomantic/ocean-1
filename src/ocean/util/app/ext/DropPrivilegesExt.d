@@ -68,6 +68,9 @@ class DropPrivilegesExt : IConfigExtExtension
         Extension order. This extension uses -5_000 because it should be
         called pretty early, but after the ConfigExt extension.
 
+        Returns:
+            the extension order
+
     ***************************************************************************/
 
     public int order ( )
@@ -82,7 +85,7 @@ class DropPrivilegesExt : IConfigExtExtension
 
         Params:
             app = the application instance that will run
-            args = command line arguments used to invoke the application
+            config = configuration instance to be filled
 
     ***************************************************************************/
 

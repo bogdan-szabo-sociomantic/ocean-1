@@ -26,6 +26,9 @@ class RefuseRootExt : IArgumentsExtExtension
 
         Order doesn't matter, so return default -> 0
 
+        Returns:
+            the extension order
+
     ***************************************************************************/
 
     int order ()

@@ -53,6 +53,9 @@ class StatsExt : IConfigExtExtension
         Extension order. This extension uses -500 because it should be
         called early, but after the LogExt extension.
 
+        Returns:
+            the extension order
+
     ***************************************************************************/
 
     public override int order ( )
@@ -64,6 +67,10 @@ class StatsExt : IConfigExtExtension
     /***************************************************************************
 
         Parse the configuration file options to set up the stats log.
+
+        Params:
+            app = the application instance
+            config = configuration instance
 
     ***************************************************************************/
 
@@ -81,6 +88,10 @@ class StatsExt : IConfigExtExtension
         We just need to provide an "empty" implementation to satisfy the
         interface.
 
+        Params:
+            app = the application instance
+            config = configuration instance
+
     ***************************************************************************/
 
     public void preParseConfig ( IApplication app, ConfigParser config )
@@ -95,6 +106,14 @@ class StatsExt : IConfigExtExtension
 
         We just need to provide an "empty" implementation to satisfy the
         interface.
+
+        Params:
+            app = the application instance
+            config = configuration instance
+            files = current list of configuration files to parse
+
+        Returns:
+            new list of configuration files to parse
 
     ***************************************************************************/
 

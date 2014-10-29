@@ -123,6 +123,9 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
             libs = associative array with the name as the key and the revision
                    as the value
 
+        Returns:
+            string with the version information of all libraries
+
     ***************************************************************************/
 
     protected char[] getLibsVersionsString ( char[][char[]] libs )
@@ -144,12 +147,12 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
             app_name = program's name
             ver = description of the application's version / revision
 
-        Return:
+        Returns:
             String with the version information
 
     ***************************************************************************/
 
-    protected char[] getVersionString(char[] app_name, VersionInfo ver)
+    protected char[] getVersionString ( char[] app_name, VersionInfo ver )
     {
         return app_name ~ " version " ~ ver.revision ~ " (compiled by '" ~
                 ver.build_author ~ "' on " ~ ver.build_date ~ " with " ~
@@ -163,6 +166,9 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
         Extension order. This extension uses 100_000 because it should be
         called very late.
 
+        Returns:
+            the extension order
+
     ***************************************************************************/
 
     public override int order ( )
@@ -174,6 +180,10 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
     /***************************************************************************
 
         Adds the command line option --version.
+
+        Params:
+            app = the application instance
+            args = command-line arguments instance
 
     ***************************************************************************/
 
@@ -191,6 +201,10 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
         interface. The version information is display through the displayVersion
         method and will be called from the ArgumentsExt class.
 
+        Params:
+            app = the application instance
+            args = command-line arguments instance
+
     ***************************************************************************/
 
     public void processArgs ( IApplication app, Arguments args )
@@ -201,6 +215,9 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
     /***************************************************************************
 
         Show the version information and exits.
+
+        Params:
+            app = the application instance
 
     ***************************************************************************/
 
@@ -223,6 +240,14 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
         the situation where the root logger is configured to not output level
         'info'.
 
+        Params:
+            app = the application instance
+            config = the configuration instance
+            loose_config_parsing = if true, configuration files will be parsed
+                                   in a more relaxed way
+            use_insert_appender = true if the InsertConsole appender should be
+                                  used (needed when using the AppStatus module)
+
     ***************************************************************************/
 
     public void postConfigureLoggers ( IApplication app, ConfigParser config,
@@ -243,6 +268,10 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
     /***************************************************************************
 
         If --version is specified, show the version information and exits.
+
+        Params:
+            app = the application instance
+            args = command-line arguments
 
     ***************************************************************************/
 
@@ -299,6 +328,10 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
         We just need to provide an "empty" implementation to satisfy the
         interface.
 
+        Params:
+            app = the application instance
+            args = command-line arguments instance
+
     ***************************************************************************/
 
     public char[] validateArgs ( IApplication app, Arguments args )
@@ -314,6 +347,14 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
         We just need to provide an "empty" implementation to satisfy the
         interface.
+
+        Params:
+            app = the application instance
+            config = the configuration instance
+            loose_config_parsing = if true, configuration files will be parsed
+                                   in a more relaxed way
+            use_insert_appender = true if the InsertConsole appender should be
+                                  used (needed when using the AppStatus module)
 
     ***************************************************************************/
 
