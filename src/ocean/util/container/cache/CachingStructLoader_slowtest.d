@@ -39,33 +39,24 @@ struct Trivial
 
 /******************************************************************************
 
-    Shared event loop
+    Simulates the real time for the cache below.
 
 ******************************************************************************/
 
-EpollSelectDispatcher epoll;
+private time_t now = 0;
 
 /******************************************************************************
 
-    Used instead of "sleep" to keep event loop running
+    Advances the simulated real time.
 
     Params:
-        seconds = amount of seconds to wait
+        seconds = amount of seconds to advance the simulated real time
 
 ******************************************************************************/
 
-void wait(long seconds)
+private void wait(long seconds)
 {
-    auto timer = new TimerEvent(
-        () {
-            epoll.shutdown();
-            return false;
-        }
-    );
-
-    timer.set( timespec(seconds) );
-    epoll.register(timer);
-    epoll.eventLoop();
+    now += 2;
 }
 
 /******************************************************************************
@@ -76,6 +67,23 @@ void wait(long seconds)
 
 class TestCache(S) : CachingStructLoader!(S)
 {
+    alias typeof(super) Super;
+
+    static class Cache: Super.Cache
+    {
+        this ( )
+        {
+            super(5, 1); // max 5 items, 1 second
+        }
+
+        /// Use the simulated time rather than the real time clock.
+
+        override protected time_t now ( )
+        {
+            return .now;
+        }
+    }
+
     // data source for missing records
     void[][hash_t] source;
 
@@ -129,8 +137,7 @@ private const Cache cache;
 
 static this()
 {
-    epoll = new EpollSelectDispatcher();
-    cache_storage = new Cache.Cache(5, 1); // max 5 items, 1 second
+    cache_storage = new Cache.Cache;
     cache = new Cache(cache_storage);
 }
 
