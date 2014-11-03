@@ -494,7 +494,8 @@ unittest
 
         if (expected_error is null)
         {
-            t.test!("==")(error, null);
+            t.test(error is null, "Error message mismatch, expected no " ~
+                                  "error, got '" ~ error ~ "'");
         }
         else
         {
