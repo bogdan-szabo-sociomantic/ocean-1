@@ -1355,7 +1355,7 @@ key	     = val
 	  key	     =		       val
 `;
     Config.parseString(white_str);
-    parsedConfigSanityCheck(Config, white_str_expectations, "white spaces 6");
+    parsedConfigSanityCheck(Config, white_str_expectations, "white spaces 7");
 
     // Parse a new configuration
 
