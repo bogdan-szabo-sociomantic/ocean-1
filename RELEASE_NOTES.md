@@ -97,6 +97,19 @@ New Features
   configuration with only minimal extra allocation as needed. This enhancement
   does not require any changes to applications using the ConfigParser module.
 
+  The ConfigParser has a new method `remove` which can be used to remove
+  properties from a parsed configuration.
+
+* `ocean.util.app.ext.ConfigExt`
+
+  Previously, the `override-config` option of the ConfigExt module could be used
+  only to change the value of a property or add a new property to a
+  configuration. But now, it can also be used to remove properties from a parsed
+  configuration. This is achieved by not specifying any 'value' in the parameter
+  of the `override-config` option as follows:
+      $> ./application --override-config Section.key=
+  (when this is done, the value associated with `Section.key` will be removed)
+
 * `ocean.io.device.DirectIO`
 
   `BufferedDirectReadFile` has a new protected method, `newFile()`, just like

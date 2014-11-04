@@ -211,7 +211,14 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
                     "Unexpected error while processing overrides, errors " ~
                     "should have been caught by the validateArgs() method");
 
-            this.config.set(category, key, value);
+            if ( value == "" )
+            {
+                this.config.remove(category, key);
+            }
+            else
+            {
+                this.config.set(category, key, value);
+            }
         }
     }
 
@@ -402,8 +409,6 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
                     "override: " ~ opt;
 
         value = trim(opt[key_end + 1 .. $]);
-        if (value.length == 0)
-            return "Empty value for config option override: " ~ opt;
 
         auto cat_key = opt[0 .. key_end];
         auto category_end = locatePrior(cat_key, '.');
@@ -532,6 +537,7 @@ unittest
     testParser("cat.key = value  ", "cat", "key", "value");
     testParser("  cat.key = value  ", "cat", "key", "value");
     testParser("  cat . key = value \t ", "cat", "key", "value");
+    testParser("  empty . val = \t ", "empty", "val", "");
 
     // New format errors
     testParserError("cat.key value", "No value separator ");
@@ -539,7 +545,7 @@ unittest
     testParserError("cat key value", "No value separator ");
     testParserError(" . empty = cat\t ", "Empty category ");
     testParserError("  empty .  = key\t ", "Empty key ");
-    testParserError("  empty . val = \t ", "Empty value ");
+    testParserError("  empty . val = \t ", null);
     testParserError("  .   = \t ", "Empty ");
 }
 

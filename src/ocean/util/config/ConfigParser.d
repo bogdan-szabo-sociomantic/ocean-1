@@ -752,6 +752,42 @@ class ConfigParser
 
     /***************************************************************************
 
+        Remove Config-Key Property
+
+        Usage Example:
+
+        ---
+
+            Config.parseFile(`etc/config.ini`);
+
+            Config.remove(`category`, `key`);
+
+        ---
+
+        Params:
+            category = category from which the property is to be removed
+            key      = key of the property to be removed
+
+    ***************************************************************************/
+
+    public void remove ( char[] category, char[] key )
+    {
+        if ( category == "" || key == "" )
+        {
+            return;
+        }
+
+        if ( this.exists(category, key) )
+        {
+            (this.properties[category][key]).present_in_config = false;
+
+            this.pruneConfiguration();
+        }
+    }
+
+
+    /***************************************************************************
+
          Prints the current configuration to the given formatted text stream.
 
          Note that no guarantees can be made about the order of the categories
@@ -1292,6 +1328,11 @@ bool_arr = true
             "set_key", "another_set_key" ]
         };
     parsedConfigSanityCheck(Config, new_str1_expectations, "modified string");
+
+    // Remove properties from the config.
+    Config.remove("Section2", "set_key");
+    Config.remove("Section2", "another_set_key");
+    parsedConfigSanityCheck(Config, str1_expectations, "back to basic string");
 
     // Whitespaces handling
 
