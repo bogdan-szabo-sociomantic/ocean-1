@@ -394,8 +394,8 @@ allunittest: $O/allunittests.stamp
 unittest: allunittest
 
 # Add fastunittest to fasttest and unittest to test general targets
-fasttest += fastunittest
-test += unittest
+fasttest := fastunittest $(fasttest)
+test := unittest $(test)
 
 # Files to be tested in unittests, the user could potentially add more
 UNITTEST_FILES += $(call find_files,.d,,$C/src,$(TEST_FILTER_OUT))
