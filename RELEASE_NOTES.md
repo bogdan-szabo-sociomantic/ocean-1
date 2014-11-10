@@ -9,11 +9,6 @@ dmd1       | v1.076.s2
 Migration Instructions
 ======================
 
-* `ocean.io.serialize.StructDumper`
-
-  Most struct parameters have been changed to ref to optimize the stack usage.
-  This means that lvalues are no longer possible.
-
 * Makd
 
   Now the `test/` directory is expected to have some particular structure.
@@ -23,6 +18,12 @@ Migration Instructions
   If you were specifying flags to the unittest program, you need to add a `%`
   to the rule before `unittest`. For example: `$O/%unittest: override LDFLAGS
   += -lm`.
+
+* `ocean.core.Exception`
+
+    `enforce` now takes file/line as template arguments instead of runtime ones.
+    If your code passes file/line explicitly, switch to `enforceImpl` instead which
+    matches old signature.
 
 * Command-line config overrides / `ocean.util.app.ext.ConfigExt`
 
@@ -44,17 +45,6 @@ Migration Instructions
   `parseLine`, both of which have now been made private. Applications using the
   ConfigParser do not need to call these functions.
 
-* `ocean.util.serialize.contiguous.Deserializer.copy`
-
-  `copy` was moved from `Deserializer` module to new `Util` module. Update your
-  imports unless you use `package_.d`
-
-* `ocean.core.Exception`
-
-    `enforce` now takes file/line as template arguments instead of runtime ones.
-    If your code passes file/line explicitly, switch to `enforceImpl` instead which
-    matches old signature.
-
 * `ocean.io.console.AppStatus`
 
   The method `num_static_lines` earlier returned the 'new' number of static
@@ -62,12 +52,22 @@ Migration Instructions
   `num_static_lines` can be used instead to get the current number of static
   lines.
 
+* `ocean.util.serialize.contiguous.Deserializer.copy`
+
+  `copy` was moved from `Deserializer` module to new `Util` module. Update your
+  imports unless you use `package_.d`
+
+* `ocean.io.serialize.StructDumper`
+
+  Most struct parameters have been changed to ref to optimize the stack usage.
+  This means that lvalues are no longer possible.
+
 * `ocean.util.contaner.cache.CachingStructLoader`
 
   `add_empty_values` field is not used in CachingStructLoader anymore.
   If your child class did set `this.add_empty_values = true`, ensure you call
   callback delegate even when data is empty. If your child class did set
-  `this.add_empty_values = false`, ensure you DON'T call delegate when 
+  `this.add_empty_values = false`, ensure you DON'T call delegate when
   data is empty.
 
 Deprecations
@@ -125,11 +125,6 @@ New Features
       $> ./application --override-config Section.key=
   (when this is done, the value associated with `Section.key` will be removed)
 
-* `ocean.io.device.DirectIO`
-
-  `BufferedDirectReadFile` has a new protected method, `newFile()`, just like
-  `BufferedDirectWriteFile`, so subclasses can change what `File` subclass to use.
-
 * `ocean.util.serialize.contiguous.Util`
 
   New module that contains utilities built on top of (de)serializer. New `copy`
@@ -144,4 +139,9 @@ New Features
   The output of the application can now be redirected to a file, but only the
   contents of the top streaming portion would be saved to the file, whereas the
   contents of the bottom static portion would simply be ignored.
+
+* `ocean.io.device.DirectIO`
+
+  `BufferedDirectReadFile` has a new protected method, `newFile()`, just like
+  `BufferedDirectWriteFile`, so subclasses can change what `File` subclass to use.
 
