@@ -56,7 +56,7 @@ private time_t now = 0;
 
 private void wait(long seconds)
 {
-    now += 2;
+    now += seconds;
 }
 
 /******************************************************************************
