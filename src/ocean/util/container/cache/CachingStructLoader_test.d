@@ -7,7 +7,7 @@
 
 *******************************************************************************/
 
-module ocean.util.container.cache.CachingStructLoader_slowtest;
+module ocean.util.container.cache.CachingStructLoader_test;
 
 /******************************************************************************
 
