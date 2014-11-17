@@ -694,11 +694,13 @@ class ConfigParser
             default_value = default list to use if missing in the config
 
         Returns:
-            the configured value if found, or default value otherwise
+            the list of values corresponding to the given category + key
+            combination if such a combination exists, the given list of default
+            values otherwise
 
     ***************************************************************************/
 
-    public bool getList ( T = char[] ) ( char[] category, char[] key,
+    public T[] getList ( T = char[] ) ( char[] category, char[] key,
             T[] default_value )
     {
         if ( exists(category, key) )
@@ -1325,6 +1327,17 @@ bool_arr = true
     Config.remove("Section2", "set_key");
     Config.remove("Section2", "another_set_key");
     parsedConfigSanityCheck(Config, str1_expectations, "back to basic string");
+
+    // getList tests
+    scope gl1 = Config.getList("Section1", "dummy",
+                        ["this", "is", "a", "list", "of", "default", "values"]);
+    test!("==")(gl1.length, 7);
+    test!("==")(gl1, ["this", "is", "a", "list", "of", "default", "values"]);
+
+    scope gl2 = Config.getList("Section1", "multiline",
+                        ["this", "is", "a", "list", "of", "default", "values"]);
+    test!("==")(gl2.length, 4);
+    test!("==")(gl2, ["a", "b", "c", "d"]);
 
     // Whitespaces handling
 
