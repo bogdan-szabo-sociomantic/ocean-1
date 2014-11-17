@@ -1193,8 +1193,7 @@ unittest
         char[][] obtained_categories;
         char[][] obtained_keys;
 
-        t.test(config.isEmpty == (expected.num_categories == 0),
-               "emptiness error");
+        t.test!("==")(config.isEmpty, (expected.num_categories == 0));
 
         foreach ( category; config )
         {
@@ -1206,14 +1205,11 @@ unittest
             }
         }
 
-        t.test(obtained_categories.length == expected.num_categories,
-               "mismatch in number of categories");
+        t.test!("==")(obtained_categories.length, expected.num_categories);
 
-        t.test(obtained_categories.sort == expected.categories.sort,
-               "mismatch in categories");
+        t.test!("==")(obtained_categories.sort, expected.categories.sort);
 
-        t.test(obtained_keys.sort == expected.keys.sort,
-               "mismatch in keys");
+        t.test!("==")(obtained_keys.sort, expected.keys.sort);
     }
 
     scope Config = new ConfigParser();
@@ -1266,26 +1262,23 @@ bool_arr = true
 
     scope l = Config.getListStrict("Section1", "multiline");
 
-    test(l.length == 4, "Incorrect number of elements in multiline");
+    test!("==")(l.length, 4);
 
-    test(l[0] == "a" && l[1] == "b" && l[2] == "c" && l[3] == "d",
-         "Multiline value was not parsed as expected");
+    test!("==")(l, ["a", "b", "c", "d"]);
 
     scope ints = Config.getListStrict!(int)("Section1", "int_arr");
-    test(ints == [30, 40, -60, 1111111111, 0x10],
-         "Wrong multi-line int-array parsing");
+    test!("==")(ints, [30, 40, -60, 1111111111, 0x10]);
 
     scope ulong_arr = Config.getListStrict!(ulong)("Section1", "ulong_arr");
     ulong[] ulong_array = [0, 50, ulong.max, 0xa123bcd];
-    test(ulong_arr == ulong_array, "Wrong multi-line ulong-array parsing");
+    test!("==")(ulong_arr, ulong_array);
 
     scope float_arr = Config.getListStrict!(float)("Section1", "float_arr");
     float[] float_array = [10.2, -25.3, 90, 0.000000001];
-    test(float_arr == float_array, "Wrong multi-line float-array parsing");
+    test!("==")(float_arr, float_array);
 
     scope bool_arr = Config.getListStrict!(bool)("Section1", "bool_arr");
-    bool[] bool_array = [true, false];
-    test(bool_arr == bool_array, "Wrong multi-line bool-array parsing");
+    test!("==")(bool_arr, [true, false]);
 
     try
     {
@@ -1293,8 +1286,7 @@ bool_arr = true
     }
     catch ( IllegalArgumentException e )
     {
-        test((e.msg == "Config.toBool :: invalid boolean value"),
-             "invalid conversion to bool was not reported as a problem");
+        test!("==")(e.msg, "Config.toBool :: invalid boolean value");
     }
 
     // Manually set a property (new category).
@@ -1302,19 +1294,19 @@ bool_arr = true
 
     char[] new_val;
     Config.getStrict(new_val, "Section2", "set_key");
-    test(new_val == "set_value", "New value not added correctly");
+    test!("==")(new_val, "set_value");
 
     // Manually set a property (existing category, new key).
     Config.set("Section2", "another_set_key", "another_set_value");
 
     Config.getStrict(new_val, "Section2", "another_set_key");
-    test(new_val == "another_set_value", "New value not added correctly");
+    test!("==")(new_val, "another_set_value");
 
     // Manually set a property (existing category, existing key).
     Config.set("Section2", "set_key", "new_set_value");
 
     Config.getStrict(new_val, "Section2", "set_key");
-    test(new_val == "new_set_value", "New value not added correctly");
+    test!("==")(new_val, "new_set_value");
 
     // Check if the 'exists' function works as expected.
     test( Config.exists("Section1", "int_arr"), "exists API failure");
