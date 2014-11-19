@@ -92,18 +92,6 @@ IMODE ?= 0644
 # Default install flags
 IFLAGS ?= -D
 
-# The files specified in this variable will be excluded from the generated
-# unit tests targets and from the integration test main files.
-# By default all files called main.d in $C/src/ are excluded too, it's assumed
-# they'll have a main() function in them.
-# Paths must be absolute (specify them with the $C/ prefix).
-# The contents of this variable will be passed to the Make function
-# $(filter-out), meaning you can specify multple patterns separated by
-# whitespaces and each pattern can have one '%' that's used as a wildcard.
-# For more information refer to the documentation:
-# http://www.gnu.org/software/make/manual/make.html#Text-Functions
-TEST_FILTER_OUT := $C/src/%/main.d
-
 
 # Default compiler flags
 #########################
@@ -169,6 +157,20 @@ I := $(DESTDIR)$(prefix)
 # This variable is "lazy" because $S changes all the time, so it should be
 # evaluated in the context where $C is used, not here.
 C = $T$(if $S,/$S)
+
+
+# The files specified in this variable will be excluded from the generated
+# unit tests targets and from the integration test main files.
+# By default all files called main.d in $C/src/ are excluded too, it's assumed
+# they'll have a main() function in them.
+# Paths must be absolute (specify them with the $C/ prefix).
+# The contents of this variable will be passed to the Make function
+# $(filter-out), meaning you can specify multple patterns separated by
+# whitespaces and each pattern can have one '%' that's used as a wildcard.
+# For more information refer to the documentation:
+# http://www.gnu.org/software/make/manual/make.html#Text-Functions
+# Assignment should be done after $C definition since value uses $C variable
+TEST_FILTER_OUT := $C/src/%/main.d
 
 
 # Functions
