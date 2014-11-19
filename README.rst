@@ -19,13 +19,14 @@ development, release notes
 <https://github.com/sociomantic/ocean/blob/master/RELEASE_NOTES.md>`_ | `All
 releases <https://github.com/sociomantic/ocean/releases>`_
 
-Releases are handled using . The release notes provided
+Releases are handled using `GitHub releases
+<https://github.com/sociomantic/ocean/releases>`_. The release notes provided
 there are usually structured in 3 sections, a **Migration Instructions**, which
 are the mandatory steps the users have to do to update to a new version,
 **Deprecated** which contains deprecated functions which is recommended not to
-use but will not break any old code, and the **New Features** which are optional
-new features available in the new version that users might find interesting.
-Using them is optional, but encouraged.
+use but will not break any old code, and the **New Features** which are
+optional new features available in the new version that users might find
+interesting.  Using them is optional, but encouraged.
 
 These instructions should help developers to migrate from one version to
 another. The changes listed here are the steps you need to take to move from
