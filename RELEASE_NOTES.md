@@ -116,3 +116,8 @@ New Features
   be configured via the `start_compress` field in the `[STATS]` config section.
   The corresponding variable is `IStatsLog.Config.start_compress`. The default
   (which is unchanged) is to start compressing after 4 rotated stats log files.
+
+* `ocean.util.log.Config`
+
+  A new overload of `configureLoggers()` now allows loggers to be configured
+  with user-created appenders. (Previously, the `AppendSysLog` was always used.)

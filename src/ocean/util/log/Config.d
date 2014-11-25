@@ -302,7 +302,8 @@ static this ( )
 
 /*******************************************************************************
 
-    Sets up logging configuration.
+    Sets up logging configuration. Creates an AppendSysLog appender for each
+    log.
 
     Template Params:
         Source = the type of the config parser
@@ -328,6 +329,48 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
                              ( ClassIterator!(Config, Source) config,
                                MetaConfig m_config, bool loose = false,
                                bool use_insert_appender = false )
+{
+    Appender newAppender ( char[] file, Appender.Layout layout )
+    {
+        return new AppendSyslog(file,
+            m_config.file_count,
+            m_config.max_file_size,
+            "gzip {}", "gz", m_config.start_compress,
+            layout);
+    }
+
+    configureLoggers(config, m_config, &newAppender, loose, use_insert_appender);
+}
+
+/*******************************************************************************
+
+    Sets up logging configuration. Calls the provided new_appender delegate once
+    per log being configured and passes the returned appender to the log's add()
+    method.
+
+    Template Params:
+        Source = the type of the config parser
+        FileLayout = layout to use for logging to file, defaults to LayoutDate
+        ConsoleLayout = layout to use for logging to console, defaults to
+                        LayoutSimple
+
+    Params:
+        config   = an instance of an class iterator for Config
+        m_config = an instance of the MetaConfig class
+        new_appender = delegate which returns appender instances to be used in
+            the loggers created in this function
+        loose = if true, configuration files will be parsed in a more relaxed
+                manner
+        use_insert_appender = true if the InsertConsole appender should be used
+                              (needed when using the AppStatus module)
+
+*******************************************************************************/
+
+public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
+    ConsoleLayout = LayoutSimple )
+    ( ClassIterator!(Config, Source) config, MetaConfig m_config,
+    Appender delegate ( char[] file, Layout layout ) new_appender,
+    bool loose = false, bool use_insert_appender = false )
 {
     enable_loose_parsing(loose);
 
@@ -369,12 +412,7 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
             Layout file_log_layout = (settings.file_layout.length)
                                          ? newLayout(settings.file_layout)
                                          : new FileLayout;
-
-            log.add(new AppendSyslog(settings.file(),
-                                     m_config.file_count,
-                                     m_config.max_file_size,
-                                     "gzip {}", "gz", m_config.start_compress,
-                                     file_log_layout));
+            log.add(new_appender(settings.file(), file_log_layout));
         }
 
         if ( console_enabled )
