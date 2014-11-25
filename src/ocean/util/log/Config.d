@@ -393,45 +393,64 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
             }
         }
 
-        with (settings) if ( level.length > 0 )
+        setupLoggerLevel(log, name, settings);
+    }
+}
+
+/*******************************************************************************
+
+    Sets up the level configuration of a logger.
+
+    Params:
+        log = logger to configure
+        name = name of logger
+        config = config settings for the logger
+
+    Throws:
+        Exception if the config for a logger specifies an invalid level
+
+*******************************************************************************/
+
+public void setupLoggerLevel ( Logger log, char[] name, Config config )
+{
+    with (config) if ( level.length > 0 )
+    {
+        StringSearch!() s;
+
+        level = s.strToLower(level);
+
+        switch ( level )
         {
-            StringSearch!() s;
+            case "trace":
+            case "debug":
+                log.level(Level.Trace, propagate);
+                break;
 
-            level = s.strToLower(level);
+            case "info":
+                log.level(Level.Info, propagate);
+                break;
 
-            switch ( level )
-            {
-                case "trace":
-                case "debug":
-                    log.level(Level.Trace, propagate);
-                    break;
+            case "warn":
+                log.level(Level.Warn, propagate);
+                break;
 
-                case "info":
-                    log.level(Level.Info, propagate);
-                    break;
+            case "error":
+                log.level(Level.Error, propagate);
+                break;
 
-                case "warn":
-                    log.level(Level.Warn, propagate);
-                    break;
+            case "fatal":
+                log.level(Level.Info, propagate);
+                break;
 
-                case "error":
-                    log.level(Level.Error, propagate);
-                    break;
+            case "none":
+            case "off":
+            case "disabled":
+                log.level(Level.None, propagate);
+                break;
 
-                case "fatal":
-                    log.level(Level.Info, propagate);
-                    break;
-
-                case "none":
-                case "off":
-                case "disabled":
-                    log.level(Level.None, propagate);
-                    break;
-
-                default:
-                    throw new Exception("Invalid value for log level in section"
-                                        " [" ~ name ~ "]");
-            }
+            default:
+                throw new Exception("Invalid value for log level in section"
+                                    " [" ~ name ~ "]");
         }
     }
 }
