@@ -318,6 +318,9 @@ static this ( )
         use_insert_appender = true if the InsertConsole appender should be used
                               (needed when using the AppStatus module)
 
+    Throws:
+        Exception if the config for a logger specifies an invalid level
+
 *******************************************************************************/
 
 public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,

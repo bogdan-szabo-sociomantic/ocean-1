@@ -477,6 +477,8 @@ public class StatsLog : IStatsLog
                 over-written
             max_file_size = size in bytes at which the log files will be rotated
             file_name = name of the file to write the stats to
+            name   = name of the logger, should be set to a different string
+                     when using more than two StatLogs
 
     ***************************************************************************/
 
@@ -497,6 +499,8 @@ public class StatsLog : IStatsLog
 
         Params:
             file_name = name of the file to write the stats to
+            name   = name of the logger, should be set to a different string
+                     when using more than two StatLogs
 
     ***************************************************************************/
 
@@ -781,10 +785,9 @@ public abstract class IStatsLog
         Constructor
 
         Params:
-            file_count = maximum number of log files before old logs are
-                over-written
-            max_file_size = size in bytes at which the log files will be rotated
-            file_name = name of the file to write the stats to
+            config = instance of the config class
+            name   = name of the logger, should be set to a different string
+                     when using more than two StatLogs
 
     ***************************************************************************/
 
