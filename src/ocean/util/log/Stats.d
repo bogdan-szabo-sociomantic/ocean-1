@@ -739,6 +739,7 @@ public abstract class IStatsLog
         char[] file_name = default_file_name;
         size_t max_file_size = default_max_file_size;
         size_t file_count = default_file_count;
+        size_t start_compress = default_start_compress;
 
         this ( char[] file_name, size_t max_file_size, size_t file_count )
         {
@@ -760,6 +761,7 @@ public abstract class IStatsLog
     public const default_file_count = 10;
     public const default_max_file_size = 10 * 1024 * 1024; // 10Mb
     public const char[] default_file_name = "log/stats.log";
+    public const size_t default_start_compress = 4;
 
 
     /***************************************************************************
@@ -798,8 +800,8 @@ public abstract class IStatsLog
         this.logger.additive(false);
 
         this.logger.add(new AppendSyslog(config.file_name, config.file_count,
-                                         config.max_file_size, "gzip {}", "gz", 4,
-                                         new LayoutStatsLog));
+                                         config.max_file_size, "gzip {}", "gz",
+                                         config.start_compress, new LayoutStatsLog));
 
         // Explcitly set the logger to output all levels, to avoid the situation
         // where the root logger is configured to not output level 'info'.
