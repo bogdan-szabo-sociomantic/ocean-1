@@ -13,7 +13,7 @@
     in tango's Layout -- the closest being the sprint() method, which writes to
     an output buffer, but which will not exceed the passed buffer's length.
 
-    Usage exmaple:
+    Usage example:
 
     ---
 
@@ -117,7 +117,7 @@ abstract class Layout ( T = char )
         overwrite any existing content.
 
         Params:
-            output = output buffer, length will be increased to accommadate
+            output = output buffer, length will be increased to accommodate
                 formatted string
             formatStr = format string
             ... = format string parameters
@@ -140,7 +140,7 @@ abstract class Layout ( T = char )
         overwrite any existing content.
 
         Params:
-            output = output buffer, length will be increased to accommadate
+            output = output buffer, length will be increased to accommodate
                 formatted string
             formatStr = format string
             arguments = argument types

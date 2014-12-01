@@ -150,9 +150,9 @@ class StringReplace ( bool wide_char = false )
 
     /**************************************************************************
 
-        The method will accept any aribtary replacement pattern and will pass it
-        through the Layout formatter.  The resulting string will replace
-        any occurrance of the target pattern. The content length is decreased or
+        The method will accept any arbitrary replacement pattern and will pass
+        it through the Layout formatter. The resulting string will replace any
+        occurrence of the target pattern. The content length is decreased or
         increased where appropriate.
 
         Params:
@@ -226,7 +226,7 @@ class StringReplace ( bool wide_char = false )
         "pattern". The content length is decreased where appropriate.
 
         Params:
-            content     = content to process
+            content = content to process
             pattern = search pattern
             decode  = delegate which replaces instances of "pattern"
 
@@ -254,7 +254,7 @@ class StringReplace ( bool wide_char = false )
         decreased where appropriate.
 
         Params:
-            content     = content to process
+            content = content to process
             pattern = set of characters to replace
             decode  = delegate which replaces instances of "pattern"
 
@@ -277,7 +277,7 @@ class StringReplace ( bool wide_char = false )
         The content length is decreased where appropriate.
 
         Params:
-            content     = content to process
+            content = content to process
             pattern = set of characters to replace
             decode  = delegate which replaces instances of "pattern"
 

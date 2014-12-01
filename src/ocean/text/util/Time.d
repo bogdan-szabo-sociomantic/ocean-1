@@ -8,7 +8,7 @@
 
     Functions to format time strings.
 
-    Usage exmaple:
+    Usage example:
 
     ---
 

@@ -393,7 +393,7 @@ private template SmartEnumCore ( BaseType )
 
 /*******************************************************************************
 
-    Wrapper for the ctfe_i2a fucntion (see tango.core.Traits), allowing it to
+    Wrapper for the ctfe_i2a function (see tango.core.Traits), allowing it to
     also handle (u)byte & (u)short types.
 
 *******************************************************************************/
