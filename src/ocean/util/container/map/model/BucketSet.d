@@ -680,12 +680,22 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
         In:
             val_init.length must be V.
 
+        Out:
+            all the buckets.first are set to null
+
     ***************************************************************************/
 
     protected override void clearBuckets ( void[] val_init = null )
     in
     {
         assert (!val_init.length || val_init.length == V);
+    }
+    out
+    {
+        foreach(bucket; this.buckets)
+        {
+            assert(bucket.first == null, "non-Null first bucket element found");
+        }
     }
     body
     {
