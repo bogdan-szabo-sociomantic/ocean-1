@@ -550,11 +550,11 @@ abstract class ICache : ICacheInfo
 
             TimeToIndex.Node** src_node_in_map = src_key in this.key_to_node;
 
-            assert (src_node_in_map !is null);
+            assert (src_node_in_map !is null, "Null src_node_in_map found");
 
             TimeToIndex.Node* src_node = *src_node_in_map;
 
-            assert (src_node !is null);
+            assert (src_node !is null, "Null src_node found");
 
             TimeToIndex.Key src_node_key = src_node.key;
 
