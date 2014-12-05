@@ -267,6 +267,28 @@ public struct Bucket ( size_t V, K = hash_t )
     {
         debug (HostingArrayMapBucket) element.bucket = this;
     }
+    out
+    {
+        debug (HostingArrayMapBucket)
+        {
+            // Check for cyclic links using 2 pointers, one which traverse
+            // twice as fast as the first one
+            auto ptr1 = this.first;
+            auto ptr2 = ptr1;
+
+            // Find meeting point
+            while(ptr2 !is null)
+            {
+                ptr1 = ptr1.next;
+                if (ptr2.next == null)
+                    break; // We reached end of the list, no loop
+                else
+                    ptr2 = ptr2.next.next;
+
+                assert(ptr1 !is ptr2, "Cyclic linked-list found");
+            }
+        }
+    }
     body
     {
         element.next = this.first;
