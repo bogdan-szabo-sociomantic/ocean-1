@@ -960,7 +960,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
 
                     cursor.prev().get(key, val);
                 }
-                while (!result && this.tokyo.compareKeys(key, this.first) > 0)
+                while (!result && this.tokyo.compareKeys(key, this.first) > 0);
 
                 if (include_first && !result)
                 {

@@ -1113,7 +1113,7 @@ unittest
                 n_existing += cache.exists(record.key);
             }
         }
-        while (!n_existing || n_existing == n_overflow)
+        while (!n_existing || n_existing == n_overflow);
 
         assert (n_existing > 0 && n_existing < n_overflow, "n_existing has unexpected value");
 

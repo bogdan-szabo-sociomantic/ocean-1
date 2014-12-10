@@ -272,7 +272,7 @@ public class PHPSerializer
             index += 10;
             ++i;
         }
-        while (num)
+        while (num);
 
         ubyte len = index/8 + (index % 8 == 0 ? 0 : 1);
 

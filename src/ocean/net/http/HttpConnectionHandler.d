@@ -240,7 +240,7 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
             {
                 this.request.reset();
             }
-            while (keep_alive)
+            while (keep_alive);
         }
         catch (IOError e)
         {
