@@ -208,7 +208,7 @@ public abstract class EpollProcess
 
         ***********************************************************************/
 
-        private const SignalEvent signal_event;
+        private SignalEvent signal_event;
 
 
         /***********************************************************************
@@ -217,7 +217,7 @@ public abstract class EpollProcess
 
         ***********************************************************************/
 
-        private const EpollSelectDispatcher epoll;
+        private EpollSelectDispatcher epoll;
 
 
         /***********************************************************************
@@ -226,7 +226,7 @@ public abstract class EpollProcess
 
         ***********************************************************************/
 
-        private const StandardKeyHashingMap!(EpollProcess, int) processes;
+        private StandardKeyHashingMap!(EpollProcess, int) processes;
 
 
         /***********************************************************************
@@ -608,9 +608,9 @@ public abstract class EpollProcess
 
     ***************************************************************************/
 
-    private const StdoutHandler stdout_handler;
+    private StdoutHandler stdout_handler;
 
-    private const StderrHandler stderr_handler;
+    private StderrHandler stderr_handler;
 
 
     /***************************************************************************
@@ -686,7 +686,7 @@ public abstract class EpollProcess
 
     ***************************************************************************/
 
-    protected const Process process;
+    protected Process process;
 
 
     /***************************************************************************

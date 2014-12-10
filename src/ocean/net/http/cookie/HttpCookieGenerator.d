@@ -41,7 +41,7 @@ class HttpCookieGenerator : ParamSet
 
      **************************************************************************/
 
-    public const char[] id;
+    public char[] id;
 
     /**************************************************************************
 
@@ -186,7 +186,7 @@ class HttpCookieGenerator : ParamSet
 
      **************************************************************************/
 
-    public  const ExpirationTime       expiration_time;
+    public  ExpirationTime       expiration_time;
 
     /**************************************************************************
 
@@ -194,7 +194,7 @@ class HttpCookieGenerator : ParamSet
 
      **************************************************************************/
 
-    private const FormatExpirationTime fmt_expiration_time;
+    private FormatExpirationTime fmt_expiration_time;
 
     /**************************************************************************
 

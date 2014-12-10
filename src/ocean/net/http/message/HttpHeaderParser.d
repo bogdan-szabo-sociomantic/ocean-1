@@ -316,7 +316,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    private const HeaderElement[] header_elements_;
+    private HeaderElement[] header_elements_;
 
     /**************************************************************************
 
@@ -324,7 +324,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    private const HttpParseException exception;
+    private HttpParseException exception;
 
     /**************************************************************************
 

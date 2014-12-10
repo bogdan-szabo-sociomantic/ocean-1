@@ -130,7 +130,7 @@ public class SafeFork
 
     ***************************************************************************/
 
-    private const ReusableException exception;
+    private ReusableException exception;
 
     /***************************************************************************
 
@@ -146,7 +146,7 @@ public class SafeFork
 
     ***************************************************************************/
 
-    private const void delegate () dg;
+    private void delegate () dg;
 
     /***************************************************************************
 

@@ -87,7 +87,7 @@ public class FiberSelectEvent : IFiberSelectClient
 
     ***************************************************************************/
 
-    private const EventFD event;
+    private EventFD event;
 
 
     /***************************************************************************

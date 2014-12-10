@@ -226,7 +226,7 @@ scope class TypeInfoVaList : IVaList
 
      **************************************************************************/
 
-    private const TypeInfo[] arguments;
+    private TypeInfo[] arguments;
 
     /***************************************************************************
 

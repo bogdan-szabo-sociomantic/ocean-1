@@ -70,7 +70,7 @@ class HttpResponse : HttpHeader
 
      **************************************************************************/
 
-    private const AppendBuffer!(char) content;
+    private AppendBuffer!(char) content;
 
     /**************************************************************************
 
@@ -78,7 +78,7 @@ class HttpResponse : HttpHeader
 
      **************************************************************************/
 
-    private const AppendHeaderLines append_header_lines;
+    private AppendHeaderLines append_header_lines;
 
     /**************************************************************************
 
@@ -333,7 +333,7 @@ class HttpResponse : HttpHeader
 
          **********************************************************************/
 
-        private const AppendBuffer!(char) content;
+        private AppendBuffer!(char) content;
 
         /**********************************************************************
 

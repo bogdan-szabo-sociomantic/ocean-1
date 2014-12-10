@@ -34,7 +34,7 @@ class StructVersionBase
 
     ***************************************************************************/
 
-    const public ConcatBuffer!(void[]) convert_buffer;
+    public ConcatBuffer!(void[]) convert_buffer;
 
     /***************************************************************************
 

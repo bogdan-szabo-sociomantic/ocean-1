@@ -103,7 +103,7 @@ class TimerEventTimeoutManager : TimeoutManager
 
     ***************************************************************************/
 
-    private const TimerEvent event;
+    private TimerEvent event;
 
     /***************************************************************************
 

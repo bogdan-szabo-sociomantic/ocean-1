@@ -108,7 +108,7 @@ public class HeadingsCSV
 
     ***************************************************************************/
 
-    private const CSV csv;
+    private CSV csv;
 
 
     /***************************************************************************
@@ -117,7 +117,7 @@ public class HeadingsCSV
 
     ***************************************************************************/
 
-    private const SliceBuffer!(char) headings;
+    private SliceBuffer!(char) headings;
 
 
     /***************************************************************************
@@ -128,7 +128,7 @@ public class HeadingsCSV
 
     ***************************************************************************/
 
-    private const AppendBuffer!(bool) heading_included;
+    private AppendBuffer!(bool) heading_included;
 
 
     /***************************************************************************
@@ -138,7 +138,7 @@ public class HeadingsCSV
 
     ***************************************************************************/
 
-    private const AppendBuffer!(Field) fields;
+    private AppendBuffer!(Field) fields;
 
 
     /***************************************************************************

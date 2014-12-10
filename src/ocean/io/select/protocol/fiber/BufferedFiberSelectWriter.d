@@ -36,7 +36,7 @@ class BufferedFiberSelectWriter : FiberSelectWriter
 
      **************************************************************************/
 
-    private const AppendBuffer!(void) buffer;
+    private AppendBuffer!(void) buffer;
 
     /**************************************************************************
 

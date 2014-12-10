@@ -43,7 +43,7 @@ public class SelectFiber : MessageFiber
 
      **************************************************************************/
 
-    public const EpollSelectDispatcher epoll;
+    public EpollSelectDispatcher epoll;
 
     /**************************************************************************
 

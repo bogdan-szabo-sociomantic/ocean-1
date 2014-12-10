@@ -255,7 +255,7 @@ public class TimerFD : ISelectable
 
     ***************************************************************************/
 
-    private const TimerException e;
+    private TimerException e;
 
 
     /***************************************************************************

@@ -271,7 +271,7 @@ public class BufferedDirectWriteFile: OutputStream
 
     ***************************************************************************/
 
-    private const DirectWriteFile file;
+    private DirectWriteFile file;
 
     /***************************************************************************
 

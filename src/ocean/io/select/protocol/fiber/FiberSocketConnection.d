@@ -295,7 +295,7 @@ public class IFiberSocketConnection : IFiberSelectProtocol
 
      **************************************************************************/
 
-    protected const IIPSocket socket;
+    protected IIPSocket socket;
 
     /**************************************************************************
 
@@ -303,7 +303,7 @@ public class IFiberSocketConnection : IFiberSelectProtocol
 
      **************************************************************************/
 
-    private const SocketError socket_error;
+    private SocketError socket_error;
 
     /**************************************************************************
 

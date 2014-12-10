@@ -69,7 +69,7 @@ class FiberSelectReader : IFiberSelectProtocol
 
     public alias .IInputDevice IInputDevice;
 
-    private const IInputDevice input;
+    private IInputDevice input;
 
     /**************************************************************************
 

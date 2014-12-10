@@ -270,9 +270,14 @@ class FullQueryParamSet: QueryParamSet
 
      **************************************************************************/
 
-    public const IAppendBufferReader!(Element) remaining_elements;
+    public IAppendBufferReader!(Element) remaining_elements ( )
+    {
+        return this._remaining_elements;
+    }
 
-    private const AppendBuffer!(Element) remaining;
+    private IAppendBufferReader!(Element) _remaining_elements;
+
+    private AppendBuffer!(Element) remaining;
 
     /**************************************************************************
 
@@ -289,7 +294,7 @@ class FullQueryParamSet: QueryParamSet
     {
         super(element_delim, keyval_delim, keys);
 
-        this.remaining_elements = this.remaining = new AppendBuffer!(Element);
+        this._remaining_elements = this.remaining = new AppendBuffer!(Element);
     }
 
     /**************************************************************************

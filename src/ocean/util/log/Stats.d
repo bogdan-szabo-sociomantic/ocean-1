@@ -296,7 +296,7 @@ public abstract class IPeriodicStatsLog
 
     ***************************************************************************/
 
-    protected const StatsLog stats_log;
+    protected StatsLog stats_log;
 
     /***************************************************************************
 
@@ -304,7 +304,7 @@ public abstract class IPeriodicStatsLog
 
     ***************************************************************************/
 
-    private const time_t period;
+    private time_t period;
 
     /***************************************************************************
 
@@ -312,7 +312,7 @@ public abstract class IPeriodicStatsLog
 
     ***************************************************************************/
 
-    private const TimerEvent timer;
+    private TimerEvent timer;
 
     /***************************************************************************
 
@@ -764,7 +764,7 @@ public abstract class IStatsLog
 
     ***************************************************************************/
 
-    protected const Logger logger;
+    protected Logger logger;
 
 
     /***************************************************************************
@@ -773,7 +773,7 @@ public abstract class IStatsLog
 
     ***************************************************************************/
 
-    protected const StringLayout!() layout;
+    protected StringLayout!() layout;
 
 
     /***************************************************************************

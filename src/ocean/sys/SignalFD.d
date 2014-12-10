@@ -242,9 +242,9 @@ public class SignalFD : ISelectable
 
     ***************************************************************************/
 
-    private const SignalErrnoException errno_exception;
+    private SignalErrnoException errno_exception;
 
-    private const SignalException exception;
+    private SignalException exception;
 
 
     /***************************************************************************
@@ -254,7 +254,7 @@ public class SignalFD : ISelectable
 
     ***************************************************************************/
 
-    private const int fd;
+    private int fd;
 
 
     /***************************************************************************
@@ -263,7 +263,7 @@ public class SignalFD : ISelectable
 
     ***************************************************************************/
 
-    private const int[] signals;
+    private int[] signals;
 
 
     /***************************************************************************

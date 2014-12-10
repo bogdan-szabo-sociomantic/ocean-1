@@ -41,7 +41,12 @@ const CookieAttributeNames CookieAttributeNameStrings =
     Version: "version"
 };
 
-const char[][] CookieAttributeNameList;
+char[][] CookieAttributeNameList ( )
+{
+    return _CookieAttributeNameList;
+}
+
+private char[][] _CookieAttributeNameList;
 
 private char[][CookieAttributeNames.tupleof.length] CookieAttributeNameList_;
 
@@ -52,7 +57,7 @@ static this ( )
         CookieAttributeNameList_[i] = name;
     }
 
-    CookieAttributeNameList = CookieAttributeNameList_;
+    _CookieAttributeNameList = CookieAttributeNameList_;
 }
 
 /******************************************************************************/
@@ -68,7 +73,7 @@ unittest
 
     foreach (i, attribute_name; CookieAttributeNames.Names.tupleof)
     {
-        assert(CookieAttributeNameList[i] == attribute_name,
+        assert(_CookieAttributeNameList[i] == attribute_name,
                "mismatch of CookieAttributeNameList[" ~ i.stringof ~ ']');
     }
 }

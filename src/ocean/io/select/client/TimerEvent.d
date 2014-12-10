@@ -296,7 +296,7 @@ abstract class ITimerEvent : ISelectClient, ISelectable
 
     ***************************************************************************/
 
-    protected const TimerException e;
+    protected TimerException e;
 
     /***********************************************************************
 

@@ -88,7 +88,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private const char[] path;
+    private char[] path;
 
     /***************************************************************************
 
@@ -97,7 +97,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private const char[] index_path;
+    private char[] index_path;
 
     /***************************************************************************
 
@@ -105,7 +105,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private const File file_out;
+    private File file_out;
 
     /***************************************************************************
 
@@ -113,7 +113,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private const File file_in;
+    private File file_in;
 
     /***************************************************************************
 
@@ -121,7 +121,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private const File file_index;
+    private File file_index;
 
     /***************************************************************************
 
@@ -129,7 +129,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private const BufferedOutput ext_out;
+    private BufferedOutput ext_out;
 
     /***************************************************************************
 
@@ -137,7 +137,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private const BufferedInput ext_in;
+    private BufferedInput ext_in;
 
     /***************************************************************************
 
@@ -162,7 +162,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private const size_t size;
+    private size_t size;
 
     /***************************************************************************
 
@@ -179,7 +179,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private const bool open_existing;
+    private bool open_existing;
 
     /***************************************************************************
 

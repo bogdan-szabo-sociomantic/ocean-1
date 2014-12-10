@@ -39,7 +39,7 @@ class CookiesHttpResponse : HttpResponse
 
      **************************************************************************/
 
-    public const HttpCookieGenerator[] cookies;
+    public HttpCookieGenerator[] cookies;
 
     /**************************************************************************
 

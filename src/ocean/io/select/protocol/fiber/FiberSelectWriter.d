@@ -62,7 +62,7 @@ class FiberSelectWriter : IFiberSelectProtocol
 
     public alias .IOutputDevice IOutputDevice;
 
-    private const IOutputDevice output;
+    private IOutputDevice output;
 
     /**************************************************************************
 

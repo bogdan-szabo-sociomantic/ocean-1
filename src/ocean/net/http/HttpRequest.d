@@ -85,7 +85,12 @@ class HttpRequest : HttpHeader
 
      **************************************************************************/
 
-    public const Uri uri;
+    public Uri uri ( )
+    {
+        return this._uri;
+    }
+
+    private Uri _uri;
 
     /**************************************************************************
 
@@ -94,7 +99,7 @@ class HttpRequest : HttpHeader
 
      **************************************************************************/
 
-    public const IHttpHeaderParser header;
+    public IHttpHeaderParser header;
 
     /**************************************************************************
 
@@ -118,7 +123,7 @@ class HttpRequest : HttpHeader
 
      **************************************************************************/
 
-    private const HttpHeaderParser parser;
+    private HttpHeaderParser parser;
 
     /**************************************************************************
 
@@ -135,8 +140,8 @@ class HttpRequest : HttpHeader
 
      **************************************************************************/
 
-    package const HttpException               http_exception;
-    private const HeaderParameterException    header_param_exception;
+    package HttpException               http_exception;
+    private HeaderParameterException    header_param_exception;
 
     /**************************************************************************
 
@@ -166,7 +171,7 @@ class HttpRequest : HttpHeader
 
         this.header = this.parser = new HttpHeaderParser;
 
-        this.uri = new Uri;
+        this._uri = new Uri;
 
         this.msg_body_ = new char[msg_body_prealloc_length];
 
@@ -198,7 +203,7 @@ class HttpRequest : HttpHeader
         super.dispose();
 
         delete this.parser;
-        delete this.uri;
+        delete this._uri;
         delete this.msg_body_;
         delete this.http_exception;
         delete this.header_param_exception;
@@ -461,7 +466,7 @@ class HttpRequest : HttpHeader
         this.http_exception.assertEx!(__FILE__, __LINE__)(this.parser.start_line_tokens[1].length,StatusCode.BadRequest, "no uri in request");
         this.http_exception.assertEx!(__FILE__, __LINE__)(this.parser.start_line_tokens[1].length <= this.max_uri_length, StatusCode.RequestURITooLarge);
 
-        this.uri.parse(this.parser.start_line_tokens[1]);
+        this._uri.parse(this.parser.start_line_tokens[1]);
     }
 
     /**************************************************************************
@@ -476,7 +481,7 @@ class HttpRequest : HttpHeader
         this.http_version_   = this.http_version_.init;
         this.msg_body_pos    = 0;
         this.header_complete = false;
-        this.uri.reset();
+        this._uri.reset();
         this.parser.reset();
 
         super.reset();

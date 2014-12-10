@@ -938,7 +938,7 @@ version ( UnitTest )
 
         private alias IAggregatePool!(T) Pool;
 
-        private const Pool pool;
+        private Pool pool;
 
 
         /***********************************************************************

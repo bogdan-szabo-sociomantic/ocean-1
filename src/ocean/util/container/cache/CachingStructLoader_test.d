@@ -131,9 +131,9 @@ class TestCache(S) : CachingStructLoader!(S)
 
 alias TestCache!(Trivial) Cache;
 
-private const Cache.Cache cache_storage;
+private Cache.Cache cache_storage;
 
-private const Cache cache;
+private Cache cache;
 
 static this()
 {

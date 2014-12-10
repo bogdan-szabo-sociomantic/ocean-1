@@ -70,7 +70,7 @@ class SelectReader : IAdvancedSelectClient
 
      **************************************************************************/
 
-    protected const IOWarning warning_e;
+    protected IOWarning warning_e;
 
     /**************************************************************************
 
@@ -78,7 +78,7 @@ class SelectReader : IAdvancedSelectClient
 
      **************************************************************************/
 
-    protected const IOError error_e;
+    protected IOError error_e;
 
     /***************************************************************************
 

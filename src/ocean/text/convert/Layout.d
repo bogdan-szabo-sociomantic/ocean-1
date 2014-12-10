@@ -85,7 +85,7 @@ abstract class Layout ( T = char )
 
      **************************************************************************/
 
-    private const TangoLayout.Layout!(T) layout;
+    private TangoLayout.Layout!(T) layout;
 
     /**************************************************************************
 
@@ -306,7 +306,7 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
         }
     }
 
-    private const Layout!(T) layout;
+    private Layout!(T) layout;
 
     /***************************************************************************
 

@@ -58,7 +58,12 @@ interface IAllocator
 
          **********************************************************************/
 
-        public const size_t max_length;
+        public size_t max_length ( )
+        {
+            return this._max_length;
+        }
+
+        private size_t _max_length;
 
         /**********************************************************************
 
@@ -71,7 +76,7 @@ interface IAllocator
 
         invariant ( )
         {
-            assert(this.n <= this.max_length);
+            assert(this.n <= this._max_length);
         }
 
         /**********************************************************************
@@ -85,7 +90,7 @@ interface IAllocator
 
         protected this ( size_t max_length )
         {
-            this.max_length = max_length;
+            this._max_length = max_length;
         }
 
         /**********************************************************************
@@ -106,7 +111,7 @@ interface IAllocator
         public void* push ( void* object )
         in
         {
-            assert(this.n < this.max_length);
+            assert(this.n < this._max_length);
         }
         body
         {
@@ -133,7 +138,7 @@ interface IAllocator
         {
             if (element)
             {
-                assert(this.n < this.max_length);
+                assert(this.n < this._max_length);
             }
             else
             {

@@ -120,7 +120,7 @@ class NotifyingByteQueue : IQueueInfo
 
     ***************************************************************************/
 
-    const private IByteQueue queue;
+    private IByteQueue queue;
 
     /***************************************************************************
 
@@ -138,7 +138,7 @@ class NotifyingByteQueue : IQueueInfo
 
     ***************************************************************************/
 
-    const private AppendBuffer!(NotificationDg) notifiers;
+    private AppendBuffer!(NotificationDg) notifiers;
 
     /***************************************************************************
 

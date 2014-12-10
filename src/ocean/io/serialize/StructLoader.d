@@ -102,7 +102,7 @@ class StructLoader
 
     ***************************************************************************/
 
-    const private StructLoaderCore loader;
+    private StructLoaderCore loader;
 
     /***************************************************************************
 
@@ -110,7 +110,7 @@ class StructLoader
 
     ***************************************************************************/
 
-    const private StructVersionBase struct_version;
+    private StructVersionBase struct_version;
 
     /***************************************************************************
 

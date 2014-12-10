@@ -130,7 +130,7 @@ version ( UnitTest )
 
         private alias IFreeList!(I) FL;
 
-        private const FL fl;
+        private FL fl;
 
 
         /***********************************************************************

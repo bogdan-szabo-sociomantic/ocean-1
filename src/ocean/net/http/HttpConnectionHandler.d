@@ -72,7 +72,7 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
 
      **************************************************************************/
 
-    protected const HttpException             http_exception;
+    protected HttpException             http_exception;
 
     /**************************************************************************
 

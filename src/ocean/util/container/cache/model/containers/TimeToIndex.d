@@ -72,7 +72,7 @@ class TimeToIndex: EBTree128!()
 
         ***********************************************************************/
 
-        private const ArrayPool!(PaddedNode) elements;
+        private ArrayPool!(PaddedNode) elements;
 
         /***********************************************************************
 
@@ -125,7 +125,7 @@ class TimeToIndex: EBTree128!()
 
     ***************************************************************************/
 
-    private const ArrayNodePool nodes;
+    private ArrayNodePool nodes;
 
     /***************************************************************************
 

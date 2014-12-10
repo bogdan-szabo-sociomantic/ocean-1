@@ -37,7 +37,7 @@ class KeyToNode: HashMap!(TimeToIndex.Node*)
 
         ***********************************************************************/
 
-        private const GenericArrayPool pool;
+        private GenericArrayPool pool;
 
         /***********************************************************************
 
@@ -74,7 +74,7 @@ class KeyToNode: HashMap!(TimeToIndex.Node*)
 
     ***************************************************************************/
 
-    private const ArrayAllocatedFreeBucketElements allocator;
+    private ArrayAllocatedFreeBucketElements allocator;
 
     /***********************************************************************
 

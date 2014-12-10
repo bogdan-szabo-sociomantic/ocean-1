@@ -78,7 +78,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
      **************************************************************************/
 
-    private const IRegisteredClients registered_clients;
+    private IRegisteredClients registered_clients;
 
     /**************************************************************************
 
@@ -95,7 +95,12 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
      **************************************************************************/
 
-    public const bool timeout_enabled;
+    public bool timeout_enabled ( )
+    {
+        return this._timeout_enabled;
+    }
+
+    private bool _timeout_enabled;
 
     /***************************************************************************
 
@@ -119,7 +124,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
      **************************************************************************/
 
-    private const EpollException e;
+    private EpollException e;
 
     /***************************************************************************
 
@@ -132,7 +137,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
     private alias AppendBuffer!(epoll_event_t) SelectedKeysList;
 
-    private const SelectedKeysList selected_keys;
+    private SelectedKeysList selected_keys;
 
     /***************************************************************************
 
@@ -148,7 +153,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
     private alias AppendBuffer!(ISelectClient) TimedOutClientList;
 
-    private const TimedOutClientList timed_out_clients;
+    private TimedOutClientList timed_out_clients;
 
     /***************************************************************************
 
@@ -156,7 +161,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
      **************************************************************************/
 
-    private const ITimeoutManager timeout_manager;
+    private ITimeoutManager timeout_manager;
 
     /***************************************************************************
 
@@ -164,7 +169,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
      **************************************************************************/
 
-    private const SelectEvent shutdown_event;
+    private SelectEvent shutdown_event;
 
     /***************************************************************************
 
@@ -240,7 +245,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
         this.timeout_manager = timeout_manager;
 
-        this.timeout_enabled = timeout_manager !is null;
+        this._timeout_enabled = timeout_manager !is null;
 
         this.shutdown_event = new SelectEvent(&this.shutdownTrigger);
 
@@ -636,7 +641,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
     public bool setExpiryRegistration ( ISelectClient client )
     {
-        if (this.timeout_enabled)
+        if (this._timeout_enabled)
         {
             client.expiry_registration = this.timeout_manager.getRegistration(client);
             return true;

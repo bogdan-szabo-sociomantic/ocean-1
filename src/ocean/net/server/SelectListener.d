@@ -120,7 +120,7 @@ abstract class ISelectListener : ISelectClient
 
      **************************************************************************/
 
-    private const AddressIPSocket!() socket;
+    private AddressIPSocket!() socket;
 
     /**************************************************************************
 
@@ -136,7 +136,7 @@ abstract class ISelectListener : ISelectClient
 
      **************************************************************************/
 
-    private const SocketError e;
+    private SocketError e;
 
     /**************************************************************************
 

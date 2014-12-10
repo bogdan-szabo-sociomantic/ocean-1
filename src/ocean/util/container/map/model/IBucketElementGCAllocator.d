@@ -66,7 +66,7 @@ class IBucketElementGCAllocator: IAllocator
 
         ***********************************************************************/
 
-        private const void*[] elements;
+        private void*[] elements;
 
         /***********************************************************************
 

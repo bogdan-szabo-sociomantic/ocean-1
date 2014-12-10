@@ -63,7 +63,7 @@ public class FiberTimerEvent : IFiberSelectClient
 
     ***************************************************************************/
 
-    private const TimerFD timer;
+    private TimerFD timer;
 
 
     /***************************************************************************

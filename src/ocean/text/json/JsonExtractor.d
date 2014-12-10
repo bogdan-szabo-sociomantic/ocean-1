@@ -206,7 +206,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        private const Parser json;
+        private Parser json;
 
         /***********************************************************************
 
@@ -360,7 +360,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        private const GetField[char[]] get_named_fields;
+        private GetField[char[]] get_named_fields;
 
         /***********************************************************************
 
@@ -371,7 +371,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        private const GetField[]       get_indexed_fields;
+        private GetField[]       get_indexed_fields;
 
 
         /***********************************************************************
@@ -565,7 +565,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        private const IteratorDg iterator_dg;
+        private IteratorDg iterator_dg;
 
         /***********************************************************************
 
@@ -679,7 +679,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        private const bool skip_null;
+        private bool skip_null;
 
         /**********************************************************************
 
@@ -688,7 +688,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        public const Type start_type, end_type;
+        public Type start_type, end_type;
 
         /***********************************************************************
 
@@ -696,7 +696,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        private const Parser json;
+        private Parser json;
 
         /***********************************************************************
 
@@ -704,7 +704,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        protected const JsonException exception;
+        protected JsonException exception;
 
         /***********************************************************************
 

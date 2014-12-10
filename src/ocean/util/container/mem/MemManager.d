@@ -36,7 +36,7 @@ import tango.core.Memory;
 
 *******************************************************************************/
 
-const IMemManager noScanMallocMemManager;
+IMemManager noScanMallocMemManager;
 
 /*******************************************************************************
 
@@ -44,7 +44,7 @@ const IMemManager noScanMallocMemManager;
 
 *******************************************************************************/
 
-const IMemManager mallocMemManager;
+IMemManager mallocMemManager;
 
 /*******************************************************************************
 
@@ -53,7 +53,7 @@ const IMemManager mallocMemManager;
 
 *******************************************************************************/
 
-const IMemManager noScanGcMemManager;
+IMemManager noScanGcMemManager;
 
 /*******************************************************************************
 
@@ -61,7 +61,7 @@ const IMemManager noScanGcMemManager;
 
 *******************************************************************************/
 
-const IMemManager gcMemManager;
+IMemManager gcMemManager;
 
 static this ( )
 {

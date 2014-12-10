@@ -72,7 +72,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
 
      **************************************************************************/
 
-    protected const ISelectable conduit;
+    protected ISelectable conduit;
 
     /**************************************************************************
 
@@ -80,7 +80,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
 
      **************************************************************************/
 
-    protected const Event events_;
+    protected Event events_;
 
     /**************************************************************************
 
@@ -88,7 +88,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
 
      **************************************************************************/
 
-    protected const IOWarning warning_e;
+    protected IOWarning warning_e;
 
     /**************************************************************************
 
@@ -96,7 +96,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
 
      **************************************************************************/
 
-    protected const IOError error_e;
+    protected IOError error_e;
 
     /**************************************************************************
 

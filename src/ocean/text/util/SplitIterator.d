@@ -58,7 +58,7 @@ class StrSplitIterator : ISplitIterator
 
      **************************************************************************/
 
-    public const SearchFruct!(char) sf;
+    public SearchFruct!(char) sf;
 
     /**************************************************************************
 

@@ -72,7 +72,7 @@ public abstract class IBucketSet
 
      **************************************************************************/
 
-    public const BucketInfo bucket_info;
+    public BucketInfo bucket_info;
 
     /**************************************************************************
 
@@ -80,7 +80,7 @@ public abstract class IBucketSet
 
      **************************************************************************/
 
-    protected const IAllocator bucket_element_allocator;
+    protected IAllocator bucket_element_allocator;
 
     /**************************************************************************
 

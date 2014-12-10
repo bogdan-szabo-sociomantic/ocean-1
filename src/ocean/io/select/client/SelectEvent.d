@@ -77,7 +77,7 @@ public abstract class ISelectEvent : IAdvancedSelectClient
 
     ***************************************************************************/
 
-    private const EventFD event_fd;
+    private EventFD event_fd;
 
 
     /***************************************************************************
@@ -210,7 +210,7 @@ public class SelectEvent : ISelectEvent
 
     ***************************************************************************/
 
-    private const Handler handler;
+    private Handler handler;
 
 
     /***************************************************************************
@@ -284,7 +284,7 @@ public class CountingSelectEvent : ISelectEvent
 
     ***************************************************************************/
 
-    private const Handler handler;
+    private Handler handler;
 
 
     /***************************************************************************

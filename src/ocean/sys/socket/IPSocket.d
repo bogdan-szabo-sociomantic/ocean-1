@@ -109,7 +109,12 @@ abstract class IIPSocket : InputDevice, IOutputDevice
 
      **************************************************************************/
 
-    public const bool is_ipv6;
+    public bool is_ipv6 ( )
+    {
+        return this._is_ipv6;
+    }
+
+    private bool _is_ipv6;
 
     /**************************************************************************
 
@@ -147,7 +152,7 @@ abstract class IIPSocket : InputDevice, IOutputDevice
 
      **************************************************************************/
 
-    public const socklen_t in_addrlen;
+    public socklen_t in_addrlen;
 
     /**************************************************************************
 
@@ -161,7 +166,7 @@ abstract class IIPSocket : InputDevice, IOutputDevice
 
     protected this ( bool is_ipv6, socklen_t in_addrlen )
     {
-        this.is_ipv6 = is_ipv6;
+        this._is_ipv6 = is_ipv6;
         this.in_addrlen = in_addrlen;
     }
 
@@ -332,7 +337,7 @@ abstract class IIPSocket : InputDevice, IOutputDevice
 
     public int socket ( int type, int protocol = 0 )
     {
-        this.fd = .socket(this.is_ipv6? AF_INET6 : AF_INET, type, protocol);
+        this.fd = .socket(this._is_ipv6? AF_INET6 : AF_INET, type, protocol);
 
         this.close_in_destructor = (this.fd >= 0);
 

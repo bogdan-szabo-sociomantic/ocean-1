@@ -61,7 +61,7 @@ public class SignalEvent : ISelectClient
 
     ***************************************************************************/
 
-    private const SignalFD event;
+    private SignalFD event;
 
 
     /***************************************************************************

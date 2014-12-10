@@ -71,7 +71,7 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
 
     ***************************************************************************/
 
-    protected const SelectFiber fiber;
+    protected SelectFiber fiber;
 
     /***************************************************************************
 
@@ -276,8 +276,8 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
 
     ***************************************************************************/
 
-    protected const SelectReader reader;
-    protected const SelectWriter writer;
+    protected SelectReader reader;
+    protected SelectWriter writer;
 
     /***************************************************************************
 
@@ -285,7 +285,7 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
 
     ***************************************************************************/
 
-    protected const IOWarning io_warning;
+    protected IOWarning io_warning;
 
     /***************************************************************************
 

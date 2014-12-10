@@ -108,7 +108,7 @@ public class StringStructSerializer ( Char )
 
     ***************************************************************************/
 
-    private const char[] fp_format;
+    private char[] fp_format;
 
 
     /***************************************************************************

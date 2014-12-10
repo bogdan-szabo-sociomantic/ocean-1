@@ -172,7 +172,7 @@ class EBTree128 ( bool signed = false ) : IEBTree
 
      **************************************************************************/
 
-    private const INodePool node_pool;
+    private INodePool node_pool;
 
     /**************************************************************************
 

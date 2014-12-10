@@ -49,7 +49,7 @@ class IOWarning : ErrnoIOException
 
      **************************************************************************/
 
-    protected const ISelectable conduit;
+    protected ISelectable conduit;
 
     /**************************************************************************
 

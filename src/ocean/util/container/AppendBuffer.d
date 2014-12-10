@@ -737,7 +737,7 @@ private abstract class AppendBufferImpl: IAppendBufferBase
 
      **************************************************************************/
 
-    private const size_t e;
+    private size_t e;
 
     /**************************************************************************
 

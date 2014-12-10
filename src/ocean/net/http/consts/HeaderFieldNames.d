@@ -30,7 +30,7 @@ struct HeaderFieldNames
                Upgrade,             Via,                Warning;
 
         alias HeaderFieldNames.GeneralNames    Names;
-        alias HeaderFieldNames.GeneralNameList NameList;
+        alias HeaderFieldNames._GeneralNameList NameList;
     }
 
     /**************************************************************************
@@ -61,7 +61,12 @@ struct HeaderFieldNames
 
      **************************************************************************/
 
-    public static const char[][] GeneralNameList;
+    public static char[][] GeneralNameList ( )
+    {
+        return _GeneralNameList;
+    }
+
+    private static char[][] _GeneralNameList;
 
     private static char[][GeneralNames.tupleof.length] GeneralNameList_;
 
@@ -125,7 +130,7 @@ struct HeaderFieldNames
 
      **************************************************************************/
 
-    public static const char[][] RequestNameList;
+    public static char[][] RequestNameList;
 
     private static char[][RequestNames.tupleof.length] RequestNameList_;
 
@@ -189,7 +194,7 @@ struct HeaderFieldNames
 
      **************************************************************************/
 
-    public static const char[][] ResponseNameList;
+    public static char[][] ResponseNameList;
 
     private static char[][ResponseNames.tupleof.length] ResponseNameList_;
 
@@ -240,7 +245,7 @@ struct HeaderFieldNames
 
      **************************************************************************/
 
-    public static const char[][] EntityNameList;
+    public static char[][] EntityNameList;
 
     private static char[][EntityNames.tupleof.length] EntityNameList_;
 
@@ -257,7 +262,7 @@ struct HeaderFieldNames
             this.GeneralNameList_[i] = name;
         }
 
-        this.GeneralNameList = this.GeneralNameList_;
+        this._GeneralNameList = this.GeneralNameList_;
 
         foreach (i, name; this.RequestNames.tupleof)
         {

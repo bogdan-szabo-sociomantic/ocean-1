@@ -74,7 +74,7 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
 
     ***************************************************************************/
 
-    protected const AddressIPSocket socket;
+    protected AddressIPSocket socket;
 
     /***************************************************************************
 
@@ -83,7 +83,7 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
 
     ***************************************************************************/
 
-    protected const SocketError socket_error;
+    protected SocketError socket_error;
 
     /***************************************************************************
 
