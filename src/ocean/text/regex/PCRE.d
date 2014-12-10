@@ -273,12 +273,46 @@ public class PCRE
         ***********************************************************************/
 
         public bool match ( char[] subject )
+        {
+            //"" matches against the pattern ""
+            if ( this.outer.buffer_char == "\0" && subject == "" )
+            {
+                return true;
+            }
+
+            return this.findFirst(subject) != null;
+        }
+
+        /***********************************************************************
+
+            Performs a regular expression match and return the first found match
+
+            Params:
+                subject  = input string
+
+            Returns:
+                slice to the first found match or null if no match
+
+            Throws:
+                if an error occurs when running the regex search or if the
+                pattern contains more than one capture, ex "(a(b)c)".
+
+            In:
+                the regex must have been compiled
+
+        ***********************************************************************/
+
+        public char[] findFirst ( char[] subject )
         in
         {
             assert(this.pcre_object);
         }
         body
         {
+            // This method supports only one capture so size 3 is enough.
+            // 2/3 for the positions and 1/3 for a internal buffer
+            int[3] ovector;
+
             if ( this.outer.complexity_limit != DEFAULT_COMPLEXITY_LIMIT )
             {
                 this.match_settings.flags |= PCRE_EXTRA_MATCH_LIMIT;
@@ -286,10 +320,24 @@ public class PCRE
             }
 
             int error_code = pcre_exec(this.pcre_object, &this.match_settings,
-                subject.ptr, subject.length, 0, 0, null, 0);
-            if ( error_code >= 0 )
+                subject.ptr, subject.length, 0, 0,
+                ovector.ptr, ovector.length);
+
+            if ( error_code > 0 )
             {
-                return true;
+                //we got a match but ovector is 0 so the whole subject matched
+                if ( ovector[0] == 0 && ovector[1] == 0 )
+                {
+                    return subject;
+                }
+
+                return subject[ovector[0] .. ovector[1]];
+            }
+            else if ( error_code == 0 )
+            {
+                this.outer.exception.set(error_code,
+                    "The pattern contains more than one capture!");
+                throw this.outer.exception;
             }
             else if ( error_code != PCRE_ERROR_NOMATCH )
             {
@@ -298,7 +346,54 @@ public class PCRE
                 throw this.outer.exception;
             }
 
-            return false;
+            return null;
+        }
+
+        /***********************************************************************
+
+            Performs a regular expression match and returns an array of slices
+            of all matches
+
+            Params:
+                subject  = input string
+                matches_buffer = found matches will be stored here
+
+            Returns:
+                Array with slices of all matches
+
+            Throws:
+                if an error occurs when running the regex search or if the
+                pattern contains more than one capture, ex "(a(b)c)".
+
+            In:
+                the regex must have been compiled
+
+        ***********************************************************************/
+
+        public char[][] findAll ( char[] subject, ref char[][] matches_buffer )
+        in
+        {
+            assert(this.pcre_object);
+        }
+        body
+        {
+            int pos;
+
+            while ( pos < subject.length )
+            {
+                if ( auto match = this.findFirst(subject[pos .. $]) )
+                {
+                    matches_buffer ~= match;
+                    //set pos to end of the match
+                    pos = match.ptr - subject.ptr + match.length;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return matches_buffer;
         }
 
         /***********************************************************************
@@ -447,6 +542,102 @@ version ( UnitTest )
 
         // Case-insensitive match
         test({ return pcre.preg_match("Hello World", "hello", false); }, true, false);
+
+        auto regex = pcre.new CompiledRegex;
+        char[][] matches_buffer;
+
+        auto t = new NamedTest("PCRE findAll");
+
+        {
+            const str = "apa bepa cepa depa epa fepa gepa hepa";
+            regex.compile("a[ ]", false);
+
+            matches_buffer.length = 0;
+
+            foreach ( match; regex.findAll(str, matches_buffer) )
+            {
+                t.test!("==")(match, "a ");
+            }
+
+            t.test!("==")(matches_buffer.length, 7);
+        }
+
+        {
+            char[][3] exp = ["ast", "at", "ast"];
+            const str = "en hast at en annan hast";
+            regex.compile("a[s]*t", false);
+
+            matches_buffer.length = 0;
+
+
+            foreach (i, match; regex.findAll(str, matches_buffer) )
+            {
+                t.test!("==")(match, exp[i]);
+            }
+            t.test!("==")(matches_buffer.length, 3);
+        }
+
+        {
+            char[][3] exp = ["ta", "tb", "td"];
+            const str = "tatb t c Tf td";
+            regex.compile("t[\\w]", true);
+            regex.study();
+
+            matches_buffer.length = 0;
+
+            foreach (i, match; regex.findAll(str, matches_buffer) )
+            {
+                t.test!("==")(match, exp[i]);
+            }
+
+            t.test!("==")(matches_buffer.length, 3);
+        }
+
+        {
+            const str = "en text";
+            regex.compile("zzz", false);
+            matches_buffer.length = 0;
+            auto matches = regex.findAll(str, matches_buffer);
+
+            t.test!("==")(matches_buffer.length, 0);
+        }
+
+        {
+            const str = "en text";
+            regex.compile("zzz", false);
+            matches_buffer.length = 0;
+            auto matches = regex.findAll(str, matches_buffer);
+
+            t.test!("==")(matches_buffer.length, 0);
+        }
+
+        {
+            const str ="aaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                       "aaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaaa"
+                       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaa"
+                       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaa"
+                       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaa"
+                       "aaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbAbbbbbbbbbbbb"
+                       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbAbbbbbbb"
+                       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbaaaaaaaaaaaaaaaaaAaaaaa"
+                       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaa"
+                       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaa"
+                       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                       "aaaaaAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                       "aacaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                       "aaaacaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+            regex.compile("a", true);
+            matches_buffer.length = 0;
+
+            foreach (i, match; regex.findAll(str, matches_buffer) )
+            {
+                t.test!("==")(match, "a");
+            }
+
+            t.test!("==")(matches_buffer.length, 695);
+        }
     }
 }
 
