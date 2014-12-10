@@ -285,9 +285,8 @@ public class PCRE
                 this.match_settings.match_limit = this.outer.complexity_limit;
             }
 
-            this.outer.buffer_char.concat(string, "\0");
             int error_code = pcre_exec(this.pcre_object, &this.match_settings,
-                this.outer.buffer_char.ptr, string.length, 0, 0, null, 0);
+                string.ptr, string.length, 0, 0, null, 0);
             if ( error_code >= 0 )
             {
                 return true;
