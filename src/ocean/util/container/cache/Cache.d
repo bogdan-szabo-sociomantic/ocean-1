@@ -572,7 +572,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
 
     static if ( TrackCreateTimes )
     {
-        public time_t createTime ( hash_t key )
+        public override time_t createTime ( hash_t key )
         {
             TimeToIndex.Node** node = key in this;
 
@@ -592,7 +592,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
 
     ***************************************************************************/
 
-    protected hash_t keyByIndex ( size_t index )
+    protected override hash_t keyByIndex ( size_t index )
     in
     {
         assert (index <= this.length);
@@ -641,7 +641,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
 
     ***************************************************************************/
 
-    protected hash_t replaceRemovedItem ( size_t replaced, size_t replace )
+    protected override hash_t replaceRemovedItem ( size_t replaced, size_t replace )
     in
     {
         assert(replaced != replace);
@@ -1550,7 +1550,7 @@ unittest
             this.item_dropped = item_dropped;
         }
 
-        protected void whenCacheItemDropped ( size_t index )
+        protected override void whenCacheItemDropped ( size_t index )
         {
             *item_dropped = true;
         }

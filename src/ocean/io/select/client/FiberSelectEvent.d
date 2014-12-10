@@ -113,7 +113,7 @@ public class FiberSelectEvent : IFiberSelectClient
 
     ***************************************************************************/
 
-    public Event events ( )
+    public override Event events ( )
     {
         return Event.EPOLLIN;
     }
@@ -127,7 +127,7 @@ public class FiberSelectEvent : IFiberSelectClient
 
     ***************************************************************************/
 
-    public Handle fileHandle ( )
+    public override Handle fileHandle ( )
     {
         return this.event.fileHandle;
     }
@@ -183,7 +183,7 @@ public class FiberSelectEvent : IFiberSelectClient
 
     ***************************************************************************/
 
-    public bool handle ( Event events )
+    public override bool handle ( Event events )
     in
     {
         assert (super.fiber.waiting);

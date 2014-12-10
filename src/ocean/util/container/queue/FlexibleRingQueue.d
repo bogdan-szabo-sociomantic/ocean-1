@@ -238,7 +238,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     ***************************************************************************/
 
-    public ulong used_space ( )
+    public override ulong used_space ( )
     {
         if (super.items == 0)
         {

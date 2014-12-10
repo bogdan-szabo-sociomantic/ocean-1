@@ -148,7 +148,7 @@ class StrSplitIterator : ISplitIterator
 
      **************************************************************************/
 
-    public size_t locateDelim ( char[] str, size_t start = 0 )
+    public override size_t locateDelim ( char[] str, size_t start = 0 )
     {
         return this.sf.forward(str, start);
     }
@@ -167,7 +167,7 @@ class StrSplitIterator : ISplitIterator
 
      **************************************************************************/
 
-    protected size_t skipDelim ( char[] str )
+    protected override size_t skipDelim ( char[] str )
     {
         assert (str.length >= this.delim.length);
 
@@ -280,7 +280,7 @@ class ChrSplitIterator : ISplitIterator
 
      **************************************************************************/
 
-    public size_t locateDelim ( char[] str, size_t start = 0 )
+    public override size_t locateDelim ( char[] str, size_t start = 0 )
     in
     {
         assert (start < str.length, typeof (this).stringof ~ ".locateDelim: start index out of range");
@@ -306,7 +306,7 @@ class ChrSplitIterator : ISplitIterator
 
      **************************************************************************/
 
-    protected size_t skipDelim ( char[] str )
+    protected override size_t skipDelim ( char[] str )
     in
     {
         assert (str.length >= 1);

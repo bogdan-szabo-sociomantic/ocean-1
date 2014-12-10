@@ -550,7 +550,7 @@ class AddrInfo : AddrInfoC
 
      **************************************************************************/
 
-    public addrinfo* info ( )
+    public override addrinfo* info ( )
     {
         return this.info_;
     }

@@ -183,7 +183,7 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
 
     ***************************************************************************/
 
-    final protected void handle ( )
+    final protected override void handle ( )
     {
         bool keep_alive = false;
 

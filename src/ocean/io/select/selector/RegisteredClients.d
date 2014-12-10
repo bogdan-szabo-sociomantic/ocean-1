@@ -115,7 +115,7 @@ public final class ClientCount : IRegisteredClients
 
     ***************************************************************************/
 
-    protected void add_ ( ISelectClient c )
+    protected override void add_ ( ISelectClient c )
     {
         this.count++;
     }
@@ -129,7 +129,7 @@ public final class ClientCount : IRegisteredClients
 
     ***************************************************************************/
 
-    protected void remove_ ( ISelectClient c )
+    protected override void remove_ ( ISelectClient c )
     {
         this.count--;
     }
@@ -141,7 +141,7 @@ public final class ClientCount : IRegisteredClients
 
     ***************************************************************************/
 
-    public size_t length ( )
+    public override size_t length ( )
     {
         return this.count;
     }
@@ -199,7 +199,7 @@ public final class ClientSet : IRegisteredClients
 
         ***********************************************************************/
 
-        public hash_t toHash ( ISelectClient c )
+        public override hash_t toHash ( ISelectClient c )
         {
             return cast(hash_t)cast(void*)c;
         }
@@ -227,7 +227,7 @@ public final class ClientSet : IRegisteredClients
 
     ***************************************************************************/
 
-    public void add_ ( ISelectClient c )
+    public override void add_ ( ISelectClient c )
     {
         this.clients.put(c);
     }
@@ -241,7 +241,7 @@ public final class ClientSet : IRegisteredClients
 
     ***************************************************************************/
 
-    public void remove_ ( ISelectClient c )
+    public override void remove_ ( ISelectClient c )
     {
         this.clients.remove(c);
     }
@@ -253,7 +253,7 @@ public final class ClientSet : IRegisteredClients
 
     ***************************************************************************/
 
-    public size_t length ( )
+    public override size_t length ( )
     {
         return this.clients.bucket_info.length;
     }

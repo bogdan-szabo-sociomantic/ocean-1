@@ -129,7 +129,7 @@ public class HashSet : Set!(hash_t)
 
     ***************************************************************************/
 
-    public hash_t toHash ( hash_t key )
+    public override hash_t toHash ( hash_t key )
     {
         return key;
     }

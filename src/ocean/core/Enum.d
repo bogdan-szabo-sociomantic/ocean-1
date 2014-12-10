@@ -465,7 +465,7 @@ public template EnumBase ( T ... )
 
     ***************************************************************************/
 
-    public Name* opIn_r ( Value v )
+    public override Name* opIn_r ( Value v )
     {
         return v in v_to_n;
     }
@@ -484,7 +484,7 @@ public template EnumBase ( T ... )
 
     ***************************************************************************/
 
-    public Value* opIn_r ( Name n )
+    public override Value* opIn_r ( Name n )
     {
         return n in n_to_v;
     }
@@ -506,7 +506,7 @@ public template EnumBase ( T ... )
 
     ***************************************************************************/
 
-    public Name opIndex ( Value v )
+    public override Name opIndex ( Value v )
     {
         return v_to_n[v];
     }
@@ -528,7 +528,7 @@ public template EnumBase ( T ... )
 
     ***************************************************************************/
 
-    public Value opIndex ( Name n )
+    public override Value opIndex ( Name n )
     {
         return n_to_v[n];
     }
@@ -541,7 +541,7 @@ public template EnumBase ( T ... )
 
     ***************************************************************************/
 
-    public size_t length ( )
+    public override size_t length ( )
     {
         return names.length;
     }
@@ -554,7 +554,7 @@ public template EnumBase ( T ... )
 
     ***************************************************************************/
 
-    public Value min ( )
+    public override Value min ( )
     {
         return E.min;
     }
@@ -567,7 +567,7 @@ public template EnumBase ( T ... )
 
     ***************************************************************************/
 
-    public Value max ( )
+    public override Value max ( )
     {
         return E.max;
     }
@@ -584,7 +584,7 @@ public template EnumBase ( T ... )
 
     ***************************************************************************/
 
-    public int opApply ( int delegate ( ref Name name, ref Value value ) dg )
+    public override int opApply ( int delegate ( ref Name name, ref Value value ) dg )
     {
         int res;
         foreach ( i, n; names )
@@ -608,7 +608,7 @@ public template EnumBase ( T ... )
 
     ***************************************************************************/
 
-    public int opApply (
+    public override int opApply (
         int delegate ( ref size_t i, ref Name name, ref Value value ) dg )
     {
         int res;

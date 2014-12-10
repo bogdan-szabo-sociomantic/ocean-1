@@ -100,7 +100,7 @@ public abstract class ISelectEvent : IAdvancedSelectClient
 
     ***************************************************************************/
 
-    Event events ( )
+    override Event events ( )
     {
         return Event.EPOLLIN;
     }
@@ -114,7 +114,7 @@ public abstract class ISelectEvent : IAdvancedSelectClient
 
     ***************************************************************************/
 
-    public Handle fileHandle ( )
+    public override Handle fileHandle ( )
     {
         return this.event_fd.fileHandle;
     }
@@ -135,7 +135,7 @@ public abstract class ISelectEvent : IAdvancedSelectClient
 
     ***************************************************************************/
 
-    public bool handle ( Event event )
+    public override bool handle ( Event event )
     in
     {
         assert (event == event.EPOLLIN);
@@ -245,7 +245,7 @@ public class SelectEvent : ISelectEvent
 
     ***************************************************************************/
 
-    protected bool handle_ ( ulong n )
+    protected override bool handle_ ( ulong n )
     {
         return this.handler();
     }
@@ -319,7 +319,7 @@ public class CountingSelectEvent : ISelectEvent
 
     ***************************************************************************/
 
-    protected bool handle_ ( ulong n )
+    protected override bool handle_ ( ulong n )
     {
         return this.handler(n);
     }

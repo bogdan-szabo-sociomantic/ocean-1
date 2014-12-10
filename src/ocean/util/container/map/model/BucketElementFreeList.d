@@ -61,7 +61,7 @@ class BucketElementFreeList ( BucketElement ) : IBucketElementFreeList
 
      **************************************************************************/
 
-    protected void* getNext ( void* element )
+    protected override void* getNext ( void* element )
     {
         return (cast(BucketElement*)element).next;
     }
@@ -76,7 +76,7 @@ class BucketElementFreeList ( BucketElement ) : IBucketElementFreeList
 
      **************************************************************************/
 
-    protected void setNext ( void* element, void* next )
+    protected override void setNext ( void* element, void* next )
     {
         (cast(BucketElement*)element).next = cast(BucketElement*)next;
     }
@@ -90,7 +90,7 @@ class BucketElementFreeList ( BucketElement ) : IBucketElementFreeList
 
      **************************************************************************/
 
-    protected void* newElement ( )
+    protected override void* newElement ( )
     {
         return new BucketElement;
     }
@@ -395,7 +395,7 @@ abstract class IBucketElementFreeList: IAllocator
 
          **********************************************************************/
 
-        protected void push_ ( void* object, size_t n )
+        protected override void push_ ( void* object, size_t n )
         {
             this.outer.recycle_(object);
         }
@@ -414,7 +414,7 @@ abstract class IBucketElementFreeList: IAllocator
 
          **********************************************************************/
 
-        protected void* pop_ ( size_t n )
+        protected override void* pop_ ( size_t n )
         {
             return this.outer.get_();
         }

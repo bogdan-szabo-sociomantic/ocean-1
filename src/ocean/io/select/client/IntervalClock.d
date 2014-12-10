@@ -371,7 +371,7 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
 
      **************************************************************************/
 
-    protected bool handle_ ( ulong n )
+    protected override bool handle_ ( ulong n )
     {
         this.expired = true;
         return true;

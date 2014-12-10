@@ -322,7 +322,7 @@ public class AppStatus
 
     ***************************************************************************/
 
-    public void dispose ( )
+    public override void dispose ( )
     {
         Stdout.endrow.newline.flush;
     }

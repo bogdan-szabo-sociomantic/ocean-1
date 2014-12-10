@@ -466,7 +466,7 @@ class FiberSelectReader : IFiberSelectProtocol
 
      **************************************************************************/
 
-    protected bool transmit ( Event events )
+    protected override bool transmit ( Event events )
     in
     {
         assert (this.available < this.data.length, "requested to receive nothing");

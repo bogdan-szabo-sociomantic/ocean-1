@@ -95,7 +95,7 @@ public class InsertConsole: Appender
 
      ***********************************************************************/
 
-    final Mask mask ( )
+    final override Mask mask ( )
     {
         return mask_;
     }
@@ -106,7 +106,7 @@ public class InsertConsole: Appender
 
      ***********************************************************************/
 
-    char[] name ( )
+    override char[] name ( )
     {
         return this.classinfo.name;
     }
@@ -117,7 +117,7 @@ public class InsertConsole: Appender
 
      ***********************************************************************/
 
-    final void append ( LogEvent event )
+    final override void append ( LogEvent event )
     {
         // attempt to format output for non-existing terminal will cause
         // an infinite loop

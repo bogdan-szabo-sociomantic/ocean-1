@@ -139,7 +139,8 @@ public class StandardHashingSet ( K ) : Set!(K)
 
     ***************************************************************************/
 
-    mixin StandardHash.toHash!(K);
+    override:
+        mixin StandardHash.toHash!(K);
 }
 
 

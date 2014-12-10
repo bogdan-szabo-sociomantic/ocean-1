@@ -228,7 +228,7 @@ abstract class ISelectListener : ISelectClient
 
      **************************************************************************/
 
-    public Event events ( )
+    public override Event events ( )
     {
         return Event.EPOLLIN;
     }
@@ -242,7 +242,7 @@ abstract class ISelectListener : ISelectClient
 
      **************************************************************************/
 
-    public Handle fileHandle ( )
+    public override Handle fileHandle ( )
     {
         return this.socket.fileHandle;
     }
@@ -281,7 +281,7 @@ abstract class ISelectListener : ISelectClient
 
      **************************************************************************/
 
-    final bool handle ( Event event )
+    final override bool handle ( Event event )
     {
         if (!this.terminated)
         {
@@ -532,7 +532,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
      **************************************************************************/
 
-    protected IConnectionHandler getConnectionHandler ( )
+    protected override IConnectionHandler getConnectionHandler ( )
     {
         return this.receiver_pool.get();
     }
@@ -552,7 +552,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
      **************************************************************************/
 
-    public uint connection_limit ( uint limit )
+    public override uint connection_limit ( uint limit )
     in
     {
         assert (!(limit && limit < this.poolInfo.num_busy),
@@ -623,7 +623,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
      **************************************************************************/
 
-    public ISelectListenerPoolInfo poolInfo ( )
+    public override ISelectListenerPoolInfo poolInfo ( )
     {
         return this.receiver_pool;
     }
@@ -658,7 +658,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
      **************************************************************************/
 
-    public void shutdown ( )
+    public override void shutdown ( )
     {
         scope busy_connections = this.receiver_pool.new BusyItemsIterator;
         foreach ( busy_connection; busy_connections )

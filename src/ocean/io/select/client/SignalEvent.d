@@ -111,7 +111,7 @@ public class SignalEvent : ISelectClient
 
     ***************************************************************************/
 
-    public Event events ( )
+    public override Event events ( )
     {
         return Event.EPOLLIN;
     }
@@ -125,7 +125,7 @@ public class SignalEvent : ISelectClient
 
     ***************************************************************************/
 
-    public Handle fileHandle ( )
+    public override Handle fileHandle ( )
     {
         return this.event.fileHandle;
     }
@@ -142,7 +142,7 @@ public class SignalEvent : ISelectClient
 
     ***************************************************************************/
 
-    public bool handle ( Event events )
+    public override bool handle ( Event events )
     {
         this.event.handle(this.siginfos);
 

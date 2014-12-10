@@ -268,7 +268,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
     ***************************************************************************/
 
-    public typeof(this) flush ( )
+    public override typeof(this) flush ( )
     {
         super.flush;
         return this;

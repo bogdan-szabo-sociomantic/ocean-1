@@ -669,7 +669,7 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 
      **************************************************************************/
 
-    protected void erase ( void[] data )
+    protected override void erase ( void[] data )
     {
         static if (static_array_element && is (T U : U[]) && is (typeof (T.init) == U))
         {

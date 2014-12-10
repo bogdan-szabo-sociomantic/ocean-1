@@ -1522,7 +1522,8 @@ unittest
             super(n, load_factor);
         }
 
-        mixin StandardHash.toHash!(int);
+        override:
+            mixin StandardHash.toHash!(int);
     }
 
 

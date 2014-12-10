@@ -300,7 +300,7 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
 
     class AppendLayout : Layout!(T)
     {
-        protected uint append ( T[] chunk )
+        protected override uint append ( T[] chunk )
         {
             return cast (uint) this.outer.append(chunk).length;
         }

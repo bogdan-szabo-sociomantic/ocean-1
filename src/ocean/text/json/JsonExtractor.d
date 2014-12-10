@@ -488,7 +488,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        protected bool setField ( uint i, Type type, char[] name, char[] value )
+        protected override bool setField ( uint i, Type type, char[] name, char[] value )
         {
             GetField get_field = this.getGetField(i, name);
 
@@ -614,7 +614,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        protected bool setField ( uint i, Type type, char[] name, char[] value )
+        protected override bool setField ( uint i, Type type, char[] name, char[] value )
         {
             return this.iterator_dg(i, type, value);
         }

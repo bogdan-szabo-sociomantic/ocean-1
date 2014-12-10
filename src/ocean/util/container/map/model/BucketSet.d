@@ -288,7 +288,7 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
     static class BucketElementGCAllocator: IBucketElementGCAllocator
     {
-        public void* get ( )
+        public override void* get ( )
         {
             return new Bucket.Element;
         }
@@ -605,7 +605,7 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
     ***************************************************************************/
 
-    public typeof (this) setNumBuckets ( uint exp2 )
+    public override typeof (this) setNumBuckets ( uint exp2 )
     in
     {
         assert (exp2 < size_t.sizeof * 8);
@@ -674,7 +674,7 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
     ***************************************************************************/
 
-    protected void clearBuckets ( void[] val_init = null )
+    protected override void clearBuckets ( void[] val_init = null )
     in
     {
         assert (!val_init.length || val_init.length == V);

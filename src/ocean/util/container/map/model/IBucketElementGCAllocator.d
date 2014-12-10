@@ -105,7 +105,7 @@ class IBucketElementGCAllocator: IAllocator
 
          **********************************************************************/
 
-        protected void push_ ( void* element, size_t n )
+        protected override void push_ ( void* element, size_t n )
         {
             this.elements[n] = element;
         }
@@ -124,7 +124,7 @@ class IBucketElementGCAllocator: IAllocator
 
          **********************************************************************/
 
-        protected void* pop_ ( size_t n )
+        protected override void* pop_ ( size_t n )
         {
             return this.elements[n];
         }

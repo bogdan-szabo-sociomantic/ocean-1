@@ -88,7 +88,7 @@ class TimerEventTimeoutManager : TimeoutManager
 
         ***********************************************************************/
 
-        protected bool handle_ ( ulong n )
+        protected override bool handle_ ( ulong n )
         {
             debug ( TimeoutManager ) Stderr("******** " ~ typeof (this.outer).stringof ~ " expired\n").flush();
 

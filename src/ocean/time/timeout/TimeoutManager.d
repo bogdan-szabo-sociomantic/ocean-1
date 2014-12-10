@@ -227,7 +227,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
             super(n);
         }
 
-        protected hash_t toHash ( Expiry* expiry )
+        protected override hash_t toHash ( Expiry* expiry )
         {
             return StandardHash.fnv1aT(expiry);
         }

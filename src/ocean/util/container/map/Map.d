@@ -162,7 +162,8 @@ public class StandardKeyHashingMap ( V, K ) : Map!(V, K)
 
     ***************************************************************************/
 
-    mixin StandardHash.toHash!(K);
+    override:
+        mixin StandardHash.toHash!(K);
 }
 
 /*******************************************************************************
@@ -238,7 +239,8 @@ public class StandardKeyHashingMap ( size_t V, K ) : Map!(V, K)
 
     ***************************************************************************/
 
-    mixin StandardHash.toHash!(K);
+    override:
+        mixin StandardHash.toHash!(K);
 }
 
 /*******************************************************************************

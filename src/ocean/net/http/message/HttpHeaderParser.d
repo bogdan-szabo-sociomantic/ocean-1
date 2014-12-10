@@ -219,7 +219,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
          **************************************************************************/
 
-        public size_t locateDelim ( char[] str, size_t start = 0 )
+        public override size_t locateDelim ( char[] str, size_t start = 0 )
         in
         {
             assert (start < str.length, typeof (this).stringof ~ ".locateDelim: start index out of range");
@@ -245,7 +245,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
          **************************************************************************/
 
-        protected size_t skipDelim ( char[] str )
+        protected override size_t skipDelim ( char[] str )
         in
         {
             assert (str.length >= this.EndOfHeaderLine.length);

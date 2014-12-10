@@ -239,7 +239,7 @@ class TimerEvent : ITimerEvent
 
     ***************************************************************************/
 
-    protected bool handle_ ( ulong n )
+    protected override bool handle_ ( ulong n )
     in
     {
         assert(this.handler);
@@ -330,7 +330,7 @@ abstract class ITimerEvent : ISelectClient, ISelectable
 
     ***************************************************************************/
 
-    public Event events ( )
+    public override Event events ( )
     {
         return Event.EPOLLIN;
     }
@@ -490,7 +490,7 @@ abstract class ITimerEvent : ISelectClient, ISelectable
 
     ***********************************************************************/
 
-    public Handle fileHandle ( )
+    public override Handle fileHandle ( )
     {
         return cast(Handle)this.fd;
     }
@@ -507,7 +507,7 @@ abstract class ITimerEvent : ISelectClient, ISelectable
 
     ***************************************************************************/
 
-    final bool handle ( Event event )
+    final override bool handle ( Event event )
     {
         ulong n;
 

@@ -231,7 +231,7 @@ class Lzo
 
      **************************************************************************/
 
-    void dispose ( )
+    override void dispose ( )
     {
         delete this.workmem;
     }

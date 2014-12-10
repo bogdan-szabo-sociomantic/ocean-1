@@ -188,7 +188,7 @@ class StructVersionBase
 
     ***************************************************************************/
 
-    public void dispose ( )
+    public override void dispose ( )
     {
         delete this.convert_buffer;
     }

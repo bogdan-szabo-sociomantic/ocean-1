@@ -257,18 +257,18 @@ version ( UnitTest )
     {
         public this ( ) { super(new StringFreeList); }
 
-        protected Item newItem ( )
+        protected override Item newItem ( )
         {
             return new char[10];
         }
 
-        protected void setItem ( ref Item item, int i )
+        protected override void setItem ( ref Item item, int i )
         {
             item.length = 1;
             item[0] = cast(char)(i + 32);
         }
 
-        protected void checkItem ( ref Item item, int i )
+        protected override void checkItem ( ref Item item, int i )
         {
             assert(item.length == 1, "item length wrong");
             assert(item[0] == cast(char)(i + 32), "item content wrong");
@@ -293,19 +293,19 @@ version ( UnitTest )
     {
         public this ( ) { super(new StructFreeList); }
 
-        protected Item newItem ( )
+        protected override Item newItem ( )
         {
             return new Struct;
         }
 
-        protected void setItem ( ref Item item, int i )
+        protected override void setItem ( ref Item item, int i )
         {
             item.i = i;
             item.s.length = 1;
             item.s[0] = cast(char)(i + 32);
         }
 
-        protected void checkItem ( ref Item item, int i )
+        protected override void checkItem ( ref Item item, int i )
         {
             assert(item.i == i, "item integer wrong");
             assert(item.s.length == 1, "item string length wrong");
@@ -331,19 +331,19 @@ version ( UnitTest )
     {
         public this ( ) { super(new ClassFreeList); }
 
-        protected Item newItem ( )
+        protected override Item newItem ( )
         {
             return new Class;
         }
 
-        protected void setItem ( ref Item item, int i )
+        protected override void setItem ( ref Item item, int i )
         {
             item.i = i;
             item.s.length = 1;
             item.s[0] = cast(char)(i + 32);
         }
 
-        protected void checkItem ( ref Item item, int i )
+        protected override void checkItem ( ref Item item, int i )
         {
             assert(item.i == i, "item integer wrong");
             assert(item.s.length == 1, "item string length wrong");

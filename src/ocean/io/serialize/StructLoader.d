@@ -145,7 +145,7 @@ class StructLoader
 
     ***************************************************************************/
 
-    public void dispose ( )
+    public override void dispose ( )
     {
         delete this.loader;
         delete this.struct_version;

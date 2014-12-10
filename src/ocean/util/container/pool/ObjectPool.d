@@ -79,7 +79,7 @@ public class ObjectPool ( T ) : IAggregatePool!(T)
 
     ***************************************************************************/
 
-    protected void resetItem ( Item item )
+    protected override void resetItem ( Item item )
     {
         static if (is(T : Resettable))
         {
@@ -210,19 +210,19 @@ version ( UnitTest )
             super(new MyPool);
         }
 
-        protected Item newItem ( )
+        protected override Item newItem ( )
         {
             return new Class;
         }
 
-        protected void setItem ( ref Item item, int i )
+        protected override void setItem ( ref Item item, int i )
         {
             item.i = i;
             item.s.length = 1;
             item.s[0] = cast(char)(i + 32);
         }
 
-        protected void checkItem ( ref Item item, int i )
+        protected override void checkItem ( ref Item item, int i )
         {
             assert(item.i == i, "item integer wrong");
             assert(item.s.length == 1, "item string length wrong");

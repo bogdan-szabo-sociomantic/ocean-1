@@ -140,7 +140,7 @@ class LzoChunk ( bool LengthInline = true )
 
      **************************************************************************/
 
-    void dispose ( )
+    override void dispose ( )
     {
         if ( !this.lzo_is_reference )
         {

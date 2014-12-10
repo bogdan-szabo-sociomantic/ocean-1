@@ -532,7 +532,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
      **************************************************************************/
 
-    protected void setItemIndex ( Item item, uint n )
+    protected override void setItemIndex ( Item item, uint n )
     {
         this.fromItem(item).object_pool_index = n;
     }
@@ -549,7 +549,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
      **************************************************************************/
 
-    protected uint getItemIndex ( Item item )
+    protected override uint getItemIndex ( Item item )
     {
         return this.fromItem(item).object_pool_index;
     }
@@ -563,7 +563,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
      **************************************************************************/
 
-    abstract protected void resetItem ( Item item );
+    abstract protected override void resetItem ( Item item );
 
     /**************************************************************************
 
@@ -574,7 +574,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
      **************************************************************************/
 
-    protected void deleteItem ( ref Item item )
+    protected override void deleteItem ( ref Item item )
     out
     {
         assert (this.isNull(item));
@@ -606,7 +606,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
      **************************************************************************/
 
-    protected bool isSame ( Item a, Item b )
+    protected override bool isSame ( Item a, Item b )
     {
         return this.fromItem(a) is this.fromItem(b);
     }
@@ -623,7 +623,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
      **************************************************************************/
 
-    protected bool isNull ( Item item )
+    protected override bool isNull ( Item item )
     {
         return this.fromItem(item) is null;
     }

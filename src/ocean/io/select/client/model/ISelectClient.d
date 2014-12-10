@@ -409,7 +409,7 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable, ISelectClient
     {
         private char[] to_string_buf;
 
-        public char[] toString ( )
+        public override char[] toString ( )
         {
             this.to_string_buf.length = 0;
             Format.format(this.to_string_buf, "{} fd={} events=", this.id,

@@ -100,7 +100,7 @@ class EncodeNonUnreserved : PercentEncoder
 
      **************************************************************************/
 
-    protected bool encode ( char c )
+    protected override bool encode ( char c )
     {
         return !this.unreserved[c];
     }
@@ -141,7 +141,7 @@ class EncodeExceptAsciiGraph : PercentEncoder
 
      **************************************************************************/
 
-    protected bool encode ( char c )
+    protected override bool encode ( char c )
     {
         return !.isgraph(c);
     }

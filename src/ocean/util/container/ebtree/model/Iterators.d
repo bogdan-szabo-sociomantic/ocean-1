@@ -183,7 +183,7 @@ template Iterators ( Node )
 
         ***********************************************************************/
 
-        protected Node* first ( )
+        protected override Node* first ( )
         {
             return this.outer.firstGreaterEqual(this.key);
         }
@@ -196,7 +196,7 @@ template Iterators ( Node )
 
         ***********************************************************************/
 
-        protected Node* last ( )
+        protected override Node* last ( )
         {
             return this.outer.firstLessEqual(this.key);
         }

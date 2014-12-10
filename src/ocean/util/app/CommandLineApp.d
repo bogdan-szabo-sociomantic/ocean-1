@@ -156,7 +156,7 @@ abstract class CommandLineApp : Application, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    protected int run ( char[][] args )
+    protected override int run ( char[][] args )
     {
         return this.run(this.args);
     }

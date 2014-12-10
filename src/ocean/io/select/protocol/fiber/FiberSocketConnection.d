@@ -694,7 +694,7 @@ public class IFiberSocketConnection : IFiberSelectProtocol
 
     ***************************************************************************/
 
-    protected bool transmit ( Event events )
+    protected override bool transmit ( Event events )
     in
     {
         assert(this.transmit_calls <= 1);

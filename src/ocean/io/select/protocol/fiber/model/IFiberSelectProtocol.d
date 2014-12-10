@@ -183,7 +183,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
 
      **************************************************************************/
 
-    public Handle fileHandle ( )
+    public override Handle fileHandle ( )
     {
         return this.conduit.fileHandle();
     }
@@ -195,7 +195,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
 
      **************************************************************************/
 
-    public Event events ( )
+    public override Event events ( )
     {
         return this.events_;
     }
@@ -230,7 +230,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
 
      **************************************************************************/
 
-    final protected bool handle ( Event events )
+    final override protected bool handle ( Event events )
     in
     {
         assert (this.fiber.waiting);

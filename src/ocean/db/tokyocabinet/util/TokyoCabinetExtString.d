@@ -112,7 +112,7 @@ class TokyoCabinetExtString
 
     ***************************************************************************/
 
-    public char[] toString ( )
+    public override char[] toString ( )
     {
         return (cast (char*) tcxstrptr(this.xstr))[0 .. this.getLength()];
     }

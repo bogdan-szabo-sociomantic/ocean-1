@@ -148,7 +148,7 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
 
     ***************************************************************************/
 
-    public void handleConnection ( )
+    public override void handleConnection ( )
     in
     {
         assert (!this.fiber.running);
@@ -455,7 +455,7 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
 
      **************************************************************************/
 
-    protected bool io_error ( )
+    protected override bool io_error ( )
     {
         return this.reader.io_error || this.writer.io_error;
     }

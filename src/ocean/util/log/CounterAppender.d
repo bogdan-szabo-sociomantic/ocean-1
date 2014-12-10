@@ -49,7 +49,7 @@ public class CounterAppender : Appender
 
         ***********************************************************************/
 
-        final Mask mask ()
+        final override Mask mask ()
         {
                 return mask_;
         }
@@ -60,7 +60,7 @@ public class CounterAppender : Appender
 
         ***********************************************************************/
 
-        final char[] name ()
+        final override char[] name ()
         {
                 return this.classinfo.name;
         }
@@ -71,7 +71,7 @@ public class CounterAppender : Appender
 
         ***********************************************************************/
 
-        final void append (LogEvent event)
+        final override void append (LogEvent event)
         {
               counter[event.name]++;
         }

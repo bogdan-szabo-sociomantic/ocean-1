@@ -385,7 +385,7 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
      **************************************************************************/
 
 
-    public This update ( void[] data )
+    public override This update ( void[] data )
     {
         this.digest = this.fnv1(data, this.digest);
 
@@ -414,7 +414,7 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
     ***************************************************************************/
 
 
-    public ubyte[] binaryDigest( ubyte[] buffer = null )
+    public override ubyte[] binaryDigest( ubyte[] buffer = null )
     {
         scope(exit) this.reset();
 
@@ -449,7 +449,7 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
     ***************************************************************************/
 
 
-    public uint digestSize ( )
+    public override uint digestSize ( )
     {
         return this.DIGEST_LENGTH;
     }
@@ -503,7 +503,7 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
              digest
 
      **************************************************************************/
-    public ulong ulongDigest ( )
+    public override ulong ulongDigest ( )
     {
         ulong d = this.digest;
         this.reset();

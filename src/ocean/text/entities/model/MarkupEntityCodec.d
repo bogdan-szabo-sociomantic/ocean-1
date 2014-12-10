@@ -116,17 +116,17 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     ***************************************************************************/
 
-    public char[] encode ( char[] text, ref char[] encoded )
+    public override char[] encode ( char[] text, ref char[] encoded )
     {
         return this.encode_(text, encoded);
     }
 
-    public wchar[] encode ( wchar[] text, ref wchar[] encoded )
+    public override wchar[] encode ( wchar[] text, ref wchar[] encoded )
     {
         return this.encode_(text, encoded);
     }
 
-    public dchar[] encode ( dchar[] text, ref dchar[] encoded )
+    public override dchar[] encode ( dchar[] text, ref dchar[] encoded )
     {
         return this.encode_(text, encoded);
     }
@@ -145,17 +145,17 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     ***************************************************************************/
 
-    public char[] decode ( char[] text, ref char[] decoded )
+    public override char[] decode ( char[] text, ref char[] decoded )
     {
         return this.decode_(text, decoded);
     }
 
-    public wchar[] decode ( wchar[] text, ref wchar[] decoded )
+    public override wchar[] decode ( wchar[] text, ref wchar[] decoded )
     {
         return this.decode_(text, decoded);
     }
 
-    public dchar[] decode ( dchar[] text, ref dchar[] decoded )
+    public override dchar[] decode ( dchar[] text, ref dchar[] decoded )
     {
         return this.decode_(text, decoded);
     }
@@ -173,17 +173,17 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     ***************************************************************************/
 
-    public bool containsUnencoded ( char[] text )
+    public override bool containsUnencoded ( char[] text )
     {
         return this.containsUnencoded_(text);
     }
 
-    public bool containsUnencoded ( wchar[] text )
+    public override bool containsUnencoded ( wchar[] text )
     {
         return this.containsUnencoded_(text);
     }
 
-    public bool containsUnencoded ( dchar[] text )
+    public override bool containsUnencoded ( dchar[] text )
     {
         return this.containsUnencoded_(text);
     }
@@ -201,17 +201,17 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     ***************************************************************************/
 
-    public bool containsEncoded ( char[] text )
+    public override bool containsEncoded ( char[] text )
     {
         return this.containsEncoded_(text);
     }
 
-    public bool containsEncoded ( wchar[] text )
+    public override bool containsEncoded ( wchar[] text )
     {
         return this.containsEncoded_(text);
     }
 
-    public bool containsEncoded ( dchar[] text )
+    public override bool containsEncoded ( dchar[] text )
     {
         return this.containsEncoded_(text);
     }

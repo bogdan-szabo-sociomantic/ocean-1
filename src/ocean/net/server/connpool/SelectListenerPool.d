@@ -116,7 +116,7 @@ public class SelectListenerPool ( T, Args ... ) :
 
     ***************************************************************************/
 
-    public uint limit ( )
+    public override uint limit ( )
     {
         return super.limit();
     }
@@ -131,7 +131,7 @@ public class SelectListenerPool ( T, Args ... ) :
 
     ***************************************************************************/
 
-    public bool is_limited ( )
+    public override bool is_limited ( )
     {
         return super.is_limited();
     }

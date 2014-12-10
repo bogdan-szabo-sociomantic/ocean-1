@@ -730,7 +730,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 
     ***************************************************************************/
 
-    protected char[] getTokyoErrMsg ( )
+    protected override char[] getTokyoErrMsg ( )
     {
         return this.getTokyoErrMsg(tchdbecode(super.db));
     }
@@ -749,7 +749,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 
     ***************************************************************************/
 
-    protected char[] getTokyoErrMsg ( TCERRCODE errcode )
+    protected override char[] getTokyoErrMsg ( TCERRCODE errcode )
     {
         return StringC.toDString(tchdberrmsg(errcode));
     }
@@ -769,7 +769,7 @@ class TokyoCabinetH : ITokyoCabinet!(TCHDB, tchdbforeach)
 
     ***************************************************************************/
 
-    protected void tokyoAssertStrict ( bool ok, TCERRCODE[] ignore_codes, char[] context = "Error" )
+    protected override void tokyoAssertStrict ( bool ok, TCERRCODE[] ignore_codes, char[] context = "Error" )
     {
         if (!ok)
         {

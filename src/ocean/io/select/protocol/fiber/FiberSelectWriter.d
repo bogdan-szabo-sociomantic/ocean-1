@@ -328,7 +328,7 @@ class FiberSelectWriter : IFiberSelectProtocol
 
      **************************************************************************/
 
-    protected bool transmit ( Event events )
+    protected override bool transmit ( Event events )
     out
     {
         assert (this);

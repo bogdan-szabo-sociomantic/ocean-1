@@ -120,7 +120,7 @@ class SelectReader : IAdvancedSelectClient
 
      **************************************************************************/
 
-    public Event events ( )
+    public override Event events ( )
     {
         return this.events_;
     }
@@ -133,7 +133,7 @@ class SelectReader : IAdvancedSelectClient
 
      **************************************************************************/
 
-    public Handle fileHandle ( )
+    public override Handle fileHandle ( )
     {
         return this.input.fileHandle();
     }
@@ -241,7 +241,7 @@ class SelectReader : IAdvancedSelectClient
 
     ***************************************************************************/
 
-    final protected bool handle ( Event events )
+    final override protected bool handle ( Event events )
     {
         this.read(events);
         debug ( SelectFiber ) Trace.formatln("{}.handle: fd {} read() called",

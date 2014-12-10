@@ -195,7 +195,7 @@ public class HtmlEntitySet : XmlEntitySet
 
     ***************************************************************************/
 
-    public Entity[] entities ( )
+    public override Entity[] entities ( )
     {
         return This.html_entities;
     }

@@ -64,7 +64,7 @@ public class XmlEntitySet : IEntitySet
 
     ***************************************************************************/
 
-    public Entity[] entities ( )
+    public override Entity[] entities ( )
     {
         return This.xml_entities;
     }
@@ -83,7 +83,7 @@ public class XmlEntitySet : IEntitySet
 
     ***************************************************************************/
 
-    public char[] getEncodedEntity ( dchar unicode, ref char[] output )
+    public override char[] getEncodedEntity ( dchar unicode, ref char[] output )
     {
         auto name = this.getName(unicode);
         if ( name.length )

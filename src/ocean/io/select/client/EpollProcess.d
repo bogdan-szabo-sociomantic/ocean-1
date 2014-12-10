@@ -363,7 +363,7 @@ public abstract class EpollProcess
 
         ***********************************************************************/
 
-        public Event events ( )
+        public override Event events ( )
         {
             return Event.EPOLLIN;
         }
@@ -407,7 +407,7 @@ public abstract class EpollProcess
 
         ***********************************************************************/
 
-        public bool handle ( Event event )
+        public override bool handle ( Event event )
         {
             /* It is possible to get Event.Read _and_ Hangup
              * simultaneously. If this happens, just deal with the
@@ -472,7 +472,7 @@ public abstract class EpollProcess
 
         ***********************************************************************/
 
-        public Handle fileHandle ( )
+        public override Handle fileHandle ( )
         {
             return this.outer.process.stdout.fileHandle;
         }
@@ -500,7 +500,7 @@ public abstract class EpollProcess
 
         ***********************************************************************/
 
-        protected InputStream stream ( )
+        protected override InputStream stream ( )
         {
             return this.outer.process.stdout;
         }
@@ -516,7 +516,7 @@ public abstract class EpollProcess
 
         ***********************************************************************/
 
-        protected void handle_ ( ubyte[] data )
+        protected override void handle_ ( ubyte[] data )
         {
             assert(!this.outer.stdout_finalized);
             this.outer.stdout(data);
@@ -539,7 +539,7 @@ public abstract class EpollProcess
 
         ***********************************************************************/
 
-        public Handle fileHandle ( )
+        public override Handle fileHandle ( )
         {
             return this.outer.process.stderr.fileHandle;
         }
@@ -567,7 +567,7 @@ public abstract class EpollProcess
 
         ***********************************************************************/
 
-        protected InputStream stream ( )
+        protected override InputStream stream ( )
         {
             return this.outer.process.stderr;
         }
@@ -583,7 +583,7 @@ public abstract class EpollProcess
 
         ***********************************************************************/
 
-        protected void handle_ ( ubyte[] data )
+        protected override void handle_ ( ubyte[] data )
         {
             assert(!this.outer.stderr_finalized);
             this.outer.stderr(data);
@@ -1017,9 +1017,9 @@ unittest
         {
             super(epoll, process_monitor);
         }
-        protected void stdout ( ubyte[] data ) { }
-        protected void stderr ( ubyte[] data ) { }
-        protected void finished ( bool exited_ok, int exit_code ) { }
+        protected override void stdout ( ubyte[] data ) { }
+        protected override void stderr ( ubyte[] data ) { }
+        protected override void finished ( bool exited_ok, int exit_code ) { }
     }
 
     scope epoll1 = new EpollSelectDispatcher;

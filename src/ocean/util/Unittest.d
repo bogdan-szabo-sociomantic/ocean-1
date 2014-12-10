@@ -409,7 +409,7 @@ scope class Unittest
 
     ***************************************************************************/
 
-    protected void dispose ( )
+    protected override void dispose ( )
     {
         if ( this.failed && this.summary )
         {
