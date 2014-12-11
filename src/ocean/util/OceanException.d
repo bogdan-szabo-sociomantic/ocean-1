@@ -195,7 +195,8 @@ deprecated class OceanException: Exception
         {
             version(X86_64)
                 assert (0, "Use va_ functions for varargs");
-            return func(_arguments, _argptr);
+            else
+                return func(_arguments, _argptr);
         }
         catch (Exception e)
         {
