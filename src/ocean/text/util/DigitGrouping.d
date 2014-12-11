@@ -122,8 +122,8 @@ public class DigitGrouping
             T = type of number
 
         Params:
-            num = number to work out length of
-            output = string to format number into
+            num = number to be formatted
+            output = string in which to store the formatted number
 
         Returns:
             formatted string
@@ -218,8 +218,8 @@ public class BitGrouping
         10 bits.
 
         Params:
-            num = number to work out length of
-            output = string to format number into
+            num = number to be formatted
+            output = string in which to store the formatted number
             unit = string, describing the type of unit represented by the
                 number, to be appended after each binary prefix
 
