@@ -91,8 +91,10 @@ class StructVersionBase
         {
             return (StructVersionBase.getStructVersion!(S)() > 0) || is(S.StructNext);
         }
-
-        return false;
+        else
+        {
+            return false;
+        }
     }
 
 

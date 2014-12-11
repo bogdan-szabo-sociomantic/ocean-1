@@ -403,6 +403,8 @@ unittest
                     assert (key == "krumm.");
                     assert (!val.length);
                     break;
+                default:
+                    assert(0);
             }
         }
     }
@@ -428,6 +430,8 @@ unittest
                     assert (key == "krumm.");
                     assert (val == " ");
                     break;
+                default:
+                    assert(0);
             }
         }
     }

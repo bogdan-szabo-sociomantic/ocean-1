@@ -638,11 +638,8 @@ public class Table
                     case Cell.Type.String:
                         return utf8Length(this.contents.string);
 
-                    version(D_Version2)
-                    {
-                        default:
-                            assert(0, to!(string)(this.type));
-                    }
+                    default:
+                        assert(0);
                 }
             }
 

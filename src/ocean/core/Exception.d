@@ -243,7 +243,6 @@ unittest
         {
             assert(false,
                    "enforce() evaluated its exception parameter without error");
-            return null;
         }(),
         true
     );
@@ -485,7 +484,6 @@ unittest
         {
             assert(false,
                    "enforce() evaluated its exception parameter without error");
-            return null;
         }(),
         2, 2
     );

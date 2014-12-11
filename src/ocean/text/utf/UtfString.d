@@ -392,7 +392,6 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
             }
 
             assert(false, typeof(this).stringof ~ ".opSlice - end > array length");
-            return "";
         }
     }
 
