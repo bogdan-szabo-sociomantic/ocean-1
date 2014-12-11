@@ -138,7 +138,6 @@ import ocean.io.Stdout;
 import ocean.io.Terminal;
 
 
-
 /*******************************************************************************
 
     Table
@@ -638,6 +637,12 @@ public class Table
                         return this.floatWidth(this.contents.floating);
                     case Cell.Type.String:
                         return utf8Length(this.contents.string);
+
+                    version(D_Version2)
+                    {
+                        default:
+                            assert(0, to!(string)(this.type));
+                    }
                 }
             }
 
