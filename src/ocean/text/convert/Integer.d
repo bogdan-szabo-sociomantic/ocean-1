@@ -581,8 +581,8 @@ unittest
     toUlong("ffffFFFFffffFFFF", ul, 16); assert(ul == ulong.max);
 
     // oct
-    toInt("55", i, 8); assert(i == 055);
-    toInt("100", i, 8); assert(i == 0100);
+    toInt("55", i, 8); assert(i == 45);
+    toInt("100", i, 8); assert(i == 64);
 
     // bin
     toInt("10000", i, 2); assert(i == 0b10000);
@@ -595,8 +595,8 @@ unittest
     // recognise radix prefix
     toUlong("0xFFFF", ul); assert(ul == ushort.max);
     toUlong("0XffffFFFF", ul); assert(ul == uint.max);
-    toUlong("0o55", ul); assert(ul == 055);
-    toUlong("0O100", ul); assert(ul == 0100);
+    toUlong("0o55", ul); assert(ul == 45);
+    toUlong("0O100", ul); assert(ul == 64);
     toUlong("0b10000", ul); assert(ul == 0b10000);
     toUlong("0B1010", ul); assert(ul == 0b1010);
 
