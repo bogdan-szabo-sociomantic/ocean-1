@@ -259,7 +259,7 @@ public class PCRE
             Perform a regular expression match.
 
             Params:
-                string  = input string
+                subject = the compiled patter will be matched against this string
 
             Returns:
                 true, if matches or false if no match
@@ -272,7 +272,7 @@ public class PCRE
 
         ***********************************************************************/
 
-        public bool match ( char[] string )
+        public bool match ( char[] subject )
         in
         {
             assert(this.pcre_object);
@@ -286,7 +286,7 @@ public class PCRE
             }
 
             int error_code = pcre_exec(this.pcre_object, &this.match_settings,
-                string.ptr, string.length, 0, 0, null, 0);
+                subject.ptr, subject.length, 0, 0, null, 0);
             if ( error_code >= 0 )
             {
                 return true;
@@ -372,7 +372,7 @@ public class PCRE
             bool match = regex.preg_match("Hello World!", "^Hello");
 
         Params:
-            string  = input string (subject)
+            subject = the compiled patter will be matched against this string
             pattern = pattern to search for, as a string
             case_sens = case sensitive matching
 
@@ -384,11 +384,11 @@ public class PCRE
 
     ***************************************************************************/
 
-    public bool preg_match ( char[] string, char[] pattern, bool case_sens = true )
+    public bool preg_match ( char[] subject, char[] pattern, bool case_sens = true )
     {
         scope regex = new CompiledRegex;
         regex.compile(pattern, case_sens);
-        return regex.match(string);
+        return regex.match(subject);
     }
 }
 
