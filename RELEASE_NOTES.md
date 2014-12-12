@@ -3,7 +3,7 @@ Dependencies
 
 Dependency | Version
 -----------|---------
-tango      | v1.0.4
+tango      | v1.1
 dmd1       | v1.076.s2
 
 Migration Instructions

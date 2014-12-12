@@ -30,11 +30,11 @@ import ocean.net.server.connection.IConnectionHandler;
 import ocean.io.select.fiber.SelectFiber;
 import ocean.core.MessageFiber : MessageFiberControl;
 import ocean.util.container.pool.model.IResettable;
-import ocean.text.convert.Layout;
 
 import ocean.sys.Epoll : epoll_event_t;
 
 import tango.net.device.Socket : Socket;
+import tango.text.convert.Format;
 
 debug ( ConnectionHandler ) import tango.util.log.Trace;
 
@@ -197,11 +197,11 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
                 }
             }
 
-            Layout!(char).print(buf, ", id={}", id);
+            Format.format(buf, ", id={}", id);
         }
         else
         {
-            Layout!(char).print(buf, ", events={}", events);
+            Format.format(buf, ", events={}", events);
         }
     }
 

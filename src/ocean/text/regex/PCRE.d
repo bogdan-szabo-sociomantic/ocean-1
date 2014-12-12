@@ -48,11 +48,11 @@ module ocean.text.regex.PCRE;
 *******************************************************************************/
 
 import ocean.core.Array : copy, concat;
-import ocean.text.convert.Layout;
 import ocean.text.util.StringC;
 import ocean.text.regex.c.pcre;
 
 import tango.stdc.stdlib : free;
+import tango.text.convert.Format;
 
 
 
@@ -246,7 +246,7 @@ public class PCRE
             if ( !this.pcre_object )
             {
                 this.outer.exception.msg.length = 0;
-                Layout!(char).print(this.outer.exception.msg,
+                Format.format(this.outer.exception.msg,
                     "Error compiling regular expression: {} - on pattern: {} at position {}",
                     StringC.toDString(errmsg), pattern, error_offset);
                 this.outer.exception.error = error_code;
@@ -403,7 +403,7 @@ unittest
         bool matched;
         try
         {
-            Layout!(char).print(test_name, "PCRE test #{}", ++test_num);
+            Format.format(test_name, "PCRE test #{}", ++test_num);
             matched = dg();
         }
         catch ( Exception e_ )

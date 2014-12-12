@@ -45,12 +45,9 @@ import ocean.core.Array;
 
 import ocean.text.util.MetricPrefix;
 
-import Ocean = ocean.text.convert.Layout;
-
-import tango.text.convert.Layout;
-
 import tango.core.Traits;
 
+import tango.text.convert.Format;
 
 
 
@@ -150,7 +147,7 @@ public class DigitGrouping
         }
 
         // Format number into a string
-        Layout!(char).instance().convert(&layoutSink, "{}", num);
+        Format.convert(&layoutSink, "{}", num);
         char[] num_as_string = string_buf[0.. layout_pos];
 
         bool comma;
@@ -237,7 +234,7 @@ public class BitGrouping
 
         if ( num == 0 )
         {
-            Ocean.Layout!(char).print(output, "0{}", unit);
+            Format.format(output, "0{}", unit);
         }
         else
         {
@@ -247,11 +244,11 @@ public class BitGrouping
                 {
                     if ( order == 0 )
                     {
-                        Ocean.Layout!(char).print(output, "{}{}", order_val, unit);
+                        Format.format(output, "{}{}", order_val, unit);
                     }
                     else
                     {
-                        Ocean.Layout!(char).print(output, "{}{}{} ", order_val, prefix, unit);
+                        Format.format(output, "{}{}{} ", order_val, prefix, unit);
                     }
                 }
             }

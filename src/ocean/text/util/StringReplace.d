@@ -50,7 +50,7 @@ module ocean.text.util.StringReplace;
 
 import ocean.text.util.StringSearch;
 
-import ocean.text.convert.Layout;
+import tango.text.convert.Format;
 
 /******************************************************************************
 
@@ -169,7 +169,7 @@ class StringReplace ( bool wide_char = false )
             T replacement )
     {
         this.buf.length = 0;
-        Layout!(char).print(this.buf, "{}", replacement );
+        Format.format(this.buf, "{}", replacement);
         return this.replacePattern(content, pattern, this.buf);
     }
 

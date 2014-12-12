@@ -10,7 +10,14 @@
 module ocean.text.convert.Memory;
 
 
-import ocean.text.convert.Layout;
+
+/******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+import tango.text.convert.Format;
 
 
 
@@ -43,25 +50,23 @@ public char[] memoryToHexAscii ( void[] mem, char[] output = null )
 {
     auto data = cast(ubyte[]) mem;
 
-    alias Layout!(char).print sprint;
-
     for (size_t row = 0; row < data.length; row += 16)
     {
         // print relative offset
-        sprint(output, "{:X6}:  ", row);
+        Format.format(output, "{:X6}:  ", row);
 
         // print data bytes
         for (size_t idx = 0; idx < 16 ; idx++)
         {
             // print byte or stuffing spaces
             if (idx + row < data.length)
-                sprint(output, "{:X2} ", data[row + idx]);
+                Format.format(output, "{:X2} ", data[row + idx]);
             else
-                sprint(output, "{}", "   ");
+                Format.format(output, "{}", "   ");
 
             // after each 4 bytes group an extra space
             if ((idx & 0x03 ) == 3)
-                sprint(output, "{}", " ");
+                Format.format(output, "{}", " ");
         }
 
         // ascii view
@@ -76,7 +81,7 @@ public char[] memoryToHexAscii ( void[] mem, char[] output = null )
                 c = '.';
             ascii[idx] = c;
         }
-        sprint(output, "{}\n", ascii[0 .. idx]);
+        Format.format(output, "{}\n", ascii[0 .. idx]);
     }
 
     return output;

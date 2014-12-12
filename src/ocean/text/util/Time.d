@@ -46,11 +46,11 @@ module ocean.text.util.Time;
 
 *******************************************************************************/
 
-import ocean.text.convert.Layout;
-
 import ocean.core.Array : copy;
 
 import tango.stdc.time : gmtime, strftime, time_t, tm;
+
+import tango.text.convert.Format;
 
 
 
@@ -132,7 +132,7 @@ public char[] formatDuration ( uint s, ref char[] output )
         if ( number > 0 )
         {
             if ( comma ) output ~= ", ";
-            Layout!(char).print(output, "{} {}{}", number, name,
+            Format.format(output, "{} {}{}", number, name,
                 number > 1 ? "s" : "");
             comma = true;
         }
@@ -194,7 +194,7 @@ public char[] formatDurationShort ( uint s, ref char[] output )
     {
         if ( number > 0 )
         {
-            Layout!(char).print(output, "{}{}", number, name);
+            Format.format(output, "{}{}", number, name);
         }
     }
 

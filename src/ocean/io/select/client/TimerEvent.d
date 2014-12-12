@@ -33,7 +33,7 @@ import tango.stdc.posix.unistd: read, write, close;
 
 import tango.stdc.errno: EAGAIN, EWOULDBLOCK, errno;
 
-import ocean.text.convert.Layout;
+import tango.text.convert.Format;
 
 /// <sys/timerfd.h>
 
@@ -551,7 +551,7 @@ abstract class ITimerEvent : ISelectClient, ISelectable
             this.time_buffer.copy(super.id());
             auto time = this.time();
 
-            Layout!(char).print(this.time_buffer, ": {}s {}ns",
+            Format.format(this.time_buffer, ": {}s {}ns",
                 time.it_value.tv_sec, time.it_value.tv_nsec);
             return this.time_buffer;
         }

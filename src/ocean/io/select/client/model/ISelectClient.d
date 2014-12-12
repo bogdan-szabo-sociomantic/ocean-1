@@ -44,7 +44,7 @@ import ocean.text.util.ClassName;
 
 debug import ocean.io.Stdout;
 
-debug import ocean.text.convert.Layout;
+debug import tango.text.convert.Format;
 
 /******************************************************************************
 
@@ -412,7 +412,7 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable, ISelectClient
         public char[] toString ( )
         {
             this.to_string_buf.length = 0;
-            Layout!(char).print(this.to_string_buf, "{} fd={} events=", this.id,
+            Format.format(this.to_string_buf, "{} fd={} events=", this.id,
                 this.fileHandle);
             foreach ( event, name; epoll_event_t.event_to_name )
             {

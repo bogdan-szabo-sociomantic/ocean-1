@@ -206,14 +206,14 @@ public class FiberTimerEvent : IFiberSelectClient
     {
         private char[] time_buffer;
         import ocean.core.Array : copy;
-        import ocean.text.convert.Layout;
+        import tango.text.convert.Format;
 
         public override char[] id ( )
         {
             this.time_buffer.copy(super.id());
             auto time = this.timer.time();
 
-            Layout!(char).print(this.time_buffer, ": {}s {}ns",
+            Format.format(this.time_buffer, ": {}s {}ns",
                 time.it_value.tv_sec, time.it_value.tv_nsec);
             return this.time_buffer;
         }

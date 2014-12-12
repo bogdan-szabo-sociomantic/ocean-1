@@ -148,7 +148,7 @@ import tango.core.Traits : DynamicArrayType, isStringType,
 
 import ocean.io.Stdout;
 
-import ocean.text.convert.Layout;
+import tango.text.convert.Format;
 
 version (UnitTest) import ocean.core.Test;
 
@@ -337,7 +337,7 @@ struct Required ( T )
     {
         if ( !found )
         {
-            Layout!(char).print(this.exception_msg,
+            Format.format(this.exception_msg,
                 "Mandatory variable {}.{} not set.",
                 group, name);
 
@@ -388,7 +388,7 @@ struct MinMax ( T, T min, T max, T init = T.init )
     {
         if ( Value(this.value) < min )
         {
-            Layout!(char).print(this.exception_msg,
+            Format.format(this.exception_msg,
                 "Configuration key {}.{} is smaller than allowed minimum of {}",
                 group, name, min);
 
@@ -399,7 +399,7 @@ struct MinMax ( T, T min, T max, T init = T.init )
 
         if ( Value(this.value) > max )
         {
-            Layout!(char).print(this.exception_msg,
+            Format.format(this.exception_msg,
                 "Configuration key {}.{} is bigger than allowed maximum of {}",
                 group, name, max);
 
@@ -448,7 +448,7 @@ struct Min ( T, T min, T init = T.init )
     {
         if ( Value(this.value) < min )
         {
-            Layout!(char).print(this.exception_msg,
+            Format.format(this.exception_msg,
                 "Configuration key {}.{} is smaller than allowed minimum of {}",
                 group, name, min);
 
@@ -498,7 +498,7 @@ struct Max ( T, T max, T init = T.init )
     {
         if ( Value(this.value) > max )
         {
-            Layout!(char).print(this.exception_msg,
+            Format.format(this.exception_msg,
                 "Configuration key {}.{} is bigger than allowed maximum of {}",
                 group, name, max);
 
@@ -583,7 +583,7 @@ struct LimitCmp ( T, T init = T.init, alias comp = defComp!(T), Set... )
             allowed_vals ~= ", " ~ to!(char[])(el);
         }
 
-        Layout!(char).print(this.exception_msg,
+        Format.format(this.exception_msg,
                 "Value '{}'"
                 "of configuration key {}.{} "
                 "is not within the set of allowed values "

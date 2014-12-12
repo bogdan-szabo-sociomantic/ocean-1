@@ -131,7 +131,7 @@ import ocean.text.util.MetricPrefix;
 
 import tango.io.stream.Format;
 
-import ocean.text.convert.Layout;
+import tango.text.convert.Format;
 
 import ocean.io.Stdout;
 
@@ -701,13 +701,13 @@ public class Table
 
                             if ( metric.prefix == ' ' )
                             {
-                                Layout!(char).print(content_buf,
+                                Format.format(content_buf,
                                     "{}      {}", cast(uint)metric.scaled,
                                     this.metric_string);
                             }
                             else
                             {
-                                Layout!(char).print(content_buf,
+                                Format.format(content_buf,
                                     "{} {}i{}", metric.scaled, metric.prefix,
                                     this.metric_string);
                             }
@@ -720,13 +720,13 @@ public class Table
 
                             if ( metric.prefix == ' ' )
                             {
-                                Layout!(char).print(content_buf,
+                                Format.format(content_buf,
                                     "{}     {}", cast(uint)metric.scaled,
                                     this.metric_string);
                             }
                             else
                             {
-                                Layout!(char).print(content_buf,
+                                Format.format(content_buf,
                                     "{} {}{}", metric.scaled, metric.prefix,
                                     this.metric_string);
                             }
@@ -739,13 +739,13 @@ public class Table
                             else
                             {
                                 content_buf.length = 0;
-                                Layout!(char).print(content_buf,
+                                Format.format(content_buf,
                                     "{}", this.contents.integer);
                             }
                             break;
                         case Type.Float:
                             content_buf.length = 0;
-                            Layout!(char).print(content_buf,
+                            Format.format(content_buf,
                                     "{}", this.contents.floating);
                             break;
                         case Type.String:

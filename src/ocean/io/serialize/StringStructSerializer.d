@@ -62,7 +62,9 @@ import ocean.core.Array;
 
 import ocean.io.serialize.StructSerializer;
 
-import ocean.text.convert.Layout;
+import tango.text.convert.Format;
+
+import tango.text.convert.Layout;
 
 import tango.core.Traits;
 
@@ -123,7 +125,7 @@ public class StringStructSerializer ( Char )
     public this ( size_t fp_dec_to_display = 2 )
     {
         this.fp_format = "{}{} {} : {:.";
-        Layout!(char).print(this.fp_format, "{}", fp_dec_to_display);
+        Format.format(this.fp_format, "{}", fp_dec_to_display);
         this.fp_format ~= "}\n";
     }
 
@@ -160,7 +162,7 @@ public class StringStructSerializer ( Char )
 
     public void open ( ref Char[] output, char[] name )
     {
-        Layout!(Char).print(output, "{}struct {}:\n", this.indent, name);
+        Layout!(Char).format(output, "{}struct {}:\n", this.indent, name);
         this.increaseIndent();
     }
 
@@ -203,15 +205,15 @@ public class StringStructSerializer ( Char )
         // TODO: temporary support for unions by casting them to ubyte[]
         static if ( is(T == union) )
         {
-            Layout!(Char).print(output, "{}union {} {} : {}\n", this.indent, T.stringof, name, (cast(ubyte*)&item)[0..item.sizeof]);
+            Layout!(Char).format(output, "{}union {} {} : {}\n", this.indent, T.stringof, name, (cast(ubyte*)&item)[0..item.sizeof]);
         }
         else static if ( isFloatingPointType!(T) )
         {
-            Layout!(Char).print(output, this.fp_format, this.indent, T.stringof, name, item);
+            Layout!(Char).format(output, this.fp_format, this.indent, T.stringof, name, item);
         }
         else
         {
-            Layout!(Char).print(output, "{}{} {} : {}\n", this.indent, T.stringof, name, item);
+            Layout!(Char).format(output, "{}{} {} : {}\n", this.indent, T.stringof, name, item);
         }
     }
 
@@ -228,7 +230,7 @@ public class StringStructSerializer ( Char )
 
     public void openStruct ( ref Char[] output, char[] name )
     {
-        Layout!(Char).print(output, "{}struct {}:\n", this.indent, name);
+        Layout!(Char).format(output, "{}struct {}:\n", this.indent, name);
         this.increaseIndent();
     }
 
@@ -265,7 +267,7 @@ public class StringStructSerializer ( Char )
 
     public void serializeArray ( T ) ( ref Char[] output, char[] name, T[] array )
     {
-        Layout!(Char).print(output, "{}{}[] {} (length {}): {}\n", this.indent, T.stringof, name, array.length, array);
+        Layout!(Char).format(output, "{}{}[] {} (length {}): {}\n", this.indent, T.stringof, name, array.length, array);
     }
 
 
@@ -285,7 +287,7 @@ public class StringStructSerializer ( Char )
 
     public void openStructArray ( T ) ( ref Char[] output, char[] name, T[] array )
     {
-        Layout!(Char).print(output, "{}{}[] {} (length {}):\n", this.indent, T.stringof, name, array.length);
+        Layout!(Char).format(output, "{}{}[] {} (length {}):\n", this.indent, T.stringof, name, array.length);
         this.increaseIndent();
     }
 

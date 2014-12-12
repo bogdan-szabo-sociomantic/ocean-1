@@ -62,8 +62,6 @@ import ocean.core.Array;
 
 import ocean.io.serialize.StructSerializer;
 
-import ocean.text.convert.Layout;
-
 import tango.core.Traits;
 
 import tango.core.Exception;

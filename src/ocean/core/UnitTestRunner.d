@@ -57,10 +57,10 @@ import tango.core.Exception : AssertException;
 import tango.io.Stdout: Stdout, Stderr;
 import tango.io.stream.Format: FormatOutput;
 import tango.io.stream.TextFile: TextFileOutput;
+import tango.text.convert.Format;
 import tango.text.xml.Document: Document;
 import tango.text.xml.DocPrinter: DocPrinter;
 
-import ocean.text.convert.Layout: Layout;
 import ocean.text.util.StringC: StringC;
 import ocean.core.Test : TestException, test;
 
@@ -98,7 +98,6 @@ private scope class UnitTestRunner
 
     private alias Document!(char)     XmlDoc;
     private alias XmlDoc.Node         XmlNode; /// ditto
-    private alias Layout!(char).print sprint;  /// ditto
 
 
     /**************************************************************************
@@ -562,7 +561,7 @@ private scope class UnitTestRunner
     {
         this.buf.length = 0;
 
-        return Layout!(char).print(this.buf, fmt, val);
+        return Format.format(this.buf, fmt, val);
     }
 
 
@@ -607,21 +606,23 @@ private scope class UnitTestRunner
         }
         catch (TestException e)
         {
-            sprint(err, "{}:{}: test error: {}", e.file, e.line, e.msg);
+            Format.format(err, "{}:{}: test error: {}", e.file, e.line, e.msg);
             return Result.Fail;
         }
         catch (AssertException e)
         {
-            sprint(err, "{}:{}: assert error: {}", e.file, e.line, e.msg);
+            Format.format(err,
+                          "{}:{}: assert error: {}", e.file, e.line, e.msg);
         }
         catch (Exception e)
         {
-            sprint(err, "{}:{}: unexpected exception {}: {}", e.file, e.line,
-                    e.classinfo.name, e.msg);
+            Format.format(err,
+                          "{}:{}: unexpected exception {}: {}",
+                          e.file, e.line, e.classinfo.name, e.msg);
         }
         catch
         {
-            sprint(err, "{}: unexpected unknown exception", m.name);
+            Format.format(err, "{}: unexpected unknown exception", m.name);
         }
 
         return Result.Error;

@@ -98,6 +98,8 @@ import tango.stdc.stdlib: div;
 
 import tango.stdc.time: clock_t, clock, tm, time_t;
 
+import tango.text.convert.Format;
+
 import tango.util.log.Log;
 
 import tango.io.Console;
@@ -512,8 +514,7 @@ public class AppStatus
         assert( index < this.static_lines.length, "adding too many static lines" );
 
         this.static_lines[index].length = 0;
-        Layout!(char).vprint(this.static_lines[index], format,
-            _arguments, _argptr);
+        Format.vformat(this.static_lines[index], format, _arguments, _argptr);
     }
 
 
@@ -717,7 +718,7 @@ public class AppStatus
 
         this.heading_line.length = 0;
 
-        Layout!(char).print(this.heading_line, "[{:d2}/{:d2}/{:d2} "
+        Format.format(this.heading_line, "[{:d2}/{:d2}/{:d2} "
             "{:d2}:{:d2}:{:d2}] {}", date.day, date.month, date.year,
             time.hours, time.minutes, time.seconds, this.app_name);
 
@@ -745,12 +746,12 @@ public class AppStatus
 
         if (stats_available)
         {
-            Layout!(char).print(this.heading_line,
+            Format.format(this.heading_line,
                 " Memory: Used {}Mb/Free {}Mb", mem_allocated, mem_free);
         }
         else
         {
-            Layout!(char).print(this.heading_line, " Memory: n/a");
+            Format.format(this.heading_line, " Memory: n/a");
         }
     }
 
@@ -765,7 +766,7 @@ public class AppStatus
     {
         uint weeks, days, hours, mins, secs;
         this.getUptime(weeks, days, hours, mins, secs);
-        Layout!(char).print(this.heading_line, " Uptime: {}w{:d1}d{:d2}:"
+        Format.format(this.heading_line, " Uptime: {}w{:d1}d{:d2}:"
             "{:d2}:{:d2}", weeks, days, hours, mins, secs);
     }
 
@@ -780,7 +781,7 @@ public class AppStatus
     {
         long usage = 0;
         this.getCpuUsage(usage);
-        Layout!(char).print(this.heading_line, " CPU: {}%", usage);
+        Format.format(this.heading_line, " CPU: {}%", usage);
     }
 
 
@@ -803,7 +804,7 @@ public class AppStatus
     {
         this.footer_line.length = 0;
 
-        Layout!(char).print(this.footer_line, "Version {} built on {} by {}",
+        Format.format(this.footer_line, "Version {} built on {} by {}",
             this.app_version, this.app_build_date, this.app_build_author);
 
         Stdout.bold(true).format(this.truncateLength(this.footer_line)).

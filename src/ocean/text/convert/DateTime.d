@@ -21,8 +21,6 @@ module ocean.text.convert.DateTime;
 
 *******************************************************************************/
 
-import ocean.text.convert.Layout;
-
 import tango.stdc.stdio : sscanf;
 
 import tango.stdc.posix.sys.stat;
@@ -30,6 +28,8 @@ import tango.stdc.posix.sys.stat;
 import tango.stdc.posix.time;
 
 import tango.text.Unicode;
+
+import tango.text.convert.Format;
 
 import tango.core.Array : contains;
 
@@ -290,7 +290,7 @@ unittest
         auto conversion_type = DateConversion.None;
 
         // format the test name
-        Layout!(char).print(test_name, "Date conversion test {}: ", test_number);
+        Format.format(test_name, "Date conversion test {}: ", test_number);
 
         // check the conversion works if it should or fails if it should not
         auto success = timeToUnixTime(datetime, timestamp, conversion_type);

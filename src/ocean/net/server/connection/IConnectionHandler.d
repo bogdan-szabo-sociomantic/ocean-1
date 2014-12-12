@@ -32,7 +32,7 @@ import ocean.sys.socket.AddressIPSocket;
 
 import ocean.io.device.IODevice: IInputDevice, IOutputDevice;
 
-import ocean.text.convert.Layout;
+import tango.text.convert.Format;
 
 import tango.io.model.IConduit: ISelectable;
 
@@ -377,7 +377,7 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
 
     public void formatInfo ( ref char[] buf )
     {
-        Layout!(char).print(buf, "fd={}, remote={}:{}, ioerr={}",
+        Format.format(buf, "fd={}, remote={}:{}, ioerr={}",
             this.socket_info.fileHandle, this.socket_info.address,
             this.socket_info.port, this.io_error);
     }

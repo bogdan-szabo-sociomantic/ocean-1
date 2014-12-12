@@ -73,7 +73,7 @@ import ocean.core.ErrnoIOException;
 
 import ocean.util.container.pool.model.IPoolInfo;
 
-import ocean.text.convert.Layout;
+import tango.text.convert.Format;
 
 import tango.net.device.Socket,
        tango.net.device.Berkeley: IPv4Address;
@@ -644,7 +644,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
         foreach ( i, conn; conns )
         {
             this.connection_log_buf.length = 0;
-            Layout!(char).print(this.connection_log_buf, "{}: ", i);
+            Format.format(this.connection_log_buf, "{}: ", i);
 
             conn.formatInfo(this.connection_log_buf);
 

@@ -71,7 +71,7 @@ import ocean.io.select.timeout.TimerEventTimeoutManager;
 
 import ocean.time.timeout.model.ITimeoutClient;
 
-debug import ocean.text.convert.Layout;
+debug import tango.text.convert.Format;
 
 
 
@@ -230,7 +230,7 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
             protected char[] id ( )
             {
                 this.id_buf.length = 0;
-                Layout!(char).print(this.id_buf, "Scheduler.Event {}", this.id_num);
+                Format.format(this.id_buf, "Scheduler.Event {}", this.id_num);
                 return this.id_buf;
             }
         }

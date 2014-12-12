@@ -61,14 +61,14 @@
 
     ---
 
-        import ocean.text.convert.Layout;
+        import tango.text.convert.Format;
 
         class TestTable : StructTable!(Test)
         {
             override protected char[] fraction_string ( float* field )
             {
                 this.format_buffer.length = 0;
-                Layout!(char).print(this.format_buffer, "{}%", *field * 100.0);
+                Format.format(this.format_buffer, "{}%", *field * 100.0);
                 return this.format_buffer;
             }
         }
@@ -113,7 +113,7 @@ import ocean.core.Traits;
 
 import ocean.io.console.Tables;
 
-import ocean.text.convert.Layout;
+import tango.text.convert.Format;
 
 
 
@@ -269,7 +269,7 @@ public class StructTable ( S )
     private char[] defaultFieldString ( T ) ( T* field )
     {
         this.format_buffer.length = 0;
-        Layout!(char).print(this.format_buffer, "{}", *field);
+        Format.format(this.format_buffer, "{}", *field);
         return this.format_buffer;
     }
 
