@@ -18,6 +18,14 @@ Migration Instructions
 Deprecations
 ============
 
+* `ocean.text.convert.Layout`
+
+  The `print` and `vprint` methods from this module are now deprecated in favour
+  of the methods `format` and `vformat` respectively in the
+  `tango.text.convert.Layout` module. Applications using either
+  `Layout!().print()` or `Layout!(char).print()` need to update to use the
+  methods from tango instead.
+
 
 New Features
 ============

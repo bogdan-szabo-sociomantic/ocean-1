@@ -127,7 +127,7 @@ abstract class Layout ( T = char )
 
      ***************************************************************************/
 
-    static public T[] print ( ref T[] output, T[] formatStr, ... )
+    deprecated static public T[] print ( ref T[] output, T[] formatStr, ... )
     {
         return vprint(output, formatStr, _arguments, _argptr);
     }
@@ -151,7 +151,7 @@ abstract class Layout ( T = char )
 
     ***************************************************************************/
 
-    static public T[] vprint ( ref T[] output, T[] formatStr, TypeInfo[] arguments, va_list argptr )
+    deprecated static public T[] vprint ( ref T[] output, T[] formatStr, TypeInfo[] arguments, va_list argptr )
     {
         TangoLayout.Layout!(T).instance.convert(
             (T[] s)
