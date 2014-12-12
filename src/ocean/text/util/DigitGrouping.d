@@ -289,6 +289,12 @@ public class BitGrouping
                         Format.format(output, "{}{}{} ", order_val, prefix, unit);
                     }
                 }
+                else if ( order_val == 0 && order == 0 )
+                {
+                    // Get rid of the additional space that was appended.
+
+                    output = output[0 .. $ - 1];
+                }
             }
 
             splitBinaryPrefix(num, &format);
@@ -308,6 +314,9 @@ unittest
     test!("==")(BitGrouping.format(1000, buf), "1000");
     test!("==")(BitGrouping.format(1000, buf, "X"), "1000X");
 
+    test!("==")(BitGrouping.format(1024, buf), "1K");
+    test!("==")(BitGrouping.format(1024, buf, "M"), "1KM");
+
     test!("==")(BitGrouping.format(1025, buf), "1K 1");
     test!("==")(BitGrouping.format(1025, buf, "TEST"), "1KTEST 1TEST");
 
@@ -319,5 +328,8 @@ unittest
 
     test!("==")(BitGrouping.format(10000000, buf), "9M 549K 640");
     test!("==")(BitGrouping.format(10000000, buf, "X"), "9MX 549KX 640X");
+
+    test!("==")(BitGrouping.format(10000000000, buf), "9G 320M 761K");
+    test!("==")(BitGrouping.format(10000000000, buf, "X"), "9GX 320MX 761KX");
 }
 
