@@ -30,7 +30,15 @@ Deprecations
   of the methods `format` and `vformat` respectively in the
   `tango.text.convert.Layout` module. Applications using either
   `Layout!().print()` or `Layout!(char).print()` need to update to use the
-  methods from tango instead.
+  methods from tango instead. Using the simpler alias in
+  `tango.text.convert.Format` is recommended:
+
+  ```d
+  import tango.text.convert.Format;
+
+  char[] buf;
+  buf = Format.format(buf, "Hello {}", "world");
+  ```
 
 
 New Features
