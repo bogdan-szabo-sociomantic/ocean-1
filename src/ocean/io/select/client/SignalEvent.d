@@ -86,11 +86,16 @@ public class SignalEvent : ISelectClient
 
     /***************************************************************************
 
-        Constructor.
+        Constructor. Creates the internal SignalFD instance but does not mask
+        the standard handling of the specified signals. When this client is
+        registered with epoll, the signals are masked.
 
         Params:
             handler = delegate to call when a signal fires (must be non-null)
             signals = list of signals to handle (must be > 0 elements)
+
+        Throws:
+            SignalErrnoException if the creation of the SignalFD fails
 
     ***************************************************************************/
 
@@ -106,7 +111,7 @@ public class SignalEvent : ISelectClient
 
     /***************************************************************************
 
-        Returs:
+        Returns:
             the epoll events to register for.
 
     ***************************************************************************/
