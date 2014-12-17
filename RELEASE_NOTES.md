@@ -14,6 +14,12 @@ Migration Instructions
   The return value of the `getList` method has been fixed. It used to
   incorrectly return true/false, but now returns a dynamic array.
 
+* `ocean.net.email.EmailSender`
+
+  The method sendEmail has been changed to have contain an optional
+  Reply To header and this change breaks the API. Since the whole
+  module is an hack and only one Application is using all the optional
+  parameters this is the easiest solution.
 
 Deprecations
 ============
