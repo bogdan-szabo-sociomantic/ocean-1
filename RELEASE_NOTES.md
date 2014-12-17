@@ -121,3 +121,8 @@ New Features
 
   A new overload of `configureLoggers()` now allows loggers to be configured
   with user-created appenders. (Previously, the `AppendSysLog` was always used.)
+
+* `ocean.util.log.Stats`
+
+  A new constructor now allows loggers to be configured with user-created
+  appenders. (Previously, the `AppendSysLog` was always used.)

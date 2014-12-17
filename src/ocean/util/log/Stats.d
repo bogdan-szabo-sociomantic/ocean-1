@@ -453,7 +453,7 @@ public class StatsLog : IStatsLog
 
     /***************************************************************************
 
-        Constructor
+        Constructor. Creates the stats log using the AppendSysLog appender.
 
         Params:
             config = instance of the config class
@@ -465,6 +465,27 @@ public class StatsLog : IStatsLog
     public this ( Config config, char[] name = "Stats" )
     {
         super(config, name);
+    }
+
+
+    /***************************************************************************
+
+        Constructor. Creates the stats log using the appender returned by the
+        provided delegate.
+
+        Params:
+            config = instance of the config class
+            new_appender = delegate which returns appender to use for stats log
+            name   = name of the logger, should be set to a different string
+                     when using more than two StatLogs
+
+    ***************************************************************************/
+
+    public this ( Config config,
+        Appender delegate ( char[] file, Appender.Layout layout ) new_appender,
+        char[] name = "Stats" )
+    {
+        super(config, new_appender, name);
     }
 
 
@@ -795,13 +816,38 @@ public abstract class IStatsLog
 
     public this ( Config config, char[] name = "Stats" )
     {
+        Appender newAppender ( char[] file, Appender.Layout layout )
+        {
+            return new AppendSyslog(file, config.file_count,
+                                         config.max_file_size, "gzip {}", "gz",
+                                         config.start_compress, layout);
+        }
+
+        this(config, &newAppender, name);
+    }
+
+
+    /***************************************************************************
+
+        Constructor
+
+        Params:
+            config = instance of the config class
+            new_appender = delegate which returns appender to use for stats log
+            name   = name of the logger, should be set to a different string
+                     when using more than two StatLogs
+
+    ***************************************************************************/
+
+    public this ( Config config,
+        Appender delegate ( char[] file, Appender.Layout layout ) new_appender,
+        char[] name = "Stats" )
+    {
         this.logger = Log.lookup(name);
         this.logger.clear();
         this.logger.additive(false);
 
-        this.logger.add(new AppendSyslog(config.file_name, config.file_count,
-                                         config.max_file_size, "gzip {}", "gz",
-                                         config.start_compress, new LayoutStatsLog));
+        this.logger.add(new_appender(config.file_name, new LayoutStatsLog));
 
         // Explcitly set the logger to output all levels, to avoid the situation
         // where the root logger is configured to not output level 'info'.
