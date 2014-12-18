@@ -10,7 +10,7 @@
 
  ******************************************************************************/
 
-module ocean.io.serialize.model.StructVersionBase;
+deprecated module ocean.io.serialize.model.StructVersionBase;
 
 import ocean.util.container.ConcatBuffer,
        ocean.io.serialize.StructDumper,

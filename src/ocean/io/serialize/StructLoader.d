@@ -12,7 +12,7 @@
 
  ******************************************************************************/
 
-module ocean.io.serialize.StructLoader;
+deprecated module ocean.io.serialize.StructLoader;
 
 
 import ocean.core.StructConverter,

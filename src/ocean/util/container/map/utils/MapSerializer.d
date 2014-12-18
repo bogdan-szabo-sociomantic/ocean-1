@@ -30,11 +30,8 @@ module ocean.util.container.map.utils.MapSerializer;
 *******************************************************************************/
 
 import ocean.io.digest.Fnv1,
-       ocean.io.serialize.StructLoader,
-       ocean.io.serialize.StructDumper,
        ocean.io.serialize.SimpleSerializer,
        ocean.io.serialize.TypeId,
-       ocean.io.serialize.model.StructVersionBase,
        ocean.util.container.map.Map,
        ocean.core.Traits : ContainsDynamicArray;
 import ocean.core.Array : copy;
@@ -46,6 +43,25 @@ import tango.core.Traits,
        tango.core.Tuple,
        tango.io.stream.Buffered,
        tango.io.device.File;
+
+import ocean.util.serialize.contiguous.MultiVersionDecorator,
+       ocean.util.serialize.contiguous.Serializer,
+       ocean.util.serialize.model.Version;
+
+/*******************************************************************************
+
+    Temporary solution to expose protected `convert` method of version
+    decorator to this module. Eventually MapSerializer should be rewritten
+    to either inherit MultiVersionDecorator or mixin necessary methods directly.
+
+    This is not done in first round of changes because it is potentially
+    intrusive implementation change.
+
+*******************************************************************************/
+
+private class Converter : VersionDecorator
+{
+}
 
 /*******************************************************************************
 
@@ -428,18 +444,18 @@ class MapSerializer
 
         static if ( VERSION >= 3 )
         {
-            static if ( StructVersionBase.hasVersion!(K)() )
+            static if ( Version.Info!(K).exists )
             {
-                ubyte key_version = StructVersionBase.getStructVersion!(K)();
+                ubyte key_version = Version.Info!(K).number;
             }
 
-            static if ( StructVersionBase.hasVersion!(V)() )
+            static if ( Version.Info!(V).exists )
             {
-                ubyte value_version = StructVersionBase.getStructVersion!(V)();
+                ubyte value_version = Version.Info!(V).number;
             }
 
-            static if ( !StructVersionBase.hasVersion!(K)() &&
-                        !StructVersionBase.hasVersion!(V)() &&
+            static if ( !Version.Info!(K).exists &&
+                        !Version.Info!(V).exists &&
                         !is ( K == class) && !is (V == class) &&
                         !is ( K == interface) && !is (V == interface) )
             {
@@ -499,14 +515,6 @@ class MapSerializer
 
     /***************************************************************************
 
-        Struct Version functions & logic
-
-    ***************************************************************************/
-
-    const private StructVersionBase struct_version;
-
-    /***************************************************************************
-
         Temporary buffers to convert value structs
 
     ***************************************************************************/
@@ -531,12 +539,11 @@ class MapSerializer
 
     /***************************************************************************
 
-        StructLoader, only used for conversions
+        Struct converter with internal buffer
 
     ***************************************************************************/
 
-    const private StructLoader loader;
-
+    private Converter converter;
 
     /***************************************************************************
 
@@ -553,8 +560,7 @@ class MapSerializer
         this.buffered_output = new BufferedOutput(null, buffer_size);
         this.buffered_input  = new BufferedInput(null, buffer_size);
 
-        this.struct_version  = new StructVersionBase;
-        this.loader          = new StructLoader;
+        this.converter       = new Converter;
     }
 
 
@@ -882,8 +888,8 @@ class MapSerializer
     ***************************************************************************/
 
     private bool handleVersion ( alias loadFunc, size_t index, T... )
-                               ( StructVersionBase.Version actual,
-                                 StructVersionBase.Version expected,
+                               ( Version.Type actual,
+                                 Version.Type expected,
                                  ref BufferPair buffer,
                                  void delegate ( ref T ) putter,
                                  BufferedInput buffered )
@@ -934,7 +940,18 @@ class MapSerializer
 
         const other = index == 1 ? 0 : 1;
 
-        static if ( StructVersionBase.canConvertStruct!(T[index])() )
+        static if ( Version.Info!(T[index]).exists )
+        {
+            const can_convert =
+                (Version.Info!(T[index]).number > 0)
+             || Version.Info!(T[index]).next.exists;
+        }
+        else
+        {
+            const can_convert = false;
+        }
+
+        static if ( can_convert )
         {
             alias AddStructPrevious!(index, T) TWithPrev;
 
@@ -945,9 +962,8 @@ class MapSerializer
 
                 AddPtr!(T) res;
 
-                res[index] = this.struct_version.
-                        convertStruct!(TWithPrev[index], T[index])
-                            (this.loader, keyval[index], *buf);
+                Serializer.serialize(keyval[index], *buf);
+                res[index] = this.converter.convert!(T[index], TWithPrev[index])(*buf).ptr;
                 res[other] = &keyval[other];
 
                 putter(*res[0], *res[1]);

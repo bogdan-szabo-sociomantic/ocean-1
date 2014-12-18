@@ -49,7 +49,7 @@
 
  ******************************************************************************/
 
-module ocean.io.serialize.model.StructLoaderCore;
+deprecated module ocean.io.serialize.model.StructLoaderCore;
 
 /*******************************************************************************
 

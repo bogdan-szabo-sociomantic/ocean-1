@@ -9,6 +9,35 @@ dmd1       | v1.076.s2
 Migration Instructions
 ======================
 
+* `ocean.io.serialize.StructDumper`
+  `ocean.io.serialize.StructLoader`
+
+  This is architectural change and is likely to require careful intervention.
+
+  In places where you have been using `StructLoader` to deserialize versioned
+  data from the DHT (or other external source), replace it with
+  `ocean.util.serialize.contiguous.VersionDecorator`. Contrary to `StructLoader`
+  this new helper will return deserialized buffer completely stripped of any
+  version data. Any further operations on it must assume lack of version number
+  and use `ocean.util.serialize.contiguous.Deserializer` instead. In cases
+  where `StructLoader.loadCopy` (or similar method) was used to effectively
+  do a deep copy of deserialized struct buffer, consider using
+  `ocean.util.serialize.contiguous.Util.copy` instead.
+
+  Same applies to `StructDumper`, which is replaced by `contiguous.Serializer`
+  However, version-aware dumping of data is done by
+  `ocean.util.serialize.contiguous.VersionDecorator` too.
+
+  You may also need to change some of your buffers from `char[]` or `void[]` to
+  `Contiguous!(KrillStruct)` type as new package is considerably more type-safe
+  at cost of requiring more attention to used type from the user.
+
+  Ideally as the result only place in your application which uses version-aware
+  utilities would be small part of code that operares with DHT and everything
+  else would use plain (de)serialization utilities.
+
+  If help is needed or in case of any questions contact Mihails
+
 * `ocean.util.config.ConfigParser`
 
   The return value of the `getList` method has been fixed. It used to
@@ -48,6 +77,16 @@ Deprecations
   char[] buf;
   buf = Format.format(buf, "Hello {}", "world");
   ```
+
+* `ocean.io.serialize.StructDumper`
+  `ocean.io.serialize.StructLoader`
+  `ocean.io.serialize.model.StructLoaderCore`
+  `ocean.io.serialize.model.StructVersionBase`
+
+  All this modules have been completely deprecated in favor
+  of `ocean.util.serialize.contiguous.*`. Read
+  https://github.com/sociomantic/ocean/wiki/Serialization-package-update
+  for explanations and migration instructions for specific details
 
 
 New Features
