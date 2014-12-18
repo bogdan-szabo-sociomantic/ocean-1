@@ -67,9 +67,7 @@ struct Version
 
     template Info ( S )
     {
-        static assert (is(S == struct));
-
-        static if (is(typeof(S.StructVersion) V))
+        static if (is(S == struct) && is(typeof(S.StructVersion) V))
         {
             static assert (
                 S.StructVersion <= Version.Type.max,
