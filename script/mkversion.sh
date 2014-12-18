@@ -79,7 +79,7 @@ module=${module:-`echo "$rev_file" | sed -e 's|/|.|g' -e 's|.d||g'`}
 sed -i "$tmp" \
     -e "s/@MODULE@/$module/" \
     -e "s/@GC@/$gc/" \
-    -e "s/@REVISION@/`$get_rev .`/" \
+    -e "s/@REVISION@/i`git describe --dirty`/" \
     -e "s/@DATE@/$date/" \
     -e "s/@AUTHOR@/$author/" \
     -e "s/@DMD@/$dmd/"
@@ -89,7 +89,8 @@ libs=''
 for lib in "$@"
 do
     lib_base=`basename $lib`
-    libs="${libs}    Version.libraries[\"$lib_base\"] = \"`$get_rev $lib`\";\\n"
+    ver_desc=`cd $lib && git describe --dirty`
+    libs="${libs}    Version.libraries[\"$lib_base\"] = \"$ver_desc\";\\n"
 done
 sed -i "s/@LIBRARIES@/$libs/" "$tmp"
 

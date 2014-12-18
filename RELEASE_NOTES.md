@@ -21,6 +21,15 @@ Migration Instructions
   module is an hack and only one Application is using all the optional
   parameters this is the easiest solution.
 
+* `scripts/git-rev-desc`
+
+  This script was removed completely. Please use this command instead to get
+  a description of the revision:
+
+  ```sh
+  cd $1 && git describe --dirty=$2
+  ```
+
 Deprecations
 ============
 
