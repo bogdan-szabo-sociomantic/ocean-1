@@ -392,55 +392,61 @@ public class PCRE
     }
 }
 
-unittest
+version ( UnitTest )
 {
-    void test ( bool delegate ( ) dg, bool match, bool error )
+    import ocean.core.Test;
+
+    unittest
     {
-        static uint test_num;
-        char[] test_name;
-        Exception e;
-        bool matched;
-        try
+        void test ( bool delegate ( ) dg, bool match, bool error )
         {
-            Format.format(test_name, "PCRE test #{}", ++test_num);
-            matched = dg();
+            static uint test_num;
+            char[] test_name;
+            Exception e;
+            bool matched;
+            try
+            {
+                Format.format(test_name, "PCRE test #{}", ++test_num);
+                matched = dg();
+            }
+            catch ( Exception e_ )
+            {
+                e = e_;
+            }
+
+            auto t = new NamedTest(test_name);
+
+            t.test!("==")(error, e !is null);
+            t.test!("==")(match, matched);
         }
-        catch ( Exception e_ )
-        {
-            e = e_;
-        }
-        assert(error == (e !is null),
-            test_name ~ " exception " ~ (error ? "" : "not") ~ " expected");
-        assert(match == matched,
-            test_name ~ " match " ~ (match ? "" : "not") ~ " expected");
+
+        // This unittest tests only the interface of this method. It does not
+        // test the full range of PCRE features as that is beyond its scope.
+        auto pcre = new PCRE;
+
+        // Invalid pattern (error expected)
+        test({ return pcre.preg_match("", "("); }, false, true);
+
+        // Empty pattern (matches any string)
+        test({ return pcre.preg_match("Hello World", ""); }, true, false);
+
+        // Empty string and empty pattern (match)
+        test({ return pcre.preg_match("", ""); }, true, false);
+
+        // Empty string (no match)
+        test({ return pcre.preg_match("", "a"); }, false, false);
+
+        // Simple string match
+        test({ return pcre.preg_match("Hello World", "Hello"); }, true, false);
+
+        // Simple string match (fail)
+        test({ return pcre.preg_match("Hello World", "Hallo"); }, false, false);
+
+        // Case-sensitive match (fail)
+        test({ return pcre.preg_match("Hello World", "hello"); }, false, false);
+
+        // Case-insensitive match
+        test({ return pcre.preg_match("Hello World", "hello", false); }, true, false);
     }
-
-    // This unittest tests only the interface of this method. It does not
-    // test the full range of PCRE features as that is beyond its scope.
-    auto pcre = new PCRE;
-
-    // Invalid pattern (error expected)
-    test({ return pcre.preg_match("", "("); }, false, true);
-
-    // Empty pattern (matches any string)
-    test({ return pcre.preg_match("Hello World", ""); }, true, false);
-
-    // Empty string and empty pattern (match)
-    test({ return pcre.preg_match("", ""); }, true, false);
-
-    // Empty string (no match)
-    test({ return pcre.preg_match("", "a"); }, false, false);
-
-    // Simple string match
-    test({ return pcre.preg_match("Hello World", "Hello"); }, true, false);
-
-    // Simple string match (fail)
-    test({ return pcre.preg_match("Hello World", "Hallo"); }, false, false);
-
-    // Case-sensitive match (fail)
-    test({ return pcre.preg_match("Hello World", "hello"); }, false, false);
-
-    // Case-insensitive match
-    test({ return pcre.preg_match("Hello World", "hello", false); }, true, false);
 }
 
