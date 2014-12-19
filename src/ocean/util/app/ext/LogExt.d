@@ -24,11 +24,16 @@ import ocean.util.app.ext.model.IConfigExtExtension;
 import ocean.util.app.ext.model.ILogExtExtension;
 import ocean.util.app.ext.ConfigExt;
 
+import ocean.util.app.ext.ReopenableFilesExt;
+
 import ocean.util.config.ConfigParser;
 import LogUtil = ocean.util.log.Config;
 import ClassFiller = ocean.util.config.ClassFiller;
 
+import tango.io.device.File;
+
 import tango.util.log.Log;
+import tango.util.log.AppendSyslog;
 
 
 
@@ -117,9 +122,31 @@ class LogExt : IConfigExtExtension
                     this.use_insert_appender);
         }
 
-        LogUtil.configureLoggers(ClassFiller.iterate!(LogUtil.Config)("LOG"),
-                ClassFiller.fill!(LogUtil.MetaConfig)("LOG"),
-                conf_ext.loose_config_parsing, this.use_insert_appender);
+        auto log_config = ClassFiller.iterate!(LogUtil.Config)("LOG");
+        auto log_meta_config = ClassFiller.fill!(LogUtil.MetaConfig)("LOG");
+
+        Appender appender ( char[] file, LogUtil.Layout layout )
+        {
+            auto reopenable_files_ext =
+                (cast(Application)app).getExtension!(ReopenableFilesExt);
+
+            if ( reopenable_files_ext )
+            {
+                auto stream = new File(file, File.WriteAppending);
+                reopenable_files_ext.register(stream);
+
+                return new AppendStream(stream, true, layout);
+            }
+            else
+            {
+                return new AppendSyslog(file, log_meta_config.file_count,
+                    log_meta_config.max_file_size, "gzip {}", "gz",
+                    log_meta_config.start_compress, layout);
+            }
+        }
+
+        LogUtil.configureLoggers(log_config, log_meta_config, &appender,
+            conf_ext.loose_config_parsing, this.use_insert_appender);
 
         foreach (ext; this.extensions)
         {
@@ -169,6 +196,5 @@ class LogExt : IConfigExtExtension
         // Unused
         return files;
     }
-
 }
 

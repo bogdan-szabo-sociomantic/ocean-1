@@ -133,3 +133,28 @@ New Features
   upon calling the `reopenAll()` method. The extension cooperates with the
   `SignalExt`, allowing the registered set of files to be reopened when a
   specific signal is received by the application.
+
+* `ocean.util.app.ext.LogExt`, `ocean.util.app.ext.StatsExt`
+
+  These classes now check for the presence of the `ReopenableFilesExt` (see
+  above), and will automatically register created log files with it. This means
+  that, instead of using the old `AppendSysLog` (which internally handles the
+  rotation of log files), the rotation of log files is expected to be handled
+  externally. The current recommended technique is to set up the system process
+  `logrotate` to rotate your application's log files. The most convenient way of
+  adapting applications is as follows:
+
+    * Configure `logrotate` to rotate your application's log files and to send
+      SIGHUP to the application upon completing a rotation.
+    * Construct an instance of the `SignalExt` and register it with your
+      application.
+    * Register your `SignalExt` instance with epoll when you're ready to
+      start handling signals.
+    * Construct an instance of the `ReopenableFilesExt`, passing the `SignalExt`
+      instance to its constructor, and register it with your application. This
+      extension will now handle the SIGHUP sent by `logrotate` and will reopen
+      all log files (thus reverting any files which have been rotated to their
+      original path).
+
+  Note that it is recommended that applications be updated to use this method of
+  log file rotation, as `AppendSysLog` is due to be deprecated.

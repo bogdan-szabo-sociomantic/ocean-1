@@ -24,11 +24,16 @@ import ocean.util.app.ext.model.IConfigExtExtension;
 import ocean.util.app.ext.model.ILogExtExtension;
 import ocean.util.app.ext.ConfigExt;
 
+import ocean.util.app.ext.ReopenableFilesExt;
+
 import ocean.util.config.ConfigParser;
 import ocean.util.log.Stats;
 import ClassFiller = ocean.util.config.ClassFiller;
 
+import tango.io.device.File;
+
 import tango.util.log.Log;
+import tango.util.log.AppendSyslog;
 
 
 
@@ -47,6 +52,7 @@ class StatsExt : IConfigExtExtension
     ***************************************************************************/
 
     public StatsLog stats_log;
+
 
     /***************************************************************************
 
@@ -76,8 +82,29 @@ class StatsExt : IConfigExtExtension
 
     public void processConfig ( IApplication app, ConfigParser config )
     {
-        this.stats_log = new StatsLog(ClassFiller.fill!(
-                                            IStatsLog.Config)("STATS"));
+        auto stats_config = ClassFiller.fill!(IStatsLog.Config)("STATS");
+
+        Appender newAppender ( char[] file, Appender.Layout layout )
+        {
+            auto reopenable_files_ext =
+                (cast(Application)app).getExtension!(ReopenableFilesExt);
+
+            if ( reopenable_files_ext )
+            {
+                auto stream = new File(file, File.WriteAppending);
+                reopenable_files_ext.register(stream);
+
+                return new AppendStream(stream, true, layout);
+            }
+            else
+            {
+                return new AppendSyslog(file, stats_config.file_count,
+                    stats_config.max_file_size, "gzip {}", "gz",
+                    stats_config.start_compress, layout);
+            }
+        }
+
+        this.stats_log = new StatsLog(stats_config, &newAppender);
     }
 
 
@@ -123,6 +150,5 @@ class StatsExt : IConfigExtExtension
         // Unused
         return files;
     }
-
 }
 
