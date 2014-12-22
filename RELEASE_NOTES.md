@@ -126,3 +126,10 @@ New Features
 
   A new constructor now allows loggers to be configured with user-created
   appenders. (Previously, the `AppendSysLog` was always used.)
+
+* `ocean.util.app.ext.ReopenableFilesExt`
+
+  This new application extension allows a set of registered files to be reopened
+  upon calling the `reopenAll()` method. The extension cooperates with the
+  `SignalExt`, allowing the registered set of files to be reopened when a
+  specific signal is received by the application.
