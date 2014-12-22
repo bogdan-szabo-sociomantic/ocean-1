@@ -418,7 +418,8 @@ void main ( )
 
 /*******************************************************************************
 
-    Actual unittests.
+    unittests where the set of signals being handled by the SignalFD is set in
+    the ctor.
 
 *******************************************************************************/
 
@@ -439,5 +440,58 @@ unittest
     // are not handled
     new SignalFDTest(new SignalFD([SIGHUP, SIGINT, SIGQUIT]),
         [SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGABRT, SIGBUS]);
+}
+
+
+/*******************************************************************************
+
+    unittests where the set of signals being handled by the SignalFD is set
+    after construction.
+
+*******************************************************************************/
+
+unittest
+{
+    // Test a single signal handled by a signalfd
+    {
+        auto signalfd = new SignalFD([]);
+        signalfd.register(SIGHUP);
+        new SignalFDTest(signalfd, [SIGHUP]);
+    }
+
+    // Test multiple signals handled by a signalfd
+    {
+        auto signalfd = new SignalFD([]);
+        signalfd.register(SIGHUP).register(SIGINT).register(SIGQUIT);
+        new SignalFDTest(signalfd, [SIGHUP, SIGINT, SIGQUIT]);
+    }
+
+    // Test a single signal handled by a signalfd and a single signal which is
+    // not handled
+    {
+        auto signalfd = new SignalFD([]);
+        signalfd.register(SIGHUP);
+        new SignalFDTest(signalfd, [SIGHUP, SIGINT]);
+    }
+
+    // Test multiple signals handled by a signalfd and multiple signals which
+    // are not handled
+    {
+        auto signalfd = new SignalFD([]);
+        signalfd.register(SIGHUP).register(SIGINT).register(SIGQUIT);
+        new SignalFDTest(signalfd, [SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGABRT,
+            SIGBUS]);
+    }
+
+    // Test extending the set of handled signals after an initial test
+    {
+        auto signalfd = new SignalFD([]);
+        signalfd.register(SIGHUP).register(SIGINT).register(SIGQUIT);
+        new SignalFDTest(signalfd, [SIGHUP, SIGINT, SIGQUIT]);
+
+        signalfd.register(SIGILL).register(SIGABRT).register(SIGBUS);
+        new SignalFDTest(signalfd, [SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGABRT,
+            SIGBUS]);
+    }
 }
 

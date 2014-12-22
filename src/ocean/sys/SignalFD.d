@@ -252,11 +252,12 @@ public class SignalFD : ISelectable
     /***************************************************************************
 
         Integer file descriptor provided by the operating system and used to
-        manage the signal event.
+        manage the signal event. The default value (-1), when passed to the
+        signalfd() function (see register()) causes a new fd to be created.
 
     ***************************************************************************/
 
-    private int fd;
+    private int fd = -1;
 
 
     /***************************************************************************
@@ -275,8 +276,11 @@ public class SignalFD : ISelectable
         written to when one of the specified signals fires. The normal signal
         handling for the specified signals is optionally masked.
 
+        The list of signals handled may be extended after construction by
+        calling the register() method.
+
         Params:
-            signals = list of signals to handle
+            signals = list of signals to register
             mask = if true, default signal handling of the specified signals
                 will be masked
 
@@ -284,17 +288,9 @@ public class SignalFD : ISelectable
 
     public this ( int[] signals, bool mask = true )
     {
-        this.signals = signals;
-
-        SignalSet sigset;
-        sigset.clear;
-        sigset.add(signals);
-
-        this.fd = .signalfd(-1, &cast(sigset_t)sigset, SFD_NONBLOCK);
-
-        if ( mask )
+        foreach ( signal; signals )
         {
-            this.maskHandledSignals();
+            this.register(signal, mask);
         }
 
         this.exception = new SignalException;
@@ -318,8 +314,46 @@ public class SignalFD : ISelectable
 
     /***************************************************************************
 
-        Unmasks all signals handled by this fd, meaning that the default signal
-        (interrupt) handler will deal with them from now.
+        Adds the specified signal to the set of signals handled by this fd. The
+        normal signal handling for the specified signal is optionally masked.
+
+        Params:
+            signal = signal to register
+            mask = if true, default signal handling of the specified signal will
+                be masked
+
+        Returns:
+            this instance for chaining
+
+    ***************************************************************************/
+
+    public typeof(this) register ( int signal, bool mask = true )
+    {
+        if ( !this.isRegistered(signal) )
+        {
+            this.signals ~= signal;
+        }
+
+        SignalSet sigset;
+        sigset.clear;
+        sigset.add(this.signals);
+
+        this.fd = .signalfd(this.fd, &cast(sigset_t)sigset, SFD_NONBLOCK);
+        // TODO: check errno if .signalfd returned -1, throw this.errno_exception
+
+        if ( mask )
+        {
+            this.maskHandledSignals();
+        }
+
+        return this;
+    }
+
+
+    /***************************************************************************
+
+        Unmasks all signals registered with this fd, meaning that the default
+        signal (interrupt) handler will deal with them from now.
 
         Warning: this will simply unmask all specified signals. This could be
         problematic if some completely different module has separately requested
@@ -339,8 +373,8 @@ public class SignalFD : ISelectable
 
     /***************************************************************************
 
-        Masks all signals handled by this fd, meaning that the default signal
-        (interrupt) handler will not deal with them from now.
+        Masks all signals registered with this fd, meaning that the default
+        signal (interrupt) handler will not deal with them from now.
 
     ***************************************************************************/
 

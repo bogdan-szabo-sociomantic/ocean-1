@@ -91,3 +91,10 @@ Deprecations
 
 New Features
 ============
+
+* `ocean.sys.SignalFD`
+
+  A new method, `register()`, has been added. This allows the set of signals
+  which is handled by the signal fd to be extended after construction.
+  (Previously the complete list of signals to be handled was required by the
+  ctor.)
