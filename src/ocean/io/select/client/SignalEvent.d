@@ -116,6 +116,7 @@ public class SignalEvent : ISelectClient
         return Event.EPOLLIN;
     }
 
+
     /***************************************************************************
 
         Required by ISelectable interface.
@@ -128,6 +129,25 @@ public class SignalEvent : ISelectClient
     public override Handle fileHandle ( )
     {
         return this.event.fileHandle;
+    }
+
+
+    /***************************************************************************
+
+        Checks whether the specified signal is registered to be handled by this
+        client.
+
+        Params:
+            signal = code of signal to check
+
+        Returns:
+            true if the specified signal is handled by this client
+
+    ***************************************************************************/
+
+    public bool isRegistered ( int signal )
+    {
+        return this.event.isRegistered(signal);
     }
 
 

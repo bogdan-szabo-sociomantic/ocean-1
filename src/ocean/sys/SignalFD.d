@@ -109,6 +109,8 @@ import tango.stdc.errno : EAGAIN, EWOULDBLOCK, errno;
 
 import tango.sys.linux.consts.fcntl : O_NONBLOCK;
 
+import tango.core.Array : contains;
+
 debug import ocean.io.Stdout;
 
 
@@ -359,6 +361,25 @@ public class SignalFD : ISelectable
     public Handle fileHandle ( )
     {
         return cast(Handle)this.fd;
+    }
+
+
+    /***************************************************************************
+
+        Checks whether the specified signal is registered to be handled by this
+        fd.
+
+        Params:
+            signal = code of signal to check
+
+        Returns:
+            true if the specified signal is handled by this fd
+
+    ***************************************************************************/
+
+    public bool isRegistered ( int signal )
+    {
+        return !!this.signals.contains(signal);
     }
 
 
