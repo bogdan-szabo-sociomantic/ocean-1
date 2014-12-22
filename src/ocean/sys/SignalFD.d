@@ -284,6 +284,9 @@ public class SignalFD : ISelectable
             mask = if true, default signal handling of the specified signals
                 will be masked
 
+        Throws:
+            SignalErrnoException if the creation of the signalfd fails
+
     ***************************************************************************/
 
     public this ( int[] signals, bool mask = true )
@@ -325,6 +328,9 @@ public class SignalFD : ISelectable
         Returns:
             this instance for chaining
 
+        Throws:
+            SignalErrnoException if the creation of the signalfd fails
+
     ***************************************************************************/
 
     public typeof(this) register ( int signal, bool mask = true )
@@ -339,7 +345,13 @@ public class SignalFD : ISelectable
         sigset.add(this.signals);
 
         this.fd = .signalfd(this.fd, &cast(sigset_t)sigset, SFD_NONBLOCK);
-        // TODO: check errno if .signalfd returned -1, throw this.errno_exception
+        if ( this.fd == -1 )
+        {
+            scope ( exit ) .errno = 0;
+            auto errnum = .errno;
+            throw this.errno_exception(errnum, "creating signalfd", __FILE__,
+                __LINE__);
+        }
 
         if ( mask )
         {
