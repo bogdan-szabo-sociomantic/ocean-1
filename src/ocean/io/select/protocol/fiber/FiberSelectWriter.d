@@ -36,7 +36,7 @@ import tango.stdc.posix.netinet.in_: IPPROTO_TCP;
 
 import tango.sys.linux.tcp: TCP_CORK;
 
-debug (Raw) import tango.util.log.Trace;
+debug (Raw) import tango.io.Stdout: Stderr;
 
 
 
@@ -335,7 +335,7 @@ class FiberSelectWriter : IFiberSelectProtocol
     }
     body
     {
-        debug (Raw) Trace.formatln("[{}] Write {:X2} ({} bytes)",
+        debug (Raw) Stderr.formatln("[{}] Write {:X2} ({} bytes)",
             super.conduit.fileHandle, this.data_slice, this.data_slice.length);
 
         if (this.sent < this.data_slice.length)
