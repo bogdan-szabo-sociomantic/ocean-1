@@ -261,7 +261,8 @@ public class SignalFD : ISelectable
 
     /***************************************************************************
 
-        List of signals being handled by the fd.
+        List of signals being handled by the fd. (Declared as package so that
+        the module slowtest can access it.)
 
     ***************************************************************************/
 
@@ -380,6 +381,22 @@ public class SignalFD : ISelectable
     public bool isRegistered ( int signal )
     {
         return !!this.signals.contains(signal);
+    }
+
+
+    /***************************************************************************
+
+        Getter for the list of registered signals. Changing the contents of the
+        returned array may lead to undefined behaviour.
+
+        Returns:
+            list of signals which are registered to be handled by this fd
+
+    ***************************************************************************/
+
+    public int[] registered_signals ( )
+    {
+        return this.signals;
     }
 
 
