@@ -97,7 +97,7 @@ class TestCache(S) : CachingStructLoader!(S)
     this (Cache cache)
     {
         super(cache);
-        this.add_empty = true; 
+        this.add_empty = true;
     }
 
     void addEmptyValues(bool newval)
