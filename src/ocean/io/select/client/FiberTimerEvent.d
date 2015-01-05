@@ -27,6 +27,13 @@ import tango.stdc.math: modf;
 
 
 
+/*******************************************************************************
+
+    Fiber-suspending timer event. Allows a fiber to be suspended for a fixed
+    time period.
+
+*******************************************************************************/
+
 public class FiberTimerEvent : IFiberSelectClient
 {
     /***************************************************************************
