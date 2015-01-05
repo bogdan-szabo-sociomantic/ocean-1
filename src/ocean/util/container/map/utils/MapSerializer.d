@@ -220,7 +220,7 @@ template MapExtension ( K, V )
     {
         void adder ( void delegate ( ref K, ref V ) add )
         {
-            foreach ( k, v; this ) if ( check(k,v) )
+            foreach ( ref k, ref v; this ) if ( check(k,v) )
             {
                 add(k, v);
             }
