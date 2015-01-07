@@ -273,6 +273,9 @@ public class SafeFork
 
     private bool isRunning ( bool block, bool clear = true )
     {
+        if ( this.child_pid < 0 )
+            return false;
+
         siginfo_t siginfo;
 
         auto result = waitid(idtype_t.P_PID, this.child_pid, &siginfo,
