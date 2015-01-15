@@ -404,3 +404,33 @@ unittest
     test!("==")(cont.ptr.a[0][0][0].a, s.a[0][0][0].a);
     test!("==")(cont.ptr.a[0][0][1].a, s.a[0][0][1].a);
 }
+
+/******************************************************************************
+
+    Partial loading of extended struct
+
+    Ensures that if struct definition has been extended incrementaly one can
+    still load old definition from the serialized buffer
+
+******************************************************************************/
+
+unittest
+{
+    struct Old
+    {
+        int one;
+    }
+
+    struct New
+    {
+        int one;
+        int two;
+    }
+
+    auto input = New(32, 42);
+    void buffer[];
+    Serializer.serialize(input, buffer);
+    auto output = Deserializer.deserialize!(Old)(buffer);
+
+    test!("==")(input.one, output.ptr.one);
+}
