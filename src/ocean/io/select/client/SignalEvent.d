@@ -90,9 +90,12 @@ public class SignalEvent : ISelectClient
         the standard handling of the specified signals. When this client is
         registered with epoll, the signals are masked.
 
+        The list of signals handled may be extended after construction by
+        calling the register() method.
+
         Params:
             handler = delegate to call when a signal fires (must be non-null)
-            signals = list of signals to handle (must be > 0 elements)
+            signals = list of signals to handle
 
         Throws:
             SignalErrnoException if the creation of the SignalFD fails
@@ -102,12 +105,35 @@ public class SignalEvent : ISelectClient
     public this ( Handler handler, int[] signals ... )
     {
         assert(handler !is null);
-        assert(signals.length);
 
         this.handler = handler;
 
         this.event = new SignalFD(signals, false);
     }
+
+
+    /***************************************************************************
+
+        Adds the specified signal to the set of signals handled by this client.
+
+        Params:
+            signal = signal to handle
+
+        Returns:
+            this instance for chaining
+
+        Throws:
+            SignalErrnoException if the updating of the SignalFD fails
+
+    ***************************************************************************/
+
+    public typeof(this) register ( int signal )
+    {
+        this.event.register(signal, false);
+
+        return this;
+    }
+
 
     /***************************************************************************
 

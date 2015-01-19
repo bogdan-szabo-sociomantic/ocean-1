@@ -92,9 +92,9 @@ Deprecations
 New Features
 ============
 
-* `ocean.sys.SignalFD`
+* `ocean.sys.SignalFD`, `ocean.io.select.client.SignalEvent`
 
   A new method, `register()`, has been added. This allows the set of signals
-  which is handled by the signal fd to be extended after construction.
-  (Previously the complete list of signals to be handled was required by the
-  ctor.)
+  which is handled by the signal fd / signal event to be extended after
+  construction. (Previously the complete list of signals to be handled was
+  required by the ctor.)
