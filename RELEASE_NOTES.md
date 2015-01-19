@@ -98,3 +98,14 @@ New Features
   which is handled by the signal fd / signal event to be extended after
   construction. (Previously the complete list of signals to be handled was
   required by the ctor.)
+
+* `ocean.util.app.ext.SignalExt`, `ocean.util.app.ext.model.ISignalExtExtension`
+
+  This new application extension adds an infrastructure for registering signal
+  handler methods with the application. The `SignalExt` instance must be
+  registered with epoll in order to begin handling signals -- it contains an
+  instance of `SelectEvent`, accessible via the `event()` method, which can be
+  registered with epoll. Once this is done and the epoll event loop is running,
+  any handlers (which must implement `ISignalExtExtension`) registered with the
+  `SignalExt` will be notified upon receipt of the specified signals by the
+  application.
