@@ -228,7 +228,7 @@ class NamedTest : TestException
     /**************************************************************************
 
         Same as enforceImpl!(TestException) but uses this.name for error message
-        formatting. 
+        formatting.
 
     ***************************************************************************/
 
@@ -247,7 +247,7 @@ class NamedTest : TestException
     /**************************************************************************
 
         Same as enforceImpl!(op, TestException) but uses this.name for error message
-        formatting. 
+        formatting.
 
     ***************************************************************************/
 
