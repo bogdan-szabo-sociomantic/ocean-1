@@ -109,6 +109,7 @@ unittest
 
     Template Params:
         E = exception type to expect, Exception by default
+        R = return type of the expression, void by default (deduced)
 
     Throws:
         `TestException` if nothing has been thrown from `expr`
@@ -118,7 +119,7 @@ unittest
 
 ******************************************************************************/
 
-public void testThrown ( E : Exception = Exception ) ( lazy void expr,
+public void testThrown ( E : Exception = Exception, R = void ) ( lazy R expr,
     bool strict = true, char[] file = __FILE__, int line = __LINE__ )
 {
     bool was_thrown = false;
@@ -159,6 +160,9 @@ unittest
 {
     void foo() { throw new Exception(""); }
     testThrown(foo());
+
+    int bar() { throw new Exception(""); return 10; }
+    testThrown(bar());
 
     void test_foo() { throw new TestException("", "", 0); }
     testThrown!(TestException)(test_foo());
