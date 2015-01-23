@@ -434,3 +434,65 @@ unittest
 
     test!("==")(input.one, output.ptr.one);
 }
+
+/******************************************************************************
+
+    Serialization of unions of structs with no dynamic arrays
+
+******************************************************************************/
+
+unittest
+{
+    struct A { int x; }
+    struct B { int[3] arr; }
+
+    struct S
+    {
+        union
+        {
+            A a;
+            B b;
+        };
+    }
+
+    void[] buffer;
+    auto input = S(A(42));
+    Serializer.serialize(input, buffer);
+    auto output = Deserializer.deserialize!(S)(buffer);
+
+    test!("==")(output.ptr.a, A(42));
+
+    input.b.arr[] = [0, 1, 2];
+    Serializer.serialize(input, buffer);
+    output = Deserializer.deserialize!(S)(buffer);
+
+    test!("==")(output.ptr.b.arr[], [0, 1, 2]);
+}
+
+/******************************************************************************
+
+    Serialization of unions of structs with dynamic arrays (fails)
+
+******************************************************************************/
+
+unittest
+{
+    struct A { int x; }
+    struct B { int[] arr; }
+
+    struct S
+    {
+        union XX
+        {
+            A a;
+            B b;
+        };
+
+        XX field;
+    }
+
+    void[] buffer;
+    S input;
+
+    static assert (!is(typeof(Serializer.serialize(input, buffer))));
+}
