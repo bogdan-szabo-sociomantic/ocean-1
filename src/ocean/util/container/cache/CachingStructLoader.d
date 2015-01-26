@@ -43,7 +43,7 @@ class CachingStructLoader ( S )
 {
     /***************************************************************************
 
-        The struct of data stored in the cache. 
+        The struct of data stored in the cache.
 
     ***************************************************************************/
 
