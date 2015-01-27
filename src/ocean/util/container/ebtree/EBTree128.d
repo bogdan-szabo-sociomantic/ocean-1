@@ -676,7 +676,7 @@ eb128_node* eb128_node_setkey_264 ( eb128_node* node, ulong lo, ulong hi );
 
  ******************************************************************************/
 
-eb128_node* eb128i_node_setkey_264 ( eb128_node* node, long lo, ulong hi );
+eb128_node* eb128i_node_setkey_264 ( eb128_node* node, ulong lo, long hi );
 
 /******************************************************************************
 
