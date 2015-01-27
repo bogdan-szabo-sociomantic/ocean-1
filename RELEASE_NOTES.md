@@ -13,6 +13,10 @@ Migration Instructions
 Deprecations
 ============
 
+* `ocean.crypt`
+
+  The whole package has been moved to `ocean.util.cipher` to adhere more to the
+  tango structure
 
 New Features
 ============
