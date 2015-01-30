@@ -251,6 +251,22 @@ class EBTree128 ( bool signed = false ) : IEBTree
 
     /***************************************************************************
 
+        Recycles the nodes back to the node pool and call the super class
+        clear()
+
+    ***************************************************************************/
+
+    public override void clear()
+    {
+        foreach(ref node; this)
+        {
+            this.node_pool.recycle(&node);
+        }
+        super.clear();
+    }
+
+    /***************************************************************************
+
         Searches the tree for the first node whose key is <= the specified key,
         and returns it.
 
