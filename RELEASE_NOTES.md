@@ -132,3 +132,9 @@ New Features
   Struct implementation of a moving average designed to handle irregularly
   spaced data (i.e. data where the time intervals between successive values
   are not the same).
+
+* `ocean.util.container.queue.LinkedListQueue`
+
+  A new Queue structure is introduced. In addition to implementing the
+  `ITypedQueue` interface, it also allows finding a value in the queue
+  and removing specified value(s) from the queue.
