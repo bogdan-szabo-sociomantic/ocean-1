@@ -200,7 +200,7 @@ public class TokyoCabinetM
 
     /**************************************************************************
 
-        Get record value without intermediate value buffer
+        Get record value
 
         Params:
             key   = record key
@@ -220,6 +220,33 @@ public class TokyoCabinetM
     {
         value.length = 0;
 
+        return this.get(key, ( char[] v )
+        {
+            value.copy(v);
+        });
+    }
+
+    /**************************************************************************
+
+        Get record value without intermediate value buffer
+
+        Params:
+            key   = record key
+            value = record value output
+
+        Returns:
+            true on success or false if record not existing
+
+    ***************************************************************************/
+
+    public bool get ( char[] key, void delegate ( char[] value ) value_dg )
+    in
+    {
+        this.assertDb();
+        assert(value_dg);
+    }
+    body
+    {
         int len;
 
         void* value_;
@@ -230,7 +257,7 @@ public class TokyoCabinetM
 
         if (found)
         {
-            value.copy((cast(char*) value_)[0 .. len]);
+            value_dg((cast(char*)value_)[0..len]);
 
             free(value_);
         }

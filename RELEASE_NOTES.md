@@ -20,3 +20,9 @@ Deprecations
 
 New Features
 ============
+
+* `ocean.db.tokyocabinet.TokyoCabinetM`
+
+  A new `get()` method has been added which allows a record to be got via a
+  delegate, rather than copying into a buffer. This can be useful in situations
+  where the user doesn't need to store the value.
