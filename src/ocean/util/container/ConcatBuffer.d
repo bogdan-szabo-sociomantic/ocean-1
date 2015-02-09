@@ -369,6 +369,21 @@ public class SliceBuffer ( T ) : ConcatBuffer!(T)
 
     /***************************************************************************
 
+        Get the stored slices.
+
+        Returns:
+            The currently stored slices.
+
+    ***************************************************************************/
+
+    public T[][] opSlice ( )
+    {
+        return this.slices;
+    }
+
+
+    /***************************************************************************
+
         foreach iterator over the items which have been added to the buffer.
 
     ***************************************************************************/
