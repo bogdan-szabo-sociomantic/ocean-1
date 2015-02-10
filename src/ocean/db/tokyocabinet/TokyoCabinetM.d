@@ -460,6 +460,106 @@ public class TokyoCabinetM
         tcmdbvanish(this.db);
     }
 
+
+    /**************************************************************************
+
+        opApply delegate. If the delegate returns <> 0, the iteration will be
+        aborted.
+
+    ***************************************************************************/
+
+    public alias int delegate ( ref char[] key, ref char[] value ) IterDg;
+
+
+    /**************************************************************************
+
+        Context for db iteration (just stores a user-provided delegate)
+
+    ***************************************************************************/
+
+    private struct IterContext
+    {
+        /**********************************************************************
+
+            User-provided opApply delegate to receive each record's key and
+            value
+
+        ***********************************************************************/
+
+        IterDg dg;
+
+
+        /**********************************************************************
+
+            Return value of last call of the delegate. Required by opApply.
+
+        ***********************************************************************/
+
+        int ret;
+    }
+
+
+    /**************************************************************************
+
+        opApply over all records in the database. Note that this iteration is
+        non-interruptible and should only be used in cases where you are certain
+        that no other iterations will interfere with it.
+
+        Params:
+            dg = iteration dg
+
+        Returns:
+            return value of final delegate call (0 if iteration ended, non-0 if
+            it was aborted)
+
+    ***************************************************************************/
+
+    public int opApply ( IterDg dg )
+    in
+    {
+        this.assertDb();
+    }
+    body
+    {
+        IterContext context;
+        context.dg = dg;
+
+        tcmdbforeach(this.db, &db_iter, cast(void*)&context);
+
+        return context.ret;
+    }
+
+
+    /**************************************************************************
+
+        TokyoCabinet-compatible iteration function. The opaque void* (the last
+        parameter) contains the iteration context (see iterate(), above), which
+        in turn contains the user-provided iteration delegate.
+
+        Params:
+            key_ptr = pointer to buffer containing record key
+            key_len = length of buffer containing record key
+            val_ptr = pointer to buffer containing record value
+            val_len = length of buffer containing record value
+            context_ = opaque context pointer (set in opApply(), above)
+
+        Returns:
+            true to continue iterating, false to break
+
+    ***************************************************************************/
+
+    extern ( C ) private static bool db_iter ( void* key_ptr, int key_len,
+        void* val_ptr, int val_len, void* context_ )
+    {
+        auto key = (cast(char*)key_ptr)[0..key_len];
+        auto val = (cast(char*)val_ptr)[0..val_len];
+        auto context = cast(IterContext*)context_;
+
+        context.ret = context.dg(key, val);
+        return context.ret == 0;
+    }
+
+
     /**************************************************************************
 
         Iterates from the current iteration position, getting the key of next
@@ -523,12 +623,13 @@ public class TokyoCabinetM
 
 /*******************************************************************************
 
-    Unittest
+    Unittests
 
 *******************************************************************************/
 
 version (UnitTest)
 {
+    import ocean.core.Test;
     import tango.core.Memory;
     import tango.time.StopWatch;
     import tango.core.Thread;
@@ -536,6 +637,12 @@ version (UnitTest)
 }
 
 version (UnitTestVerbose) import ocean.io.Stdout : Stderr;
+
+/*******************************************************************************
+
+    Basic unittest -- tests get, put, exists, remove
+
+*******************************************************************************/
 
 unittest
 {
@@ -581,6 +688,66 @@ unittest
     map.remove("3");
     assert(!map.exists("3"));
     assert(map.numRecords() == 2);
+}
+
+
+/*******************************************************************************
+
+    Iteration unittest
+
+*******************************************************************************/
+
+unittest
+{
+    const uint count = 10_000;
+
+    scope db = new TokyoCabinetM;
+
+    // Add some values to the db
+    {
+        char[512] value = void;
+        char[8] key;
+        const ulong step = ulong.max / count;
+        for ( ulong i = 0; ulong.max - i >= step; i += step )
+        {
+            *(cast(ulong*)key.ptr) = i;
+            db.put(key, value);
+        }
+    }
+
+    // Test the interruptible iterator
+    char[][] keys;
+    {
+        char[] key;
+        bool more = db.getFirstKey(key);
+        while ( more )
+        {
+            keys ~= key.dup;
+            more = db.getNextKey(key, key);
+        }
+
+        test!("==")(keys.length, count);
+    }
+
+    // Test the non-interruptible iterator
+    char[][] keys2;
+    {
+        foreach ( char[] key, char[] val; db )
+        {
+            keys2 ~= key.dup;
+        }
+        test!("==")(keys2.length, count);
+    }
+
+    // Check that both iterations returned the same set of keys
+    test!("==")(keys.length, keys2.length);
+    keys.sort;
+    keys2.sort;
+
+    foreach ( i, k; keys )
+    {
+        test!("==")(k, keys2[i]);
+    }
 }
 
 
