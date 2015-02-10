@@ -16,7 +16,7 @@
     The list of posix signals is defined in tango.stdc.posix.signal
 
     Build flags:
-        -debug=SignalMask: prints debugging information to Trace
+        -debug=SignalMask: prints debugging information to Stderr
 
 *******************************************************************************/
 
@@ -38,7 +38,7 @@ else
     static assert(false, "module ocean.sys.SignalMask only supported in posix environments");
 }
 
-debug ( SignalMask ) import tango.util.log.Trace;
+debug ( SignalMask ) import ocean.io.Stdout : Stderr;
 
 
 
@@ -227,7 +227,7 @@ public void maskSignals ( int[] signals, void delegate ( ) dg )
             {
                 if ( sigismember(&pending, signal) )
                 {
-                    Trace.formatln("Signal {} fired while masked", signal);
+                    Stderr.formatln("Signal {} fired while masked", signal);
                 }
             }
         }

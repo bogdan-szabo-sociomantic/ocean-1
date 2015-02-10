@@ -508,11 +508,11 @@ version (UnitTest)
     import tango.util.container.HashMap;
 }
 
-version (UnitTestVerbose) import tango.util.log.Trace;
+version (UnitTestVerbose) import ocean.io.Stdout : Stderr;
 
 unittest
 {
-    version ( UnitTestVerbose ) Trace.formatln("Running ocean.db.tokyocabinet.TokyoCabinetM unittest");
+    version ( UnitTestVerbose ) Stderr.formatln("Running ocean.db.tokyocabinet.TokyoCabinetM unittest");
 
     const uint iterations  = 5;
     const uint inserts     = 1_000_000;
@@ -578,7 +578,7 @@ debug (OceanPerformanceTest)
 
          ***********************************************************************/
 
-        version ( UnitTestVerbose ) Trace.formatln("running mem test...");
+        version ( UnitTestVerbose ) Stderr.formatln("running mem test...");
 
         char[] toHex ( uint n, char[8] hex )
         {
@@ -607,7 +607,7 @@ debug (OceanPerformanceTest)
                 map.put(hex, hex);
             }
 
-            version ( UnitTestVerbose ) Trace.formatln  ("[{}:{}-{}]\t{} adds with {}/s and {} bytes mem usage",
+            version ( UnitTestVerbose ) Stderr.formatln  ("[{}:{}-{}]\t{} adds with {}/s and {} bytes mem usage",
                     r, ((inserts * r) - inserts), (inserts * r), map.numRecords(),
                     map.numRecords()/w.stop, GC.stats["poolSize"]);
         }
@@ -620,14 +620,14 @@ debug (OceanPerformanceTest)
         {
             if ( map.exists(toHex(i, hex)) ) hits++;
         }
-        version ( UnitTestVerbose ) Trace.formatln("inserts = {}, hits = {}", inserts, hits);
+        version ( UnitTestVerbose ) Stderr.formatln("inserts = {}, hits = {}", inserts, hits);
         assert(inserts == hits);
 
         version ( UnitTestVerbose )
         {
-            Trace.format  ("{}/{} gets/hits with {}/s and ", map.numRecords(), hits, map.numRecords()/w.stop);
-            Trace.formatln("mem usage {} bytes", GC.stats["poolSize"]);
-            Trace.formatln("done unittest\n");
+            Stderr.format  ("{}/{} gets/hits with {}/s and ", map.numRecords(), hits, map.numRecords()/w.stop);
+            Stderr.formatln("mem usage {} bytes", GC.stats["poolSize"]);
+            Stderr.formatln("done unittest\n");
         }
     }
 }

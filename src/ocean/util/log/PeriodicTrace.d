@@ -10,8 +10,8 @@
 
     Periodic console tracer - writes messages to the console limited to a
     specified update interval. This can be used to safely limit the number of
-    writes to the console. The write is done using either tango.util.log.Trace
-    or ocean.util.log.StaticTrace, depending on the value of the struct's
+    writes to the console. The write is done using either Stderr or
+    ocean.util.log.StaticTrace, depending on the value of the struct's
     static_display member.
 
     Note: this struct automatically calls Trace.flush / StaticTrace.flush after

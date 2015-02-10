@@ -41,7 +41,7 @@ import ocean.io.compress.CompressException;
 
 import ocean.core.Exception: enforce;
 
-version (UnitTestVerbose) import tango.util.log.Trace;
+version (UnitTestVerbose) import ocean.io.Stdout : Stderr;
 
 /******************************************************************************
 
@@ -639,7 +639,7 @@ template SizeofTuple ( T ... )
 
 version (UnitTest) private:
 
-import tango.util.log.Trace;
+import ocean.io.Stdout : Stderr;
 
 import tango.time.StopWatch;
 
@@ -801,7 +801,7 @@ unittest
     us_try_read_start -= us_stop;
     us_stop           -= us_start;
 
-    version (UnitTestVerbose)  Trace.formatln("LzoHeader unittest results:\n\t"
+    version (UnitTestVerbose)  Stderr.formatln("LzoHeader unittest results:\n\t"
                    "start():        1000 headers generated within {} ms\n\t"
                    "stop():         1000 headers generated within {} ms\n\t"
                    "tryReadStart(): 1000 headers checked   within {} ms\n\t"
@@ -855,5 +855,5 @@ unittest
         }
     }
 
-    version (UnitTestVerbose) Trace.formatln("\n\nCompressionHeader unittest finished\n");
+    version (UnitTestVerbose) Stderr.formatln("\n\nCompressionHeader unittest finished\n");
 }

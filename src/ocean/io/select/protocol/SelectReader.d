@@ -26,8 +26,8 @@ import ocean.io.select.protocol.generic.ErrnoIOException;
 import tango.sys.linux.consts.errno;
 import tango.stdc.errno;
 
-debug (Raw)         import tango.util.log.Trace;
-debug (SelectFiber) import tango.util.log.Trace;
+debug (Raw)         import ocean.io.Stdout : Stderr;
+debug (SelectFiber) import ocean.io.Stdout : Stderr;
 
 /*******************************************************************************
 
@@ -215,7 +215,7 @@ class SelectReader : IAdvancedSelectClient
         }
         else
         {
-            debug (Raw) Trace.formatln("[{}] Read  {:X2} ({} bytes)",
+            debug (Raw) Stderr.formatln("[{}] Read  {:X2} ({} bytes)",
                 this.fileHandle,
                 this.buffer[0 .. n], n);
         }
@@ -244,7 +244,7 @@ class SelectReader : IAdvancedSelectClient
     final override protected bool handle ( Event events )
     {
         this.read(events);
-        debug ( SelectFiber ) Trace.formatln("{}.handle: fd {} read() called",
+        debug ( SelectFiber ) Stderr.formatln("{}.handle: fd {} read() called",
                 typeof(this).stringof, this.fileHandle);
 
         return true;

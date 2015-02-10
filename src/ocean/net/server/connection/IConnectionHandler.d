@@ -36,7 +36,7 @@ import tango.text.convert.Format;
 
 import tango.io.model.IConduit: ISelectable;
 
-debug ( ConnectionHandler ) import tango.util.log.Trace;
+debug ( ConnectionHandler ) import ocean.io.Stdout : Stderr;
 
 
 /*******************************************************************************
@@ -269,7 +269,7 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
     }
     body
     {
-        debug ( ConnectionHandler ) Trace.formatln("[{}]: New connection", this.connection_id);
+        debug ( ConnectionHandler ) Stderr.formatln("[{}]: New connection", this.connection_id);
 
         if (this.socket.accept(listening_socket, true) < 0)
         {
@@ -307,7 +307,7 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
     {
         if ( this.connected )
         {
-            debug ( ConnectionHandler ) Trace.formatln("[{}]: Closing connection", this.connection_id);
+            debug ( ConnectionHandler ) Stderr.formatln("[{}]: Closing connection", this.connection_id);
 
             if (this.io_error) if (this.socket.shutdown())
             {
@@ -342,12 +342,12 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
     {
         debug ( ConnectionHandler ) try if ( this.io_error )
         {
-            Trace.formatln("[{}]: Caught io exception while handling connection: '{}' @ {}:{}",
+            Stderr.formatln("[{}]: Caught io exception while handling connection: '{}' @ {}:{}",
                     this.connection_id, exception.msg, exception.file, exception.line);
         }
         else
         {
-            debug ( ConnectionHandler ) Trace.formatln("[{}]: Caught non-io exception while handling connection: '{}' @ {}:{}",
+            debug ( ConnectionHandler ) Stderr.formatln("[{}]: Caught non-io exception while handling connection: '{}' @ {}:{}",
                     this.connection_id, exception.msg, exception.file, exception.line);
         }
         catch { /* Theoretically io_error() could throw. */ }

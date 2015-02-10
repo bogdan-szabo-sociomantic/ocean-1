@@ -61,7 +61,7 @@ public alias MarkupEntityCodec!(XmlEntitySet) XmlEntityCodec;
 
 version ( UnitTest )
 {
-    import tango.util.log.Trace;
+    import ocean.io.Stdout : Stderr;
 
     void encodeTest ( Char ) ( XmlEntityCodec codec, Char[] string, Char[] expected_result )
     {
@@ -105,7 +105,7 @@ version ( UnitTest )
             Char[] after;
         }
 
-        Trace.formatln("Testing {}s", Char.stringof);
+        Stderr.formatln("Testing {}s", Char.stringof);
 
         scope codec = new XmlEntityCodec;
 
@@ -150,12 +150,12 @@ version ( UnitTest )
 
 unittest
 {
-    Trace.formatln("Running ocean.text.entities.XmlEntityCodec unittest");
+    Stderr.formatln("Running ocean.text.entities.XmlEntityCodec unittest");
 
     test!(char)();
     test!(wchar)();
     test!(dchar)();
 
-    Trace.formatln("\nDone unittest\n");
+    Stderr.formatln("\nDone unittest\n");
 }
 

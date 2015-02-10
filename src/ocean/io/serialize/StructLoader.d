@@ -1561,7 +1561,7 @@ version ( UnitTest )
 
 }
 
-version ( UnitTest ) debug ( PerformanceTest ) import tango.util.log.Trace;
+version ( UnitTest ) debug ( PerformanceTest ) import ocean.io.Stdout : Stderr;
 
 unittest
 {
@@ -1628,12 +1628,12 @@ unittest
 
         version ( None )
         {
-            Trace.formatln("Original loader:     {:d5}", original);
-            Trace.formatln("New loader:          {:d5}", new_loader);
-            Trace.formatln("New loader + conv:   {:d5}", new_conv);
-            Trace.formatln("New loader + conv*2: {:d5}", new_conv2);
-            Trace.formatln("Ori loader No Ver:   {:d5}", orig_no_version);
-            Trace.formatln("New loader No Ver:   {:d5}", new_no_version);
+            Stderr.formatln("Original loader:     {:d5}", original);
+            Stderr.formatln("New loader:          {:d5}", new_loader);
+            Stderr.formatln("New loader + conv:   {:d5}", new_conv);
+            Stderr.formatln("New loader + conv*2: {:d5}", new_conv2);
+            Stderr.formatln("Ori loader No Ver:   {:d5}", orig_no_version);
+            Stderr.formatln("New loader No Ver:   {:d5}", new_no_version);
         }
     }
 }

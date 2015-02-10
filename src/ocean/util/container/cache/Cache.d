@@ -1469,13 +1469,13 @@ debug ( OceanPerformanceTest )
 
     import tango.time.StopWatch;
 
-    import tango.util.log.Trace;
+    import ocean.io.Stdout : Stderr;
 
     unittest
     {
         GC.disable;
 
-        Trace.formatln("Starting Cache performance test");
+        Stderr.formatln("Starting Cache performance test");
 
         auto random = new Random;
 
@@ -1493,7 +1493,7 @@ debug ( OceanPerformanceTest )
         time_t time = 1;
 
         // Fill cache
-        Trace.formatln("Filling cache:");
+        Stderr.formatln("Filling cache:");
         sw.start;
         for ( uint i; i < cache_size; i++ )
         {
@@ -1502,11 +1502,11 @@ debug ( OceanPerformanceTest )
             random(d_time);
             time += d_time % 16;
         }
-        Trace.formatln("{} puts, {} puts/s", cache_size, cast(float)cache_size / (cast(float)sw.microsec / 1_000_000));
+        Stderr.formatln("{} puts, {} puts/s", cache_size, cast(float)cache_size / (cast(float)sw.microsec / 1_000_000));
 
         // Put values into full cache
         const puts = 1_000_000;
-        Trace.formatln("Writing to cache:   ");
+        Stderr.formatln("Writing to cache:   ");
         sw.start;
         for ( uint i; i < puts; i++ )
         {
@@ -1515,11 +1515,11 @@ debug ( OceanPerformanceTest )
             random(d_time);
             time += d_time % 16;
         }
-        Trace.formatln("{} puts, {} puts/s", puts, cast(float)puts / (cast(float)sw.microsec / 1_000_000));
+        Stderr.formatln("{} puts, {} puts/s", puts, cast(float)puts / (cast(float)sw.microsec / 1_000_000));
 
         // Get values from cache
         const gets = 1_000_000;
-        Trace.formatln("Reading from cache: {} gets, {} gets/s", gets, cast(float)gets / (cast(float)sw.microsec / 1_000_000));
+        Stderr.formatln("Reading from cache: {} gets, {} gets/s", gets, cast(float)gets / (cast(float)sw.microsec / 1_000_000));
         sw.start;
         for ( uint i; i < gets; i++ )
         {
@@ -1528,9 +1528,9 @@ debug ( OceanPerformanceTest )
             random(d_time);
             time += d_time % 16;
         }
-        Trace.formatln("Writing to cache: {} gets, {} gets/s", gets, cast(float)gets / (cast(float)sw.microsec / 1_000_000));
+        Stderr.formatln("Writing to cache: {} gets, {} gets/s", gets, cast(float)gets / (cast(float)sw.microsec / 1_000_000));
 
-        Trace.formatln("Cache performance test finished");
+        Stderr.formatln("Cache performance test finished");
     }
 }
 

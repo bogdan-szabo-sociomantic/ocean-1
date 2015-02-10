@@ -64,7 +64,7 @@ deprecated:
 
 import ocean.io.serialize.StructSerializer;
 import ocean.io.serialize.StringStructSerializer;
-import tango.util.log.Trace;
+import ocean.io.Stdout : Stderr;
 
 
 
@@ -101,7 +101,7 @@ class TraceStructSerializer : StringStructSerializer!(char)
     {
         this.string.length = 0;
         StructSerializer!().serialize(&item, this);
-        Trace.formatln("{}", this.string).flush();
+        Stderr.formatln("{}", this.string).flush();
     }
 
 

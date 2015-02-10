@@ -30,7 +30,7 @@ import ocean.io.select.client.model.ISelectClientInfo;
 
 import ocean.io.select.EpollSelectDispatcher;
 
-debug ( SelectFiber) import tango.util.log.Trace;
+debug ( SelectFiber) import ocean.io.Stdout : Stderr;
 
 
 /******************************************************************************/
@@ -107,12 +107,12 @@ public class SelectFiber : MessageFiber
     }
     body
     {
-        debug ( SelectFiber) Trace.formatln("{}.register fd {}:",
+        debug ( SelectFiber) Stderr.formatln("{}.register fd {}:",
                 typeof(this).stringof, client.fileHandle);
 
         if ( this.current is null )
         {
-            debug ( SelectFiber) Trace.formatln("   Register new {}", client);
+            debug ( SelectFiber) Stderr.formatln("   Register new {}", client);
 
             this.epoll.register(this.current = client);
 
@@ -126,9 +126,9 @@ public class SelectFiber : MessageFiber
                 {
                     debug ( SelectFiber)
                     {
-                        Trace.formatln("   Changing event registration {}",
+                        Stderr.formatln("   Changing event registration {}",
                             this.current);
-                        Trace.formatln("   Register {}", client);
+                        Stderr.formatln("   Register {}", client);
                     }
 
                     this.epoll.changeClient(this.current, client);
@@ -141,7 +141,7 @@ public class SelectFiber : MessageFiber
                 {
                     debug ( SelectFiber)
                     {
-                        Trace.formatln("   Leaving registered {}", this.current);
+                        Stderr.formatln("   Leaving registered {}", this.current);
                     }
 
                     // As there is not way to modify a registration with the
@@ -159,12 +159,12 @@ public class SelectFiber : MessageFiber
             }
             else
             {
-                debug ( SelectFiber) Trace.formatln("   Unregister {}",
+                debug ( SelectFiber) Stderr.formatln("   Unregister {}",
                     this.current);
 
                 this.epoll.unregister(this.current);
 
-                debug ( SelectFiber) Trace.formatln("   Register {}", client);
+                debug ( SelectFiber) Stderr.formatln("   Register {}", client);
 
                 this.epoll.register(this.current = client);
 
@@ -187,7 +187,7 @@ public class SelectFiber : MessageFiber
     {
         if ( this.current !is null )
         {
-            debug ( SelectFiber) Trace.formatln("{}.unregister fd {}",
+            debug ( SelectFiber) Stderr.formatln("{}.unregister fd {}",
                     typeof(this).stringof, this.current.fileHandle);
 
             this.epoll.unregister(this.current);

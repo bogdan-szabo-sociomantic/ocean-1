@@ -66,7 +66,7 @@ import  ocean.db.tokyocabinet.model.ITokyoCabinet;
 
 import  ocean.text.util.StringC;
 
-debug import  tango.util.log.Trace;
+debug import  ocean.io.Stdout : Stderr;
 
 /*******************************************************************************
 
@@ -211,7 +211,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
 
             tcbdbdel(this.db);
 
-            debug Trace.formatln(typeof (this).stringof ~ " deleted");
+            debug Stderr.formatln(typeof (this).stringof ~ " deleted");
         }
 
         this.deleted = true;
@@ -922,7 +922,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
             {
                 this.not_found = true;
 
-                debug Trace.formatln(e.msg);
+                debug Stderr.formatln(e.msg);
             }
 
             return result;
@@ -971,7 +971,7 @@ class TokyoCabinetB : ITokyoCabinet!(TCBDB, tcbdbforeach)
             {
                 this.not_found = true;
 
-                debug Trace.formatln(e.msg);
+                debug Stderr.formatln(e.msg);
             }
 
             return result;

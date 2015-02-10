@@ -2162,7 +2162,7 @@ deprecated class Set ( T )
 
 debug ( OceanPerformanceTest )
 {
-    import tango.util.log.Trace;
+    import ocean.io.Stdout : Stderr;
     import tango.core.Memory;
     import tango.io.Stdout;
     import tango.time.StopWatch;
@@ -2183,7 +2183,7 @@ debug ( OceanPerformanceTest )
     void test ( T ) ( T array,uint iterations , uint inserts, bool free = true)
     {
         StopWatch   w;
-        Trace("{}:\t", T.stringof);
+        Stderr("{}:\t", T.stringof);
         w.start;
         for (uint r = 1; r <= iterations; r++)
         {
@@ -2282,7 +2282,7 @@ debug ( OceanPerformanceTest )
                     }
                 }
             }
-            Trace("put = {}/s\t", (inserts * iterations) / w.stop);
+            Stderr("put = {}/s\t", (inserts * iterations) / w.stop);
 
 
             w.start;
@@ -2290,25 +2290,25 @@ debug ( OceanPerformanceTest )
             uint* p;
             for (uint r = 1; r <= iterations; r++)
             {
-                //Trace.format("iteration {}",r);
+                //Stderr.format("iteration {}",r);
                 hits=0;
                 uint i=(((cast (uint) (inserts * 0.1) * iterations)) - (cast (uint) (inserts * 0.1) ));
                 uint b=i;
-                //Trace.format(" {} -> ",i);
+                //Stderr.format(" {} -> ",i);
                 for (i = (((cast (uint) (inserts * 0.1) * iterations)) - (cast (uint) (inserts * 0.1) )); i < ((cast (uint) (inserts * 0.1) * iterations) ); i++)
                 {
                     foreach (str; strs)
                         if (i in maps[str]) hits++;
                 }
-                //Trace.formatln("{} ({}).. done",i,i-b);
+                //Stderr.formatln("{} ({}).. done",i,i-b);
             }
 
 
-            Trace("{}/{} gets/hits\tget = {}/s and ", inserts, hits,
+            Stderr("{}/{} gets/hits\tget = {}/s and ", inserts, hits,
                          iterations*inserts / w.stop);
-            Trace("mem usage {} mbytes", GC.stats.poolsize/1024/1024);
+            Stderr("mem usage {} mbytes", GC.stats.poolsize/1024/1024);
             assert (inserts == hits);
-            Trace("done.");
+            Stderr("done.");
         }
 
         /***********************************************************************
@@ -2330,13 +2330,13 @@ debug ( OceanPerformanceTest )
             {
                 array.clear();
                 if (remove > inserts) break;
-                //Trace.formatln("Filling");
+                //Stderr.formatln("Filling");
                 // fill
                 for (uint i = ((inserts * r) - inserts); i < (inserts * r); i++)
                 {
                     array[i] = [i, i + 1, i + 2];
                 }
-                //Trace.formatln("Validating filled!");
+                //Stderr.formatln("Validating filled!");
                 foreach (i, kv; array.v_map)
                 {
                     assert (i >= array.len || array[kv.key] == kv.value);
@@ -2345,18 +2345,18 @@ debug ( OceanPerformanceTest )
                 uint rand;
                 random(rand);
                 auto rem = rand % (inserts - remove);
-                //Trace.formatln("removing {} starting at {}", remove, rem);
+                //Stderr.formatln("removing {} starting at {}", remove, rem);
                 for (uint i = rem; i < remove + rem; ++i)
                 {
                     array.remove((inserts * r) - inserts + i);
-                    /+    Trace.formatln("removing {}",(inserts * r - inserts + i));
+                    /+    Stderr.formatln("removing {}",(inserts * r - inserts + i));
                      foreach(kv ; array.v_map)
                      {
                      assert(array[kv.key] == kv.value);
                      }+/
                 }
                 assert (array.length == inserts - remove);
-                //Trace.formatln("Validating");
+                //Stderr.formatln("Validating");
                 // validate
                 uint count = 0;
                 for (uint i = ((inserts * r) - inserts); i < (inserts * r); i++)
@@ -2367,30 +2367,30 @@ debug ( OceanPerformanceTest )
                         ++count;
                     }
                 }
-                //Trace.formatln("Validating!");
+                //Stderr.formatln("Validating!");
                 foreach (i, kv; array.v_map)
                 {
                     assert (i >= array.len || array[kv.key] == kv.value);
                 }
                 assert (count == array.length, "length doesn't fit");
-                //Trace.formatln("Filling again starting at {}", rem);
+                //Stderr.formatln("Filling again starting at {}", rem);
                 // fill again
                 for (uint i = ((inserts * r) - (inserts - rem)); i < (inserts * r) - (inserts - rem) + remove; i++)
                 {
-                    //      Trace.formatln("adding {}", i);
+                    //      Stderr.formatln("adding {}", i);
                     assert (!(i in array));
                     array[i] = [i, i + 1, i + 2];
                 }
-                //Trace.formatln("length is {}, insetrs are {}", array.length,
+                //Stderr.formatln("length is {}, insetrs are {}", array.length,
                 //      inserts);
                 assert (array.length == inserts);
-                //Trace.formatln("Validating again");
+                //Stderr.formatln("Validating again");
                 // validate again
                 for (uint i = ((inserts * r) - inserts); i < (inserts * r); i++)
                 {
                     assert (array[i] == [i, i + 1, i + 2], "failed to validate 2");
                 }
-                //Trace.formatln("Validating again!");
+                //Stderr.formatln("Validating again!");
                 foreach (i, kv; array.v_map)
                 {
                     assert (i >= array.len || array[kv.key] == kv.value);
@@ -2422,14 +2422,14 @@ debug ( OceanPerformanceTest )
             {
                 array.clear();
                 if (remove > inserts) break;
-                //Trace.formatln("Filling");
+                //Stderr.formatln("Filling");
                 // fill
                 for (uint i = ((inserts * r) - inserts); i < (inserts * r); i++)
                 {
                     array[i] = slowdown(i, i + 1, i + 2);
                 }
 
-                //Trace.formatln("Validating filled!");
+                //Stderr.formatln("Validating filled!");
                 foreach(i, kv ; array.v_map)
                 {
                     assert(i >= array.len || array[kv.key] == kv.value);
@@ -2438,18 +2438,18 @@ debug ( OceanPerformanceTest )
                 uint rand;
                 random(rand);
                 auto rem = rand % (inserts - remove);
-                //Trace.formatln("removing {} starting at {}", remove, rem);
+                //Stderr.formatln("removing {} starting at {}", remove, rem);
                 for (uint i = rem; i < remove + rem; ++i)
                 {
                     array.remove((inserts * r) - inserts + i);
-                /+    Trace.formatln("removing {}",(inserts * r - inserts + i));
+                /+    Stderr.formatln("removing {}",(inserts * r - inserts + i));
                     foreach(kv ; array.v_map)
                     {
                         assert(array[kv.key] == kv.value);
                     }+/
                 }
                 assert (array.length == inserts - remove);
-                //Trace.formatln("Validating");
+                //Stderr.formatln("Validating");
                 // validate
                 uint count = 0;
                 for (uint i = ((inserts * r) - inserts); i < (inserts * r); i++)
@@ -2461,33 +2461,33 @@ debug ( OceanPerformanceTest )
                     }
                 }
 
-                //Trace.formatln("Validating!");
+                //Stderr.formatln("Validating!");
                 foreach(i, kv ; array.v_map)
                 {
                     assert(i >= array.len || array[kv.key] == kv.value);
                 }
 
                 assert (count == array.length, "length doesn't fit");
-                //Trace.formatln("Filling again starting at {}", rem);
+                //Stderr.formatln("Filling again starting at {}", rem);
                 // fill again
                 for (uint i = ((inserts * r) - (inserts - rem)); i < (inserts * r) - (inserts - rem) + remove; i++)
                 {
-                    //      Trace.formatln("adding {}", i);
+                    //      Stderr.formatln("adding {}", i);
                     assert (!(i in array));
                     array[i] = slowdown(i, i + 1, i + 2);
                 }
 
-                //Trace.formatln("length is {}, insetrs are {}", array.length,
+                //Stderr.formatln("length is {}, insetrs are {}", array.length,
                 //      inserts);
                 assert (array.length == inserts);
-                //Trace.formatln("Validating again");
+                //Stderr.formatln("Validating again");
                 // validate again
                 for (uint i = ((inserts * r) - inserts); i < (inserts * r); i++)
                 {
                     assert (array[i] == slowdown(i, i + 1, i + 2), "failed to validate 2");
                 }
 
-                //Trace.formatln("Validating again!");
+                //Stderr.formatln("Validating again!");
                 foreach(i, kv ; array.v_map)
                 {
                     assert(i >= array.len || array[kv.key] == kv.value);

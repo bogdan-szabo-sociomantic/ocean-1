@@ -42,7 +42,7 @@ import tango.stdc.errno: errno, EINPROGRESS, EINTR, EALREADY, EISCONN;
 
 debug ( EpollTiming ) import tango.time.StopWatch;
 
-debug ( ISelectClient ) import tango.util.log.Trace;
+debug ( ISelectClient ) import ocean.io.Stdout : Stderr;
 
 
 
@@ -576,7 +576,7 @@ public class IFiberSocketConnection : IFiberSelectProtocol
 
             if ( connect_syscall )
             {
-                debug ( ISelectClient ) Trace.formatln("[{}:{}]: Connected to socket",
+                debug ( ISelectClient ) Stderr.formatln("[{}:{}]: Connected to socket",
                     this.address, this.port);
                 this.connected_ = true;
                 return ConnectionStatus.Connected;
@@ -588,7 +588,7 @@ public class IFiberSocketConnection : IFiberSelectProtocol
                 debug ( ISelectClient )
                 {
                     char[256] buffer;
-                    Trace.formatln("[{}:{}]: {}",
+                    Stderr.formatln("[{}:{}]: {}",
                         this.address_, this.port_, this.socket_error.strerror(buffer, errnum));
                 }
 
@@ -603,13 +603,13 @@ public class IFiberSocketConnection : IFiberSelectProtocol
                          EALREADY:
                          debug ( ISelectClient )
                          {
-                             Trace.formatln("[{}:{}]: waiting for the socket to become writable",
+                             Stderr.formatln("[{}:{}]: waiting for the socket to become writable",
                                  this.address_, this.port_);
 
-                             scope (failure) Trace.formatln("[{}:{}]: error while waiting for the socket to become writable",
+                             scope (failure) Stderr.formatln("[{}:{}]: error while waiting for the socket to become writable",
                                                             this.address_, this.port_);
 
-                             scope (success) Trace.formatln("[{}:{}]: socket has become writable",
+                             scope (success) Stderr.formatln("[{}:{}]: socket has become writable",
                                                             this.address_, this.port_);
                          }
                         this.transmit_calls = 0;

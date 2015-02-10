@@ -1555,7 +1555,7 @@ version (UnitTest)
     import tango.util.Convert : to;
     import tango.time.StopWatch;
     import tango.core.Memory;
-    debug ( OceanPerformanceTest ) import tango.util.log.Trace;
+    debug ( OceanPerformanceTest ) import ocean.io.Stdout : Stderr;
 
     /***************************************************************************
 
@@ -1844,13 +1844,13 @@ unittest
 
         debug ( OceanPerformanceTest )
         {
-            Trace.formatln("SerializeMe Performance Test:");
+            Stderr.formatln("SerializeMe Performance Test:");
             sw.start;
             for(uint i = 0;i<100_000_000; ++i)
             {
                 dump(&sm,buf);
             }
-            Trace.formatln("Writing with {}/s",100_000_000/sw.stop);
+            Stderr.formatln("Writing with {}/s",100_000_000/sw.stop);
 
             // FIXME !!: This causes a segfault:
             /*
@@ -1875,17 +1875,17 @@ unittest
             {
                 load(&sm,buf);
             }
-            Trace.formatln("Reading with {}/s",100_000_000/sw.stop);
+            Stderr.formatln("Reading with {}/s",100_000_000/sw.stop);
 
 
 
-            Trace.formatln("Retargeting Performance Test:");
+            Stderr.formatln("Retargeting Performance Test:");
             sw.start;
             for(uint i = 0;i<100_000_000; ++i)
             {
                 dump(&newStruct,buf);
             }
-            Trace.formatln("Writing with {}/s",100_000_000/sw.stop);
+            Stderr.formatln("Writing with {}/s",100_000_000/sw.stop);
 
 
             sw.start;
@@ -1893,10 +1893,10 @@ unittest
             {
                 load(&newStruct,buf);
             }
-            Trace.formatln("Reading with {}/s",100_000_000/sw.stop);
+            Stderr.formatln("Reading with {}/s",100_000_000/sw.stop);
 
 
-            Trace.formatln("Urls Performance Test:");
+            Stderr.formatln("Urls Performance Test:");
 
 
             {
@@ -1906,7 +1906,7 @@ unittest
                 {
                     dump(emptyp,buffer );
                 }
-                Trace.formatln("{} Writing preallocated buf with",1_00000/sw.stop);
+                Stderr.formatln("{} Writing preallocated buf with",1_00000/sw.stop);
 
 
 
@@ -1924,7 +1924,7 @@ unittest
                             a+=data.length;
                             } );
                 }
-                Trace.formatln("{} Writing with own delegate",1_0000/sw.stop);
+                Stderr.formatln("{} Writing with own delegate",1_0000/sw.stop);
 
 
                 sw.start;
@@ -1932,14 +1932,14 @@ unittest
                 {
                     load(emptyp,buffer);
                 }
-                Trace.formatln("{}/s Reading using slicing",1_000000/sw.stop);
+                Stderr.formatln("{}/s Reading using slicing",1_000000/sw.stop);
 
                 sw.start;
                 for(uint i = 0;i<1_000000; ++i)
                 {
                     load(&empty,buffer);
                 }
-                Trace.formatln("{}/s Reading with",1_000000/sw.stop);
+                Stderr.formatln("{}/s Reading with",1_000000/sw.stop);
 
                 foreach(i, url ; empty.elements)
                     assert(url == "http://example.com/"~to!(char[])(i));

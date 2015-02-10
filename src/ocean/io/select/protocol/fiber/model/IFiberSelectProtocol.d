@@ -29,7 +29,7 @@ import ocean.io.select.fiber.SelectFiber;
 
 import ocean.io.select.protocol.generic.ErrnoIOException: IOError, IOWarning;
 
-debug ( SelectFiber ) import tango.util.log.Trace;
+debug ( SelectFiber ) import ocean.io.Stdout : Stderr;
 
 
 /******************************************************************************/
@@ -239,10 +239,10 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
     {
         this.events_reported = events;
 
-        debug ( SelectFiber ) Trace.formatln("{}.handle: fd {} fiber resumed",
+        debug ( SelectFiber ) Stderr.formatln("{}.handle: fd {} fiber resumed",
                 typeof(this).stringof, this.conduit.fileHandle);
         SelectFiber.Message message = this.fiber.resume(IOReady, this); // SmartUnion
-        debug ( SelectFiber ) Trace.formatln("{}.handle: fd {} fiber yielded, message type = {}",
+        debug ( SelectFiber ) Stderr.formatln("{}.handle: fd {} fiber yielded, message type = {}",
                 typeof(this).stringof, this.conduit.fileHandle, message.active);
 
         return (message.active == message.active.num)? message.num != 0 : false;
@@ -293,7 +293,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
         {
             if (super.fiber.isRegistered(this))
             {
-                debug ( SelectFiber) Trace.formatln("{}.transmitLoop: suspending fd {} fiber ({} @ {}:{})",
+                debug ( SelectFiber) Stderr.formatln("{}.transmitLoop: suspending fd {} fiber ({} @ {}:{})",
                     typeof(this).stringof, this.conduit.fileHandle, e.msg, e.file, e.line);
 
                 // Exceptions thrown by transmit() or in the case of the Error
@@ -301,7 +301,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
                 // handle_(), above.
                 super.fiber.suspend(IOReady, e);
 
-                debug ( SelectFiber) Trace.formatln("{}.transmitLoop: resumed fd {} fiber, rethrowing ({} @ {}:{})",
+                debug ( SelectFiber) Stderr.formatln("{}.transmitLoop: resumed fd {} fiber, rethrowing ({} @ {}:{})",
                     typeof(this).stringof, this.conduit.fileHandle, e.msg, e.file, e.line);
             }
 

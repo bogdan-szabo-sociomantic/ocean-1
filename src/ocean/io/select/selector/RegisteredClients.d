@@ -25,7 +25,7 @@ import ocean.io.select.client.model.ISelectClient;
 
 import ocean.util.container.map.Set;
 
-debug ( ISelectClient ) import tango.util.log.Trace;
+debug ( ISelectClient ) import ocean.io.Stdout : Stderr;
 
 
 
@@ -53,7 +53,7 @@ public abstract class IRegisteredClients
 
     final public void opAddAssign ( ISelectClient client )
     {
-        debug ( ISelectClient ) Trace.formatln("{} :: Registered", client);
+        debug ( ISelectClient ) Stderr.formatln("{} :: Registered", client);
         client.registered();
         this.add_(client);
     }
@@ -72,7 +72,7 @@ public abstract class IRegisteredClients
 
     final public void opSubAssign ( ISelectClient client )
     {
-        debug ( ISelectClient ) Trace.formatln("{} :: Unregistered", client);
+        debug ( ISelectClient ) Stderr.formatln("{} :: Unregistered", client);
         client.unregistered();
         this.remove_(client);
     }

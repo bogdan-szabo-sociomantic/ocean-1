@@ -92,7 +92,7 @@ import Integer = tango.text.convert.Integer;
 
 import tango.text.json.JsonParser;
 
-debug ( Json ) import tango.util.log.Trace;
+debug ( Json ) import ocean.io.Stdout : Stderr;
 
 
 /*******************************************************************************
@@ -318,7 +318,7 @@ class JsonStructDeserializer ( Char )
 
     public void open ( Char[] json, Char[] name )
     {
-        debug ( Json ) Trace.formatln("Deserializing json: '{}'", json);
+        debug ( Json ) Stderr.formatln("Deserializing json: '{}'", json);
         this.parser.reset(json);
 
         this.checkToken(Parser.Token.BeginObject);
@@ -340,7 +340,7 @@ class JsonStructDeserializer ( Char )
         this.checkToken(Parser.Token.EndObject);
         this.checkToken(Parser.Token.EndObject);
 
-        debug ( Json ) Trace.formatln("Json deserialization completed");
+        debug ( Json ) Stderr.formatln("Json deserialization completed");
     }
 
 
@@ -674,7 +674,7 @@ class JsonStructDeserializer ( Char )
 
     private void checkToken ( Parser.Token token )
     {
-        debug ( Json ) Trace.formatln("Checking token type {} == {}", token, this.parser.type());
+        debug ( Json ) Stderr.formatln("Checking token type {} == {}", token, this.parser.type());
 
         assertEx!(JsonException)(this.parser.type() == token,
                 typeof(this).stringof ~ ".checkToken - invalid token type in json string" ~
@@ -702,7 +702,7 @@ class JsonStructDeserializer ( Char )
 
     private bool checkName ( Char[] name, bool throwException = true )
     {
-        debug ( Json ) Trace.formatln("Checking name {} == {}", name, this.parser.value());
+        debug ( Json ) Stderr.formatln("Checking name {} == {}", name, this.parser.value());
 
         if (throwException)
         {

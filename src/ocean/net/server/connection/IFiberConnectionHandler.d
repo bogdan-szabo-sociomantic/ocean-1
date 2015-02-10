@@ -36,7 +36,7 @@ import ocean.sys.Epoll : epoll_event_t;
 import tango.net.device.Socket : Socket;
 import tango.text.convert.Format;
 
-debug ( ConnectionHandler ) import tango.util.log.Trace;
+debug ( ConnectionHandler ) import ocean.io.Stdout : Stderr;
 
 
 /*******************************************************************************
@@ -224,7 +224,7 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
     {
         try
         {
-            debug ( ConnectionHandler ) Trace.formatln("[{}]: Handling connection", this.connection_id);
+            debug ( ConnectionHandler ) Stderr.formatln("[{}]: Handling connection", this.connection_id);
 
             this.handle();
         }
@@ -234,7 +234,7 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
         }
         catch ( Object o )
         {
-            debug ( ConnectionHandler ) Trace.formatln("[{}]: Caught object while handling connection", this.connection_id);
+            debug ( ConnectionHandler ) Stderr.formatln("[{}]: Caught object while handling connection", this.connection_id);
         }
         finally
         {
