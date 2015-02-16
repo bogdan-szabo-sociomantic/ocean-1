@@ -159,41 +159,6 @@ abstract class ConfiguredCliApp : CommandLineApp, IConfigExtExtension
         this.args_ext.registerExtension(this.config_ext);
     }
 
-
-    /***************************************************************************
-
-        Constructor.
-
-        This constructor only setup the internal state of the class, but does
-        not call any extension or user code. The application runs only when the
-        main() method is called.
-
-        Params:
-            name = name of the application
-            desc = short description of the application
-            loose_config_parsing = if true, configuration files will be parsed
-                                   in a more relaxed way
-            default_configs = default configuration files to parse
-            config = configuration parser to use, defaults to the global
-                     instance provided by the ocean.util.Config module.
-
-    ***************************************************************************/
-
-    deprecated
-    this ( char[] name, char[] desc, bool loose_config_parsing = false,
-            char[][] default_configs = [ "etc/config.ini" ],
-            ConfigParser config = null )
-    {
-        super(name, desc);
-        this.config_ext = new ConfigExt(loose_config_parsing, default_configs,
-                config);
-        this.config = this.config_ext.config;
-        this.config_ext.registerExtension(this);
-        this.registerExtension(this.config_ext);
-        this.args_ext.registerExtension(this.config_ext);
-    }
-
-
     /***************************************************************************
 
         Run implementation that forwards to run(char[][] args, ConfigParser

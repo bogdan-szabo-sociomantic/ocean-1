@@ -16,12 +16,26 @@ Migration Instructions
   type from `void delegate ( Exception exception, Event event )` to `void
   delegate ( Exception exception, Event event, IConnectionHandlerInfo )`.
 
+* `ocean.core.ObjectPool`
+  `ocean.time.UnixTime`
+  `ocean.io.serialize.TraceStructSerializer`
+  `ocean.util.Unittest`
+  `ocean.util.app.UnittestedApp`
+  `ocean.util.app.ext.UnittestExt`
+  `ocean.crypt.misc.Bitwise`
+  `ocean.crypt.misc.ByteConverter`
+  `ocean.util.container.ebtree.c.ebnode`
+
+  These deprecated modules have been completely removed. Check migration
+  instructions from initial deprecation of relevant module if your app
+  still uses it.
+
 Deprecations
 ============
 
-* `ocean.crypt`
+* `ocean.crypt.HMAC`
 
-  The whole package has been moved to `ocean.util.cipher` to adhere more to the
+  This module has been moved to `ocean.util.cipher` to adhere more to the
   tango structure
 
 New Features

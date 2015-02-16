@@ -149,40 +149,6 @@ abstract class LoggedCliApp : ConfiguredCliApp, ILogExtExtension
         this.config_ext.registerExtension(this.log_ext);
     }
 
-
-    /***************************************************************************
-
-        Constructor.
-
-        This constructor only setup the internal state of the class, but does
-        not call any extension or user code. The application runs only when the
-        main() method is called.
-
-        Params:
-            name = name of the application
-            desc = short description of the application
-            use_insert_appender = true if the InsertConsole appender should be
-                                  used (needed when using the AppStatus module)
-            loose_config_parsing = if true, configuration files will be parsed
-                                   in a more relaxed way
-            default_configs = default configuration files to parse
-            config = configuration parser to use, defaults to the global
-                     instance provided by the ocean.util.Config module.
-
-    ***************************************************************************/
-
-    deprecated
-    this ( char[] name, char[] desc, bool use_insert_appender = false,
-            bool loose_config_parsing = false,
-            char[][] default_configs = [ "etc/config.ini" ],
-            ConfigParser config = null )
-    {
-        super(name, desc, loose_config_parsing, default_configs, config);
-        this.log_ext = new LogExt(use_insert_appender);
-        this.config_ext.registerExtension(this.log_ext);
-    }
-
-
     /***************************************************************************
 
         Exit cleanly from the application.
