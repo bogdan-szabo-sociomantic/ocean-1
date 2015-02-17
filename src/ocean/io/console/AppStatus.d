@@ -498,8 +498,9 @@ public class AppStatus
 
     /***************************************************************************
 
-        Format one of the applications static lines. When contrusting this
-        module the calling application sets the number of static lines.
+        Format one of the static lines. The application can set the number of
+        static lines either when constructing this module or by calling the
+        'num_static_lines' method.
         This method is then used to format the contents of the static lines.
 
         Params:
