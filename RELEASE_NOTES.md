@@ -18,6 +18,10 @@ Migration Instructions
   removed now. Please refer to original deprecation instructions if your
   application is still using them.
 
+`ocean.core.Exception`
+  All deprecated `assertEx` function have been completely removed. Please
+  use `enforce` instead.
+
 Deprecations
 ============
 
