@@ -150,6 +150,14 @@ public abstract class IBucketSet
 
         Removes all elements from all buckets.
 
+        Note:
+            Beware that calling this method is known to sometimes cause
+            unexpected behaviour when the bucket-set is reused afterwards (where
+            cyclic links are introduced).
+            If you are using one of the of the children *Map classes then
+            call clearErase() instead as it has been reported to properly clear
+            the map.
+
         Returns:
             this instance
 

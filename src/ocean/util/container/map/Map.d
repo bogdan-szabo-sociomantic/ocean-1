@@ -656,6 +656,13 @@ public abstract class Map ( V, K ) : BucketSet!(V.sizeof, K)
         Removes all elements from all buckets and sets the element values to
         val_init.
 
+        Note:
+            Beware that calling this.clear() is known to sometimes cause
+            unexpected behaviour when the map is reused afterwards (where cyclic
+            links are introduced in the bucket-set).
+            Call this method instead as it has been reported to properly clear
+            the map.
+
         Params:
             val_init = initialisation value
 
