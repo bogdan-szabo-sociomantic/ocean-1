@@ -110,7 +110,8 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
 
     ***************************************************************************/
 
-    public alias void delegate ( Exception exception, Event event ) ErrorDg;
+    public alias void delegate ( Exception exception, Event event,
+        IConnectionHandlerInfo ) ErrorDg;
 
     /***************************************************************************
 
@@ -354,7 +355,7 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
 
         if ( this.error_dg_ )
         {
-            this.error_dg_(exception, event);
+            this.error_dg_(exception, event, this);
         }
     }
 

@@ -9,6 +9,12 @@ dmd1       | v1.076.s2
 Migration Instructions
 ======================
 
+* `ocean.net.server.connection.IConnectionHandler`,
+  `ocean.net.server.connection.IFiberConnectionHandler`
+
+  The error delegate (which is optionally passed to the constructor) has changed
+  type from `void delegate ( Exception exception, Event event )` to `void
+  delegate ( Exception exception, Event event, IConnectionHandlerInfo )`.
 
 Deprecations
 ============
