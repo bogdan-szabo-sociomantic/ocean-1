@@ -70,3 +70,24 @@ New Features
   cache classes are encouraged to switch to the new cahce classes added in this
   release and report any found bugs. The current cache classes will be
   deprecated in the next release in favor of the new ones add in this release.
+
+* `ocean.util.container.cache.LRUCache`
+
+  A (L)east (R)ecently (U)sed Cache class. The class is an extension to the
+  `PriorityCache` class. The class considers the access time of items to be
+  their priority. The access time of an item is refreshed when it is retrieved.
+  The class is a replacement for the `Cache` class. The following in `Cache`
+  class has changed in `LRUCache` class:
+
+  - No default template parameter type, the user must provide a template type.
+  - `get()`, `getOrCreate()` methods has been replaced with `getAndRefresh()`
+    and `getRefreshOrCreate()`. The user shouldn't call PriorityCache's
+    `get()` or `getOrCreate()` or `getUpdateOrCreate()`.
+  - `create()` method has been removed (use `getRefreshOrCreate()`).
+  - `createRaw()`, `putRaw()`, ..., `*Raw()` has been removed. Use non-`*Raw()`
+    version instead.
+
+  The `LRUCache` class is experimental for this release. However users who
+  currently use the `Cache` class are encouraged to switch to this class
+  instead and report any found bugs. The `Cache` class will be deprecated in
+  the next release in favor of this class.
