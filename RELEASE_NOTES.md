@@ -60,3 +60,13 @@ New Features
   functions helps prevent refactoring errors -- a standard cast will, for
   example, happily convert any pointer to an object which, if the user intended
   a down-cast, can cause errors at run-time.
+
+* `ocean.util.container.cache.PriorityCache`
+
+  Keeps track of a limited number of items according to their priority, when a
+  new item is added and the cache is full then the item with the least priority
+  is dropped.
+  This class is experimental for this release. However users who use the current
+  cache classes are encouraged to switch to the new cahce classes added in this
+  release and report any found bugs. The current cache classes will be
+  deprecated in the next release in favor of the new ones add in this release.
