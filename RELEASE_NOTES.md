@@ -91,3 +91,14 @@ New Features
   currently use the `Cache` class are encouraged to switch to this class
   instead and report any found bugs. The `Cache` class will be deprecated in
   the next release in favor of this class.
+
+* `ocean.util.container.cache.ExpiringLRUCache`
+
+  An extension to the `LRUCache` class where an item expires if it hasn't been
+  retrieved for a given amount of time.
+
+  This class still experimental but it is an intended replacement for the
+  `ExpiringCache` class. Therefore users who currently use the `ExpiringCache`
+  class are encouraged to switch to this class instead and report any found
+  bugs. The `ExpiringCache` class will be deprecated in the next release in
+  favor of this class.
