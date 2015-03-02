@@ -37,3 +37,12 @@ New Features
     much more efficient form of iteration over the in-memory database. This can,
     obviously, only be used in situations where you are sure that only a single
     iteration is underway at any one time.
+
+* `ocean.core.TypeConvert`
+
+  This new module currently contains functions to perform generic casts and
+  object down-casts, with (in comparison to standard casts) the added safety of
+  checking that the thing being cast from is of the correct type. Using these
+  functions helps prevent refactoring errors -- a standard cast will, for
+  example, happily convert any pointer to an object which, if the user intended
+  a down-cast, can cause errors at run-time.
