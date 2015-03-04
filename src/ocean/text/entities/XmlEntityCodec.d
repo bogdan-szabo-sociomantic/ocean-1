@@ -61,8 +61,6 @@ public alias MarkupEntityCodec!(XmlEntitySet) XmlEntityCodec;
 
 version ( UnitTest )
 {
-    import ocean.io.Stdout : Stderr;
-
     void encodeTest ( Char ) ( XmlEntityCodec codec, Char[] string, Char[] expected_result )
     {
         Char[] encoded;
@@ -104,8 +102,6 @@ version ( UnitTest )
             Char[] before;
             Char[] after;
         }
-
-        Stderr.formatln("Testing {}s", Char.stringof);
 
         scope codec = new XmlEntityCodec;
 
@@ -150,12 +146,8 @@ version ( UnitTest )
 
 unittest
 {
-    Stderr.formatln("Running ocean.text.entities.XmlEntityCodec unittest");
-
     test!(char)();
     test!(wchar)();
     test!(dchar)();
-
-    Stderr.formatln("\nDone unittest\n");
 }
 
