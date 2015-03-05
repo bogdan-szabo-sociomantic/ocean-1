@@ -22,6 +22,11 @@ Migration Instructions
   All deprecated `assertEx` function have been completely removed. Please
   use `enforce` instead.
 
+`ocean.io.serialize.StructLoader`
+`ocean.io.serialize.StructDumper`
+  Those deprecated modules and their deprecated dependencies have been
+  completely removed.
+
 Deprecations
 ============
 
