@@ -923,7 +923,7 @@ class ConfigParser
         else static if ( is(T U : U[]) &&
                        ( is(U : char) || is(U : wchar) || is(U:dchar)) )
         {
-            return fromString8!(U)(property, null);
+            return fromString8!(U)(property, T.init);
         }
         else static assert(false,
                            Format("{} : get(): type '{}' is not supported",
