@@ -750,7 +750,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
         ***********************************************************************/
 
-        protected this ( uint start, uint end )
+        protected this ( size_t start, size_t end )
         in
         {
             assert (!this.outer.safe_iterator_open);
@@ -797,7 +797,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
         ***********************************************************************/
 
-        protected this ( uint start, uint end )
+        protected this ( size_t start, size_t end )
         {
             this.outer.unsafe_iterators_open++;
             super(this.outer.items[start .. end]);

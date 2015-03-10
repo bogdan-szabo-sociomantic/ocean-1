@@ -272,7 +272,7 @@ version ( UnitTest )
 
         ***********************************************************************/
 
-        protected abstract void setItem ( ref Item item, int i );
+        protected abstract void setItem ( ref Item item, size_t i );
 
 
         /***********************************************************************
@@ -287,7 +287,7 @@ version ( UnitTest )
 
         ***********************************************************************/
 
-        protected abstract void checkItem ( ref Item item, int i );
+        protected abstract void checkItem ( ref Item item, size_t i );
 
 
         /***********************************************************************

@@ -198,7 +198,7 @@ version ( UnitTest )
     {
         uint object_pool_index;
 
-        int i;
+        size_t i;
         char[] s;
     }
 
@@ -215,14 +215,14 @@ version ( UnitTest )
             return new Class;
         }
 
-        protected override void setItem ( ref Item item, int i )
+        protected override void setItem ( ref Item item, size_t i )
         {
             item.i = i;
             item.s.length = 1;
             item.s[0] = cast(char)(i + 32);
         }
 
-        protected override void checkItem ( ref Item item, int i )
+        protected override void checkItem ( ref Item item, size_t i )
         {
             assert(item.i == i, "item integer wrong");
             assert(item.s.length == 1, "item string length wrong");
