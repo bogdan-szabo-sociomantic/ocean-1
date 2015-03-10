@@ -339,7 +339,8 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
             layout);
     }
 
-    configureLoggers(config, m_config, &newAppender, loose, use_insert_appender);
+    configureLoggers!(Source, FileLayout, ConsoleLayout)
+        (config, m_config, &newAppender, loose, use_insert_appender);
 }
 
 /*******************************************************************************
