@@ -115,3 +115,8 @@ New Features
   Also, the build time is changed to UTC with a clear indicator that
   displayed build time is in UTC.
 
+* ``ocean.math.IrregularMovingAverage``
+
+  Struct implementation of a moving average designed to handle irregularly
+  spaced data (i.e. data where the time intervals between successive values
+  are not the same).
