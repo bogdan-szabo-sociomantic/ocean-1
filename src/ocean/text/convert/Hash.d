@@ -29,6 +29,7 @@ module ocean.text.convert.Hash;
 
 import Integer = ocean.text.convert.Integer;
 
+import ocean.core.TypeConvert;
 
 
 /*******************************************************************************
@@ -314,8 +315,10 @@ unittest
 
     char[] good = "0123456789abcdefABCDEF";
 
-    for ( int c = char.min; c <= char.max; c++ )
+    for ( int i = char.min; i <= char.max; i++ )
     {
+        // can't use char for i because of expected overflow
+        auto c = castFrom!(int).to!(char)(i);
         if ( good.contains(c) )
         {
             assert(isHex(c));

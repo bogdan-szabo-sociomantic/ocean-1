@@ -96,7 +96,7 @@ public bool timeToUnixTime ( char[] str, ref time_t time,
     datetime.tm_mday = 1;
 
     // try the date format with 2010-08-14T17:29:06 or 2010-08-14 17:29:06
-    int num_matched = sscanf(buff.ptr, "%d-%d-%d%c%d:%d:%d", &datetime.tm_year,
+    int num_matched = sscanf(buff.ptr, "%d-%d-%d%c%d:%d:%d".ptr, &datetime.tm_year,
         &datetime.tm_mon, &datetime.tm_mday, &separator, &datetime.tm_hour,
         &datetime.tm_min, &datetime.tm_sec);
 
@@ -108,13 +108,13 @@ public bool timeToUnixTime ( char[] str, ref time_t time,
                 switch ( str.length )
                 {
                     case 6: // 201008
-                        sscanf(buff.ptr, "%04d%02d", &datetime.tm_year,
+                        sscanf(buff.ptr, "%04d%02d".ptr, &datetime.tm_year,
                             &datetime.tm_mon);
                         conversion_type = DateConversion.YearMonth;
                         break Converted;
 
                     case 8: // 20100814
-                        sscanf(buff.ptr, "%04d%02d%02d", &datetime.tm_year,
+                        sscanf(buff.ptr, "%04d%02d%02d".ptr, &datetime.tm_year,
                             &datetime.tm_mon, &datetime.tm_mday);
                         conversion_type = DateConversion.YearMonthDay;
                         break Converted;

@@ -54,8 +54,8 @@ unittest
 
         struct Record
         {
-            hash_t key; // random number
-            int    val; // counter
+            hash_t    key; // random number
+            size_t    val; // counter
         }
 
         // Initialise the list of records.
@@ -71,7 +71,7 @@ unittest
 
         time_t t = 0;
 
-        scope cache = new class LRUCache!(int)
+        scope cache = new class LRUCache!(size_t)
         {
             this ( ) {super(capacity);}
 
@@ -116,7 +116,7 @@ unittest
 
             foreach (record; records)
             {
-                int* v = cache.getAndRefresh(record.key);
+                auto v = cache.getAndRefresh(record.key);
 
                 if (record.val < cache.max_length)
                 {
@@ -144,7 +144,7 @@ unittest
         // Existing records should be updated to a new value. To enable
         // verification of the update, change the values to 4711 + i.
 
-        foreach (i, ref record; records[0 .. n_overflow])
+        foreach (int i, ref record; records[0 .. n_overflow])
         {
             record.val = 4711 + i;
 
@@ -157,7 +157,7 @@ unittest
 
         foreach (i, record; records[0 .. n_overflow])
         {
-            int* v = cache.getAndRefresh(record.key);
+            auto v = cache.getAndRefresh(record.key);
 
             assert (v !is null);
             assert (*v == 4711 + i);
@@ -170,7 +170,7 @@ unittest
 
         foreach (key; oldest_keys[n_existing .. $])
         {
-            int* v = cache.getAndRefresh(key);
+            auto v = cache.getAndRefresh(key);
 
             assert (v is null);
         }
@@ -186,7 +186,7 @@ unittest
 
             foreach (record; records[n_overflow .. $])
             {
-                int* v = cache.getAndRefresh(record.key);
+                auto v = cache.getAndRefresh(record.key);
 
                 if (v !is null)
                 {
@@ -501,7 +501,7 @@ unittest
     {
         GC.disable;
 
-        printf("Starting Cache performance test\n");
+        printf("Starting Cache performance test\n".ptr);
 
         auto random = new Random;
 
@@ -524,7 +524,7 @@ unittest
         value.length = max_item_size;
 
         // Fill cache
-        printf("Filling cache\n");
+        printf("Filling cache\n".ptr);
         sw.start;
         for ( uint i; i < cache_size; i++ )
         {
@@ -533,11 +533,11 @@ unittest
             random(d_time);
             time += d_time % 16;
         }
-        printf("%d puts, %f puts/s\n", cache_size, cast(float)cache_size / (cast(float)sw.microsec / 1_000_000));
+        printf("%d puts, %f puts/s\n".ptr, cache_size, cast(float)cache_size / (cast(float)sw.microsec / 1_000_000));
 
         // Put values into full cache
         const puts = 1_000_000;
-        printf("Writing to cache:\n");
+        printf("Writing to cache:\n".ptr);
         sw.start;
         for ( uint i; i < puts; i++ )
         {
@@ -546,11 +546,11 @@ unittest
             random(d_time);
             time += d_time % 16;
         }
-        printf("%d puts, %f puts/s\n", puts, cast(float)puts / (cast(float)sw.microsec / 1_000_000));
+        printf("%d puts, %f puts/s\n".ptr, puts, cast(float)puts / (cast(float)sw.microsec / 1_000_000));
 
         // Get values from cache
         const gets = 1_000_000;
-        printf("Reading from cache: %d gets, %f gets/s\n", gets, cast(float)gets / (cast(float)sw.microsec / 1_000_000));
+        printf("Reading from cache: %d gets, %f gets/s\n".ptr, gets, cast(float)gets / (cast(float)sw.microsec / 1_000_000));
         sw.start;
         for ( uint i; i < gets; i++ )
         {
@@ -559,9 +559,9 @@ unittest
             random(d_time);
             time += d_time % 16;
         }
-        printf("Writing to cache: %d gets, %f gets/s\n", gets, cast(float)gets / (cast(float)sw.microsec / 1_000_000));
+        printf("Writing to cache: %d gets, %f gets/s\n".ptr, gets, cast(float)gets / (cast(float)sw.microsec / 1_000_000));
 
-        printf("Cache performance test finished\n");
+        printf("Cache performance test finished\n".ptr);
     }
 
     debug ( OceanPerformanceTest ) performanceTest();

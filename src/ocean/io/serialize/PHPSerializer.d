@@ -224,7 +224,7 @@ public class PHPSerializer
             for ( int c = 2; c >= 0 && num != 0; c--,i++ )
             {
                 // get and convert lowest-order number
-                bcd[c] = ( num % 10 );
+                bcd[c] = cast(ubyte) ( num % 10 );
                 num = num / 10;
             }
 
@@ -295,7 +295,7 @@ public class PHPSerializer
             short it;
 
              // length is in the first three bits
-            ubyte len = (input[0] & 0b11110000) >> 4;
+            auto len = cast(ubyte) (input[0] & 0b11110000) >> 4;
 
             ubyte initial = 4;
 

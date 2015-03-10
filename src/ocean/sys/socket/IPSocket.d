@@ -37,6 +37,8 @@ import ocean.io.device.IODevice: InputDevice, IOutputDevice;
 
 import ocean.sys.socket.InetAddress;
 
+import ocean.core.TypeConvert;
+
 // FIXME: somehow the import above doesn't result in this symbol being
 // identifiable in this module. Re-defining it locally.
 // Perhaps this is a symptom of a circular import?
@@ -783,7 +785,8 @@ abstract class IIPSocket : InputDevice, IOutputDevice
 
     public ssize_t getsockopt ( int level, int optname, void[] dst )
     {
-        socklen_t result_len = dst.length;
+        assert (dst.length <= socklen_t.max && dst.length >= socklen_t.min);
+        socklen_t result_len = castFrom!(size_t).to!(socklen_t)(dst.length);
 
         int r = .getsockopt(this.fd, level, optname, dst.ptr, &result_len);
 
@@ -857,7 +860,8 @@ abstract class IIPSocket : InputDevice, IOutputDevice
 
     public int setsockopt ( int level, int optname, void[] src )
     {
-        return .setsockopt(this.fd, level, optname, src.ptr, src.length);
+        return .setsockopt(this.fd, level, optname, src.ptr,
+            castFrom!(size_t).to!(int)(src.length));
     }
 
     /**************************************************************************

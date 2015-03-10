@@ -465,7 +465,7 @@ unittest
 
         void convert_d ( ref A structa)
         {
-            this.d = structa.a;
+            this.d = cast(short) structa.a;
         }
     }
 

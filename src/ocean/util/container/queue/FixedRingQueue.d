@@ -288,7 +288,7 @@ abstract class FixedRingQueueBase ( IBaseQueue ) : IRingQueue!(IBaseQueue)
 
     ***************************************************************************/
 
-    protected uint max_items;
+    protected size_t max_items;
 
     /***************************************************************************
 
@@ -384,7 +384,7 @@ abstract class FixedRingQueueBase ( IBaseQueue ) : IRingQueue!(IBaseQueue)
 
     ***************************************************************************/
 
-    uint maxItems ( )
+    size_t maxItems ( )
     {
         return this.max_items;
     }

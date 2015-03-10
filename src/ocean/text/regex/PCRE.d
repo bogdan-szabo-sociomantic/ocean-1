@@ -50,6 +50,7 @@ module ocean.text.regex.PCRE;
 import ocean.core.Array : copy, concat;
 import ocean.text.util.StringC;
 import ocean.text.regex.c.pcre;
+import ocean.core.TypeConvert;
 
 import tango.stdc.stdlib : free;
 import tango.text.convert.Format;
@@ -320,7 +321,7 @@ public class PCRE
             }
 
             int error_code = pcre_exec(this.pcre_object, &this.match_settings,
-                subject.ptr, subject.length, 0, 0,
+                subject.ptr, castFrom!(size_t).to!(int)(subject.length), 0, 0,
                 ovector.ptr, ovector.length);
 
             if ( error_code > 0 )
@@ -377,7 +378,7 @@ public class PCRE
         }
         body
         {
-            int pos;
+            ptrdiff_t pos;
 
             while ( pos < subject.length )
             {

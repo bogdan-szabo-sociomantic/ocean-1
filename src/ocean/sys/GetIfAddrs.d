@@ -22,6 +22,7 @@ import tango.sys.linux.consts.socket: AF_INET, AF_INET6;
 import tango.stdc.posix.netinet.in_: sockaddr_in, sockaddr_in6;
 import tango.stdc.posix.arpa.inet;
 import ocean.core.Test;
+import ocean.core.TypeConvert;
 import tango.stdc.errno;
 debug import tango.io.Stdout;
 
@@ -219,7 +220,7 @@ bool getAddrsForInterface( char[] interface_name, bool ipv6,
         // Use getnameinfo to get the interface address
 
         auto result = getnameinfo(ifa.ifa_addr,
-                                   salen,
+                                   castFrom!(size_t).to!(uint)(salen),
                                    buffer.ptr,
                                    buffer.length,
                                    null,

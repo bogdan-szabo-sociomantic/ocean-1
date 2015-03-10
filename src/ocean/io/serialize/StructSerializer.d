@@ -1717,7 +1717,7 @@ unittest
     with (StructSerializer!())
     {
         byte[] buf;
-        uint w=void;
+        size_t w=void;
         {
             Retargeting retargeting;
 

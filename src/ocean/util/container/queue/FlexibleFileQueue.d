@@ -735,15 +735,15 @@ unittest
 
             for ( ubyte i = 0; i < size; i++ )
             {
-                assert( queue.push( cast(ubyte[])[i, ubyte.max-i, i, i*i] ), "push failed" );
-
+                auto item = [i, ubyte.max-i, i, cast(ubyte) (i*i)];
+                assert( queue.push( item ), "push failed" );
             }
 
             for ( ubyte i = 0; i < size; i++ )
             {
                 auto pop = queue.pop;
-                assert( pop == cast(ubyte[])[i, ubyte.max-i, i, i*i], "pop failed "~pop.stringof );
-
+                auto item = [i, ubyte.max-i, i, cast(ubyte) (i*i)];
+                assert( pop == item, "pop failed "~pop.stringof );
             }
 
             queue.closeExternal();

@@ -69,6 +69,8 @@ import ocean.io.select.client.TimerEvent;
 import ocean.time.model.IMicrosecondsClock,
        ocean.time.MicrosecondsClock;
 
+import ocean.core.TypeConvert;
+
 import tango.stdc.stdlib: div;
 
 import tango.stdc.posix.sys.time: timeval, timespec, gettimeofday;
@@ -270,7 +272,9 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
     {
         with (this.now_timeval)
         {
-            us = tv_usec;
+            assert (tv_usec <= uint.max);
+            assert (tv_usec >= 0);
+            us = castFrom!(long).to!(uint)(tv_usec);
 
             return this.toTm(tv_sec);
         }
@@ -301,7 +305,11 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
             dt.time.hours   = tm_hour;
             dt.time.minutes = tm_min;
             dt.time.seconds = tm_sec;
-            dt.time.millis  = tv_usec / 1000;
+
+            auto usec = tv_usec / 1000;
+            assert (usec <= uint.max);
+            assert (usec >= 0);
+            dt.time.millis = castFrom!(long).to!(uint)(usec);
 
             return dt;
         }

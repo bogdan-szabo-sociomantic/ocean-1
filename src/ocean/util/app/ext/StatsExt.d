@@ -18,6 +18,8 @@ module ocean.util.app.ext.StatsExt;
 
 *******************************************************************************/
 
+import ocean.core.TypeConvert;
+
 import ocean.util.app.model.ExtensibleClassMixin;
 import ocean.util.app.Application;
 import ocean.util.app.ext.model.IConfigExtExtension;
@@ -98,7 +100,8 @@ class StatsExt : IConfigExtExtension
             }
             else
             {
-                return new AppendSyslog(file, stats_config.file_count,
+                auto file_count = castFrom!(size_t).to!(uint)(stats_config.file_count);
+                return new AppendSyslog(file, file_count,
                     stats_config.max_file_size, "gzip {}", "gz",
                     stats_config.start_compress, layout);
             }

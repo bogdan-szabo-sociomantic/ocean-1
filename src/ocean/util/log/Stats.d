@@ -23,6 +23,8 @@ module ocean.util.log.Stats;
 
 import ocean.core.Traits : FieldName;
 
+import ocean.core.TypeConvert;
+
 import ocean.io.select.EpollSelectDispatcher;
 
 import ocean.io.select.client.TimerEvent;
@@ -818,9 +820,10 @@ public abstract class IStatsLog
     {
         Appender newAppender ( char[] file, Appender.Layout layout )
         {
-            return new AppendSyslog(file, config.file_count,
-                                         config.max_file_size, "gzip {}", "gz",
-                                         config.start_compress, layout);
+            return new AppendSyslog(file,
+                castFrom!(size_t).to!(int)(config.file_count),
+                config.max_file_size, "gzip {}", "gz",
+                config.start_compress, layout);
         }
 
         this(config, &newAppender, name);

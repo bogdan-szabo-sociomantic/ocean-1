@@ -34,6 +34,7 @@ module ocean.db.tokyocabinet.TokyoCabinetM;
 import ocean.db.tokyocabinet.model.ITokyoCabinet: TokyoCabinetIterator;
 
 import ocean.core.Array;
+import ocean.core.TypeConvert;
 
 import ocean.db.tokyocabinet.c.tcmdb :
            TCMDB,
@@ -154,7 +155,8 @@ public class TokyoCabinetM
     }
     body
     {
-        tcmdbput(this.db, key.ptr, key.length, value.ptr, value.length);
+        tcmdbput(this.db, key.ptr, castFrom!(size_t).to!(int)(key.length),
+            value.ptr, castFrom!(size_t).to!(int)(value.length));
     }
 
     /**************************************************************************
@@ -174,7 +176,8 @@ public class TokyoCabinetM
     }
     body
     {
-        tcmdbputkeep(this.db, key.ptr, key.length, value.ptr, value.length);
+        tcmdbputkeep(this.db, key.ptr, castFrom!(size_t).to!(int)(key.length),
+            value.ptr, castFrom!(size_t).to!(int)(value.length));
     }
 
     /**************************************************************************
@@ -195,7 +198,8 @@ public class TokyoCabinetM
     }
     body
     {
-        tcmdbputcat(this.db, key.ptr, key.length, value.ptr, value.length);
+        tcmdbputcat(this.db, key.ptr, castFrom!(size_t).to!(int)(key.length),
+            value.ptr, castFrom!(size_t).to!(int)(value.length));
     }
 
     /**************************************************************************
@@ -251,7 +255,8 @@ public class TokyoCabinetM
 
         void* value_;
 
-        value_ = cast(void*)tcmdbget(this.db, key.ptr, key.length, &len);
+        value_ = cast(void*)tcmdbget(this.db, key.ptr,
+            castFrom!(size_t).to!(int)(key.length), &len);
 
         bool found = !!value_;
 
@@ -331,7 +336,8 @@ public class TokyoCabinetM
 
             if ( exists(last_key) )
             {
-                tcmdbiterinit2(this.db, last_key.ptr, last_key.length);
+                tcmdbiterinit2(this.db, last_key.ptr,
+                    castFrom!(size_t).to!(int)(last_key.length));
 
                 if ( !this.iterateNextKey(key) )
                 {
@@ -367,7 +373,7 @@ public class TokyoCabinetM
     {
         int size;
 
-        size = tcmdbvsiz(this.db, key.ptr, key.length);
+        size = tcmdbvsiz(this.db, key.ptr, castFrom!(size_t).to!(int)(key.length));
 
         return size >= 0;
     }
@@ -393,7 +399,7 @@ public class TokyoCabinetM
     {
         bool ok;
 
-        ok = tcmdbout(this.db, key.ptr, key.length);
+        ok = tcmdbout(this.db, key.ptr, castFrom!(size_t).to!(int)(key.length));
 
         return ok;
     }

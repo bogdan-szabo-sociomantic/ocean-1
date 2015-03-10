@@ -29,6 +29,7 @@ module ocean.db.tokyocabinet.util.TokyoCabinetCursor;
  ******************************************************************************/
 
 import ocean.core.Exception: enforce;
+import ocean.core.TypeConvert;
 
 import ocean.db.tokyocabinet.c.util.tcxstr:  TCXSTR;
 import ocean.db.tokyocabinet.c.bdb.tcbdbcur: BDBCUR,
@@ -164,7 +165,8 @@ class TokyoCabinetCursor
 
     public This select ( char[] key )
     {
-        return this.cursorAssert!(tcbdbcurjump, "select")(key.ptr, key.length);
+        return this.cursorAssert!(tcbdbcurjump, "select")(key.ptr,
+            castFrom!(size_t).to!(int)(key.length));
     }
 
     public alias select opAssign;
@@ -183,7 +185,8 @@ class TokyoCabinetCursor
 
     public This selectLast ( char[] key )
     {
-        return this.cursorAssert!(tcbdbcurjumpback, "selectLast")(key.ptr, key.length);
+        return this.cursorAssert!(tcbdbcurjumpback, "selectLast")(key.ptr,
+            castFrom!(size_t).to!(int)(key.length));
     }
 
     /**************************************************************************

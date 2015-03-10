@@ -1067,8 +1067,8 @@ unittest
 
         struct Record
         {
-            hash_t key; // random number
-            int    val; // counter
+            hash_t  key; // random number
+            size_t  val; // counter
         }
 
         // Initialise the list of records.
@@ -1084,7 +1084,7 @@ unittest
 
         time_t t = 0;
 
-        scope cache = new class Cache!(int)
+        scope cache = new class Cache!(size_t)
         {
             this ( ) {super(capacity);}
 
@@ -1129,7 +1129,7 @@ unittest
 
             foreach (record; records)
             {
-                int* v = cache.get(record.key);
+                auto v = cache.get(record.key);
 
                 if (record.val < cache.max_length)
                 {
@@ -1170,7 +1170,7 @@ unittest
 
         foreach (i, record; records[0 .. n_overflow])
         {
-            int* v = cache.get(record.key);
+            auto v = cache.get(record.key);
 
             assert (v !is null);
             assert (*v == 4711 + i);
@@ -1183,7 +1183,7 @@ unittest
 
         foreach (key; oldest_keys[n_existing .. $])
         {
-            int* v = cache.get(key);
+            auto v = cache.get(key);
 
             assert (v is null);
         }
@@ -1199,7 +1199,7 @@ unittest
 
             foreach (record; records[n_overflow .. $])
             {
-                int* v = cache.get(record.key);
+                auto v = cache.get(record.key);
 
                 if (v !is null)
                 {

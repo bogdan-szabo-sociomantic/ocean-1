@@ -74,6 +74,8 @@ module ocean.util.log.PeriodicTrace;
 
 *******************************************************************************/
 
+import ocean.core.TypeConvert;
+
 import ocean.util.log.StaticTrace;
 
 import ocean.io.Stdout;
@@ -268,7 +270,7 @@ struct PeriodicTracer
             uint sink ( char[] s )
             {
                 this.formatted ~= s;
-                return s.length;
+                return castFrom!(size_t).to!(uint)(s.length);
             }
 
             Layout!(char).instance()(&sink, types, args, fmt);

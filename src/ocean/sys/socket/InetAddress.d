@@ -57,6 +57,8 @@ import tango.stdc.string: strlen;
 
 import tango.stdc.errno: errno, EAFNOSUPPORT;
 
+import ocean.core.TypeConvert;
+
 /******************************************************************************
 
     Flags supported by getnameinfo().
@@ -276,7 +278,8 @@ struct InetAddress ( bool IPv6 = false )
     }
     body
     {
-        char* address_p = .inet_ntop(this.family, this.address_n.ptr, dst.ptr, dst.length);
+        char* address_p = .inet_ntop(this.family, this.address_n.ptr, dst.ptr,
+            castFrom!(size_t).to!(int)(dst.length));
 
         return address_p? address_p[0 .. strlen(address_p)] : null;
     }
@@ -416,8 +419,8 @@ struct InetAddress ( bool IPv6 = false )
                            GetNameInfoFlags flags = GetNameInfoFlags.None)
     {
         return .getnameinfo(cast (sockaddr*) &this.addr, this.addr.sizeof,
-                            host.ptr, host.length, serv.ptr, serv.length,
-                            flags);
+            host.ptr, castFrom!(size_t).to!(int)(host.length), serv.ptr,
+            castFrom!(size_t).to!(int)(serv.length), flags);
     }
 }
 

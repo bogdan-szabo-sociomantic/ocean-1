@@ -189,7 +189,7 @@ public class HashMap ( V ) : Map!(V, hash_t)
                 map.length, map.bucket_info.load, map.bucket_info.max_load);
         }
 
-        bool lengthIs ( int expected )
+        bool lengthIs ( size_t expected )
         {
             assert(map.length == expected);
 

@@ -18,6 +18,8 @@ module ocean.util.app.ext.LogExt;
 
 *******************************************************************************/
 
+import ocean.core.TypeConvert;
+
 import ocean.util.app.model.ExtensibleClassMixin;
 import ocean.util.app.Application;
 import ocean.util.app.ext.model.IConfigExtExtension;
@@ -139,7 +141,8 @@ class LogExt : IConfigExtExtension
             }
             else
             {
-                return new AppendSyslog(file, log_meta_config.file_count,
+                auto file_count = castFrom!(size_t).to!(uint)(log_meta_config.file_count);
+                return new AppendSyslog(file, file_count,
                     log_meta_config.max_file_size, "gzip {}", "gz",
                     log_meta_config.start_compress, layout);
             }

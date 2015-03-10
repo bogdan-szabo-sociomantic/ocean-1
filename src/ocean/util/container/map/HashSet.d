@@ -160,7 +160,7 @@ unittest
             set.bucket_elements.length, set.bucket_elements.num_busy);
     }
 
-    bool lengthIs ( int expected )
+    bool lengthIs ( size_t expected )
     {
         assert(set.length == expected);
 

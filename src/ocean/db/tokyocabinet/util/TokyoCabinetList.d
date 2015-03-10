@@ -42,6 +42,8 @@ import ocean.db.tokyocabinet.c.util.tclist:
 
 import tango.stdc.stdlib: free;
 
+import ocean.core.TypeConvert;
+
 /*******************************************************************************
 
     TokyoCabinetList class
@@ -120,7 +122,7 @@ class TokyoCabinetList
 
     this ( ubyte[] data )
     {
-        this.list = tclistload(data.ptr, data.length);
+        this.list = tclistload(data.ptr, castFrom!(size_t).to!(int)(data.length));
     }
 
     /**************************************************************************
@@ -216,7 +218,7 @@ class TokyoCabinetList
 
     public This append ( char[] item )
     {
-        tclistpush(this.list, item.ptr, item.length);
+        tclistpush(this.list, item.ptr, castFrom!(size_t).to!(int)(item.length));
 
         return this;
     }
@@ -237,7 +239,7 @@ class TokyoCabinetList
 
     public This prepend ( char[] item )
     {
-        tclistunshift(this.list, item.ptr, item.length);
+        tclistunshift(this.list, item.ptr, castFrom!(size_t).to!(int)(item.length));
 
         return this;
     }
@@ -261,7 +263,8 @@ class TokyoCabinetList
 
     public This insert ( char[] item, int index )
     {
-        tclistinsert(this.list, index, item.ptr, item.length);
+        tclistinsert(this.list, index, item.ptr,
+            castFrom!(size_t).to!(int)(item.length));
 
         return this;
     }
@@ -285,7 +288,8 @@ class TokyoCabinetList
 
     public This replace ( char[] item, int index )
     {
-        tclistover(this.list, index, item.ptr, item.length);
+        tclistover(this.list, index, item.ptr,
+            castFrom!(size_t).to!(int)(item.length));
 
         return this;
     }
@@ -362,7 +366,8 @@ class TokyoCabinetList
 
     public char[] search ( char[] item )
     {
-        int index = tclistlsearch(this.list, item.ptr, item.length);
+        int index = tclistlsearch(this.list, item.ptr,
+            castFrom!(size_t).to!(int)(item.length));
 
         return (index >= 0)? this[index] : null;
     }
@@ -383,7 +388,8 @@ class TokyoCabinetList
 
     public char[] binSearch ( char[] item )
     {
-        int index = tclistbsearch(this.list, item.ptr, item.length);
+        int index = tclistbsearch(this.list, item.ptr,
+            castFrom!(size_t).to!(int)(item.length));
 
         return (index >= 0)? this[index] : null;
     }

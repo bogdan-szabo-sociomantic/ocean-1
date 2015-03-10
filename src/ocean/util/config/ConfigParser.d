@@ -1101,7 +1101,7 @@ class ConfigParser
             return;
         }
 
-        int pos = locate(line, '['); // category present in line?
+        auto pos = locate(line, '['); // category present in line?
 
         if ( pos == 0 )
         {

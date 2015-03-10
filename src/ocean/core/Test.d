@@ -34,7 +34,7 @@ class TestException : Exception
 
      ***************************************************************************/
 
-    public this ( char[] msg, char[] file = __FILE__, size_t line = __LINE__ )
+    public this ( char[] msg, char[] file = __FILE__, int line = __LINE__ )
     {
         super( msg, file, line );
     }
@@ -50,7 +50,7 @@ class TestException : Exception
 ******************************************************************************/
 
 public void test ( T ) ( T ok, char[] msg = "",
-    char[] file = __FILE__, size_t line = __LINE__ )
+    char[] file = __FILE__, int line = __LINE__ )
 {
     if (!msg.length)
     {
@@ -66,7 +66,7 @@ public void test ( T ) ( T ok, char[] msg = "",
 ******************************************************************************/
 
 public void test ( char[] op, T1, T2 ) ( T1 a,
-    T2 b, char[] file = __FILE__, size_t line = __LINE__ )
+    T2 b, char[] file = __FILE__, int line = __LINE__ )
 {
     enforceImpl!(op, TestException)(a, b, file, line);
 }
@@ -161,7 +161,7 @@ unittest
     void foo() { throw new Exception(""); }
     testThrown(foo());
 
-    int bar() { throw new Exception(""); return 10; }
+    int bar() { throw new Exception(""); }
     testThrown(bar());
 
     void test_foo() { throw new TestException("", "", 0); }
@@ -237,7 +237,7 @@ class NamedTest : TestException
     ***************************************************************************/
 
     public void test ( T ) ( T ok, char[] msg = "", char[] file = __FILE__,
-        size_t line = __LINE__ )
+        int line = __LINE__ )
     {
         // uses `enforceImpl` instead of `test` so that pre-constructed
         // exception instance can be used.
@@ -256,7 +256,7 @@ class NamedTest : TestException
     ***************************************************************************/
 
     public void test ( char[] op, T1, T2 ) ( T1 a, T2 b,
-        char[] file = __FILE__, size_t line = __LINE__ )
+        char[] file = __FILE__, int line = __LINE__ )
     {
         // uses `enforceImpl` instead of `test` so that pre-constructed
         // exception instance can be used.

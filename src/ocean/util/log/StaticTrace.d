@@ -23,6 +23,8 @@ module ocean.util.log.StaticTrace;
 
 *******************************************************************************/
 
+import ocean.core.TypeConvert;
+
 import ocean.io.Terminal;
 
 import tango.text.convert.Layout;
@@ -149,7 +151,7 @@ public class StaticSyncPrint
         uint sink ( char[] s )
         {
             formatted ~= s;
-            return s.length;
+            return castFrom!(size_t).to!(uint)(s.length);
         }
 
         version (DigitalMarsX64)

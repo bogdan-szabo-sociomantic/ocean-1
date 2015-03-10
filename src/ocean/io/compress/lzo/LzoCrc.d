@@ -20,6 +20,8 @@ module ocean.io.compress.lzo.LzoCrc;
 
 import ocean.io.compress.lzo.c.lzoconf: lzo_crc32, lzo_crc32_init;
 
+import ocean.core.TypeConvert;
+
 /******************************************************************************
 
     LzoCrc structure; contains only static methods
@@ -45,7 +47,8 @@ struct LzoCrc
 
     uint crc32 ( uint crc32_in, void[] data )
     {
-        return lzo_crc32(crc32_in, cast (ubyte*) data.ptr, data.length);
+        return lzo_crc32(crc32_in, cast (ubyte*) data.ptr,
+            castFrom!(size_t).to!(int)(data.length));
     }
 
     /**************************************************************************

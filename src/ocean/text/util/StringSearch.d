@@ -671,7 +671,7 @@ struct StringSearch ( bool wide_char = false )
     {
         foreach (ref c; str)
         {
-            c = convert(c);
+            c = cast(Char) convert(c);
         }
 
         return str;

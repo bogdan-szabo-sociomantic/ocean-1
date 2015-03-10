@@ -20,6 +20,8 @@ module ocean.db.tokyocabinet.model.ITokyoCabinet;
 
  ******************************************************************************/
 
+import ocean.core.TypeConvert;
+
 import ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
 import ocean.text.util.StringC;
 import tango.stdc.stdlib: free;
@@ -154,8 +156,13 @@ abstract class ITokyoCabinet ( TCDB, alias tcdbforeach )
 //        TODO: this causes a lot of memory allocation!!! TO BE FIXED!!!!
 //        this.tokyoAssert(put_func(this.db, key.ptr, key.length, value.ptr, value.length),
 //                         ignore_errcodes, "Error on " ~ description);
-        this.tokyoAssertStrict(put_func(this.db, key.ptr, key.length, value.ptr, value.length),
-              ignore_errcodes);
+        this.tokyoAssertStrict(
+            put_func(this.db, key.ptr,
+                castFrom!(size_t).to!(int)(key.length), value.ptr,
+                castFrom!(size_t).to!(int)(value.length)
+            ),
+            ignore_errcodes
+        );
     }
     /**************************************************************************
 

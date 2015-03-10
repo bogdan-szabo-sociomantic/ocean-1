@@ -180,12 +180,12 @@ struct ByteConverter
         ubyte[] output = new ubyte[input.length>>1];
 
         static ubyte[char] hexitIndex;
-        for (int i = 0; i < hexits.length; i++)
+        for (ubyte i = 0; i < hexits.length; i++)
             hexitIndex[hexits[i]] = i;
 
         for (int i = 0, j = 0; i < output.length; i++)
         {
-            output[i] = hexitIndex[inputAsLower[j++]] << 4;
+            output[i] = cast(ubyte) (hexitIndex[inputAsLower[j++]] << 4);
             output[i] |= hexitIndex[inputAsLower[j++]];
         }
 
@@ -197,7 +197,7 @@ struct ByteConverter
         char[] output = new char[input.length];
 
         foreach (int i, char c; input)
-            output[i] = ((c >= 'A' && c <= 'Z') ? c+32 : c);
+            output[i] = cast(ubyte) ((c >= 'A' && c <= 'Z') ? c+32 : c);
 
         return cast(char[])output;
     }

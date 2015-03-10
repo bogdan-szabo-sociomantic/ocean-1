@@ -31,6 +31,8 @@ import tango.stdc.string: strlen;
 
 import ocean.core.Array: concat;
 
+import ocean.core.TypeConvert;
+
 /*******************************************************************************
 
     Address information struct as returned by getaddrinfo().
@@ -178,7 +180,8 @@ struct addrinfo
                 return null;
         }
 
-        char* address_p = .inet_ntop(this.ai_family, addr, dst.ptr, dst.length);
+        char* address_p = .inet_ntop(this.ai_family, addr, dst.ptr,
+            castFrom!(size_t).to!(int)(dst.length));
 
         return address_p? address_p[0 .. strlen(address_p)] : null;
     }
@@ -862,7 +865,7 @@ class AddrInfoC
 
     public ushort port ( )
     {
-        return this.info_? this.info_.port : 0;
+        return this.info_? this.info_.port : cast(ushort) 0;
     }
 
     /***************************************************************************

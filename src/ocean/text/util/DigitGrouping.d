@@ -41,6 +41,8 @@ module ocean.text.util.DigitGrouping;
 
 *******************************************************************************/
 
+import ocean.core.TypeConvert;
+
 import ocean.core.Array;
 
 import ocean.text.util.MetricPrefix;
@@ -143,7 +145,7 @@ public class DigitGrouping
         {
             string_buf[layout_pos .. layout_pos + s.length] = s[];
             layout_pos += s.length;
-            return s.length;
+            return castFrom!(size_t).to!(uint)(s.length);
         }
 
         // Format number into a string

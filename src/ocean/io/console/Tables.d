@@ -1319,8 +1319,8 @@ public class Table
                     // than the currently set column widths.
                     if ( merge.total_width > width )
                     {
-                        auto num_merged = merge.last_column - merge.first_column;
-                        int difference = merge.total_width - width - num_merged
+                        auto      num_merged = merge.last_column - merge.first_column;
+                        ptrdiff_t difference = merge.total_width - width - num_merged
                             * Row.Cell.inter_cell_spacing;
 
                         if ( difference > 0 )

@@ -93,7 +93,7 @@ class Arguments : Tango.Arguments
 
     ***************************************************************************/
 
-    private uint aliases_width;
+    private size_t aliases_width;
 
 
     /***************************************************************************
@@ -102,7 +102,7 @@ class Arguments : Tango.Arguments
 
     ***************************************************************************/
 
-    private uint long_name_width;
+    private size_t long_name_width;
 
 
     /***************************************************************************
@@ -368,7 +368,7 @@ class Arguments : Tango.Arguments
 
     ***************************************************************************/
 
-    private uint aliasesWidth ( size_t aliases )
+    private size_t aliasesWidth ( size_t aliases )
     {
         auto width = aliases * 2; // *2 for a '-' before each alias
         if ( aliases > 1 )
@@ -478,7 +478,7 @@ class Arguments : Tango.Arguments
 
     ***************************************************************************/
 
-    private char[] space ( uint width )
+    private char[] space ( size_t width )
     {
         this.spaces.length = width;
         if ( width > 0 )

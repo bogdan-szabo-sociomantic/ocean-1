@@ -189,7 +189,7 @@ struct HttpTimeFormatter
 
     **************************************************************************/
 
-    private static void fmt ( char[] dst, int n )
+    private static void fmt ( char[] dst, long n )
     in
     {
        assert (n >= 0);
@@ -204,7 +204,7 @@ struct HttpTimeFormatter
         {
             with (lldiv(n, 10))
             {
-                c = rem + '0';
+                c = cast(char) rem + '0';
                 n = quot;
             }
         }

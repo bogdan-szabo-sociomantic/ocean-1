@@ -202,7 +202,7 @@ private bool toSignedInteger ( T, I ) ( T[] digits, out I value, uint radix = 0 
             return false;
         }
 
-        value = long_value;
+        value = cast(I) long_value;
         return true;
     }
     else
@@ -273,7 +273,7 @@ private bool toUnsignedInteger ( T, U ) ( T[] digits, out U value, uint radix = 
             return false;
         }
 
-        value = long_value;
+        value = cast(typeof(value)) long_value;
         return true;
     }
     else
@@ -386,7 +386,7 @@ private bool convert ( T ) ( T[] digits, out ulong value, out uint eaten,
 
 *******************************************************************************/
 
-private uint trim ( T ) ( T[] digits, ref bool negative, ref uint radix )
+private ptrdiff_t trim ( T ) ( T[] digits, ref bool negative, ref uint radix )
 {
     T       c;
     T*      p = digits.ptr;

@@ -26,6 +26,8 @@ import ocean.db.tokyocabinet.c.util.tcxstr: TCXSTR,
                                             tcxstrdup, tcxstrcat,
                                             tcxstrptr, tcxstrsize;
 
+import ocean.core.TypeConvert;                                            
+
 /******************************************************************************
 
     TokyoCabinetExtString class
@@ -145,7 +147,7 @@ class TokyoCabinetExtString
 
     public This opCatAssign ( char[] str )
     {
-        tcxstrcat(this.xstr, str.ptr, str.length);
+        tcxstrcat(this.xstr, str.ptr, castFrom!(size_t).to!(int)(str.length));
 
         return this;
     }

@@ -203,7 +203,7 @@ unittest
 
 *******************************************************************************/
 
-public char[] truncateAtWordBreak ( ref char[] str, uint n )
+public char[] truncateAtWordBreak ( ref char[] str, size_t n )
 out (result)
 {
     if (result.length > n)
@@ -296,7 +296,7 @@ unittest
 
 *******************************************************************************/
 
-public char[] truncateAppendEnding ( ref char[] str, uint n, char[] ending = "...")
+public char[] truncateAppendEnding ( ref char[] str, size_t n, char[] ending = "...")
 in
 {
     assert (n >= ending.length);

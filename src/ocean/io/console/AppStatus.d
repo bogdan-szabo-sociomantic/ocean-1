@@ -101,6 +101,8 @@ import ocean.core.Array;
 
 import ocean.core.DeepCopy;
 
+import ocean.core.TypeConvert;
+
 import ocean.io.Stdout;
 
 import ocean.text.convert.Layout;
@@ -801,7 +803,9 @@ public class AppStatus
     public void getUptime ( out uint weeks, out uint days, out uint hours,
         out uint mins, out uint secs )
     {
-        time_t uptime = this.clock.now_sec - this.start_time;
+        time_t _uptime = this.clock.now_sec - this.start_time;
+        assert (_uptime < int.max && _uptime > int.min);
+        uint uptime = castFrom!(long).to!(int)(_uptime);
 
         uint uptimeFract ( uint denom )
         {
