@@ -280,7 +280,7 @@ class HttpRequest : HttpHeader
         uint n;
 
         bool is_set,
-             ok = super.getUint!(T)(header_field_name, n, is_set);
+             ok = super.getUnsigned(header_field_name, n, is_set);
 
         this.header_param_exception.assertEx!(__FILE__, __LINE__)(is_set, header_field_name, "header parameter missing");
         this.header_param_exception.assertEx!(__FILE__, __LINE__)(ok,     header_field_name, "decimal unsigned integer number expected");

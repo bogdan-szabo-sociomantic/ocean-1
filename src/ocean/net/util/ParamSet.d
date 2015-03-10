@@ -87,7 +87,9 @@ class ParamSet
 
      **************************************************************************/
 
+    deprecated
     public const uint_dec_length  = ulong.max.stringof.length;
+    public const ulong_dec_length = ulong.max.stringof.length;
 
     /**************************************************************************
 
@@ -223,13 +225,18 @@ class ParamSet
 
      **************************************************************************/
 
-    bool getUint ( T = uint ) ( char[] key, ref T n, out bool is_set )
+    bool getUnsigned ( T : ulong ) ( char[] key, ref T n, out bool is_set )
     {
         char[] val = this[key];
 
         is_set = val !is null;
 
-        return is_set? !this.readUint(val, n).length && val.length : false;
+        return is_set? !this.readUnsigned(val, n).length && val.length : false;
+    }
+
+    deprecated bool getUint ( char[] key, ref uint n, out bool is_set )
+    {
+        return getUnsigned(key, n, is_set);
     }
 
     /**************************************************************************
@@ -238,12 +245,18 @@ class ParamSet
 
      **************************************************************************/
 
-    bool getUint ( T = uint ) ( char[] key, ref T n )
+    bool getUnsigned ( T : ulong ) ( char[] key, ref T n )
     {
         char[] val = this[key];
 
-        return val.length? !this.readUint(val, n).length : false;
+        return val.length? !this.readUnsigned(val, n).length : false;
     }
+
+    deprecated bool getUint ( char[] key, ref uint n )
+    {
+        return getUnsigned(key, n);
+    }
+
 
     /**************************************************************************
 
@@ -313,7 +326,7 @@ class ParamSet
     {
         return this.access(key, (char[], ref char[] dst)
                                 {
-                                    dst = this.writeUint(dec, val);
+                                    dst = this.writeUnsigned(dec, val);
                                 });
     }
 
@@ -608,7 +621,7 @@ class ParamSet
 
      **************************************************************************/
 
-    protected static char[] writeUint ( char[] dst, ulong n )
+    protected static char[] writeUnsigned ( char[] dst, ulong n )
     out (dec)
     {
         assert (!n);
@@ -629,18 +642,24 @@ class ParamSet
             }
         }
 
-        assert (false, typeof (this).stringof ~ ".writeUint: dst too short");
+        assert (false, typeof (this).stringof ~ ".writeUnsigned: dst too short");
+    }
+
+    deprecated
+    protected static char[] writeUint ( char[] dst, ulong n )
+    {
+        return writeUnsigned( dst, n );
     }
 
     unittest
     {
-        char[uint_dec_length] dec;
+        char[ulong_dec_length] dec;
 
-        assert (dec.writeUint(4711)     == "4711");
-        assert (dec.writeUint(0)        == "0");
+        assert (dec.writeUnsigned(4711)     == "4711");
+        assert (dec.writeUnsigned(0)        == "0");
 
-        assert (dec.writeUint(uint.max) == "4294967295");
-        assert (dec.writeUint(ulong.max) == "18446744073709551615");
+        assert (dec.writeUnsigned(uint.max) == "4294967295");
+        assert (dec.writeUnsigned(ulong.max) == "18446744073709551615");
 
         assert (strncasecmp("", "a") < 0);
 
@@ -659,7 +678,7 @@ class ParamSet
 
             uint n;
 
-            char[] remaining = readUint("  123abc45  ", n);
+            char[] remaining = readUnsigned("  123abc45  ", n);
 
             // n is now 123
             // remaining is now "abc45"
@@ -676,7 +695,7 @@ class ParamSet
 
      **************************************************************************/
 
-    protected static char[] readUint ( T = uint ) ( char[] src, out T x )
+    protected static char[] readUnsigned ( T : ulong ) ( char[] src, out T x )
     in
     {
         static assert (T.init == 0, "initial value of type \"" ~ T.stringof ~ "\" is " ~ T.init.stringof ~ " (need 0)");
@@ -703,5 +722,11 @@ class ParamSet
         }
 
         return src? src[$ .. $] : null;
+    }
+
+    deprecated
+    protected static char[] readUint ( char[] src, out uint x )
+    {
+        return readUnsigned( src, x );
     }
 }

@@ -26,6 +26,11 @@ Migration Instructions
 Deprecations
 ============
 
+`ocean.net.http.*`
+    Deprecated *Uint methods in HTTP modules (readUint / writeUint / etc)
+    All methods in question were designed around storing uint values but
+    are actually used to store data that can be in ulong range.
+    Matching *Unsigned method have been added to be used instead.
 
 New Features
 ============

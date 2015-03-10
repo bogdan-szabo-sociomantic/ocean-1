@@ -94,7 +94,7 @@ class HttpResponse : HttpHeader
 
      **************************************************************************/
 
-    private char[uint_dec_length] dec_content_length;
+    private char[ulong_dec_length] dec_content_length;
 
     /**************************************************************************
 
@@ -296,7 +296,7 @@ class HttpResponse : HttpHeader
         char[3] status_dec;
 
         return this.content.append(HttpVersionIds[this.http_version_],  " ",
-                                   super.writeUint(status_dec, status), " ",
+                                   super.writeUnsigned(status_dec, status), " ",
                                    StatusPhrases[status],               "\r\n");
     }
 
