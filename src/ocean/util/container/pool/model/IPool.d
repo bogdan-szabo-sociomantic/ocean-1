@@ -187,7 +187,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
      **************************************************************************/
 
-    public uint length ( )
+    public size_t length ( )
     {
         return this.items.length;
     }
@@ -215,7 +215,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
      **************************************************************************/
 
-    public uint num_idle ( )
+    public size_t num_idle ( )
     {
         return this.items.length - this.num_busy_;
     }
@@ -598,7 +598,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
         ***********************************************************************/
 
-        uint limit;
+        size_t limit;
 
         /***********************************************************************
 

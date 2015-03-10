@@ -444,7 +444,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    public uint header_lines_limit ( )
+    public size_t header_lines_limit ( )
     {
         return this.header_lines_.length;
     }
@@ -464,7 +464,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    public uint header_lines_limit ( uint n )
+    public size_t header_lines_limit ( uint n )
     {
         if (this.n_header_lines > n)
         {
@@ -481,7 +481,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    public uint header_length_limit ( )
+    public size_t header_length_limit ( )
     {
         return this.content.length;
     }
@@ -502,7 +502,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    public uint header_length_limit ( uint n )
+    public size_t header_length_limit ( uint n )
     {
         this.reset();
 

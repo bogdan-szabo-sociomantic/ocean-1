@@ -465,7 +465,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    public ulong free_space ( )
+    public size_t free_space ( )
     {
         return 0;
     }
@@ -478,7 +478,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    public uint length ( )
+    public size_t length ( )
     {
         return this.items_in_file + (this.slice_push_buffer.length > 0 ? 1 : 0);
     }

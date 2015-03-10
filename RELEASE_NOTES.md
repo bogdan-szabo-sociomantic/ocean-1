@@ -22,6 +22,12 @@ Migration Instructions
 * `ocean.io.serialize.StructLoader` `ocean.io.serialize.StructDumper`
   Those deprecated modules and their deprecated dependencies have been
   completely removed.
+  
+* `ocean.net.http.message.HttpHeaderParser` `ocean.util.container.pool.model.IPool`
+`ocean.util.container.queue.FlexibleFileQueue`
+  All methods that return length now return value of `size_t` type instead
+  of `uint`. You may need to update the type of variables / fields it gets
+  assigned to accordingly.
 
 Deprecations
 ============
