@@ -308,7 +308,7 @@ class ParamSet
 
      **************************************************************************/
 
-    bool set ( char[] key, uint val, char[uint_dec_length] dec )
+    bool set ( char[] key, uint val, char[] dec )
     {
         return this.access(key, (char[], ref char[] dst)
                                 {
