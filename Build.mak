@@ -1,3 +1,4 @@
+override DFLAGS += -w
 
 # Modules to exclude from testing because they are broken
 TEST_FILTER_OUT += \
