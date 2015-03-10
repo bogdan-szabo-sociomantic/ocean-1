@@ -34,6 +34,8 @@ module ocean.net.util.ParamSet;
 
  ******************************************************************************/
 
+import ocean.core.TypeConvert;
+
 import ocean.text.util.SplitIterator: ISplitIterator;
 
 import tango.stdc.ctype:  tolower;
@@ -85,8 +87,7 @@ class ParamSet
 
      **************************************************************************/
 
-    public const uint_dec_length = "4294967295".length;
-    static assert (uint.max ==      4294967295);
+    public const uint_dec_length  = ulong.max.stringof.length;
 
     /**************************************************************************
 
@@ -308,7 +309,7 @@ class ParamSet
 
      **************************************************************************/
 
-    bool set ( char[] key, uint val, char[] dec )
+    bool set ( char[] key, size_t val, char[] dec )
     {
         return this.access(key, (char[], ref char[] dst)
                                 {
@@ -553,7 +554,7 @@ class ParamSet
 
         foreach (i, c; key)
         {
-            this.tolower_buf[i] = .tolower(c);
+            this.tolower_buf[i] = castFrom!(int).to!(char)(.tolower(c));
         }
 
         return this.tolower_buf[0 .. key.length];
@@ -607,7 +608,7 @@ class ParamSet
 
      **************************************************************************/
 
-    protected static char[] writeUint ( char[] dst, uint n )
+    protected static char[] writeUint ( char[] dst, ulong n )
     out (dec)
     {
         assert (!n);
@@ -617,9 +618,9 @@ class ParamSet
     {
         foreach_reverse (i, ref c; dst)
         {
-            uint quot = n / 10;
+            ulong quot = n / 10;
 
-            c = n - (quot * 10) + '0';
+            c = castFrom!(ulong).to!(char)(n - (quot * 10) + '0');
             n = quot;
 
             if (!n)
@@ -639,8 +640,10 @@ class ParamSet
         assert (dec.writeUint(0)        == "0");
 
         assert (dec.writeUint(uint.max) == "4294967295");
+        assert (dec.writeUint(ulong.max) == "18446744073709551615");
 
         assert (strncasecmp("", "a") < 0);
+
     }
 
     /**************************************************************************
