@@ -29,5 +29,23 @@ Deprecations
 New Features
 ============
 
-``ocean.text.json.JsonExtractor``
+* ``ocean.text.json.JsonExtractor``
+
   GetObject can now skip null values
+  
+* ``ocean.io.console.AppStatus``
+
+  The foreground and background colours of both static and streaming lines can
+  now be controlled.
+  For example:
+
+  ```d
+  app_status.red;
+  app_status.formatStaticLine(0, "this static line will be in red");
+  ...
+  app_status.blue;
+  app_status.displayStreamingLine("this streaming line will be in blue");
+  ```
+      
+  Consult the module documentation for further details about the supported
+  colours and how to apply them.

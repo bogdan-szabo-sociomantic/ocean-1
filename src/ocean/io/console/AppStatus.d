@@ -64,6 +64,24 @@
 
     ---
 
+    The colour of the static/streaming lines can be controlled in the following
+    manner:
+
+    ---
+
+        app_status.red;
+        app_status.formatStaticLine(0, "this static line will be in red");
+        app_status.green;
+        app_status.formatStaticLine(1, "this static line will be in green");
+
+        app_status.blue;
+        app_status.displayStreamingLine("this streaming line will be in blue");
+
+    ---
+
+    Tip: look for convenience aliases of other supported colours within the class
+         body below
+
 *******************************************************************************/
 
 module ocean.io.console.AppStatus;
@@ -81,6 +99,8 @@ import ocean.io.Terminal;
 import ocean.time.model.IMicrosecondsClock;
 
 import ocean.core.Array;
+
+import ocean.core.DeepCopy;
 
 import ocean.io.Stdout;
 
@@ -149,6 +169,48 @@ public class AppStatus
 
     /***************************************************************************
 
+        One instance of a foreground and background colour combination
+
+    ***************************************************************************/
+
+    private struct Colours
+    {
+        /***********************************************************************
+
+            String specifying the foreground colour (this is a string from the
+            Terminal.Foreground struct in `ocean.io.Terminal` and not a string
+            like "red").
+
+        ***********************************************************************/
+
+        char[] fg_colour;
+
+
+        /***********************************************************************
+
+            String specifying the background colour (this is a string from the
+            Terminal.Background struct in `ocean.io.Terminal` and not a string
+            like "red").
+
+        ***********************************************************************/
+
+        char[] bg_colour;
+    }
+
+
+    /***************************************************************************
+
+        The current combination of foreground and background colours. This
+        combination will be used when displaying the next streaming line or when
+        formatting the next static line.
+
+    ***************************************************************************/
+
+    private Colours current_colours;
+
+
+    /***************************************************************************
+
         Interval clock, passed into the constructor. Used to display the current
         time and to calculate running time.
 
@@ -194,6 +256,15 @@ public class AppStatus
     ***************************************************************************/
 
     private char[][] static_lines;
+
+
+    /***************************************************************************
+
+        Buffer containing the colour information of each static line.
+
+    ***************************************************************************/
+
+    private Colours[] static_lines_colours;
 
 
     /***************************************************************************
@@ -296,6 +367,7 @@ public class AppStatus
         this.clock = clock;
         this.start_time = this.clock.now_sec;
         this.static_lines.length = size;
+        this.static_lines_colours.length = size;
         this.ms_between_calls = ms_between_calls;
         this.insert_console = new InsertConsole(Cout.stream, true,
             new LayoutMessageOnly);
@@ -395,6 +467,8 @@ public class AppStatus
         {
             this.static_lines.length = size;
 
+            this.static_lines_colours.length = size;
+
             return;
         }
 
@@ -426,6 +500,8 @@ public class AppStatus
         }
 
         this.static_lines.length = size;
+
+        this.static_lines_colours.length = size;
 
         this.resetCursorPosition();
     }
@@ -483,10 +559,12 @@ public class AppStatus
         this.printVersionInformation();
         Stdout.clearline.cr.flush.up;
 
-        foreach_reverse ( line; this.static_lines )
+        foreach_reverse ( index, line; this.static_lines )
         {
             if ( line.length )
             {
+                this.applyColours(this.static_lines_colours[index]);
+
                 Stdout.format(this.truncateLength(line));
             }
             Stdout.clearline.cr.flush.up;
@@ -494,6 +572,40 @@ public class AppStatus
 
         this.printHeadingLine();
     }
+
+
+    /***************************************************************************
+
+        Convenience aliases for setting the foreground colour.
+
+    ***************************************************************************/
+
+    public alias saveColour!(true,  Terminal.Foreground.DEFAULT) default_colour;
+    public alias saveColour!(true,  Terminal.Foreground.BLACK)   black;
+    public alias saveColour!(true,  Terminal.Foreground.RED)     red;
+    public alias saveColour!(true,  Terminal.Foreground.GREEN)   green;
+    public alias saveColour!(true,  Terminal.Foreground.YELLOW)  yellow;
+    public alias saveColour!(true,  Terminal.Foreground.BLUE)    blue;
+    public alias saveColour!(true,  Terminal.Foreground.MAGENTA) magenta;
+    public alias saveColour!(true,  Terminal.Foreground.CYAN)    cyan;
+    public alias saveColour!(true,  Terminal.Foreground.WHITE)   white;
+
+
+    /***************************************************************************
+
+        Convenience aliases for setting the background colour.
+
+    ***************************************************************************/
+
+    public alias saveColour!(false, Terminal.Background.DEFAULT) default_bg;
+    public alias saveColour!(false, Terminal.Background.BLACK)   black_bg;
+    public alias saveColour!(false, Terminal.Background.RED)     red_bg;
+    public alias saveColour!(false, Terminal.Background.GREEN)   green_bg;
+    public alias saveColour!(false, Terminal.Background.YELLOW)  yellow_bg;
+    public alias saveColour!(false, Terminal.Background.BLUE)    blue_bg;
+    public alias saveColour!(false, Terminal.Background.MAGENTA) magenta_bg;
+    public alias saveColour!(false, Terminal.Background.CYAN)    cyan_bg;
+    public alias saveColour!(false, Terminal.Background.WHITE)   white_bg;
 
 
     /***************************************************************************
@@ -516,6 +628,9 @@ public class AppStatus
 
         this.static_lines[index].length = 0;
         Format.vformat(this.static_lines[index], format, _arguments, _argptr);
+
+        DeepCopy!(Colours)(this.current_colours,
+                           this.static_lines_colours[index]);
     }
 
 
@@ -574,6 +689,8 @@ public class AppStatus
         Level level_;
         LogEvent event;
         event.set(host_, level_, this.msg[], "");
+
+        this.applyColours(this.current_colours);
 
         this.insert_console.append(event);
     }
@@ -727,8 +844,9 @@ public class AppStatus
         this.formatMemoryUsage();
         this.formatCpuUsage();
 
-        Stdout.bold(true).format(this.truncateLength(this.heading_line)).
-            bold(false).clearline.cr.flush;
+        Stdout.default_colour.default_bg.bold(true)
+            .format(this.truncateLength(this.heading_line)).bold(false)
+            .clearline.cr.flush;
     }
 
 
@@ -808,8 +926,8 @@ public class AppStatus
         Format.format(this.footer_line, "Version {} built on {} by {}",
             this.app_version, this.app_build_date, this.app_build_author);
 
-        Stdout.bold(true).format(this.truncateLength(this.footer_line)).
-            bold(false);
+        Stdout.default_colour.default_bg.bold(true)
+            .format(this.truncateLength(this.footer_line)).bold(false);
 
         auto remaining = Terminal.columns - this.footer_line.length;
         if ( remaining )
@@ -934,6 +1052,204 @@ public class AppStatus
         {
             line.length = 0;
         }
+    }
+
+
+    /***************************************************************************
+
+        Save the given foreground or background colour. This colour will be used
+        when displaying the next streaming line or when formatting the next
+        static line.
+
+        Template Params:
+            is_foreground = true if the given colour is for the foreground,
+                            false if it is for the background
+            colour = the colour to be saved (this is a string from the
+                     Terminal.Foreground or Terminal.Background struct in
+                     `ocean.io.Terminal` and not a string like "red")
+
+        Returns:
+            this object for method chaining
+
+    ***************************************************************************/
+
+    private typeof(this) saveColour ( bool is_foreground, char[] colour ) ( )
+    {
+        static if ( is_foreground )
+        {
+            this.current_colours.fg_colour.copy(colour);
+        }
+        else
+        {
+            this.current_colours.bg_colour.copy(colour);
+        }
+
+        return this;
+    }
+
+
+    /***************************************************************************
+
+        Apply the given foreground colour.
+
+        Params:
+            fg_colour = the foreground colour to be applied (this is a string
+                        from the Terminal.Foreground struct in
+                        `ocean.io.Terminal` and not a string like "red")
+
+    ***************************************************************************/
+
+    private void applyFgColour ( char[] fg_colour )
+    {
+        switch ( fg_colour )
+        {
+            case Terminal.Foreground.BLACK:
+            {
+                Stdout.black();
+                break;
+            }
+
+            case Terminal.Foreground.RED:
+            {
+                Stdout.red();
+                break;
+            }
+
+            case Terminal.Foreground.GREEN:
+            {
+                Stdout.green();
+                break;
+            }
+
+            case Terminal.Foreground.YELLOW:
+            {
+                Stdout.yellow();
+                break;
+            }
+
+            case Terminal.Foreground.BLUE:
+            {
+                Stdout.blue();
+                break;
+            }
+
+            case Terminal.Foreground.MAGENTA:
+            {
+                Stdout.magenta();
+                break;
+            }
+
+            case Terminal.Foreground.CYAN:
+            {
+                Stdout.cyan();
+                break;
+            }
+
+            case Terminal.Foreground.WHITE:
+            {
+                Stdout.white();
+                break;
+            }
+
+            case Terminal.Foreground.DEFAULT:
+            default:
+            {
+                Stdout.default_colour();
+                break;
+            }
+        }
+    }
+
+
+    /***************************************************************************
+
+        Apply the given background colour.
+
+        Params:
+            bg_colour = the background colour to be applied (this is a string
+                        from the Terminal.Background struct in
+                        `ocean.io.Terminal` and not a string like "red")
+
+    ***************************************************************************/
+
+    private void applyBgColour ( char[] bg_colour )
+    {
+        switch ( bg_colour )
+        {
+            case Terminal.Background.BLACK:
+            {
+                Stdout.black_bg();
+                break;
+            }
+
+            case Terminal.Background.RED:
+            {
+                Stdout.red_bg();
+                break;
+            }
+
+            case Terminal.Background.GREEN:
+            {
+                Stdout.green_bg();
+                break;
+            }
+
+            case Terminal.Background.YELLOW:
+            {
+                Stdout.yellow_bg();
+                break;
+            }
+
+            case Terminal.Background.BLUE:
+            {
+                Stdout.blue_bg();
+                break;
+            }
+
+            case Terminal.Background.MAGENTA:
+            {
+                Stdout.magenta_bg();
+                break;
+            }
+
+            case Terminal.Background.CYAN:
+            {
+                Stdout.cyan_bg();
+                break;
+            }
+
+            case Terminal.Background.WHITE:
+            {
+                Stdout.white_bg();
+                break;
+            }
+
+            case Terminal.Background.DEFAULT:
+            default:
+            {
+                Stdout.default_bg();
+                break;
+            }
+        }
+    }
+
+
+    /***************************************************************************
+
+        Apply the currently configured foreground and background colour
+        combination to standard output.
+
+        Params:
+            colours = struct instance containing the foreground and background
+                      colour combination to be applied
+
+    ***************************************************************************/
+
+    private void applyColours ( Colours colours )
+    {
+        this.applyFgColour(colours.fg_colour);
+
+        this.applyBgColour(colours.bg_colour);
     }
 }
 
