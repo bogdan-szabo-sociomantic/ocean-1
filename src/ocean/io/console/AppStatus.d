@@ -69,13 +69,10 @@
 
     ---
 
-        app_status.red;
-        app_status.formatStaticLine(0, "this static line will be in red");
-        app_status.green;
-        app_status.formatStaticLine(1, "this static line will be in green");
+        app_status.red.formatStaticLine(0, "this static line will be in red");
+        app_status.green.formatStaticLine(1, "and this one will be in green");
 
-        app_status.blue;
-        app_status.displayStreamingLine("this streaming line will be in blue");
+        app_status.blue.displayStreamingLine("here's a blue streaming line");
 
     ---
 
@@ -620,9 +617,12 @@ public class AppStatus
             format = format string of the message
             args = list of any extra arguments for the message
 
+        Returns:
+            this object for method chaining
+
     ***************************************************************************/
 
-    public void formatStaticLine ( uint index, char[] format, ... )
+    public typeof(this) formatStaticLine ( uint index, char[] format, ... )
     {
         assert( index < this.static_lines.length, "adding too many static lines" );
 
@@ -631,6 +631,8 @@ public class AppStatus
 
         DeepCopy!(Colours)(this.current_colours,
                            this.static_lines_colours[index]);
+
+        return this;
     }
 
 
@@ -642,11 +644,14 @@ public class AppStatus
             format = format string of the streaming line
             ... = list of any extra arguments for the streaming line
 
+        Returns:
+            this object for method chaining
+
     ***************************************************************************/
 
-    public void displayStreamingLine ( char[] format, ... )
+    public typeof(this) displayStreamingLine ( char[] format, ... )
     {
-        this.displayStreamingLine(format, _arguments, _argptr);
+        return this.displayStreamingLine(format, _arguments, _argptr);
     }
 
 
@@ -659,14 +664,18 @@ public class AppStatus
             arguments = typeinfos of any extra arguments for the streaming line
             argptr = pointer to list of extra arguments for the streaming line
 
+        Returns:
+            this object for method chaining
+
     ***************************************************************************/
 
-    public void displayStreamingLine ( char[] format, TypeInfo[] arguments,
-        void* argptr )
+    public typeof(this) displayStreamingLine ( char[] format,
+        TypeInfo[] arguments, void* argptr )
     {
         this.msg.length = 0;
         this.msg.vformat(format, arguments, argptr);
-        this.displayStreamingLine();
+
+        return this.displayStreamingLine();
     }
 
 
@@ -674,15 +683,18 @@ public class AppStatus
 
         Print the contents of this.msg as streaming line above the static lines.
 
+        Returns:
+            this object for method chaining
+
     ***************************************************************************/
 
-    public void displayStreamingLine ( )
+    public typeof(this) displayStreamingLine ( )
     {
         if ( Cout.redirected )
         {
             Cout.append(this.msg[]).newline.flush;
 
-            return;
+            return this;
         }
 
         Hierarchy host_;
@@ -693,6 +705,8 @@ public class AppStatus
         this.applyColours(this.current_colours);
 
         this.insert_console.append(event);
+
+        return this;
     }
 
 
@@ -704,11 +718,14 @@ public class AppStatus
         Params:
             ... = list of arguments for the streaming line
 
+        Returns:
+            this object for method chaining
+
     ***************************************************************************/
 
-    public void displayStreamingLineArgs ( ... )
+    public typeof(this) displayStreamingLineArgs ( ... )
     {
-        this.displayStreamingLineArgs(_arguments, _argptr);
+        return this.displayStreamingLineArgs(_arguments, _argptr);
     }
 
 
@@ -721,13 +738,18 @@ public class AppStatus
             arguments = typeinfos of arguments for the streaming line
             argptr = pointer to list of arguments for the streaming line
 
+        Returns:
+            this object for method chaining
+
     ***************************************************************************/
 
-    public void displayStreamingLineArgs ( TypeInfo[] arguments, void* argptr )
+    public typeof(this) displayStreamingLineArgs ( TypeInfo[] arguments,
+        void* argptr )
     {
         this.msg.length = 0;
         this.msg.vwrite(arguments, argptr);
-        this.displayStreamingLine();
+
+        return this.displayStreamingLine();
     }
 
 

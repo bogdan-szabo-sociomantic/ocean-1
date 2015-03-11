@@ -40,11 +40,9 @@ New Features
   For example:
 
   ```d
-  app_status.red;
-  app_status.formatStaticLine(0, "this static line will be in red");
+  app_status.red.formatStaticLine(0, "this static line will be red");
   ...
-  app_status.blue;
-  app_status.displayStreamingLine("this streaming line will be in blue");
+  app_status.blue.displayStreamingLine("this streaming line will be blue");
   ```
       
   Consult the module documentation for further details about the supported
