@@ -79,7 +79,7 @@ module=${module:-`echo "$rev_file" | sed -e 's|/|.|g' -e 's|.d||g'`}
 sed -i "$tmp" \
     -e "s/@MODULE@/$module/" \
     -e "s/@GC@/$gc/" \
-    -e "s/@REVISION@/i`git describe --dirty`/" \
+    -e "s/@REVISION@/`git describe --dirty`/" \
     -e "s/@DATE@/$date/" \
     -e "s/@AUTHOR@/$author/" \
     -e "s/@DMD@/$dmd/"
