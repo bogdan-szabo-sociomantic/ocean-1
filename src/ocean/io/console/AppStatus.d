@@ -64,13 +64,15 @@
 
     ---
 
-    The colour of the static/streaming lines can be controlled in the following
-    manner:
+    The colour and boldness of the static/streaming lines can be controlled in
+    the following manner:
 
     ---
 
-        app_status.red.formatStaticLine(0, "this static line will be in red");
-        app_status.green.formatStaticLine(1, "and this one will be in green");
+        app_status.bold.red
+            .formatStaticLine(0, "this static line will be in red and bold");
+        app_status.bold(false).green
+            .formatStaticLine(1, "and this one will be in green and not bold");
 
         app_status.blue.displayStreamingLine("here's a blue streaming line");
 
@@ -166,11 +168,11 @@ public class AppStatus
 
     /***************************************************************************
 
-        One instance of a foreground and background colour combination
+        One instance of the display properties of a line.
 
     ***************************************************************************/
 
-    private struct Colours
+    private struct DisplayProperties
     {
         /***********************************************************************
 
@@ -192,18 +194,27 @@ public class AppStatus
         ***********************************************************************/
 
         char[] bg_colour;
+
+
+        /***********************************************************************
+
+            Boolean value set to true if the line is in bold, false otherwise.
+
+        ***********************************************************************/
+
+        bool is_bold;
     }
 
 
     /***************************************************************************
 
-        The current combination of foreground and background colours. This
-        combination will be used when displaying the next streaming line or when
-        formatting the next static line.
+        The currently configured display properties of a line. These properties
+        will be used when displaying the next streaming line or when formatting
+        the next static line.
 
     ***************************************************************************/
 
-    private Colours current_colours;
+    private DisplayProperties current_display_props;
 
 
     /***************************************************************************
@@ -257,11 +268,11 @@ public class AppStatus
 
     /***************************************************************************
 
-        Buffer containing the colour information of each static line.
+        Buffer containing the display properties of each static line.
 
     ***************************************************************************/
 
-    private Colours[] static_lines_colours;
+    private DisplayProperties[] static_lines_display_props;
 
 
     /***************************************************************************
@@ -364,7 +375,7 @@ public class AppStatus
         this.clock = clock;
         this.start_time = this.clock.now_sec;
         this.static_lines.length = size;
-        this.static_lines_colours.length = size;
+        this.static_lines_display_props.length = size;
         this.ms_between_calls = ms_between_calls;
         this.insert_console = new InsertConsole(Cout.stream, true,
             new LayoutMessageOnly);
@@ -464,7 +475,7 @@ public class AppStatus
         {
             this.static_lines.length = size;
 
-            this.static_lines_colours.length = size;
+            this.static_lines_display_props.length = size;
 
             return;
         }
@@ -498,7 +509,7 @@ public class AppStatus
 
         this.static_lines.length = size;
 
-        this.static_lines_colours.length = size;
+        this.static_lines_display_props.length = size;
 
         this.resetCursorPosition();
     }
@@ -560,7 +571,7 @@ public class AppStatus
         {
             if ( line.length )
             {
-                this.applyColours(this.static_lines_colours[index]);
+                this.applyDisplayProps(this.static_lines_display_props[index]);
 
                 Stdout.format(this.truncateLength(line));
             }
@@ -607,6 +618,25 @@ public class AppStatus
 
     /***************************************************************************
 
+        Sets / unsets the configured boldness. This setting will be used when
+        displaying the next streaming line or when formatting the next static
+        line.
+
+        Params:
+            is_bold = true if bold is desired, false otherwise
+
+    ***************************************************************************/
+
+    public typeof(this) bold ( bool is_bold = true )
+    {
+        this.current_display_props.is_bold = is_bold;
+
+        return this;
+    }
+
+
+    /***************************************************************************
+
         Format one of the static lines. The application can set the number of
         static lines either when constructing this module or by calling the
         'num_static_lines' method.
@@ -629,8 +659,8 @@ public class AppStatus
         this.static_lines[index].length = 0;
         Format.vformat(this.static_lines[index], format, _arguments, _argptr);
 
-        DeepCopy!(Colours)(this.current_colours,
-                           this.static_lines_colours[index]);
+        DeepCopy!(DisplayProperties)(this.current_display_props,
+                                     this.static_lines_display_props[index]);
 
         return this;
     }
@@ -702,7 +732,7 @@ public class AppStatus
         LogEvent event;
         event.set(host_, level_, this.msg[], "");
 
-        this.applyColours(this.current_colours);
+        this.applyDisplayProps(this.current_display_props);
 
         this.insert_console.append(event);
 
@@ -1099,11 +1129,11 @@ public class AppStatus
     {
         static if ( is_foreground )
         {
-            this.current_colours.fg_colour.copy(colour);
+            this.current_display_props.fg_colour.copy(colour);
         }
         else
         {
-            this.current_colours.bg_colour.copy(colour);
+            this.current_display_props.bg_colour.copy(colour);
         }
 
         return this;
@@ -1258,20 +1288,21 @@ public class AppStatus
 
     /***************************************************************************
 
-        Apply the currently configured foreground and background colour
-        combination to standard output.
+        Apply the currently configured display properties to standard output.
 
         Params:
-            colours = struct instance containing the foreground and background
-                      colour combination to be applied
+            display_props = struct instance containing the display properties to
+                            be applied
 
     ***************************************************************************/
 
-    private void applyColours ( Colours colours )
+    private void applyDisplayProps ( DisplayProperties display_props )
     {
-        this.applyFgColour(colours.fg_colour);
+        this.applyFgColour(display_props.fg_colour);
 
-        this.applyBgColour(colours.bg_colour);
+        this.applyBgColour(display_props.bg_colour);
+
+        Stdout.bold(display_props.is_bold);
     }
 }
 

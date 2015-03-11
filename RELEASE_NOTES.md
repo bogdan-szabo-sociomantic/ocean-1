@@ -35,14 +35,14 @@ New Features
   
 * ``ocean.io.console.AppStatus``
 
-  The foreground and background colours of both static and streaming lines can
-  now be controlled.
+  The foreground and background colours as well as the boldness of both static
+  and streaming lines can now be controlled.
   For example:
 
   ```d
-  app_status.red.formatStaticLine(0, "this static line will be red");
+  app_status.red.bold.formatStaticLine(0, "bold red static line");
   ...
-  app_status.blue.displayStreamingLine("this streaming line will be blue");
+  app_status.blue.displayStreamingLine("normal blue streaming line");
   ```
       
   Consult the module documentation for further details about the supported
