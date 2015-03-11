@@ -28,3 +28,6 @@ Deprecations
 
 New Features
 ============
+
+``ocean.text.json.JsonExtractor``
+  GetObject can now skip null values

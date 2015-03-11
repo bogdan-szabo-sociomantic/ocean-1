@@ -402,7 +402,32 @@ struct JsonExtractor
         public this ( Parser json, GetField[char[]] get_named_fields,
                       GetField[] get_indexed_fields ... )
         {
-            super(json, Type.BeginObject, Type.EndObject);
+            this(json, false, get_named_fields, get_indexed_fields);
+        }
+
+        /***********************************************************************
+
+            Constructor, specifies getters for named and unnamed fields.
+
+            If the i-th object field is not named and the i-th instance element
+            in get_indexed_fields is not null, it will be invoked with that
+            field.
+
+            Params:
+                json               = JSON parser
+                skip_null          = should a potential null value be skipped?
+                get_named_fields   = list of getters for named fields,
+                                     associated with field names
+                get_indexed_fields = list of getters for fields without name,
+                                     may contain null elements to ignore fields.
+
+         **********************************************************************/
+
+        public this ( Parser json, bool skip_null,
+                      GetField[char[]] get_named_fields,
+                      GetField[] get_indexed_fields ... )
+        {
+            super(json, Type.BeginObject, Type.EndObject, skip_null);
 
             this.field_unmatched = new JsonException();
             this.get_named_fields = get_named_fields.rehash;
@@ -821,6 +846,7 @@ struct JsonExtractor
                 `"cat": [ "IAB1", "IAB2" ],`
                 `"page":"http://www.example.com/"`
             `},`
+            `"bcat": null,`
             `"user":`
             `{`
                 `"uid":"45FB778",`
@@ -849,10 +875,12 @@ struct JsonExtractor
               uid         = new GetField,
               h           = new GetField,
               w           = new GetField,
+              not         = new GetField,
               site        = new GetObject(json, ["page": page]),
               user        = new GetObject(json, ["uid": uid]),
               imp_element = new GetObject(json, [cast (char[]) "impid": impid,
                                                  "w": w, "h": h]),
+              bcat        = new GetObject(json, true, ["not":not]),
               imp         = new GetArray(json, [imp_element],
                                        (uint i, Type type, char[] value)
                                        {
@@ -886,6 +914,9 @@ struct JsonExtractor
         t.test!("==")(uid.type, Type.String);
         t.test!("==")(uid.value, "45FB778");
 
+        t.test!("==")(not.type, Type.Empty);
+        t.test!("==")(not.value, "");
+
         t.test!("==")(h.type, Type.Number);
         t.test!("==")(h.value, "480");
 
@@ -907,6 +938,9 @@ struct JsonExtractor
 
         t.test!("==")(uid.value, "");
         t.test!("==")(uid.type, Type.Empty);
+
+        t.test!("==")(not.type, Type.Empty);
+        t.test!("==")(not.value, "");
 
         t.test!("==")(h.value, "");
         t.test!("==")(h.type, Type.Empty);
