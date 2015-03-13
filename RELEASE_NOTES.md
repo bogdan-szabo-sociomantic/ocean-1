@@ -9,21 +9,17 @@ dmd1       | v1.076.s2
 Migration Instructions
 ======================
 
-`ocean.core.ArrayMap`
-`ocean.util.OceanException`
-`ocean.util.TraceLog`
-`ocean.util.log.MessageLogger`
-`ocean.util.log.Trace`
+* `ocean.core.ArrayMap` `ocean.util.OceanException` `ocean.util.TraceLog`
+`ocean.util.log.MessageLogger` `ocean.util.log.Trace`
   These modules have been deprecated for a long time and are completely
   removed now. Please refer to original deprecation instructions if your
   application is still using them.
 
-`ocean.core.Exception`
+* `ocean.core.Exception`
   All deprecated `assertEx` function have been completely removed. Please
   use `enforce` instead.
 
-`ocean.io.serialize.StructLoader`
-`ocean.io.serialize.StructDumper`
+* `ocean.io.serialize.StructLoader` `ocean.io.serialize.StructDumper`
   Those deprecated modules and their deprecated dependencies have been
   completely removed.
 
