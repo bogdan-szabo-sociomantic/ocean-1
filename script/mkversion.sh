@@ -94,7 +94,12 @@ libs=''
 for lib in "$@"
 do
     lib_base=`basename $lib`
-    ver_desc=`cd $lib && git describe --dirty`
+
+    ver_desc=`cd $lib && git describe --dirty --always`
+    # Add branch name if we only got a hash
+    echo "$ver_desc" | egrep -q '^[0-9a-f]{7}(-dirty)?$'  &&
+        ver_desc=`cd $lib && git rev-parse --abbrev-ref HEAD`-g"$ver_desc"
+
     libs="${libs}    Version.libraries[\"$lib_base\"] = \"$ver_desc\";\\n"
 done
 sed -i "s/@LIBRARIES@/$libs/" "$tmp"
