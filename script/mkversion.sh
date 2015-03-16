@@ -76,10 +76,15 @@ trap "rm -f '$tmp'; exit 1" INT TERM QUIT
 cp "$template" "$tmp"
 module=${module:-`echo "$rev_file" | sed -e 's|/|.|g' -e 's|.d||g'`}
 
+revision=`git describe --dirty --always`
+# Add branch name if we only got a hash
+echo "$revision" | egrep -q '^[0-9a-f]{7}(-dirty)?$'  &&
+    revision=`git rev-parse --abbrev-ref HEAD`-g"$revision"
+
 sed -i "$tmp" \
     -e "s/@MODULE@/$module/" \
     -e "s/@GC@/$gc/" \
-    -e "s/@REVISION@/i`git describe --dirty`/" \
+    -e "s/@REVISION@/$revision/" \
     -e "s/@DATE@/$date/" \
     -e "s/@AUTHOR@/$author/" \
     -e "s/@DMD@/$dmd/"
@@ -89,7 +94,12 @@ libs=''
 for lib in "$@"
 do
     lib_base=`basename $lib`
-    ver_desc=`cd $lib && git describe --dirty`
+
+    ver_desc=`cd $lib && git describe --dirty --always`
+    # Add branch name if we only got a hash
+    echo "$ver_desc" | egrep -q '^[0-9a-f]{7}(-dirty)?$'  &&
+        ver_desc=`cd $lib && git rev-parse --abbrev-ref HEAD`-g"$ver_desc"
+
     libs="${libs}    Version.libraries[\"$lib_base\"] = \"$ver_desc\";\\n"
 done
 sed -i "s/@LIBRARIES@/$libs/" "$tmp"
