@@ -88,9 +88,9 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     invariant ( )
     {
         debug scope ( failure ) Stderr.formatln(typeof(this).stringof ~ ".invariant failed with items = {}, read_from = {}, write_to = {}",
-                super.items, super.read_from, super.write_to);
+                this.items, this.read_from, this.write_to);
 
-        assert (super.items || !(super.read_from || super.write_to),
+        assert (this.items || !(this.read_from || this.write_to),
                 typeof(this).stringof ~ ".invariant failed");
     }
 
@@ -200,7 +200,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     public ubyte[] pop ( )
     {
-        return super.items ? this.pop_() : null;
+        return this.items ? this.pop_() : null;
     }
 
 
@@ -216,7 +216,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     public ubyte[] peek ( )
     {
-        auto read_pos = super.read_from;
+        auto read_pos = this.read_from;
 
         if (read_pos >= this.gap)                                  // check whether there is an item at this offset
         {
@@ -240,17 +240,17 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     public override ulong used_space ( )
     {
-        if (super.items == 0)
+        if (this.items == 0)
         {
             return 0;
         }
 
-        if (super.write_to > super.read_from)
+        if (this.write_to > this.read_from)
         {
-            return super.write_to - super.read_from;
+            return this.write_to - this.read_from;
         }
 
-        return this.gap - super.read_from + super.write_to;
+        return this.gap - this.read_from + this.write_to;
     }
 
 
@@ -262,7 +262,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     protected override void clear_ ( )
     {
-        super.items = 0;
+        this.items = 0;
         this.gap = 0;
     }
 
@@ -346,26 +346,26 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     {
         size_t push_size = this.pushSize(bytes);
 
-        if (super.items)
+        if (this.items)
         {
             if (this.needsWrapping(bytes))
             {
                 // check also if read needs to wrap, in that case will not fit
-                if (super.read_from >= this.gap)
+                if (this.read_from >= this.gap)
                     return false;
-                return push_size <= super.read_from;
+                return push_size <= this.read_from;
             }
             else
             {
-                long d = super.read_from - super.write_to;
+                long d = this.read_from - this.write_to;
 
                 return push_size <= d || d < 0;
             }
         }
         else
         {
-            assert(super.write_to == 0, typeof(this).stringof ~ ".willFit: queue should be in the zeroed state");
-            return push_size <= super.data.length;                               // Queue is empty and item at most
+            assert(this.write_to == 0, typeof(this).stringof ~ ".willFit: queue should be in the zeroed state");
+            return push_size <= this.data.length;                               // Queue is empty and item at most
         }                                                                       // as long as the whole queue
     }
 
@@ -387,10 +387,10 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
         size_t bytes;
 
         bytes += SimpleSerializer.write(stream, this.gap);
-        bytes += SimpleSerializer.write(stream, super.write_to);
-        bytes += SimpleSerializer.write(stream, super.read_from);
-        bytes += SimpleSerializer.write(stream, super.items);
-        bytes += SimpleSerializer.write(stream, super.data);
+        bytes += SimpleSerializer.write(stream, this.write_to);
+        bytes += SimpleSerializer.write(stream, this.read_from);
+        bytes += SimpleSerializer.write(stream, this.items);
+        bytes += SimpleSerializer.write(stream, this.data);
 
         return bytes;
     }
@@ -413,10 +413,10 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
         size_t bytes;
 
         bytes += SimpleSerializer.read(stream, this.gap);
-        bytes += SimpleSerializer.read(stream, super.write_to);
-        bytes += SimpleSerializer.read(stream, super.read_from);
-        bytes += SimpleSerializer.read(stream, super.items);
-        bytes += SimpleSerializer.read(stream, super.data);
+        bytes += SimpleSerializer.read(stream, this.write_to);
+        bytes += SimpleSerializer.read(stream, this.read_from);
+        bytes += SimpleSerializer.read(stream, this.items);
+        bytes += SimpleSerializer.read(stream, this.data);
 
         return bytes;
     }
@@ -441,17 +441,17 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
         if (this.needsWrapping(size))
         {
-            this.gap = super.write_to;
-            super.write_to = 0;
+            this.gap = this.write_to;
+            this.write_to = 0;
         }
 
-        super.data[super.write_to .. super.write_to + header.length] = header[];
-        this.seek(super.write_to + header.length);
+        this.data[this.write_to .. this.write_to + header.length] = header[];
+        this.seek(this.write_to + header.length);
 
-        super.write_to += this.pushSize(size);
-        super.items++;
+        this.write_to += this.pushSize(size);
+        this.items++;
 
-        return super.data[this.position .. this.position + size];
+        return this.data[this.position .. this.position + size];
     }
 
 
@@ -467,36 +467,36 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     private ubyte[] pop_ ( )
     in
     {
-        assert(super.items > 0, typeof(this).stringof ~ ".pop_: no items in the queue");
+        assert(this.items > 0, typeof(this).stringof ~ ".pop_: no items in the queue");
     }
     body
     {
-        if (super.read_from >= this.gap)                                  // check whether there is an item at this offset
+        if (this.read_from >= this.gap)                                  // check whether there is an item at this offset
         {
-            super.read_from = 0;                                          // if no, set it to the beginning (wrapping around)
-            this.gap = super.data.length;
+            this.read_from = 0;                                          // if no, set it to the beginning (wrapping around)
+            this.gap = this.data.length;
         }
 
-        this.seek(super.read_from);
+        this.seek(this.read_from);
 
         Header* header = cast(Header*)this.read(Header.sizeof).ptr;
 
-        this.seek(super.read_from + header.sizeof);
+        this.seek(this.read_from + header.sizeof);
 
-        super.items--;
+        this.items--;
 
-        if (!super.items)
+        if (!this.items)
         {
-            super.read_from = 0;
-            super.write_to  = 0;
+            this.read_from = 0;
+            this.write_to  = 0;
         }
         else
         {
-            super.read_from += pushSize(header.length);
+            this.read_from += pushSize(header.length);
 
-            if (super.read_from >= super.data.length)
+            if (this.read_from >= this.data.length)
             {
-                super.read_from = 0;
+                this.read_from = 0;
             }
         }
 
@@ -518,12 +518,12 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     private ubyte[] read ( size_t bytes )
     {
-        if (bytes > super.data.length - this.position)
+        if (bytes > this.data.length - this.position)
         {
-            return super.data[this.position .. $];
+            return this.data[this.position .. $];
         }
 
-        return super.data[this.position..this.position + bytes];
+        return this.data[this.position..this.position + bytes];
     }
 
 
@@ -543,9 +543,9 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     private size_t seek ( size_t offset )
     {
-        if (offset > super.data.length)
+        if (offset > this.data.length)
         {
-            this.position = super.data.length;
+            this.position = this.data.length;
         }
         else
         {
@@ -571,7 +571,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     private bool needsWrapping ( size_t bytes )
     {
-        return pushSize(bytes) + super.write_to > super.data.length;
+        return pushSize(bytes) + this.write_to > this.data.length;
     }
 }
 
