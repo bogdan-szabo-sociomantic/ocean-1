@@ -11,15 +11,15 @@
 
     Essential idea here is storing all struct instance data (including all data
     transitively accessible via arrays / pointers) in a single contiguous memory
-    buffer. Which is exactly the reason why package is named like that. That way
-    deserialization is very fast and doesn't need any memory allocation for simple
-    cases - all deserializer needs to do is to iterate through the memory chunk and
-    update internal pointers.
+    buffer. Which is exactly the reason why the package is named like that. That
+    way deserialization is very fast and doesn't need any memory allocation for
+    simple cases - all the deserializer needs to do is to iterate through the
+    memory chunk and update internal pointers.
 
-    ``contiguous.Deserializer`` returns memory buffer wrapped in ``Contiguous!(S)``
-    struct. Such wrapper is guarantted to conform contiguity expectation explained
-    above. It is recommended to use it in your application instead of plain
-    ``void[]`` for added type safety.
+    ``contiguous.Deserializer`` returns a memory buffer wrapped in
+    ``Contiguous!(S)`` struct. Such wrapper is guaranteed to conform to the
+    contiguity expectation explained above. It is recommended to use it in your
+    application instead of plain ``void[]`` for added type safety.
 
     There are certain practical complications with it that are explained as part of
     ``contiguous.Serializer`` and ``contiguous.Deserializer`` API docs. Those should
@@ -30,10 +30,10 @@
 
     ``contiguous.VersionDecorator`` adds struct versioning information to the basic
     binary serialization format. It expects struct definitions with additional
-    meta-information available at compile-time and prepends version number byte
-    before actual data buffer. Upon loading the serialized data, the stored version
-    number is compared against the expected one and automatic struct conversion is
-    done if needed. It only allows conversion through one version
+    meta-information available at compile-time and prepends a version number byte
+    before the actual data buffer. Upon loading the serialized data, the stored
+    version number is compared against the expected one and automatic struct
+    conversion is done if needed. It only allows conversion through one version
     increment/decrement at a time.
 
     ``contiguous.MultiVersionDecorator`` is almost identical to
