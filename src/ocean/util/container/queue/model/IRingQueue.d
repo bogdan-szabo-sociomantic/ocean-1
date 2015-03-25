@@ -122,7 +122,7 @@ public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
 
         ***********************************************************************/
 
-        override public void dispose ( )
+        override protected void dispose ( )
         {
             this.mem_manager.dispose(this.data);
         }
@@ -135,7 +135,7 @@ public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
 
     ***************************************************************************/
 
-    public ~this ( )
+    ~this ( )
     {
         this.mem_manager.dtor(this.data);
     }
@@ -148,7 +148,7 @@ public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
 
     ***************************************************************************/
 
-    uint length ( )
+    public uint length ( )
     {
         return this.items;
     }
