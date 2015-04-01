@@ -151,7 +151,7 @@ template MapExtension ( K, V )
 
     ***************************************************************************/
 
-    const protected MapSerializer serializer;
+    protected MapSerializer serializer;
 
     /***************************************************************************
 

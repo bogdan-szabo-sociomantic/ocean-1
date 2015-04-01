@@ -470,7 +470,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
     private alias SelectListenerPool!(T, Args) ConnPool;
 
-    private const ConnPool receiver_pool;
+    private ConnPool receiver_pool;
 
     /**************************************************************************
 

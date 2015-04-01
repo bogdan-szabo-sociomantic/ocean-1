@@ -170,7 +170,7 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
 
         ***********************************************************************/
 
-        private const ExpiryRegistration expiry_registration;
+        private ExpiryRegistration expiry_registration;
 
 
         /***********************************************************************

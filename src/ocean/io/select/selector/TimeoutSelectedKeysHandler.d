@@ -41,7 +41,7 @@ class TimeoutSelectedKeysHandler: SelectedKeysHandler
 
      **************************************************************************/
 
-    private const ITimeoutManager timeout_manager;
+    private ITimeoutManager timeout_manager;
 
     /***************************************************************************
 
@@ -54,7 +54,7 @@ class TimeoutSelectedKeysHandler: SelectedKeysHandler
 
     private alias AppendBuffer!(ISelectClient) TimedOutClientList;
 
-    private const TimedOutClientList timed_out_clients;
+    private TimedOutClientList timed_out_clients;
 
     /***************************************************************************
 

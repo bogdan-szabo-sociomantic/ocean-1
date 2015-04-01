@@ -186,7 +186,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
      **************************************************************************/
 
-    private const ISelectedKeysHandler handle;
+    private ISelectedKeysHandler handle;
 
     /***************************************************************************
 

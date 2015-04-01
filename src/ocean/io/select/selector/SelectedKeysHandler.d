@@ -61,7 +61,7 @@ class SelectedKeysHandler: ISelectedKeysHandler
 
     ***************************************************************************/
 
-    protected const UnregisterDg unregister;
+    protected UnregisterDg unregister;
 
     /***************************************************************************
 
@@ -69,7 +69,7 @@ class SelectedKeysHandler: ISelectedKeysHandler
 
     ***************************************************************************/
 
-    private const EpollException e;
+    private EpollException e;
 
     /***************************************************************************
 

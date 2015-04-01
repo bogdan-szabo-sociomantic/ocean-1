@@ -88,7 +88,7 @@ public class FixedKeyMap ( K, V )
 
     ***************************************************************************/
 
-    private const K[] keys;
+    private K[] keys;
 
 
     /***************************************************************************
@@ -99,7 +99,7 @@ public class FixedKeyMap ( K, V )
 
     ***************************************************************************/
 
-    private const V[] values;
+    private V[] values;
 
 
     /***************************************************************************
@@ -124,7 +124,7 @@ public class FixedKeyMap ( K, V )
         }
     }
 
-    private const FixedKeyMapException exception;
+    private FixedKeyMapException exception;
 
 
     /***************************************************************************
