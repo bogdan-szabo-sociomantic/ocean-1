@@ -120,7 +120,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    invariant
+    invariant()
     {
         assert(isValid(this.min_, this.max_));
     }

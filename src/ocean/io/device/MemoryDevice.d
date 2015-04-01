@@ -281,6 +281,7 @@ class MemoryDevice : IConduit
                 break;
             case End:
                 offset = this.data.length + offset;
+                break;
             default:
                 assert(false);
         }

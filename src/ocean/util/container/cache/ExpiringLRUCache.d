@@ -225,7 +225,7 @@ class ExpiringLRUCache(T = void[]) : LRUCache!(T, true), IExpiringCacheInfo
 
     ***************************************************************************/
 
-    public bool exists ( hash_t key )
+    override public bool exists ( hash_t key )
     {
         bool expired;
 

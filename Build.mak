@@ -1,4 +1,4 @@
-override DFLAGS += -w -v2=const
+override DFLAGS += -w -v2 -v2=-static-arr-params
 
 # Modules to exclude from testing because they are broken
 TEST_FILTER_OUT += \
