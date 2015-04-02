@@ -59,3 +59,12 @@ New Features
       
   Consult the module documentation for further details about the supported
   colours and how to apply them.
+
+* ``mkversion.sh``
+
+  Previosly, build time was appearing in version string with
+  date quoted in the double quotes. ``mkversion.sh`` now uses ``date``
+  format string to generate build time stamp without quotes around time.
+  Also, the build time is changed to UTC with a clear indicator that
+  displayed build time is in UTC.
+

@@ -11,9 +11,8 @@ else
     dmd="`dmd | head -1`"
 fi
 
-# Command used to get the date (we use day resolution to avoid unnecesary
-# rebuilds)
-date_cmd="date +%Y-%m-%d"
+# Get the current date (might be overridden by command-line options later)
+date=$(date -u +"%Y-%m-%d %H:%M:%S %Z")
 
 print_usage()
 {
@@ -64,9 +63,6 @@ shift `expr $OPTIND - 1`
 
 gc="$1"; shift
 template="$1"; shift
-
-# Default
-test -z "$date" && date="`$date_cmd`"
 
 tmp=`mktemp mkversion.XXXXXXXXXX`
 

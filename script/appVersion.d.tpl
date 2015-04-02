@@ -30,7 +30,7 @@ static this()
     // TODO: Version.release = "@RELEASE@";
     Version.revision     = "@REVISION@";
     Version.gc           = "@GC@";
-    Version.build_date   = "@DATE@ "  ~ __TIME__.stringof;
+    Version.build_date   = "@DATE@";
     Version.build_author = "@AUTHOR@";
     Version.dmd_version  = "@DMD@";
     // TODO: Version.version_flags = [@VERSIONS@];
