@@ -139,7 +139,7 @@ public class FiberSocketConnection ( bool IPv6 = false ) : IFiberSocketConnectio
 
      **************************************************************************/
 
-    public ConnectionStatus connect ( char[] address, ushort port, bool force = false )
+    override public ConnectionStatus connect ( char[] address, ushort port, bool force = false )
     {
         if (!this.sameAddress(address, port))
         {
@@ -194,7 +194,7 @@ public class FiberSocketConnection ( bool IPv6 = false ) : IFiberSocketConnectio
 
     ***************************************************************************/
 
-    protected char[] address_ ( )
+    override protected char[] address_ ( )
     {
         return this.socket.address;
     }
@@ -207,7 +207,7 @@ public class FiberSocketConnection ( bool IPv6 = false ) : IFiberSocketConnectio
 
     ***************************************************************************/
 
-    protected ushort port_ ( )
+    override protected ushort port_ ( )
     {
         return this.socket.port;
     }
