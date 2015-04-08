@@ -392,7 +392,6 @@ class HttpHeaderParser : IHttpHeaderParser
     {
         this.start_line_tokens[] = null;
 
-        delete this.exception;
         delete this.content;
         delete this.header_lines_;
         delete this.header_elements_;

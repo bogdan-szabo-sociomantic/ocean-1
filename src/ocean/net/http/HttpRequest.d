@@ -205,8 +205,6 @@ class HttpRequest : HttpHeader
         delete this.parser;
         delete this._uri;
         delete this.msg_body_;
-        delete this.http_exception;
-        delete this.header_param_exception;
     }
 
     /**************************************************************************

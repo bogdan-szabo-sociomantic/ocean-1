@@ -227,17 +227,6 @@ class GetSocketAddress
 
     /**************************************************************************
 
-        Disposer
-
-     **************************************************************************/
-
-    protected override void dispose ( )
-    {
-        if (this.e) delete this.e;
-    }
-
-    /**************************************************************************
-
         Obtains the remote address associated with conduit from getpeername().
         conduit must have been downcasted from Socket.
 

@@ -438,7 +438,6 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
 
         delete this.reader;
         delete this.writer;
-        delete this.io_warning;
     }
 
     /**************************************************************************

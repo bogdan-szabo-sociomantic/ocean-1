@@ -335,20 +335,6 @@ abstract class ITimerEvent : ISelectClient, ISelectable
         return Event.EPOLLIN;
     }
 
-    /**************************************************************************
-
-        Called immediately when this instance is deleted.
-        (Must be protected to prevent an invariant from failing.)
-
-     **************************************************************************/
-
-    protected override void dispose ( )
-    {
-        super.dispose();
-
-        delete this.e;
-    }
-
     /***********************************************************************
 
         Destructor. Destroys the file descriptor used to manage the event.

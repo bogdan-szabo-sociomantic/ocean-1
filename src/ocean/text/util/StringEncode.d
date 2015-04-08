@@ -179,22 +179,6 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 
     /***************************************************************************
 
-        Dispose.
-        Deletes unneeded objects
-
-    ***************************************************************************/
-
-    public void dispose ( )
-    {
-        delete this.exception_InvalidMbSeq;
-
-        delete this.exception_IncompleteMbSeq;
-
-        delete this.exception_Generic;
-    }
-
-    /***************************************************************************
-
         Converts a string in one encoding type to another (as specified by the
         class' template parameters).
 
