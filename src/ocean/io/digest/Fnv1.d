@@ -20,6 +20,7 @@ module  ocean.io.digest.Fnv1;
 
 *******************************************************************************/
 
+import tango.transition;
 import tango.util.digest.Digest;
 
 import tango.core.ByteSwap;
@@ -385,7 +386,7 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
      **************************************************************************/
 
 
-    public override This update ( void[] data )
+    public override This update ( Const!(void)[] data )
     {
         this.digest = this.fnv1(data, this.digest);
 
