@@ -741,7 +741,7 @@ unittest
 
         // string of which the digests above are computed from
         char[] string;
-    };
+    }
 
     const TestData[] testdata =
     [
