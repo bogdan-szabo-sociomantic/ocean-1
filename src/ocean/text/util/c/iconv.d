@@ -18,7 +18,7 @@ module ocean.text.util.c.iconv;
 
 extern (C)
 {
-	typedef void* ConversionDescriptor;
+	mixin(Typedef!(void*, "ConversionDescriptor"));
 
 	/* Allocate descriptor for code conversion from codeset FROMCODE to
 	codeset TOCODE.

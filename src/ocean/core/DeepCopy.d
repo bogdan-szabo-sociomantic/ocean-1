@@ -238,7 +238,7 @@ unittest
 {
     // atomic types
     {
-        typedef hash_t Hash;
+        mixin(Typedef!(hash_t, "Hash"));
 
         Hash from = cast(Hash) 1234567890123456uL,
              to;
@@ -268,7 +268,7 @@ unittest
 
     // dynamic arrays
     {
-        typedef long[] DynArr;
+        mixin(Typedef!(long[], "DynArr"));
 
         DynArr from = cast(DynArr) [-1023L, 4444444L, 29296L],
                to;
@@ -283,7 +283,7 @@ unittest
 
     // static arrays
     {
-        typedef char[3] Currency;
+        mixin(Typedef!(char[3], "Currency"));
 
         Currency from = "BIF",
                  to;
@@ -477,7 +477,7 @@ unittest
 // ValueDeepCopy with typedef'd atomic type
 unittest
 {
-    typedef hash_t Hash;
+    mixin(Typedef!(hash_t, "Hash"));
 
     Hash from = cast(Hash) 1234567890uL,
          to;
@@ -500,7 +500,7 @@ unittest
         four
     }
 
-    typedef TestEnum OtherEnum;
+    mixin(Typedef!(TestEnum, "OtherEnum"));
 
     OtherEnum from = OtherEnum.three,
               to;
@@ -581,8 +581,8 @@ unittest
  */
 unittest
 {
-    typedef int[] _Arr;
-    typedef _Arr Arr;
+    mixin(Typedef!(int[], "_Arr"));
+    mixin(Typedef!(_Arr, "Arr"));
 
     Arr from = cast(Arr) [127, 0, 0, 1],
         to;
@@ -637,7 +637,7 @@ unittest
 // Test that copying static arrays works when they are typedefs
 unittest
 {
-    typedef int[4] Arr;
+    mixin(Typedef!(int[4], "Arr"));
 
     Arr from = cast(Arr) [127, 0, 0, 1],
         to;
@@ -720,7 +720,7 @@ unittest
 // ArrayDeepCopy with typedef'd dynamic arrays
 unittest
 {
-    typedef int[] Arr;
+    mixin(Typedef!(int[], "Arr"));
 
     Arr from = [1, 2, 3, 4, 5],
         to;
@@ -736,7 +736,7 @@ unittest
 // ArrayDeepCopy with typedef'd static arrays
 unittest
 {
-    typedef int[5] Arr;
+    mixin(Typedef!(int[5], "Arr"));
 
     Arr from = [1, 2, 3, 4, 5],
         to;
@@ -1240,7 +1240,7 @@ version (UnitTest)
         ubyte[4] ip;
     }
 
-    private typedef TypedefBaseStruct1 TypedefStruct1;
+    private mixin(Typedef!(TypedefBaseStruct1, "TypedefStruct1"));
 
     private void preDeepCopyCheck(ref TypedefStruct1 from, ref TypedefStruct1 to, char[] file, long line)
     {
@@ -1280,8 +1280,8 @@ version (UnitTest)
 
 
 
-    private typedef char[] TestName;
-    private typedef int[4] TestIP;
+    private mixin(Typedef!(char[], "TestName"));
+    private mixin(Typedef!(int[4], "TestIP"));
 
     private struct TypedefBaseStruct2
     {
@@ -1289,7 +1289,7 @@ version (UnitTest)
         TestIP ip;
     }
 
-    private typedef TypedefBaseStruct2 TypedefStruct2;
+    private mixin(Typedef!(TypedefBaseStruct2, "TypedefStruct2"));
 
     private void preDeepCopyCheck (ref TypedefStruct2 from, ref TypedefStruct2 to, char[] file, long line)
     {

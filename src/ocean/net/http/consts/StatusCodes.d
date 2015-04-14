@@ -28,7 +28,7 @@ import tango.net.http.HttpConst: HttpHeader, HttpResponseCode;
 
  ******************************************************************************/
 
-typedef HttpResponseCode StatusCode = HttpResponseCode.OK;
+mixin(Typedef!(HttpResponseCode, "StatusCode", HttpResponseCode.OK));
 
 /******************************************************************************
 

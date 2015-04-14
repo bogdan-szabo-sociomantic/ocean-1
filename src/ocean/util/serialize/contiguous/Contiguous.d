@@ -246,7 +246,7 @@ private void enforceContiguous (S) ( ref S input, void[] allowed_range )
 
 unittest
 {
-    typedef int MyInt;
+    mixin(Typedef!(int, "MyInt"));
 
     // prepare structures
     struct S1

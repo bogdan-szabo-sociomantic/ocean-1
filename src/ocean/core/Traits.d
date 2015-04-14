@@ -564,6 +564,9 @@ public template CountTypesInTuple ( Type, Tuple ... )
 
     Determines if T is a typedef.
 
+    Typedef has been removed in D2 and this template will always evaluate to
+    false if compiled with version = D_Version2.
+
     Template params:
         T = type to check
 
@@ -572,31 +575,44 @@ public template CountTypesInTuple ( Type, Tuple ... )
 
 *******************************************************************************/
 
-public template isTypedef (T)
+version (D_Version2)
 {
-    static if (is(T Orig == typedef))
-    {
-        const bool isTypedef = true;
-    }
-    else
+    public template isTypedef (T)
     {
         const bool isTypedef = false;
     }
 }
-
-unittest
+else
 {
-    typedef double RealNum;
+    mixin("
+    public template isTypedef (T)
+    {
+        static if (is(T Orig == typedef))
+        {
+            const bool isTypedef = true;
+        }
+        else
+        {
+            const bool isTypedef = false;
+        }
+    }
 
-    static assert(!isTypedef!(int));
-    static assert(!isTypedef!(double));
-    static assert(isTypedef!(RealNum));
+    unittest
+    {
+        typedef double RealNum;
+
+        static assert(!isTypedef!(int));
+        static assert(!isTypedef!(double));
+        static assert(isTypedef!(RealNum));
+    }");
 }
-
 
 /*******************************************************************************
 
     Strips the typedef off T.
+
+    Typedef has been removed in D2 and this template is a no-op if compiled
+    with version = D_Version2.
 
     Template params:
         T = type to strip of typedef
@@ -606,27 +622,37 @@ unittest
 
 *******************************************************************************/
 
-public template StripTypedef ( T )
+version (D_Version2)
 {
-    static if ( is ( T Orig == typedef ) )
-    {
-        alias StripTypedef!(Orig) StripTypedef;
-    }
-    else
+    public template StripTypedef (T)
     {
         alias T StripTypedef;
     }
 }
-
-unittest
+else
 {
-    typedef int Foo;
-    typedef Foo Bar;
-    typedef Bar Goo;
+    mixin("
+    public template StripTypedef ( T )
+    {
+        static if ( is ( T Orig == typedef ) )
+        {
+            alias StripTypedef!(Orig) StripTypedef;
+        }
+        else
+        {
+            alias T StripTypedef;
+        }
+    }
 
-    static assert(is(StripTypedef!(Goo) == int));
+    unittest
+    {
+        typedef int Foo;
+        typedef Foo Bar;
+        typedef Bar Goo;
+
+        static assert(is(StripTypedef!(Goo) == int));
+    }");
 }
-
 
 /******************************************************************************
 

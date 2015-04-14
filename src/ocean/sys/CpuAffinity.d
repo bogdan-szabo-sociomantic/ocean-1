@@ -33,7 +33,7 @@ import tango.stdc.posix.sys.types : pid_t;
 private extern ( C )
 {
     /* Type for array elements in 'cpu_set_t'.  */
-    typedef uint __cpu_mask;
+    mixin(Typedef!(uint, "__cpu_mask"));
 
     /* Size definition for CPU sets.  */
     const __CPU_SETSIZE = 1024;
