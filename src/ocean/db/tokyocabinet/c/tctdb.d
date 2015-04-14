@@ -178,8 +178,7 @@ enum TDBQP                                    /* enumeration for post treatments
    `op' specifies the pointer to the optional opaque object.
    The return value is flags of the post treatment by bitwise-or: `TDBQPPUT' to modify the
    record, `TDBQPOUT' to remove the record, `TDBQPSTOP' to stop the iteration. */
-alias extern (C) TDBQP  ( *TDBQRYPROC ) ( void *pkbuf, int pksiz, TCMAP *cols, void *op );
-
+alias extern (C) TDBQP function(void* pkbuf, int pksiz, TCMAP* cols, void* op) TDBQRYPROC;
 
 /* Get the message string corresponding to an error code.
    `ecode' specifies the error code.
