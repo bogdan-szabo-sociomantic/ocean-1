@@ -101,11 +101,26 @@ class VersionDecorator
         this.convert_buffer = new ConcatBuffer!(void)(buffer_size);
     }
 
+    /***************************************************************************
+    
+        Check `ocean.util.serialize.model.VersionDecoratorMixins` for
+        generic documentation on following methods.
+
+    ***************************************************************************/
+
     mixin StoreMethod!(Serializer);
     mixin LoadMethod!(Deserializer, This.e);
-    mixin LoadCopyMethod!(This.e);
     mixin HandleVersionMethod!(Deserializer, This.e);
     mixin ConvertMethod!(Serializer, Deserializer);
+
+    /***************************************************************************
+    
+        Check `ocean.util.serialize.model.VersionDecoratorMixins` for
+        generic documentation on this method.
+
+    ***************************************************************************/
+ 
+    mixin LoadCopyMethod!(This.e);
 }
 
 /*******************************************************************************

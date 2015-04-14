@@ -43,6 +43,38 @@
     rather than wasting CPU cycles converting through multiple versions.
     For other aplications multi-version implementation should be more convenient.
 
+    API
+    ---
+
+    All methods that do deserialization of data (``Deserializer.deserialize``,
+    ``VersionDecorator.load``, ``VersionDecorator.loadCopy``) return
+    ``Contiguous!(S)`` struct. Lifetime of such struct is identical to lifetime
+    of buffer used for deserialization. For 1-argument methods it is that argument,
+    for 2-argument ones it is the destination argument.
+
+    To get a detailed overview of serializer API check the modules:
+
+    ``ocean.util.serialize.contiguous.Serializer``
+    ``ocean.util.serialize.contiguous.Deserializer``
+
+    To get a detailed overview of decorator API check the mixins used for its
+    generation:
+
+    ``ocean.util.serialize.model.VersionDecoratorMixins``
+    ``ocean.util.serialize.contiguous.model.LoadCopyMixin``
+
+    Serializer methods are static because they work only with argument state.
+    Decorators need to be created as persistent objects because they need an
+    intermediate state for version conversions.
+
+    If a method refers to ``DeserializerReturnType!(Deserializer, S)`` as return
+    type, you can substitute it with ``Contiguous!(S)`` as it is the return type
+    used by existing contiguous deserializer.
+
+    There is also the ``ocean.util.serialize.contiguous.Util`` module which provides
+    higher level ``copy`` functions for optimized deep copying of data between
+    contiguous structs as well as from normal structs to contiguous ones.
+
     Recommended Usage
     -----------------
 
@@ -59,10 +91,22 @@
     1) Define a ``Cache`` of ``Contiguous!(S)`` elements.
     2) When receiving data from DHT do
     ``version_decorator.loadCopy!(S)(dht_data, cache_element)``
-    3) Use ``contiguous.Deserializer.copy(cache_element, contiguous_instance)`` for
+    3) Use ``contiguous.Util.copy(cache_element, contiguous_instance)`` for
     copying the struct instance if needed
     4) Use ``contiguous_instance.ptr`` to work with deserialized data as if
     it was ``S*``
+
+    It is likely that you will need to change the code to use strongly-typed
+    ``Contiguous!(S)`` persistent buffer instead of raw ``void[]`` buffer.
+    Possibly multiple such buffers if the old one was reused for different
+    struct types. This may result in small memory footprint increase at the
+    benefit of better type safety and optimized copy operations.
+
+    You can completely abandon the resulting the ``Contiguous!(S)`` instance and
+    use/store the plain ``S*`` instead (retrieved via .ptr getter) which will
+    work as long as underlying buffer persists. This is however slightly
+    discouraged because if you will need to copy the data later, it
+    will be impossible to use optimized version without unsafe explicit casts.
 
 *******************************************************************************/
 
