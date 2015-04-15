@@ -58,18 +58,6 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     /***************************************************************************
 
-        The current seek position.
-
-        TODO: the class could no doubt be rephrased to not need a seek position,
-        this is purely a legacy from the old version of the RingQueue.
-
-    ***************************************************************************/
-
-    deprecated private size_t position;
-
-
-    /***************************************************************************
-
         Header for queue items
 
     ***************************************************************************/
@@ -597,80 +585,10 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
                 this.write_to  = 0;
                 this.gap       = 0;
             }
+
         }
 
         return this.data[position .. this.read_from];
-    }
-
-
-    /***************************************************************************
-
-        Reads data from the data array.
-
-        Params:
-            bytes = the amount of bytes to read
-
-        Returns:
-            the requested data
-
-    ***************************************************************************/
-
-    deprecated private ubyte[] read ( size_t bytes )
-    {
-        if (bytes > this.data.length - this.position)
-        {
-            return this.data[this.position .. $];
-        }
-
-        return this.data[this.position..this.position + bytes];
-    }
-
-
-    /***************************************************************************
-
-        Sets the seek position in the data array.
-
-        Params:
-            offset = the requested read/write position
-
-        Returns:
-            the new read/write position
-
-        TODO: could no doubt be rephrased to not need a seek method
-
-    ***************************************************************************/
-
-    deprecated private size_t seek ( size_t offset )
-    {
-        if (offset > this.data.length)
-        {
-            this.position = this.data.length;
-        }
-        else
-        {
-            this.position = offset;
-        }
-
-        return this.position;
-    }
-
-
-    /***************************************************************************
-
-        Tells whether data of the specified length would need to be wrapped if
-        it were pushed to the queue.
-
-        Params:
-            bytes = length of data to test
-
-        Returns:
-            true if the data needs wrapping, else false
-
-    ***************************************************************************/
-
-    deprecated private bool needsWrapping ( size_t bytes )
-    {
-        return pushSize(bytes) + this.write_to > this.data.length;
     }
 }
 
