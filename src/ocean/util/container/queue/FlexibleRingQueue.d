@@ -65,7 +65,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     ***************************************************************************/
 
-    private size_t position;
+    deprecated private size_t position;
 
 
     /***************************************************************************
@@ -89,11 +89,31 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     invariant ( )
     {
-        debug scope ( failure ) Stderr.formatln(typeof(this).stringof ~ ".invariant failed with items = {}, read_from = {}, write_to = {}",
-                this.items, this.read_from, this.write_to);
+        debug scope ( failure ) Stderr.formatln
+        (
+            "{} invariant failed with items = {}, read_from = {}, " ~
+            "write_to = {}, gap = {}, data.length = {}",
+            classname(this), this.items, this.read_from, this.write_to,
+            this.gap, this.data.length
+        );
 
-        assert (this.items || !(this.read_from || this.write_to),
-                typeof(this).stringof ~ ".invariant failed");
+        if (this.items)
+        {
+            assert(this.gap       <= this.data.length, "gap out of range");
+            assert(this.read_from <= this.data.length, "read_from out of range");
+            assert(this.write_to  <= this.data.length, "write_to out of range");
+            assert(this.write_to,                      "write_to 0 with non-empty queue");
+            assert(this.read_from < this.gap,          "read_from within gap");
+            assert((this.gap == this.write_to) ||
+                   !(this.read_from < this.write_to),
+                   "read_from < write_to but gap not write position");
+        }
+        else
+        {
+            assert(!this.gap, "gap expected to be 0 for empty queue");
+            assert(!this.read_from, "read_from expected to be 0 for empty queue");
+            assert(!this.write_to, "write_to expected to be 0 for empty queue");
+        }
     }
 
 
@@ -223,18 +243,17 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     public ubyte[] peek ( )
     {
-        auto read_pos = this.read_from;
-
-        if (read_pos >= this.gap)                                  // check whether there is an item at this offset
+        if (this.items)
         {
-            read_pos = 0;                                          // if no, set it to the beginning (wrapping around)
+            auto h = this.read_from;
+            auto d = h + Header.sizeof;
+            auto header = cast(Header*) this.data[h .. d].ptr;
+            return this.data[d .. d + header.length];
         }
-
-        Header* header = cast(Header*) this.data.ptr + read_pos;
-
-        auto pos = read_pos + header.sizeof;
-
-        return this.data[pos .. pos + header.length];
+        else
+        {
+            return null;
+        }
     }
 
 
@@ -358,27 +377,27 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     {
         size_t push_size = this.pushSize(bytes);
 
-        if (this.items)
+        if (this.read_from < this.write_to)
         {
-            if (this.needsWrapping(bytes))
-            {
-                // check also if read needs to wrap, in that case will not fit
-                if (this.read_from >= this.gap)
-                    return false;
-                return push_size <= this.read_from;
-            }
-            else
-            {
-                long d = this.read_from - this.write_to;
+            /*
+             *  Free space at either
+             *  - data[write_to .. $], the end, or
+             *  - data[0 .. read_from], the beginning, wrapping around.
+             */
+            return ((this.data.length - this.write_to) >= push_size) // Fits at the end.
+                   || (this.read_from >= push_size); // Fits at the start wrapping around.
 
-                return push_size <= d || d < 0;
-            }
+        }
+        else if (this.items)
+        {
+            // Free space at data[write_to .. read_from].
+            return (this.read_from - this.write_to) >= push_size;
         }
         else
         {
-            assert(this.write_to == 0, typeof(this).stringof ~ ".willFit: queue should be in the zeroed state");
-            return push_size <= this.data.length;                               // Queue is empty and item at most
-        }                                                                       // as long as the whole queue
+            // Queue empty: data is the free space.
+            return push_size <= this.data.length;
+        }
     }
 
 
@@ -458,21 +477,56 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     }
     body
     {
-        ubyte[] header = (cast(ubyte*)&Header(size))[0 .. Header.sizeof];
+        auto push_size = this.pushSize(size);
 
-        if (this.needsWrapping(size))
+        /*
+         * read_from and write_to can have three different relationships:
+         *
+         * 1. write_to == read_from: The queue is empty, both are 0, the
+         *    record goes to data[write_to .. $].
+         *
+         * 2. write_to < read_from: The record goes in
+         *    data[write_to .. read_from].
+         *
+         * 3. read_from < write_to: The record goes either in
+         *   a) data[write_to .. $] if there is enough space or
+         *   b) data[0 .. read_from], wrapping around by setting
+         *      write_to = 0.
+         *
+         * The destination slice of data in case 3a is equivalent to case 1
+         * and in case 3b to case 2.
+         */
+
+        if (this.read_from < this.write_to)
         {
-            this.gap = this.write_to;
-            this.write_to = 0;
+            assert(this.gap == this.write_to);
+
+            // Case 3: Check if the record fits in data[write_to .. $] ...
+            if (this.data.length - this.write_to < push_size)
+            {
+                /*
+                 * ... no, we have to wrap around. The precondition claims
+                 * the record does fit so there must be enough space in
+                 * data[0 .. read_from].
+                 */
+                assert(push_size <= this.read_from);
+                this.write_to = 0;
+            }
         }
 
-        this.data[this.write_to .. this.write_to + header.length] = header[];
-        this.seek(this.write_to + header.length);
+        auto start = this.write_to;
+        this.write_to += push_size;
 
-        this.write_to += this.pushSize(size);
+        if (this.write_to > this.read_from) // Case 1 or 3a.
+        {
+            this.gap = this.write_to;
+        }
+
         this.items++;
 
-        return this.data[this.position .. this.position + size];
+        void[] dst = this.data[start .. this.write_to];
+        *cast(Header*)dst[0 .. Header.sizeof].ptr = Header(size);
+        return cast(ubyte[])dst[Header.sizeof .. $];
     }
 
 
@@ -498,36 +552,54 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     }
     body
     {
-        if (this.read_from >= this.gap)                                  // check whether there is an item at this offset
+
+        auto position = this.read_from;
+        this.read_from += Header.sizeof;
+
+        // TODO: Error if this.data.length < this.read_from.
+
+        auto header = cast(Header*)this.data[position .. this.read_from].ptr;
+
+        // TODO: Error if this.data.length - this.read_from < header.length
+
+        position = this.read_from;
+        this.read_from += header.length;
+        assert(this.read_from <= this.gap); // The invariant ensures that
+                                            // this.gap is not 0.
+
+        this.items--; // The precondition prevents decrementing 0.
+
+        scope (exit)
         {
-            this.read_from = 0;                                          // if no, set it to the beginning (wrapping around)
-            this.gap = this.data.length;
-        }
-
-        this.seek(this.read_from);
-
-        Header* header = cast(Header*)this.read(Header.sizeof).ptr;
-
-        this.seek(this.read_from + header.sizeof);
-
-        this.items--;
-
-        if (!this.items)
-        {
-            this.read_from = 0;
-            this.write_to  = 0;
-        }
-        else
-        {
-            this.read_from += pushSize(header.length);
-
-            if (this.read_from >= this.data.length)
+            if (this.items)
             {
+                if (this.read_from == this.gap)
+                {
+                    /*
+                     *  End of data, wrap around:
+                     *  1. Set the read position to the start of this.data.
+                     */
+                    this.read_from = 0;
+                    /*
+                     *  2. The write position is now the end of the data.
+                     *     If the queue is now empty, i.e. this.items == 0,
+                     *     write_to must be 0.
+                     */
+
+                    assert(this.items || !this.write_to);
+                    this.gap = this.write_to;
+                }
+            }
+            else // Popped the last record.
+            {
+                assert(this.read_from == this.write_to);
                 this.read_from = 0;
+                this.write_to  = 0;
+                this.gap       = 0;
             }
         }
 
-        return this.read(header.length);
+        return this.data[position .. this.read_from];
     }
 
 
@@ -543,7 +615,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     ***************************************************************************/
 
-    private ubyte[] read ( size_t bytes )
+    deprecated private ubyte[] read ( size_t bytes )
     {
         if (bytes > this.data.length - this.position)
         {
@@ -568,7 +640,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     ***************************************************************************/
 
-    private size_t seek ( size_t offset )
+    deprecated private size_t seek ( size_t offset )
     {
         if (offset > this.data.length)
         {
@@ -596,7 +668,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     ***************************************************************************/
 
-    private bool needsWrapping ( size_t bytes )
+    deprecated private bool needsWrapping ( size_t bytes )
     {
         return pushSize(bytes) + this.write_to > this.data.length;
     }
@@ -796,7 +868,6 @@ unittest
         assert(queue.push(cast(ubyte[])"2")); // this needs to be wrapped now
 
         // [##_] r=11 w=10
-        assert(queue.gap == queue.read_from);
     }
 }
 
