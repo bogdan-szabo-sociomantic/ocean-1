@@ -98,7 +98,6 @@ struct SmartUnion ( U )
 
      **************************************************************************/
 
-    //pragma (msg, AllMethods!(U, "", 0));
     mixin (AllMethods!(U, "", 0));
 
     /// typeof(this) is a pointer in D1, the type in D2.
@@ -217,7 +216,6 @@ private struct SmartUnionIntern ( U )
 
      **************************************************************************/
 
-//    pragma(msg,"enum Active{none" ~ MemberList!(0, N, U) ~ "}");
     mixin("enum Active{none" ~ MemberList!(0, N, U) ~ "}");
 
     /**************************************************************************
