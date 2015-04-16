@@ -40,8 +40,11 @@
 
 module ocean.core.SmartUnion;
 
-public import ocean.core.Traits : FieldName;
 import tango.transition;
+import tango.core.Exception;
+import ocean.core.Test;
+import ocean.core.Traits;
+
 
 
 /******************************************************************************
@@ -101,6 +104,85 @@ struct SmartUnion ( U )
     /// typeof(this) is a pointer in D1, the type in D2.
     version(D_Version2) private alias typeof(this) Type;
     else private alias typeof(*this) Type;
+}
+
+///
+unittest
+{
+    SmartUnion!(U1) u1;
+    SmartUnion!(U2) u2;
+    SmartUnion!(U3) u3;
+
+    test!("==")(u1.active, u1.Active.none);
+    test!("==")(u2.active, u2.Active.none);
+    test!("==")(u3.active, u3.Active.none);
+
+    test!("==")(u1.active, 0);
+    test!("==")(u2.active, 0);
+    test!("==")(u3.active, 0);
+
+    testThrown!(AssertException)(u1.a(), false);
+    testThrown!(AssertException)(u1.b(), false);
+    testThrown!(AssertException)(u2.a(), false);
+    testThrown!(AssertException)(u2.b(), false);
+    testThrown!(AssertException)(u3.a(), false);
+    testThrown!(AssertException)(u3.b(), false);
+
+    u1.a(42);
+    test!("==")(u1.a, 42);
+    testThrown!(AssertException)(u1.b(), false);
+
+    u2.a(new C1());
+    test!("==")(u2.a.v, uint.init);
+    testThrown!(AssertException)(u2.b(), false);
+
+    u3.a(S1(42));
+    test!("==")(u3.a, S1(42));
+    testThrown!(AssertException)(u3.b(), false);
+
+    u1.b("Hello world");
+    test!("==")(u1.b, "Hello world");
+    testThrown!(AssertException)(u1.a(), false);
+
+    u2.b(S1.init);
+    test!("==")(u2.b, S1.init);
+    testThrown!(AssertException)(u2.a(), false);
+
+    u3.b(21);
+    test!("==")(u3.b, 21);
+    testThrown!(AssertException)(u3.a(), false);
+
+}
+
+version (UnitTest)
+{
+    class C1
+    {
+        uint v;
+    }
+
+    struct S1
+    {
+        uint v;
+    }
+
+    union U1
+    {
+        uint a;
+        char[] b;
+    }
+
+    union U2
+    {
+        C1 a;
+        S1 b;
+    }
+
+    union U3
+    {
+        S1 a;
+        uint b;
+    }
 }
 
 /******************************************************************************
