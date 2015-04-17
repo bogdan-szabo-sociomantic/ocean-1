@@ -49,6 +49,11 @@ import tango.text.Util : patterns;
 
 import tango.stdc.math: fabs;
 
+version ( UnitTest )
+{
+    import ocean.core.Test;
+}
+
 /*******************************************************************************
 
     Concatenates a list of arrays into a destination array. The function results
@@ -69,17 +74,18 @@ import tango.stdc.math: fabs;
     Returns:
         dest
 
-    Usage:
-    ---
-        char[] dest;
-        concat(dest, "hello ", "world");
-    ---
-
 ********************************************************************************/
 
 public D concat ( D, T ... ) ( ref D dest, T arrays )
 {
     return concatT!("concat", D, T)(dest, arrays);
+}
+
+///
+unittest
+{
+    char[] dest;
+    concat(dest, "hello ", "world");
 }
 
 /*******************************************************************************
@@ -102,12 +108,6 @@ public D concat ( D, T ... ) ( ref D dest, T arrays )
     Returns:
         dest
 
-    Usage:
-    ---
-        char[] dest = "hello";
-        append(dest, " world", ", what a beautiful day!");
-    ---
-
 *******************************************************************************/
 
 public D append ( D, T ... ) ( ref D dest, T arrays )
@@ -115,6 +115,13 @@ public D append ( D, T ... ) ( ref D dest, T arrays )
     size_t old_len = dest.length;
 
     return concatT!("append", D, T)(dest, arrays, old_len);
+}
+
+///
+unittest
+{
+    char[] dest = "hello";
+    append(dest, " world", ", what a beautiful day!");
 }
 
 /*******************************************************************************
@@ -134,13 +141,6 @@ public D append ( D, T ... ) ( ref D dest, T arrays )
     Returns:
         dest
 
-    Usage:
-    ---
-        char[] dest;
-        char[] src = "hello";
-        copy(dest, src);
-    ---
-
 *******************************************************************************/
 
 public T[] copy ( T ) ( ref T[] dest, T[] src )
@@ -153,6 +153,14 @@ public T[] copy ( T ) ( ref T[] dest, T[] src )
     }
 
     return dest;
+}
+
+///
+unittest
+{
+    char[] dest;
+    char[] src = "hello";
+    copy(dest, src);
 }
 
 /*******************************************************************************
@@ -188,6 +196,12 @@ public T[] copyExtend ( T ) ( ref T[] dest, T[] src )
     return dest[0 .. src.length];
 }
 
+///
+unittest
+{
+    auto dst = "aaaaa".dup;
+    auto str = copyExtend(dst, "bbb");
+}
 
 /*******************************************************************************
 
@@ -207,13 +221,6 @@ public T[] copyExtend ( T ) ( ref T[] dest, T[] src )
     Returns:
         dest
 
-    Usage:
-    ---
-        char[][] dest;
-        char[] src = "hello";
-        copy(dest, src);
-    ---
-
 *******************************************************************************/
 
 public T[][] appendCopy ( T ) ( ref T[][] dest, T[] src )
@@ -224,6 +231,13 @@ public T[][] appendCopy ( T ) ( ref T[][] dest, T[] src )
     return dest;
 }
 
+///
+unittest
+{
+    char[][] dest;
+    char[] src = "hello";
+    appendCopy(dest, src);
+}
 
 /*******************************************************************************
 
@@ -260,6 +274,12 @@ public T[][] split ( T ) ( T[] src, T[] pattern, ref T[][] result )
     return result;
 }
 
+///
+unittest
+{
+    char[][] result;
+    split("aaa..bbb..ccc", "..", result);
+}
 
 /*******************************************************************************
 
@@ -294,6 +314,12 @@ public T[] substitute ( T ) ( T[] source, T[] match, T[] replacement, ref T[] re
     return result;
 }
 
+///
+unittest
+{
+    char[] result;
+    substitute("some string", "ring", "oops", result);
+}
 
 /*******************************************************************************
 
@@ -324,6 +350,13 @@ public bool pop ( T ) ( ref T[] array, out T popped )
     return false;
 }
 
+///
+unittest
+{
+    char[] arr = "something".dup;
+    char elem;
+    pop(arr, elem);
+}
 
 /*******************************************************************************
 
@@ -348,6 +381,12 @@ public T[] remove ( T ) ( T[] source, T[] match, ref T[] result )
     return substitute(source, match, replacement, result);
 }
 
+///
+unittest
+{
+    char[] result;    
+    remove("aaabbbaaa", "bbb", result);
+}
 
 /*******************************************************************************
 
@@ -371,6 +410,12 @@ public T[] removeShift ( T ) ( ref T[] array, size_t index )
     return removeShift(array, index, 1);
 }
 
+///
+unittest
+{
+    auto array = "something".dup;
+    removeShift(array, 4);
+}
 
 /*******************************************************************************
 
@@ -422,6 +467,12 @@ body
     return array;
 }
 
+///
+unittest
+{
+    auto arr = "something".dup;
+    removeShift(arr, 3, 4);
+}
 
 /*******************************************************************************
 
@@ -445,6 +496,12 @@ public T[] insertShift ( T ) ( ref T[] array, size_t index )
     return insertShift(array, index, 1);
 }
 
+///
+unittest
+{
+    auto arr = "something".dup;
+    insertShift(arr, 2);
+}
 
 /*******************************************************************************
 
@@ -493,6 +550,12 @@ body
     return array;
 }
 
+///
+unittest
+{
+    auto arr = "something".dup;
+    insertShift(arr, 2, 2);
+}
 
 /*******************************************************************************
 
@@ -541,9 +604,12 @@ public T[] uniq ( T, bool sort = true ) ( T[] array )
 
 }
 
-version ( UnitTest )
+///
+unittest
 {
-    import ocean.core.Test;
+    auto arr = [ 42, 43, 43, 42, 2 ];
+    uniq(arr);
+    uniq!(int, true)(arr);
 }
 
 /*******************************************************************************
@@ -764,6 +830,12 @@ body
                             {
                                 typeid(T).swap(&array[i], &array[j]);
                             });
+}
+
+unittest
+{
+    auto arr = "something".dup;
+    filterInPlace(arr, (char c) { return c / 2; });
 }
 
 /*******************************************************************************
@@ -1020,6 +1092,12 @@ body
             position);
 }
 
+unittest
+{
+    auto arr = [ 1, 2, 4, 6, 20, 100, 240 ];
+    size_t pos;
+    bool found = bsearch(arr, 6, pos);
+}
 
 /*******************************************************************************
 
@@ -1130,6 +1208,13 @@ public T[] toArray ( T ) ( ref T val )
     return (&val)[0 .. 1];
 }
 
+///
+unittest
+{
+    int x;
+    int[] arr = toArray(x);
+}
+
 /*******************************************************************************
 
     Shuffles the elements of array in-place.
@@ -1147,6 +1232,14 @@ public T[] shuffle ( T ) ( T[] array, lazy double rand )
 {
     return shuffle(array,
                    (size_t i) {return cast (size_t) (fabs(rand) * (i + 1));});
+}
+
+///
+unittest
+{
+    int[] arr = [ 1, 2, 3, 4 ];
+    auto random_generator = () { return 0.42; }; // not proven by the dice roll
+    shuffle(arr, random_generator());
 }
 
 /*******************************************************************************
@@ -1205,6 +1298,11 @@ body
     return array;
 }
 
+unittest
+{
+    auto arr = [ 1, 2, 3 ];
+    clear(arr);
+}
 
 /******************************************************************************
 
@@ -1227,6 +1325,10 @@ bool isClearable ( T ) ( )
     return (cast (void*) &init)[0 .. n] == zero_data;
 }
 
+unittest
+{
+    auto x = isClearable!(double);
+}
 
 /*******************************************************************************
 

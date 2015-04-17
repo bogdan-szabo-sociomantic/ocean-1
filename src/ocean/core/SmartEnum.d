@@ -160,6 +160,11 @@ public struct SmartEnumValue ( T )
     T value;
 }
 
+unittest
+{
+    alias SmartEnumValue!(int) _;
+}
+
 
 
 /*******************************************************************************
@@ -390,6 +395,10 @@ private template SmartEnumCore ( BaseType )
     }
 }
 
+unittest
+{
+    alias SmartEnumCore!(int) _;
+}
 
 /*******************************************************************************
 
@@ -422,6 +431,10 @@ public char[] CTFE_Int2String ( T ) ( T num )
     }
 }
 
+unittest
+{
+    auto s = CTFE_Int2String(42);
+}
 
 /*******************************************************************************
 
@@ -712,6 +725,14 @@ public template SmartEnum ( char[] Name, T ... )
     }
 }
 
+unittest
+{
+    mixin(SmartEnum!(
+        "Name",
+        SmartEnumValue!(int)("a", 42),
+        SmartEnumValue!(int)("b", 43)
+    ));
+}
 
 /*******************************************************************************
 
@@ -758,3 +779,7 @@ public template AutoSmartEnum ( char[] Name, BaseType, Strings ... )
     const char[] AutoSmartEnum = SmartEnum!(Name, CreateCodes!(BaseType, 0, Strings));
 }
 
+unittest
+{
+    mixin(AutoSmartEnum!("Name", int, "a", "b", "c"));
+}

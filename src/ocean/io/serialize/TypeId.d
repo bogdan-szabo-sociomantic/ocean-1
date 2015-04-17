@@ -142,6 +142,19 @@ template TypeId ( T )
     }
 }
 
+unittest
+{
+    struct Sample
+    {
+        int[4] arr;
+        int a;
+        double b;
+        char* c;
+    }
+
+    const x = TypeId!(Sample);
+}
+
 /******************************************************************************
 
     Evaluates to the type hash of T, which is the 64-bit Fnv1a hash of the
@@ -152,6 +165,19 @@ template TypeId ( T )
 template TypeHash ( T )
 {
     const TypeHash = TypeHash!(Fnv164Const.INIT, T);
+}
+
+unittest
+{
+    struct Sample
+    {
+        int[4] arr;
+        int a;
+        double b;
+        char* c;
+    }
+
+    const hash = TypeHash!(Sample);
 }
 
 /******************************************************************************

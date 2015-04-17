@@ -343,3 +343,7 @@ public class StringStructSerializer ( Char )
     }
 }
 
+unittest
+{
+    auto srlz = new StringStructSerializer!(char);
+}

@@ -331,3 +331,13 @@ public class StructTable ( S )
     }
 }
 
+unittest
+{
+    struct Entry
+    {
+        int field;
+        double field2;
+    }
+
+    alias StructTable!(Entry) Instance;
+}

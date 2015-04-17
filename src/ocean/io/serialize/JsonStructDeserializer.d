@@ -723,3 +723,8 @@ class JsonStructDeserializer ( Char )
     }
 }
 
+unittest
+{
+    auto srlz = new JsonStructDeserializer!(char);
+}
+

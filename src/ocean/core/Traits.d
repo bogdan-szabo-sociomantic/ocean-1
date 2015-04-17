@@ -28,6 +28,24 @@ import tango.core.Traits : isReferenceType, isDynamicArrayType,
 
 import tango.core.Traits : ReturnTypeOf, ParameterTupleOf;
 
+version (UnitTest)
+{
+    import ocean.core.Test;
+
+    /***************************************************************************
+
+        Used as aggregate type argument in all tests
+
+    ***************************************************************************/
+
+    struct TestStruct
+    {
+        int a;
+        int b = 42;
+        double c;
+    }
+}
+
 /*******************************************************************************
 
     Tells whether the passed string is a D 1.0 keyword.
@@ -254,6 +272,11 @@ public template isCompoundType ( T )
     }
 }
 
+unittest
+{
+    static assert (!isCompoundType!(int));
+    static assert ( isCompoundType!(TestStruct));
+}
 
 
 /*******************************************************************************
@@ -278,6 +301,10 @@ public template TypeTuple ( T )
     alias typeof(T.tupleof) TypeTuple;
 }
 
+unittest
+{
+    static assert (is(TypeTuple!(TestStruct)[0] == int));
+}
 
 
 /*******************************************************************************
@@ -302,6 +329,10 @@ public template FieldType ( T, size_t i )
     alias typeof (T.tupleof)[i] FieldType;
 }
 
+unittest
+{
+    static assert (is(FieldType!(TestStruct, 0) == int));
+}
 
 
 /*******************************************************************************
@@ -325,6 +356,12 @@ public FieldType!(T, i)* GetField ( size_t i, T ) ( T* t )
     return GetField!(i, FieldType!(T, i), T)(t);
 }
 
+unittest
+{
+    TestStruct s;
+    auto x = GetField!(1)(&s);
+    test(*x == 42);
+}
 
 
 /*******************************************************************************
@@ -354,7 +391,12 @@ public M* GetField ( size_t i, M, T ) ( T* t )
     return cast(M*)((cast(void*)t) + T.tupleof[i].offsetof);
 }
 
-
+unittest
+{
+    TestStruct s;
+    auto x = GetField!(1, int)(&s);
+    test(*x == 42);
+}
 
 /*******************************************************************************
 
@@ -379,7 +421,10 @@ public template FieldName ( size_t i, T )
     const FieldName = StripFieldName!(T.tupleof[i].stringof);
 }
 
-
+unittest
+{
+    static assert (FieldName!(0, TestStruct) == "a");
+}
 
 /*******************************************************************************
 
@@ -440,6 +485,10 @@ public template SizeofTuple ( Tuple ... )
     }
 }
 
+unittest
+{
+    static assert (SizeofTuple!(Tuple!(byte, byte, byte)) == 3);
+}
 
 /*******************************************************************************
 
@@ -471,6 +520,11 @@ public void copyFields ( T ) ( ref T dst, ref T src )
     }
 }
 
+unittest
+{
+    TestStruct a, b;
+    copyFields(a, b);
+}
 
 /*******************************************************************************
 
@@ -502,6 +556,14 @@ public void initFields ( T ) ( ref T o )
     }
 }
 
+unittest
+{
+    auto s = TestStruct(10, 10, 10.0);
+    initFields(s);
+    // test(s.b == 42); // DMD1 BUG!
+    test(s.b == 0); 
+}
+
 
 /*******************************************************************************
 
@@ -530,6 +592,11 @@ public template isUniqueTypesInTuple ( Tuple ... )
     }
 }
 
+unittest
+{
+    static assert ( isUniqueTypesInTuple!(Tuple!(int, double, float)));
+    static assert (!isUniqueTypesInTuple!(Tuple!(int, int, float)));
+}
 
 
 /*******************************************************************************
@@ -559,6 +626,10 @@ public template CountTypesInTuple ( Type, Tuple ... )
     }
 }
 
+unittest
+{
+    static assert (CountTypesInTuple!(int, Tuple!(int, double, int)) == 2);
+}
 
 /*******************************************************************************
 
@@ -607,6 +678,20 @@ else
     }");
 }
 
+unittest
+{
+    mixin(Typedef!(int, "MyInt"));
+
+    version (D_Version2)
+    {
+        static assert (!isTypedef!(MyInt)); // just a struct
+    }
+    else
+    {
+        static assert ( isTypedef!(MyInt));
+    }
+}
+
 /*******************************************************************************
 
     Strips the typedef off T.
@@ -652,6 +737,20 @@ else
 
         static assert(is(StripTypedef!(Goo) == int));
     }");
+}
+
+unittest
+{
+    mixin(Typedef!(int, "MyInt"));
+
+    version (D_Version2)
+    {
+        static assert (is(StripTypedef!(MyInt) == MyInt));
+    }
+    else
+    {
+        static assert (is(StripTypedef!(MyInt) == int));
+    }
 }
 
 /******************************************************************************
@@ -717,6 +816,11 @@ template ContainsDynamicArray ( T ... )
     {
         const ContainsDynamicArray = false;
     }
+}
+
+unittest
+{
+    static assert (!ContainsDynamicArray!(TestStruct));
 }
 
 

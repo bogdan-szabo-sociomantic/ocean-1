@@ -330,3 +330,8 @@ class JsonStructSerializer ( Char, bool ThreadSafe = false )
     }
 }
 
+unittest
+{
+    auto srlz = new JsonStructSerializer!(char);
+}
+

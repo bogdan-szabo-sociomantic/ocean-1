@@ -357,3 +357,8 @@ class XmlStructSerializer ( Char )
     }
 }
 
+unittest
+{
+    auto srlz = new XmlStructSerializer!(char);
+}
+
