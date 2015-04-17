@@ -111,12 +111,13 @@
 module ocean.core.SmartEnum;
 
 
-
 /*******************************************************************************
 
     Imports
 
  *******************************************************************************/
+
+import tango.transition;
 
 public import ocean.core.Exception;
 
@@ -124,7 +125,6 @@ import ocean.core.Traits;
 
 import tango.core.Traits;
 import tango.core.Tuple;
-
 
 
 /*******************************************************************************

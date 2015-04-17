@@ -22,6 +22,7 @@ module ocean.core.Exception;
 import tango.text.convert.Format;
 import tango.transition;
 
+
 /******************************************************************************
 
     Enforces that given expression evaluates to boolean `true` after

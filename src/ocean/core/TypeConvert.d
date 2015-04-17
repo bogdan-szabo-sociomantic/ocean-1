@@ -15,6 +15,7 @@ module ocean.core.TypeConvert;
 
 *******************************************************************************/
 
+import tango.transition;
 version ( UnitTest ) import ocean.core.Test;
 
 

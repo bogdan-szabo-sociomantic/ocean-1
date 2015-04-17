@@ -30,6 +30,8 @@ module ocean.core.DeepCopy;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Array : copy;
 
 import ocean.core.Traits : isTypedef, StripTypedef;

@@ -57,6 +57,8 @@ module ocean.core.MessageFiber;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import tango.core.Thread : Fiber;
 
 import ocean.core.Array: copy;

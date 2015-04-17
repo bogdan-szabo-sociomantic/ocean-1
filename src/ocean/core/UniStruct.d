@@ -41,6 +41,7 @@ deprecated module ocean.core.UniStruct;
 
 *******************************************************************************/
 
+import tango.transition;
 import tango.core.Traits;
 
 

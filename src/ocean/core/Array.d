@@ -30,12 +30,13 @@
 module ocean.core.Array;
 
 
-
 /*******************************************************************************
 
     Imports
 
 *******************************************************************************/
+
+import tango.transition;
 
 import ocean.core.Traits: ReturnAndArgumentTypesOf;
 

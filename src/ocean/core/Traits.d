@@ -20,6 +20,8 @@ module ocean.core.Traits;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import tango.core.Tuple: Tuple;
 
 import tango.core.Traits : isReferenceType, isDynamicArrayType,

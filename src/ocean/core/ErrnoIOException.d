@@ -13,12 +13,13 @@
 module ocean.core.ErrnoIOException;
 
 
-
 /*******************************************************************************
 
     Imports
 
 *******************************************************************************/
+
+import tango.transition;
 
 import tango.core.Exception : IOException;
 
@@ -27,6 +28,7 @@ import tango.stdc.errno : errno;
 import tango.stdc.string : strlen;
 
 import ocean.core.Array : concat, append, toArray;
+
 
 /*******************************************************************************
 

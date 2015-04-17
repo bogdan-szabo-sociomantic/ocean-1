@@ -48,20 +48,19 @@
 deprecated module ocean.core.TwoWayMap;
 
 
-
 /*******************************************************************************
 
     Imports
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Exception;
 
 import tango.core.Array : find;
 
 import tango.core.Traits : isAssocArrayType;
-
-
 
 
 /*******************************************************************************
