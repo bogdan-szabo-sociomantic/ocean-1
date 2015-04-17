@@ -114,6 +114,6 @@ public interface ISelectClientInfo
 
     ***************************************************************************/
 
-    debug char[] toString ( );
+    debug istring toString ( );
 }
 

@@ -221,7 +221,7 @@ class NamedTest : TestException
 
      ***************************************************************************/
 
-    public override char[] toString()
+    public override istring toString ()
     {
         if (this.name.length)
         {
