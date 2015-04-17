@@ -65,26 +65,31 @@ class CookiesHttpResponse : HttpResponse
         super.addKey(HeaderFieldNames.ResponseNames.SetCookie);
     }
 
-    /**************************************************************************
-
-        Called immediately when this instance is deleted.
-        (Must be protected to prevent an invariant from failing.)
-
-     **************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        super.dispose();
+        /**********************************************************************
 
-        foreach (ref cookie; this.cookies)
+            Called immediately when this instance is deleted.
+            (Must be protected to prevent an invariant from failing.)
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
         {
-            delete cookie;
+            super.dispose();
 
-            cookie = null;
+            foreach (ref cookie; this.cookies)
+            {
+                delete cookie;
+
+                cookie = null;
+            }
+
+            delete this.cookies;
         }
-
-        delete this.cookies;
     }
+
 
     /**************************************************************************
 

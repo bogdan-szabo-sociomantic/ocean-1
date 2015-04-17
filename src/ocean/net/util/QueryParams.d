@@ -362,17 +362,22 @@ class FullQueryParamSet: QueryParamSet
         this.remaining.clear();
     }
 
-    /**************************************************************************
 
-        Disposer
-
-     **************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        super.dispose();
+        /***********************************************************************
 
-        delete this.remaining;
+            Disposer
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            super.dispose();
+
+            delete this.remaining;
+        }
     }
 }
 

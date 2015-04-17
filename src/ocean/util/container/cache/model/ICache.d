@@ -114,18 +114,23 @@ abstract class ICache : ICacheInfo
         this.key_to_node   = new KeyToNode(max_items);
     }
 
-    /***************************************************************************
 
-        Disposer.
-
-    ***************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        super.dispose();
+        /***********************************************************************
 
-        delete this.key_to_node;
-        delete this.time_to_index;
+            Disposer.
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            super.dispose();
+
+            delete this.key_to_node;
+            delete this.time_to_index;
+        }
     }
 
     /***************************************************************************

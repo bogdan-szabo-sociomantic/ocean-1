@@ -590,19 +590,24 @@ class PriorityCache(T) : ICacheInfo
         return true;
     }
 
-    /***************************************************************************
 
-        Disposer.
-
-    ***************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        super.dispose();
+        /***********************************************************************
 
-        delete this.key_to_node;
-        delete this.time_to_index;
-        delete this.items;
+            Disposer.
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            super.dispose();
+
+            delete this.key_to_node;
+            delete this.time_to_index;
+            delete this.items;
+        }
     }
 
     /***************************************************************************

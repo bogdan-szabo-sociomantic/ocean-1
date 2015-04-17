@@ -217,16 +217,21 @@ class HttpCookieGenerator : ParamSet
         this.expiration_time = this.fmt_expiration_time = new FormatExpirationTime;
     }
 
-    /**************************************************************************
 
-        Called immediately when this instance is deleted.
-        (Must be protected to prevent an invariant from failing.)
-
-     **************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        delete this.fmt_expiration_time;
+        /***********************************************************************
+
+            Called immediately when this instance is deleted.
+            (Must be protected to prevent an invariant from failing.)
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            delete this.fmt_expiration_time;
+        }
     }
 
     /**************************************************************************

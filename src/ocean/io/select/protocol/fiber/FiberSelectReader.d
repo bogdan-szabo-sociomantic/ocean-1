@@ -181,19 +181,25 @@ class FiberSelectReader : IFiberSelectProtocol
                 ~ IInputDevice.stringof);
     }
 
-    /**************************************************************************
 
-        Called immediately when this instance is deleted.
-        (Must be protected to prevent an invariant from failing.)
-
-     **************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        super.dispose();
+        /***********************************************************************
 
-        delete this.data;
+            Called immediately when this instance is deleted.
+            (Must be protected to prevent an invariant from failing.)
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            super.dispose();
+
+            delete this.data;
+        }
     }
+
 
     /**************************************************************************
 

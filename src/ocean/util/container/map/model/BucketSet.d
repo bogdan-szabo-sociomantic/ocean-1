@@ -118,16 +118,22 @@ public abstract class IBucketSet
         this.bucket_element_allocator = bucket_element_allocator;
     }
 
-    /***************************************************************************
 
-        Disposer.
-
-     **************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        delete this.bucket_info;
+        /***********************************************************************
+
+            Disposer.
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            delete this.bucket_info;
+        }
     }
+
 
     /**************************************************************************
 
@@ -361,17 +367,22 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
         this.buckets = new Bucket[this.bucket_info.num_buckets];
     }
 
-    /***************************************************************************
 
-        Disposer.
-
-    ***************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        super.dispose();
+        /***********************************************************************
 
-        delete this.buckets;
+            Disposer.
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            super.dispose();
+
+            delete this.buckets;
+        }
     }
 
     /**************************************************************************

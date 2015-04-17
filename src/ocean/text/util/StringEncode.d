@@ -316,17 +316,21 @@ public class StringEncoderSequence ( Encoders... )
     }
 
 
-    /***************************************************************************
-
-        Disposer. Deletes encoders.
-
-    ***************************************************************************/
-
-    void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        foreach ( e; this.encoders )
+        /***********************************************************************
+
+            Disposer. Deletes encoders.
+
+        ***********************************************************************/
+
+        void dispose ( )
         {
-            delete e;
+            foreach ( e; this.encoders )
+            {
+                delete e;
+            }
         }
     }
 

@@ -356,18 +356,23 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
     }
 
 
-    /***************************************************************************
-
-        Disposer.
-
-    ***************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        super.dispose();
+        /***********************************************************************
 
-        delete this.items;
+            Disposer.
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            super.dispose();
+
+            delete this.items;
+        }
     }
+
 
     /***************************************************************************
 

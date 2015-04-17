@@ -122,19 +122,25 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
         this(epoll, this.default_stack_size, finalize_dg, error_dg);
     }
 
-    /**************************************************************************
 
-        Called immediately when this instance is deleted.
-        (Must be protected to prevent an invariant from failing.)
-
-     **************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        super.dispose();
+        /***********************************************************************
 
-        delete this.fiber;
+            Called immediately when this instance is deleted.
+            (Must be protected to prevent an invariant from failing.)
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            super.dispose();
+
+            delete this.fiber;
+        }
     }
+
 
     /***************************************************************************
 

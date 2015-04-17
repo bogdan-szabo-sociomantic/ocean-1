@@ -98,15 +98,20 @@ abstract class Layout ( T = char )
         this.layout = new TangoLayout.Layout!(T);
     }
 
-    /**************************************************************************
 
-        Disposer
-
-     **************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        delete this.layout;
+        /***********************************************************************
+
+            Disposer
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            delete this.layout;
+        }
     }
 
     /***************************************************************************
@@ -324,16 +329,21 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
         this.layout = this.new AppendLayout;
     }
 
-    /***************************************************************************
 
-        Disposer
-
-    ***************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        super.dispose();
-        delete this.layout;
+        /***********************************************************************
+
+            Disposer
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            super.dispose();
+            delete this.layout;
+        }
     }
 
     /**************************************************************************

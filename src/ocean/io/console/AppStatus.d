@@ -389,29 +389,6 @@ public class AppStatus
 
     /***************************************************************************
 
-        Dispose.
-
-        Inserts a newline after the last row of the output so that:
-            1. if the application using AppStatus exits, the command prompt
-               appears after the static lines portion, or
-            2. if the application using AppStatus deletes the AppStatus object,
-               further output appears after the static lines portion.
-
-        Just like a destructor, this method is automatically called when the
-        AppStatus object is deleted. However unlike the destructor, GC
-        references will still be intact when this method is invoked (i.e.
-        Stdout object will be there).
-
-    ***************************************************************************/
-
-    public override void dispose ( )
-    {
-        Stdout.endrow.newline.flush;
-    }
-
-
-    /***************************************************************************
-
         Clear all the bottom static lines from the console (including header and
         footer).
 

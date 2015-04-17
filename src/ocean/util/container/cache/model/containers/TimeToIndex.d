@@ -88,16 +88,21 @@ class TimeToIndex: EBTree128!()
             this.elements = new typeof(this.elements)(n);
         }
 
-        /***********************************************************************
 
-            Destructor.
-
-        ***********************************************************************/
-
-        protected override void dispose ( )
+        version (D_Version2) {}
+        else
         {
-            super.dispose();
-            delete this.elements;
+            /*******************************************************************
+
+                Destructor.
+
+            *******************************************************************/
+
+            protected override void dispose ( )
+            {
+                super.dispose();
+                delete this.elements;
+            }
         }
 
         /***********************************************************************
@@ -153,15 +158,20 @@ class TimeToIndex: EBTree128!()
         this.nodes.elements.clear();
     }
 
-    /***********************************************************************
 
-        Disposer.
-
-    ***********************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        super.dispose();
-        delete this.nodes;
+        /***********************************************************************
+
+            Disposer.
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            super.dispose();
+            delete this.nodes;
+        }
     }
 }

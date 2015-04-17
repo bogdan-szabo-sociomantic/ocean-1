@@ -100,19 +100,25 @@ class BufferedFiberSelectWriter : FiberSelectWriter
         this.buffer = new AppendBuffer!(void)(size, true);
     }
 
-    /**************************************************************************
 
-        Called immediately when this instance is deleted.
-        (Must be protected to prevent an invariant from failing.)
-
-     **************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        super.dispose();
+        /***********************************************************************
 
-        delete this.buffer;
+            Called immediately when this instance is deleted.
+            (Must be protected to prevent an invariant from failing.)
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            super.dispose();
+
+            delete this.buffer;
+        }
     }
+
 
     /**************************************************************************
 

@@ -156,18 +156,22 @@ public class HeadingsCSV
     }
 
 
-    /***************************************************************************
-
-        Disposer.
-
-    ***************************************************************************/
-
-    override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        delete this.csv;
-        delete this.headings;
-        delete this.heading_included;
-        delete this.fields;
+        /***********************************************************************
+
+            Disposer.
+
+        ***********************************************************************/
+
+        override void dispose ( )
+        {
+            delete this.csv;
+            delete this.headings;
+            delete this.heading_included;
+            delete this.fields;
+        }
     }
 
 

@@ -147,17 +147,21 @@ class JsonStructSerializer ( Char, bool ThreadSafe = false )
     }
 
 
-    /***************************************************************************
-
-        Destructor. Destroys the local Jsonizer, if one was created.
-
-    ***************************************************************************/
-
-    override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        static if ( ThreadSafe )
+        /***********************************************************************
+
+            Destructor. Destroys the local Jsonizer, if one was created.
+
+        ***********************************************************************/
+
+        override void dispose ( )
         {
-            delete this.json;
+            static if ( ThreadSafe )
+            {
+                delete this.json;
+            }
         }
     }
 

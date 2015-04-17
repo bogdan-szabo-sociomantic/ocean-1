@@ -140,19 +140,24 @@ class BucketInfo
         this.bucket_list_indices = new size_t[num_buckets];
     }
 
-    /**************************************************************************
 
-        Disposer.
-
-        Params:
-            num_buckets = number of buckets
-
-     **************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        delete this.buckets;
-        delete this.bucket_list_indices;
+        /***********************************************************************
+
+            Disposer.
+
+            Params:
+                num_buckets = number of buckets
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            delete this.buckets;
+            delete this.bucket_list_indices;
+        }
     }
 
     /**************************************************************************

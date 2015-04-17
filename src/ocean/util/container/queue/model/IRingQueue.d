@@ -113,15 +113,19 @@ public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
     }
 
 
-    /***************************************************************************
-
-        Called for explicit deletes
-
-    ***************************************************************************/
-
-    override public void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        this.mem_manager.dispose(this.data);
+        /***********************************************************************
+
+            Called for explicit deletes
+
+        ***********************************************************************/
+
+        override public void dispose ( )
+        {
+            this.mem_manager.dispose(this.data);
+        }
     }
 
 

@@ -225,16 +225,20 @@ public class ErrnoIOException : IOException
         return e? e[0 .. strlen(e)] : null;
     }
 
-    /**************************************************************************
-
-        Called immediately when this instance is deleted.
-        (Must be protected to prevent an invariant from failing.)
-
-     **************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        delete super.msg;
+        /***********************************************************************
+
+            Called immediately when this instance is deleted.
+            (Must be protected to prevent an invariant from failing.)
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            delete super.msg;
+        }
     }
 }
 

@@ -292,15 +292,19 @@ class JsonStructDeserializer ( Char )
     }
 
 
-    /***************************************************************************
-
-        Destructor. Deletes json parser.
-
-    ***************************************************************************/
-
-    override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        delete this.parser;
+        /***********************************************************************
+
+            Destructor. Deletes json parser.
+
+        ***********************************************************************/
+
+        override void dispose ( )
+        {
+            delete this.parser;
+        }
     }
 
 

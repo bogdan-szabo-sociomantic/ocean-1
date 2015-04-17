@@ -48,6 +48,10 @@ Migration Instructions
   The `Serializer` accepts the struct to serialize by reference. Hence rvalues
   cannot be passed to the 'serialize' method anymore.
 
+* `ocean.io.console.AppStatus`
+  `AppStatus` will no longer inserts a newline after the last row of the output
+  when deleted. Applications that wish to keep the behaviour should call
+  `Stdout.endrow.newline.flush` directly.
 
 Deprecations
 ============

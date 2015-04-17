@@ -173,20 +173,26 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
         debug this.connection_id = connection_count++;
     }
 
-    /**************************************************************************
 
-        Called immediately when this instance is deleted.
-        (Must be protected to prevent an invariant from failing.)
-
-     **************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        this.finalize_dg_ = null;
-        this.error_dg_    = null;
+        /***********************************************************************
 
-        delete this.socket;
+            Called immediately when this instance is deleted.
+            (Must be protected to prevent an invariant from failing.)
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            this.finalize_dg_ = null;
+            this.error_dg_    = null;
+
+            delete this.socket;
+        }
     }
+
 
     /***************************************************************************
 

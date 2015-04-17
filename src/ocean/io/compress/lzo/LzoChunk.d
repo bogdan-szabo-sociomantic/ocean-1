@@ -133,18 +133,24 @@ class LzoChunk ( bool LengthInline = true )
         this.lzo_is_reference = true;
     }
 
-    /***************************************************************************
 
-        Destructor - deletes the internal lzo object if it was created by this
-        class
-
-     **************************************************************************/
-
-    override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        if ( !this.lzo_is_reference )
+
+        /***********************************************************************
+
+            Destructor - deletes the internal lzo object if it was created by
+            this class
+
+        ***********************************************************************/
+
+        override void dispose ( )
         {
-            delete this.lzo;
+            if ( !this.lzo_is_reference )
+            {
+                delete this.lzo;
+            }
         }
     }
 

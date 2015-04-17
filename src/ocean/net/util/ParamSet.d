@@ -111,18 +111,23 @@ class ParamSet
 
     private char[] tolower_buf;
 
-    /**************************************************************************
 
-        Called immediately when this instance is deleted.
-        (Must be protected to prevent an invariant from failing.)
-
-     **************************************************************************/
-
-    protected override void dispose ( )
+    version (D_Version2) {}
+    else
     {
-        this.reset();
+        /***********************************************************************
 
-        delete this.tolower_buf;
+            Called immediately when this instance is deleted.
+            (Must be protected to prevent an invariant from failing.)
+
+        ***********************************************************************/
+
+        protected override void dispose ( )
+        {
+            this.reset();
+
+            delete this.tolower_buf;
+        }
     }
 
     /**************************************************************************
