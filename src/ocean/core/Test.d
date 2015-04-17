@@ -69,7 +69,7 @@ public void test ( T ) ( T ok, char[] msg = "",
 
 ******************************************************************************/
 
-public void test ( char[] op, T1, T2 ) ( T1 a,
+public void test ( istring op, T1, T2 ) ( T1 a,
     T2 b, char[] file = __FILE__, int line = __LINE__ )
 {
     enforceImpl!(op, TestException)(a, b, file, line);

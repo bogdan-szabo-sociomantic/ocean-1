@@ -352,7 +352,7 @@ private template Methods ( U, uint i )
 
 *******************************************************************************/
 
-private template AllMethods ( U, cstring pre, uint i)
+private template AllMethods ( U, istring pre, uint i)
 {
     static if (i < U.tupleof.length)
     {

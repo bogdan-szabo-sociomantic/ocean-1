@@ -89,7 +89,7 @@ struct UniStruct ( Types ... )
 
     ***************************************************************************/
 
-    template validSymbols(char[] Check)
+    template validSymbols(istring Check)
     {
         static if (Check.length > 0 &&
                   Check[0] != ' ' &&
@@ -121,18 +121,18 @@ struct UniStruct ( Types ... )
         {
             static if(validSymbols!(MyTypes[0].stringof))
             {
-                const char[] createList = upper!(MyTypes[0].stringof[0])
+                const createList = upper!(MyTypes[0].stringof[0])
                          ~MyTypes[0].stringof[1 .. $]
                      ~ ", " ~ createList!(MyTypes[1..$]);
             }
             else
             {
-                const char[] createList = MyTypes[0].mangleof ~ ", " ~ createList!(MyTypes[1..$]);
+                const createList = MyTypes[0].mangleof ~ ", " ~ createList!(MyTypes[1..$]);
             }
         }
         else
         {
-            const char[] createList =  "";
+            const createList =  "";
         }
 
     }

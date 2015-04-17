@@ -1402,7 +1402,7 @@ private T[] concat_ ( T ) ( T[] dest, T[][] arrays, size_t start = 0 )
 
 *******************************************************************************/
 
-private size_t toStaticArray ( size_t n, D, char[] func = "toStaticArray", T ... ) ( D[n] dest, T elements )
+private size_t toStaticArray ( size_t n, D, istring func = "toStaticArray", T ... ) ( D[n] dest, T elements )
 in
 {
     static assert (n == T.length, func ~ ": destination array length mismatch (expected" ~ T.length.stringof ~ " instead of " ~ n.stringof);
@@ -1446,7 +1446,7 @@ body
 
 *******************************************************************************/
 
-private D concatT ( char[] func, D, T ... ) ( ref D dest, T arrays, size_t start = 0 )
+private D concatT ( istring func, D, T ... ) ( ref D dest, T arrays, size_t start = 0 )
 {
     static if (T.length == 1)                                               // single argument
     {

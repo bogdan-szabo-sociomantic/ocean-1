@@ -441,7 +441,7 @@ unittest
 
 *******************************************************************************/
 
-private template StripFieldName ( char[] name, size_t n = size_t.max )
+private template StripFieldName ( istring name, size_t n = size_t.max )
 {
     static if ( n >= name.length )
     {
@@ -1037,7 +1037,7 @@ unittest
 
 *******************************************************************************/
 
-template hasMethod ( T, char[] name, Dg )
+template hasMethod ( T, istring name, Dg )
 {
     static assert(is(T == struct) || is(T == class) || is(T == union));
     static assert(isIdentifier(name));

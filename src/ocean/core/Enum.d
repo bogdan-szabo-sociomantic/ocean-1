@@ -252,11 +252,11 @@ private template EnumValues ( size_t i, T ... )
 
     static if ( i == T[0].length - 1 )
     {
-        const char[] EnumValues = T[0][i] ~ "=" ~ T[1][i].stringof;
+        const EnumValues = T[0][i] ~ "=" ~ T[1][i].stringof;
     }
     else
     {
-        const char[] EnumValues = T[0][i] ~ "=" ~ T[1][i].stringof ~ ","
+        const EnumValues = T[0][i] ~ "=" ~ T[1][i].stringof ~ ","
             ~ EnumValues!(i + 1, T);
     }
 }

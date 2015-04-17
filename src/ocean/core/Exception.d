@@ -413,7 +413,7 @@ unittest
 
 ******************************************************************************/
 
-public void enforceImpl ( char[] op, T1, T2 ) ( lazy Exception e, T1 a,
+public void enforceImpl ( istring op, T1, T2 ) ( lazy Exception e, T1 a,
     T2 b, cstring file, int line )
 {
     mixin("auto ok = a " ~ op ~ " b;");

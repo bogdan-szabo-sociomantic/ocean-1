@@ -31,7 +31,7 @@ import tango.transition;
 
 *******************************************************************************/
 
-public void versionIdentifiers ( void delegate ( char[] version_name ) dg )
+public void versionIdentifiers ( void delegate ( istring version_name ) dg )
 {
     mixin(Version!("DigitalMars", "dg"));
     mixin(Version!("GNU", "dg"));
@@ -95,9 +95,9 @@ public void versionIdentifiers ( void delegate ( char[] version_name ) dg )
 
 *******************************************************************************/
 
-private template Version ( char[] version_name, char[] func_name )
+private template Version ( istring version_name, istring func_name )
 {
-    const char[] Version = "version(" ~ version_name ~ ")"
+    const Version = "version(" ~ version_name ~ ")"
         ~ func_name ~ `("` ~ version_name ~ `");`;
 }
 

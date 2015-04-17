@@ -456,11 +456,11 @@ private template EnumValuesList ( T ... )
 {
     static if ( T.length == 1 )
     {
-        const char[] EnumValuesList = T[0].name ~ "=" ~ CTFE_Int2String(T[0].value);
+        const EnumValuesList = T[0].name ~ "=" ~ CTFE_Int2String(T[0].value);
     }
     else
     {
-        const char[] EnumValuesList = T[0].name ~ "=" ~ CTFE_Int2String(T[0].value) ~ "," ~ EnumValuesList!(T[1..$]);
+        const EnumValuesList = T[0].name ~ "=" ~ CTFE_Int2String(T[0].value) ~ "," ~ EnumValuesList!(T[1..$]);
     }
 }
 
@@ -487,7 +487,7 @@ private template EnumValuesList ( T ... )
 
 private template DeclareEnum ( T ... )
 {
-    const char[] DeclareEnum = "alias " ~ T[0].BaseType.stringof ~ " BaseType; enum : BaseType {" ~ EnumValuesList!(T) ~ "} ";
+    const DeclareEnum = "alias " ~ T[0].BaseType.stringof ~ " BaseType; enum : BaseType {" ~ EnumValuesList!(T) ~ "} ";
 }
 
 
@@ -512,11 +512,11 @@ private template InitialiseMap ( T ... )
 {
     static if ( T.length == 1 )
     {
-        const char[] InitialiseMap = `map["` ~ T[0].name ~ `"]=` ~ T[0].name ~ ";";
+        const InitialiseMap = `map["` ~ T[0].name ~ `"]=` ~ T[0].name ~ ";";
     }
     else
     {
-        const char[] InitialiseMap = `map["` ~ T[0].name ~ `"]=` ~ T[0].name ~ ";" ~ InitialiseMap!(T[1..$]);
+        const InitialiseMap = `map["` ~ T[0].name ~ `"]=` ~ T[0].name ~ ";" ~ InitialiseMap!(T[1..$]);
     }
 }
 
@@ -546,7 +546,7 @@ private template InitialiseMap ( T ... )
 
 private template StaticThis ( T ... )
 {
-    const char[] StaticThis = "static this() {" ~ InitialiseMap!(T) ~ "map.rehash;} ";
+    const StaticThis = "static this() {" ~ InitialiseMap!(T) ~ "map.rehash;} ";
 }
 
 
@@ -563,11 +563,11 @@ private template MaxValue ( T ... )
 {
     static if ( T.length == 1 )
     {
-        const typeof(T[0].value) MaxValue = T[0].value;
+        const MaxValue = T[0].value;
     }
     else
     {
-        const typeof(T[0].value) MaxValue = T[0].value > MaxValue!(T[1..$]) ? T[0].value : MaxValue!(T[1..$]);
+        const MaxValue = T[0].value > MaxValue!(T[1..$]) ? T[0].value : MaxValue!(T[1..$]);
     }
 }
 
@@ -585,11 +585,11 @@ private template MinValue ( T ... )
 {
     static if ( T.length == 1 )
     {
-        const typeof(T[0].value) MinValue = T[0].value;
+        const MinValue = T[0].value;
     }
     else
     {
-        const typeof(T[0].value) MinValue = T[0].value < MinValue!(T[1..$]) ? T[0].value : MinValue!(T[1..$]);
+        const MinValue = T[0].value < MinValue!(T[1..$]) ? T[0].value : MinValue!(T[1..$]);
     }
 }
 
@@ -608,11 +608,11 @@ private template LongestName ( T ... )
 {
     static if ( T.length == 1 )
     {
-        const size_t LongestName = T[0].name.length;
+        const LongestName = T[0].name.length;
     }
     else
     {
-        const size_t LongestName = T[0].name.length > LongestName!(T[1..$]) ? T[0].name.length : LongestName!(T[1..$]);
+        const LongestName = T[0].name.length > LongestName!(T[1..$]) ? T[0].name.length : LongestName!(T[1..$]);
     }
 }
 
@@ -631,11 +631,11 @@ private template ShortestName ( T ... )
 {
     static if ( T.length == 1 )
     {
-        const size_t ShortestName = T[0].name.length;
+        const ShortestName = T[0].name.length;
     }
     else
     {
-        const size_t ShortestName = T[0].name.length < ShortestName!(T[1..$]) ? T[0].name.length : ShortestName!(T[1..$]);
+        const ShortestName = T[0].name.length < ShortestName!(T[1..$]) ? T[0].name.length : ShortestName!(T[1..$]);
     }
 }
 
@@ -661,7 +661,7 @@ private template ShortestName ( T ... )
 
 private template DeclareConstants ( T ... )
 {
-    const char[] DeclareConstants =
+    const istring DeclareConstants =
         "static const length = " ~ ctfe_i2a(T.length) ~ "; " ~
         "static const min = " ~ CTFE_Int2String(MinValue!(T)) ~ "; " ~
         "static const max = " ~ CTFE_Int2String(MaxValue!(T)) ~ "; " ~
@@ -688,7 +688,7 @@ private template DeclareConstants ( T ... )
 
 private template MixinCore ( T ... )
 {
-    const char[] MixinCore = "mixin SmartEnumCore!(" ~ T[0].BaseType.stringof ~ ");";
+    const MixinCore = "mixin SmartEnumCore!(" ~ T[0].BaseType.stringof ~ ");";
 }
 
 
@@ -711,11 +711,11 @@ private template MixinCore ( T ... )
 
 *******************************************************************************/
 
-public template SmartEnum ( char[] Name, T ... )
+public template SmartEnum ( istring Name, T ... )
 {
     static if ( T.length > 0 )
     {
-        const char[] SmartEnum = "class " ~ Name ~ " : ISmartEnum { " ~ DeclareEnum!(T) ~
+        const SmartEnum = "class " ~ Name ~ " : ISmartEnum { " ~ DeclareEnum!(T) ~
             DeclareConstants!(T) ~ StaticThis!(T) ~ MixinCore!(T) ~ "}";
     }
     else
@@ -771,11 +771,11 @@ private template CreateCodes ( BaseType, uint i, Strings ... )
 
 *******************************************************************************/
 
-public template AutoSmartEnum ( char[] Name, BaseType, Strings ... )
+public template AutoSmartEnum ( istring Name, BaseType, Strings ... )
 {
-    static assert ( is(typeof(Strings[0]) : char[]), "AutoSmartEnum - please only give char[]s as template parameters");
+    static assert ( is(typeof(Strings[0]) : istring), "AutoSmartEnum - please only give immutable strings as template parameters");
 
-    const char[] AutoSmartEnum = SmartEnum!(Name, CreateCodes!(BaseType, 0, Strings));
+    const AutoSmartEnum = SmartEnum!(Name, CreateCodes!(BaseType, 0, Strings));
 }
 
 unittest

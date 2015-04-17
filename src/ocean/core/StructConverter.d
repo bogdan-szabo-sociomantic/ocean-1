@@ -273,7 +273,7 @@ private bool structHasMember ( char[] name, S ) ( )
 
 *******************************************************************************/
 
-private void callBestOverload ( From, To, char[] function_name )
+private void callBestOverload ( From, To, istring function_name )
            ( ref From from, ref To to, void[] delegate ( size_t ) requestBuffer )
 {
      mixin (`
@@ -324,7 +324,7 @@ private void callBestOverload ( From, To, char[] function_name )
 
 *******************************************************************************/
 
-private template TypeOf ( char[] name, Struct )
+private template TypeOf ( istring name, Struct )
 {
     mixin(`alias typeof(Struct.`~name~`) TypeOf;`);
 }
@@ -343,7 +343,7 @@ private template TypeOf ( char[] name, Struct )
 
 *******************************************************************************/
 
-private TypeOf!(field_name, Struct)* getField ( char[] field_name, Struct )
+private TypeOf!(field_name, Struct)* getField ( istring field_name, Struct )
                                               ( ref Struct s )
 {
     mixin(`
