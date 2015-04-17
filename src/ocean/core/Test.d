@@ -38,7 +38,7 @@ class TestException : Exception
 
      ***************************************************************************/
 
-    public this ( char[] msg, char[] file = __FILE__, int line = __LINE__ )
+    public this ( char[] msg, istring file = __FILE__, int line = __LINE__ )
     {
         super( msg, file, line );
     }
@@ -54,7 +54,7 @@ class TestException : Exception
 ******************************************************************************/
 
 public void test ( T ) ( T ok, char[] msg = "",
-    char[] file = __FILE__, int line = __LINE__ )
+    istring file = __FILE__, int line = __LINE__ )
 {
     if (!msg.length)
     {
@@ -70,7 +70,7 @@ public void test ( T ) ( T ok, char[] msg = "",
 ******************************************************************************/
 
 public void test ( istring op, T1, T2 ) ( T1 a,
-    T2 b, char[] file = __FILE__, int line = __LINE__ )
+    T2 b, istring file = __FILE__, int line = __LINE__ )
 {
     enforceImpl!(op, TestException)(a, b, file, line);
 }
@@ -124,7 +124,7 @@ unittest
 ******************************************************************************/
 
 public void testThrown ( E : Exception = Exception, R = void ) ( lazy R expr,
-    bool strict = true, char[] file = __FILE__, int line = __LINE__ )
+    bool strict = true, istring file = __FILE__, int line = __LINE__ )
 {
     bool was_thrown = false;
     try
@@ -240,7 +240,7 @@ class NamedTest : TestException
 
     ***************************************************************************/
 
-    public void test ( T ) ( T ok, char[] msg = "", char[] file = __FILE__,
+    public void test ( T ) ( T ok, char[] msg = "", istring file = __FILE__,
         int line = __LINE__ )
     {
         // uses `enforceImpl` instead of `test` so that pre-constructed
@@ -260,7 +260,7 @@ class NamedTest : TestException
     ***************************************************************************/
 
     public void test ( char[] op, T1, T2 ) ( T1 a, T2 b,
-        char[] file = __FILE__, int line = __LINE__ )
+        istring file = __FILE__, int line = __LINE__ )
     {
         // uses `enforceImpl` instead of `test` so that pre-constructed
         // exception instance can be used.

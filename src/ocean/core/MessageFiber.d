@@ -258,7 +258,7 @@ class MessageFiber
     {
         this ( )  {super("Fiber killed");}
 
-        void set ( char[] file, long line )
+        void set ( istring file, long line )
         {
             super.file = file;
             super.line = line;
@@ -276,7 +276,7 @@ class MessageFiber
     {
         this ( )  {super("Resumed with invalid identifier!");}
 
-        ResumeException set ( char[] file, long line )
+        ResumeException set ( istring file, long line )
         {
             super.file = file;
             super.line = line;
@@ -654,7 +654,7 @@ class MessageFiber
 
      **************************************************************************/
 
-    public void kill ( char[] file = null, long line = 0 )
+    public void kill ( istring file = null, long line = 0 )
     in
     {
         assert (this.fiber.state == this.fiber.State.HOLD, "attempt to kill a non-helpd fiber");

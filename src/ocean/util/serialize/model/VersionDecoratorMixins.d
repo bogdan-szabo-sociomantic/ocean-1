@@ -440,7 +440,7 @@ class VersionHandlingException : Exception
     ***************************************************************************/
 
     void enforceInputLength(S)(size_t input_length,
-        cstring file = __FILE__, int line = __LINE__)
+        istring file = __FILE__, int line = __LINE__)
     {
         if (input_length <= Version.Type.sizeof)
         {
@@ -473,7 +473,7 @@ class VersionHandlingException : Exception
 
     ***************************************************************************/
 
-    void throwCantConvert(S)(Version.Type input_version, cstring file = __FILE__,
+    void throwCantConvert(S)(Version.Type input_version, istring file = __FILE__,
         int line = __LINE__)
     {
         this.msg = Format(

@@ -54,7 +54,7 @@ public class ErrnoIOException : IOException
 
     this ( ) {super("");}
 
-    public void assertEx ( bool ok, char[] msg, char[] file = "", long line = 0 )
+    public void assertEx ( bool ok, char[] msg, istring file = "", long line = 0 )
     {
         if (!ok) throw this.opCall(msg, file, line);
     }
@@ -72,7 +72,7 @@ public class ErrnoIOException : IOException
 
      **************************************************************************/
 
-    public typeof (this) opCall ( char[] file = "", long line = 0 )
+    public typeof (this) opCall ( istring file = "", long line = 0 )
     {
         char[][] msg = null;
 
@@ -93,7 +93,7 @@ public class ErrnoIOException : IOException
 
      **************************************************************************/
 
-    public typeof (this) opCall ( char[] msg, char[] file = "", long line = 0 )
+    public typeof (this) opCall ( char[] msg, istring file = "", long line = 0 )
     {
         return this.opCall(toArray(msg), file, line);
     }
@@ -112,7 +112,7 @@ public class ErrnoIOException : IOException
 
      **************************************************************************/
 
-    public typeof (this) opCall ( char[][] msg, char[] file = "", long line = 0 )
+    public typeof (this) opCall ( char[][] msg, istring file = "", long line = 0 )
     {
         scope (exit) .errno = 0;
 
@@ -134,7 +134,7 @@ public class ErrnoIOException : IOException
 
      **************************************************************************/
 
-    public typeof (this) opCall ( int errnum, char[] file = "", long line = 0 )
+    public typeof (this) opCall ( int errnum, istring file = "", long line = 0 )
     {
         char[][] msg = null;
 
@@ -156,7 +156,7 @@ public class ErrnoIOException : IOException
 
      **************************************************************************/
 
-    public typeof (this) opCall ( int errnum, char[] msg, char[] file = "", long line = 0 )
+    public typeof (this) opCall ( int errnum, char[] msg, istring file = "", long line = 0 )
     {
         return this.opCall(errnum, toArray(msg), file, line);
     }
@@ -176,7 +176,7 @@ public class ErrnoIOException : IOException
 
      **************************************************************************/
 
-    public typeof (this) opCall ( int errnum, char[][] msg, char[] file = "", long line = 0 )
+    public typeof (this) opCall ( int errnum, char[][] msg, istring file = "", long line = 0 )
     {
         this.errnum = errnum;
 

@@ -62,7 +62,7 @@ class DeserializationException : Exception
     ***********************************************************************/
 
     void enforceSizeLimit ( S ) ( size_t len, size_t max,
-        char[] file = __FILE__, int line = __LINE__ )
+        istring file = __FILE__, int line = __LINE__ )
     {
         enforceImpl(
             this, len <= max,
@@ -89,7 +89,7 @@ class DeserializationException : Exception
     ***********************************************************************/
 
     void enforceInputSize ( S ) ( size_t len, size_t required,
-        char[] file = __FILE__, int line = __LINE__ )
+        istring file = __FILE__, int line = __LINE__ )
     {
         enforceImpl(
             this, len >= required,

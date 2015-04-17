@@ -46,7 +46,7 @@ class ResolveIPException: Exception
 
     **************************************************************************/
 
-    public this(char[] file, long line, char[] msg, int errno)
+    public this(istring file, long line, char[] msg, int errno)
     {
         super(msg, file, line);
         this.errno = errno;

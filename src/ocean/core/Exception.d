@@ -190,7 +190,7 @@ unittest
 {
     class MyException : Exception
     {
-        this ( char[] msg, char[] file = __FILE__, size_t line = __LINE__ )
+        this ( char[] msg, istring file = __FILE__, size_t line = __LINE__ )
         {
             super ( msg, file, line );
         }
@@ -301,7 +301,7 @@ unittest
 ******************************************************************************/
 
 public void enforceImpl ( istring op, E : Exception = Exception, T1, T2 ) (
-    T1 a, T2 b, cstring file, int line )
+    T1 a, T2 b, istring file, int line )
 {
     mixin("auto ok = a " ~ op ~ " b;");
 
@@ -414,7 +414,7 @@ unittest
 ******************************************************************************/
 
 public void enforceImpl ( istring op, T1, T2 ) ( lazy Exception e, T1 a,
-    T2 b, cstring file, int line )
+    T2 b, istring file, int line )
 {
     mixin("auto ok = a " ~ op ~ " b;");
 
@@ -445,7 +445,7 @@ unittest
 {
     class MyException : Exception
     {
-        this ( char[] msg, char[] file = __FILE__, size_t line = __LINE__ )
+        this ( char[] msg, istring file = __FILE__, size_t line = __LINE__ )
         {
             super ( msg, file, line );
         }
@@ -533,7 +533,7 @@ unittest
 *******************************************************************************/
 
 void throwChained ( E : Exception = Exception )
-                  ( lazy Exception e, lazy char[] msg, char[] file = __FILE__,
+                  ( lazy Exception e, lazy char[] msg, istring file = __FILE__,
                     size_t line = __LINE__ )
 {
     throw new E(msg, file, line, e);
