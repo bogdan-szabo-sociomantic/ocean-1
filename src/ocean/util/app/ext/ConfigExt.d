@@ -136,9 +136,12 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     /***************************************************************************
 
-        Setup command line arguments (ArgumentsExt hook).
+        Setup command line arguments.
 
-        Adds --config/-c option and --loose-config-parsing if appropriate.
+        Adds the following additional command line arguments:
+            --config/-c
+            --loose-config-parsing (if needed)
+            --override-config/-O
 
         Params:
             app = the application instance
@@ -151,15 +154,18 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
         args("config").aliased('c').params(1).smush()
             .help("use the configuration file CONFIG instead of the default "
                 "(" ~ join(this.default_configs, ", ") ~ ")");
+
         foreach (conf; this.default_configs)
         {
             args("config").defaults(conf);
         }
+
         if (!this.loose_config_parsing)
         {
             args("loose-config-parsing").params(0)
                 .help("ignore unknown configuration parameters in config file");
         }
+
         args("override-config").aliased('O').params(1,int.max).smush()
             .help("override a configuration value (example: "
                     "-O '[section-name]config-value = \"something\"', need "
