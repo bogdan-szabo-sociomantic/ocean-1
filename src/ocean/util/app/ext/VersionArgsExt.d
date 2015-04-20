@@ -154,10 +154,15 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     protected char[] getVersionString ( char[] app_name, VersionInfo ver )
     {
-        return app_name ~ " version " ~ ver.revision ~ " (compiled by '" ~
-                ver.build_author ~ "' on " ~ ver.build_date ~ " with " ~
-                ver.dmd_version ~ " using GC:" ~
-                ver.gc ~ this.getLibsVersionsString(ver.libraries) ~ ")";
+        char[] get(char[] key)
+        {
+            auto v = key in ver;
+            return v is null ? "<unknown>" : *v;
+        }
+        return app_name ~ " version " ~ get("version") ~ " (compiled by '" ~
+                get("build_author") ~ "' on " ~ get("build_date") ~ " with " ~
+                get("dmd_version") ~ " using " ~
+                this.getLibsVersionsString(ver) ~ ")";
     }
 
 

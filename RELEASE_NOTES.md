@@ -33,6 +33,16 @@ Migration Instructions
   of `uint`. You may need to update the type of variables / fields it gets
   assigned to accordingly.
 
+* `ocean.util.app.ext.VersionInfo`
+
+  `VersionInfo` is now an alias for `istring[istring]` (before it was a class).
+  Applications normally shouldn't need use the actual type, only pass it around,
+  so they shouldn't notice this change.
+
+* `script/common.mk`
+
+  This long deprecated file was completely removed.
+
 Deprecations
 ============
 
@@ -42,6 +52,28 @@ Deprecations
   All methods in question were designed around storing `uint` values but are
   actually used to store data that can be in `ulong` range.  Matching
   `*Unsigned` method have been added to be used instead.
+
+* *Makd*
+
+  Ocean's copy of Makd is now deprecated, as Makd becase a standalone project.
+  The current copy of Makd.mak is brought up to date with the Makd project but
+  it shouldn't be used anymore, so it will issue a warning if it is used.
+
+  Projects should move to use the [Makd](https://github.com/sociomantic/makd/)
+  as a submodule instead. The `Version.d` file is now generated in the `build/`
+  directory, so projects having `src/Version.d` in `.gitignore` are encourage to
+  remove it after the switch. Also, don't forget to update the location where to
+  read `Makd.mak` to `submodules/makd/Makd.mak` when you switch to the Makd
+  repository!
+
+  The files `script/Makd.mak`, `script/Makd.README.rst` and
+  `script/mkversion.sh` were updated, while `script/appVersion.d.tpl` was
+  renamed to `script/Version.tpl.d` to match the one in the Makd repo (although
+  project shouldn't use that file directly anyway).
+
+  The generated `Version.d` also now stores an associative array
+  `istring[istring]` instead of being a class, this is to avoid a dependency in
+  Makd to Ocean.
 
 New Features
 ============

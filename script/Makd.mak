@@ -5,6 +5,9 @@
 ifndef Makd.mak.included
 Makd.mak.included := 1
 
+$(warning Using $(abspath $(lastword $(MAKEFILE_LIST))) is DEPRECATED, \
+please add https://github.com/sociomantic/makd/ as a submodule instead!)
+
 # This variable should be provided by the Makefile that include us (if needed):
 # S should be sub-directory where the current makefile is, relative to $T.
 
@@ -22,6 +25,14 @@ VALID_FLAVORS := devel production
 
 # Flavor (variant), can be defined by the user in Config.mak
 F ?= devel
+
+# Directory where all the source files are expected (must be a relative paths,
+# use "." for the current directory)
+SRC = src
+
+# Directory were this makefile is located (this must be done BEFORE including
+# any other Makefile)
+MAKD_PATH := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 # Load top-level directory project configuration
 -include $T/Config.mak
@@ -72,11 +83,28 @@ COLOR_ERR ?= 00;31
 # See COLOR_CMD comment for details.
 COLOR_OUT ?= $(COLOR_ERR)
 
+# To compile the D2 version, you can use make DVER=2
+# FIXME_IN_D2: This is only present as a transitional solution, it should be
+# removed after the D2 migration is done
+DVER := 1
+
 # Default D compiler (tries first with dmd1 and uses dmd if not present)
+ifeq ($(DVER),1)
 DC ?= dmd1
+else
+DC ?= dmd
+endif
 
 # Default rdmd binary to use (same as with dmd)
+ifeq ($(DVER),1)
 RDMD ?= rdmd1
+else
+# FIXME: This should be like this instead:
+# RDMD ?= rdmd1
+# We can't use the plain rdmd yet because in 2.066 it doesn't support the
+# option --extra-file=file yet
+RDMD ?= rdmd1
+endif
 
 # Garbage Collector to use
 # (exported because other programs might use the variable)
@@ -92,11 +120,25 @@ IMODE ?= 0644
 # Default install flags
 IFLAGS ?= -D
 
+# The files specified in this variable will be excluded from the generated
+# unit tests targets and from the integration test main files.
+# By default all files called main.d in $C/$(SRC)/ are excluded too, it's assumed
+# they'll have a main() function in them.
+# Paths must be absolute (specify them with the $C/ prefix).
+# The contents of this variable will be passed to the Make function
+# $(filter-out), meaning you can specify multple patterns separated by
+# whitespaces and each pattern can have one '%' that's used as a wildcard.
+# For more information refer to the documentation:
+# http://www.gnu.org/software/make/manual/make.html#Text-Functions
+TEST_FILTER_OUT := $C/$(SRC)/%/main.d
+
 
 # Default compiler flags
 #########################
 
+ifeq ($(DVER),1)
 DFLAGS ?= -di
+endif
 
 override DFLAGS += -gc
 
@@ -111,11 +153,6 @@ endif
 
 # Directories
 ##############
-
-# Directory were ocean submodule is located, needed to find version scripts
-OCEAN_PATH ?= $T/$(shell  test -r $T/.gitmodules && \
-		sed -n '/\[submodule "ocean"\]/,/^\s*path\s*=/ { \
-		s/^\s*path\s*=\s*\(.*\)\s*$$/\1/p }' $T/.gitmodules)
 
 # Location of the submodules (libraries the project depends on)
 SUBMODULES ?= $(shell test -r $T/.gitmodules && \
@@ -144,6 +181,9 @@ G ?= $(VD)/$F
 # generated intermediary files
 O ?= $G/tmp
 
+# Directory for generated source files (will be included with -I)
+GS ?= $G/include
+
 # Binaries directory
 B ?= $G/bin
 
@@ -158,19 +198,11 @@ I := $(DESTDIR)$(prefix)
 # evaluated in the context where $C is used, not here.
 C = $T$(if $S,/$S)
 
-
-# The files specified in this variable will be excluded from the generated
-# unit tests targets and from the integration test main files.
-# By default all files called main.d in $C/src/ are excluded too, it's assumed
-# they'll have a main() function in them.
-# Paths must be absolute (specify them with the $C/ prefix).
-# The contents of this variable will be passed to the Make function
-# $(filter-out), meaning you can specify multple patterns separated by
-# whitespaces and each pattern can have one '%' that's used as a wildcard.
-# For more information refer to the documentation:
-# http://www.gnu.org/software/make/manual/make.html#Text-Functions
-# Assignment should be done after $C definition since value uses $C variable
-TEST_FILTER_OUT := $C/src/%/main.d
+# Version module generation
+# A module with detailed version information will be generated in
+# $(VERSION_FILE) unless $(VERSION_FILE) is empty. This file is generated using
+# the helper script mkversion.sh and the module template Version.tpl.d.
+VERSION_FILE := $(GS)/Version.d
 
 
 # Functions
@@ -304,8 +336,7 @@ check_deb = $Vi=`apt-cache policy $1 | grep Installed | cut -b14-`; \
 RDMDFLAGS ?= --force --compiler=$(DC) --exclude=tango
 
 # Default dmd flags
-override DFLAGS += -version=WithDateTime -I./src \
-	$(foreach dep,$(SUBMODULES), -I./$(dep)/src)
+override DFLAGS += -I$(GS) -I./$(SRC) $(foreach dep,$(SUBMODULES), -I./$(dep)/$(SRC))
 
 
 # Include the user's makefile, Build.mak
@@ -331,26 +362,23 @@ BUILD.d = $(RDMD) $(RDMDFLAGS) --makedepfile=$(BUILD.d.depfile) $(DFLAGS) \
 		$($@.EXTRA_FLAGS) $(addprefix -L,$(LDFLAGS)) $(TARGET_ARCH)
 
 # Updates the git version information
-VERSION_MODULE := $T/src/Version.d
-clean += $(VERSION_MODULE)
-mkversion = $V$(if $V,to=0; test -r $(VERSION_MODULE) && \
-		to=`stat --printf "%Y" "$(VERSION_MODULE)"`; \
-	)$(OCEAN_PATH)/script/mkversion.sh -o $(VERSION_MODULE) -m Version \
-	$(D_GC) $(OCEAN_PATH)/script/appVersion.d.tpl $(SUBMODULES)$(if $V,\
-		; tn=`stat --printf "%Y" "$(VERSION_MODULE)"`; \
+ifeq ($(VERSION_FILE),)
+mkversion :=
+else
+mkversion = $V$(if $V,to=0; test -r $(VERSION_FILE) && \
+		to=`stat --printf "%Y" "$(VERSION_FILE)"`; \
+	)$(MAKD_PATH)/mkversion.sh -o $(VERSION_FILE) \
+	-m $(patsubst /,.,$(patsubst $(GS)/%.d,%,$(VERSION_FILE))) \
+	$(D_GC) $(MAKD_PATH)/Version.tpl.d $(SUBMODULES)$(if $V,\
+		; tn=`stat --printf "%Y" "$(VERSION_FILE)"`; \
 		test "$$tn" -gt "$$to" && { \
-			printf $(vexec_p) mkversion $(VERSION_MODULE); \
+			printf $(vexec_p) mkversion $(VERSION_FILE); \
 			$(if $(COLOR),printf  '\033[00m';) \
 		} || true)
-
-# Dummy target to check for rdmd1 package (this is a transitional check, once
-# we all use the new packages this should be removed)
-$O/check_rdmd1: $(shell which $(RDMD))
-	$(call check_deb,rdmd1,2.065.0+16~dmd1~gbfa9b6a)
-	$Vtouch $@
+endif
 
 # Link binary programs
-$B/%: $G/build-d-flags | $O/check_rdmd1
+$B/%: $G/build-d-flags
 	$(mkversion)
 	$(call exec,$(BUILD.d) --build-only $(LOADLIBES) $(LDLIBS) -of$@ \
 		$(firstword $(filter %.d,$^)))
@@ -398,18 +426,18 @@ fasttest := fastunittest $(fasttest)
 test := unittest $(test)
 
 # Files to be tested in unittests, the user could potentially add more
-UNITTEST_FILES += $(call find_files,.d,,$C/src,$(TEST_FILTER_OUT))
+UNITTEST_FILES += $(call find_files,.d,,$C/$(SRC),$(TEST_FILTER_OUT))
 
 # Files to test when using fast or all unit tests
 $O/fastunittests.d: $(filter-out %_slowtest.d,$(UNITTEST_FILES))
 $O/allunittests.d: $(UNITTEST_FILES)
 
 # General rule to build the unittest program using the UnitTestRunner
-$O/%unittests.d: $G/build-d-flags | $O/check_rdmd1
+$O/%unittests.d: $G/build-d-flags
 	$(call exec,printf 'module $(patsubst $O/%.d,%,$@);\n\
-		import ocean.core.UnitTestRunner;\
+		import tango.core.UnitTestRunner;\
 		\n$(foreach f,$(filter %.d,$^),\
-		import $(subst /,.,$(patsubst $C/src/%.d,%,$f));\n)' > \
+		import $(subst /,.,$(patsubst $C/$(SRC)/%.d,%,$f));\n)' > \
 			$@,,gen)
 
 # Configure dependencies files specific to each special unittests target
@@ -417,7 +445,7 @@ $O/fastunittests: BUILD.d.depfile := $O/fastunittests.mak
 $O/allunittests: BUILD.d.depfile := $O/allunittests.mak
 
 # General rule to build the generated unittest program
-$O/%unittests: $O/%unittests.d $G/build-d-flags | $O/check_rdmd1
+$O/%unittests: $O/%unittests.d $G/build-d-flags
 	$(mkversion)
 	$(call exec,$(BUILD.d) --build-only -unittest -debug=UnitTest \
 		-version=UnitTest $(LOADLIBES) $(LDLIBS) -of$@ $<)
@@ -426,10 +454,11 @@ $O/%unittests: $O/%unittests.d $G/build-d-flags | $O/check_rdmd1
 $O/%unittests.stamp: $O/%unittests
 	$(call exec,$< $(if $(findstring k,$(MAKEFLAGS)),-k) $(if $V,,-v -s) \
 		$(foreach p,$(patsubst %.d,%,$(notdir $(shell \
-			find $T/src -maxdepth 1 -mindepth 1 -name '*.d' -type f\
+			find $T/$(SRC) -maxdepth 1 -mindepth 1 \
+				-name '*.d' -type f \
 			))),-p $p) \
 		$(foreach p,$(notdir $(shell \
-			find $T/src -maxdepth 1 -mindepth 1 -type d \
+			find $T/$(SRC) -maxdepth 1 -mindepth 1 -type d \
 			)),-p $p.) $(UTFLAGS),$<,run)
 	$Vtouch $@
 
@@ -453,7 +482,7 @@ test += integrationtest
 
 # General rule to build integration tests programs, this is the same as
 # building any other binary but including unittests too.
-$O/test-%: $T/test/%/main.d $G/build-d-flags | $O/check_rdmd1
+$O/test-%: $T/test/%/main.d $G/build-d-flags
 	$(mkversion)
 	$(call exec,$(BUILD.d) --build-only -unittest -debug=UnitTest \
 		-version=UnitTest $(LOADLIBES) $(LDLIBS) -of$@ $<)
@@ -471,7 +500,7 @@ $O/test-%.stamp: $O/test-%
 # project into $O. Create one symbolic link "last" to the current build
 # directory.
 setup_build_dir__ := $(shell \
-	mkdir -p $O $B $D \
+	mkdir -p $O $B $D $(GS) \
 		$(addprefix $O,$(patsubst $T%,%,\
 		$(shell find $T -type d $(foreach d,$(BUILD_DIR_EXCLUDE), \
 			-not -path '$T/$d' -not -path '$T/$d/*' \

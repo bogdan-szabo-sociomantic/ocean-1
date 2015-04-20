@@ -4,11 +4,14 @@ rev_file=src/Version.d
 author="`git config user.name`"
 get_rev=`dirname $0`/git-rev-desc
 
+echo "$0 is DEPRECATED, please add https://github.com/sociomantic/makd/ as a" \
+        "submodule instead!" >&2
+
 if which dmd1 > /dev/null
 then
-    dmd="`dmd1 | head -1`"
+    compiler="`dmd1 | head -1`"
 else
-    dmd="`dmd | head -1`"
+    compiler="`dmd | head -1`"
 fi
 
 # Get the current date (might be overridden by command-line options later)
@@ -72,18 +75,18 @@ trap "rm -f '$tmp'; exit 1" INT TERM QUIT
 cp "$template" "$tmp"
 module=${module:-`echo "$rev_file" | sed -e 's|/|.|g' -e 's|.d||g'`}
 
-revision=`git describe --dirty --always`
+version=`git describe --dirty --always`
 # Add branch name if we only got a hash
-echo "$revision" | egrep -q '^[0-9a-f]{7}(-dirty)?$'  &&
-    revision=`git rev-parse --abbrev-ref HEAD`-g"$revision"
+echo "$version" | egrep -q '^[0-9a-f]{7}(-dirty)?$'  &&
+    version=`git rev-parse --abbrev-ref HEAD`-g"$version"
 
 sed -i "$tmp" \
     -e "s/@MODULE@/$module/" \
     -e "s/@GC@/$gc/" \
-    -e "s/@REVISION@/$revision/" \
+    -e "s/@VERSION@/$version/" \
     -e "s/@DATE@/$date/" \
     -e "s/@AUTHOR@/$author/" \
-    -e "s/@DMD@/$dmd/"
+    -e "s/@COMPILER@/$compiler/"
 
 # Generate the libraries info
 libs=''
@@ -96,7 +99,7 @@ do
     echo "$ver_desc" | egrep -q '^[0-9a-f]{7}(-dirty)?$'  &&
         ver_desc=`cd $lib && git rev-parse --abbrev-ref HEAD`-g"$ver_desc"
 
-    libs="${libs}    Version.libraries[\"$lib_base\"] = \"$ver_desc\";\\n"
+    libs="${libs}    Version[\"lib_${lib_base}\"] = \"${ver_desc}\";\\n"
 done
 sed -i "s/@LIBRARIES@/$libs/" "$tmp"
 
