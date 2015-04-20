@@ -446,7 +446,7 @@ class VersionHandlingException : Exception
         {
             this.msg = Format(
                 "Loading {} has failed, input buffer too short " ~
-                    "(length (), need {})",
+                    "(length {}, need {})",
                 S.stringof,
                 input_length,
                 Version.Type.sizeof
