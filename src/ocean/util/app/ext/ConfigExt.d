@@ -152,8 +152,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
     public void setupArgs ( IApplication app, Arguments args )
     {
         args("config").aliased('c').params(1).smush()
-            .help("use the configuration file CONFIG instead of the default "
-                "(" ~ join(this.default_configs, ", ") ~ ")");
+            .help("use the given configuration file");
 
         foreach (conf; this.default_configs)
         {
