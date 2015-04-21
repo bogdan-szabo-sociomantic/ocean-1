@@ -1,5 +1,7 @@
 /******************************************************************************
 
+    Use ocean.core SmartUnion instead
+
     Union providing type-based member access and automatic type checking
 
     copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
@@ -31,7 +33,7 @@
 
  ******************************************************************************/
 
-module ocean.core.UniStruct;
+deprecated module ocean.core.UniStruct;
 
 /*******************************************************************************
 

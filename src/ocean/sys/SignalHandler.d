@@ -69,7 +69,7 @@ module ocean.sys.SignalHandler;
 import tango.stdc.signal: signal, raise, SIGABRT, SIGFPE,  SIGILL,
                                   SIGINT,  SIGSEGV, SIGTERM, SIG_DFL;
 
-import ocean.core.UniStruct,
+import ocean.core.SmartUnion,
        ocean.core.SmartEnum;
 
 version (Posix) import tango.stdc.posix.signal: SIGALRM, SIGBUS,  SIGCHLD,
@@ -171,7 +171,9 @@ class SignalHandler
 
     ***************************************************************************/
 
-    alias UniStruct!(DgHandler,FnHandler) Handler;
+    private union EHandler { DgHandler dg; FnHandler fn; }
+
+    alias SmartUnion!(EHandler) Handler;
 
     /**************************************************************************
 
@@ -417,15 +419,17 @@ class SignalHandler
 
            foreach (d ; handlers[sig])
            {
-               d.visit((DgHandler dg)
-                       {
-                            if (!dg(sig)) defaultHandler = false;
-                       },
-                       (FnHandler fn)
-                       {
-                            if (!fn(sig)) defaultHandler = false;
-                       }
-                      );
+               switch (d.active())
+               {
+                   case Handler.Active.dg:
+                       if (!d.dg()(sig)) defaultHandler = false;
+                       break;
+                   case Handler.Active.fn:
+                       if (!d.fn()(sig)) defaultHandler = false;
+                       break;
+                   default:
+                       assert(false);
+               }
            }
 
            if (defaultHandler)
