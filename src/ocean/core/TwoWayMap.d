@@ -1,5 +1,8 @@
 /*******************************************************************************
 
+    Deprecated as it is not used outside of ocean. May need to be re-introduces
+    if similar functionality will be required.
+
     copyright:      Copyright (c) 2011 sociomantic labs.
                     All rights reserved.
 
@@ -42,7 +45,7 @@
 
 *******************************************************************************/
 
-module ocean.core.TwoWayMap;
+deprecated module ocean.core.TwoWayMap;
 
 
 
