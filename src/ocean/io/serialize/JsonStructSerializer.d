@@ -153,7 +153,7 @@ class JsonStructSerializer ( Char, bool ThreadSafe = false )
 
     ***************************************************************************/
 
-    void dispose ( )
+    override void dispose ( )
     {
         static if ( ThreadSafe )
         {

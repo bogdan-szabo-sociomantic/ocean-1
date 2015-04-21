@@ -298,7 +298,7 @@ class JsonStructDeserializer ( Char )
 
     ***************************************************************************/
 
-    void dispose ( )
+    override void dispose ( )
     {
         delete this.parser;
     }
@@ -676,7 +676,7 @@ class JsonStructDeserializer ( Char )
     {
         debug ( Json ) Stderr.formatln("Checking token type {} == {}", token, this.parser.type());
 
-        assertEx!(JsonException)(this.parser.type() == token,
+        enforce!(JsonException)(this.parser.type() == token,
                 typeof(this).stringof ~ ".checkToken - invalid token type in json string" ~
                 "', expected token number " ~ Integer.toString(token) ~
                 ", got token number " ~ Integer.toString(this.parser.type()));
@@ -706,7 +706,7 @@ class JsonStructDeserializer ( Char )
 
         if (throwException)
         {
-            assertEx!(JsonException)(this.parser.type() ==  Parser.Token.Name && this.parser.value() == name,
+            enforce!(JsonException)(this.parser.type() ==  Parser.Token.Name && this.parser.value() == name,
                 typeof(this).stringof ~ ".checkName - name '" ~ name ~ "' expected, got '" ~ this.parser.value() ~ "'");
         }
         else
