@@ -95,6 +95,11 @@ Deprecations
 New Features
 ============
 
+* ``ocean.sys.socket.UnixSocket.d``
+
+  A new UnixSocket class was added, enabling communication via
+  Unix Sockets.
+
 * ``ocean.text.json.JsonExtractor``
 
   GetObject can now skip null values
