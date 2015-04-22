@@ -30,6 +30,7 @@ import ocean.util.app.Application;
 import ocean.text.Arguments;
 import ocean.util.config.ConfigParser;
 import ocean.io.Stdout;
+import ocean.core.Array: startsWith;
 
 import tango.util.log.Log;
 import tango.util.log.AppendFile;
@@ -119,21 +120,25 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
         Get a single version string with all the libraries versions.
 
+        Only keys starting with "lib_" are considered libraries.
+
         Params:
-            libs = associative array with the name as the key and the revision
-                   as the value
+            ver = associative array with the version name as the key and the
+                  revision as the value
 
         Returns:
             string with the version information of all libraries
 
     ***************************************************************************/
 
-    protected char[] getLibsVersionsString ( char[][char[]] libs )
+    protected char[] getLibsVersionsString ( char[][char[]] ver )
     {
+        const prefix = "lib_";
         char[] s;
-        foreach (name, rev; libs)
+        foreach (name, rev; ver)
         {
-            s ~= " " ~ name ~ ":" ~ rev;
+            if (name.startsWith(prefix))
+                s ~= " " ~ name[prefix.length .. $] ~ ":" ~ rev;
         }
         return s;
     }
@@ -161,7 +166,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
         }
         return app_name ~ " version " ~ get("version") ~ " (compiled by '" ~
                 get("build_author") ~ "' on " ~ get("build_date") ~ " with " ~
-                get("dmd_version") ~ " using " ~
+                get("dmd_version") ~ " using" ~
                 this.getLibsVersionsString(ver) ~ ")";
     }
 
