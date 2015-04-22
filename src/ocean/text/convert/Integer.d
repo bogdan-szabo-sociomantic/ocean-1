@@ -441,10 +441,12 @@ private ptrdiff_t trim ( T ) ( T[] digits, ref bool negative, ref uint radix )
        else
           // explicit radix must match (optional) prefix
           if (radix != r)
+          {
               if (radix)
                   p -= 2;
               else
                  radix = r;
+          }
        }
 
     // return number of characters eaten

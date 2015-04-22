@@ -441,7 +441,7 @@ unittest
     s.a[0][0][0].a = [ "1", "2", "3" ];
     s.a[0][0][1].a = [ "1", "2" ];
 
-    void buffer[];
+    void[] buffer;
     Serializer.serialize(s, buffer);
     auto cont = Deserializer.deserialize!(Outer)(buffer);
 
@@ -472,7 +472,7 @@ unittest
     }
 
     auto input = New(32, 42);
-    void buffer[];
+    void[] buffer;
     Serializer.serialize(input, buffer);
     auto output = Deserializer.deserialize!(Old)(buffer);
 

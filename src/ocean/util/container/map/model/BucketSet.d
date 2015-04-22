@@ -425,13 +425,16 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
         // FIXME: Disabled due to DMD bug 6417, the method parameter argument
         // values are junk inside this contract.
 
-        version (none) if (element)
+        version (none)
         {
-            assert (element.key == key, "key mismatch");
-        }
-        else
-        {
-            assert (!must_exist, "element not found");
+            if (element)
+            {
+                assert (element.key == key, "key mismatch");
+            }
+            else
+            {
+                assert (!must_exist, "element not found");
+            }
         }
     }
     body

@@ -365,7 +365,7 @@ class PriorityCache(T) : ICacheInfo
         if (TimeToIndex.Node** node = this.getNode(key))
         {
             priority = this.getNodePriority(**node);
-            return &this.items[this.getNodeIndex(**node)].value;;
+            return &this.items[this.getNodeIndex(**node)].value;
         }
         else
             return null;

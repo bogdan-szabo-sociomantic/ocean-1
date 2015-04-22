@@ -1900,7 +1900,8 @@ unittest
 
 
             {
-                byte buffer[]; buffer.length = length(emptyp);
+                byte[] buffer;
+                buffer.length = length(emptyp);
                 sw.start;
                 for(uint i = 0;i<1_00000; ++i)
                 {

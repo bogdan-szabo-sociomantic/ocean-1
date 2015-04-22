@@ -43,7 +43,7 @@ private
         ushort ws_col;
         ushort ws_xpixel;
         ushort ws_ypixel;
-    };
+    }
 }
 
 /*******************************************************************************

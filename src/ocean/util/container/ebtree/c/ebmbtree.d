@@ -32,7 +32,7 @@ import ocean.util.container.ebtree.c.ebtree;
 struct ebmb_node
 {
     eb_node node; /* the tree node, must be at the beginning */
-    char key[0]; /* the key, its size depends on the application */
+    char[0] key; /* the key, its size depends on the application */
 }
 
 /*

@@ -51,6 +51,6 @@ unittest
 
     cookie.parse(cookie_header_value);
 
-    assert (cookie["sonar"] == "2649113645");;
+    assert (cookie["sonar"] == "2649113645");
     assert (cookie["sonar-expires"] == "1383922851");
 }
