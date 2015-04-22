@@ -71,7 +71,7 @@ struct Serializer
 
     ***************************************************************************/
 
-    public static void[] serialize ( S ) ( S src, ref void[] dst )
+    public static void[] serialize ( S ) ( ref S src, ref void[] dst )
     out (data)
     {
         debug (SerializationTrace)
@@ -120,7 +120,7 @@ struct Serializer
 
     ***************************************************************************/
 
-    public static size_t countRequiredSize ( S ) ( S input )
+    public static size_t countRequiredSize ( S ) ( ref S input )
     out (size)
     {
         debug (SerializationTrace)

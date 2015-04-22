@@ -43,6 +43,12 @@ Migration Instructions
 
   This long deprecated file was completely removed.
 
+* `ocean.util.serialize.contiguous.Serializer`
+
+  The `Serializer` accepts the struct to serialize by reference. Hence rvalues
+  cannot be passed to the 'serialize' method anymore.
+
+
 Deprecations
 ============
 
