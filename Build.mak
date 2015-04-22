@@ -1,4 +1,8 @@
-override DFLAGS += -w -v2 -v2=-static-arr-params
+override DFLAGS += -w
+
+ifeq ($(DVER),1)
+override DFLAGS += -v2 -v2=-static-arr-params
+endif
 
 # Modules to exclude from testing because they are broken
 TEST_FILTER_OUT += \
