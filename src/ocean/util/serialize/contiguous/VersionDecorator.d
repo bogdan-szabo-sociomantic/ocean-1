@@ -655,3 +655,38 @@ unittest
         testConvMemory!(Version2, Version2)(ver2);
     }
 }
+
+/******************************************************************************
+
+    Conversion which replaces struct fields completely
+
+******************************************************************************/
+
+struct Test4
+{
+    struct Ver0
+    {
+        const ubyte StructVersion = 0;
+        int a;
+    }
+
+    struct Ver1
+    {
+        const ubyte StructVersion = 1;
+        alias Test4.Ver0 StructPrevious;
+
+        long b;
+        void convert_b(ref Ver0 rhs) { this.b = 42; }
+    }
+}
+
+unittest
+{
+    auto loader = new VersionDecorator;
+    void[] buffer;
+
+    auto src = Test4.Ver0(20);
+    loader.store(src, buffer);
+    auto dst = loader.load!(Test4.Ver1)(buffer);
+    test!("==")(dst.ptr.b, 42);
+}
