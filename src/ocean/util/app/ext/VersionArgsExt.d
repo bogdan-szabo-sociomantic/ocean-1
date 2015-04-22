@@ -166,7 +166,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
         }
         return app_name ~ " version " ~ get("version") ~ " (compiled by '" ~
                 get("build_author") ~ "' on " ~ get("build_date") ~ " with " ~
-                get("dmd_version") ~ " using" ~
+                get("compiler") ~ " using" ~
                 this.getLibsVersionsString(ver) ~ ")";
     }
 
