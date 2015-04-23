@@ -35,6 +35,7 @@ import ocean.core.Array: startsWith;
 import tango.util.log.Log;
 import tango.util.log.AppendFile;
 import tango.util.log.LayoutDate;
+import tango.core.Array: sort;
 
 
 
@@ -135,10 +136,12 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
     {
         const prefix = "lib_";
         char[] s;
-        foreach (name, rev; ver)
+        auto sorted_names = ver.keys;
+        sorted_names.sort();
+        foreach (name; sorted_names)
         {
             if (name.startsWith(prefix))
-                s ~= " " ~ name[prefix.length .. $] ~ ":" ~ rev;
+                s ~= " " ~ name[prefix.length .. $] ~ ":" ~ ver[name];
         }
         return s;
     }
