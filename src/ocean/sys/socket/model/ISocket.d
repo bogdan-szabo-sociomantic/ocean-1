@@ -1246,7 +1246,7 @@ public abstract class ISocket : InputDevice, IOutputDevice
 
     public int close ( )
     {
-        scope (success) this.clear();
+        scope (exit) this.clear();
 
         return .close(this.fd);
     }
