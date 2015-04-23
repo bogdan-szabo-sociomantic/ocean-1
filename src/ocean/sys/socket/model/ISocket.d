@@ -37,6 +37,8 @@ import ocean.io.device.IODevice: InputDevice, IOutputDevice;
 
 import ocean.sys.socket.InetAddress;
 
+import tango.stdc.posix.sys.socket;
+
 // FIXME: somehow the import above doesn't result in this symbol being
 // identifiable in this module. Re-defining it locally.
 // Perhaps this is a symptom of a circular import?
@@ -54,8 +56,8 @@ enum : uint
 public enum SocketFlags
 {
     None,
-    SOCK_NONBLOCK = 0x800,
-    SOCK_CLOEXEC  = 0x8_0000
+    SOCK_NONBLOCK = .SOCK_NONBLOCK,
+    SOCK_CLOEXEC  = .SOCK_CLOEXEC
 }
 
 /******************************************************************************
