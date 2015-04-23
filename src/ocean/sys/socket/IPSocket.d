@@ -205,10 +205,9 @@ abstract class IIPSocket : ISocket
 
     public int tcpSocket ( bool nonblocking = false )
     {
-        const int[2] type = [SOCK_STREAM,
-                             SOCK_STREAM | SocketFlags.SOCK_NONBLOCK];
+        auto flags = SOCK_STREAM | (nonblocking ? SocketFlags.SOCK_NONBLOCK : 0);
 
-        return this.socket(type[nonblocking], IPPROTO_TCP);
+        return this.socket(flags, IPPROTO_TCP);
     }
 }
 
