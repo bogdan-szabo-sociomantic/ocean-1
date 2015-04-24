@@ -15,6 +15,7 @@
 *******************************************************************************/
 
 module ocean.util.container.queue.model.ITypedQueue;
+import ocean.core.Test;
 
 
 /******************************************************************************
@@ -152,4 +153,50 @@ public bool pop ( T ) ( ITypedQueue!(T) q, ref T t )
     t = *p;
     q.discardTop();
     return true;
+}
+
+
+version ( UnitTest )
+{
+    /**************************************************************************
+
+        Test the methods defined in the ITypedQueue interface
+
+        params:
+            queue = queue to run tests on
+            items = an array of items to test the queue with
+
+    ***************************************************************************/
+
+    void testInterfaceMethods ( T ) ( ITypedQueue!( T ) queue, T[] items )
+    {
+        // test 'push' and 'top'
+        foreach ( i, item; items)
+        {
+            test(push(queue, items[i]), "push should have been successfull");
+
+            test!("==")(queue.length(), i + 1, "push method should have added an item!");
+            test(queue.top() != null, "queue isn't empty. Should have topped something!");
+        }
+
+        // test 'pop' (which calls 'top' and 'discardTop')
+        foreach ( i, item; items)
+        {
+            T popped;
+            pop(queue, popped);
+
+            test!("==")(popped, items[i], "First element in queue should change after we pop!");
+            test!("==")(queue.length(), items.length - i - 1, "pop method should have removed a single item from queue!");
+        }
+
+        // test 'clear'
+        foreach ( i, item; items)
+        {
+            test(push(queue, items[i]), "push should have been successfull");
+        }
+
+        queue.clear();
+        test(queue.empty(), "clear method should have removed all items from queue!");
+        test(!queue.length(), "clear method should have removed all items from queue. Length should be 0!");
+    }
 }
