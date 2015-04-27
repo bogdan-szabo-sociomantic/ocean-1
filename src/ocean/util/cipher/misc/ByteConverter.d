@@ -8,10 +8,12 @@
 
 module ocean.util.cipher.misc.ByteConverter;
 
+import tango.transition;
+
 /** Converts between integral types and unsigned byte arrays */
 struct ByteConverter
 {
-    private static char[] hexits = "0123456789abcdef";
+    private const istring hexits = "0123456789abcdef";
 
     /** Conversions between little endian integrals and bytes */
     struct LittleEndian
