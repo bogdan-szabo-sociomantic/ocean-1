@@ -562,10 +562,44 @@ public class StatsLog : IStatsLog
         {
             static assert (is(T == struct) || is(T == class),
                            "Parameter to add must be a struct or a class");
-            this.formatAggregate(values);
+            this.format!(null)(values, cstring.init);
         }
         this.add_separator = true;
 
+        return this;
+    }
+
+
+    /***************************************************************************
+
+        Adds the values of the given aggregate to the stats log. Each member of
+        the aggregate will be output as <member name>:<member value>.
+
+        Template params:
+            category = The name of the category this object belongs to.
+
+        Params:
+            instance = Name of the object to add.
+            values = aggregate containing values to write to the log.
+                     Passed as ref purely to avoid making a copy --
+                     the aggregate is not modified.
+
+    ***************************************************************************/
+
+    public typeof(this) addObject (istring category, T)
+        (cstring instance, ref T values)
+    in
+    {
+        static assert (is(T == struct) || is(T == class),
+                       "Parameter to add must be a struct or a class");
+        static assert(category.length,
+                      "Template parameter 'category' should not be null");
+        assert (instance.length, "Object name should not be null");
+    }
+    body
+    {
+        this.format!(category)(values, instance);
+        this.add_separator = true;
         return this;
     }
 
@@ -674,20 +708,32 @@ public class StatsLog : IStatsLog
     /***************************************************************************
 
         Writes the values from the provided aggregate to the format_buffer
-        member. Each member of the aggregate is output as
-        <member name>:<member value>.
+        member.
+
+        Each member of the aggregate is output as either:
+        <category name>/<object name>/<member name>:<member value>
+        if a category is provided, or as:
+        <member name>:<member value>
+        if no category is provided.
+        It's a runtime error to provide a category but no instance name, or the
+        other way around.
 
         Note: When the aggregate is a class, the members of the super class
         are not iterated over.
 
+        Template params:
+            category = The type of object we log. You should use a single type
+                       per category.
+
         Params:
             values = aggregate containing values to write to the log. Passed as
-                ref purely to avoid making a copy -- the aggregate is not
-                modified.
+                     ref purely to avoid making a copy -- the aggregate is not
+                     modified.
+            instance = The name of the instance of the category, or null if none
 
     ***************************************************************************/
 
-    private void formatAggregate ( T ) ( ref T values )
+    private void format ( istring category, T ) ( ref T values, cstring name )
     {
         foreach ( i, value; values.tupleof )
         {
@@ -697,7 +743,7 @@ public class StatsLog : IStatsLog
             {
                 this.layout(' ');
             }
-            this.formatValue!(null)(FieldName!(i, T), value, cstring.init);
+            this.formatValue!(category)(FieldName!(i, T), value, name);
             this.add_separator = true;
         }
     }
