@@ -68,12 +68,11 @@ import tango.stdc.time : time_t;
 
             // Struct whose fields define the values to write to each line of
             // the stats log file.
+            // Only numeric and floating points types are accepted.
             private struct Stats
             {
-                bool b = true;
                 int x = 23;
                 float y = 23.23;
-                char[] s = "hello";
             }
 
             // Instance of Stats struct
@@ -737,6 +736,12 @@ public class StatsLog : IStatsLog
     {
         foreach ( i, value; values.tupleof )
         {
+            static if (!isIntegerType!(typeof(value))
+                       && !isRealType!(typeof(value)))
+            {
+                pragma(msg, "[", __FILE__, ":", __LINE__, "]", T.stringof,
+                       " should only contain integer or floating point members");
+            }
             // stringof results in something like "values.somename", we want
             // only "somename"
             if (this.add_separator)
