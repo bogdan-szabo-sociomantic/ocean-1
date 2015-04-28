@@ -33,6 +33,7 @@ import ocean.text.convert.Layout: StringLayout;
 
 import ocean.util.log.layout.LayoutStatsLog;
 
+import tango.core.Traits;
 import tango.util.log.Log;
 import tango.util.log.AppendSyslog;
 
@@ -535,79 +536,58 @@ public class StatsLog : IStatsLog
 
     /***************************************************************************
 
-        Adds one or several values to be outputted to the stats log.
+        Adds the values of the given aggregate to the stats log. Each member
+        of the aggregate will be output as <member name>:<member value>.
 
-        This function is written using variadic templates to work around the
-        limits of template deduction. This function is equivalent to the
-        following three functions:
+        Params:
+            values = aggregate containing values to write to the log. Passed
+                as ref purely to avoid making a copy -- the aggregate is not
+                modified.
 
-        ************************************************************************
-        * Adds the values of the given aggregate to the stats log. Each member
-        * of the aggregate will be output as <member name>:<member value>.
-        *
-        * Params:
-        *     values = aggregate containing values to write to the log. Passed
-        *         as ref purely to avoid making a copy -- the aggregate is not
-        *         modified.
-        * ---
-        * public typeof(this) add ( T ) ( T values )
-        * ---
-
-        ************************************************************************
-        * Add another value to the stats
-        *
-        * Params:
-        *     name = name of the value
-        *     value = the value to add
-        * ---
-        * public typeof(this) add ( T ) ( char[] name, T value )
-        * ---
-
-        ************************************************************************
-        * Add values from an associative array to the stats
-        *
-        * Params:
-        *     values = The associative array with the values to add
-        * ---
-        * public typeof(this) add ( T ) ( T[char[]] values )
-        * ----
-
-        Don't forget to call .flush() after all values have been added.
-
-        Returns:
-            A reference to this class so that
-
-            ---
-                add(myValues).add("abc", 3).add("efg", 2).flush()
-            ---
-
-            can be used to write values
+        Note:
+            values can also be an associative array, in which case every
+            key will be the name associated to the value.
+            This behaviour is however deprecated and will be removed in a
+            later release. Please use a struct instead.
 
     ***************************************************************************/
 
-    public typeof(this) add ( T... ) ( T parameters )
+    public typeof(this) add ( T ) ( ref T values )
     {
-        static if ( T.length == 1 )
-        {   // only parameter an aggregate
-            static if ( is ( T[0] == struct ) || is ( T[0] == class ) )
-            {
-                this.format(parameters[0]);
-            }
-            else // only parameter not an aggregate, assumed AA
-            {
-                this.formatAssocArray(parameters[0], this.add_separator);
-            }
-        }
-        // two parameters always (assumed to be) name, value
-        else static if ( T.length == 2 )
+        static if (isAssocArrayType!(T))
         {
-            this.formatValue(parameters[0], parameters[1], this.add_separator);
+            this.formatAssocArray(values, this.add_separator);
         }
-        else static assert (false,
-                "StatsLog.add(...): called with invalid amount of parameters");
-
+        else
+        {
+            static assert (is(T == struct) || is(T == class),
+                           "Parameter to add must be a struct or a class");
+            this.formatAggregate(values);
+        }
         this.add_separator = true;
 
+        return this;
+    }
+
+
+    /***************************************************************************
+
+        Add another value to the stats
+
+        Params:
+            name = name of the value
+            value = the value to add
+
+        Returns:
+            this, for easy chaining
+
+    ***************************************************************************/
+
+    deprecated("Adding individual value is deprecated, please use a struct")
+    public typeof(this) add ( T ) ( cstring name, T value )
+    {
+        this.formatValue(name, value, this.add_separator);
+        this.add_separator = true;
         return this;
     }
 
@@ -653,16 +633,18 @@ public class StatsLog : IStatsLog
 
     ***************************************************************************/
 
+    deprecated("Please use addObject instead")
     public typeof(this) addSuffix ( T ) ( T parameter, char[] suffix )
     {
-        // only parameter an aggregate
-        static if ( is ( T == struct ) || is ( T == class ) )
-        {
-            this.formatAggregate(parameter, suffix);
-        }
-        else // only parameter not an aggregate, assumed AA
+        static if (isAssocArrayType!(T))
         {
             this.formatAssocArray(parameter, this.add_separator, suffix);
+        }
+        else
+        {
+            static assert (is (T == struct) || is (T == class),
+                           "Parameter to add must be a struct or a class");
+            this.formatAggregate(parameter, suffix);
         }
 
         this.add_separator = true;
@@ -682,32 +664,6 @@ public class StatsLog : IStatsLog
         this.logger.info(this.layout[]);
         this.add_separator = false;
         this.layout.clear();
-    }
-
-
-    /***************************************************************************
-
-        Formats the values from the provided aggregate to the internal string
-        buffer. Each member of the aggregate is formatted as
-        <member name>:<member value>.
-
-        Note: When the aggregate is a class, the members of the super class
-        are not iterated over.
-
-        Params:
-            values = aggregate containing values to format. Passed as ref purely
-                to avoid making a copy -- the aggregate is not modified.
-
-        Returns:
-            formatted string
-
-    ***************************************************************************/
-
-    private char[] format ( T ) ( ref T values )
-    {
-        this.formatAggregate(values);
-
-        return this.layout[];
     }
 
 
@@ -878,6 +834,7 @@ public abstract class IStatsLog
 
     ***************************************************************************/
 
+    deprecated("Please use a struct instead of associative arrays")
     protected void formatAssocArray ( A ) ( A[char[]] values, ref bool add_separator,
         char[] suffix = null )
     {
