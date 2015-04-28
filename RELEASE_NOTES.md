@@ -53,6 +53,13 @@ Migration Instructions
   when deleted. Applications that wish to keep the behaviour should call
   `Stdout.endrow.newline.flush` directly.
 
+* `ocean.math.Range`
+
+  The `opEquals()` method which compares a range against a set of ranges no
+  longer takes empty ranges in the list bein compared into account. (The old
+  behaviour -- including empty ranges in the comparison -- caused the function
+  to always return false in the presence of empty ranges.)
+
 Deprecations
 ============
 

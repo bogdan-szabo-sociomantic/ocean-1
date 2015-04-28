@@ -302,7 +302,8 @@ public struct Range ( T )
         Checks whether the union of the specified ranges covers exactly the same
         range as this instance, with no gaps.
 
-        Note that the passed list of ranges is sorted by this method.
+        Note that the passed list of ranges is sorted by this method. Empty
+        ranges in the list are ignored.
 
         Params:
             sub_ranges = list of ranges to union and compare against this
@@ -319,6 +320,12 @@ public struct Range ( T )
         if ( sub_ranges.length == 0 ) return false;
 
         sub_ranges.sort;
+
+        // sort() moves empty ranges to the start of the list. Slice them off.
+        while ( sub_ranges[0].is_empty )
+        {
+            sub_ranges = sub_ranges[1..$];
+        }
 
         if ( sub_ranges[0].min != this.min ) return false;
         if ( sub_ranges[$-1].max != this.max ) return false;
@@ -356,6 +363,11 @@ public struct Range ( T )
         // unsorted, complete
         assert(Range(0, 10) ==
             [Range(6, 10), Range(2, 5), Range(0, 1)]);
+
+        // complete, empty ranges skipped
+        Range empty;
+        assert(Range(0, 10) ==
+            [Range(6, 10), Range(2, 5), Range(0, 1), empty, empty]);
 
         // unsorted, missing start
         assert(Range(0, 10) !=
