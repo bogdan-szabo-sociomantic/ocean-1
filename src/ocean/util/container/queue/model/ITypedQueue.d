@@ -2,7 +2,7 @@
 
     copyright:      Copyright (c) 2015 sociomantic labs. All rights reserved
 
-    An interface for a queue with items of a specific type.
+    An interface for a FIFO queue with items of a specific type.
 
     This interface is deliberately designed to be as minimal as possible,
     only covering the core functionality shared by the wide variety of possible
@@ -19,7 +19,7 @@ module ocean.util.container.queue.model.ITypedQueue;
 
 /******************************************************************************
 
-    An interface for a queue with items of a specific type.
+    An interface for a FIFO queue with items of a specific type.
 
     Template params:
         T = Type of items to be stored in the queue

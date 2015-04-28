@@ -2,7 +2,7 @@
 
     copyright:      Copyright (c) 2015 sociomantic labs. All rights reserved
 
-    An interface for a queue with items of unspecified type.
+    An interface for a FIFO queue with items of unspecified type.
 
     This interface is deliberately designed to be as minimal as possible,
     only covering the core functionality shared by the wide variety of possible
@@ -21,7 +21,8 @@ private import ocean.core.Array : copy;
 
 /******************************************************************************
 
-    An interface for a queue with items of unspecified type (opaque chunks of data).
+    An interface for a FIFO queue with items of unspecified type (opaque chunks
+    of data).
 
 *******************************************************************************/
 
