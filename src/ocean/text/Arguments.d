@@ -437,6 +437,8 @@ class Arguments : Tango.Arguments
         output.format("{}", arg.text);
 
         uint extras;
+        bool params = arg.min > 0 || arg.max > 0;
+        if ( params )              extras++;
         if ( arg.options.length )  extras++;
         if ( arg.deefalts.length ) extras++;
         if ( extras )
@@ -452,6 +454,19 @@ class Arguments : Tango.Arguments
             }
 
             output.format(" (");
+
+            if ( params )
+            {
+                if ( arg.min == arg.max )
+                {
+                    output.format("{} param{}", arg.min, arg.min == 1 ? "" : "s");
+                }
+                else
+                {
+                    output.format("{}-{} params", arg.min, arg.max);
+                }
+                next();
+            }
 
             if ( arg.options.length )
             {
