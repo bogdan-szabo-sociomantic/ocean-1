@@ -441,13 +441,9 @@ class Arguments : Tango.Arguments
         if ( arg.deefalts.length ) extras++;
         if ( extras )
         {
-            output.format(" (");
-
-            if ( arg.options.length )
+            // comma separate sections if more info to come
+            void next ( )
             {
-                output.format("{}", arg.options);
-
-                // comma separate if more info to come
                 extras--;
                 if ( extras )
                 {
@@ -455,9 +451,18 @@ class Arguments : Tango.Arguments
                 }
             }
 
+            output.format(" (");
+
+            if ( arg.options.length )
+            {
+                output.format("{}", arg.options);
+                next();
+            }
+
             if ( arg.deefalts.length )
             {
                 output.format("default: {}", arg.deefalts);
+                next();
             }
 
             output.format(")");
