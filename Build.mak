@@ -13,3 +13,10 @@ TEST_FILTER_OUT += \
 # Link unittests to all used libraries
 $O/%unittests: override LDFLAGS += -lglib-2.0 -lpcre -lxml2 -lxslt -lebtree \
 		-ltokyocabinet -llzo2 -lreadline -lhistory
+
+.PHONY: d2conv
+d2conv: $O/d2conv.stamp
+
+$O/d2conv.stamp:
+	$(call exec,find $C/src -type f -name '*.d' | xargs d1to2fix,src/**.d,d1to2fix)
+	$Vtouch $@
