@@ -46,7 +46,7 @@ public class FilePath : tango.io.FilePath.FilePath
 
     ***********************************************************************/
 
-    public this (char[] filepath = null)
+    public this (cstring filepath = null)
     {
         super (filepath);
     }

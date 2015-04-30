@@ -124,7 +124,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
     ***************************************************************************/
 
-    private typeof(this) csiSeq ( char[] seq ) ( )
+    private typeof(this) csiSeq ( istring seq ) ( )
     {
         if ( !this.redirect )
         {
@@ -447,7 +447,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
         ***********************************************************************/
 
-        private void setCol ( char[] method ) ( bool bold = false )
+        private void setCol ( istring method ) ( bool bold = false )
         {
             this.colour_set = true;
             mixin("this.outer." ~ method ~ ";");
@@ -520,7 +520,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
         ***********************************************************************/
 
-        private void setCol ( char[] method ) ( )
+        private void setCol ( istring method ) ( )
         {
             this.colour_set = true;
             mixin("this.outer." ~ method ~ ";");
