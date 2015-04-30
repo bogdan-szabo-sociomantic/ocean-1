@@ -1,18 +1,19 @@
 /******************************************************************************
 
-        copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
-
-        license:        BSD style: $(LICENSE)
-
-        version:        May 2009: Initial release
-
-        author:         David Eckardt, Thomas Nicolai, Lars Kirchhoff
-
     TODO: move module to ocean.util.digest
+
+    copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
+
+    license:        BSD style: $(LICENSE)
+
+    version:        May 2009: Initial release
+
+    author:         David Eckardt, Thomas Nicolai, Lars Kirchhoff
 
 *******************************************************************************/
 
 module  ocean.io.digest.Fnv1;
+
 
 /******************************************************************************
 
@@ -26,11 +27,14 @@ import tango.util.digest.Digest;
 import tango.core.ByteSwap;
 
 
-
 /******************************************************************************
 
     template for creating FNV magic constants and endianness, depending on
     if 32bit (uint) or 64bit (ulong) are used.
+
+    Template params:
+        T = Type of hash to use, should be `uint` or `ulong`, or any alias
+            to them. Defaults to `hash_t`, which is a D alias to `size_t`.
 
 *******************************************************************************/
 
@@ -71,8 +75,8 @@ template Fnv1Const ( T = hash_t )
 
 /******************************************************************************
 
-    Convenience aliases for 32-bit and 64-bit Fnv1 class template
-    instances. Most be under Fnv1Const to avoid DMD errors
+    Convenience aliases for 32-bit and 64-bit Fnv1 class template instances.
+    Must be defined after Fnv1Const to avoid DMD errors
 
 *******************************************************************************/
 
@@ -80,14 +84,19 @@ alias Fnv1Generic!(true)          Fnv1a;
 alias Fnv1Generic!(true,  uint)   Fnv1a32;
 alias Fnv1Generic!(true,  ulong)  Fnv1a64;
 
+
 /******************************************************************************
 
-    CompileTime fnv1a hash function, calculates a hash value of type T where T
+    Compile time fnv1a hash function, calculates a hash value of type T where T
     must be uint or ulong.
 
     Convenience aliases for 32 bit (T = uint) or 64 bit (T = ulong) hashes are
     defined below. They have to appear after this template definition because
     DMD can currently (v1.075) not handle forward aliases in this case. >:-(
+
+    Template params:
+        T = Type of hash to use, should be `uint` or `ulong`, or any alias
+            to them. Defaults to `hash_t`, which is a D alias to `size_t`.
 
 *******************************************************************************/
 
@@ -294,7 +303,6 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 
     mixin Fnv1Const!(T);
 
-//    pragma (msg, DigestType.stringof);
 
     /**************************************************************************
 
@@ -343,7 +351,7 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 
          BinString array;
 
-         DigestType         value;
+         DigestType value;
 
          /* cast "value" from integer type "DigestType" to binary string type "BinString"
             considering machine byte order (endianness) */
