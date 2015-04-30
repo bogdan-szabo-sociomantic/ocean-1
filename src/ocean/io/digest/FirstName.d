@@ -10,6 +10,7 @@
 
 module ocean.io.digest.FirstName;
 
+
 /*******************************************************************************
 
     Imports
@@ -17,6 +18,7 @@ module ocean.io.digest.FirstName;
 *******************************************************************************/
 
 import ocean.io.digest.Fnv1;
+
 
 /*******************************************************************************
 
@@ -51,7 +53,7 @@ static class FirstName
 
     ***************************************************************************/
 
-    static private char[][] names =
+    static private istring[] names =
             ["Sarah",
             "David",
             "Gavin",
@@ -108,7 +110,7 @@ static class FirstName
 
     ***************************************************************************/
 
-    static char[] opCall ( T ) ( T value )
+    static istring opCall ( T ) ( T value )
     {
         return names[Fnv1a64(value) % names.length];
     }
