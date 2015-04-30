@@ -99,7 +99,7 @@ template StaticFnv1a ( T = hash_t )
 
     ***************************************************************************/
 
-    template Fnv1a ( char[] input )
+    template Fnv1a ( istring input )
     {
         const Fnv1a = Fnv1a!(Fnv1Const!(T).INIT, input);
     }
@@ -111,7 +111,7 @@ template StaticFnv1a ( T = hash_t )
 
     ***************************************************************************/
 
-    template Fnv1a ( T hash, char[] input )
+    template Fnv1a ( T hash, istring input )
     {
         static if ( input.length )
         {
@@ -140,22 +140,22 @@ alias Fnv1Const!(ulong) Fnv164Const;
 
 *******************************************************************************/
 
-template StaticFnv1a32 ( char[] input )
+template StaticFnv1a32 ( istring input )
 {
     const StaticFnv1a32 = StaticFnv1a!(uint).Fnv1a!(input);
 }
 
-template StaticFnv1a32 ( uint hash, char[] input )
+template StaticFnv1a32 ( uint hash, istring input )
 {
     const StaticFnv1a32 = StaticFnv1a!(uint).Fnv1a!(hash, input);
 }
 
-template StaticFnv1a64 ( char[] input )
+template StaticFnv1a64 ( istring input )
 {
     const StaticFnv1a64 = StaticFnv1a!(ulong).Fnv1a!(input);
 }
 
-template StaticFnv1a64 ( ulong hash, char[] input )
+template StaticFnv1a64 ( ulong hash, istring input )
 {
     const StaticFnv1a64 = StaticFnv1a!(ulong).Fnv1a!(hash, input);
 }
@@ -234,15 +234,15 @@ abstract class FnvDigest : Digest
             auto fnv132 = new Fnv132;
             auto fnv164 = new Fnv164;
 
-            char[] hello = "Hello World!";
+            auto hello = "Hello World!";
 
             fnv1.update(hello);
             fnv132.update(hello);
             fnv164.update(hello);
 
-            char[] hash   = fnv1.hexDigest();
-            char[] hash32 = fnv132.hexDigest();
-            char[] hash64 = fnv164.hexDigest();
+            auto hash   = fnv1.hexDigest();
+            auto hash32 = fnv132.hexDigest();
+            auto hash64 = fnv164.hexDigest();
 
         ---
 
@@ -252,7 +252,7 @@ abstract class FnvDigest : Digest
 
             import ocean.io.digest.Fnv;
 
-            char[] hello = "Hello World!";
+            auto hello = "Hello World!";
 
             size_t hash   = Fnv1a(hello);       // size_t uses the native machine data word width
             uint   hash32 = Fnv1a32(hello);
@@ -531,7 +531,7 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 
              import ocean.io.digest.Fnv;
 
-             char[] data;
+             auto data = "sociomantic";
 
              uint  digest32 = Fnv32.fnv1(data);
              ulong digest64 = Fnv64.fnv1(data);
@@ -550,9 +550,9 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 
     public static DigestType fnv1 ( U ) ( U data, DigestType digest = INIT )
     {
-        ubyte[] data_;
+        Const!(ubyte)[] data_;
 
-        static if (is (U : ubyte[]))
+        static if (is (Unqual!(U) : ubyte[]))
         {
             data_ = data;
         }
@@ -560,16 +560,16 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
         {
             static if (V.sizeof == 1)
             {
-                data_ = cast(ubyte[])data;
+                data_ = cast(Const!(ubyte)[])data;
             }
             else
             {
-                data_ = (cast(ubyte*)data.ptr)[0 .. data.length * V.sizeof];
+                data_ = (cast(Const!(ubyte)*)data.ptr)[0 .. data.length * V.sizeof];
             }
         }
         else
         {
-            data_ = cast(ubyte[])((cast(void*)&data)[0 .. data.sizeof]);
+            data_ = cast(Const!(ubyte)[])((cast(Const!(void)*)&data)[0 .. data.sizeof]);
         }
 
         foreach (d; data_)
@@ -598,7 +598,7 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
              Fnv32.HexDigest digest32;
              Fnv64.HexDigest digest64;
 
-             char[] data;
+             auto data = "sociomantic";
 
              digest32 = Fnv32.fnv1(data, digest32);
              digest64 = Fnv64.fnv1(data, digest32);
@@ -616,7 +616,7 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 
      **************************************************************************/
 
-    public static char[] fnv1_hex ( U ) ( U data, HexDigest hexdgst, DigestType digest = INIT )
+    public static char[] fnv1_hex ( U ) ( U data, char[] hexdgst, DigestType digest = INIT )
     {
         digest = fnv1(data, digest);
 
@@ -685,9 +685,9 @@ version ( UnitTest )
     // Uncomment the next line to see UnitTest output
     // version = UnitTestVerbose;
 
-    private char[] errmsg ( char[] func, char[] str, bool is_text )
+    private istring errmsg ( istring func, istring str, bool is_text )
     {
-        char[] errmsg = "unit test failed for " ~ func;
+        auto errmsg = "unit test failed for " ~ func;
 
         if (is_text)
         {
@@ -708,7 +708,7 @@ unittest
          */
         uint    fnv1_32;
         ubyte[] fnv1_32_bin;
-        char[]  fnv1_32_hex;
+        istring  fnv1_32_hex;
 
         /*
          * 32-bit FNV1a digests of "string" below as integer, binary data string
@@ -716,7 +716,7 @@ unittest
          */
         uint    fnv1a_32;
         ubyte[] fnv1a_32_bin;
-        char[]  fnv1a_32_hex;
+        istring  fnv1a_32_hex;
 
         /*
          * 64-bit FNV1 digests of "string" below as integer, binary data string
@@ -724,7 +724,7 @@ unittest
          */
         ulong   fnv1_64;
         ubyte[] fnv1_64_bin;
-        char[]  fnv1_64_hex;
+        istring  fnv1_64_hex;
 
         /*
          * 64-bit FNV1a digests of "string" below as integer, binary data string
@@ -732,7 +732,7 @@ unittest
          */
         ulong   fnv1a_64;
         ubyte[] fnv1a_64_bin;
-        char[]  fnv1a_64_hex;
+        istring  fnv1a_64_hex;
 
         /*
          * is_text == true indicates that the content of "string" is safe to
@@ -741,7 +741,7 @@ unittest
         bool   is_text;
 
         // string of which the digests above are computed from
-        char[] string;
+        istring str;
     }
 
     const TestData[] testdata =
@@ -774,8 +774,8 @@ unittest
 
          **********************************************************************/
 
-        assert (Fnv1a32.fnv1(tdat.string) == tdat.fnv1a_32, errmsg("Fnv1a32.fnv1", tdat.string, tdat.is_text));
-        assert (Fnv1a64.fnv1(tdat.string) == tdat.fnv1a_64, errmsg("Fnv1a64.fnv1", tdat.string, tdat.is_text));
+        assert (Fnv1a32.fnv1(tdat.str) == tdat.fnv1a_32, errmsg("Fnv1a32.fnv1", tdat.str, tdat.is_text));
+        assert (Fnv1a64.fnv1(tdat.str) == tdat.fnv1a_64, errmsg("Fnv1a64.fnv1", tdat.str, tdat.is_text));
 
         /**********************************************************************
 
@@ -783,8 +783,8 @@ unittest
 
          **********************************************************************/
 
-        assert (fnv1a32.update(tdat.string).hexDigest == tdat.fnv1a_32_hex, errmsg("Fnv1a32.hexDigest", tdat.string, tdat.is_text));
-        assert (fnv1a64.update(tdat.string).hexDigest == tdat.fnv1a_64_hex, errmsg("Fnv1a64.hexDigest", tdat.string, tdat.is_text));
+        assert (fnv1a32.update(tdat.str).hexDigest == tdat.fnv1a_32_hex, errmsg("Fnv1a32.hexDigest", tdat.str, tdat.is_text));
+        assert (fnv1a64.update(tdat.str).hexDigest == tdat.fnv1a_64_hex, errmsg("Fnv1a64.hexDigest", tdat.str, tdat.is_text));
     }
 
 
