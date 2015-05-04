@@ -609,8 +609,8 @@ struct JsonExtractor
                 fields_to_reset = fields to reset when this.reset is called
                 iterator_dg     = iteration callback delegate
                 skip_null       = should a potential null value be skipped? If
-                                  false and a null value is found an
-                                  AssertException will be thrown.
+                                  false and a null value is found a
+                                  JsonException will be thrown.
 
          **********************************************************************/
 
@@ -678,7 +678,7 @@ struct JsonExtractor
                 type = expected parameter type
                 key  = parameter name
                 skip_null  = should a potential null value be skipped? If false
-                             and a null value is found an AssertException will
+                             and a null value is found an JsonException will
                              be thrown.
 
          **********************************************************************/
@@ -761,10 +761,13 @@ struct JsonExtractor
         /***********************************************************************
 
             Invoked by super.set() to iterate over the JSON object or array.
+            Expects the type of the current token to be
+             - the start type if this.skip_null is false or
+             - the start type or null if this.skip_null is true.
 
             Throws:
-                JsonException if the type of the current token is not the start
-                type.
+                JsonException if the type of the current token is not as
+                expected.
 
          **********************************************************************/
 
