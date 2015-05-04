@@ -111,7 +111,7 @@ class UtfConvert ( S, T )
 
      **************************************************************************/
 
-    static const NoOp = is (S == T);
+    const NoOp = is (S == T);
 
     static if (NoOp)
     {
@@ -142,7 +142,7 @@ class UtfConvert ( S, T )
 
          **********************************************************************/
 
-        static const InitialBufferSize = 4096;
+        const InitialBufferSize = 4096;
 
         /**********************************************************************
 
@@ -303,7 +303,7 @@ class FixUtf8
 
      **************************************************************************/
 
-    public static const Wchar[] Utf8MagicChars = [0xC2, 0xC3, 0xC4, 0xC5]; // "ÂÃÄÅ"
+    public const Wchar[] Utf8MagicChars = [0xC2, 0xC3, 0xC4, 0xC5]; // "ÂÃÄÅ"
 
     /**************************************************************************
 

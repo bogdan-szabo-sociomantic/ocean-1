@@ -48,7 +48,7 @@ public class XmlEntitySet : IEntitySet
 
     ***************************************************************************/
 
-    public static const Entity[] xml_entities =
+    public const Entity[] xml_entities =
     [
         {"amp",    0x0026}, // '&'
         {"quot",   0x0022}, // '"'

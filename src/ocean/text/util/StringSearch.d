@@ -477,7 +477,7 @@ struct StringSearch ( bool wide_char = false )
     Char[] shiftString ( ref Char[] str, size_t dst_pos, size_t src_pos, size_t length )
     in
     {
-        static const PREFIX = "shiftString(): ";
+        const PREFIX = "shiftString(): ";
 
         assert (src_pos <= str.length, PREFIX ~ "source start out of range");
         assert (dst_pos <= str.length, PREFIX ~ "destination start out of range");

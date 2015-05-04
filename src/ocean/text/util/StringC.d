@@ -62,8 +62,8 @@ class StringC
 
      **************************************************************************/
 
-    public static const char  Term  = '\0';
-    public static const Wchar Wterm = '\0';
+    public const char  Term  = '\0';
+    public const Wchar Wterm = '\0';
 
     /**************************************************************************
 

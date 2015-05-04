@@ -317,7 +317,7 @@ struct Test3
 {
     struct Version0
     {
-        static const ubyte StructVersion = 0;
+        const ubyte StructVersion = 0;
         alias Version1 StructNext;
 
         struct Nested0
@@ -374,7 +374,7 @@ struct Test3
 
     struct Version1
     {
-        static const ubyte StructVersion = 1;
+        const ubyte StructVersion = 1;
         alias Version0 StructPrevious;
         alias Version2 StructNext;
 
@@ -469,7 +469,7 @@ struct Test3
 
     struct Version2
     {
-        static const ubyte StructVersion = 2;
+        const ubyte StructVersion = 2;
 
         alias Version1 StructPrevious;
 

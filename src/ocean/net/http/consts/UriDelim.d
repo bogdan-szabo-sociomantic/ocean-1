@@ -23,9 +23,9 @@ module ocean.net.http.consts.UriDelim;
 
 struct UriDelim
 {
-    static const char[] QUERY      = `?`; // seperates uri path & query parameter
-    static const char[] FRAGMENT   = `#`; // seperates uri path & fragment
-    static const char[] QUERY_URL  = `/`; // separates url path elements
-    static const char[] PARAM      = `&`; // seperates key/value pairs
-    static const char[] KEY_VALUE  = `=`; // separate key and value
+    const char[] QUERY      = `?`; // seperates uri path & query parameter
+    const char[] FRAGMENT   = `#`; // seperates uri path & fragment
+    const char[] QUERY_URL  = `/`; // separates url path elements
+    const char[] PARAM      = `&`; // seperates key/value pairs
+    const char[] KEY_VALUE  = `=`; // separate key and value
 }

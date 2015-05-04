@@ -650,11 +650,11 @@ private template ShortestName ( T ... )
     Generates output of the form:
 
     ---
-        static const length = 3;
-        static const min = 1;
-        static const max = 100;
-        static const min_descr_length = 4;
-        static const max_descr_length = 6;
+        const length = 3;
+        const min = 1;
+        const max = 100;
+        const min_descr_length = 4;
+        const max_descr_length = 6;
     ---
 
 *******************************************************************************/
@@ -662,11 +662,11 @@ private template ShortestName ( T ... )
 private template DeclareConstants ( T ... )
 {
     const istring DeclareConstants =
-        "static const length = " ~ ctfe_i2a(T.length) ~ "; " ~
-        "static const min = " ~ CTFE_Int2String(MinValue!(T)) ~ "; " ~
-        "static const max = " ~ CTFE_Int2String(MaxValue!(T)) ~ "; " ~
-        "static const min_descr_length = " ~ ctfe_i2a(ShortestName!(T)) ~ "; " ~
-        "static const max_descr_length = " ~ ctfe_i2a(LongestName!(T)) ~ "; ";
+        "const length = " ~ ctfe_i2a(T.length) ~ "; " ~
+        "const min = " ~ CTFE_Int2String(MinValue!(T)) ~ "; " ~
+        "const max = " ~ CTFE_Int2String(MaxValue!(T)) ~ "; " ~
+        "const min_descr_length = " ~ ctfe_i2a(ShortestName!(T)) ~ "; " ~
+        "const max_descr_length = " ~ ctfe_i2a(LongestName!(T)) ~ "; ";
 }
 
 

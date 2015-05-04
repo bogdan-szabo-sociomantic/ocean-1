@@ -255,7 +255,7 @@ template MapExtension ( K, V )
     struct version. It makes use of the same functions that the
     StructLoader/StructDumper use for the conversion.
 
-    This means that structs used with this function should have the static const
+    This means that structs used with this function should have the const
     member StructVersion as well as an alias to the old version (if one exists)
     called "StructPrevious" (this is identical to the requirements for vesioned
     struct in the StructDumper/Loader.
@@ -270,7 +270,7 @@ template MapExtension ( K, V )
     ---
     struct MyValue0
     {
-        static const StructVersion = 0;
+        const StructVersion = 0;
         int my_value;
     }
 
@@ -292,7 +292,7 @@ template MapExtension ( K, V )
 
     struct MyValue1
     {
-        static const StructVersion = 1;
+        const StructVersion = 1;
         int my_value;
 
         int my_new_value;
@@ -1367,14 +1367,14 @@ unittest
 
     struct Test1
     {
-        static const StructVersion = 0;
+        const StructVersion = 0;
 
         long i;
     }
 
     struct Test2
     {
-        static const StructVersion = 1;
+        const StructVersion = 1;
         alias Test1 StructPrevious;
 
         long i;
@@ -1394,7 +1394,7 @@ unittest
 
     struct OldStruct
     {
-        static const StructVersion = 0;
+        const StructVersion = 0;
 
         int old;
 
@@ -1406,7 +1406,7 @@ unittest
 
     struct NewStruct
     {
-        static const StructVersion = 1;
+        const StructVersion = 1;
         alias OldStruct StructPrevious;
 
         int old;
@@ -1426,7 +1426,7 @@ unittest
 
     struct OldKey
     {
-        static const StructVersion = 0;
+        const StructVersion = 0;
 
         int old2;
 
@@ -1443,7 +1443,7 @@ unittest
 
     struct NewKey
     {
-        static const StructVersion = 1;
+        const StructVersion = 1;
         alias OldKey StructPrevious;
 
         int old1;
@@ -1473,7 +1473,7 @@ unittest
 
     struct NewerKey
     {
-        static const StructVersion = 2;
+        const StructVersion = 2;
         alias NewKey StructPrevious;
 
         int old1;
@@ -1497,7 +1497,7 @@ unittest
 
     struct NewerStruct
     {
-        static const StructVersion = 2;
+        const StructVersion = 2;
         alias NewStruct StructPrevious;
 
         int old;

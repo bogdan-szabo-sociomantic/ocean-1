@@ -310,8 +310,8 @@ public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 
      **************************************************************************/
 
-    public static const DIGEST_LENGTH = DigestType.sizeof;
-    public static const HEXDGT_LENGTH = DIGEST_LENGTH * 2;
+    public const DIGEST_LENGTH = DigestType.sizeof;
+    public const HEXDGT_LENGTH = DIGEST_LENGTH * 2;
 
     public alias char[HEXDGT_LENGTH] HexDigest;
 

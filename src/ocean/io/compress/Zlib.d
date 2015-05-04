@@ -187,7 +187,7 @@ class Zlib
 
     static struct BufferSize
     {
-        static const                    CHUNK           =    4 * 1024,  // Chunk size for ZlibStream access
+        const                           CHUNK           =    4 * 1024,  // Chunk size for ZlibStream access
                                         INPUT_INIT      =   64 * 1024,  // Initial input buffer size
                                         INPUT_GROW      =    1 * 1024,  // Size of which the input buffer will grow
                                         OUTPUT_INIT     = 1024 * 1024,  // Initial output buffer size
@@ -218,9 +218,9 @@ class Zlib
 
      **************************************************************************/
 
-    static const struct Codes
+    const struct Codes
     {
-        static const    ENCODING =
+        const    ENCODING =
                         [
                                      Encoding.Zlib,
                                      Encoding.None,
@@ -250,19 +250,19 @@ class Zlib
 
      **************************************************************************/
 
-    static const struct Ids
+    const struct Ids
     {
-        static const char[][] FALSE = ["false", "off", "no",  "disabled"];
-        static const char[][] TRUE  = ["true",  "on",  "yes", "enabled"];
+        const char[][] FALSE = ["false", "off", "no",  "disabled"];
+        const char[][] TRUE  = ["true",  "on",  "yes", "enabled"];
 
-        static const char[][][] ENCODING =
+        const char[][][] ENCODING =
         [
             ["zlib"],
             ["none"] ~ this.FALSE,
             ["gzip"]
         ];
 
-        static const char[][][] DECODING =
+        const char[][][] DECODING =
         [
             ["guess"] ~ this.TRUE,
             ["none"]  ~ this.FALSE,
@@ -270,7 +270,7 @@ class Zlib
             ["zlib"]
         ];
 
-        static const char[][][] LEVEL =
+        const char[][][] LEVEL =
         [
             ["normal"] ~ this.TRUE,
             ["none"]   ~ this.FALSE,

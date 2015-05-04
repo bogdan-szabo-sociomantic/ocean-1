@@ -110,7 +110,7 @@ class StringReplace ( bool wide_char = false )
 
      **************************************************************************/
 
-    static const DefaultItemsLength = 4096;
+    const DefaultItemsLength = 4096;
 
     /**************************************************************************
 
