@@ -770,12 +770,9 @@ struct JsonExtractor
 
         protected override void set_ ( )
         {
-            if ( this.skip_null && super.type == Type.Null )
-            {
-                return;
-            }
-
-            enforce(this.exception, super.type == this.start_type,
+            enforce(this.exception,
+                    (this.type == this.start_type) ||
+                    (this.skip_null && this.type == Type.Null),
                     "type mismatch");
 
             uint i = 0;
