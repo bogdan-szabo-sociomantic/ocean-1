@@ -36,8 +36,13 @@ import ocean.core.TypeConvert;
 
 import ocean.sys.socket.model.ISocket;
 
-deprecated public import ocean.sys.socket.model.ISocket
-    : MSG_NOSIGNAL, SocketFlags;
+deprecated("MSG_NOSIGNAL deprecated, please use the one in "
+        "ocean.sys.socket.model.ISocket instead")
+public alias .MSG_NOSIGNAL MSG_NOSIGNAL;
+
+deprecated("SocketFlags deprecated, please use the one in "
+        "ocean.sys.socket.model.ISocket instead")
+public alias .SocketFlags SocketFlags;
 
 /******************************************************************************
 
