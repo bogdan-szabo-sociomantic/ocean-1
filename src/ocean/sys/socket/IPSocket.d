@@ -38,11 +38,41 @@ import ocean.sys.socket.model.ISocket;
 
 deprecated("MSG_NOSIGNAL deprecated, please use the one in "
         "ocean.sys.socket.model.ISocket instead")
-public alias .MSG_NOSIGNAL MSG_NOSIGNAL;
+public alias ocean.sys.socket.model.ISocket.MSG_NOSIGNAL MSG_NOSIGNAL;
 
 deprecated("SocketFlags deprecated, please use the one in "
         "ocean.sys.socket.model.ISocket instead")
-public alias .SocketFlags SocketFlags;
+public alias ocean.sys.socket.model.ISocket.SocketFlags SocketFlags;
+
+
+
+/******************************************************************************
+
+    TCP option codes supported by getsockopt()/setsockopt()
+    (from <inet/netinet.h>).
+
+ ******************************************************************************/
+
+public enum TcpOptions
+{
+    None,
+    TCP_NODELAY,       ///  1:  Don't delay send to coalesce packets
+    TCP_MAXSEG,        ///  2:  Set maximum segment size
+    TCP_CORK,          ///  3:  Control sending of partial frames
+    TCP_KEEPIDLE,      ///  4:  Start keeplives after this period
+    TCP_KEEPINTVL,     ///  5:  Interval between keepalives
+    TCP_KEEPCNT,       ///  6:  Number of keepalives before death
+    TCP_SYNCNT,        ///  7:  Number of SYN retransmits
+    TCP_LINGER2,       ///  8:  Life time of orphaned FIN-WAIT-2 state
+    TCP_DEFER_ACCEPT,  ///  9:  Wake up listener only when data arrive
+    TCP_WINDOW_CLAMP,  /// 10:  Bound advertised window
+    TCP_INFO,          /// 11:  Information about this connection.
+    TCP_QUICKACK,      /// 12:  Bock/reenable quick ACKs.
+    TCP_CONGESTION,    /// 13:  Congestion control algorithm.
+    TCP_MD5SIG,        /// 14:  TCP MD5 Signature (RFC2385)
+
+}
+
 
 /******************************************************************************
 
@@ -52,6 +82,17 @@ public alias .SocketFlags SocketFlags;
 
 abstract class IIPSocket : ISocket
 {
+    /**************************************************************************
+
+        Flags supported by accept4().
+
+     **************************************************************************/
+
+    alias .SocketFlags SocketFlags;
+
+    alias .TcpOptions TcpOptions;
+
+
     /**************************************************************************
 
         true for IPv6, false for IPv4.
@@ -712,3 +753,22 @@ class IPSocket ( bool IPv6 = false ) : IIPSocket
         return super.getpeername(remote_address, addrlen);
     }
 }
+
+
+/******************************************************************************/
+
+version (UnitTest)
+{
+    import tango.core.Test;
+}
+
+unittest
+{
+    auto socket = new IPSocket!();
+    socket.tcpSocket();
+    socket.setsockoptVal(SOL_SOCKET, SO_KEEPALIVE, true);
+    socket.setsockoptVal(IPPROTO_TCP, socket.TcpOptions.TCP_KEEPIDLE, 5);
+    socket.setsockoptVal(IPPROTO_TCP, socket.TcpOptions.TCP_KEEPCNT, 3);
+    socket.setsockoptVal(IPPROTO_TCP, socket.TcpOptions.TCP_KEEPINTVL, 3);
+}
+
