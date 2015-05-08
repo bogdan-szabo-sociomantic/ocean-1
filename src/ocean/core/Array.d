@@ -615,6 +615,176 @@ unittest
 
 /*******************************************************************************
 
+    Sorts array and checks if it contains at least one duplicate.
+
+    Template params:
+        T    = type of array element
+        sort = true: do array.sort first; false: array is already sorted
+
+    Params:
+        array = array to clean from duplicate values
+
+    Returns:
+        true if array contains a duplicate or false if not. Returns false if
+        array is empty.
+
+*******************************************************************************/
+
+public bool containsDuplicate ( T, bool sort = true ) ( T[] array )
+{
+    return !!findDuplicates!(T, sort)(
+        array,
+        delegate int(ref size_t index, ref T element) {return true;}
+    );
+}
+
+/*******************************************************************************
+
+    Sorts array and iterates over each array element that compares equal to the
+    previous element.
+
+    To just check for the existence of duplicates it's recommended to make
+    found() return true (or some other value different from 0) to stop the
+    iteration after the first duplicate.
+
+    To assert array has no duplicates or throw an exception if it has, put the
+    `assert(false)` or `throw ...` in `found()`:
+    ---
+        int[] array;
+
+        findDuplicates(array,
+                       (ref size_t index, ref int element)
+                       {
+                           throw new Exception("array contains duplicates");
+                           return 0; // pacify the compiler
+                       });
+    ---
+
+    Template params:
+        T    = type of array element
+        sort = true: do array.sort first; false: array is already sorted
+
+    Params:
+        array = array to clean from duplicate values
+        found = `foreach`/`opApply()` style delegate, called with the index and
+                the value of each array element that is equal to the previous
+                element, returns 0 to continue or a value different from 0 to
+                stop iteration.
+
+    Returns:
+        - 0 if no duplicates were found so `found()` was not called or
+        - 0 if `found()` returned 0 on each call or
+        - the non-zero value returned by `found()` on the last call.
+
+*******************************************************************************/
+
+public int findDuplicates ( T, bool sort = true )
+                          ( T[] array, int delegate ( ref size_t index, ref T element ) found )
+{
+    if (array.length)
+    {
+        static if (sort)
+        {
+            array.sort;
+        }
+
+        foreach (i, ref element; array[1 .. $])
+        {
+            if (element == array[i])
+            {
+                auto j = i + 1;
+                if (int x = found(j, element))
+                {
+                    return x;
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+unittest
+{
+    uint n_iterations, n_duplicates;
+
+    struct Found
+    {
+        int    value;
+        size_t index;
+    }
+
+    Found[8] found;
+    int[8] array;
+    alias findDuplicates!(typeof(array[0]), false) fd;
+
+    int found_cb ( ref size_t index, ref int element )
+    in
+    {
+        assert(n_iterations);
+    }
+    body
+    {
+        assert(index);
+        assert(index < array.length);
+        assert(array[index] == array[index - 1]);
+        found[n_duplicates++] = Found(element, index);
+        return !--n_iterations;
+    }
+
+    array[] = 2;
+
+    assert(containsDuplicate(array));
+
+    for (uint i = 1; i < array.length; i++)
+    {
+        n_iterations = i;
+        n_duplicates = 0;
+        int ret = fd(array, &found_cb);
+        assert(ret);
+        assert(n_duplicates == i);
+    }
+
+    n_iterations = array.length;
+    n_duplicates = 0;
+    {
+        int ret = fd(array, &found_cb);
+        assert(!ret);
+    }
+    assert(n_duplicates == array.length - 1);
+
+    array[] = [2, 3, 5, 7, 11, 13, 17, 19];
+
+    assert(!containsDuplicate(array));
+
+    n_duplicates = 0;
+
+    for (uint i = 1; i <= array.length; i++)
+    {
+        n_iterations = i;
+        int ret = fd(array, &found_cb);
+        assert(!ret);
+        assert(!n_duplicates);
+    }
+
+    n_iterations = array.length;
+    array[] = 2;
+    {
+        n_duplicates = 0;
+        int ret = fd(array[0 .. 0], &found_cb);
+        assert(!ret);
+        assert(!n_duplicates);
+        ret = fd(array[0 .. 1], &found_cb);
+        assert(!ret);
+        assert(!n_duplicates);
+        ret = fd(array[0 .. 2], &found_cb);
+        assert(!ret);
+        assert(n_duplicates == 1);
+    }
+}
+
+/*******************************************************************************
+
     Check if the given array starts with the given prefix
 
     Template Params:

@@ -138,3 +138,12 @@ New Features
   A new Queue structure is introduced. In addition to implementing the
   `ITypedQueue` interface, it also allows finding a value in the queue
   and removing specified value(s) from the queue.
+
+* `ocean.core.Array`
+
+  New functions:
+
+  * `findDuplicates`: find and iterate over duplicate elements in an
+     array
+  * `containsDuplicate`: check if duplicates exist in an array
+
