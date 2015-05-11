@@ -38,7 +38,7 @@ import tango.core.ByteSwap;
 
 *******************************************************************************/
 
-template Fnv1Const ( T = hash_t )
+public template Fnv1Const ( T = hash_t )
 {
     /**************************************************************************
 
@@ -46,26 +46,26 @@ template Fnv1Const ( T = hash_t )
 
      **************************************************************************/
 
-    alias T DigestType;
+    public alias T DigestType;
 
     static if (is (DigestType == uint))
     {
-        const DigestType PRIME = 0x0100_0193; // 32 bit prime
-        const DigestType INIT  = 0x811C_9DC5; // 32 bit inital digest
-        alias ByteSwap.swap32 toBigEnd;
+        public const DigestType PRIME = 0x0100_0193; // 32 bit prime
+        public const DigestType INIT  = 0x811C_9DC5; // 32 bit inital digest
+        public alias ByteSwap.swap32 toBigEnd;
     }
     else static if (is (DigestType == ulong))
     {
-        const DigestType PRIME = 0x0000_0100_0000_01B3; // 64 bit prime
-        const DigestType INIT  = 0xCBF2_9CE4_8422_2325; // 64 bit inital digest
-        alias ByteSwap.swap64 toBigEnd;
+        public const DigestType PRIME = 0x0000_0100_0000_01B3; // 64 bit prime
+        public const DigestType INIT  = 0xCBF2_9CE4_8422_2325; // 64 bit inital digest
+        public alias ByteSwap.swap64 toBigEnd;
     }
     /*
     // be prepared for the day when Walter introduces cent...
     else static if (is (DigestType == ucent))
     {
-        const DigestType PRIME = 0x0000_0000_0100_0000_0000_0000_0000_013B; // 128 bit prime
-        const DigestType PRIME = 0x6C62_272E_07BB_0142_62B8_2175_6295_C58D; // 128 bit inital digest
+        public const DigestType PRIME = 0x0000_0000_0100_0000_0000_0000_0000_013B; // 128 bit prime
+        public const DigestType PRIME = 0x6C62_272E_07BB_0142_62B8_2175_6295_C58D; // 128 bit inital digest
     }
     */
     else static assert (false, "type '" ~ DigestType.stringof ~
@@ -80,9 +80,9 @@ template Fnv1Const ( T = hash_t )
 
 *******************************************************************************/
 
-alias Fnv1Generic!(true)          Fnv1a;
-alias Fnv1Generic!(true,  uint)   Fnv1a32;
-alias Fnv1Generic!(true,  ulong)  Fnv1a64;
+public alias Fnv1Generic!(true)         Fnv1a;
+public alias Fnv1Generic!(true,  uint)  Fnv1a32;
+public alias Fnv1Generic!(true,  ulong) Fnv1a64;
 
 
 /******************************************************************************
@@ -100,7 +100,7 @@ alias Fnv1Generic!(true,  ulong)  Fnv1a64;
 
 *******************************************************************************/
 
-template StaticFnv1a ( T = hash_t )
+public template StaticFnv1a ( T = hash_t )
 {
     /***************************************************************************
 
@@ -108,9 +108,9 @@ template StaticFnv1a ( T = hash_t )
 
     ***************************************************************************/
 
-    template Fnv1a ( istring input )
+    public template Fnv1a ( istring input )
     {
-        const Fnv1a = Fnv1a!(Fnv1Const!(T).INIT, input);
+        public const Fnv1a = Fnv1a!(Fnv1Const!(T).INIT, input);
     }
 
     /***************************************************************************
@@ -120,15 +120,15 @@ template StaticFnv1a ( T = hash_t )
 
     ***************************************************************************/
 
-    template Fnv1a ( T hash, istring input )
+    public template Fnv1a ( T hash, istring input )
     {
         static if ( input.length )
         {
-            const Fnv1a = Fnv1a!((hash ^ input[0]) * Fnv1Const!(T).PRIME, input[1 .. $]);
+            public const Fnv1a = Fnv1a!((hash ^ input[0]) * Fnv1Const!(T).PRIME, input[1 .. $]);
         }
         else
         {
-            const Fnv1a = hash;
+            public const Fnv1a = hash;
         }
     }
 }
@@ -140,8 +140,8 @@ template StaticFnv1a ( T = hash_t )
 
 *******************************************************************************/
 
-alias Fnv1Const!(uint)  Fnv132Const;
-alias Fnv1Const!(ulong) Fnv164Const;
+public alias Fnv1Const!(uint)  Fnv132Const;
+public alias Fnv1Const!(ulong) Fnv164Const;
 
 /******************************************************************************
 
@@ -149,24 +149,24 @@ alias Fnv1Const!(ulong) Fnv164Const;
 
 *******************************************************************************/
 
-template StaticFnv1a32 ( istring input )
+public template StaticFnv1a32 ( istring input )
 {
-    const StaticFnv1a32 = StaticFnv1a!(uint).Fnv1a!(input);
+    public const StaticFnv1a32 = StaticFnv1a!(uint).Fnv1a!(input);
 }
 
-template StaticFnv1a32 ( uint hash, istring input )
+public template StaticFnv1a32 ( uint hash, istring input )
 {
-    const StaticFnv1a32 = StaticFnv1a!(uint).Fnv1a!(hash, input);
+    public const StaticFnv1a32 = StaticFnv1a!(uint).Fnv1a!(hash, input);
 }
 
-template StaticFnv1a64 ( istring input )
+public template StaticFnv1a64 ( istring input )
 {
-    const StaticFnv1a64 = StaticFnv1a!(ulong).Fnv1a!(input);
+    public const StaticFnv1a64 = StaticFnv1a!(ulong).Fnv1a!(input);
 }
 
-template StaticFnv1a64 ( ulong hash, istring input )
+public template StaticFnv1a64 ( ulong hash, istring input )
 {
-    const StaticFnv1a64 = StaticFnv1a!(ulong).Fnv1a!(hash, input);
+    public const StaticFnv1a64 = StaticFnv1a!(ulong).Fnv1a!(hash, input);
 }
 
 
@@ -176,7 +176,7 @@ template StaticFnv1a64 ( ulong hash, istring input )
 
 *******************************************************************************/
 
-abstract class FnvDigest : Digest
+public abstract class FnvDigest : Digest
 {
     /**************************************************************************
 
@@ -188,7 +188,7 @@ abstract class FnvDigest : Digest
 
      **************************************************************************/
 
-    abstract ulong ulongDigest ( );
+    public abstract ulong ulongDigest ( );
 }
 
 
@@ -293,7 +293,7 @@ abstract class FnvDigest : Digest
 
 *******************************************************************************/
 
-class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
+public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 {
     /**************************************************************************
 
@@ -313,7 +313,7 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
     public static const DIGEST_LENGTH = DigestType.sizeof;
     public static const HEXDGT_LENGTH = DIGEST_LENGTH * 2;
 
-    alias char[HEXDGT_LENGTH] HexDigest;
+    public alias char[HEXDGT_LENGTH] HexDigest;
 
 
 
@@ -323,7 +323,7 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 
      **************************************************************************/
 
-    alias typeof (this) This;
+    public alias typeof (this) This;
 
     /**************************************************************************
 
@@ -343,20 +343,20 @@ class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 
      **************************************************************************/
 
-     union BinConvert
+     public union BinConvert
      {
-         alias ubyte[DIGEST_LENGTH] BinString;
+         public alias ubyte[DIGEST_LENGTH] BinString;
 
          /* members */
 
-         BinString array;
+         public BinString array;
 
-         DigestType value;
+         public DigestType value;
 
          /* cast "value" from integer type "DigestType" to binary string type "BinString"
             considering machine byte order (endianness) */
 
-         ubyte[] opCall ( DigestType value )
+         public ubyte[] opCall ( DigestType value )
          {
              this.value = value;
 
