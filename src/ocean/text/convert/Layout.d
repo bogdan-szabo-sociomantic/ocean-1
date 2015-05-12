@@ -483,7 +483,7 @@ public R vaArgCall ( R = void, A ... ) ( R delegate ( A dg_args, TypeInfo[] argu
 
 /******************************************************************************/
 
-unittest
+deprecated unittest
 {
     char[] str;
 
