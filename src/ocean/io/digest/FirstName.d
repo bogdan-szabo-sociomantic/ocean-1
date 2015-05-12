@@ -45,7 +45,7 @@ import ocean.io.digest.Fnv1;
 
 *******************************************************************************/
 
-static class FirstName
+public static class FirstName
 {
     /***************************************************************************
 
@@ -110,7 +110,7 @@ static class FirstName
 
     ***************************************************************************/
 
-    static istring opCall ( T ) ( T value )
+    public static istring opCall ( T ) ( T value )
     {
         return names[Fnv1a64(value) % names.length];
     }
