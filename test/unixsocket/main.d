@@ -91,7 +91,7 @@ int main ( )
     scope (exit)
     {
         char[] rm_cmd;
-        Format(rm_cmd, "rm -rf {}", path);
+        Format.format(rm_cmd, "rm -rf {}", path);
 
         auto proc = new Process(rm_cmd, null);
         proc.execute();
