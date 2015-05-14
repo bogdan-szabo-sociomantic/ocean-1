@@ -25,7 +25,6 @@ module test.unixsocket.main;
 import ocean.core.Exception;
 import ocean.core.Test;
 import ocean.sys.socket.UnixSocket;
-import tango.text.convert.Format;
 
 import tango.stdc.posix.sys.socket;
 import tango.stdc.posix.sys.wait;
@@ -33,9 +32,10 @@ import tango.stdc.posix.unistd;
 import tango.stdc.posix.stdlib : mkdtemp;
 import tango.stdc.stdio;
 import tango.math.Math;
+import tango.core.Thread;
 import tango.net.device.LocalSocket;
 import tango.stdc.string;
-import tango.sys.Process;
+import tango.stdc.errno;
 
 import ocean.text.util.StringC;
 
@@ -55,8 +55,17 @@ int runClient ( LocalAddress socket_address )
 
     auto connect_result = client.connect(socket_address);
 
-    enforce(connect_result == 0,
-            "connect() call failed!");
+    // Try to connect at most 5 times, do a simple backoff if the connection
+    // fails to increase the time linearly (the sum of all retries is ~1.5s)
+    int i;
+    for (i = 1; i <= 5 && connect_result == ECONNREFUSED; i++)
+    {
+        Thread.sleep(0.1 * i);
+        connect_result = client.connect(socket_address);
+    }
+
+    enforce(i <= 5 && connect_result == 0,
+            "connect() call failed after 5 retries!");
 
     // send some data
     client.write(CLIENT_STRING);
@@ -81,41 +90,26 @@ int runClient ( LocalAddress socket_address )
 
 int main ( )
 {
+    bool in_child = false;
+
     auto path = mkdtemp("/tmp/Dunittest-XXXXXX\0".dup.ptr);
     enforce(path !is null);
 
     auto test_dir = StringC.toDString(path);
 
-    auto socket_path = test_dir ~ "/socket";
-
     scope (exit)
     {
-        char[] rm_cmd;
-        Format.format(rm_cmd, "rm -rf {}", path);
-
-        auto proc = new Process(rm_cmd, null);
-        proc.execute();
-        proc.wait();
+        if (!in_child)
+        {
+            auto r = rmdir(test_dir.ptr);
+            assert(r == 0, "Couldn't remove the temporary directory " ~
+                    test_dir ~ ": " ~ StringC.toDString(strerror(errno)));
+        }
     }
 
+    auto socket_path = test_dir ~ "/socket";
+
     auto socket_address = new LocalAddress(socket_path);
-
-    auto server = new UnixSocket();
-
-    // close the socket
-    scope (exit) server.close();
-
-    auto socket_fd = server.socket();
-
-    enforce(socket_fd >= 0, "socket() call failed!");
-
-    auto bind_result = server.bind(socket_address);
-    enforce(bind_result == 0, "bind() call failed!");
-
-    int backlog = 10;
-
-    auto listen_result = server.listen(backlog);
-    enforce(listen_result == 0, "listen() call failed!");
 
     pid_t pid = fork();
 
@@ -123,8 +117,32 @@ int main ( )
 
     if (pid == 0)  // client
     {
+        in_child = true;
         return runClient(socket_address);
     }
+
+    auto server = new UnixSocket();
+
+    // close the socket
+    scope (exit) server.close();
+
+    auto socket_fd = server.socket();
+    enforce(socket_fd >= 0, "socket() call failed!");
+
+    auto bind_result = server.bind(socket_address);
+    enforce(bind_result == 0, "bind() call failed!");
+
+    scope (exit)
+    {
+        auto r = unlink(socket_path.ptr);
+        assert(r == 0, "Couldn't remove the socket file " ~ socket_path ~
+                ": " ~ StringC.toDString(strerror(errno)));
+    }
+
+    int backlog = 10;
+
+    auto listen_result = server.listen(backlog);
+    enforce(listen_result == 0, "listen() call failed!");
 
     int connection_fd;
 
