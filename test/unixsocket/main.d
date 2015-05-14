@@ -115,7 +115,7 @@ int main ( )
     int backlog = 10;
 
     auto listen_result = server.listen(backlog);
-    enforce(listen_result == 0);
+    enforce(listen_result == 0, "listen() call failed!");
 
     pid_t pid = fork();
 
@@ -141,7 +141,7 @@ int main ( )
 
     waitpid(pid, &status, 0);
 
-    enforce(status == 0);
+    enforce(status == 0, "Child exit status should be 0");
 
     return 0;
 }
