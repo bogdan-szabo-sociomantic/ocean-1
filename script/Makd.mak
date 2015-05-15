@@ -333,7 +333,21 @@ check_deb = $Vi=`apt-cache policy $1 | grep Installed | cut -b14-`; \
 ###############################
 
 # Default rdmd flags
-RDMDFLAGS ?= --force --compiler=$(DC) --exclude=tango
+RDMDFLAGS ?= --force --compiler=$(DC)
+
+# Starting from Tango v1.3, the user library is not provided pre-compiled
+# anymore, so we only need to exclude tango from the compilation for older
+# versions.
+ifeq ($(DVER),1)
+TANGO_IS_OLD := $(shell \
+	v=`apt-cache policy libtango1-dmd-dev | grep Installed | cut -b14-` ; \
+	test -n "$$v" -a "$$v" != "(none)" && \
+		dpkg --compare-versions "$$v" \< 1.3 && \
+		echo yes)
+ifeq ($(TANGO_IS_OLD),yes)
+RDMDFLAGS += --exclude=tango
+endif
+endif
 
 # Default dmd flags
 override DFLAGS += -I$(GS) -I./$(SRC) $(foreach dep,$(SUBMODULES), -I./$(dep)/$(SRC))
