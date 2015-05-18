@@ -13,6 +13,9 @@ Migration Instructions
 Removed Deprecated Modules
 --------------------------
 
+* `ocean.core.TwoWayMap`
+
+* `ocean.core.UniStruct`
 
 Deprecations
 ============
