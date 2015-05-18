@@ -105,25 +105,25 @@ void eb64_delete(eb64_node* eb64);
 * Find the first occurence of a key in the tree <root>. If none can be
 * found, return NULL.
 */
-eb64_node* eb64_lookup(eb_root* root, uint x);
+eb64_node* eb64_lookup(eb_root* root, ulong x);
 
 /**
 * Find the first occurence of a signed key in the tree <root>. If none can
 * be found, return NULL.
 */
-eb64_node* eb64i_lookup(eb_root* root, int x);
+eb64_node* eb64i_lookup(eb_root* root, long x);
 
 /**
 * Find the last occurrence of the highest key in the tree <root>, which is
 * equal to or less than <x>. NULL is returned is no key matches.
 */
-eb64_node* eb64_lookup_le(eb_root* root, uint x);
+eb64_node* eb64_lookup_le(eb_root* root, ulong x);
 
 /**
 * Find the first occurrence of the lowest key in the tree <root>, which is
 * equal to or greater than <x>. NULL is returned is no key matches.
 */
-eb64_node* eb64_lookup_ge(eb_root* root, uint x);
+eb64_node* eb64_lookup_ge(eb_root* root, ulong x);
 
 /**
 * Insert eb64_node <new> into subtree starting at node root <root>.
