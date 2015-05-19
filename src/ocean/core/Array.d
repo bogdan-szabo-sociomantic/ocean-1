@@ -87,6 +87,7 @@ unittest
 {
     char[] dest;
     concat(dest, "hello ", "world");
+    test!("==")(dest, "hello world");
 }
 
 /*******************************************************************************
@@ -121,8 +122,9 @@ public D append ( D, T ... ) ( ref D dest, T arrays )
 ///
 unittest
 {
-    char[] dest = "hello";
+    mstring dest = "hello".dup;
     append(dest, " world", ", what a beautiful day!");
+    test!("==")(dest, "hello world, what a beautiful day!");
 }
 
 /*******************************************************************************
@@ -160,8 +162,9 @@ public T[] copy ( T ) ( ref T[] dest, T[] src )
 unittest
 {
     char[] dest;
-    char[] src = "hello";
+    cstring src = "hello";
     copy(dest, src);
+    test!("==")(dest, "hello");
 }
 
 /*******************************************************************************
@@ -235,8 +238,8 @@ public T[][] appendCopy ( T ) ( ref T[][] dest, T[] src )
 ///
 unittest
 {
-    char[][] dest;
-    char[] src = "hello";
+    mstring[] dest;
+    cstring src = "hello";
     appendCopy(dest, src);
 }
 
@@ -278,8 +281,9 @@ public T[][] split ( T ) ( T[] src, T[] pattern, ref T[][] result )
 ///
 unittest
 {
-    char[][] result;
+    istring[] result;
     split("aaa..bbb..ccc", "..", result);
+    test!("==")(result, [ "aaa", "bbb", "ccc" ]);
 }
 
 /*******************************************************************************
@@ -320,6 +324,7 @@ unittest
 {
     char[] result;
     substitute("some string", "ring", "oops", result);
+    test!("==")(result, "some stoops");
 }
 
 /*******************************************************************************
@@ -354,9 +359,11 @@ public bool pop ( T ) ( ref T[] array, out T popped )
 ///
 unittest
 {
-    char[] arr = "something".dup;
+    mstring arr = "something".dup;
     char elem;
-    pop(arr, elem);
+    test(pop(arr, elem));
+    test!("==")(arr, "somethin");
+    test!("==")(elem, 'g');
 }
 
 /*******************************************************************************
@@ -385,8 +392,9 @@ public T[] remove ( T ) ( T[] source, T[] match, ref T[] result )
 ///
 unittest
 {
-    char[] result;    
+    mstring result;    
     remove("aaabbbaaa", "bbb", result);
+    test!("==")(result, "aaaaaa");
 }
 
 /*******************************************************************************
@@ -416,6 +424,7 @@ unittest
 {
     auto array = "something".dup;
     removeShift(array, 4);
+    test!("==")(array, "somehing");
 }
 
 /*******************************************************************************
@@ -471,8 +480,9 @@ body
 ///
 unittest
 {
-    auto arr = "something".dup;
+    mstring arr = "something".dup;
     removeShift(arr, 3, 4);
+    test!("==")(arr, "somng");
 }
 
 /*******************************************************************************
@@ -500,8 +510,9 @@ public T[] insertShift ( T ) ( ref T[] array, size_t index )
 ///
 unittest
 {
-    auto arr = "something".dup;
+    mstring arr = "something".dup;
     insertShift(arr, 2);
+    test!("==")(arr, "sommething");
 }
 
 /*******************************************************************************
@@ -554,8 +565,9 @@ body
 ///
 unittest
 {
-    auto arr = "something".dup;
+    mstring arr = "something".dup;
     insertShift(arr, 2, 2);
+    test!("==")(arr, "somemething");
 }
 
 /*******************************************************************************
@@ -608,9 +620,9 @@ public T[] uniq ( T, bool sort = true ) ( T[] array )
 ///
 unittest
 {
-    auto arr = [ 42, 43, 43, 42, 2 ];
-    uniq(arr);
-    uniq!(int, true)(arr);
+    int[] arr = [ 42, 43, 43, 42, 2 ];
+    arr = uniq(arr);
+    test!("==")(arr, [ 2, 42, 43 ]);
 }
 
 /*******************************************************************************
@@ -725,37 +737,37 @@ unittest
     }
     body
     {
-        assert(index);
-        assert(index < array.length);
-        assert(array[index] == array[index - 1]);
+        test(index);
+        test(index < array.length);
+        test(array[index] == array[index - 1]);
         found[n_duplicates++] = Found(element, index);
         return !--n_iterations;
     }
 
     array[] = 2;
 
-    assert(containsDuplicate(array));
+    test(containsDuplicate(array));
 
     for (uint i = 1; i < array.length; i++)
     {
         n_iterations = i;
         n_duplicates = 0;
         int ret = fd(array, &found_cb);
-        assert(ret);
-        assert(n_duplicates == i);
+        test(ret);
+        test(n_duplicates == i);
     }
 
     n_iterations = array.length;
     n_duplicates = 0;
     {
         int ret = fd(array, &found_cb);
-        assert(!ret);
+        test(!ret);
     }
-    assert(n_duplicates == array.length - 1);
+    test(n_duplicates == array.length - 1);
 
     array[] = [2, 3, 5, 7, 11, 13, 17, 19];
 
-    assert(!containsDuplicate(array));
+    test(!containsDuplicate(array));
 
     n_duplicates = 0;
 
@@ -763,8 +775,8 @@ unittest
     {
         n_iterations = i;
         int ret = fd(array, &found_cb);
-        assert(!ret);
-        assert(!n_duplicates);
+        test(!ret);
+        test(!n_duplicates);
     }
 
     n_iterations = array.length;
@@ -772,14 +784,14 @@ unittest
     {
         n_duplicates = 0;
         int ret = fd(array[0 .. 0], &found_cb);
-        assert(!ret);
-        assert(!n_duplicates);
+        test(!ret);
+        test(!n_duplicates);
         ret = fd(array[0 .. 1], &found_cb);
-        assert(!ret);
-        assert(!n_duplicates);
+        test(!ret);
+        test(!n_duplicates);
         ret = fd(array[0 .. 2], &found_cb);
-        assert(!ret);
-        assert(n_duplicates == 1);
+        test(!ret);
+        test(n_duplicates == 1);
     }
 }
 
@@ -799,24 +811,24 @@ unittest
 
 *******************************************************************************/
 
-bool startsWith ( T ) ( T[] arr, T[] prefix )
+bool startsWith ( TC1, TC2 ) ( TC1[] arr, TC2[] prefix )
 {
     return (arr.length >= prefix.length) && (arr[0..prefix.length] == prefix[]);
 }
 
 unittest
 {
-    test( startsWith!(char)("abcd", "abc"));
-    test( startsWith!(char)("abcd", "abcd"));
-    test(!startsWith!(char)("ab", "abc"));
-    test( startsWith!(char)("ab", null));
-    test(!startsWith!(char)(null, "xx"));
+    test( startsWith("abcd", "abc"));
+    test( startsWith("abcd", "abcd"));
+    test(!startsWith("ab", "abc"));
+    test( startsWith("ab", ""));
+    test(!startsWith("", "xx"));
 
-    test( startsWith!(uint)([1,2,3,4], [1,2,3]));
-    test( startsWith!(uint)([1,2,3,4], [1,2,3,4]));
-    test(!startsWith!(uint)([1,2], [1,2,3]));
-    test( startsWith!(uint)([1,2], null));
-    test(!startsWith!(uint)(null, [1,2]));
+    test( startsWith([1,2,3,4], [1,2,3]));
+    test( startsWith([1,2,3,4], [1,2,3,4]));
+    test(!startsWith([1,2], [1,2,3]));
+    test( startsWith([1,2], [ ]));
+    test(!startsWith([ ], [1,2]));
 }
 
 /*******************************************************************************
@@ -835,24 +847,24 @@ unittest
 
 *******************************************************************************/
 
-bool endsWith ( T ) ( T[] arr, T[] suffix )
+bool endsWith ( TC1, TC2 ) ( TC1[] arr, TC2[] suffix )
 {
     return (arr.length >= suffix.length) && (arr[$ - suffix.length .. $] == suffix[]);
 }
 
 unittest
 {
-    test( endsWith!(char)("abcd", "bcd"));
-    test( endsWith!(char)("abcd", "abcd"));
-    test(!endsWith!(char)("ab", "abc"));
-    test( endsWith!(char)("ab", null));
-    test(!endsWith!(char)(null, "xx"));
+    test( endsWith("abcd", "bcd"));
+    test( endsWith("abcd", "abcd"));
+    test(!endsWith("ab", "abc"));
+    test( endsWith("ab", ""));
+    test(!endsWith("", "xx"));
 
-    test( endsWith!(uint)([1,2,3,4], [2,3,4]));
-    test( endsWith!(uint)([1,2,3,4], [1,2,3,4]));
-    test(!endsWith!(uint)([1,2], [1,2,3]));
-    test( endsWith!(uint)([1,2], null));
-    test(!endsWith!(uint)(null, [1,2]));
+    test( endsWith([1,2,3,4], [2,3,4]));
+    test( endsWith([1,2,3,4], [1,2,3,4]));
+    test(!endsWith([1,2], [1,2,3]));
+    test( endsWith([1,2], [ ]));
+    test(!endsWith([ ], [1,2]));
 }
 
 /*******************************************************************************
@@ -880,22 +892,22 @@ public T[] removePrefix ( T ) ( T[] arr, T[] prefix )
 
 unittest
 {
-    test(removePrefix!(char)("abcd", "abc") == "d");
-    test(removePrefix!(char)("abcd", "abcd") == "");
-    test(removePrefix!(char)("abcd", "abcde") == "abcd");
-    test(removePrefix!(char)("abcd", null) == "abcd");
-    test(removePrefix!(char)(null, "xx") == "");
+    test(removePrefix("abcd", "abc") == "d");
+    test(removePrefix("abcd", "abcd") == "");
+    test(removePrefix("abcd", "abcde") == "abcd");
+    test(removePrefix("abcd", "") == "abcd");
+    test(removePrefix("", "xx") == "");
     test("abcd".removePrefix("abc") == "d");
     test("abcd".removePrefix("abcd") == "");
     test("abcd".removePrefix("abcde") == "abcd");
     test("abcd".removePrefix("") == "abcd");
     test("".removePrefix("xx") == "");
 
-    test(removePrefix!(uint)([1,2,3,4], [1,2,3]) == cast(uint[])[4]);
-    test(removePrefix!(uint)([1,2,3,4], [1,2,3,4]) == cast(uint[])[]);
-    test(removePrefix!(uint)([1,2], [1,2,3]) == cast(uint[])[1,2]);
-    test(removePrefix!(uint)([1,2], null) == cast(uint[])[1,2]);
-    test(removePrefix!(uint)(null, [1,2]) == cast(uint[])[]);
+    test(removePrefix([1,2,3,4], [1,2,3]) == [ 4 ]);
+    test(removePrefix([1,2,3,4], [1,2,3,4]) == cast(int[]) null);
+    test(removePrefix([1,2], [1,2,3]) == [ 1, 2 ]);
+    test(removePrefix([1,2], [ ]) == [ 1, 2 ]);
+    test(removePrefix([ ], [1,2]) == cast(int[]) null);
 }
 
 /*******************************************************************************
@@ -923,22 +935,22 @@ public T[] removeSuffix ( T ) ( T[] arr, T[] suffix )
 
 unittest
 {
-    test(removeSuffix!(char)("abcd", "cd") == "ab");
-    test(removeSuffix!(char)("abcd", "abcd") == "");
-    test(removeSuffix!(char)("abcd", "abcde") == "abcd");
-    test(removeSuffix!(char)("abcd", null) == "abcd");
-    test(removeSuffix!(char)(null, "xx") == "");
+    test(removeSuffix("abcd", "cd") == "ab");
+    test(removeSuffix("abcd", "abcd") == "");
+    test(removeSuffix("abcd", "abcde") == "abcd");
+    test(removeSuffix("abcd", "") == "abcd");
+    test(removeSuffix("", "xx") == "");
     test("abcd".removeSuffix("cd") == "ab");
     test("abcd".removeSuffix("abcd") == "");
     test("abcd".removeSuffix("abcde") == "abcd");
     test("abcd".removeSuffix("") == "abcd");
     test("".removeSuffix("xx") == "");
 
-    test(removeSuffix!(uint)([1,2,3,4], [2,3,4]) == cast(uint[])[1]);
-    test(removeSuffix!(uint)([1,2,3,4], [1,2,3,4]) == cast(uint[])[]);
-    test(removeSuffix!(uint)([1,2], [1,2,3]) == cast(uint[])[1,2]);
-    test(removeSuffix!(uint)([1,2], null) == cast(uint[])[1,2]);
-    test(removeSuffix!(uint)(null, [1,2]) == cast(uint[])[]);
+    test(removeSuffix([1,2,3,4], [2,3,4]) == [ 1 ]);
+    test(removeSuffix([1,2,3,4], [1,2,3,4]) == cast(int[]) null);
+    test(removeSuffix([1,2], [1,2,3]) == [ 1, 2 ]);
+    test(removeSuffix([1,2], [ ]) == [ 1, 2 ]);
+    test(removeSuffix([ ], [1,2]) == cast(int[]) null);
 }
 
 /*******************************************************************************
@@ -1709,30 +1721,30 @@ version ( UnitTest )
 unittest
 {
     char[] dest;
-    char[] str1 = "hello";
-    char[] str2 = "world";
-    char[] str3 = "something";
+    istring str1 = "hello";
+    istring str2 = "world";
+    istring str3 = "something";
 
     // Check dynamic array concatenation
-    assert(concat_test(dest, str1, str2, str3), "Concatenation test failed");
+    test(concat_test(dest, str1, str2, str3), "Concatenation test failed");
 
     // Check that modifying one of the concatenated strings doesn't modify the result
     char[] result = dest.dup;
     str1 = "goodbye";
-    assert(dest == result, "Modified concatenation test failed");
+    test!("==")(dest, result);
 
     // Check null concatenation
-    assert(concat_test(dest), "Null concatenation test 1 failed");
-    assert(concat_test(dest, "", ""), "Null concatenation test 2 failed");
+    test(concat_test(dest), "Null concatenation test 1 failed");
+    test(concat_test(dest, "", ""), "Null concatenation test 2 failed");
 
     // Check static array concatenation
     char[3] staticstr1 = "hi ";
     char[5] staticstr2 = "there";
-    assert(concat_test(dest, staticstr1, staticstr2), "Static array concatenation test failed");
+    test(concat_test(dest, staticstr1, staticstr2), "Static array concatenation test failed");
 
-    // Check const array concatenation
-    const char[] conststr1 = "hi ";
-    const char[] conststr2 = "there";
-    assert(concat_test(dest, conststr1, conststr2), "Const array concatenation test failed");
+    // Check manifest constant array concatenation
+    const conststr1 = "hi ";
+    const conststr2 = "there";
+    test(concat_test(dest, conststr1, conststr2), "Const array concatenation test failed");
 }
 
