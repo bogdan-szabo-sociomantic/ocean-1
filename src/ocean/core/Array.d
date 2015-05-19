@@ -1584,10 +1584,15 @@ private T[] concat_ ( T ) ( T[] dest, T[][] arrays, size_t start = 0 )
 
 *******************************************************************************/
 
-private size_t toStaticArray ( size_t n, D, istring func = "toStaticArray", T ... ) ( D[n] dest, T elements )
+private size_t toStaticArray ( D, istring func = "toStaticArray",
+    T ... ) ( D[] dest, T elements )
 in
 {
-    static assert (n == T.length, func ~ ": destination array length mismatch (expected" ~ T.length.stringof ~ " instead of " ~ n.stringof);
+    assert (
+        dest.length == T.length,
+        func ~ ": destination array length mismatch (expected"
+            ~ T.length.stringof ~ ")"
+    );
 }
 body
 {
@@ -1595,9 +1600,11 @@ body
 
     foreach ( i, element; elements )
     {
-        static assert (is (typeof (dest[i] = element)), func ~ ": cannot "
-                           "assign element " ~ i.stringof ~ " of type " ~
-                           typeof (element).stringof ~ "to  " ~ D.stringof);
+        static assert (
+            is(typeof(dest[i] = element)),
+            func ~ ": cannot assign element " ~ i.stringof ~ " of type " ~
+                typeof (element).stringof ~ " to  " ~ D.stringof
+        );
 
         dest[i] = element;
         total_length += element.length;
@@ -1656,7 +1663,15 @@ private D concatT ( istring func, D, T ... ) ( ref D dest, T arrays, size_t star
     }
     else                                                                    // multiple arguments, must be arrays
     {
-        D[T.length] list;
+        static if (is(D U : U[]))
+        {
+            alias Const!(U)[] _D;
+            _D[T.length] list;
+        }
+        else
+        {
+            static assert ("Expected array, got " ~ D.stringof);
+        }
 
         dest.length = start + toStaticArray(list, arrays);
 
