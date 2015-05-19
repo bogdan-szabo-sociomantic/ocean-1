@@ -114,14 +114,14 @@ public bool isKeyword ( char[] string )
     keyword (see isKeyword(), above) -- all keywords are also identifiers.
 
     Params:
-        string = string to check
+        input = string to check
 
     Returns:
         true if the string is a valid D 1.0 identifier
 
 *******************************************************************************/
 
-public bool isIdentifier ( char[] string )
+public bool isIdentifier ( cstring input )
 {
     bool alphaUnderscore ( char c )
     {
@@ -134,18 +134,18 @@ public bool isIdentifier ( char[] string )
     }
 
     // Identifiers must have a length
-    if ( string.length == 0 ) return false;
+    if ( input.length == 0 ) return false;
 
     // Identifiers must begin with an alphabetic or underscore character
-    if ( !alphaUnderscore(string[0]) ) return false;
+    if ( !alphaUnderscore(input[0]) ) return false;
 
     // Strings beginning with "__" are reserved (not identifiers)
-    if ( string.length > 1 && string[0] == '_' && string[1] == '_' ) return false;
+    if ( input.length > 1 && input[0] == '_' && input[1] == '_' ) return false;
 
     // All characters after the first must be alphanumerics or underscores
-    for ( int i = 1; i < string.length; i++ )
+    for ( int i = 1; i < input.length; i++ )
     {
-        if ( !validChar(string[i]) ) return false;
+        if ( !validChar(input[i]) ) return false;
     }
 
     return true;
