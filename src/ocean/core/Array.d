@@ -12,14 +12,14 @@
     property' syntax, so:
 
     ---
-        char[] dest;
+        mstring dest;
         concat(dest, "hello ", "world");
     ---
 
     could also be written as:
 
     ---
-        char[] dest;
+        mstring dest;
         dest.concat("hello ", "world");
     ---
 
@@ -85,7 +85,7 @@ public D concat ( D, T ... ) ( ref D dest, T arrays )
 ///
 unittest
 {
-    char[] dest;
+    mstring dest;
     concat(dest, "hello ", "world");
     test!("==")(dest, "hello world");
 }
@@ -146,7 +146,7 @@ unittest
 
 *******************************************************************************/
 
-public T[] copy ( T ) ( ref T[] dest, T[] src )
+public T[] copy ( T, TC ) ( ref T[] dest, TC[] src )
 {
     dest.length = src.length;
 
@@ -161,7 +161,7 @@ public T[] copy ( T ) ( ref T[] dest, T[] src )
 ///
 unittest
 {
-    char[] dest;
+    mstring dest;
     cstring src = "hello";
     copy(dest, src);
     test!("==")(dest, "hello");
@@ -185,8 +185,10 @@ unittest
 
 *******************************************************************************/
 
-public T[] copyExtend ( T ) ( ref T[] dest, T[] src )
+public T[] copyExtend ( T, TC ) ( ref T[] dest, TC[] src )
 {
+    static assert (is(Unqual!(T) == Unqual!(TC)));
+
     if (src.length)
     {
         if (dest.length < src.length)
@@ -227,8 +229,10 @@ unittest
 
 *******************************************************************************/
 
-public T[][] appendCopy ( T ) ( ref T[][] dest, T[] src )
+public T[][] appendCopy ( T, TC ) ( ref T[][] dest, TC[] src )
 {
+    static assert (is(Unqual!(T) == Unqual!(TC)));
+
     dest.length = dest.length + 1;
     dest[$ - 1].copy(src);
 
@@ -266,8 +270,10 @@ unittest
 
 *******************************************************************************/
 
-public T[][] split ( T ) ( T[] src, T[] pattern, ref T[][] result )
+public T[][] split ( T, TC ) ( T[] src, TC[] pattern, ref T[][] result )
 {
+    static assert (is(Unqual!(T) == Unqual!(TC)));
+
     result.length = 0;
 
     foreach ( segment; patterns(src, pattern) )
@@ -307,8 +313,13 @@ unittest
 
 *******************************************************************************/
 
-public T[] substitute ( T ) ( T[] source, T[] match, T[] replacement, ref T[] result )
+public T[] substitute ( T, TC1, TC2, TC3 ) ( TC1[] source, TC2[] match,
+    TC3[] replacement, ref T[] result )
 {
+    static assert (is(Unqual!(T) == Unqual!(TC1)));
+    static assert (is(Unqual!(T) == Unqual!(TC2)));
+    static assert (is(Unqual!(T) == Unqual!(TC3)));
+
     result.length = 0;
 
     foreach ( s; patterns(source, match, replacement) )
@@ -322,7 +333,7 @@ public T[] substitute ( T ) ( T[] source, T[] match, T[] replacement, ref T[] re
 ///
 unittest
 {
-    char[] result;
+    mstring result;
     substitute("some string", "ring", "oops", result);
     test!("==")(result, "some stoops");
 }
@@ -383,8 +394,11 @@ unittest
 
 *******************************************************************************/
 
-public T[] remove ( T ) ( T[] source, T[] match, ref T[] result )
+public T[] remove ( T, TC1, TC2 ) ( TC1[] source, TC2[] match, ref T[] result )
 {
+    static assert (is(Unqual!(T) == Unqual!(TC1)));
+    static assert (is(Unqual!(T) == Unqual!(TC2)));
+
     T[] replacement = null;
     return substitute(source, match, replacement, result);
 }
@@ -1528,8 +1542,10 @@ unittest
 
 *******************************************************************************/
 
-private T[] concat_ ( T ) ( T[] dest, T[][] arrays, size_t start = 0 )
+private T[] concat_ ( T, TC ) ( T[] dest, TC[][] arrays, size_t start = 0 )
 {
+    static assert (is(Unqual!(T) == Unqual!(TC)));
+
     T[] write_slice = dest[start .. $];
 
     foreach ( array; arrays )
@@ -1689,13 +1705,13 @@ private D concatT ( istring func, D, T ... ) ( ref D dest, T arrays, size_t star
 
 unittest
 {
-    char[] str;
+    mstring str;
     assert (str.copy("Die Katze tritt die Treppe krumm.") == "Die Katze tritt die Treppe krumm.");
 
     str.length = 0;
     assert (str.concat("Die ", "Katze ", "tritt ", "die ", "Treppe ", "krumm.") == "Die Katze tritt die Treppe krumm.");
 
-    char[] nothing = null;
+    mstring nothing = null;
 
     str.length = 0;
     assert (str.concat("Die ", "", "Katze ", "tritt ", nothing, "die ", "Treppe ", "krumm.") == "Die Katze tritt die Treppe krumm.");
@@ -1719,12 +1735,12 @@ version ( UnitTest )
 {
 
     // Tests string concatenation function against results of the normal ~ operator
-    bool concat_test ( char[][] strings ... )
+    bool concat_test ( cstring[] strings ... )
     {
-        char[] dest;
+        mstring dest;
         concat(dest, strings);
 
-        char[] concat_result;
+        mstring concat_result;
         foreach ( str; strings )
         {
             concat_result ~= str;
@@ -1735,7 +1751,7 @@ version ( UnitTest )
 
 unittest
 {
-    char[] dest;
+    mstring dest;
     istring str1 = "hello";
     istring str2 = "world";
     istring str3 = "something";
@@ -1744,7 +1760,7 @@ unittest
     test(concat_test(dest, str1, str2, str3), "Concatenation test failed");
 
     // Check that modifying one of the concatenated strings doesn't modify the result
-    char[] result = dest.dup;
+    mstring result = dest.dup;
     str1 = "goodbye";
     test!("==")(dest, result);
 
