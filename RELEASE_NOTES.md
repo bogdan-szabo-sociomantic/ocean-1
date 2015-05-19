@@ -9,6 +9,13 @@ dmd1       | v1.077.s14
 Migration Instructions
 ======================
 
+* `ocean.core.Array`
+
+  It was impossible to exactly preserve API of `removeSuffix`, `removePrefix`, `startsWith`
+  and `endsWith` functions during D2 migration and those are now more restrictive : `null`
+  is no longer a valid argument (use `""` or `[]` instead), explicit template parameter
+  may not work (but should be never needed)
+
 
 Removed Deprecated Modules
 --------------------------

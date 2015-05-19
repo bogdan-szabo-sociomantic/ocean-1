@@ -883,7 +883,7 @@ unittest
 
 *******************************************************************************/
 
-public T[] removePrefix ( T ) ( T[] arr, T[] prefix )
+public TC1[] removePrefix ( TC1, TC2 ) ( TC1[] arr, TC2[] prefix )
 {
     return ((arr.length >= prefix.length) && (startsWith(arr, prefix))
                 ? arr[prefix.length .. $]
@@ -926,7 +926,7 @@ unittest
 
 *******************************************************************************/
 
-public T[] removeSuffix ( T ) ( T[] arr, T[] suffix )
+public TC1[] removeSuffix ( TC1, TC2 ) ( TC1[] arr, TC2[] suffix )
 {
     return ((arr.length >= suffix.length) && (endsWith(arr, suffix))
                 ? arr[0 .. $-suffix.length]
