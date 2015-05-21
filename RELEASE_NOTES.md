@@ -20,3 +20,8 @@ Deprecations
 
 New Features
 ============
+
+* `ocean.util.cipher.HMAC.hexDigest` and `ocean.util.cipher.ByteConverter.hexEncode`
+
+  These methods now both support taking a reusable buffer as their second
+  arguments so that memory allocation can be avoided.

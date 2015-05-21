@@ -272,16 +272,41 @@ public class HMAC
 
     /***************************************************************************
 
-        Computes the digest and returns it as hex
+        Computes the digest and returns it as hex.
+
+        This method allocates a new buffer on every call to hold the return
+        value.
 
         Params:
             buffer = buffer to use (the buffer is resized to the digest length)
+
+        Returns:
+            the digest in hex representation
 
     ***************************************************************************/
 
     public char[] hexDigest ( ref ubyte[] buffer )
     {
         return ByteConverter.hexEncode(this.digest(buffer));
+    }
+
+    /***************************************************************************
+
+        Computes the digest and returns it as hex
+
+        Params:
+            buffer = buffer to use (the buffer is resized to the digest length)
+            output = reusable buffer to store the hex representation (may be
+                resized)
+
+        Returns:
+            a slice over ouput containing the digest in hex representation
+
+     ***************************************************************************/
+
+    public char[] hexDigest ( ref ubyte[] buffer, ref char[] output)
+    {
+        return ByteConverter.hexEncode(this.digest(buffer), output);
     }
 }
 

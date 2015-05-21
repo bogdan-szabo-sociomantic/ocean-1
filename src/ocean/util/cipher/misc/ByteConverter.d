@@ -10,6 +10,11 @@ module ocean.util.cipher.misc.ByteConverter;
 
 import tango.transition;
 
+version ( UnitTest )
+{
+    import ocean.core.Test;
+}
+
 /** Converts between integral types and unsigned byte arrays */
 struct ByteConverter
 {
@@ -152,10 +157,41 @@ struct ByteConverter
         }
     }
 
+    /**
+     * Takes an array and converts each byte to its hex representation.
+     *
+     * Params:
+     *     input_ = the array of bytes to represent
+     *
+     * Returns:
+     *     A newed char[] containing the hex digits representing the
+     *     input
+     */
+
     static char[] hexEncode(void[] input_)
     {
+        char[] buffer;
+
+        return(hexEncode(input_, buffer));
+    }
+
+    /**
+     * Takes an array and converts each byte to its hex representation.
+     *
+     * Params:
+     *     input_ = the array of bytes to represent
+     *     output = the buffer into which the results will be written
+     *
+     * Returns:
+     *     A slice of output containing the hex digits representing the
+     *     input
+     */
+
+    static char[] hexEncode(void[] input_, ref char[] output)
+    {
         ubyte[] input = cast(ubyte[])input_;
-        char[] output = new char[input.length<<1];
+        // make sure our buffer is big enough (2 hex digits per byte).
+        output.length = input.length * 2;
 
         int i = 0;
         foreach (ubyte j; input)
@@ -164,7 +200,18 @@ struct ByteConverter
             output[i++] = hexits[j&0xf];
         }
 
-        return cast(char[])output;
+        return output;
+    }
+
+    unittest
+    {
+        char[] buffer;
+
+        test!("==")(hexEncode(cast(ubyte[])([
+                        0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef
+                    ]), buffer), "0123456789abcdef");
+        // check the right amount of memory was allocated
+        test!("==")(buffer.length, 16);
     }
 
     /** Play nice with D2's idea of const. */
