@@ -32,7 +32,6 @@ import ocean.util.app.Application;
 import ocean.util.app.ext.model.ISignalExtExtension;
 
 import ocean.io.select.client.SignalEvent;
-import ocean.io.select.EpollSelectDispatcher;
 
 
 
