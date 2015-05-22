@@ -186,6 +186,93 @@ public struct SignalSet
         return !!sigismember(&this.sigset, signal);
     }
 
+    /***************************************************************************
+
+        Sets the signal mask for the calling thread. All signals in the set of
+        this instance this set will be blocked, and all other signals will be
+        unblocked.
+
+    ***************************************************************************/
+
+    public void mask ( )
+    {
+        pthread_sigmask(SIG_SETMASK, &this.sigset, null);
+    }
+
+    /***************************************************************************
+
+        Blocks the signals in in the set of this instance in the calling thread.
+        Signals that are not in this set but are already blocked will stay
+        blocked.
+
+        Returns:
+            previous masked signals set (call its mask() method to restore the
+            previous state)
+
+    ***************************************************************************/
+
+    public typeof(*this) block ( )
+    {
+        typeof(*this) old_set;
+
+        pthread_sigmask(SIG_BLOCK, &this.sigset, &old_set.sigset);
+
+        return old_set;
+    }
+
+    /***************************************************************************
+
+        Executes op with the signals in this set blocked. The signals are
+        automatically unblocked again after op has finished (returned or threw).
+
+        Params:
+            op = the operation to execute
+
+    ***************************************************************************/
+
+    public void callBlocked ( lazy void op )
+    {
+        auto old_sigset = this.block();
+
+        scope ( exit )
+        {
+            debug ( SignalMask )
+            {
+                sigset_t pending;
+                sigpending(&pending);
+
+                foreach ( signal; this.signals )
+                {
+                    if ( sigismember(&pending, signal) )
+                    {
+                        Stderr.formatln("Signal {} fired while masked", signal);
+                    }
+                }
+            }
+
+            old_sigset.mask();
+        }
+
+        op;
+    }
+
+    /***************************************************************************
+
+        Gets the signal mask for the calling thread.
+
+        Returns:
+            set of currently masked signals for the calling thread
+
+    ***************************************************************************/
+
+    public static typeof(*this) getCurrent ( )
+    {
+        typeof(*this) current_set;
+
+        pthread_sigmask(SIG_SETMASK, null, &current_set.sigset);
+
+        return current_set;
+    }
 
     /***************************************************************************
 
@@ -213,29 +300,9 @@ public struct SignalSet
 
 *******************************************************************************/
 
-public void maskSignals ( int[] signals, void delegate ( ) dg )
+deprecated public void maskSignals ( int[] signals, void delegate ( ) dg )
 {
-    auto old_set = maskSignals(signals);
-    scope ( exit )
-    {
-        debug ( SignalMask )
-        {
-            sigset_t pending;
-            sigpending(&pending);
-
-            foreach ( signal; signals )
-            {
-                if ( sigismember(&pending, signal) )
-                {
-                    Stderr.formatln("Signal {} fired while masked", signal);
-                }
-            }
-        }
-
-        setSignalMask(old_set);
-    }
-
-    dg();
+    maskSignals(signals).callBlocked(dg());
 }
 
 
@@ -252,16 +319,14 @@ public void maskSignals ( int[] signals, void delegate ( ) dg )
 
 *******************************************************************************/
 
-public SignalSet maskSignals ( int[] signals )
+deprecated public SignalSet maskSignals ( int[] signals )
 {
-    SignalSet set, old_set;
+    SignalSet set;
 
     set.clear;
     set.add(signals);
 
-    pthread_sigmask(SIG_BLOCK, &set.sigset, &old_set.sigset);
-
-    return old_set;
+    return set.block();
 }
 
 
@@ -274,15 +339,7 @@ public SignalSet maskSignals ( int[] signals )
 
 *******************************************************************************/
 
-public SignalSet getSignalMask ( )
-{
-    SignalSet current_set;
-
-    pthread_sigmask(SIG_BLOCK, null, &current_set.sigset);
-
-    return current_set;
-}
-
+deprecated alias SignalSet.getCurrent getSignalMask;
 
 /*******************************************************************************
 
@@ -294,8 +351,8 @@ public SignalSet getSignalMask ( )
 
 *******************************************************************************/
 
-public void setSignalMask ( SignalSet set )
+deprecated public void setSignalMask ( SignalSet set )
 {
-    pthread_sigmask(SIG_SETMASK, &set.sigset, null);
+    set.mask();
 }
 

@@ -377,9 +377,9 @@ public class SignalFD : ISelectable
 
     public void unmaskHandledSignals ( )
     {
-        auto sigset = getSignalMask();
+        auto sigset = SignalSet.getCurrent();
         sigset.remove(this.signals);
-        setSignalMask(sigset);
+        sigset.mask();
     }
 
 
@@ -392,7 +392,10 @@ public class SignalFD : ISelectable
 
     public void maskHandledSignals ( )
     {
-        maskSignals(this.signals);
+        SignalSet sigset;
+        sigset.clear();
+        sigset.add(this.signals);
+        sigset.block();
     }
 
 
