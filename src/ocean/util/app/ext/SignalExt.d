@@ -7,10 +7,11 @@
     The extension can handle any number of different signals -- depending solely
     on which signals are specified in the constructor.
 
-    Note: the extension must not only be registered with the application but
-    also with an epoll instance via the register() method! The signal handlers
-    will not be called until the extension is registered with epoll and the
-    event loop started.
+    Note: not only must the extension be registered with the application but its
+    internal SignalEvent (returned by the event() method) must also be
+    registered with an epoll instance! Until the event is registered with epoll
+    and the event loop started, the signal handlers will not be called in
+    response to signals which have occurred.
 
 *******************************************************************************/
 
