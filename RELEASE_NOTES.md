@@ -50,6 +50,16 @@ Deprecations
   discourage developers from using it in application code casually (which was never
   the intention)
 
+* `ocean.util.log.StatsLog`
+
+  * `addSuffix` (and the protected `formatValue(cstring name, V value, bool add_separator, cstring suffix = null)`,
+    which it uses internally) is deprecated: This method allowed building a custom hierarchy.
+    Please use `addObject` instead.
+  * Passing individual values and associative arrays to `add` is deprecated.
+    All values must be encapsulated in a struct.
+  * Logging of structs containing non-numeric types issues a warning. This behaviour will soon be removed.
+
+
 New Features
 ============
 
@@ -57,3 +67,16 @@ New Features
 
   These methods now both support taking a reusable buffer as their second
   arguments so that memory allocation can be avoided.
+
+* `ocean.util.log.StatsLog`
+
+  A new method, `addObject(istring category, T)(cstring instance, ref T values)`, was added, which allows
+  users to log multiple instances of a named "object" of a named "category" containing values as defined in
+  a given struct instance. (Note that all data types (i.e. struct instances) for a given category should be the same.)
+
+  An example of a situation where this feature is helpful is when you need to log stats per adpan.
+  For example, you may be tracking the number of views and the number of clicks on a per-adpan basis.
+  Calling `addObject!("adpan")("zalando", zalando_stats);` would then add the following to the stats log:
+  `adpan/zalando/clicks: 4 adpan/zalando/views: 400`
+
+  If you plan to use this feature, check with Infrastructure team to get your scripts updated.
