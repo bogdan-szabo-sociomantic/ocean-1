@@ -16,6 +16,8 @@
 
 module ocean.text.util.c.iconv;
 
+import tango.transition;
+
 extern (C)
 {
 	mixin(Typedef!(void*, "ConversionDescriptor"));

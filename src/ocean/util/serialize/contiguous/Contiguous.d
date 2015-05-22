@@ -15,6 +15,8 @@ module ocean.util.serialize.contiguous.Contiguous;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Exception,
        ocean.core.Traits;
 

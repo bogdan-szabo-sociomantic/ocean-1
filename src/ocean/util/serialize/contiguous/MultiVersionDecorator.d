@@ -16,6 +16,8 @@ module ocean.util.serialize.contiguous.MultiVersionDecorator;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import tango.stdc.string : memmove;
 import tango.math.Math;
 

@@ -19,6 +19,8 @@ module ocean.io.Terminal;
 
 ******************************************************************************/
 
+import tango.transition;
+
 import tango.stdc.posix.signal;
 
 debug(Term) import tango.io.Stdout;

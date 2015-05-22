@@ -18,6 +18,8 @@ module ocean.io.FilePath;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import tango.io.FilePath;
 
 import tango.io.Path : FS;

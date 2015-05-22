@@ -14,6 +14,8 @@ module ocean.sys.GetIfAddrs;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import tango.stdc.posix.sys.socket;
 import tango.sys.linux.ifaddrs;
 import tango.stdc.string;

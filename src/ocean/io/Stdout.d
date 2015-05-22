@@ -27,6 +27,8 @@ module ocean.io.Stdout;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.io.Terminal;
 
 import tango.io.device.Conduit;

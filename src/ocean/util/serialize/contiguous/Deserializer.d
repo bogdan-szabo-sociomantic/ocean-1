@@ -15,6 +15,8 @@ module ocean.util.serialize.contiguous.Deserializer;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.util.serialize.contiguous.Contiguous;
 import ocean.util.serialize.model.Traits;
 

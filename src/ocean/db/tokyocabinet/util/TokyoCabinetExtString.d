@@ -20,6 +20,8 @@ module ocean.db.tokyocabinet.util.TokyoCabinetExtString;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import ocean.db.tokyocabinet.c.util.tcxstr: TCXSTR,
                                             tcxstrnew, tcxstrnew3,
                                             tcxstrdel, tcxstrclear,

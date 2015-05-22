@@ -29,6 +29,8 @@ module ocean.io.select.client.model.ISelectClient;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import ocean.io.select.client.model.ISelectClientInfo;
 
 import ocean.sys.Epoll;

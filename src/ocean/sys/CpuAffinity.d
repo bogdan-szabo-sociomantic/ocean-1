@@ -20,6 +20,8 @@ module ocean.sys.CpuAffinity;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import tango.stdc.posix.sys.types : pid_t;
 
 

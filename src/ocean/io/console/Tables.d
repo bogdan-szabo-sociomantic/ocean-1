@@ -122,6 +122,8 @@ module ocean.io.console.Tables;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Array : copy, appendCopy, concat;
 
 import ocean.text.utf.UtfUtil;
