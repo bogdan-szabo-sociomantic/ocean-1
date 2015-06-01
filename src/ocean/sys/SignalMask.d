@@ -188,15 +188,49 @@ public struct SignalSet
 
     /***************************************************************************
 
-        Sets the signal mask for the calling thread. All signals in the set of
-        this instance this set will be blocked, and all other signals will be
-        unblocked.
+        Calls pthread_sigmask() with the set of signals of this instance.
+
+        Params:
+            how = specifies the operation of pthread_sigmask():
+                  SIG_SETMASK: All signals in the set of this instance this set
+                      will be blocked, and all other signals will be unblocked.
+                  SIG_BLOCK: All signals in the set of this instance this set
+                      will be blocked, and the blocking status of all other
+                      signals will remain unchanged.
+                  SIG_UNBLOCK: All signals in the set of this instance this set
+                      will be unblocked, and the blocking status of all other
+                      signals will remain unchanged.
+
+        Returns:
+            previous masked signals set (call its sigmask() method to restore
+            the previous state)
+
+        In:
+            how must be SIG_SETMASK, SIG_BLOCK or SIG_UNBLOCK. Note that
+            ensuring this guarantees that pthread_sigmask() will always
+            succeed.
 
     ***************************************************************************/
 
-    public void mask ( )
+    public typeof(*this) mask ( int how = SIG_SETMASK )
+    in
     {
-        pthread_sigmask(SIG_SETMASK, &this.sigset, null);
+        switch (how)
+        {
+            case SIG_SETMASK, SIG_BLOCK, SIG_UNBLOCK:
+                break;
+
+            default:
+                assert(false, "invalid pthread_sigmask opcode");
+        }
+    }
+    body
+    {
+        typeof(*this) old_set;
+
+        pthread_sigmask(how, &this.sigset, &old_set.sigset);
+
+        return old_set;
     }
 
     /***************************************************************************
@@ -213,11 +247,7 @@ public struct SignalSet
 
     public typeof(*this) block ( )
     {
-        typeof(*this) old_set;
-
-        pthread_sigmask(SIG_BLOCK, &this.sigset, &old_set.sigset);
-
-        return old_set;
+        return this.mask(SIG_BLOCK);
     }
 
     /***************************************************************************
