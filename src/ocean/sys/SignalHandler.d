@@ -229,71 +229,71 @@ class SignalHandler
 
      **************************************************************************/
 
-       void register ( T ) ( int[] codes, T handler )
-       {
-       static if(!is( T == DgHandler ) && !is( T == FnHandler))
-       {
-           static assert(false,"register template only usable for DgHandler or FnHandler!");
-       }
+    void register ( T ) ( int[] codes, T handler )
+    {
+        static if(!is( T == DgHandler ) && !is( T == FnHandler))
+        {
+            static assert(false,"register template only usable for DgHandler or FnHandler!");
+        }
 
-       bool checkfn(FnHandler fn)
-       {
-           static if(is(T==FnHandler))
-           {
-               return (fn == handler);
-           }
-           else
-           {
-               return false;
-           }
-       }
+        bool checkfn(FnHandler fn)
+        {
+            static if(is(T==FnHandler))
+            {
+                return (fn == handler);
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-       bool checkdg(DgHandler dg)
-       {
-           static if(is(T==DgHandler))
-           {
-               return (dg == handler);
-           }
-           else
-           {
-               return false;
-           }
-       }
+        bool checkdg(DgHandler dg)
+        {
+            static if(is(T==DgHandler))
+            {
+                return (dg == handler);
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-       synchronized foreach (code; codes)
-       {
-           if (!(code in this.default_handlers))
-           {
-               this.default_handlers[code] = signal(code, &this.sighandler);
-           }
+        synchronized foreach (code; codes)
+        {
+            if (!(code in this.default_handlers))
+            {
+                this.default_handlers[code] = signal(code, &this.sighandler);
+            }
 
-           if (auto arrayOfhandlers = code in handlers)
-           {
-               foreach (arHandler ; *arrayOfhandlers)
-               {
-                   bool equal = arHandler.visit(&checkfn,&checkdg);
+            if (auto arrayOfhandlers = code in handlers)
+            {
+                foreach (arHandler ; *arrayOfhandlers)
+                {
+                    bool equal = arHandler.visit(&checkfn,&checkdg);
 
-                   if (equal)
-                   {
-                       return;
-                   }
-               }
+                    if (equal)
+                    {
+                        return;
+                    }
+                }
 
-               Handler h;
+                Handler h;
 
-               h.set(handler);
+                h.set(handler);
 
-               (*arrayOfhandlers)~=h;
-           }
-           else
-           {
-               Handler h;
+                (*arrayOfhandlers)~=h;
+            }
+            else
+            {
+                Handler h;
 
-               h.set(handler);
+                h.set(handler);
 
-               this.handlers[code]~=h;
-           }
-       }
+                this.handlers[code]~=h;
+            }
+        }
     }
 
     /***************************************************************************
