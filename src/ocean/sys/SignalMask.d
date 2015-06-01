@@ -252,6 +252,23 @@ public struct SignalSet
 
     /***************************************************************************
 
+        Unblocks the signals in in the set of this instance in the calling
+        thread. Signals that are not in this set but are not blocked will stay
+        unblocked.
+
+        Returns:
+            previous masked signals set (call its mask() method to restore the
+            previous state)
+
+    ***************************************************************************/
+
+    public typeof(*this) unblock ( )
+    {
+        return this.mask(SIG_UNBLOCK);
+    }
+
+    /***************************************************************************
+
         Executes op with the signals in this set blocked. The signals are
         automatically unblocked again after op has finished (returned or threw).
 
