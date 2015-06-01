@@ -469,6 +469,17 @@ public class SignalFD : ISelectable
         ssize_t bytes;
         do
         {
+            /*
+             * Reading from a signal FD has a special meaning and satisfies
+             * certain assumptions: A read() call for siginfo.sizeof bytes
+             * attempts to consume one of the pending signals. If it succeeds
+             * then it is guaranteed to have read all bytes. If there are no
+             * signals pending -- usually because we consumed all pending
+             * signals by having called read(siginfo.sizeof) as often as there
+             * were signals pending, but also if this method was called without
+             * the signal FD having fired -- then read() fails with
+             * EAGAIN/EWOULDBLOCK.
+             */
             bytes = .read(this.fd, &siginfo, siginfo.sizeof);
             if ( bytes == siginfo.sizeof )
             {
@@ -476,18 +487,22 @@ public class SignalFD : ISelectable
             }
             else if ( bytes < 0 )
             {
+                // Check for errnum == EAGAIN/EWOUDLBLOCK which indicates the
+                // end of the list of signals (that is, we either read the whole
+                // list or no signal was actually pending in the first place).
+
                 scope ( exit ) .errno = 0;
                 auto errnum = .errno;
 
                 switch ( errnum )
                 {
                     case EAGAIN:
-                    break;
+                    break; // The loop will exit because bytes < 0.
 
                     static if ( EAGAIN != EWOULDBLOCK )
                     {
                         case EWOUDLBLOCK:
-                        break;
+                        break; // The loop will exit because bytes < 0.
                     }
 
                     default:
@@ -497,6 +512,9 @@ public class SignalFD : ISelectable
             }
             else
             {
+                // This should not happen: read(siginfo.sizeof) from a signal FD
+                // returns either siginfo.sizeof for success or -1 for failure.
+
                 throw this.exception("read invalid bytes from signalfd",
                         __FILE__, __LINE__);
             }
