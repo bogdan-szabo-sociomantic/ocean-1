@@ -271,7 +271,19 @@ class SignalHandler
             {
                 foreach (arHandler ; *arrayOfhandlers)
                 {
-                    bool equal = arHandler.visit(&checkfn,&checkdg);
+                    bool equal;
+
+                    switch (arHandler.active())
+                    {
+                        case Handler.Active.dg:
+                            equal = checkfn(arHandler.fn);
+                            break;
+                        case Handler.Active.fn:
+                            equal = checkdg(arHandler.dg);
+                            break;
+                        default:
+                            assert (false);
+                    }
 
                     if (equal)
                     {
@@ -279,18 +291,12 @@ class SignalHandler
                     }
                 }
 
-                Handler h;
-
-                h.set(handler);
-
+                Handler h = handler;
                 (*arrayOfhandlers)~=h;
             }
             else
             {
-                Handler h;
-
-                h.set(handler);
-
+                Handler h = handler;
                 this.handlers[code]~=h;
             }
         }
@@ -518,3 +524,27 @@ class SignalHandler
     }
 }
 
+///
+unittest
+{
+    class MyClass
+    {
+        public this ( )
+        {
+            SignalHandler.register(SignalHandler.Signals.SIGALRM, &this.alarm);
+            SignalHandler.register(SignalHandler.Signals.SIGTERM, &this.terminate);
+        }
+
+        public bool alarm ( int code )
+        {
+            // required alarm behaviour for this class
+            return false; // don't call default handler
+        }
+
+        public bool terminate ( int code )
+        {
+            // required shutdown behaviour for this class
+            return true; // call default handler (terminates program)
+        }
+    }
+}
