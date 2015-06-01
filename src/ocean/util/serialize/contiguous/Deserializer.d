@@ -706,7 +706,7 @@ struct Deserializer
         else
         {
             pragma (msg, extra_bytes,
-                "countArraySize: no subarrays (primitive ", T.stringof, ")");
+                " countArraySize: no subarrays (primitive ", T.stringof, ")");
         }
 
         return pos;
