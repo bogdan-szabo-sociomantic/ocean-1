@@ -61,34 +61,34 @@ public alias MarkupEntityCodec!(XmlEntitySet) XmlEntityCodec;
 
 version ( UnitTest )
 {
-    void encodeTest ( Char ) ( XmlEntityCodec codec, Char[] string, Char[] expected_result )
+    void encodeTest ( Char ) ( XmlEntityCodec codec, Char[] str, Char[] expected_result )
     {
         Char[] encoded;
 
-        if ( codec.containsUnencoded(string) )
+        if ( codec.containsUnencoded(str) )
         {
-            codec.encode(string, encoded);
+            codec.encode(str, encoded);
             assert(codec.containsEncoded(encoded));
         }
         else
         {
-            encoded = string;
+            encoded = str;
         }
 
         assert(encoded == expected_result);
     }
 
-    void decodeTest ( Char ) ( XmlEntityCodec codec, Char[] string, Char[] expected_result )
+    void decodeTest ( Char ) ( XmlEntityCodec codec, Char[] str, Char[] expected_result )
     {
         Char[] decoded;
 
-        if ( codec.containsEncoded(string) )
+        if ( codec.containsEncoded(str) )
         {
-            codec.decode(string, decoded);
+            codec.decode(str, decoded);
         }
         else
         {
-            decoded = string;
+            decoded = str;
         }
 
         assert(decoded == expected_result);
@@ -150,4 +150,3 @@ unittest
     test!(wchar)();
     test!(dchar)();
 }
-

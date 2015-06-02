@@ -164,7 +164,7 @@ int                 g_unichar_xdigit_value  (dchar c);
 GUnicodeType        g_unichar_type          (dchar c);
 GUnicodeBreakType   g_unichar_break_type    (dchar c);
 
-void        g_unicode_canonical_ordering        (dchar* string, size_t len);
+void        g_unicode_canonical_ordering        (dchar* str, size_t len);
 dchar*      g_unicode_canonical_decomposition   (dchar c, size_t* result_len);
 bool        g_unichar_get_mirror_char           (dchar c, dchar* mirrored_ch);
 //alias       p                                   g_utf8_next_char;
@@ -211,4 +211,3 @@ alias       g_utf8_to_utf16  g_to_utf16;
 
 alias       g_utf8_to_ucs4   g_to_ucs4;
 alias       g_utf16_to_ucs4  g_to_ucs4;
-

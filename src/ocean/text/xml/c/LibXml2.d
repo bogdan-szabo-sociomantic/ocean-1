@@ -207,11 +207,11 @@ extern ( C )
 
     Params:
         err = libxml2 error structure
-        string = output string
+        str = output string
 
 *******************************************************************************/
 
-public void formatXmlErrorString ( xmlErrorPtr err, ref char[] string )
+public void formatXmlErrorString ( xmlErrorPtr err, ref char[] str )
 {
     char[] dstr ( char* cstr )
     {
@@ -225,6 +225,5 @@ public void formatXmlErrorString ( xmlErrorPtr err, ref char[] string )
         }
     }
 
-    string.concat("Xml parsing error: ", dstr(err.message));
+    str.concat("Xml parsing error: ", dstr(err.message));
 }
-

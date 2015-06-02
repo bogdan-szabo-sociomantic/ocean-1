@@ -185,17 +185,17 @@ public class Table
                 Static opCall method to create a cell containing a string.
 
                 Params:
-                    string = string to put in cell
+                    str = string to put in cell
 
                 Returns:
                     new cell struct
 
             *******************************************************************/
 
-            static public Cell String ( char[] string )
+            static public Cell String ( char[] str )
             {
                 Cell cell;
-                cell.setString(string);
+                cell.setString(str);
                 return cell;
             }
 
