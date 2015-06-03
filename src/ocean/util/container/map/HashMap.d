@@ -174,6 +174,8 @@ public class HashMap ( V ) : Map!(V, hash_t)
     version ( UnitTest )
     {
         import ocean.core.Test;
+        import tango.core.Traits : isFloatingPointType;
+        import tango.math.IEEE : isNaN;
     }
 
     unittest
@@ -235,6 +237,12 @@ public class HashMap ( V ) : Map!(V, hash_t)
             else static if ( is ( V == class ) )
             {
                 test!("is")(*map.get(key), V.init);
+            }
+            else static if ( isFloatingPointType!(V) )
+            {
+                // Specialised test for floating point types, where
+                // V.init != V.init
+                test(isNaN(*map.get(key))); // Value does not equal previously set value
             }
             else
             {
@@ -444,4 +452,5 @@ unittest
     // class
     HashMap!(int) hi;
     HashMap!(char[]) hs;
+    HashMap!(float) hf;
 }
