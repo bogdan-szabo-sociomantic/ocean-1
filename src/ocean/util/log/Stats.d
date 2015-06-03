@@ -644,7 +644,11 @@ public class StatsLog : IStatsLog
         {
             static assert (is (T == struct) || is (T == class),
                            "Parameter to add must be a struct or a class");
-            this.formatAggregate(parameter, suffix);
+            foreach ( i, value; parameter.tupleof )
+            {
+                this.formatValue(FieldName!(i, T), value,
+                                 this.add_separator, suffix);
+            }
         }
 
         this.add_separator = true;
@@ -680,18 +684,20 @@ public class StatsLog : IStatsLog
             values = aggregate containing values to write to the log. Passed as
                 ref purely to avoid making a copy -- the aggregate is not
                 modified.
-            suffix = optional suffix to append to the values' names
 
     ***************************************************************************/
 
-    private void formatAggregate ( T ) ( ref T values, char[] suffix = null )
+    private void formatAggregate ( T ) ( ref T values )
     {
         foreach ( i, value; values.tupleof )
         {
             // stringof results in something like "values.somename", we want
             // only "somename"
-            this.formatValue(FieldName!(i, T), value, this.add_separator,
-                             suffix);
+            if (this.add_separator)
+            {
+                this.layout(' ');
+            }
+            this.formatValue!(null)(FieldName!(i, T), value, cstring.init);
             this.add_separator = true;
         }
     }
@@ -862,6 +868,7 @@ public abstract class IStatsLog
 
     ***************************************************************************/
 
+    deprecated("Use the new formatValue(istring, V)(cstring, V, cstring")
     protected void formatValue ( V ) ( char[] name, V value, bool add_separator,
         char[] suffix = null )
     {
