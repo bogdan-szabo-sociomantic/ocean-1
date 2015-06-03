@@ -171,6 +171,11 @@ public class HashMap ( V ) : Map!(V, hash_t)
 
     ***************************************************************************/
 
+    version ( UnitTest )
+    {
+        import ocean.core.Test;
+    }
+
     unittest
     {
         version ( UnitTestVerbose )
@@ -191,7 +196,7 @@ public class HashMap ( V ) : Map!(V, hash_t)
 
         bool lengthIs ( size_t expected )
         {
-            assert(map.length == expected);
+            test!("==")(map.length, expected);
 
             int c;
             foreach ( k, v; map )
@@ -205,7 +210,7 @@ public class HashMap ( V ) : Map!(V, hash_t)
         {
             auto len = map.length;
 
-            assert(((key in map) !is null) == should_exist);
+            test!("==")(((key in map) !is null), should_exist);
 
             auto e = map.put(key);
 
@@ -217,7 +222,7 @@ public class HashMap ( V ) : Map!(V, hash_t)
                 printState();
             }
 
-            assert((key in map) !is null);
+            test!("!is")((key in map), null);
 
             static if (is (V U : U[]) && !is (V == V[]))
             {
@@ -225,18 +230,18 @@ public class HashMap ( V ) : Map!(V, hash_t)
 
                 V v_init;
 
-                assert(*map.get(key) == v_init);
+                test!("==")(*map.get(key), v_init);
             }
             else static if ( is ( V == class ) )
             {
-                assert(*map.get(key) is V.init);
+                test!("is")(*map.get(key), V.init);
             }
             else
             {
-                assert(*map.get(key) == V.init, "Value does not equal previously set value");
+                test!("==")(*map.get(key), V.init); // Value does not equal previously set value
             }
 
-            assert(lengthIs(len + (should_exist ? 0 : 1)),
+            test(lengthIs(len + (should_exist ? 0 : 1)),
                    "Length different from foreach-counted elements!");
         }
 
@@ -245,7 +250,7 @@ public class HashMap ( V ) : Map!(V, hash_t)
             auto len = map.length;
             auto pool_len = map.bucket_info.num_buckets;
 
-            assert(((key in map) !is null) == should_exist);
+            test!("==")(((key in map) !is null), should_exist);
 
             auto e = map.remove(key);
             version ( UnitTestVerbose )
@@ -254,9 +259,9 @@ public class HashMap ( V ) : Map!(V, hash_t)
                 printState();
             }
 
-            assert(!(key in map));
-            assert(lengthIs(len - (should_exist ? 1 : 0)));
-            assert(pool_len == map.bucket_info.num_buckets);
+            test(!(key in map));
+            test(lengthIs(len - (should_exist ? 1 : 0)));
+            test!("==")(pool_len, map.bucket_info.num_buckets);
         }
 
         void clear ( )
@@ -270,9 +275,9 @@ public class HashMap ( V ) : Map!(V, hash_t)
                 printState();
             }
 
-            assert(lengthIs(0));
+            test(lengthIs(0));
 
-            assert(pool_len == map.bucket_info.num_buckets);
+            test!("==")(pool_len, map.bucket_info.num_buckets);
         }
 
         uint[hash_t] expected_keys;
@@ -283,16 +288,16 @@ public class HashMap ( V ) : Map!(V, hash_t)
             {
                 uint* n = key in expected_keys;
 
-                assert (n !is null);
+                test!("!is")(n, null);
 
-                assert (!*n, "duplicate key");
+                test(!*n, "duplicate key");
 
                 (*n)++;
             }
 
             foreach (n; expected_keys)
             {
-                assert (n == 1);
+                test!("==")(n, 1);
             }
         }
 
@@ -327,10 +332,9 @@ public class HashMap ( V ) : Map!(V, hash_t)
         checkContent();
 
         clear();
-
         foreach (key, val; map)
         {
-            assert (false);
+            test(false);
         }
 
         put(4711, false);   // put
@@ -357,10 +361,9 @@ public class HashMap ( V ) : Map!(V, hash_t)
         checkContent();
 
         clear();
-
         foreach (key, val; map)
         {
-            assert (false);
+            test(false);
         }
 
         map.put(1);
@@ -378,25 +381,25 @@ public class HashMap ( V ) : Map!(V, hash_t)
         {
             foreach (i, ref k, ref v; it )
             {
-                assert ( i == 0, "Didn't interrupt when expected 1" );
+                test!("==")( i, 0); // Didn't interrupt when expected 1
                 if ( i % 3 == 0 ) break;
             }
 
             foreach (i, ref k, ref v; it )
             {
-                assert ( i >= 1 && i <= 3, "Didn't interrupt when expected 2" );
+                test( i >= 1 && i <= 3, "Didn't interrupt when expected 2" );
                 if ( i % 3 == 0 ) break;
             }
 
             foreach (i, ref k, ref v; it )
             {
-                assert ( i >= 4 && i <= 6, "Didn't interrupt when expected 3" );
+                test( i >= 4 && i <= 6, "Didn't interrupt when expected 3" );
                 if ( i % 3 == 0 ) break;
             }
 
             foreach (i, ref k, ref v; it )
             {
-                assert ( i >= 7 && i <= 9, "Didn't interrupt when expected 4" );
+                test( i >= 7 && i <= 9, "Didn't interrupt when expected 4" );
                 if ( i % 3 == 0 ) break;
             }
         }
@@ -406,21 +409,21 @@ public class HashMap ( V ) : Map!(V, hash_t)
         testPartial(not_looping_it);
 
         // Should be finished
-        assert ( not_looping_it.finished() == true );
+        test( not_looping_it.finished() );
 
         // Should not run again
         foreach (i, ref k, ref v; not_looping_it )
         {
-            assert ( 1 == 0, "Ran iteration even though it should be finished" );
+            test(false, "Ran iteration even though it should be finished");
         }
 
         not_looping_it.reset();
 
-        assert ( not_looping_it.finished() == false );
+        test( !not_looping_it.finished() );
 
         // After manual reset, should loop again
         testPartial(not_looping_it);
-        assert ( not_looping_it.finished() == true );
+        test( not_looping_it.finished() );
 
 //            foreach (i, bucket; map.buckets)
 //            {
