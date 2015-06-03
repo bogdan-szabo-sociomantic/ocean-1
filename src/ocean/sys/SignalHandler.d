@@ -56,7 +56,7 @@
 
 *******************************************************************************/
 
-module ocean.sys.SignalHandler;
+deprecated module ocean.sys.SignalHandler;
 
 
 
@@ -80,6 +80,7 @@ version (Posix) import tango.stdc.posix.signal: SIGALRM, SIGBUS,  SIGCHLD,
 
 
 
+deprecated("Use ocean.util.app.ext.SignalExt instead")
 class SignalHandler
 {
     /**************************************************************************

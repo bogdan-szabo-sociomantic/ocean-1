@@ -17,6 +17,10 @@ Removed Deprecated Modules
 Deprecations
 ============
 
+* `ocean.sys.SignalHandler`
+
+  This old module was quite a mess. Applications using it should be updated to
+  use `ocean.util.app.ext.SignalExt` instead.
 
 New Features
 ============

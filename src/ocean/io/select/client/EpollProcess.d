@@ -143,8 +143,6 @@ import ocean.io.select.client.model.ISelectClient;
 
 import ocean.io.select.EpollSelectDispatcher;
 
-import ocean.sys.SignalHandler;
-
 import ocean.io.select.client.SignalEvent;
 
 import tango.io.model.IConduit;
@@ -158,6 +156,8 @@ debug import ocean.io.Stdout;
 import tango.stdc.errno;
 
 import tango.util.log.Log;
+
+import tango.stdc.posix.signal : SIGCHLD;
 
 
 
@@ -245,8 +245,7 @@ public abstract class EpollProcess
 
             this.processes = new StandardKeyHashingMap!(EpollProcess, int)(20);
 
-            this.signal_event = new SignalEvent(&this.signalHandler,
-                    [SignalHandler.Signals.SIGCHLD]);
+            this.signal_event = new SignalEvent(&this.signalHandler, [SIGCHLD]);
         }
 
 
