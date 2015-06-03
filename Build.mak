@@ -47,6 +47,9 @@ TEST_FILTER_OUT += \
 	$C/src/tango/io/selector/Selector.d \
 	$C/src/tango/io/selector/SelectorException.d
 
+# This is an integration test that depends on Collectd -- Don't run it
+TEST_FILTER_OUT += $C/test/collectd/main.d
+
 ifeq ($(DVER),1)
 override DFLAGS := $(filter-out -di,$(DFLAGS)) -v2 -v2=-static-arr-params -v2=-volatile
 else
