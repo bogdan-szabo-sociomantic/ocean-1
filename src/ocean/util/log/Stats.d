@@ -886,4 +886,54 @@ public abstract class IStatsLog
             this.layout(name, ':', value);
         }
     }
+
+
+    /***************************************************************************
+
+        Writes the specified name:value pair to the layout.
+
+        Template Params:
+            category = The category of the structure, such as 'channels',
+                       'users'... Can be null (see 'instance' parameter).
+            V        = type of value. Assumed to be handled by Layout
+
+        Params:
+            value_name = name of the value we log in that category.
+                         If a category is a structure, a value_name
+                         is the name of a field. This value should not
+                         be null.
+            value    = value of stats log entry
+            instance = name of the object in a given category.
+                       For example, if the category is 'channels', then a name
+                       name would be a channel name, like 'campaign_metadata'.
+                       This value should be null if category is null,
+                       and non-null otherwise.
+
+    ***************************************************************************/
+
+    protected void formatValue (istring category, V)
+        (cstring value_name, V value, cstring instance = null)
+    in
+    {
+        assert(value_name !is null);
+        static if (category.length)
+        {
+            assert(instance !is null);
+        }
+        else
+        {
+            assert(instance is null);
+        }
+    }
+    body
+    {
+        static if (category.length)
+        {
+            this.layout(category, '/', instance, '/', value_name, ':', value);
+        }
+        else
+        {
+            this.layout(value_name, ':', value);
+        }
+    }
 }
