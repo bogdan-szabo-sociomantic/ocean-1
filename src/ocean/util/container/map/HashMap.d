@@ -453,4 +453,5 @@ unittest
     HashMap!(int) hi;
     HashMap!(char[]) hs;
     HashMap!(float) hf;
+    HashMap!(Object) ho;
 }
