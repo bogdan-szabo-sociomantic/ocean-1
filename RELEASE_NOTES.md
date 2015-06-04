@@ -32,6 +32,12 @@ Deprecations
   This old module was quite a mess. Applications using it should be updated to
   use `ocean.util.app.ext.SignalExt` instead.
 
+* `ocean.util.serialize.model.Version`
+
+  Renamed to `ocean.util.serialize.Version` because placing it in model package
+  discourage developers from using it in application code casually (which was never
+  the intention)
+
 New Features
 ============
 

@@ -46,7 +46,7 @@ import tango.core.Traits,
 
 import ocean.util.serialize.contiguous.MultiVersionDecorator,
        ocean.util.serialize.contiguous.Serializer,
-       ocean.util.serialize.model.Version;
+       ocean.util.serialize.Version;
 
 /*******************************************************************************
 

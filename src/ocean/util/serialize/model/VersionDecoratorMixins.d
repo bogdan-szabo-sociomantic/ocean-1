@@ -21,7 +21,7 @@ import ocean.core.Exception,
        ocean.util.container.ConcatBuffer,
        ocean.core.StructConverter;
 
-import ocean.util.serialize.model.Version,
+import ocean.util.serialize.Version,
        ocean.util.serialize.model.Traits;
 
 import tango.text.convert.Format,

@@ -20,8 +20,8 @@ import ocean.core.Exception,
        ocean.util.container.ConcatBuffer,
        ocean.core.StructConverter : structCopy;
 
-import ocean.util.serialize.model.Traits,
-       ocean.util.serialize.model.Version,
+import ocean.util.serialize.Version,
+       ocean.util.serialize.model.Traits,
        ocean.util.serialize.model.VersionDecoratorMixins;
 
 import ocean.util.serialize.contiguous.Deserializer,
