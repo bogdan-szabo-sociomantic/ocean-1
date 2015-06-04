@@ -920,8 +920,8 @@ public abstract class IStatsLog
     ***************************************************************************/
 
     deprecated("Use the new formatValue(istring, V)(cstring, V, cstring")
-    protected void formatValue ( V ) ( char[] name, V value, bool add_separator,
-        char[] suffix = null )
+    protected void formatValue ( V ) ( cstring name, V value, bool add_separator,
+        cstring suffix = null )
     {
         if (add_separator)
         {
