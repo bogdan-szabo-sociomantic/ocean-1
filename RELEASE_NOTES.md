@@ -59,6 +59,9 @@ Deprecations
     All values must be encapsulated in a struct.
   * Logging of structs containing non-numeric types issues a warning. This behaviour will soon be removed.
 
+* `ocean.util.ReusableException`
+
+  `assertEx` is renamed to `enforce` to match `ocean.core.Exception`
 
 New Features
 ============
@@ -80,3 +83,10 @@ New Features
   `adpan/zalando/clicks: 4 adpan/zalando/views: 400`
 
   If you plan to use this feature, check with Infrastructure team to get your scripts updated.
+
+* `ocean.util.ReusableException`
+
+  `ReusableException` class has been reimplemented to have semantics compatible with D2
+  and `ocean.core.Exception.enforce`. Now it uses different member field for reusable
+  mutable buffer and thus allows to set `.msg` to immutable literal (as `enforce` does).
+  Usage of member `enforce` method is still necessary for non-literal messages.
