@@ -32,6 +32,10 @@ Removed Deprecated Modules
 
 * `ocean.core.UniStruct`
 
+* `ocean.io.compress.Zlib`
+
+  This module wasn't used anywhere nor tested, and date from 2009.
+
 Deprecations
 ============
 
