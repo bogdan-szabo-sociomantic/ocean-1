@@ -199,7 +199,7 @@ unittest
     S1 a1, b1;
     a1.x = [ 1, 2, 3];
     b1.x = [ 1, 2, 3];
-    assert(a1 != b1);
+    assert(a1 !is b1);
     assert(deepEquals(a1, b1));
     assert(a1.x == b1.x);
     S2 a2, b2;
