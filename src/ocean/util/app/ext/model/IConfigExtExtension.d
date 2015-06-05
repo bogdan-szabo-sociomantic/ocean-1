@@ -61,8 +61,8 @@ interface IConfigExtExtension : IExtension
 
     ***************************************************************************/
 
-    char[][] filterConfigFiles ( IApplication app, ConfigParser config,
-            char[][] files );
+    istring[] filterConfigFiles ( IApplication app, ConfigParser config,
+                                  istring[] files );
 
 
     /***************************************************************************
@@ -78,4 +78,3 @@ interface IConfigExtExtension : IExtension
     void processConfig ( IApplication app, ConfigParser config );
 
 }
-

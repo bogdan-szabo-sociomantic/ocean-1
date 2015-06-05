@@ -63,7 +63,7 @@ interface IArgumentsExtExtension : IExtension
 
     ***************************************************************************/
 
-    char[] validateArgs ( IApplication app, Arguments args );
+    cstring validateArgs ( IApplication app, Arguments args );
 
 
     /***************************************************************************
@@ -80,4 +80,3 @@ interface IArgumentsExtExtension : IExtension
     void processArgs ( IApplication app, Arguments args );
 
 }
-
