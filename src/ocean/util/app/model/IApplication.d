@@ -33,7 +33,7 @@ public interface IApplication : IApplicationExtension
 
     ***************************************************************************/
 
-    char[] name ( );
+    istring name ( );
 
 
     /***************************************************************************
@@ -50,6 +50,5 @@ public interface IApplication : IApplicationExtension
 
     ***************************************************************************/
 
-    void exit ( int status, char[] msg = null );
+    void exit ( int status, istring msg = null );
 }
-

@@ -54,7 +54,7 @@ interface IApplicationExtension : IExtension
 
     ***************************************************************************/
 
-    void preRun ( IApplication app, char[][] args );
+    void preRun ( IApplication app, istring[] args );
 
 
     /***************************************************************************
@@ -71,7 +71,7 @@ interface IApplicationExtension : IExtension
 
     ***************************************************************************/
 
-    void postRun ( IApplication app, char[][] args, int status );
+    void postRun ( IApplication app, istring[] args, int status );
 
 
     /***************************************************************************
@@ -95,7 +95,7 @@ interface IApplicationExtension : IExtension
 
     ***************************************************************************/
 
-    void atExit ( IApplication app, char[][] args, int status,
+    void atExit ( IApplication app, istring[] args, int status,
             ExitException exception );
 
 
@@ -116,8 +116,7 @@ interface IApplicationExtension : IExtension
 
     ***************************************************************************/
 
-    ExitException onExitException ( IApplication app, char[][] args,
+    ExitException onExitException ( IApplication app, istring[] args,
             ExitException exception );
 
 }
-
