@@ -42,11 +42,10 @@ private class ExitException : Exception
 
     ***************************************************************************/
 
-    this ( int status, char[] msg = null )
+    this ( int status, istring msg = null )
     {
         super(msg);
         this.status = status;
     }
 
 }
-

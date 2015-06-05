@@ -66,7 +66,7 @@ import ocean.util.app.ext.model.IArgumentsExtExtension;
             args("return").aliased('r').params(1).smush().defaults("0")
                 .help("code to return to the OS");
         }
-        public override char[] validateArgs( IApplication app, Arguments args )
+        public override cstring validateArgs( IApplication app, Arguments args )
         {
             if (toInt(args("return").assigned[0]) < 0)
             {
@@ -85,7 +85,7 @@ import ocean.util.app.ext.model.IArgumentsExtExtension;
 
     }
 
-    int main(char[][] args)
+    int main(istring[] args)
     {
         auto app = new Returner;
         return app.main(args);
@@ -135,8 +135,8 @@ abstract class CommandLineApp : Application, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public this ( char[] name, char[] desc,
-            char[] usage = null, char[] help = null )
+    public this ( istring name, istring desc,
+            istring usage = null, istring help = null )
     {
         super(name, desc);
         this.args_ext = new ArgumentsExt(name, desc, usage, help);
@@ -156,7 +156,7 @@ abstract class CommandLineApp : Application, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    protected override int run ( char[][] args )
+    protected override int run ( istring[] args )
     {
         return this.run(this.args);
     }
@@ -197,7 +197,7 @@ abstract class CommandLineApp : Application, IArgumentsExtExtension
         // Dummy implementation of the interface
     }
 
-    public char[] validateArgs ( IApplication app, Arguments args )
+    public cstring validateArgs ( IApplication app, Arguments args )
     {
         // Dummy implementation of the interface
         return null;
@@ -209,4 +209,3 @@ abstract class CommandLineApp : Application, IArgumentsExtExtension
     }
 
 }
-

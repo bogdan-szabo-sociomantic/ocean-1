@@ -42,7 +42,7 @@ import ocean.util.app.ext.ConfigExt;
     file parsing.
 
     So, for using this class you should usually need to implement the new
-    run(char[][] args, ConfigParser config) method and the preParseConfig(),
+    run(istring[] args, ConfigParser config) method and the preParseConfig(),
     filterConfigFiles() and processConfig() methods if you want to use customize
     how configuration files are parsed and processed.
 
@@ -64,14 +64,14 @@ import ocean.util.app.ext.ConfigExt;
         {
             this.r = config.get("RETURN", "return_code", 0);
         }
-        protected override int run ( char[][] args, ConfigParser config )
+        protected override int run ( istring[] args, ConfigParser config )
         {
             return this.r;
         }
 
     }
 
-    int main(char[][] args)
+    int main(istring[] args)
     {
         auto app = new Returner;
         return app.main(args);
@@ -121,8 +121,8 @@ abstract class ConfiguredApp : Application, IConfigExtExtension
 
     ***************************************************************************/
 
-    this ( char[] name, char[] desc, bool loose_config_parsing = false,
-            char[][] default_configs = [ "etc/config.ini" ],
+    this ( istring name, istring desc, bool loose_config_parsing = false,
+            istring[] default_configs = [ "etc/config.ini" ],
             ConfigParser config = null )
     {
         super(name, desc);
@@ -136,7 +136,7 @@ abstract class ConfiguredApp : Application, IConfigExtExtension
 
     /***************************************************************************
 
-        Run implementation that forwards to run(char[][] args, ConfigParser
+        Run implementation that forwards to run(istring[] args, ConfigParser
         config).
 
         You shouldn't override this method anymore, unless you're doing
@@ -145,7 +145,7 @@ abstract class ConfiguredApp : Application, IConfigExtExtension
 
     ***************************************************************************/
 
-    protected override int run ( char[][] args )
+    protected override int run ( istring[] args )
     {
         return this.run(args, this.config);
     }
@@ -167,5 +167,5 @@ abstract class ConfiguredApp : Application, IConfigExtExtension
 
     ***************************************************************************/
 
-    protected abstract int run ( char[][] args, ConfigParser config );
+    protected abstract int run ( istring[] args, ConfigParser config );
 }

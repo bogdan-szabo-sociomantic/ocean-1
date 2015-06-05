@@ -69,7 +69,7 @@ import ocean.util.app.ext.ConfigExt;
             args("return").aliased('r').params(1).smush().defaults("0")
                 .help("code to return to the OS");
         }
-        public override char[] validateArgs( Application app, Arguments args )
+        public override cstring validateArgs( Application app, Arguments args )
         {
             if (toInt(args("return").assigned[0]) < 0)
             {
@@ -92,7 +92,7 @@ import ocean.util.app.ext.ConfigExt;
 
     }
 
-    int main(char[][] args)
+    int main(istring[] args)
     {
         auto app = new Returner;
         return app.main(args);
@@ -145,9 +145,9 @@ abstract class ConfiguredCliApp : CommandLineApp, IConfigExtExtension
 
     ***************************************************************************/
 
-    this ( char[] name, char[] desc, char[] usage = null, char[] help = null,
+    this ( istring name, istring desc, istring usage = null, istring help = null,
             bool loose_config_parsing = false,
-            char[][] default_configs = [ "etc/config.ini" ],
+            istring[] default_configs = [ "etc/config.ini" ],
             ConfigParser config = null )
     {
         super(name, desc, usage, help);
@@ -161,7 +161,7 @@ abstract class ConfiguredCliApp : CommandLineApp, IConfigExtExtension
 
     /***************************************************************************
 
-        Run implementation that forwards to run(char[][] args, ConfigParser
+        Run implementation that forwards to run(istring[] args, ConfigParser
         config).
 
         You shouldn't override this method anymore, unless you're doing
@@ -212,8 +212,9 @@ abstract class ConfiguredCliApp : CommandLineApp, IConfigExtExtension
         // Dummy implementation of the interface
     }
 
-    public override char[][] filterConfigFiles ( IApplication app,
-            ConfigParser config, char[][] files )
+    public override istring[] filterConfigFiles ( IApplication app,
+                                                  ConfigParser config,
+                                                  istring[] files )
     {
         // Dummy implementation of the interface
         if (files.length)
@@ -229,4 +230,3 @@ abstract class ConfiguredCliApp : CommandLineApp, IConfigExtExtension
     }
 
 }
-

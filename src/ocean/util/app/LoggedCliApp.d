@@ -68,7 +68,7 @@ import tango.util.log.Log;
             args("return").aliased('r').params(1).smush().defaults("0")
                 .help("code to return to the OS");
         }
-        public override char[] validateArgs( IApplication app, Arguments args )
+        public override cstring validateArgs( IApplication app, Arguments args )
         {
             if (toInt(args("return").assigned[0]) < 0)
             {
@@ -92,7 +92,7 @@ import tango.util.log.Log;
 
     }
 
-    int main(char[][] args)
+    int main(istring[] args)
     {
         auto app = new Returner;
         return app.main(args);
@@ -138,9 +138,9 @@ abstract class LoggedCliApp : ConfiguredCliApp, ILogExtExtension
 
     ***************************************************************************/
 
-    this ( char[] name, char[] desc, char[] usage = null, char[] help = null,
+    this ( istring name, istring desc, istring usage = null, istring help = null,
            bool use_insert_appender = false, bool loose_config_parsing = false,
-           char[][] default_configs = [ "etc/config.ini" ],
+           istring[] default_configs = [ "etc/config.ini" ],
            ConfigParser config = null )
     {
         super(name, desc, usage, help, loose_config_parsing, default_configs,
@@ -167,7 +167,7 @@ abstract class LoggedCliApp : ConfiguredCliApp, ILogExtExtension
 
     ***************************************************************************/
 
-    public void exit(int status, char[] msg = null, Logger logger = null )
+    public void exit(int status, istring msg = null, Logger logger = null )
     {
         if (logger !is null)
         {
@@ -204,4 +204,3 @@ abstract class LoggedCliApp : ConfiguredCliApp, ILogExtExtension
     }
 
 }
-

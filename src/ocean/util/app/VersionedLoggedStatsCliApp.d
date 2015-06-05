@@ -66,11 +66,11 @@ abstract class VersionedLoggedStatsCliApp : VersionedLoggedCliApp
 
     ***************************************************************************/
 
-    this ( char[] name, char[] desc, VersionInfo ver,
-           char[] usage = null, char[] help = null,
+    this ( istring name, istring desc, VersionInfo ver,
+           istring usage = null, istring help = null,
            bool use_insert_appender = false,
            bool loose_config_parsing = false,
-           char[][] default_configs = [ "etc/config.ini" ],
+           istring[] default_configs = [ "etc/config.ini" ],
            ConfigParser config = null )
     {
         super(name, desc, ver, usage, help, use_insert_appender,

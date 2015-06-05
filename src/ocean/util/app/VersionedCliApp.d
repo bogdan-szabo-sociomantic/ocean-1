@@ -58,7 +58,7 @@ import ocean.util.app.ext.VersionArgsExt;
 
     }
 
-    int main(char[][] args)
+    int main(istring[] args)
     {
         auto app = new Test;
         return app.main(args);
@@ -107,8 +107,8 @@ abstract class VersionedCliApp : CommandLineApp
 
     ***************************************************************************/
 
-    this ( char[] name, char[] desc, VersionInfo ver,
-            char[] usage = null, char[] help = null )
+    this ( istring name, istring desc, VersionInfo ver,
+            istring usage = null, istring help = null )
     {
         super(name, desc, usage, help);
         this.ver_ext = new VersionArgsExt(ver);
@@ -117,4 +117,3 @@ abstract class VersionedCliApp : CommandLineApp
     }
 
 }
-
