@@ -21,6 +21,10 @@ Migration Instructions
   Handling of the old argument format for overriding config values from the command line
   (`[cat]key=value`) has been removed. Use the simpler `cat.key=value` format instead.
 
+* `ocean.util.config.ConfigParser`
+
+  The parser will no longer warn on spaces in the category name.
+
 Removed Deprecated Modules
 --------------------------
 

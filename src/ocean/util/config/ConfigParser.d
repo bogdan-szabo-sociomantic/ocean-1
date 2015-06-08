@@ -1107,24 +1107,9 @@ class ConfigParser
         {
             this.saveFromParsingContext();
 
-            auto cat = line[pos + 1 .. locate(line, ']')];
+            auto cat = trim(line[pos + 1 .. locate(line, ']')]);
 
-            // XXX: This code should be adapted to remove the warning at some
-            //      point (introduced on Tue Oct 21 18:07:51 CEST 2014)
-            auto trimmed_cat = trim(cat);
-
-            if ( trimmed_cat != cat && this._warn_trimmed_categories )
-            {
-                Stderr.yellow;
-                Stderr.formatln("Warning: Category name '{}' will be " ~
-                        "trimmed, becoming '{}' instead.", cat, trimmed_cat);
-                Stderr.formatln("         Please update your configuration " ~
-                        "file to omit the spaces for now, until this " ~
-                        "warning is disabled.");
-                Stderr.default_colour.flush;
-            }
-
-            ctx.category.copy(trimmed_cat);
+            ctx.category.copy(cat);
 
             ctx.key.length = 0;
         }
@@ -1155,12 +1140,6 @@ class ConfigParser
             }
         }
     }
-
-    // XXX: This should be removed at some point, it was introduced on
-    //      Tue Oct 21 18:07:51 CEST 2014 to warn about trimmed categories while
-    //      parsing lines. Should only be disabled (set to false) to silence
-    //      output during tests.
-    public bool _warn_trimmed_categories = true;
 }
 
 
@@ -1215,11 +1194,6 @@ unittest
     }
 
     scope Config = new ConfigParser();
-
-    // XXX: This should be removed at some point, it was introduced on
-    //      Tue Oct 21 18:07:51 CEST 2014 to skip the warning about trimmed
-    //      categories while parsing lines in tests.
-    Config._warn_trimmed_categories = false;
 
     /***************************************************************************
 
@@ -1477,4 +1451,3 @@ three = teen
 
     Config.clearParsingContext();
 }
-
