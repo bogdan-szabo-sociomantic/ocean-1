@@ -211,7 +211,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
         foreach (opt; args("override-config").assigned)
         {
             auto error = this.parseOverride(opt, category, key, value);
-            assert (error is null || error == "OLD FORMAT",
+            assert (error is null,
                     "Unexpected error while processing overrides, errors " ~
                     "should have been caught by the validateArgs() method");
 
@@ -250,14 +250,6 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
             char[] val;
 
             auto error = this.parseOverride(opt, cat, key, val);
-
-            if (error == "OLD FORMAT")
-            {
-                Stderr.yellow.formatln("Deprecation: Old config override " ~
-                        "syntax detected for '{}', please use '{}.{}={}' " ~
-                        "instead.", opt, cat, key, val).default_colour.flush;
-                continue;
-            }
 
             if (error is null)
                 continue;
@@ -372,11 +364,6 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
         No allocations are performed for those variables, although some
         allocations are performed in case of errors (but only on errors).
 
-        For now it accepts both the new format (category.key=value) and the old
-        format ([category]key=value), but it returns an error "OLD FORMAT" if
-        the old format is used. This is transitional, of course, and it will be
-        removed in the future.
-
         Since keys can't have a dot ("."), cate.gory.key=value will be
         interpreted as category="cate.gory", key="key" and value="value".
 
@@ -399,13 +386,6 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
         if (opt.length == 0)
             return "Option can't be empty";
-
-        // Check for old format
-        if (opt[0] == '[')
-        {
-            this.parseOldOverride(opt, category, key, value);
-            return "OLD FORMAT";
-        }
 
         auto key_end = locate(opt, '=');
         if (key_end == opt.length)
@@ -430,45 +410,6 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
         return null;
     }
-
-
-    /***************************************************************************
-
-        Parses an overriden config in the old [category]key=value format.
-
-        All category, key and value are filled with slices to the original opt
-        string, so if you need to store them you probably want to dup() them.
-        No allocations are performed.
-
-        XXX: This method will be gone after some time, when the old format is
-             not supported anymore.
-
-        Params:
-            opt = the overriden config as specified on the command-line
-            category = buffer to be filled with the parsed category
-            key = buffer to be filled with the parsed key
-            value = buffer to be filled with the parsed value
-
-    ***************************************************************************/
-
-    private void parseOldOverride ( char[] opt, ref char[] category,
-            ref char[] key, ref char[] value )
-    in
-    {
-        assert(opt.length > 0);
-        assert(opt[0] == '[');
-    }
-    body
-    {
-        auto category_end = locate(opt, ']');
-        category = trim(opt[1 .. category_end]);
-
-        auto key_end = locate(opt, '=');
-        key = trim(opt[category_end + 1 .. key_end]);
-
-        value = trim(opt[key_end + 1 .. $]);
-    }
-
 }
 
 
@@ -527,12 +468,6 @@ unittest
         testParser(opt, null, null, null, expected_error);
     }
 
-    // Old format
-    testParser("[cat]key=value", "cat", "key", "value", "OLD FORMAT");
-    testParser(" [cat]key=value", "cat", "key", "value", "OLD FORMAT");
-    testParser(" [ cat ] key = value", "cat", "key", "value", "OLD FORMAT");
-    // Old format handle errors very badly, throwing exceptions (if lucky)
-
     // New format
     testParser("cat.key=value", "cat", "key", "value");
     testParser("cat.key = value", "cat", "key", "value");
@@ -552,4 +487,3 @@ unittest
     testParserError("  empty . val = \t ", null);
     testParserError("  .   = \t ", "Empty ");
 }
-

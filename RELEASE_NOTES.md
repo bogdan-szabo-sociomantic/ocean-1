@@ -16,6 +16,10 @@ Migration Instructions
   is no longer a valid argument (use `""` or `[]` instead), explicit template parameter
   may not work (but should be never needed)
 
+* `ocean.util.app.ext.ConfigExt`
+
+  Handling of the old argument format for overriding config values from the command line
+  (`[cat]key=value`) has been removed. Use the simpler `cat.key=value` format instead.
 
 Removed Deprecated Modules
 --------------------------
